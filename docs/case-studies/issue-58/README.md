@@ -1,5 +1,9 @@
 # Issue 58 Case Study: Real Example Package Release
 
+> Archived template evidence: the retired package identifier has been redacted
+> as `historical-template-package`. These captures do not describe the current
+> `universal-translator` package or prove its publication.
+
 ## Scope
 
 Issue: https://github.com/link-foundation/js-ai-driven-development-pipeline-template/issues/58
@@ -7,24 +11,24 @@ Issue: https://github.com/link-foundation/js-ai-driven-development-pipeline-temp
 Pull request: https://github.com/link-foundation/js-ai-driven-development-pipeline-template/pull/59
 
 Issue 58 asked the JavaScript template to use the real test package name
-`@link-foundation/example-package-name`, publish it through the existing npm
+`historical-template-package`, publish it through the existing npm
 trusted-publishing workflow, keep GitHub Release creation working, deploy the
 universal example app to GitHub Pages, provide a globally installable CLI, and
 preserve the full investigation under this case-study directory.
 
 ## Requirements
 
-| Requirement                                                     | Resolution                                                                                                                                      |
-| --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| Use `@link-foundation/example-package-name` as the package name | Updated `package.json` and `package-lock.json`, and added regression coverage for the name.                                                     |
-| Keep npm publishing real and public                             | Added `publishConfig.access=public`, kept the existing OIDC trusted-publishing release jobs, and added a changeset for the next release.        |
-| Keep GitHub Release creation                                    | No release workflow code change was needed; GitHub Release creation still runs only after a successful npm publish.                             |
-| Add a globally installable CLI                                  | Added `bin/example-package-name.js` and the package `bin` mapping for the `example-package-name` command.                                       |
-| Ensure example app builds are produced                          | Verified logs showed web and desktop artifacts were already produced; fixed the Pages deployment configuration path that failed after upload.   |
-| Find why builds did not all release                             | Downloaded failed main workflow logs and identified one npm package-name failure and one repository Pages configuration failure.                |
-| Compare CI/CD templates                                         | Captured JavaScript, Rust, Python, and C# template file trees and release workflows under `data/`.                                              |
-| Store logs and data in this repository                          | Stored issue, PR, CI, registry, action-version, template-comparison, and verification data under `docs/case-studies/issue-58/data/`.            |
-| Add reproducing tests before fixing                             | Added package metadata and workflow assertions, then captured their failing output in `data/regression-before.log` before implementing the fix. |
+| Requirement                                           | Resolution                                                                                                                                      |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Use `historical-template-package` as the package name | Updated `package.json` and `package-lock.json`, and added regression coverage for the name.                                                     |
+| Keep npm publishing real and public                   | Added `publishConfig.access=public`, kept the existing OIDC trusted-publishing release jobs, and added a changeset for the next release.        |
+| Keep GitHub Release creation                          | No release workflow code change was needed; GitHub Release creation still runs only after a successful npm publish.                             |
+| Add a globally installable CLI                        | Added `bin/historical-template-package.js` and the package `bin` mapping for the `historical-template-package` command.                         |
+| Ensure example app builds are produced                | Verified logs showed web and desktop artifacts were already produced; fixed the Pages deployment configuration path that failed after upload.   |
+| Find why builds did not all release                   | Downloaded failed main workflow logs and identified one npm package-name failure and one repository Pages configuration failure.                |
+| Compare CI/CD templates                               | Captured JavaScript, Rust, Python, and C# template file trees and release workflows under `data/`.                                              |
+| Store logs and data in this repository                | Stored issue, PR, CI, registry, action-version, template-comparison, and verification data under `docs/case-studies/issue-58/data/`.            |
+| Add reproducing tests before fixing                   | Added package metadata and workflow assertions, then captured their failing output in `data/regression-before.log` before implementing the fix. |
 
 ## Timeline
 
@@ -53,7 +57,7 @@ Changesets retried and the release job failed.
 
 The selected fix is to make this repository a real scoped test package:
 
-- `package.json` name is now `@link-foundation/example-package-name`.
+- `package.json` name is now `historical-template-package`.
 - `package-lock.json` root metadata matches that package name.
 - `publishConfig.access` is `public`, which is required for a public scoped
   package publish.
@@ -63,7 +67,7 @@ The selected fix is to make this repository a real scoped test package:
 - A changeset is included so the next main release has an explicit release
   trigger.
 
-The npm registry probe in `data/npm-example-package-name-view.json` returned
+The npm registry probe in `data/npm-historical-template-package-view.json` returned
 404 before this PR, meaning the package is not visible as an already-published
 package to this environment. The first successful main release still depends on
 the npm-side trusted publisher being configured for the new package and this
@@ -107,7 +111,7 @@ the npm `bin` command is invoked through a generated link, so an entrypoint
 guard that compares only raw paths can miss the real CLI invocation. The CLI now
 resolves both paths before deciding whether to run, and
 `data/npm-global-install.log` shows the installed command returning `42` for
-`example-package-name multiply 6 7`.
+`historical-template-package multiply 6 7`.
 
 ## CI/CD Template Comparison
 
@@ -134,9 +138,9 @@ Raw evidence is stored under `docs/case-studies/issue-58/data/`.
 | `checks-and-release-25733140225.json`, `checks-and-release-25733140225.log`                          | Failed main release run showing the `my-package` npm publish failure.                                          |
 | `example-app-25733140224.json`, `example-app-25733140224.log`                                        | Failed example app run showing successful artifacts and failed Pages deployment.                               |
 | `ci-run-25743983223.json`, `checks-and-release-25743983223.log`                                      | Initial PR branch run for the prepared branch.                                                                 |
-| `npm-example-package-name-view.json`                                                                 | npm registry probe for `@link-foundation/example-package-name`.                                                |
+| `npm-historical-template-package-view.json`                                                          | npm registry probe for `historical-template-package`.                                                          |
 | `npm-whoami.log`                                                                                     | Local npm auth probe showing this environment cannot configure npm-side trusted publishing directly.           |
-| `npm-global-install.log`                                                                             | Temporary-prefix global install check for the generated `example-package-name` command.                        |
+| `npm-global-install.log`                                                                             | Temporary-prefix global install check for the generated `historical-template-package` command.                 |
 | `npm-pack-dry-run-final.json`                                                                        | `npm pack --dry-run --json --ignore-scripts` output showing the package name, tarball name, and shipped files. |
 | `pages-enable-result.json`, `pages-status-after-enable.json`                                         | GitHub Pages REST API enablement result and final repository Pages status.                                     |
 | `actions-*-release.json`                                                                             | Current release metadata for GitHub Actions used by the workflows.                                             |
@@ -171,9 +175,9 @@ Focused regression verification is stored in `data/regression-after.log` and
 
 The package tarball dry run in `data/npm-pack-dry-run-final.json` shows:
 
-- package id `@link-foundation/example-package-name@0.10.0`;
-- tarball `link-foundation-example-package-name-0.10.0.tgz`;
-- CLI file `bin/example-package-name.js` with executable mode;
+- package id `historical-template-package@0.10.0`;
+- tarball `historical-template-package-0.10.0.tgz`;
+- CLI file `bin/historical-template-package.js` with executable mode;
 - runtime files limited to `CHANGELOG.md`, `LICENSE`, `README.md`, `bin/`, and
   `src/`.
 

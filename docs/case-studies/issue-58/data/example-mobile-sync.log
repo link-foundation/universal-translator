@@ -1,5 +1,5 @@
 
-> @link-foundation/example-package-name@0.10.0 example:mobile:sync
+> historical-template-package@0.10.0 example:mobile:sync
 > npm --prefix examples/universal-app run mobile:sync
 
 

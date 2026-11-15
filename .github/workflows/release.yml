@@ -630,6 +630,7 @@ jobs:
         if: steps.publish.outputs.published == 'true'
         env:
           PACKAGE_VERSION: ${{ steps.publish.outputs.published_version }}
+          SMOKE_TEST_CLI_ARGS: '["--version"]'
         run: bash scripts/run-with-budget-warning.sh 600 "npm package smoke test" node scripts/smoke-test-package.mjs --package-version "$PACKAGE_VERSION"
 
       - name: Create GitHub Release
@@ -743,6 +744,7 @@ jobs:
         if: steps.publish.outputs.published == 'true'
         env:
           PACKAGE_VERSION: ${{ steps.publish.outputs.published_version }}
+          SMOKE_TEST_CLI_ARGS: '["--version"]'
         run: bash scripts/run-with-budget-warning.sh 600 "npm package smoke test" node scripts/smoke-test-package.mjs --package-version "$PACKAGE_VERSION"
 
       - name: Create GitHub Release

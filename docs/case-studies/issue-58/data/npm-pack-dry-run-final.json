@@ -1,13 +1,13 @@
 [
   {
-    "id": "@link-foundation/example-package-name@0.10.0",
-    "name": "@link-foundation/example-package-name",
+    "id": "historical-template-package@0.10.0",
+    "name": "historical-template-package",
     "version": "0.10.0",
     "size": 10947,
     "unpackedSize": 29697,
     "shasum": "ff4640c5ae222afc08cf4666fbe9fa6203e1e535",
     "integrity": "sha512-Vnqd9cRWlg20TPulYEP5ufbmppYKCv7AYZ/nY2LsHSLt21+KiuDAaNfgjuXim8GTXV2uJuRAycbKbB11WS1yiw==",
-    "filename": "link-foundation-example-package-name-0.10.0.tgz",
+    "filename": "historical-template-package-0.10.0.tgz",
     "files": [
       {
         "path": "CHANGELOG.md",
@@ -25,7 +25,7 @@
         "mode": 420
       },
       {
-        "path": "bin/example-package-name.js",
+        "path": "bin/historical-template-package.js",
         "size": 1940,
         "mode": 493
       },

@@ -1,12 +1,12 @@
 {
-  "name": "@link-foundation/example-package-name",
+  "name": "universal-translator",
   "version": "0.11.31",
   "description": "A JavaScript/TypeScript package template for AI-driven development",
   "type": "module",
   "main": "src/index.js",
   "types": "src/index.d.ts",
   "bin": {
-    "example-package-name": "./bin/example-package-name.js"
+    "universal-translator": "./bin/universal-translator.js"
   },
   "files": [
     "bin/",
@@ -61,7 +61,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/link-foundation/js-ai-driven-development-pipeline-template.git"
+    "url": "git+https://github.com/link-foundation/universal-translator.git"
   },
   "engines": {
     "node": ">=20.0.0"

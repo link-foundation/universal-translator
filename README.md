@@ -1,10 +1,7 @@
-# js-ai-driven-development-pipeline-template
+# universal-translator
 
-A comprehensive template for AI-driven JavaScript/TypeScript development with full CI/CD pipeline support.
-
-This repository publishes the real test package
-`@link-foundation/example-package-name` so the template release pipeline is
-validated end to end with npm trusted publishing.
+JavaScript/TypeScript package with a command-line interface and a universal app
+example. Releases use the existing Changesets pipeline and npm trusted publishing.
 
 ## Features
 
@@ -19,13 +16,16 @@ validated end to end with npm trusted publishing.
 
 ## Quick Start
 
-### Using This Template
+### Installation
 
-1. Click "Use this template" on GitHub to create a new repository
-2. Clone your new repository
-3. Update `package.json` with your package name and description
-4. Install dependencies: `bun install`
-5. Start developing!
+```bash
+npm install universal-translator
+npx universal-translator --version
+npx universal-translator add 2 3
+```
+
+These registry commands require the first release to have been published. For
+checkout-based use before publication, run `node bin/universal-translator.js --version`.
 
 ### Development
 
@@ -55,7 +55,7 @@ npm run example:web:build
 npm run example:desktop:package
 
 # Try the CLI locally
-node bin/example-package-name.js add 2 3
+node bin/universal-translator.js add 2 3
 ```
 
 ## Project Structure
@@ -138,14 +138,46 @@ The release workflow uses [Changesets](https://github.com/changesets/changesets)
 5. **Optional Docker Hub publishing**: When configured, waits for the exact npm version and tags the Docker image with that version
 6. **GitHub releases**: Auto-created with formatted release notes
 
-> **First release of a brand-new package**: OIDC trusted publishing cannot
-> create a package that does not exist yet (the first publish fails with
-> `E404`, because a trusted publisher can only be configured for an existing
-> package). To bootstrap, add a repository secret named `NPM_TOKEN` (a
-> granular/automation token with publish access). The release workflow passes
-> it as `NODE_AUTH_TOKEN` automatically. Once the package exists and OIDC
-> trusted publishing is configured on npmjs.com, the token becomes optional and
-> can be removed.
+#### First release and trusted publisher
+
+The npm package name is `universal-translator`. The repository must match the
+package's `repository.url`: `https://github.com/link-foundation/universal-translator`.
+The existing `.github/workflows/release.yml` is the publishing workflow for both
+automated and manual releases; both publishing jobs grant `id-token: write`
+and install npm with trusted publishing support.
+
+To bootstrap an unpublished package with the existing token fallback, configure
+repository secret `NPM_TOKEN` with a granular token that can create and publish
+this public package (including bypass 2FA permission). The workflow passes it as
+`NODE_AUTH_TOKEN`. Merge this PR and allow the pending changesets to produce the
+first version through the normal release process.
+
+In the npm package settings, attach a GitHub Actions trusted publisher with:
+
+| Field                | Value                  |
+| -------------------- | ---------------------- |
+| Organization or user | `link-foundation`      |
+| Repository           | `universal-translator` |
+| Workflow filename    | `release.yml`          |
+| Environment          | Leave empty            |
+| Permission           | Allow `npm publish`    |
+
+Follow the [npm trusted publishing instructions](https://docs.npmjs.com/trusted-publishers/)
+for account setup. After attaching the publisher, remove the bootstrap token and
+verify that Release Preflight reports a successful package-specific OIDC exchange.
+The preflight reports missing permissions on PRs and fails explicitly on `main`
+until publishing is configured.
+
+Verify the released artifact from a clean directory:
+
+```bash
+npm view universal-translator version
+npx --yes universal-translator --version
+```
+
+The release workflow also installs the exact published version and tests its
+library and CLI entry points. See [release verification](docs/issue-2-release.md)
+for the implementation checklist and remaining account-level setup.
 
 #### Manual Releases
 
@@ -268,15 +300,11 @@ Add regex patterns to `.lycheeignore` to exclude URLs from checks (e.g., local d
 
 ## Configuration
 
-### Updating Package Name
+### Package Identity
 
-After creating a repository from this template, update the package name in:
-
-1. `package.json`: replace `"@link-foundation/example-package-name"` with your package name
-2. `.changeset/config.json`: Package references
-
-Release scripts derive the package name from `package.json` at runtime, so no
-script-level package-name constants need to be edited during template adoption.
+`package.json` and `package-lock.json` use `universal-translator`. The installed
+command is `universal-translator`, provided by `bin/universal-translator.js`.
+Release scripts derive the package name from `package.json` at runtime.
 
 ### Protected-Branch Release Pull Requests
 

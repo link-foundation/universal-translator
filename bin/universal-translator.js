@@ -12,7 +12,7 @@ const COMMANDS = {
 
 function usage() {
   return [
-    'Usage: example-package-name <command> <left> <right>',
+    'Usage: universal-translator <command> <left> <right>',
     '',
     'Commands:',
     '  add       Add two numbers',
