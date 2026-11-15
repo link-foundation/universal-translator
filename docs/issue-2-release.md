@@ -17,6 +17,24 @@
 - Review PR diff, merge latest main, check CI for the final SHA, update PR #3,
   and mark ready for review. Leave the PR unmerged.
 
+## Local verification results
+
+- The focused Node.js run passed 73 tests covering package metadata, the installed
+  tarball, preflight probes, release workflow wiring, and registry smoke helpers.
+  The updated release workflow assertions also passed after adding `--version`.
+- Bun passed all 7 package artifact and metadata tests. Deno passed 6 with its
+  existing direct-bin-symlink test explicitly skipped; its installed tarball check
+  passed, including version/help/arithmetic and library import.
+- `node experiments/verify-package-rename.mjs` ran the artifact test against an
+  isolated copy of the original default branch and confirmed failure on its old
+  package-name assertion. The same artifact test passes on this branch.
+- Focused ESLint, required documentation, workflow configuration, changeset
+  validation, and whitespace checks passed. CI covers the full runtime/OS matrix
+  and the Changesets versioning dry run.
+- A tracked-file search found no retired package identifier in the working tree.
+  The package version remains `0.11.31`; the new patch changeset prepares the next
+  version through the existing release automation.
+
 ## Historical evidence
 
 The issue-58 case study came from the source template. Its retired package
@@ -35,5 +53,3 @@ attached publisher. These acceptance criteria remain **unfinished** until an npm
 maintainer bootstraps publication and attaches the GitHub Actions publisher for
 `link-foundation/universal-translator`, workflow `release.yml`, no environment,
 with publish permission. README contains the release and verification procedure.
-
-Fixes #2
