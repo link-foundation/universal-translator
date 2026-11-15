@@ -53,3 +53,15 @@ attached publisher. These acceptance criteria remain **unfinished** until an npm
 maintainer bootstraps publication and attaches the GitHub Actions publisher for
 `link-foundation/universal-translator`, workflow `release.yml`, no environment,
 with publish permission. README contains the release and verification procedure.
+
+## CI investigation
+
+The first CI run exposed a broken upstream Changesets FAQ link, disabled GitHub
+Dependency graph, and existing high-severity advisories in both npm lockfiles.
+The FAQ link now points at the current upstream document. Enabling Dependabot
+alerts restored the dependency graph API, so Dependency Review can run normally.
+Targeted compatible lockfile updates cover `launch-editor`, Vite, Electron, and
+both Undici versions; the Deno lock also includes the fixed editor dependency.
+Both npm audits pass the workflow's high-severity threshold. Nine moderate
+findings remain in the example app; no audit threshold or security check was
+relaxed. Deno's frozen-lockfile package tests pass with the updated dependency.
