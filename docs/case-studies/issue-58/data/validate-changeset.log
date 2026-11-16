@@ -1,6 +1,6 @@
 Validating changesets added by this PR...
 Detected single-language repository (package.json in root)
-Package: @link-foundation/example-package-name
+Package: historical-template-package
 Warning: Could not determine PR diff, checking all changesets in directory
 Found 1 changeset file(s) added by this PR
 Added changesets:

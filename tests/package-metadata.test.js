@@ -10,7 +10,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
-import { runCli } from '../bin/example-package-name.js';
+import { runCli } from '../bin/universal-translator.js';
 import { itUnless, sandboxed } from './helpers/skip.js';
 
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8'));
@@ -22,7 +22,7 @@ function windowsSymlinkSkipReason() {
   }
   const fixture = mkdtempSync(join(tmpdir(), 'symlink-permission-'));
   try {
-    symlinkSync(resolve('bin/example-package-name.js'), join(fixture, 'bin'));
+    symlinkSync(resolve('bin/universal-translator.js'), join(fixture, 'bin'));
     return null;
   } catch (error) {
     if (error.code === 'EPERM') {
@@ -37,20 +37,31 @@ function windowsSymlinkSkipReason() {
 const symlinkSkipReason = windowsSymlinkSkipReason();
 
 describe('publishable package metadata', () => {
-  it('uses the real link-foundation example package name', () => {
-    expect(packageJson.name).toBe('@link-foundation/example-package-name');
+  it('uses the universal-translator package identity', () => {
+    expect(packageJson.name).toBe('universal-translator');
     expect(packageJson.publishConfig).toEqual({ access: 'public' });
-    expect(lockJson.name).toBe('@link-foundation/example-package-name');
-    expect(lockJson.packages[''].name).toBe(
-      '@link-foundation/example-package-name'
+    expect(lockJson.name).toBe('universal-translator');
+    expect(lockJson.packages[''].name).toBe('universal-translator');
+  });
+
+  it('points provenance at the publishing repository and keeps versions aligned', () => {
+    expect(packageJson.repository.url).toBe(
+      'git+https://github.com/link-foundation/universal-translator.git'
     );
+    expect(lockJson.version).toBe(packageJson.version);
+    expect(lockJson.packages[''].version).toBe(packageJson.version);
+    const stdout = [];
+    expect(runCli(['--version'], { stdout: (line) => stdout.push(line) })).toBe(
+      0
+    );
+    expect(stdout).toEqual([packageJson.version]);
   });
 
   it('defines a globally installable CLI command', () => {
     expect(packageJson.bin).toEqual({
-      'example-package-name': './bin/example-package-name.js',
+      'universal-translator': './bin/universal-translator.js',
     });
-    expect(existsSync('bin/example-package-name.js')).toBe(true);
+    expect(existsSync('bin/universal-translator.js')).toBe(true);
   });
 
   it('runs package functions through the CLI command', () => {
@@ -74,11 +85,11 @@ describe('publishable package metadata', () => {
     globalThis.Deno &&
       'Deno resolves relative imports from the bin symlink directory'
   )('runs when invoked through an npm-style bin symlink', () => {
-    const tempRoot = mkdtempSync(join(tmpdir(), 'example-package-name-'));
-    const linkPath = join(tempRoot, 'example-package-name');
+    const tempRoot = mkdtempSync(join(tmpdir(), 'universal-translator-'));
+    const linkPath = join(tempRoot, 'universal-translator');
 
     try {
-      symlinkSync(resolve('bin/example-package-name.js'), linkPath);
+      symlinkSync(resolve('bin/universal-translator.js'), linkPath);
       const result = spawnSync(
         process.execPath,
         [

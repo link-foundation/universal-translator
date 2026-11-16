@@ -636,6 +636,7 @@ describe('install-from-package smoke test', () => {
       // never through an inline template expression in the run block.
       expectOrdered(job, [
         'PACKAGE_VERSION: ${{ steps.publish.outputs.published_version }}',
+        `SMOKE_TEST_CLI_ARGS: '["--version"]'`,
         'node scripts/smoke-test-package.mjs --package-version "$PACKAGE_VERSION"',
       ]);
     });

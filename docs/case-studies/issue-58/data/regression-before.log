@@ -6,7 +6,7 @@ TAP version 13
       duration_ms: 0.816419
       location: '/tmp/gh-issue-solver-1778599088699/node_modules/test-anywhere/src/index.js:174:12'
       failureType: 'testCodeFailure'
-      error: 'Expected "my-package" to be "@link-foundation/example-package-name"'
+      error: 'Expected "my-package" to be "historical-template-package"'
       code: 'ERR_TEST_FAILURE'
       stack: |-
         Object.toBe (file:///tmp/gh-issue-solver-1778599088699/node_modules/test-anywhere/src/index.js:391:15)
@@ -26,7 +26,7 @@ TAP version 13
       duration_ms: 0.178237
       location: '/tmp/gh-issue-solver-1778599088699/node_modules/test-anywhere/src/index.js:174:12'
       failureType: 'testCodeFailure'
-      error: 'Expected undefined to equal {"example-package-name":"./bin/example-package-name.js"}'
+      error: 'Expected undefined to equal {"historical-template-package":"./bin/historical-template-package.js"}'
       code: 'ERR_TEST_FAILURE'
       stack: |-
         Object.toEqual (file:///tmp/gh-issue-solver-1778599088699/node_modules/test-anywhere/src/index.js:399:15)

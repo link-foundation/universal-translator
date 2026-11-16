@@ -695,8 +695,8 @@
         "json-buffer"
       ]
     },
-    "launch-editor@2.14.1": {
-      "integrity": "sha512-QWBrQsMpH7gPr965dsKD/3cKWiNoTjpATQf++Xq63N6sKRGMwlVXz41O1IZTMfZQgBctD/K5Zt06+/I6pP6+HA==",
+    "launch-editor@2.14.2": {
+      "integrity": "sha512-NHJEb30MGBCkmZXLZwz25t37QR4aY03ZzPYUJXOJaOa92uWwExI9SBQUuIznBYc1xkD7cJNGX7oc3Nl3sq2kQQ==",
       "dependencies": [
         "picocolors",
         "shell-quote"
