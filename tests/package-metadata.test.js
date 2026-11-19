@@ -37,11 +37,13 @@ function windowsSymlinkSkipReason() {
 const symlinkSkipReason = windowsSymlinkSkipReason();
 
 describe('publishable package metadata', () => {
-  it('uses the universal-translator package identity', () => {
-    expect(packageJson.name).toBe('universal-translator');
+  it('uses the scoped universal-translator package identity', () => {
+    expect(packageJson.name).toBe('@link-foundation/universal-translator');
     expect(packageJson.publishConfig).toEqual({ access: 'public' });
-    expect(lockJson.name).toBe('universal-translator');
-    expect(lockJson.packages[''].name).toBe('universal-translator');
+    expect(lockJson.name).toBe('@link-foundation/universal-translator');
+    expect(lockJson.packages[''].name).toBe(
+      '@link-foundation/universal-translator'
+    );
   });
 
   it('points provenance at the publishing repository and keeps versions aligned', () => {

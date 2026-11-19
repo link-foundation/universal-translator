@@ -1,4 +1,4 @@
-# universal-translator
+# @link-foundation/universal-translator
 
 JavaScript/TypeScript package with a command-line interface and a universal app
 example. Releases use the existing Changesets pipeline and npm trusted publishing.
@@ -19,9 +19,9 @@ example. Releases use the existing Changesets pipeline and npm trusted publishin
 ### Installation
 
 ```bash
-npm install universal-translator
-npx universal-translator --version
-npx universal-translator add 2 3
+npm install @link-foundation/universal-translator
+npx @link-foundation/universal-translator --version
+npx @link-foundation/universal-translator add 2 3
 ```
 
 These registry commands require the first release to have been published. For
@@ -140,7 +140,7 @@ The release workflow uses [Changesets](https://github.com/changesets/changesets)
 
 #### First release and trusted publisher
 
-The npm package name is `universal-translator`. The repository must match the
+The npm package name is `@link-foundation/universal-translator`. The repository must match the
 package's `repository.url`: `https://github.com/link-foundation/universal-translator`.
 The existing `.github/workflows/release.yml` is the publishing workflow for both
 automated and manual releases; both publishing jobs grant `id-token: write`
@@ -171,8 +171,8 @@ until publishing is configured.
 Verify the released artifact from a clean directory:
 
 ```bash
-npm view universal-translator version
-npx --yes universal-translator --version
+npm view @link-foundation/universal-translator version
+npx --yes @link-foundation/universal-translator --version
 ```
 
 The release workflow also installs the exact published version and tests its
@@ -302,7 +302,7 @@ Add regex patterns to `.lycheeignore` to exclude URLs from checks (e.g., local d
 
 ### Package Identity
 
-`package.json` and `package-lock.json` use `universal-translator`. The installed
+`package.json` and `package-lock.json` use `@link-foundation/universal-translator`. The installed
 command is `universal-translator`, provided by `bin/universal-translator.js`.
 Release scripts derive the package name from `package.json` at runtime.
 

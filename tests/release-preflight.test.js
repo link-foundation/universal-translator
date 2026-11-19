@@ -173,7 +173,7 @@ describe('release-preflight probe behaviour (offline, curl stub)', () => {
         'audience=npm%3Aregistry.npmjs.org'
       );
       expect(readFileSync(join(fixtures, 'requests'), 'utf8')).toContain(
-        '/exchange/package/universal-translator'
+        '/exchange/package/%40link-foundation%2Funiversal-translator'
       );
       expect(stdout).not.toContain('private-fixture');
     }
