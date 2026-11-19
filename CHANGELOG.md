@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.11.32
+
+### Patch Changes
+
+- Run repository-wide workflow audits on all relevant inputs, report unavailable tests with explicit reasons, and exercise fixture coverage under parallel Deno testing. Give npm propagation a 25.5-minute verification window, keep runtime-owned lockfiles quiet, validate lock/config/install-script policies, and avoid duplicate publish output.
+
+  Pin Changesets release formatting to Prettier and validate versioning on pull requests without publishing credentials. Reject unchanged moves of pending changesets while accepting new replacement fragments, and check both paths of code moves.
+
+  Make version and changeset validation fail on unavailable Git comparisons, verify npm trusted publishing with a package-specific OIDC exchange, repair release badge detection and commit quoting, and recover missing GitHub releases without another version bump. Correct process survivor reporting, remove a busy-looping test fixture, pin CI scanners and hosted runner images, and exclude experimental and example code from CodeQL.
+
+  Publish under the `@link-foundation` npm scope because the unscoped name is rejected as too similar to an existing package.
+
+  Retry transient HTTP link failures with bounded backoff and authenticated GitHub contents fallback, and pin the Bun CI runtime to the supported 1.x line. Refresh vulnerable development dependencies so pipeline security checks can pass.
+
+  Publish as `@link-foundation/universal-translator` with the matching CLI command, repository metadata, and release verification.
+
 ## 0.11.31
 
 ### Patch Changes
