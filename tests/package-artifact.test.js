@@ -33,9 +33,9 @@ describe('published package artifact', () => {
           resolve('.')
         )
       );
-      expect(artifact.name).toBe('universal-translator');
+      expect(artifact.name).toBe('@link-foundation/universal-translator');
       expect(artifact.filename).toBe(
-        `universal-translator-${packageJson.version}.tgz`
+        `link-foundation-universal-translator-${packageJson.version}.tgz`
       );
       const paths = artifact.files.map((file) => file.path);
       expect(paths).toContain('bin/universal-translator.js');
@@ -83,7 +83,7 @@ describe('published package artifact', () => {
           process.execPath,
           [
             ...(globalThis.Deno ? ['eval'] : ['--input-type=module', '-e']),
-            "import { multiply } from 'universal-translator'; console.log(multiply(6, 7));",
+            "import { multiply } from '@link-foundation/universal-translator'; console.log(multiply(6, 7));",
           ],
           { cwd: workspace, encoding: 'utf8' }
         ).trim()
