@@ -366,7 +366,7 @@ jobs:
 
       - name: Check output with native tools
         if: matrix.runtime == 'node' && matrix.os == 'ubuntu-24.04'
-        timeout-minutes: 6
+        timeout-minutes: 4
         run: |
           sudo apt-get -qq update
           sudo apt-get -qq install --no-install-recommends \
