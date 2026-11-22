@@ -17,7 +17,7 @@ pub(crate) fn source_network(
         let end = if text.ends_with('\n') {
             Point::new(line + 1, 0)
         } else {
-            Point::new(line, text.chars().count())
+            Point::new(line, text.len())
         };
         let span = SourceSpan::new(
             ByteRange::new(offset, offset + text.len()),

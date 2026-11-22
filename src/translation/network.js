@@ -39,7 +39,7 @@ export function sourceNetwork(source, language, interpretation) {
     const length = encoder.encode(text).length;
     const end = text.endsWith('\n')
       ? new Point(line + 1, 0)
-      : new Point(line, [...text].length);
+      : new Point(line, text.length);
     const span = new SourceSpan(
       new ByteRange(offset, offset + length),
       new Point(line, 0),

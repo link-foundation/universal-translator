@@ -62,6 +62,14 @@ describe('translation through meta-language', () => {
     const document = translator.parse(source, 'c');
     expect(document.interpretation).toBeUndefined();
     expect(translator.restore(document)).toBe(source);
+    const unicode = translator.parse('code\r\n🐍é', 'c');
+    const span = unicode.network
+      .links()
+      .find((link) => link.metadata().term === '🐍é')
+      .metadata().span;
+    expect([span.byteRange.start, span.byteRange.end]).toEqual([6, 12]);
+    expect([span.start.row, span.start.column]).toEqual([1, 0]);
+    expect([span.end.row, span.end.column]).toEqual([1, 3]);
     expect(() => translator.transform(document, 'javascript')).toThrow(
       'Unsupported program'
     );

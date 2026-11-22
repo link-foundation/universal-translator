@@ -111,6 +111,22 @@ fn all_authored_forms_and_directed_pairs() {
 #[test]
 fn refusal_keeps_lossless_source() {
     let translator = Translator::default();
+    let unicode = translator.parse("code\r\n🐍é", "c").unwrap();
+    let span = unicode
+        .network
+        .links()
+        .find(|link| link.metadata().term() == Some("🐍é"))
+        .and_then(|link| link.metadata().span())
+        .unwrap();
+    assert_eq!(
+        (span.byte_range().start(), span.byte_range().end()),
+        (6, 12)
+    );
+    assert_eq!(
+        (span.start_point().row(), span.start_point().column()),
+        (1, 0)
+    );
+    assert_eq!((span.end_point().row(), span.end_point().column()), (1, 6));
     for (language, source) in [
         ("c", "/* 🐍 */\r\nunsupported(  \n tail  "),
         (

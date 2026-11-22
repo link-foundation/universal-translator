@@ -34,6 +34,10 @@ In JavaScript, pass `profiles`, `decorateAdapter`, `layers`, and `verify` to
 `set_verifier`. The first rule in the first layer runs first. Rules can
 select a form or rewrite comment text even when both languages are the same.
 
+Source spans use UTF-8 byte ranges in both implementations. Column numbers
+follow the Meta Language runtime and count UTF-16 code units in JavaScript
+and UTF-8 bytes in Rust.
+
 ## Task contracts
 
 | Task                    | Inputs in the authored source                                                                      | Standard output                                                               |
