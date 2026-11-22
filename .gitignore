@@ -141,3 +141,6 @@ vite.config.ts.timestamp-*
 
 # jscpd reports
 reports/
+
+# Cargo build outputs
+/target/

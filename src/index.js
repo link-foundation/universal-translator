@@ -26,3 +26,7 @@ export const multiply = (a, b) => a * b;
  */
 export const delay = (ms) =>
   new Promise((resolve) => globalThis.setTimeout(resolve, ms));
+
+export { createTranslator, translate } from './translation/translator.js';
+export { languageProfiles } from './translation/profile.js';
+export { rankInterpretations } from './translation/referents.js';

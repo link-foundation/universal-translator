@@ -1,7 +1,7 @@
 {
   "name": "@link-foundation/universal-translator",
   "version": "0.11.32",
-  "description": "A JavaScript/TypeScript package template for AI-driven development",
+  "description": "Source-preserving translation for small programs through a shared meta-language",
   "type": "module",
   "main": "src/index.js",
   "types": "src/index.d.ts",
@@ -19,6 +19,12 @@
     ".": {
       "types": "./src/index.d.ts",
       "import": "./src/index.js"
+    }
+  },
+  "imports": {
+    "#translation-profiles": {
+      "node": "./src/translation/profile-data-node.js",
+      "default": "./src/translation/profile-data.js"
     }
   },
   "scripts": {
@@ -44,10 +50,10 @@
     "changeset:status": "changeset status --since=origin/main"
   },
   "keywords": [
-    "template",
     "javascript",
     "typescript",
-    "ai-driven"
+    "program-translation",
+    "meta-language"
   ],
   "author": "",
   "license": "Unlicense",
@@ -75,6 +81,7 @@
     "jscpd": "^5.4.0",
     "lint-staged": "^16.4.0",
     "prettier": "^3.6.2",
+    "relative-meta-logic": "0.21.0",
     "test-anywhere": "^0.8.48"
   },
   "lint-staged": {
@@ -87,5 +94,8 @@
       "prettier --write",
       "prettier --check"
     ]
+  },
+  "dependencies": {
+    "meta-language": "0.46.0"
   }
 }

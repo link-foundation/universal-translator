@@ -1,0 +1,32 @@
+{
+  "source": "белый человек",
+  "candidates": [
+    {
+      "id": "white-skin",
+      "target": "white person",
+      "type": ["person", "white", "white skin"],
+      "back": ["белый человек"],
+      "sourceEvidence": { "count": 72, "total": 100 },
+      "targetEvidence": { "count": 65, "total": 100 },
+      "context": 0.8
+    },
+    {
+      "id": "painted-white",
+      "target": "person painted white",
+      "type": ["person", "white", "painted white"],
+      "back": ["человек, покрашенный белой краской"],
+      "sourceEvidence": { "count": 94, "total": 100 },
+      "targetEvidence": { "count": 91, "total": 100 },
+      "context": 1
+    },
+    {
+      "id": "mostly-white",
+      "target": "mostly white person",
+      "type": ["person", "white", "mostly white"],
+      "back": ["преимущественно белый человек"],
+      "sourceEvidence": null,
+      "targetEvidence": { "count": 29, "total": 100 },
+      "context": null
+    }
+  ]
+}

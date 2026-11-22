@@ -3,7 +3,7 @@
 import { readFileSync, realpathSync } from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
 
-import { add, multiply } from '../src/index.js';
+import { add, createTranslator, multiply } from '../src/index.js';
 
 const COMMANDS = {
   add,
@@ -12,11 +12,17 @@ const COMMANDS = {
 
 function usage() {
   return [
-    'Usage: universal-translator <command> <left> <right>',
+    'Usage: universal-translator <command> [arguments]',
     '',
     'Commands:',
     '  add       Add two numbers',
     '  multiply  Multiply two numbers',
+    '  translate <from> <to> [file|-] [--mode <mode>] [--form <form>]',
+    '  roundtrip <language> [file|-]  Reconstruct the original source',
+    '  languages  List language identifiers',
+    '',
+    'Modes: context-dependent (default), literal, same-effect',
+    'Omit the file or pass - to read standard input.',
     '',
     'Options:',
     '  --help     Show this help',
@@ -40,9 +46,66 @@ function parseNumber(value, label) {
   return parsed;
 }
 
+function readSource(file) {
+  const input = readFileSync(file === '-' || file === undefined ? 0 : file);
+  return new globalThis.TextDecoder('utf-8', {
+    fatal: true,
+    ignoreBOM: true,
+  }).decode(input);
+}
+
+function translationArguments(args) {
+  const options = {};
+  let file;
+  for (let index = 0; index < args.length; index++) {
+    const argument = args[index];
+    if (argument === '--mode' || argument === '--form') {
+      const key = argument.slice(2);
+      const value = args[++index];
+      if (!value || value.startsWith('-') || options[key] !== undefined) {
+        throw new Error(`Expected a single value for ${argument}`);
+      }
+      options[key] = value;
+    } else if (
+      file === undefined &&
+      (argument === '-' || !argument.startsWith('-'))
+    ) {
+      file = argument;
+    } else {
+      throw new Error(`Unexpected argument ${argument}`);
+    }
+  }
+  return { file, options };
+}
+
+function runTranslation(command, args, read, write) {
+  const translator = createTranslator();
+  const [from, to, ...trailing] = args;
+  if (command === 'languages' && args.length === 0) {
+    write(
+      translator
+        .listLanguages()
+        .map(({ id, label }) => `${id}\t${label}\n`)
+        .join('')
+    );
+  } else if (command === 'roundtrip' && from && args.length <= 2) {
+    write(translator.restore(translator.parse(read(to), from)));
+  } else if (command === 'translate' && from && to) {
+    const { file, options } = translationArguments(trailing);
+    write(translator.translate(read(file), from, to, options));
+  } else {
+    throw new Error(usage());
+  }
+}
+
 export function runCli(
   argv,
-  { stderr = console.error, stdout = console.log } = {}
+  {
+    stderr = console.error,
+    stdout = console.log,
+    read = readSource,
+    write = stdout,
+  } = {}
 ) {
   const [command, left, right] = argv;
 
@@ -56,15 +119,17 @@ export function runCli(
     return 0;
   }
 
-  const operation = COMMANDS[command];
-
-  if (!operation) {
-    stderr(`Unknown command: ${command}`);
-    stderr(usage());
-    return 1;
-  }
-
   try {
+    if (['translate', 'roundtrip', 'languages'].includes(command)) {
+      runTranslation(command, argv.slice(1), read, write);
+      return 0;
+    }
+    if (!Object.hasOwn(COMMANDS, command)) {
+      stderr(`Unknown command: ${command}`);
+      stderr(usage());
+      return 1;
+    }
+    const operation = COMMANDS[command];
     const leftNumber = parseNumber(left, 'left');
     const rightNumber = parseNumber(right, 'right');
     stdout(String(operation(leftNumber, rightNumber)));
@@ -91,5 +156,7 @@ function isCliEntryPoint() {
 }
 
 if (isCliEntryPoint()) {
-  process.exitCode = runCli(process.argv.slice(2));
+  process.exitCode = runCli(process.argv.slice(2), {
+    write: (output) => process.stdout.write(output),
+  });
 }

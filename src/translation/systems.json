@@ -1,0 +1,508 @@
+[
+  {
+    "id": "c",
+    "label": "C",
+    "comment": "//",
+    "call": "function call",
+    "output": "printf",
+    "forms": [
+      {
+        "task": "hello",
+        "name": "standard",
+        "requires": ["stdio.h"],
+        "source": [
+          "#include <stdio.h>",
+          "",
+          "int main(void)",
+          "{",
+          "    printf(\"{{message}}\\n\");",
+          "    return 0;",
+          "}"
+        ]
+      },
+      {
+        "task": "hello",
+        "name": "classic",
+        "requires": ["stdio.h"],
+        "source": [
+          "#include <stdio.h>",
+          "",
+          "main()",
+          "{",
+          "    printf(\"{{message}}\\n\");",
+          "}"
+        ]
+      },
+      {
+        "task": "hello",
+        "name": "common",
+        "requires": ["stdio.h", "print_line"],
+        "output": "print_line",
+        "source": [
+          "#include <stdio.h>",
+          "",
+          "static void print_line(const char *message)",
+          "{",
+          "    puts(message);",
+          "}",
+          "",
+          "int main(void)",
+          "{",
+          "    print_line(\"{{message}}\");",
+          "    return 0;",
+          "}"
+        ]
+      },
+      {
+        "task": "greatest-common-divisor",
+        "name": "standard",
+        "source": [
+          "#include <stdio.h>",
+          "",
+          "int main(void)",
+          "{",
+          "    int left = {{left}};",
+          "    int right = {{right}};",
+          "    while (right != 0) {",
+          "        int remainder = left % right;",
+          "        left = right;",
+          "        right = remainder;",
+          "    }",
+          "    printf(\"%d\\n\", left);",
+          "    return 0;",
+          "}"
+        ]
+      },
+      {
+        "task": "fizz-buzz",
+        "name": "standard",
+        "source": [
+          "#include <stdio.h>",
+          "",
+          "int main(void)",
+          "{",
+          "    const int limit = {{limit}};",
+          "    for (int number = 1; number <= limit; number++) {",
+          "        if (number % 15 == 0) {",
+          "            puts(\"FizzBuzz\");",
+          "        } else if (number % 3 == 0) {",
+          "            puts(\"Fizz\");",
+          "        } else if (number % 5 == 0) {",
+          "            puts(\"Buzz\");",
+          "        } else {",
+          "            printf(\"%d\\n\", number);",
+          "        }",
+          "    }",
+          "    return 0;",
+          "}"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cpp",
+    "label": "C++",
+    "comment": "//",
+    "call": "function call",
+    "output": "std::cout",
+    "forms": [
+      {
+        "task": "hello",
+        "name": "standard",
+        "requires": ["iostream"],
+        "source": [
+          "#include <iostream>",
+          "",
+          "int main()",
+          "{",
+          "    std::cout << \"{{message}}\" << '\\n';",
+          "}"
+        ]
+      },
+      {
+        "task": "greatest-common-divisor",
+        "name": "standard",
+        "source": [
+          "#include <iostream>",
+          "",
+          "int main()",
+          "{",
+          "    int left = {{left}};",
+          "    int right = {{right}};",
+          "    while (right != 0) {",
+          "        const int remainder = left % right;",
+          "        left = right;",
+          "        right = remainder;",
+          "    }",
+          "    std::cout << left << '\\n';",
+          "}"
+        ]
+      },
+      {
+        "task": "fizz-buzz",
+        "name": "standard",
+        "source": [
+          "#include <iostream>",
+          "",
+          "int main()",
+          "{",
+          "    const int limit = {{limit}};",
+          "    for (int number = 1; number <= limit; ++number) {",
+          "        if (number % 15 == 0) {",
+          "            std::cout << \"FizzBuzz\\n\";",
+          "        } else if (number % 3 == 0) {",
+          "            std::cout << \"Fizz\\n\";",
+          "        } else if (number % 5 == 0) {",
+          "            std::cout << \"Buzz\\n\";",
+          "        } else {",
+          "            std::cout << number << '\\n';",
+          "        }",
+          "    }",
+          "}"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rust",
+    "label": "Rust",
+    "comment": "//",
+    "call": "function call",
+    "output": "println!",
+    "forms": [
+      {
+        "task": "hello",
+        "name": "standard",
+        "source": ["fn main() {", "    println!(\"{{message}}\");", "}"]
+      },
+      {
+        "task": "greatest-common-divisor",
+        "name": "standard",
+        "source": [
+          "fn main() {",
+          "    let mut left = {{left}};",
+          "    let mut right = {{right}};",
+          "    while right != 0 {",
+          "        (left, right) = (right, left % right);",
+          "    }",
+          "    println!(\"{left}\");",
+          "}"
+        ]
+      },
+      {
+        "task": "fizz-buzz",
+        "name": "standard",
+        "source": [
+          "fn main() {",
+          "    let limit = {{limit}};",
+          "    for number in 1..=limit {",
+          "        match (number % 3 == 0, number % 5 == 0) {",
+          "            (true, true) => println!(\"FizzBuzz\"),",
+          "            (true, false) => println!(\"Fizz\"),",
+          "            (false, true) => println!(\"Buzz\"),",
+          "            (false, false) => println!(\"{number}\"),",
+          "        }",
+          "    }",
+          "}"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "go",
+    "label": "Go",
+    "comment": "//",
+    "call": "function call",
+    "output": "fmt.Println",
+    "forms": [
+      {
+        "task": "hello",
+        "name": "standard",
+        "requires": ["fmt"],
+        "source": [
+          "package main",
+          "",
+          "import \"fmt\"",
+          "",
+          "func main() {",
+          "    fmt.Println(\"{{message}}\")",
+          "}"
+        ]
+      },
+      {
+        "task": "greatest-common-divisor",
+        "name": "standard",
+        "source": [
+          "package main",
+          "",
+          "import \"fmt\"",
+          "",
+          "func main() {",
+          "    left, right := {{left}}, {{right}}",
+          "    for right != 0 {",
+          "        left, right = right, left % right",
+          "    }",
+          "    fmt.Println(left)",
+          "}"
+        ]
+      },
+      {
+        "task": "fizz-buzz",
+        "name": "standard",
+        "source": [
+          "package main",
+          "",
+          "import \"fmt\"",
+          "",
+          "func main() {",
+          "    limit := {{limit}}",
+          "    for number := 1; number <= limit; number++ {",
+          "        switch {",
+          "        case number%15 == 0:",
+          "            fmt.Println(\"FizzBuzz\")",
+          "        case number%3 == 0:",
+          "            fmt.Println(\"Fizz\")",
+          "        case number%5 == 0:",
+          "            fmt.Println(\"Buzz\")",
+          "        default:",
+          "            fmt.Println(number)",
+          "        }",
+          "    }",
+          "}"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "swift",
+    "label": "Swift",
+    "comment": "//",
+    "call": "function call",
+    "output": "print",
+    "forms": [
+      {
+        "task": "hello",
+        "name": "standard",
+        "source": ["print(\"{{message}}\")"]
+      },
+      {
+        "task": "greatest-common-divisor",
+        "name": "standard",
+        "source": [
+          "var left = {{left}}",
+          "var right = {{right}}",
+          "while right != 0 {",
+          "    (left, right) = (right, left % right)",
+          "}",
+          "print(left)"
+        ]
+      },
+      {
+        "task": "fizz-buzz",
+        "name": "standard",
+        "source": [
+          "let limit = {{limit}}",
+          "for number in 1...limit {",
+          "    let label = (number % 3 == 0 ? \"Fizz\" : \"\") + (number % 5 == 0 ? \"Buzz\" : \"\")",
+          "    print(label.isEmpty ? String(number) : label)",
+          "}"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "fortran",
+    "label": "Fortran",
+    "comment": "!",
+    "call": "function call",
+    "output": "write",
+    "forms": [
+      {
+        "task": "hello",
+        "name": "standard",
+        "source": [
+          "program hello",
+          "    implicit none",
+          "    write (*, '(A)') \"{{message}}\"",
+          "end program hello"
+        ]
+      },
+      {
+        "task": "greatest-common-divisor",
+        "name": "standard",
+        "source": [
+          "program greatest_common_divisor",
+          "    implicit none",
+          "    integer :: left, right, remainder",
+          "    left = {{left}}",
+          "    right = {{right}}",
+          "    do while (right /= 0)",
+          "        remainder = mod(left, right)",
+          "        left = right",
+          "        right = remainder",
+          "    end do",
+          "    write (*, '(I0)') left",
+          "end program greatest_common_divisor"
+        ]
+      },
+      {
+        "task": "fizz-buzz",
+        "name": "standard",
+        "source": [
+          "program fizz_buzz",
+          "    implicit none",
+          "    integer :: number, limit",
+          "    limit = {{limit}}",
+          "    do number = 1, limit",
+          "        if (mod(number, 15) == 0) then",
+          "            write (*, '(A)') \"FizzBuzz\"",
+          "        else if (mod(number, 3) == 0) then",
+          "            write (*, '(A)') \"Fizz\"",
+          "        else if (mod(number, 5) == 0) then",
+          "            write (*, '(A)') \"Buzz\"",
+          "        else",
+          "            write (*, '(I0)') number",
+          "        end if",
+          "    end do",
+          "end program fizz_buzz"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "pascal",
+    "label": "Pascal",
+    "comment": "//",
+    "call": "function call",
+    "output": "WriteLn",
+    "forms": [
+      {
+        "task": "hello",
+        "name": "standard",
+        "source": [
+          "program Hello;",
+          "begin",
+          "    WriteLn('{{message}}');",
+          "end."
+        ]
+      },
+      {
+        "task": "greatest-common-divisor",
+        "name": "standard",
+        "source": [
+          "program GreatestCommonDivisor;",
+          "var",
+          "    left, right, remainder: LongInt;",
+          "begin",
+          "    left := {{left}};",
+          "    right := {{right}};",
+          "    while right <> 0 do",
+          "    begin",
+          "        remainder := left mod right;",
+          "        left := right;",
+          "        right := remainder;",
+          "    end;",
+          "    WriteLn(left);",
+          "end."
+        ]
+      },
+      {
+        "task": "fizz-buzz",
+        "name": "standard",
+        "source": [
+          "program FizzBuzz;",
+          "var",
+          "    number, limit: LongInt;",
+          "begin",
+          "    limit := {{limit}};",
+          "    for number := 1 to limit do",
+          "        if number mod 15 = 0 then",
+          "            WriteLn('FizzBuzz')",
+          "        else if number mod 3 = 0 then",
+          "            WriteLn('Fizz')",
+          "        else if number mod 5 = 0 then",
+          "            WriteLn('Buzz')",
+          "        else",
+          "            WriteLn(number);",
+          "end."
+        ]
+      }
+    ]
+  },
+  {
+    "id": "objective-c",
+    "label": "Objective-C",
+    "comment": "//",
+    "call": "function call",
+    "output": "puts",
+    "forms": [
+      {
+        "task": "hello",
+        "name": "standard",
+        "requires": ["Foundation", "stdio.h"],
+        "source": [
+          "#import <Foundation/Foundation.h>",
+          "#include <stdio.h>",
+          "",
+          "int main(void)",
+          "{",
+          "    NSAutoreleasePool *pool = [NSAutoreleasePool new];",
+          "    NSString *message = @\"{{message}}\";",
+          "    puts([message UTF8String]);",
+          "    [pool drain];",
+          "    return 0;",
+          "}"
+        ]
+      },
+      {
+        "task": "greatest-common-divisor",
+        "name": "standard",
+        "source": [
+          "#import <Foundation/Foundation.h>",
+          "#include <stdio.h>",
+          "",
+          "int main(void)",
+          "{",
+          "    NSAutoreleasePool *pool = [NSAutoreleasePool new];",
+          "    int left = {{left}};",
+          "    int right = {{right}};",
+          "    while (right != 0) {",
+          "        int remainder = left % right;",
+          "        left = right;",
+          "        right = remainder;",
+          "    }",
+          "    NSString *result = [NSString stringWithFormat:@\"%d\", left];",
+          "    puts([result UTF8String]);",
+          "    [pool drain];",
+          "    return 0;",
+          "}"
+        ]
+      },
+      {
+        "task": "fizz-buzz",
+        "name": "standard",
+        "source": [
+          "#import <Foundation/Foundation.h>",
+          "#include <stdio.h>",
+          "",
+          "int main(void)",
+          "{",
+          "    NSAutoreleasePool *pool = [NSAutoreleasePool new];",
+          "    const int limit = {{limit}};",
+          "    for (int number = 1; number <= limit; number++) {",
+          "        NSString *fizz = number % 3 == 0 ? @\"Fizz\" : @\"\";",
+          "        NSString *buzz = number % 5 == 0 ? @\"Buzz\" : @\"\";",
+          "        NSString *label = [fizz stringByAppendingString:buzz];",
+          "        if ([label length] == 0) {",
+          "            label = [NSString stringWithFormat:@\"%d\", number];",
+          "        }",
+          "        puts([label UTF8String]);",
+          "    }",
+          "    [pool drain];",
+          "    return 0;",
+          "}"
+        ]
+      }
+    ]
+  }
+]

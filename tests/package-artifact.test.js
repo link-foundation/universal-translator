@@ -78,6 +78,20 @@ describe('published package artifact', () => {
           '3',
         ]).trim()
       ).toBe('5');
+      const input = join(workspace, 'source.py');
+      writeFileSync(input, 'print("Hello, World!")\n');
+      expect(
+        npm([
+          'exec',
+          '--offline',
+          '--',
+          'universal-translator',
+          'translate',
+          'python',
+          'javascript',
+          input,
+        ])
+      ).toBe('console.log("Hello, World!");\n');
       expect(
         execFileSync(
           process.execPath,
