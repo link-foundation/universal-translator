@@ -6,15 +6,15 @@ description = "Source-preserving translation for small programs through a shared
 license = "Unlicense"
 repository = "https://github.com/link-foundation/universal-translator"
 include = [
-    "rust/src/**",
-    "src/translation/*.json",
-    "tests/rust/**",
-    "examples/translation/hello.c",
-    "examples/translation/hello.cs",
-    "examples/translation/effects.json",
-    "examples/translation/referents.json",
-    "README.md",
-    "LICENSE",
+    "/rust/src/**",
+    "/src/translation/*.json",
+    "/tests/rust/**",
+    "/examples/translation/hello.c",
+    "/examples/translation/hello.cs",
+    "/examples/translation/effects.json",
+    "/examples/translation/referents.json",
+    "/README.md",
+    "/LICENSE",
 ]
 
 [lib]
