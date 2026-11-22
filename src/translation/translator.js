@@ -173,6 +173,9 @@ export function createTranslator({
   };
 }
 
-export const translate = (...parameters) =>
-  defaultTranslator.translate(...parameters);
-const defaultTranslator = createTranslator();
+let defaultTranslator;
+
+export function translate(...parameters) {
+  defaultTranslator ??= createTranslator();
+  return defaultTranslator.translate(...parameters);
+}

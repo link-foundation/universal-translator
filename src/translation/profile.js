@@ -1,4 +1,4 @@
-import profiles from '#translation-profiles';
+import loadProfiles from '#translation-profiles';
 
 const slots = /\{\{([a-z]+)\}\}/g;
 const nonportableMessage = /[^ A-Za-z0-9,.!?;:_+/()=<>-]|\?\?[=/()!<>-]/;
@@ -37,7 +37,7 @@ const taskFields = {
 };
 
 export function languageProfiles() {
-  return globalThis.structuredClone(profiles);
+  return globalThis.structuredClone(loadProfiles());
 }
 
 export function validateEffect(effect) {

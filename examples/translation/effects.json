@@ -1,5 +1,5 @@
 [
   { "task": "hello", "message": "Hello, World!" },
   { "task": "greatest-common-divisor", "left": 1071, "right": 462 },
-  { "task": "fizz-buzz", "limit": 20 }
+  { "task": "fizz-buzz", "limit": 100 }
 ]
