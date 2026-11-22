@@ -370,7 +370,7 @@ jobs:
         run: |
           sudo apt-get -qq update
           sudo apt-get -qq install --no-install-recommends \
-            fp-compiler gfortran gobjc jasmin-sable libgnustep-base-dev lua5.4 \
+            fp-compiler gfortran gobjc jasmin-sable libgnustep-base-dev lld lua5.4 \
             mono-devel nasm ocaml qemu-user r-base-core scala tcl
           node examples/translation/verify-native.mjs --require-all
 
