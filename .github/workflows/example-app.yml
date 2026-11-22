@@ -57,7 +57,9 @@ jobs:
         uses: actions/configure-pages@v6
 
       - name: Install app dependencies
-        run: npm ci --prefix examples/universal-app --no-audit --no-fund
+        run: |
+          npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+          npm ci --prefix examples/universal-app --no-audit --no-fund
 
       - name: Build app
         run: npm run example:web:build
@@ -125,7 +127,9 @@ jobs:
           cache-dependency-path: examples/universal-app/package-lock.json
 
       - name: Install app dependencies
-        run: npm ci --prefix examples/universal-app --no-audit --no-fund
+        run: |
+          npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+          npm ci --prefix examples/universal-app --no-audit --no-fund
 
       - name: Package Electron app
         shell: bash
@@ -182,7 +186,9 @@ jobs:
         uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
 
       - name: Install app dependencies
-        run: npm ci --prefix examples/universal-app --no-audit --no-fund
+        run: |
+          npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+          npm ci --prefix examples/universal-app --no-audit --no-fund
 
       - name: Add Android project
         run: npm --prefix examples/universal-app run mobile:android:add
@@ -220,7 +226,9 @@ jobs:
           cache-dependency-path: examples/universal-app/package-lock.json
 
       - name: Install app dependencies
-        run: npm ci --prefix examples/universal-app --no-audit --no-fund
+        run: |
+          npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+          npm ci --prefix examples/universal-app --no-audit --no-fund
 
       - name: Add iOS project
         run: npm --prefix examples/universal-app run mobile:ios:add

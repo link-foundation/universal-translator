@@ -1,0 +1,65 @@
+# Program translation examples
+
+Run these commands from the repository root after `npm ci`.
+
+```sh
+node bin/universal-translator.js translate c csharp examples/translation/hello.c
+node bin/universal-translator.js translate c csharp examples/translation/hello.c --mode literal
+node bin/universal-translator.js translate c csharp examples/translation/hello.c --form common
+node bin/universal-translator.js roundtrip c examples/translation/hello.c
+```
+
+The default C# output matches `hello.cs`. The C program uses `stdio.h` and
+`printf`. The default C# form uses a class with a static `Main` method and
+`System.Console.WriteLine`. The `common` form routes both programs through a
+small wrapper implemented in each language. The target program prints the
+same line, including the punctuation from the source.
+
+The library exposes the two stages of translation.
+
+```js
+import { createTranslator } from '@link-foundation/universal-translator';
+
+const translator = createTranslator();
+const document = translator.parse('print("Hello, World!")\n', 'python');
+const expression = translator.transform(document, 'rust', {
+  mode: 'same-effect',
+});
+const program = translator.materialize(expression);
+```
+
+In JavaScript, pass `profiles`, `decorateAdapter`, `layers`, and `verify` to
+`createTranslator` to customize the implementation. In Rust, use
+`Translator::with_profiles`, `decorate_adapter`, `add_layer`, and
+`set_verifier`. The first rule in the first layer runs first. Rules can
+select a form or rewrite comment text even when both languages are the same.
+
+## Task contracts
+
+| Task                    | Inputs in the authored source                                                                      | Standard output                                                               |
+| ----------------------- | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Hello World             | A greeting of up to 96 characters using letters, digits, spaces, and a portable punctuation subset | The original text and a newline                                               |
+| Greatest Common Divisor | Two nonnegative signed 32-bit integers                                                             | Their greatest common divisor as a line of decimal text, with `gcd(0, 0) = 0` |
+| FizzBuzz                | A limit from 1 to 1,000                                                                            | The sequence defined by divisibility by 3 and 5, one item per line            |
+
+NASM x86-64 Linux, GNU AArch64 Linux, LLVM IR, CIL ILAsm, and JVM Jasmin
+accept the fixed greeting `Hello, World!`. Their profiles contain assembly
+or instruction listings. Native verification assembles or compiles those
+listings before executing them.
+
+## Verification
+
+```sh
+node --test tests/translation.test.js
+cargo test --locked --test translation
+cargo build --locked --bin universal-translator
+node examples/translation/verify-parity.mjs
+node examples/translation/dependent-meanings.mjs
+node examples/translation/verify-native.mjs
+```
+
+The native runner uses a temporary directory per program. It reports missing
+toolchains and accepts profile IDs to focus a run. CI uses `--require-all` so
+missing tools fail the job. The separately evaluated referent example uses
+synthetic observations to show how a narrower description and exact reverse
+translation affect rankings.

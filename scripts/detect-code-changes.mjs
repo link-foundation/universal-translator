@@ -359,10 +359,12 @@ async function detectChanges() {
   }
   console.log('');
 
-  const codeFileExtensionPattern = /\.(mjs|cjs|js|json|yml|yaml)$/;
+  const codeFileExtensionPattern = /\.(mjs|cjs|js|json|yml|yaml|rs|toml)$/;
   const anyCodeChanged = codeChangedFiles.some(
     (file) =>
-      codeFileExtensionPattern.test(file) || file.startsWith(workflowPathPrefix)
+      codeFileExtensionPattern.test(file) ||
+      file === 'Cargo.lock' ||
+      file.startsWith(workflowPathPrefix)
   );
   setOutput('any-code-changed', anyCodeChanged ? 'true' : 'false');
 

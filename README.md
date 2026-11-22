@@ -1,7 +1,36 @@
 # @link-foundation/universal-translator
 
-JavaScript/TypeScript package with a command-line interface and a universal app
-example. Releases use the existing Changesets pipeline and npm trusted publishing.
+Translate small programs through a shared meta-language with JavaScript or
+Rust. The built-in profiles cover Hello World in 33 source and instruction
+formats, and Greatest Common Divisor and FizzBuzz in 28 programming languages.
+
+## Translate a program
+
+```sh
+npm ci
+node bin/universal-translator.js translate c csharp examples/translation/hello.c
+node bin/universal-translator.js roundtrip c examples/translation/hello.c
+cargo run --locked -- translate c csharp examples/translation/hello.c --mode same-effect
+```
+
+Both CLIs accept a file or standard input. Run `languages` to list the target
+identifiers. The JavaScript package supports Node.js 20 and later, Bun,
+and Deno. Build the Rust CLI with a current stable Rust toolchain.
+
+- `context-dependent` is the default and adapts known language and call terminology in comments.
+- `literal` keeps comment text and uses comment delimiters from the destination.
+- `same-effect` keeps the task and its parameters and emits the canonical target form unless you select a different form.
+
+Use `--form` to pick a supported style or a shared library wrapper. The
+programmatic APIs let callers replace or decorate adapters and add ordered
+rule layers for project-specific transformations.
+
+`roundtrip` restores the original UTF-8 source, including whitespace, comments,
+and line endings. Cross-language translation requires a recognized program
+form. The supported effect describes the program's standard-output lines.
+
+See the [runnable examples](examples/translation/README.md) and the
+[issue 1 case study](docs/case-studies/issue-1/README.md).
 
 ## Features
 
@@ -24,8 +53,7 @@ npx @link-foundation/universal-translator --version
 npx @link-foundation/universal-translator add 2 3
 ```
 
-These registry commands require the first release to have been published. For
-checkout-based use before publication, run `node bin/universal-translator.js --version`.
+To check the version in this checkout, run `node bin/universal-translator.js --version`.
 
 ### Development
 

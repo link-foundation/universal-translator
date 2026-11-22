@@ -13,6 +13,7 @@ Capacitor mobile projects.
 ## Local Setup
 
 ```bash
+npm ci
 npm install --prefix examples/universal-app
 ```
 
