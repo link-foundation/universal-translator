@@ -206,6 +206,7 @@ describe('translation diagnostics', () => {
         'console.log("Hello, World!");\n// hidden\u2028side_effect();',
       ],
       ['javascript', 'console.log("Hello\n");\n'],
+      ['lua', '--[=[\nprint("Hello, World!")\n'],
       [
         'java',
         '// \\u000a !\nclass Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n    }\n}\n',

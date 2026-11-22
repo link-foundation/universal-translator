@@ -159,6 +159,8 @@ function commentDirective(profile, line) {
       return /^(?:\/\/go:|\/\/[ \t]*\+build\b|\/\/line\b|\/\*line\b)/.test(
         content
       );
+    case 'lua':
+      return /^--\[=*\[/.test(content);
     case 'powershell':
       return /^#requires\b/i.test(content);
     case 'ruby':

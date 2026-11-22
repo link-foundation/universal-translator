@@ -70,6 +70,7 @@ fn safe_comment(profile: &Profile, text: &str) -> bool {
 
 fn comment_directive(profile: &Profile, line: &str) -> bool {
     static GO_DIRECTIVE: OnceLock<Regex> = OnceLock::new();
+    static LUA_BLOCK: OnceLock<Regex> = OnceLock::new();
     static POWERSHELL_DIRECTIVE: OnceLock<Regex> = OnceLock::new();
     static RUBY_DIRECTIVE: OnceLock<Regex> = OnceLock::new();
     let content = line.trim_start_matches([' ', '\t']);
@@ -77,6 +78,9 @@ fn comment_directive(profile: &Profile, line: &str) -> bool {
         "java" => content.contains("\\u"),
         "go" => GO_DIRECTIVE
             .get_or_init(|| Regex::new(r"^(?://go:|//[ \t]*\+build\b|//line\b|/\*line\b)").unwrap())
+            .is_match(content),
+        "lua" => LUA_BLOCK
+            .get_or_init(|| Regex::new(r"^--\[=*\[").unwrap())
             .is_match(content),
         "powershell" => POWERSHELL_DIRECTIVE
             .get_or_init(|| Regex::new(r"(?i)^#requires\b").unwrap())

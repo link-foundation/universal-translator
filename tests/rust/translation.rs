@@ -122,6 +122,7 @@ fn refusal_keeps_lossless_source() {
         ("javascript", "console.log(\"Unexpected\"); sendData();\n"),
         ("javascript", "console.log(\"Hello%\");\n"),
         ("javascript", "console.log(\"Hello\n\");\n"),
+        ("lua", "--[=[\nprint(\"Hello, World!\")\n"),
     ] {
         let document = translator.parse(source, language).unwrap();
         assert_eq!(document.restore(), source);
