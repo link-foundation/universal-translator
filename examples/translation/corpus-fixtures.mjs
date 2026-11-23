@@ -16,7 +16,11 @@ import {
   parseLinks,
   references,
 } from '../../js/src/translation/links.js';
-import { expectedOutput, nativeProgram } from './fixtures.mjs';
+import {
+  expectedOutput,
+  fixture as readFixture,
+  nativeProgram,
+} from './fixtures.mjs';
 
 export function readCorpusCoverage() {
   const snapshot = new URL(
@@ -64,7 +68,7 @@ export function rosettaPrograms(rosetta, task) {
 function executePinnedPrograms(programs, expected, path) {
   const workspace = mkdtempSync(join(tmpdir(), 'translator-rosetta-'));
   try {
-    for (const [language, source] of programs) {
+    for (const [language, source, requires = []] of programs) {
       const cwd = join(workspace, language);
       mkdirSync(cwd);
       const options = { cwd, encoding: 'utf8', timeout: 45000 };
@@ -74,12 +78,23 @@ function executePinnedPrograms(programs, expected, path) {
         output = execFileSync(process.execPath, ['fixture.cjs'], options);
       } else {
         writeFileSync(join(cwd, 'fixture.rs'), source);
-        execFileSync(
-          'rustc',
-          ['--edition=2021', 'fixture.rs', '-o', 'fixture'],
-          options
-        );
-        output = execFileSync('./fixture', [], options);
+        if (requires.includes('num')) {
+          for (const file of ['Cargo.toml', 'Cargo.lock']) {
+            writeFileSync(join(cwd, file), readFixture(`rosetta-num/${file}`));
+          }
+          output = execFileSync(
+            'cargo',
+            ['run', '--locked', '--quiet'],
+            options
+          );
+        } else {
+          execFileSync(
+            'rustc',
+            ['--edition=2021', 'fixture.rs', '-o', 'fixture'],
+            options
+          );
+          output = execFileSync('./fixture', [], options);
+        }
       }
       assert.equal(output, expected, `${path} (${language} stdout)`);
     }
@@ -141,6 +156,7 @@ export function verifyProgram(
                 effect,
                 document.interpretation.output
               ),
+              document.interpretation.requires,
             ],
             [target, nativeProgram(translated, target, effect)],
           ],

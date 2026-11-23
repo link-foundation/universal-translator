@@ -68,10 +68,13 @@ rosetta-code:
   greatest-common-divisor-source-files:
     (program: JavaScript/greatest-common-divisor-2.js javascript rosetta-recursive gcd-function 2147483647)
     (program: Racket/greatest-common-divisor-1.rkt racket rosetta 14 63)
+    (program: Rust/greatest-common-divisor-1.rs rust rosetta-num gcd-function 2147483647)
     (program: Rust/greatest-common-divisor-2.rs rust rosetta-iterative gcd-function 2147483647)
     (program: Rust/greatest-common-divisor-3.rs rust rosetta-recursive gcd-function 2147483647)
   fizz-buzz-source-files:
     (program: JavaScript/fizzbuzz-2.js javascript rosetta-lookup 100)
+    (program: JavaScript/fizzbuzz-3.js javascript rosetta-assignment 100)
+    (program: JavaScript/fizzbuzz-4.js javascript rosetta-concise 100)
     (program: JavaScript/fizzbuzz-7.js javascript rosetta 100)
     (program: Python/fizzbuzz-4.py python rosetta 100)
     (program: Ruby/fizzbuzz-7.rb ruby rosetta 100)

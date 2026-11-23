@@ -300,6 +300,16 @@ profile:
         (line: })
     form:
       task: gcd-function
+      name: rosetta-num
+      fixed:
+        max: 2147483647
+      output: gcd
+      requires: num
+      source:
+        (line: 'extern crate num;')
+        (line: 'use num::integer::gcd;')
+    form:
+      task: gcd-function
       name: common
       fixed:
         max: 2147483647

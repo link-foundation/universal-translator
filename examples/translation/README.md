@@ -134,8 +134,10 @@ effects and Meta Language output of selected original programs. For the
 selected JavaScript and Rust files they execute both the original and the
 translated program and compare stdout with the task oracle.
 For callable GCD they invoke each function with signed integer inputs and
-compare the returned values. For FizzBuzz they preserve lowercase labels,
-quotes around each result, and the final blank line where the original uses one.
+compare the returned values. The imported Rust GCD uses the pinned `num`
+dependency in a dedicated fixture with a Cargo lockfile. For FizzBuzz they
+preserve lowercase labels, quotes around each result, and the final blank line
+where the original uses one.
 
 ```sh
 archive=$(mktemp)
@@ -179,7 +181,7 @@ node examples/translation/report-coverage.mjs \
 To check the Rosetta Code task directories and the sample counts for the
 three implemented tasks, also pass a directory containing the pinned Git
 Trees responses. This mode downloads thirteen pinned Hello World Text files,
-five pinned FizzBuzz files, and four pinned GCD files from GitHub. It checks
+ten pinned FizzBuzz files, and five pinned GCD files from GitHub. It checks
 their blob hashes, exact round trips, and effects in both runtimes.
 
 ```sh
