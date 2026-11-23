@@ -31,6 +31,10 @@ const taskFields = {
   hello: { message },
   'write-text': { message },
   'empty-program': { status: (value) => value === 0 },
+  'ackermann-function': {
+    left: (value) => value === 3,
+    right: (value) => value === 4,
+  },
   'gcd-function': { max: (value) => value === 2147483647 },
   'greatest-common-divisor': {
     left: (value) =>

@@ -40,6 +40,12 @@ function decodeEffect(task, parameters) {
       return { task: parameters[1] ?? task, message: parameters[0] };
     case 'fizz-buzz':
       return { task: parameters[1] ?? task, limit: Number(parameters[0]) };
+    case 'ackermann-function':
+      return {
+        task,
+        left: Number(parameters[0]),
+        right: Number(parameters[1]),
+      };
     case 'greatest-common-divisor':
       if (parameters[0] === 'gcd-function') {
         return { task: 'gcd-function', max: Number(parameters[1]) };

@@ -23,6 +23,9 @@ export default `profile:
       task: gcd-function
       name: standard
     form:
+      task: ackermann-function
+      name: standard
+    form:
       task: fizz-buzz
       name: standard
     form:

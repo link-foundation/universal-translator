@@ -26,6 +26,7 @@ pub enum Effect {
     Hello { message: String },
     WriteText { message: String },
     EmptyProgram { status: u32 },
+    AckermannFunction { left: u32, right: u32 },
     GcdFunction { max: u32 },
     GreatestCommonDivisor { left: u32, right: u32 },
     FizzBuzz { limit: u32 },
@@ -40,6 +41,7 @@ impl Effect {
             Self::Hello { .. } => "hello",
             Self::WriteText { .. } => "write-text",
             Self::EmptyProgram { .. } => "empty-program",
+            Self::AckermannFunction { .. } => "ackermann-function",
             Self::GcdFunction { .. } => "gcd-function",
             Self::GreatestCommonDivisor { .. } => "greatest-common-divisor",
             Self::FizzBuzz { .. } => "fizz-buzz",
@@ -56,7 +58,8 @@ impl Effect {
             }
             Self::GcdFunction { max } => vec![("max", max.to_string())],
             Self::EmptyProgram { status } => vec![("status", status.to_string())],
-            Self::GreatestCommonDivisor { left, right } => {
+            Self::GreatestCommonDivisor { left, right }
+            | Self::AckermannFunction { left, right } => {
                 vec![("left", left.to_string()), ("right", right.to_string())]
             }
             Self::FizzBuzz { limit }
@@ -84,6 +87,10 @@ impl Effect {
             },
             "gcd-function" if fields.len() == 1 => Self::GcdFunction {
                 max: integer("max")?,
+            },
+            "ackermann-function" if fields.len() == 2 => Self::AckermannFunction {
+                left: integer("left")?,
+                right: integer("right")?,
             },
             "greatest-common-divisor" if fields.len() == 2 => Self::GreatestCommonDivisor {
                 left: integer("left")?,
@@ -153,6 +160,7 @@ impl Effect {
                 *left <= i32::MAX as u32 && *right <= i32::MAX as u32
             }
             Self::GcdFunction { max } => *max == i32::MAX as u32,
+            Self::AckermannFunction { left, right } => *left == 3 && *right == 4,
             Self::EmptyProgram { status } => *status == 0,
             Self::FizzBuzz { limit }
             | Self::FizzBuzzLowercase { limit }

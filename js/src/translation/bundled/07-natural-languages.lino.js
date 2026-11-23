@@ -25,6 +25,11 @@ export default `profile:
       source:
         (line: 'Write the text “{{message}}” to standard output without adding a newline.')
     form:
+      task: ackermann-function
+      name: standard
+      source:
+        (line: 'Return the Ackermann value A(m,n) for integer inputs 0 ≤ m ≤ {{left}} and 0 ≤ n ≤ {{right}}. Define A(0,n)=n+1, A(m,0)=A(m−1,1) for m>0, and A(m,n)=A(m−1,A(m,n−1)) when both are positive.')
+    form:
       task: gcd-function
       name: standard
       source:
@@ -93,6 +98,11 @@ profile:
       name: standard
       source:
         (line: '向标准输出写入文本“{{message}}”，不追加换行符。')
+    form:
+      task: ackermann-function
+      name: standard
+      source:
+        (line: '对于整数输入 0 ≤ m ≤ {{left}} 和 0 ≤ n ≤ {{right}}，返回阿克曼函数 A(m,n) 的值。定义 A(0,n)=n+1；若 m>0，则 A(m,0)=A(m−1,1)；若两者均为正数，则 A(m,n)=A(m−1,A(m,n−1))。')
     form:
       task: gcd-function
       name: standard
@@ -163,11 +173,16 @@ profile:
       source:
         (line: 'मानक आउटपुट पर “{{message}}” लिखें और उसके बाद नई पंक्ति न जोड़ें।')
     form:
+      task: ackermann-function
+      name: standard
+      source:
+        (line: 'पूर्णांक इनपुट 0 ≤ m ≤ {{left}} और 0 ≤ n ≤ {{right}} के लिए एकरमान फलन A(m,n) का मान लौटाएँ। A(0,n)=n+1 रखें। m>0 पर A(m,0)=A(m−1,1) और दोनों धनात्मक होने पर A(m,n)=A(m−1,A(m,n−1)) रखें।')
+    form:
       task: gcd-function
       name: standard
       source:
         (line: '−{{max}} से {{max}} तक के दो पूर्णांक लें, दोनों सीमाएँ शामिल हैं, और उनके निरपेक्ष मान लें।')
-        (line: 'जब तक दूसरा मान धनात्मक है, दोनों मानों को क्रमशः दूसरे मान और पहले मान को दूसरे से भाग देने पर बचे शेषफल से बदलें। पहला मान लौटाएँ।')
+        (line: 'जब तक दूसरा मान धनात्मक है, दोनों मानों को क्रमशः दूसरे मान और प्रथम मान को दूसरे से भाग देने पर बचे शेषफल से बदलें। पहला मान लौटाएँ।')
     form:
       task: greatest-common-divisor
       name: standard
@@ -231,6 +246,11 @@ profile:
       name: standard
       source:
         (line: 'Escribe el texto «{{message}}» en la salida estándar sin añadir un salto de línea.')
+    form:
+      task: ackermann-function
+      name: standard
+      source:
+        (line: 'Devuelve el valor de Ackermann A(m,n) para los enteros 0 ≤ m ≤ {{left}} y 0 ≤ n ≤ {{right}}. Define A(0,n)=n+1, A(m,0)=A(m−1,1) si m>0 y A(m,n)=A(m−1,A(m,n−1)) si ambos son positivos.')
     form:
       task: gcd-function
       name: standard
@@ -301,6 +321,11 @@ profile:
       source:
         (line: 'Écris le texte « {{message}} » sur la sortie standard sans ajouter de saut de ligne.')
     form:
+      task: ackermann-function
+      name: standard
+      source:
+        (line: 'Renvoyer la valeur de la fonction d’Ackermann A(m,n) pour les entiers 0 ≤ m ≤ {{left}} et 0 ≤ n ≤ {{right}}. Poser A(0,n)=n+1, A(m,0)=A(m−1,1) si m>0 et A(m,n)=A(m−1,A(m,n−1)) si les deux sont positifs.')
+    form:
       task: gcd-function
       name: standard
       source:
@@ -369,6 +394,11 @@ profile:
       name: standard
       source:
         (line: 'اكتب النص «{{message}}» على المخرج القياسي من دون إضافة محرف سطر جديد.')
+    form:
+      task: ackermann-function
+      name: standard
+      source:
+        (line: 'أعد قيمة دالة أكرمان A(m,n) للمدخلين الصحيحين 0 ≤ m ≤ {{left}} و0 ≤ n ≤ {{right}}. عرّف A(0,n)=n+1، وA(m,0)=A(m−1,1) عندما m>0، وA(m,n)=A(m−1,A(m,n−1)) عندما يكون كلاهما موجبًا.')
     form:
       task: gcd-function
       name: standard
@@ -439,6 +469,11 @@ profile:
       source:
         (line: 'মানক আউটপুটে “{{message}}” লেখাটি লিখুন এবং শেষে নতুন লাইন যোগ করবেন না।')
     form:
+      task: ackermann-function
+      name: standard
+      source:
+        (line: 'পূর্ণসংখ্যা ইনপুট 0 ≤ m ≤ {{left}} এবং 0 ≤ n ≤ {{right}} হলে আকারম্যান ফাংশন A(m,n) এর মান ফেরত দিন। A(0,n)=n+1, m>0 হলে A(m,0)=A(m−1,1), এবং উভয়ই ধনাত্মক হলে A(m,n)=A(m−1,A(m,n−1))।')
+    form:
       task: gcd-function
       name: standard
       source:
@@ -507,6 +542,11 @@ profile:
       name: standard
       source:
         (line: 'Escreva o texto «{{message}}» na saída padrão sem acrescentar uma quebra de linha.')
+    form:
+      task: ackermann-function
+      name: standard
+      source:
+        (line: 'Retorne o valor de Ackermann A(m,n) para os inteiros 0 ≤ m ≤ {{left}} e 0 ≤ n ≤ {{right}}. Defina A(0,n)=n+1, A(m,0)=A(m−1,1) se m>0 e A(m,n)=A(m−1,A(m,n−1)) se ambos forem positivos.')
     form:
       task: gcd-function
       name: standard
@@ -577,6 +617,11 @@ profile:
       source:
         (line: 'Выведите текст «{{message}}» в стандартный поток вывода без перевода строки.')
     form:
+      task: ackermann-function
+      name: standard
+      source:
+        (line: 'Верните значение функции Аккермана A(m,n) для целых чисел 0 ≤ m ≤ {{left}} и 0 ≤ n ≤ {{right}}. Положите A(0,n)=n+1, A(m,0)=A(m−1,1) при m>0 и A(m,n)=A(m−1,A(m,n−1)), когда оба числа положительны.')
+    form:
       task: gcd-function
       name: standard
       source:
@@ -645,6 +690,11 @@ profile:
       name: standard
       source:
         (line: 'متن «{{message}}» معیاری خروج پر لکھیں اور آخر میں سطر تبدیل نہ کریں۔')
+    form:
+      task: ackermann-function
+      name: standard
+      source:
+        (line: 'صحیح عددی مدخلات 0 ≤ m ≤ {{left}} اور 0 ≤ n ≤ {{right}} کے لیے ایکرمین تفاعل A(m,n) کی قدر واپس کریں۔ A(0,n)=n+1 مقرر کریں، m>0 پر A(m,0)=A(m−1,1) اور دونوں کے مثبت ہونے پر A(m,n)=A(m−1,A(m,n−1)) رکھیں۔')
     form:
       task: gcd-function
       name: standard
@@ -715,6 +765,11 @@ profile:
       source:
         (line: 'Tulis teks “{{message}}” ke keluaran standar tanpa menambahkan baris baru.')
     form:
+      task: ackermann-function
+      name: standard
+      source:
+        (line: 'Kembalikan nilai fungsi Ackermann A(m,n) untuk masukan bilangan bulat 0 ≤ m ≤ {{left}} dan 0 ≤ n ≤ {{right}}. Tetapkan A(0,n)=n+1, A(m,0)=A(m−1,1) jika m>0, dan A(m,n)=A(m−1,A(m,n−1)) jika keduanya positif.')
+    form:
       task: gcd-function
       name: standard
       source:
@@ -783,6 +838,11 @@ profile:
       name: standard
       source:
         (line: 'Schreibe den Text „{{message}}“ ohne abschließenden Zeilenumbruch in die Standardausgabe.')
+    form:
+      task: ackermann-function
+      name: standard
+      source:
+        (line: 'Gib den Wert der Ackermannfunktion A(m,n) für ganze Zahlen 0 ≤ m ≤ {{left}} und 0 ≤ n ≤ {{right}} zurück. Setze A(0,n)=n+1, A(m,0)=A(m−1,1) für m>0 und A(m,n)=A(m−1,A(m,n−1)), wenn beide positiv sind.')
     form:
       task: gcd-function
       name: standard
@@ -853,6 +913,11 @@ profile:
       source:
         (line: 'テキスト「{{message}}」を末尾の改行を加えずに標準出力に書き出す。')
     form:
+      task: ackermann-function
+      name: standard
+      source:
+        (line: '整数入力 0 ≤ m ≤ {{left}}、0 ≤ n ≤ {{right}} に対し、アッカーマン関数 A(m,n) の値を返す。A(0,n)=n+1 とし、m>0 のとき A(m,0)=A(m−1,1)、両方が正のとき A(m,n)=A(m−1,A(m,n−1)) とする。')
+    form:
       task: gcd-function
       name: standard
       source:
@@ -921,6 +986,11 @@ profile:
       name: standard
       source:
         (line: 'Andika maandishi “{{message}}” katika towe la kawaida bila kuongeza alama ya mstari mpya.')
+    form:
+      task: ackermann-function
+      name: standard
+      source:
+        (line: 'Rudisha thamani ya fomula ya Ackermann A(m,n) kwa namba kamili 0 ≤ m ≤ {{left}} na 0 ≤ n ≤ {{right}}. Weka A(0,n)=n+1, A(m,0)=A(m−1,1) ikiwa m>0, na A(m,n)=A(m−1,A(m,n−1)) ikiwa zote mbili ni chanya.')
     form:
       task: gcd-function
       name: standard
@@ -991,6 +1061,11 @@ profile:
       source:
         (line: 'प्रमाणित आउटपुटवर “{{message}}” हा मजकूर लिहा आणि शेवटी नवीन ओळ जोडू नका.')
     form:
+      task: ackermann-function
+      name: standard
+      source:
+        (line: '0 ≤ m ≤ {{left}} आणि 0 ≤ n ≤ {{right}} या पूर्णांक निविष्ट्यांसाठी ॲकरमन फलनाचे A(m,n) मूल्य परत करा. A(0,n)=n+1 ठेवा. m>0 असल्यास A(m,0)=A(m−1,1) आणि दोन्ही धन असल्यास A(m,n)=A(m−1,A(m,n−1)) ठेवा.')
+    form:
       task: gcd-function
       name: standard
       source:
@@ -1059,6 +1134,11 @@ profile:
       name: standard
       source:
         (line: '“{{message}}” అనే పాఠ్యాన్ని చివర కొత్త పంక్తిని జోడించకుండా ప్రామాణిక అవుట్‌పుట్‌కు రాయండి.')
+    form:
+      task: ackermann-function
+      name: standard
+      source:
+        (line: 'పూర్ణాంక ఇన్‌పుట్‌లు 0 ≤ m ≤ {{left}} మరియు 0 ≤ n ≤ {{right}} కోసం అకెర్మాన్ ప్రమేయం A(m,n) విలువను తిరిగి ఇవ్వండి. A(0,n)=n+1, m>0 అయితే A(m,0)=A(m−1,1), రెండూ ధనమైతే A(m,n)=A(m−1,A(m,n−1)) అని నిర్వచించండి.')
     form:
       task: gcd-function
       name: standard
@@ -1129,6 +1209,11 @@ profile:
       source:
         (line: '“{{message}}” metnini sonuna yeni satır eklemeden standart çıktıya yaz.')
     form:
+      task: ackermann-function
+      name: standard
+      source:
+        (line: '0 ≤ m ≤ {{left}} ve 0 ≤ n ≤ {{right}} tam sayı girdileri için Ackermann işlevinin A(m,n) değerini döndür. A(0,n)=n+1, m>0 ise A(m,0)=A(m−1,1), ikisi de pozitifse A(m,n)=A(m−1,A(m,n−1)) olarak tanımla.')
+    form:
       task: gcd-function
       name: standard
       source:
@@ -1197,6 +1282,11 @@ profile:
       name: standard
       source:
         (line: '“{{message}}” என்ற உரையை முடிவில் புதிய வரியைச் சேர்க்காமல் தரநிலை வெளியீட்டில் எழுது.')
+    form:
+      task: ackermann-function
+      name: standard
+      source:
+        (line: 'முழு எண் உள்ளீடுகள் 0 ≤ m ≤ {{left}} மற்றும் 0 ≤ n ≤ {{right}} ஆகியவற்றுக்கு அக்கர்மன் சார்பின் A(m,n) மதிப்பைத் திருப்புக. A(0,n)=n+1, m>0 எனில் A(m,0)=A(m−1,1), இரண்டும் நேர்மம் எனில் A(m,n)=A(m−1,A(m,n−1)) என வரையறுக்கவும்.')
     form:
       task: gcd-function
       name: standard
@@ -1267,6 +1357,11 @@ profile:
       source:
         (line: 'Ghi văn bản “{{message}}” ra đầu ra chuẩn mà không thêm ký tự xuống dòng.')
     form:
+      task: ackermann-function
+      name: standard
+      source:
+        (line: 'Trả về giá trị hàm Ackermann A(m,n) cho hai số nguyên 0 ≤ m ≤ {{left}} và 0 ≤ n ≤ {{right}}. Đặt A(0,n)=n+1, A(m,0)=A(m−1,1) nếu m>0 và A(m,n)=A(m−1,A(m,n−1)) nếu cả hai đều dương.')
+    form:
       task: gcd-function
       name: standard
       source:
@@ -1335,6 +1430,11 @@ profile:
       name: standard
       source:
         (line: '텍스트 “{{message}}”를 끝에 줄바꿈을 추가하지 않고 표준 출력에 쓴다.')
+    form:
+      task: ackermann-function
+      name: standard
+      source:
+        (line: '정수 입력 0 ≤ m ≤ {{left}}, 0 ≤ n ≤ {{right}}에 대해 아커만 함수 A(m,n)의 값을 반환한다. A(0,n)=n+1로, m>0이면 A(m,0)=A(m−1,1)로, 둘 다 양수이면 A(m,n)=A(m−1,A(m,n−1))로 정의한다.')
     form:
       task: gcd-function
       name: standard

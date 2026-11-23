@@ -14,6 +14,10 @@ write-text:
 gcd-function:
   max: 2147483647
 
+ackermann-function:
+  left: 3
+  right: 4
+
 fizz-buzz-lowercase:
   limit: 100
 

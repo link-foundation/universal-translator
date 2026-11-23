@@ -21,6 +21,15 @@ export function greatestCommonDivisor(left, right) {
   return left;
 }
 
+export function ackermann(first, second) {
+  unsignedInteger(first);
+  unsignedInteger(second);
+  if (first > 3 || second > 4) {
+    throw new RangeError('Expected Ackermann inputs in 0..3 and 0..4');
+  }
+  return [second + 1, second + 2, 2 * second + 3, 2 ** (second + 3) - 3][first];
+}
+
 export function* fizzBuzzLines(limit) {
   unsignedInteger(limit);
   for (let number = 1; number <= limit; number += 1) {

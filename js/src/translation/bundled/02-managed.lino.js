@@ -80,6 +80,82 @@ export default `profile:
         (line: ~1{})
         (line: 'printLine(String(greatestCommonDivisor({{left}}, {{right}})));')
     form:
+      task: ackermann-function
+      name: standard
+      fixed:
+        left: 3
+        right: 4
+      output: ackermann
+      source:
+        (line: 'function ackermann(first, second) {')
+        (line: '    if (first === 0) return second + 1;')
+        (line: '    if (second === 0) return ackermann(first - 1, 1);')
+        (line: '    return ackermann(first - 1, ackermann(first, second - 1));')
+        (line: })
+    form:
+      task: ackermann-function
+      name: rosetta-recursive
+      fixed:
+        left: 3
+        right: 4
+      output: ack
+      source:
+        (line: 'function ack(m, n) {')
+        (line: ' return m === 0 ? n + 1 : ack(m - 1, n === 0  ? 1 : ack(m, n - 1));')
+        (line: })
+    form:
+      task: ackermann-function
+      name: rosetta-iterative
+      fixed:
+        left: 3
+        right: 4
+      output: ack
+      source:
+        (line: 'function ack(M,N) {')
+        (line: '  for (; M > 0; M--) {')
+        (line: '    N = N === 0 ? 1 : ack(M,N-1);')
+        (line: '  }')
+        (line: '  return N+1;')
+        (line: })
+    form:
+      task: ackermann-function
+      name: rosetta-stack
+      fixed:
+        left: 3
+        right: 4
+      output: stackermann
+      source:
+        (line: 'function stackermann(M, N) {')
+        (line: '  const stack = [];')
+        (line: '  for (;;) {')
+        (line: '    if (M === 0) {')
+        (line: '      N++;')
+        (line: '      if (stack.length === 0) return N;')
+        (line: '      const r = stack[stack.length-1];')
+        (line: '      if (r[1] === 1) stack.length--;')
+        (line: '      else r[1]--;')
+        (line: '      M = r[0];')
+        (line: '    } else if (N === 0) {')
+        (line: '      M--;')
+        (line: '      N = 1;')
+        (line: '    } else {')
+        (line: '      M--')
+        (line: '      stack.push([M, N]);')
+        (line: '      N = 1;')
+        (line: '    }')
+        (line: '  }')
+        (line: })
+    form:
+      task: ackermann-function
+      name: common
+      fixed:
+        left: 3
+        right: 4
+      output: ackermann
+      requires: './common-library.mjs'
+      source:
+        (line: "import { ackermann } from './common-library.mjs';")
+    form:
       task: gcd-function
       name: standard
       fixed:

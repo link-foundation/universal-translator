@@ -50,6 +50,7 @@ rosetta-code:
     (task: fizz-buzz FizzBuzz 344 f0d6e89cef62f34a13bb64cd149459c97b9d9c7d 345 675)
   partial-tasks:
     (task: empty-program Empty-program 215 301be355b23d72e65bdea09ec463057b370502c8 215 285)
+    (task: ackermann-function Ackermann-function 260 723cbc36ff1dac44417f312a4a594a6cffa2aadb 260 374)
   effect-variants:
     (variant: write-text hello)
     (variant: gcd-function greatest-common-divisor)
@@ -58,6 +59,11 @@ rosetta-code:
     (variant: fizz-buzz-lowercase-blank-line fizz-buzz)
   empty-program-source-files:
     (program: Rust/empty-program.rs rust rosetta 0)
+  ackermann-function-source-files:
+    (program: JavaScript/ackermann-function-1.js javascript rosetta-recursive 3 4)
+    (program: JavaScript/ackermann-function-2.js javascript rosetta-iterative 3 4)
+    (program: JavaScript/ackermann-function-3.js javascript rosetta-stack 3 4)
+    (program: Rust/ackermann-function-2.rs rust rosetta-recursive 3 4)
   hello-source-files:
     (program: C-sharp/hello-world-text-2.cs csharp top-level 'Hello world!')
     (program: Clojure/hello-world-text.clj clojure standard 'Hello world!')

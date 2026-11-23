@@ -205,10 +205,11 @@ node examples/translation/report-coverage.mjs \
 ```
 
 To check the Rosetta Code task directories and the sample counts for the
-four supported tasks, also pass a directory containing the pinned Git
-Trees responses. This mode downloads thirteen pinned Hello World Text files,
-ten FizzBuzz files, five GCD files, and one Empty Program from GitHub. It checks
-their blob hashes, exact round trips, and effects in both runtimes.
+five modeled tasks, also pass a directory containing the pinned Git Trees
+responses. This mode downloads thirteen pinned Hello World Text files, ten
+FizzBuzz files, five GCD files, one Empty Program, and four callable Ackermann
+functions from GitHub. It checks their blob hashes, exact round trips, and
+effects in both runtimes.
 
 ```sh
 rosetta_trees=$(mktemp -d)
@@ -223,6 +224,8 @@ gh api "$rosetta_api/f0d6e89cef62f34a13bb64cd149459c97b9d9c7d?recursive=1" \
   > "$rosetta_trees/FizzBuzz.json"
 gh api "$rosetta_api/301be355b23d72e65bdea09ec463057b370502c8?recursive=1" \
   > "$rosetta_trees/Empty-program.json"
+gh api "$rosetta_api/723cbc36ff1dac44417f312a4a594a6cffa2aadb?recursive=1" \
+  > "$rosetta_trees/Ackermann-function.json"
 node examples/translation/report-coverage.mjs \
   /path/to/popular-tasks /path/to/hello-world-collection.html \
   ./target/debug/universal-translator "$rosetta_trees"

@@ -30,11 +30,28 @@ const gcdCalls = [
   [2147483647, -2147483647, 2147483647],
 ];
 
-export function nativeProgram(source, language, effect, entry = 'gcd') {
-  if (effect.task !== 'gcd-function') {
+// All 20 inputs in the bounded Ackermann function contract.
+const ackermannCalls = [
+  [1, 2, 3, 4, 5],
+  [2, 3, 4, 5, 6],
+  [3, 5, 7, 9, 11],
+  [5, 13, 29, 61, 125],
+].flatMap((row, left) => row.map((result, right) => [left, right, result]));
+
+const callableEffects = new Map([
+  ['gcd-function', { entry: 'gcd', cases: gcdCalls }],
+  ['ackermann-function', { entry: 'ackermann', cases: ackermannCalls }],
+]);
+
+export function nativeProgram(source, language, effect, entry) {
+  const callable = callableEffects.get(effect.task);
+  if (!callable) {
     return source;
   }
-  const calls = gcdCalls.map(([left, right]) => `${entry}(${left}, ${right})`);
+  const name = entry ?? callable.entry;
+  const calls = callable.cases.map(
+    ([left, right]) => `${name}(${left}, ${right})`
+  );
   if (language === 'javascript') {
     return `${source}\n${calls.map((call) => `console.log(${call});`).join('\n')}\n`;
   }
@@ -51,7 +68,11 @@ export function expectedOutput(effect) {
     case 'write-text':
       return effect.message;
     case 'gcd-function':
-      return gcdCalls.map(([, , result]) => `${result}\n`).join('');
+    case 'ackermann-function':
+      return callableEffects
+        .get(effect.task)
+        .cases.map(([, , result]) => `${result}\n`)
+        .join('');
     case 'greatest-common-divisor': {
       let { left, right } = effect;
       while (right !== 0) {

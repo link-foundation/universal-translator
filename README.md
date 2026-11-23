@@ -5,7 +5,8 @@ Rust. The catalog expresses Hello World, Greatest Common Divisor, and
 FizzBuzz in 50 programming languages and in precise plain language across
 20 human languages. Five textual instruction profiles support the Hello
 World fixture, and NASM x86-64 also implements GCD and FizzBuzz. JavaScript,
-Rust, and the 20 plain-language profiles also support Empty Program.
+Rust, and the 20 plain-language profiles also support Empty Program and the
+Ackermann function on integer inputs from 0 through 3 and 0 through 4.
 
 ## Translate a program
 
@@ -27,9 +28,10 @@ and Deno. Build the Rust CLI with a current stable Rust toolchain.
 - `same-effect` keeps the task and its parameters and emits the canonical target form unless you select a different form.
 
 Use `--form` to pick a supported style or a shared library wrapper. JavaScript
-and Rust provide common library forms for all three tasks, including text
-output without a trailing newline, GCD as a callable function, and FizzBuzz
-with lowercase labels, quoted results, or an extra blank line. The
+and Rust provide common library forms for Hello World, GCD, FizzBuzz, and
+the bounded Ackermann function. They include text output without a trailing
+newline, GCD as a callable function, and FizzBuzz with lowercase labels,
+quoted results, or an extra blank line. The
 programmatic APIs let callers replace or decorate adapters and add ordered
 rule layers for project-specific transformations.
 

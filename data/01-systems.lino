@@ -274,6 +274,47 @@ profile:
         (line: '    common_library::print_line(&divisor.to_string());')
         (line: })
     form:
+      task: ackermann-function
+      name: standard
+      fixed:
+        left: 3
+        right: 4
+      output: ackermann
+      source:
+        (line: 'fn ackermann(first: u64, second: u64) -> u64 {')
+        (line: '    match (first, second) {')
+        (line: '        (0, n) => n + 1,')
+        (line: '        (m, 0) => ackermann(m - 1, 1),')
+        (line: '        (m, n) => ackermann(m - 1, ackermann(m, n - 1)),')
+        (line: '    }')
+        (line: })
+    form:
+      task: ackermann-function
+      name: rosetta-recursive
+      fixed:
+        left: 3
+        right: 4
+      output: ack
+      source:
+        (line: 'fn ack(m: u64, n: u64) -> u64 {')
+        (line: '	match (m, n) {')
+        (line: '		(0, n) => n + 1,')
+        (line: '		(m, 0) => ack(m - 1, 1),')
+        (line: '		(m, n) => ack(m - 1, ack(m, n - 1)),')
+        (line: '	}')
+        (line: })
+    form:
+      task: ackermann-function
+      name: common
+      fixed:
+        left: 3
+        right: 4
+      output: ackermann
+      requires: common_library
+      source:
+        (line: 'mod common_library;')
+        (line: 'use common_library::ackermann;')
+    form:
       task: gcd-function
       name: standard
       fixed:
