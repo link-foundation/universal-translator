@@ -22,4 +22,13 @@ export default `profile:
     form:
       task: fizz-buzz
       name: standard
+    form:
+      task: fizz-buzz-lowercase
+      name: standard
+    form:
+      task: fizz-buzz-quoted
+      name: standard
+    form:
+      task: fizz-buzz-lowercase-blank-line
+      name: standard
 `;

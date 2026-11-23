@@ -21,6 +21,16 @@ const hello = effects[0];
 const translator = createTranslator();
 const cSource = fixture('hello.c').replaceAll('\r\n', '\n');
 const csharpSource = fixture('hello.cs').replaceAll('\r\n', '\n');
+const expectedProfiles = {
+  hello: 76,
+  'greatest-common-divisor': 72,
+  'fizz-buzz': 72,
+  'write-text': 23,
+  'gcd-function': 23,
+  'fizz-buzz-lowercase': 23,
+  'fizz-buzz-quoted': 23,
+  'fizz-buzz-lowercase-blank-line': 23,
+};
 
 describe('translation through meta-language', () => {
   it('preserves a Rust greeting without a trailing newline in JavaScript and back', () => {
@@ -144,12 +154,7 @@ describe('translation through meta-language', () => {
       const admitted = languages.filter(({ forms }) =>
         forms.some(({ task }) => task === effect.task)
       );
-      const expectedProfiles = {
-        hello: 76,
-        'write-text': 23,
-        'gcd-function': 23,
-      };
-      expect(admitted.length).toBe(expectedProfiles[effect.task] ?? 72);
+      expect(admitted.length).toBe(expectedProfiles[effect.task]);
       for (const sourceLanguage of admitted) {
         for (const form of sourceLanguage.forms.filter(
           ({ task }) => task === effect.task

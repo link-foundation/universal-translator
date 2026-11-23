@@ -32,7 +32,7 @@ function decodeEffect(task, parameters) {
       assert.ok(parameters.length === 1 || parameters[1] === 'write-text');
       return { task: parameters[1] ?? task, message: parameters[0] };
     case 'fizz-buzz':
-      return { task, limit: Number(parameters[0]) };
+      return { task: parameters[1] ?? task, limit: Number(parameters[0]) };
     case 'greatest-common-divisor':
       if (parameters[0] === 'gcd-function') {
         return { task: 'gcd-function', max: Number(parameters[1]) };

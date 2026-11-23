@@ -5,7 +5,10 @@ export type Effect =
   | { task: 'write-text'; message: string }
   | { task: 'gcd-function'; max: 2147483647 }
   | { task: 'greatest-common-divisor'; left: number; right: number }
-  | { task: 'fizz-buzz'; limit: number };
+  | { task: 'fizz-buzz'; limit: number }
+  | { task: 'fizz-buzz-lowercase'; limit: number }
+  | { task: 'fizz-buzz-quoted'; limit: number }
+  | { task: 'fizz-buzz-lowercase-blank-line'; limit: number };
 
 export type LanguageKind =
   | 'programming'

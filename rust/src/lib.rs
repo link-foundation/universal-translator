@@ -28,6 +28,9 @@ pub enum Effect {
     GcdFunction { max: u32 },
     GreatestCommonDivisor { left: u32, right: u32 },
     FizzBuzz { limit: u32 },
+    FizzBuzzLowercase { limit: u32 },
+    FizzBuzzQuoted { limit: u32 },
+    FizzBuzzLowercaseBlankLine { limit: u32 },
 }
 
 impl Effect {
@@ -38,6 +41,9 @@ impl Effect {
             Self::GcdFunction { .. } => "gcd-function",
             Self::GreatestCommonDivisor { .. } => "greatest-common-divisor",
             Self::FizzBuzz { .. } => "fizz-buzz",
+            Self::FizzBuzzLowercase { .. } => "fizz-buzz-lowercase",
+            Self::FizzBuzzQuoted { .. } => "fizz-buzz-quoted",
+            Self::FizzBuzzLowercaseBlankLine { .. } => "fizz-buzz-lowercase-blank-line",
         }
     }
 
@@ -50,7 +56,10 @@ impl Effect {
             Self::GreatestCommonDivisor { left, right } => {
                 vec![("left", left.to_string()), ("right", right.to_string())]
             }
-            Self::FizzBuzz { limit } => vec![("limit", limit.to_string())],
+            Self::FizzBuzz { limit }
+            | Self::FizzBuzzLowercase { limit }
+            | Self::FizzBuzzQuoted { limit }
+            | Self::FizzBuzzLowercaseBlankLine { limit } => vec![("limit", limit.to_string())],
         }
     }
 
@@ -77,6 +86,17 @@ impl Effect {
             "fizz-buzz" if fields.len() == 1 => Self::FizzBuzz {
                 limit: integer("limit")?,
             },
+            "fizz-buzz-lowercase" if fields.len() == 1 => Self::FizzBuzzLowercase {
+                limit: integer("limit")?,
+            },
+            "fizz-buzz-quoted" if fields.len() == 1 => Self::FizzBuzzQuoted {
+                limit: integer("limit")?,
+            },
+            "fizz-buzz-lowercase-blank-line" if fields.len() == 1 => {
+                Self::FizzBuzzLowercaseBlankLine {
+                    limit: integer("limit")?,
+                }
+            }
             _ => return None,
         };
         effect.validate().ok()?;
@@ -127,7 +147,10 @@ impl Effect {
                 *left <= i32::MAX as u32 && *right <= i32::MAX as u32
             }
             Self::GcdFunction { max } => *max == i32::MAX as u32,
-            Self::FizzBuzz { limit } => (1..=1000).contains(limit),
+            Self::FizzBuzz { limit }
+            | Self::FizzBuzzLowercase { limit }
+            | Self::FizzBuzzQuoted { limit }
+            | Self::FizzBuzzLowercaseBlankLine { limit } => (1..=1000).contains(limit),
         };
         valid
             .then_some(())

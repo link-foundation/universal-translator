@@ -139,8 +139,8 @@ fn all_authored_forms_and_directed_pairs() {
             admitted.len(),
             match effect.task() {
                 "hello" => 76,
-                "write-text" | "gcd-function" => 23,
-                _ => 72,
+                "greatest-common-divisor" | "fizz-buzz" => 72,
+                _ => 23,
             }
         );
         for source_profile in &admitted {

@@ -348,6 +348,9 @@ const sourceForms = {
   hello: 'collection',
   'greatest-common-divisor': 'rosetta',
   'fizz-buzz': 'rosetta',
+  'fizz-buzz-lowercase': 'rosetta',
+  'fizz-buzz-quoted': 'rosetta',
+  'fizz-buzz-lowercase-blank-line': 'rosetta',
 };
 const profiles = languageProfiles().filter(
   ({ kind }) => kind === 'programming' || kind === 'instruction'

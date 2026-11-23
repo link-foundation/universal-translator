@@ -133,6 +133,9 @@ restored bytes in both implementations. They also validate the expected
 effects and Meta Language output of selected original programs. For the
 selected JavaScript and Rust files they execute both the original and the
 translated program and compare stdout with the task oracle.
+For callable GCD they invoke each function with signed integer inputs and
+compare the returned values. For FizzBuzz they preserve lowercase labels,
+quotes around each result, and the final blank line where the original uses one.
 
 ```sh
 archive=$(mktemp)

@@ -58,12 +58,23 @@ export function expectedOutput(effect) {
       return `${left}\n`;
     }
     case 'fizz-buzz':
-      return Array.from({ length: effect.limit }, (_, index) => {
+    case 'fizz-buzz-lowercase':
+    case 'fizz-buzz-quoted':
+    case 'fizz-buzz-lowercase-blank-line': {
+      const lowercase =
+        effect.task === 'fizz-buzz-lowercase' ||
+        effect.task === 'fizz-buzz-lowercase-blank-line';
+      const lines = Array.from({ length: effect.limit }, (_, index) => {
         const number = index + 1;
-        const fizz = number % 3 === 0 ? 'Fizz' : '';
-        const buzz = number % 5 === 0 ? 'Buzz' : '';
-        return `${fizz + buzz || number}\n`;
+        const fizz = number % 3 === 0 ? (lowercase ? 'fizz' : 'Fizz') : '';
+        const buzz = number % 5 === 0 ? (lowercase ? 'buzz' : 'Buzz') : '';
+        const line = fizz + buzz || number;
+        return effect.task === 'fizz-buzz-quoted' ? `"${line}"\n` : `${line}\n`;
       }).join('');
+      return effect.task === 'fizz-buzz-lowercase-blank-line'
+        ? `${lines}\n`
+        : lines;
+    }
     default:
       throw new Error(`No stdout expectation for ${effect.task}`);
   }

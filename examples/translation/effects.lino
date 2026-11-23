@@ -13,3 +13,12 @@ write-text:
 
 gcd-function:
   max: 2147483647
+
+fizz-buzz-lowercase:
+  limit: 100
+
+fizz-buzz-quoted:
+  limit: 100
+
+fizz-buzz-lowercase-blank-line:
+  limit: 100

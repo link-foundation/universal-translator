@@ -26,6 +26,7 @@ const message = (value) =>
   value.length <= 96 &&
   !invalidMessage.test(value) &&
   messageEncoder.encode(value).length <= 96;
+const limit = (value) => Number.isInteger(value) && value >= 1 && value <= 1000;
 const taskFields = {
   hello: { message },
   'write-text': { message },
@@ -36,9 +37,10 @@ const taskFields = {
     right: (value) =>
       Number.isInteger(value) && value >= 0 && value <= 2147483647,
   },
-  'fizz-buzz': {
-    limit: (value) => Number.isInteger(value) && value >= 1 && value <= 1000,
-  },
+  'fizz-buzz': { limit },
+  'fizz-buzz-lowercase': { limit },
+  'fizz-buzz-quoted': { limit },
+  'fizz-buzz-lowercase-blank-line': { limit },
 };
 
 export function languageProfiles() {

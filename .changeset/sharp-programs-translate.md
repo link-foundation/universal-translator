@@ -7,3 +7,5 @@ Add source-preserving program translation, configurable transformation rules, an
 Both packages preserve any UTF-8 source as an ordered Links Notation document. JavaScript and Rust also share an optional set of callable operations for text output with or without a trailing newline, Greatest Common Divisor, and FizzBuzz.
 
 JavaScript and Rust also translate a callable GCD function with signed integer inputs. The callable GCD and text-output variants have instructions in all 20 natural-language profiles.
+
+Translate FizzBuzz variants that write lowercase results, quote each result, or add a final blank line. The common library forms and all 20 natural-language profiles preserve the exact output layout.

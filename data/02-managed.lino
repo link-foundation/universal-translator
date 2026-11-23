@@ -147,6 +147,65 @@ profile:
         (line: 'for (const line of fizzBuzzLines({{limit}})) {')
         (line: '    printLine(line);')
         (line: })
+    form:
+      task: fizz-buzz-lowercase
+      name: standard
+      source:
+        (line: 'for (let number = 1; number <= {{limit}}; number += 1) {')
+        (line: '    const label = (number % 3 === 0 ? "fizz" : "") + (number % 5 === 0 ? "buzz" : "");')
+        (line: '    console.log(label || number);')
+        (line: })
+    form:
+      task: fizz-buzz-lowercase
+      name: common
+      requires: './common-library.mjs'
+      output: printLine
+      source:
+        (line: "import { fizzBuzzLines, printLine } from './common-library.mjs';")
+        (line: ~1{})
+        (line: 'for (const line of fizzBuzzLines({{limit}})) {')
+        (line: '    printLine(line.toLowerCase());')
+        (line: })
+    form:
+      task: fizz-buzz-quoted
+      name: standard
+      source:
+        (line: 'for (let number = 1; number <= {{limit}}; number += 1) {')
+        (line: '    const label = (number % 3 === 0 ? "Fizz" : "") + (number % 5 === 0 ? "Buzz" : "");')
+        (line: '    console.log(JSON.stringify(String(label || number)));')
+        (line: })
+    form:
+      task: fizz-buzz-quoted
+      name: common
+      requires: './common-library.mjs'
+      output: printLine
+      source:
+        (line: "import { fizzBuzzLines, printLine } from './common-library.mjs';")
+        (line: ~1{})
+        (line: 'for (const line of fizzBuzzLines({{limit}})) {')
+        (line: '    printLine(JSON.stringify(line));')
+        (line: })
+    form:
+      task: fizz-buzz-lowercase-blank-line
+      name: standard
+      source:
+        (line: 'for (let number = 1; number <= {{limit}}; number += 1) {')
+        (line: '    const label = (number % 3 === 0 ? "fizz" : "") + (number % 5 === 0 ? "buzz" : "");')
+        (line: '    console.log(label || number);')
+        (line: })
+        (line: 'console.log();')
+    form:
+      task: fizz-buzz-lowercase-blank-line
+      name: common
+      requires: './common-library.mjs'
+      output: printLine
+      source:
+        (line: "import { fizzBuzzLines, printLine } from './common-library.mjs';")
+        (line: ~1{})
+        (line: 'for (const line of fizzBuzzLines({{limit}})) {')
+        (line: '    printLine(line.toLowerCase());')
+        (line: })
+        (line: 'printLine("");')
 
 profile:
   id: typescript

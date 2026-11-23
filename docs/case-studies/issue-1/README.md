@@ -118,7 +118,7 @@ Collection page, in that order, to verify their checksums and reported counts
 and check the selected original programs. Pass the compiled Rust CLI as the
 third argument to compare exact round trips and Meta Language output in both
 runtimes. A fourth argument accepts the pinned Git Trees responses to verify
-the source counts and the 22 original Rosetta Code programs.
+the source counts and 25 original Rosetta Code programs.
 [Reproduction commands](../../../examples/translation/README.md#verification)
 
 The absent ranked entries include graphical formats and targets with

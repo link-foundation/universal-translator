@@ -28,7 +28,8 @@ and Deno. Build the Rust CLI with a current stable Rust toolchain.
 
 Use `--form` to pick a supported style or a shared library wrapper. JavaScript
 and Rust provide common library forms for all three tasks, including text
-output without a trailing newline and GCD as a callable function. The
+output without a trailing newline, GCD as a callable function, and FizzBuzz
+with lowercase labels, quoted results, or an extra blank line. The
 programmatic APIs let callers replace or decorate adapters and add ordered
 rule layers for project-specific transformations.
 
@@ -36,8 +37,8 @@ rule layers for project-specific transformations.
 and line endings. Cross-language translation requires a recognized program
 form or an authored natural-language description. A `meta` document expresses
 one task and its inputs in Links Notation. Both implementations read, transform,
-and emit that same intermediate form. The supported effect describes the
-program's standard output, including whether the greeting ends with a newline.
+and emit that same intermediate form. The supported effects describe
+return values or exact standard output, including newline and quoting behavior.
 
 Use `encode-source <language>` and `decode-source` to exchange a lossless
 Links Notation source document between the two CLIs. Both implementations

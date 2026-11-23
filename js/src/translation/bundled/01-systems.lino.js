@@ -339,6 +339,143 @@ profile:
         (line: '        common_library::print_line(&line);')
         (line: '    }')
         (line: })
+    form:
+      task: fizz-buzz-lowercase
+      name: standard
+      source:
+        (line: 'fn main() {')
+        (line: '    for number in 1..={{limit}} {')
+        (line: '        match (number % 3, number % 5) {')
+        (line: '            (0, 0) => println!("{}", "fizzbuzz"),')
+        (line: '            (0, _) => println!("{}", "fizz"),')
+        (line: '            (_, 0) => println!("{}", "buzz"),')
+        (line: '            _ => println!("{}", number),')
+        (line: '        }')
+        (line: '    }')
+        (line: })
+    form:
+      task: fizz-buzz-lowercase
+      name: rosetta
+      source:
+        (line: 'fn main() {')
+        (line: '    for i in 1..={{limit}} {')
+        (line: '        match (i % 3, i % 5) {')
+        (line: '            (0, 0) => println!("fizzbuzz"),')
+        (line: '            (0, _) => println!("fizz"),')
+        (line: '            (_, 0) => println!("buzz"),')
+        (line: '            (_, _) => println!("{}", i),')
+        (line: '        }')
+        (line: '    }')
+        (line: })
+    form:
+      task: fizz-buzz-lowercase
+      name: common
+      requires: common_library
+      output: 'common_library::print_line'
+      source:
+        (line: 'mod common_library;')
+        (line: ~1{})
+        (line: 'fn main() {')
+        (line: '    for line in common_library::fizz_buzz_lines({{limit}}) {')
+        (line: '        common_library::print_line(&line.to_ascii_lowercase());')
+        (line: '    }')
+        (line: })
+    form:
+      task: fizz-buzz-quoted
+      name: standard
+      source:
+        (line: 'fn main() {')
+        (line: '    for number in 1..={{limit}} {')
+        (line: '        match (number % 3, number % 5) {')
+        (line: '            (0, 0) => println!("{:?}", "FizzBuzz"),')
+        (line: '            (0, _) => println!("{:?}", "Fizz"),')
+        (line: '            (_, 0) => println!("{:?}", "Buzz"),')
+        (line: '            _ => println!("{:?}", number.to_string()),')
+        (line: '        }')
+        (line: '    }')
+        (line: })
+    form:
+      task: fizz-buzz-quoted
+      name: rosetta
+      requires: 'std::borrow::Cow'
+      source:
+        (line: 'use std::borrow::Cow;')
+        (line: ~1{})
+        (line: 'fn main() {')
+        (line: '    (1..={{limit}})')
+        (line: '        .map(|n| match (n % 3, n % 5) {')
+        (line: '            (0, 0) => "FizzBuzz".into(),')
+        (line: '            (0, _) => "Fizz".into(),')
+        (line: '            (_, 0) => "Buzz".into(),')
+        (line: '            _ => Cow::from(n.to_string()),')
+        (line: '        })')
+        (line: '        .for_each(|n| println!("{:?}", n));')
+        (line: })
+    form:
+      task: fizz-buzz-quoted
+      name: common
+      requires: common_library
+      output: 'common_library::print_line'
+      source:
+        (line: 'mod common_library;')
+        (line: ~1{})
+        (line: 'fn main() {')
+        (line: '    for line in common_library::fizz_buzz_lines({{limit}}) {')
+        (line: '        common_library::print_line(&format!("{line:?}"));')
+        (line: '    }')
+        (line: })
+    form:
+      task: fizz-buzz-lowercase-blank-line
+      name: standard
+      source:
+        (line: 'fn main() {')
+        (line: '    for number in 1..={{limit}} {')
+        (line: '        match (number % 3, number % 5) {')
+        (line: '            (0, 0) => println!("{}", "fizzbuzz"),')
+        (line: '            (0, _) => println!("{}", "fizz"),')
+        (line: '            (_, 0) => println!("{}", "buzz"),')
+        (line: '            _ => println!("{}", number),')
+        (line: '        }')
+        (line: '    }')
+        (line: '    println!();')
+        (line: })
+    form:
+      task: fizz-buzz-lowercase-blank-line
+      name: rosetta
+      requires: 'std::fmt::Write'
+      source:
+        (line: 'use std::fmt::Write;')
+        (line: ~1{})
+        (line: 'fn fizzbuzz() -> String {')
+        (line: '    (1..={{limit}}).fold(String::new(), |mut output, x| {')
+        (line: '        let fizz = if x % 3 == 0 { "fizz" } else { "" };')
+        (line: '        let buzz = if x % 5 == 0 { "buzz" } else { "" };')
+        (line: '        if fizz.len() + buzz.len() != 0 {')
+        (line: '            output + fizz + buzz + "\\n"')
+        (line: '        } else {')
+        (line: '            write!(&mut output, "{}", x).unwrap();')
+        (line: '            output + "\\n"')
+        (line: '        }')
+        (line: '    })')
+        (line: })
+        (line: ~1{})
+        (line: 'fn main() {')
+        (line: '    println!("{}", fizzbuzz());')
+        (line: })
+    form:
+      task: fizz-buzz-lowercase-blank-line
+      name: common
+      requires: common_library
+      output: 'common_library::print_line'
+      source:
+        (line: 'mod common_library;')
+        (line: ~1{})
+        (line: 'fn main() {')
+        (line: '    for line in common_library::fizz_buzz_lines({{limit}}) {')
+        (line: '        common_library::print_line(&line.to_ascii_lowercase());')
+        (line: '    }')
+        (line: '    common_library::print_line("");')
+        (line: })
 
 profile:
   id: go
