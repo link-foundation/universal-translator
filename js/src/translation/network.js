@@ -6,6 +6,7 @@ import {
   Point,
   SourceSpan,
 } from 'meta-language';
+import { splitSourceLines } from './source-document.js';
 
 const encoder = new globalThis.TextEncoder();
 
@@ -30,7 +31,7 @@ function ordered(network, language, children) {
 
 export function sourceNetwork(source, language, interpretation) {
   const network = new LinkNetwork();
-  const tokens = source.match(/[^\n]*\n|[^\n]+/g) ?? [];
+  const tokens = splitSourceLines(source);
   const commentLines = new Set(
     interpretation?.comments.map(({ line }) => line)
   );
@@ -39,7 +40,7 @@ export function sourceNetwork(source, language, interpretation) {
     const length = encoder.encode(text).length;
     const end = text.endsWith('\n')
       ? new Point(line + 1, 0)
-      : new Point(line, text.length);
+      : new Point(line, length);
     const span = new SourceSpan(
       new ByteRange(offset, offset + length),
       new Point(line, 0),

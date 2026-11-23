@@ -5,6 +5,7 @@ mod meta;
 mod network;
 mod profile;
 mod referents;
+mod source_document;
 
 use meta_language::{LinkId, LinkNetwork};
 use regex::Regex;
@@ -16,6 +17,7 @@ pub use profile::{Form, Profile, language_profiles};
 pub use referents::{
     Candidate, Observation, RankedCandidate, Ranking, rank_interpretations, read_referent_input,
 };
+pub use source_document::SourceDocument;
 
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(tag = "task", rename_all = "kebab-case")]

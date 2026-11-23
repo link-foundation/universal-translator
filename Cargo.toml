@@ -35,3 +35,7 @@ links-notation = { version = "=0.31.8", default-features = false }
 [[test]]
 name = "translation"
 path = "rust/tests/translation.rs"
+
+[[test]]
+name = "source_document"
+path = "rust/tests/source_document.rs"

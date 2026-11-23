@@ -3,7 +3,13 @@
 import { readFileSync, realpathSync } from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
 
-import { add, createTranslator, multiply } from '../js/src/index.js';
+import {
+  add,
+  createTranslator,
+  multiply,
+  readSourceDocument,
+  writeSourceDocument,
+} from '../js/src/index.js';
 
 const COMMANDS = {
   add,
@@ -19,6 +25,8 @@ function usage() {
     '  multiply  Multiply two numbers',
     '  translate <from> <to> [file|-] [--mode <mode>] [--form <form>]',
     '  roundtrip <language> [file|-]  Reconstruct the original source',
+    '  encode-source <language> [file|-]  Write a Links Notation source document',
+    '  decode-source [file|-]  Restore source from a Links Notation document',
     '  languages  List language identifiers',
     '',
     'Modes: context-dependent (default), literal, same-effect',
@@ -120,6 +128,14 @@ export function runCli(
   }
 
   try {
+    if (command === 'encode-source' && left && argv.length <= 3) {
+      write(writeSourceDocument(left, read(right)) + '\n');
+      return 0;
+    }
+    if (command === 'decode-source' && argv.length <= 2) {
+      write(readSourceDocument(read(left)).source);
+      return 0;
+    }
     if (['translate', 'roundtrip', 'languages'].includes(command)) {
       runTranslation(command, argv.slice(1), read, write);
       return 0;

@@ -1,10 +1,12 @@
 use std::fs;
 use std::io::{self, Read, Write};
-use universal_translator::{Mode, Options, Translator};
+use universal_translator::{Mode, Options, SourceDocument, Translator};
 
 const USAGE: &str = "Usage:
   universal-translator translate <from> <to> [file|-] [--mode <mode>] [--form <form>]
   universal-translator roundtrip <language> [file|-]
+  universal-translator encode-source <language> [file|-]
+  universal-translator decode-source [file|-]
   universal-translator languages
   universal-translator --version
 
@@ -77,6 +79,16 @@ fn run(arguments: &[String]) -> Result<String, String> {
         ["roundtrip", language, file] => Ok(Translator::default()
             .parse(&source(Some(file))?, language)?
             .restore()),
+        ["encode-source", language, trailing @ ..] if trailing.len() <= 1 => {
+            let document = SourceDocument {
+                language: (*language).to_owned(),
+                source: source(trailing.first().copied())?,
+            };
+            Ok(document.to_links_notation()? + "\n")
+        }
+        ["decode-source", trailing @ ..] if trailing.len() <= 1 => {
+            Ok(SourceDocument::from_links_notation(&source(trailing.first().copied())?)?.source)
+        }
         ["translate", from, to, trailing @ ..] => {
             translate(&Translator::default(), from, to, trailing)
         }

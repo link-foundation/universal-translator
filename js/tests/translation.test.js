@@ -67,7 +67,7 @@ describe('translation through meta-language', () => {
       .metadata().span;
     expect([span.byteRange.start, span.byteRange.end]).toEqual([6, 12]);
     expect([span.start.row, span.start.column]).toEqual([1, 0]);
-    expect([span.end.row, span.end.column]).toEqual([1, 3]);
+    expect([span.end.row, span.end.column]).toEqual([1, 6]);
     expect(() => translator.transform(document, 'javascript')).toThrow(
       'Unsupported program'
     );
