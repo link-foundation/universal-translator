@@ -121,6 +121,31 @@ runtimes. A fourth argument accepts the pinned Git Trees responses to verify
 the source counts and 28 original Rosetta Code programs.
 [Reproduction commands](../../../examples/translation/README.md#verification)
 
+The portable program translator in Meta Language 1.0.0 reported semantic
+translation candidates for 107 of the 1,985 JavaScript files and six of the
+1,481 Rust files. The probe skipped one JavaScript file and three Rust files
+above 24 KiB. It counts only results with a semantics record. Each candidate
+still needs independent execution and a comparison of the original and
+translated effects before it can be included in native coverage.
+[Meta Language portable translator](https://github.com/link-foundation/meta-language/blob/v1.0.0/rust/src/program_translation.rs#L133)
+
+Run the probe after preparing the pinned archive with the example commands.
+It reuses the locked dependency and bounds the parser process's memory and
+stack. It prints the candidate paths and per-language totals.
+
+```sh
+dependency=$(CARGO_BUILD_JOBS=1 CARGO_PROFILE_DEV_DEBUG=0 cargo build --locked \
+  --message-format=json | jq -r 'select(.reason == "compiler-artifact" and
+  .target.name == "meta_language") | .filenames[] | select(endswith(".rlib"))')
+work=$(mktemp -d)
+rustc --edition=2024 -L dependency=target/debug/deps \
+  --extern "meta_language=$dependency" experiments/rosetta-portable-core.rs \
+  -o "$work/rosetta-portable-core"
+python3 experiments/rosetta-portable-core.py /path/to/rosetta-code.tar.gz | \
+  (ulimit -v 900000 && ulimit -s 8192 && "$work/rosetta-portable-core")
+rm -r "$work"
+```
+
 The absent ranked entries include graphical formats and targets with
 non-console observations. Scratch and LabVIEW require project or diagram
 representations. Ladder Logic requires time and controller state. Solidity
