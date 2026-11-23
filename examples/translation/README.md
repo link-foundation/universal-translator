@@ -85,6 +85,15 @@ node examples/translation/verify-native.mjs
 node examples/translation/report-coverage.mjs
 ```
 
+To check the original console programs, download the two snapshots linked
+in the case study and run the coverage report with the files and Rust CLI.
+
+```sh
+node examples/translation/report-coverage.mjs \
+  /path/to/popular-tasks /path/to/hello-world-collection.html \
+  ./target/debug/universal-translator
+```
+
 The native runner uses a temporary directory per program. It accepts profile
 IDs or `--group=baseline` and `--group=extended` to focus a run. Both Ubuntu
 CI jobs use `--require-all` so missing tools fail the job. The separately

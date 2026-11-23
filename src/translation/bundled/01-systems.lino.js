@@ -48,6 +48,20 @@ export default `profile:
         (line: '    return 0;')
         (line: })
     form:
+      task: hello
+      name: collection
+      requires: stdio.h stdlib.h
+      output: puts
+      source:
+        (line: '#include <stdio.h>')
+        (line: '#include <stdlib.h>')
+        (line: ~1{})
+        (line: 'int main(void)')
+        (line: {)
+        (line: '  puts("{{message}}");')
+        (line: '  return EXIT_SUCCESS;')
+        (line: })
+    form:
       task: greatest-common-divisor
       name: standard
       source:
@@ -105,6 +119,17 @@ profile:
         (line: 'int main()')
         (line: {)
         (line: \`    std::cout << "{{message}}" << '\\n';\`)
+        (line: })
+    form:
+      task: hello
+      name: collection
+      requires: iostream
+      source:
+        (line: '#include <iostream>')
+        (line: ~1{})
+        (line: 'int main()')
+        (line: {)
+        (line: '    std::cout << "{{message}}" << std::endl;')
         (line: })
     form:
       task: greatest-common-divisor
@@ -205,6 +230,17 @@ profile:
         (line: ~1{})
         (line: 'func main() {')
         (line: '    fmt.Println("{{message}}")')
+        (line: })
+    form:
+      task: hello
+      name: collection
+      requires: fmt
+      output: fmt.Printf
+      source:
+        (line: 'package main')
+        (line: 'import "fmt"')
+        (line: 'func main() {')
+        (line: ' fmt.Printf("{{message}}\\n")')
         (line: })
     form:
       task: greatest-common-divisor

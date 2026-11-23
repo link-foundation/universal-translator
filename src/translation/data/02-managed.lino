@@ -93,6 +93,16 @@ profile:
         (line: '    }')
         (line: })
     form:
+      task: hello
+      name: collection
+      requires: HelloWorld System.out
+      source:
+        (line: 'class HelloWorld {')
+        (line: '  static public void main( String args[] ) {')
+        (line: '    System.out.println( "{{message}}" );')
+        (line: '  }')
+        (line: })
+    form:
       task: greatest-common-divisor
       name: standard
       source:
@@ -286,6 +296,12 @@ profile:
       name: standard
       source:
         (line: 'let () = print_endline "{{message}}"')
+    form:
+      task: hello
+      name: collection
+      output: print_string
+      source:
+        (line: 'print_string "{{message}}\n";;')
     form:
       task: greatest-common-divisor
       name: standard

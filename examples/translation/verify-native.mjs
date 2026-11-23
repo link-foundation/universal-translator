@@ -366,6 +366,24 @@ for (const { id, forms } of profiles) {
     });
     check(runner, result, expectedOutput(effect), `${id} ${effect.task}`);
     checked += 1;
+    if (
+      effect.task === 'hello' &&
+      forms.some(
+        ({ task, name }) => task === effect.task && name === 'collection'
+      )
+    ) {
+      const collection = translator.translate(source, 'javascript', id, {
+        mode: 'same-effect',
+        form: 'collection',
+      });
+      check(
+        runner,
+        collection,
+        expectedOutput(effect),
+        `${id} collection greeting`
+      );
+      checked += 1;
+    }
   }
   console.log(`PASS ${id}`);
 }

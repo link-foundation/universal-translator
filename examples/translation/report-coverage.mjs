@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { URL } from 'node:url';
@@ -24,7 +25,8 @@ const authored = namedLinks(rosetta.get('authored-tasks'), 'task').map(
   references
 );
 const ranks = namedLinks(tiobe.get('ranks'), 'rank').map(references);
-const profiles = createTranslator().listLanguages();
+const translator = createTranslator();
+const profiles = translator.listLanguages();
 const byId = new Map(profiles.map((profile) => [profile.id, profile]));
 const byTask = new Set(
   profiles.flatMap(({ forms }) => forms.map(({ task }) => task))
@@ -49,7 +51,7 @@ for (const [index, entry] of ranks.entries()) {
   }
 }
 
-const [inventoryPath, helloWorldPath] = process.argv.slice(2);
+const [inventoryPath, helloWorldPath, rustBinary] = process.argv.slice(2);
 const taskCount = Number(reference(rosetta.get('task-count')));
 const entryCount = Number(reference(rosetta.get('entry-count')));
 if (inventoryPath) {
@@ -79,6 +81,18 @@ if (inventoryPath) {
 
 const programs = reference(helloWorld.get('programs'));
 const humanLanguages = reference(helloWorld.get('human-languages'));
+const consolePrograms = namedLinks(
+  helloWorld.get('verified-console-programs'),
+  'program'
+).map(references);
+for (const [anchor, language, form] of consolePrograms) {
+  assert.ok(
+    byId
+      .get(language)
+      ?.forms.some(({ task, name }) => task === 'hello' && name === form),
+    `Missing Hello World Collection form for ${anchor}`
+  );
+}
 if (helloWorldPath) {
   const input = readFileSync(helloWorldPath);
   assert.equal(
@@ -94,6 +108,37 @@ if (helloWorldPath) {
     page.match(/<b>(\d+) <a href="#Human">human<\/a> languages<\/b>/u)?.[1],
     humanLanguages
   );
+  // The checksum pins the markup. The selected snippets contain only inline
+  // links and the three entities used for source punctuation.
+  const entities = { amp: '&', gt: '>', lt: '<' };
+  for (const [anchor, language, form, message] of consolePrograms) {
+    const section = page.split(`<a name="${anchor}"></a>`);
+    assert.equal(section.length, 2, anchor);
+    const block = section[1]
+      .split('<a name="')[0]
+      .match(/<pre>([\s\S]*?)<\/pre>/u);
+    assert.ok(block, anchor);
+    const source = block[1]
+      .replace(/<\/?a(?:\s[^>]*)?>/gu, '')
+      .replace(/&(amp|gt|lt);/gu, (_, name) => entities[name]);
+    const document = translator.parse(source, language);
+    assert.equal(translator.restore(document), source, anchor);
+    assert.equal(document.interpretation?.form, form, anchor);
+    assert.deepEqual(document.interpretation.effect, {
+      task: 'hello',
+      message,
+    });
+    if (rustBinary) {
+      const rust = (args) =>
+        execFileSync(rustBinary, args, { encoding: 'utf8', input: source });
+      assert.equal(rust(['roundtrip', language]), source, anchor);
+      const args = ['translate', language, 'meta', '--mode', 'same-effect'];
+      const meta = translator.translate(source, language, 'meta', {
+        mode: 'same-effect',
+      });
+      assert.equal(rust(args), meta, anchor);
+    }
+  }
 }
 
 console.log(formatRecord('tiobe-coverage', counts));
@@ -101,6 +146,7 @@ console.log(
   formatRecord('hello-world-collection', {
     programs,
     'human-languages': humanLanguages,
+    'source-programs-checked': helloWorldPath ? consolePrograms.length : 0,
   })
 );
 console.log(

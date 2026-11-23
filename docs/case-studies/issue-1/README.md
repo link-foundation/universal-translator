@@ -40,9 +40,13 @@ The implementation has one or more authored forms for those tasks, with
 bounded, testable contracts. It covers three task definitions, leaving
 1,750 task definitions and source variants outside that catalog. The Hello
 World Collection homepage reports 603 programs and greetings in 78 human
-languages. The published HTTP page was retrievable, and its checksum and
-publication date are captured. Its platform-specific forms and greetings
-still need per-entry recognition and verification. [Pinned Rosetta Code inventory](https://github.com/acmeism/RosettaCodeData/blob/1d475861d7141ef2fafff293d9339f56e4b0f5db/popular-tasks) ·
+languages. The coverage report can check 13 original console snippets
+against the pinned page. It extracts their program text, verifies exact
+round trips and checks that the output effect preserves each original
+greeting, including punctuation. The native runner also executes the six
+new matching forms. Other source entries, including platform-specific
+forms and localized greetings, still need recognition and verification.
+[Pinned Rosetta Code inventory](https://github.com/acmeism/RosettaCodeData/blob/1d475861d7141ef2fafff293d9339f56e4b0f5db/popular-tasks) ·
 [Hello World Collection](http://helloworldcollection.de/)
 
 The catalog includes 50 programming profiles and 20 plain-language profiles
@@ -54,7 +58,10 @@ ranked items have no profile. The [Links Notation census](data/corpus-coverage.l
 lists each mapping. Run `node examples/translation/report-coverage.mjs`
 from the repository root to check the mapping against the current catalog.
 Pass local copies of the linked Rosetta Code inventory and the Hello World
-Collection page, in that order, to verify their checksums and reported counts.
+Collection page, in that order, to verify their checksums and reported counts
+and check the selected original programs. Pass the compiled Rust CLI as the
+third argument to compare exact round trips and Meta Language output in both
+runtimes.
 
 The absent ranked entries include graphical formats and targets with
 non-console observations. Scratch and LabVIEW require project or diagram
@@ -122,7 +129,7 @@ relationship to the system inspectable. [Associative technology stack](https://g
 
 ## Validation
 
-Each implementation checks 227 authored forms and 16,676 directed
+Each implementation checks 233 authored forms and 17,132 directed
 translations with shared task parameters. The parity runner checks every
 form and all three modes across both command lines. It checks the explicit
 Links Notation intermediate in both directions. Two Ubuntu native jobs

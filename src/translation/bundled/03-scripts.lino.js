@@ -170,6 +170,11 @@ profile:
         (line: ~1{})
         (line: 'print "{{message}}\\n";')
     form:
+      task: hello
+      name: collection
+      source:
+        (line: 'print "{{message}}\\n";')
+    form:
       task: greatest-common-divisor
       name: standard
       source:

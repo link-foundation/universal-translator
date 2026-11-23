@@ -5,6 +5,20 @@ hello-world-collection:
   sha256: 17055bc3f041d24bc3ae3b11145cdddaaf14ce14c84cb778359e8a995345575d
   programs: 603
   human-languages: 78
+  verified-console-programs:
+    (program: 'C&nbsp;(ANSI)' c collection 'Hello World!')
+    (program: 'C++&nbsp;(ISO)' cpp collection 'Hello World!')
+    (program: 'C&#9839;' csharp standard 'Hello, World!')
+    (program: Go go collection 'Hello World')
+    (program: Java java collection 'Hello World!')
+    (program: JavaScript javascript standard 'Hello World')
+    (program: Julia julia standard 'Hello, World!')
+    (program: OCaml ocaml collection 'Hello World!')
+    (program: Perl perl collection 'Hello World!')
+    (program: 'Python&nbsp;3' python standard 'Hello World')
+    (program: R r standard 'Hello world')
+    (program: Ruby ruby standard 'Hello World!')
+    (program: Rust rust standard 'Hello World!')
 
 rosetta-code:
   revision: 1d475861d7141ef2fafff293d9339f56e4b0f5db
