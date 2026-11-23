@@ -458,5 +458,4 @@ profile:
         (line: \`        printf '%d\\n' "$number"\`)
         (line: '    end')
         (line: end)
-
 `;
