@@ -63,9 +63,15 @@ and UTF-8 bytes in Rust.
 
 | Task                    | Inputs in the authored source                                                                      | Standard output                                                               |
 | ----------------------- | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Hello World             | A greeting of up to 96 characters using letters, digits, spaces, and a portable punctuation subset | The original text and a newline                                               |
+| Hello World             | A greeting of up to 96 UTF-8 bytes using letters, marks, numbers, spaces, and selected punctuation | The original text and a newline                                               |
 | Greatest Common Divisor | Two nonnegative signed 32-bit integers                                                             | Their greatest common divisor as a line of decimal text, with `gcd(0, 0) = 0` |
 | FizzBuzz                | A limit from 1 to 1,000                                                                            | The sequence defined by divisibility by 3 and 5, one item per line            |
+
+All 20 plain-language profiles and the C, C++, C#, Go, Java, JavaScript,
+Python, and Rust profiles can represent the 78 greetings preserved from the
+Hello World Collection. The executable profiles use UTF-8 source and output.
+The single-quote forms decline messages with an apostrophe. The other
+variable-greeting executable profiles use the portable ASCII subset.
 
 NASM x86-64 Linux, GNU AArch64 Linux, LLVM IR, CIL ILAsm, and JVM Jasmin
 accept the fixed greeting `Hello, World!`. Their profiles contain assembly
@@ -85,8 +91,9 @@ node examples/translation/verify-native.mjs
 node examples/translation/report-coverage.mjs
 ```
 
-To check the original console programs, download the two snapshots linked
-in the case study and run the coverage report with the files and Rust CLI.
+To check the original console programs and all 78 localized greetings,
+download the two snapshots linked in the case study and run the coverage
+report with the files and Rust CLI.
 
 ```sh
 node examples/translation/report-coverage.mjs \

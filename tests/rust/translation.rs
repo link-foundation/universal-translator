@@ -165,6 +165,74 @@ fn all_authored_forms_and_directed_pairs() {
 }
 
 #[test]
+fn localized_greetings_survive_translation_to_and_from_supported_profiles() {
+    let translator = Translator::default();
+    let effects = Effect::read_links_notation(include_str!(
+        "../../examples/translation/localized-greetings.lino"
+    ))
+    .unwrap();
+    assert_eq!(effects.len(), 78);
+    let profiles: Vec<_> = translator
+        .profiles()
+        .filter(|profile| profile.kind == "natural-language" || profile.unicode_greeting)
+        .collect();
+    assert_eq!(profiles.len(), 28);
+    let options = Options::default();
+    for effect in effects {
+        let intermediate = effect.to_links_notation();
+        for profile in &profiles {
+            let source = translator
+                .translate(&intermediate, "meta", &profile.id, &options)
+                .unwrap();
+            assert_eq!(
+                translator
+                    .translate(&source, &profile.id, "meta", &options)
+                    .unwrap(),
+                format!("{intermediate}\n")
+            );
+        }
+    }
+    let welsh = Effect::Hello {
+        message: "S'mae byd!".into(),
+    }
+    .to_links_notation();
+    assert!(
+        translator
+            .translate(&welsh, "meta", "cobol", &options)
+            .is_err()
+    );
+    assert!(
+        translator
+            .translate(
+                &welsh,
+                "meta",
+                "javascript",
+                &Options {
+                    form: Some("single-quotes".into()),
+                    ..options
+                },
+            )
+            .is_err()
+    );
+    assert!(
+        translator
+            .parse("console.log('S'mae byd!');", "javascript")
+            .unwrap()
+            .interpretation
+            .is_none()
+    );
+    assert!(
+        Expression::new(
+            "meta",
+            Effect::Hello {
+                message: "日".repeat(33)
+            }
+        )
+        .is_err()
+    );
+}
+
+#[test]
 fn refusal_keeps_lossless_source() {
     let translator = Translator::default();
     let unicode = translator.parse("code\r\n🐍é", "c").unwrap();

@@ -1,9 +1,13 @@
 import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
 
-import { createTranslator } from '../../src/index.js';
+import {
+  createTranslator,
+  languageProfiles,
+  writeEffect,
+} from '../../src/index.js';
 
-import { exampleEffects, fixture } from './fixtures.mjs';
+import { exampleEffects, fixture, localizedGreetings } from './fixtures.mjs';
 
 const binary = resolve(process.argv[2] ?? 'target/debug/universal-translator');
 const effects = exampleEffects();
@@ -31,6 +35,21 @@ for (const { id, forms } of translator.listLanguages()) {
   }
 }
 const c = fixture('hello.c');
+const localized = localizedGreetings();
+const greetingProfiles = languageProfiles().filter(
+  ({ kind, unicodeGreeting }) => kind === 'natural-language' || unicodeGreeting
+);
+for (const [index, effect] of localized.entries()) {
+  const { id } = greetingProfiles[index % greetingProfiles.length];
+  const meta = writeEffect(effect);
+  const source = translator.translate(meta, 'meta', id);
+  if (
+    rust(['translate', 'meta', id], meta) !== source ||
+    rust(['translate', id, 'meta'], source) !== `${meta}\n`
+  ) {
+    throw new Error(`JavaScript/Rust localized greeting differs for ${id}`);
+  }
+}
 for (const mode of ['context-dependent', 'literal', 'same-effect']) {
   const args = ['translate', 'c', 'csharp', '--mode', mode];
   if (rust(args, c) !== translator.translate(c, 'c', 'csharp', { mode })) {
@@ -50,5 +69,5 @@ for (const mode of ['context-dependent', 'literal', 'same-effect']) {
   }
 }
 console.log(
-  `Verified identical JavaScript and Rust output for ${checked} program forms and all three modes.`
+  `Verified identical JavaScript and Rust output for ${checked} program forms, ${localized.length} localized greetings, and all three modes.`
 );

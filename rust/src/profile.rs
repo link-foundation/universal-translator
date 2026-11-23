@@ -31,6 +31,8 @@ pub struct Profile {
     pub comment_end: Option<String>,
     #[serde(default)]
     pub header: usize,
+    #[serde(default)]
+    pub unicode_greeting: bool,
     pub call: String,
     pub output: String,
     pub forms: Vec<Form>,
@@ -110,6 +112,15 @@ impl Profile {
                     links::reference(values)?
                         .parse()
                         .map_err(|_| "Invalid header length".to_owned())
+                })
+                .transpose()?
+                .unwrap_or_default(),
+            unicode_greeting: fields
+                .get("unicodeGreeting")
+                .map(|values| {
+                    links::reference(values)?
+                        .parse()
+                        .map_err(|_| "Invalid unicodeGreeting flag".to_owned())
                 })
                 .transpose()?
                 .unwrap_or_default(),
@@ -233,6 +244,7 @@ struct CompiledForm {
     form: Form,
     fields: Vec<String>,
     parts: Vec<String>,
+    single_quoted_message: bool,
 }
 
 impl CompiledForm {
@@ -250,6 +262,7 @@ impl CompiledForm {
                 .map(|capture| capture[1].to_owned())
                 .collect(),
             parts: slots().split(&pattern).map(str::to_owned).collect(),
+            single_quoted_message: pattern.contains("'{{message}}"),
             form,
         }
     }
@@ -309,6 +322,17 @@ impl ProfileAdapter {
             forms,
             default_requirements,
         }
+    }
+
+    fn supports_effect(&self, form: &CompiledForm, effect: &Effect) -> bool {
+        if let Effect::Hello { message } = effect {
+            let apostrophe = message.contains('\'');
+            if apostrophe || !message.is_ascii() {
+                return (self.profile.kind == "natural-language" || self.profile.unicode_greeting)
+                    && !(form.single_quoted_message && apostrophe);
+            }
+        }
+        true
     }
 
     fn make_comments(
@@ -385,8 +409,12 @@ impl Adapter for ProfileAdapter {
         let normalized = code.join("\n");
         self.forms.iter().find_map(|compiled| {
             let form = &compiled.form;
+            let effect = compiled.read(&normalized)?;
+            if !self.supports_effect(compiled, &effect) {
+                return None;
+            }
             Some(Interpretation {
-                effect: compiled.read(&normalized)?,
+                effect,
                 form: form.name.clone(),
                 comments: comments.clone(),
                 output: form.output.as_ref().unwrap_or(&profile.output).clone(),
@@ -414,7 +442,9 @@ impl Adapter for ProfileAdapter {
             .iter()
             .find(|candidate| candidate.form.task == task && candidate.form.name == expression.form)
             .ok_or_else(reject)?;
-        if compiled.form.fixed.is_some() && compiled.fixed_effect().as_ref() != Some(effect) {
+        if !self.supports_effect(compiled, effect)
+            || (compiled.form.fixed.is_some() && compiled.fixed_effect().as_ref() != Some(effect))
+        {
             return Err(reject());
         }
         let form = &compiled.form;

@@ -53,6 +53,9 @@ function profile(values) {
       ? reference(fields.get('commentEnd'))
       : undefined,
     header: fields.has('header') ? Number(reference(fields.get('header'))) : 0,
+    unicodeGreeting:
+      fields.has('unicodeGreeting') &&
+      reference(fields.get('unicodeGreeting')) === 'true',
     call: reference(fields.get('call')),
     output: reference(fields.get('output')),
     forms: namedLinks(fields.get('forms'), 'form').map((values) =>

@@ -7,6 +7,7 @@ mod profile;
 mod referents;
 
 use meta_language::{LinkId, LinkNetwork};
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::sync::OnceLock;
@@ -94,14 +95,17 @@ impl Effect {
     fn validate(&self) -> Result<(), String> {
         let valid = match self {
             Self::Hello { message } => {
+                static MESSAGE: OnceLock<Regex> = OnceLock::new();
                 message.len() <= 96
                     && !message
                         .as_bytes()
                         .windows(3)
                         .any(|bytes| bytes.starts_with(b"??") && b"=/()!<>-".contains(&bytes[2]))
-                    && message.bytes().all(|byte| {
-                        byte.is_ascii_alphanumeric() || b" ,.!?;:_+/()=<>-".contains(&byte)
-                    })
+                    && MESSAGE
+                        .get_or_init(|| {
+                            Regex::new(r"\A[ \p{L}\p{M}\p{N},.!?;:_+/()=<>'¡՛։、！-]*\z").unwrap()
+                        })
+                        .is_match(message)
             }
             Self::GreatestCommonDivisor { left, right } => {
                 *left <= i32::MAX as u32 && *right <= i32::MAX as u32

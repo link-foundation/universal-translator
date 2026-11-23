@@ -6,7 +6,10 @@ export type Effect =
   | { task: 'fizz-buzz'; limit: number };
 
 export type LanguageKind =
-  'programming' | 'instruction' | 'natural-language' | 'meta-language';
+  | 'programming'
+  | 'instruction'
+  | 'natural-language'
+  | 'meta-language';
 
 export interface LanguageForm {
   task: Effect['task'];
@@ -24,6 +27,7 @@ export interface LanguageProfile {
   comment: string;
   commentEnd?: string;
   header?: number;
+  unicodeGreeting?: boolean;
   call: string;
   output: string;
   forms: LanguageForm[];

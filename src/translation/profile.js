@@ -1,7 +1,10 @@
 import loadProfiles from './profile-data.js';
 
 const slots = /\{\{([a-z]+)\}\}/g;
-const nonportableMessage = /[^ A-Za-z0-9,.!?;:_+/()=<>-]|\?\?[=/()!<>-]/;
+const messageEncoder = new globalThis.TextEncoder();
+const extendedMessage = /[^ A-Za-z0-9,.!?;:_+/()=<>-]/;
+const invalidMessage =
+  /[^ \p{L}\p{M}\p{N},.!?;:_+/()=<>'¡՛։、！-]|\?\?[=/()!<>-]/u;
 // Comments must stay on one source line, including in lexers that recognize Unicode line separators.
 // eslint-disable-next-line no-control-regex
 const commentControl = /[\u0000-\u001f\u007f\u0085\u2028\u2029]/;
@@ -23,7 +26,8 @@ const taskFields = {
     message: (value) =>
       typeof value === 'string' &&
       value.length <= 96 &&
-      !nonportableMessage.test(value),
+      !invalidMessage.test(value) &&
+      messageEncoder.encode(value).length <= 96,
   },
   'greatest-common-divisor': {
     left: (value) =>
@@ -135,7 +139,18 @@ function compileForm(form) {
     ...form,
     fields: parts.filter((_, index) => index % 2 === 1),
     parts: parts.filter((_, index) => index % 2 === 0),
+    singleQuotedMessage: pattern.includes("'{{message}}"),
   };
+}
+
+function supportsEffect(profile, form, effect) {
+  if (effect.task !== 'hello' || !extendedMessage.test(effect.message)) {
+    return true;
+  }
+  return (
+    (profile.kind === 'natural-language' || profile.unicodeGreeting) &&
+    !(form.singleQuotedMessage && effect.message.includes("'"))
+  );
 }
 
 function safeComment(profile, text) {
@@ -255,7 +270,7 @@ export function profileAdapter(profile) {
       const normalized = code.join('\n');
       for (const form of forms) {
         const effect = readForm(form, normalized);
-        if (effect) {
+        if (effect && supportsEffect(profile, form, effect)) {
           return {
             effect,
             form: form.name,
@@ -272,6 +287,7 @@ export function profileAdapter(profile) {
       );
       if (
         !form ||
+        !supportsEffect(profile, form, effect) ||
         (form.fixed && !sameEffect(effect, { task: form.task, ...form.fixed }))
       ) {
         throw new Error(

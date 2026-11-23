@@ -1,6 +1,7 @@
 // Generated from ../data/02-managed.lino.
 export default `profile:
   id: javascript
+  unicodeGreeting: true
   label: JavaScript
   comment: //
   call: 'method call'
@@ -78,6 +79,7 @@ profile:
 
 profile:
   id: java
+  unicodeGreeting: true
   label: Java
   comment: //
   call: 'method call'
@@ -135,6 +137,7 @@ profile:
 
 profile:
   id: csharp
+  unicodeGreeting: true
   label: C#
   comment: //
   call: 'method call'

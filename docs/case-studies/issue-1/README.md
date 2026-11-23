@@ -80,10 +80,13 @@ checks exact round trips and greeting effects. Other original source variants,
 including the FizzBuzz and GCD source files, still need per-entry verification.
 The Hello World Collection homepage reports 603 programs and greetings in
 78 human languages. The report extracts 24 original console snippets from
-the pinned page and applies the same round-trip and greeting checks. The
-native runner executes matching collection forms for each available toolchain.
-The other collection entries, including platform-specific forms and localized
-greetings, still need recognition and verification.
+the pinned page and applies the same round-trip and greeting checks. It also
+verifies the text of all 78 localized greetings against the page. Both unit
+suites carry those greetings through Links Notation into all 20 plain-language
+descriptions and eight UTF-8 programming profiles. The native runner executes
+matching collection forms for each available toolchain and checks representative
+localized greetings in the eight UTF-8 profiles. The other collection source
+programs, including platform-specific forms, still need recognition and verification.
 [Pinned Rosetta Code inventory](https://github.com/acmeism/RosettaCodeData/blob/1d475861d7141ef2fafff293d9339f56e4b0f5db/popular-tasks) ·
 [Hello World Collection](http://helloworldcollection.de/)
 
@@ -170,8 +173,9 @@ relationship to the system inspectable. [Associative technology stack](https://g
 ## Validation
 
 Each implementation checks 242 authored forms and 17,816 directed
-translations with shared task parameters. The parity runner checks every
-form and all three modes across both command lines. It checks the explicit
+translations with shared task parameters and 2,184 localized greeting round
+trips. The parity runner checks every form, all 78 greetings, and all three
+modes across both command lines. It checks the explicit
 Links Notation intermediate in both directions. Two Ubuntu native jobs
 compare executable profiles to an independent stdout oracle. JavaScript
 runtime checks and the Rust job use locked dependency installs. Both the

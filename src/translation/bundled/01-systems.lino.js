@@ -1,6 +1,7 @@
 // Generated from ../data/01-systems.lino.
 export default `profile:
   id: c
+  unicodeGreeting: true
   label: C
   comment: //
   call: 'function call'
@@ -104,6 +105,7 @@ export default `profile:
 
 profile:
   id: cpp
+  unicodeGreeting: true
   label: C++
   comment: //
   call: 'function call'
@@ -172,6 +174,7 @@ profile:
 
 profile:
   id: rust
+  unicodeGreeting: true
   label: Rust
   comment: //
   call: 'function call'
@@ -214,6 +217,7 @@ profile:
 
 profile:
   id: go
+  unicodeGreeting: true
   label: Go
   comment: //
   call: 'function call'

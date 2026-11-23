@@ -3,6 +3,7 @@ import { describe, expect, it } from 'test-anywhere';
 import {
   exampleEffects,
   fixture,
+  localizedGreetings,
   referentInput,
 } from '../examples/translation/fixtures.mjs';
 import { runCli } from '../bin/universal-translator.js';
@@ -154,6 +155,40 @@ describe('translation through meta-language', () => {
     }, 15000);
   }
 });
+
+it('preserves all 78 localized greetings in Unicode-capable profiles', () => {
+  const effects = localizedGreetings();
+  expect(effects.length).toBe(78);
+  const profiles = languageProfiles().filter(
+    ({ kind, unicodeGreeting }) =>
+      kind === 'natural-language' || unicodeGreeting
+  );
+  expect(profiles.length).toBe(28);
+  for (const effect of effects) {
+    const intermediate = writeEffect(effect);
+    for (const { id } of profiles) {
+      const source = translator.translate(intermediate, 'meta', id);
+      expect(translator.translate(source, id, 'meta')).toBe(
+        `${intermediate}\n`
+      );
+    }
+  }
+  const welsh = writeEffect({ task: 'hello', message: "S'mae byd!" });
+  expect(() => translator.translate(welsh, 'meta', 'cobol')).toThrow(
+    'Unsupported hello'
+  );
+  expect(() =>
+    translator.translate(welsh, 'meta', 'javascript', {
+      form: 'single-quotes',
+    })
+  ).toThrow('Unsupported hello');
+  expect(
+    translator.parse("console.log('S'mae byd!');", 'javascript').interpretation
+  ).toBeUndefined();
+  expect(() =>
+    writeEffect({ task: 'hello', message: '日'.repeat(33) })
+  ).toThrow('outside the supported task domain');
+}, 15000);
 
 describe('translation rules and adapters', () => {
   it('applies ordered rule layers to the expression, then selects the requested style', () => {

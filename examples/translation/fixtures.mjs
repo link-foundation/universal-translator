@@ -17,6 +17,10 @@ export function exampleEffects() {
   return readEffects(fixture('effects.lino'));
 }
 
+export function localizedGreetings() {
+  return readEffects(fixture('localized-greetings.lino'));
+}
+
 function observation(values) {
   if (values === undefined) {
     return undefined;

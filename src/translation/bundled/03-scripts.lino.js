@@ -1,6 +1,7 @@
 // Generated from ../data/03-scripts.lino.
 export default `profile:
   id: python
+  unicodeGreeting: true
   label: Python
   comment: '#'
   call: 'function call'

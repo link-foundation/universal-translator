@@ -12,6 +12,7 @@ include = [
     "/examples/translation/hello.c",
     "/examples/translation/hello.cs",
     "/examples/translation/effects.lino",
+    "/examples/translation/localized-greetings.lino",
     "/examples/translation/referent-input.lino",
     "/README.md",
     "/LICENSE",

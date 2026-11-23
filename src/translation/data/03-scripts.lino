@@ -1,5 +1,6 @@
 profile:
   id: python
+  unicodeGreeting: true
   label: Python
   comment: '#'
   call: 'function call'

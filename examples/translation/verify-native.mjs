@@ -3,12 +3,19 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { createTranslator } from '../../src/index.js';
+import {
+  createTranslator,
+  languageProfiles,
+  writeEffect,
+} from '../../src/index.js';
 
-import { exampleEffects, fixture } from './fixtures.mjs';
+import { exampleEffects, fixture, localizedGreetings } from './fixtures.mjs';
 
 const translator = createTranslator();
 const effects = exampleEffects();
+const localized = localizedGreetings().filter(({ message }) =>
+  ["S'mae byd!", 'こんにちは、 世界！', 'ជំរាបសួរ ពិភពលោក'].includes(message)
+);
 const boundaryEffects = {
   cobol: [
     { task: 'hello', message: '' },
@@ -25,7 +32,7 @@ const environment = {
   DOTNET_CLI_TELEMETRY_OPTOUT: '1',
   DOTNET_NOLOGO: '1',
   GOTOOLCHAIN: 'local',
-  LC_ALL: 'C',
+  LC_ALL: 'C.UTF-8',
 };
 const tools = (command) =>
   spawnSync('sh', ['-c', 'command -v "$1"', 'sh', command]).status === 0;
@@ -332,15 +339,15 @@ for (const id of requested) {
 }
 const missing = [];
 let checked = 0;
-const profiles = translator
-  .listLanguages()
-  .filter(({ kind }) => kind === 'programming' || kind === 'instruction');
+const profiles = languageProfiles().filter(
+  ({ kind }) => kind === 'programming' || kind === 'instruction'
+);
 for (const id of Object.keys(allRunners)) {
   if (!profiles.some((profile) => profile.id === id)) {
     throw new Error(`Native test runner ${id} has no executable profile`);
   }
 }
-for (const { id, forms } of profiles) {
+for (const { id, forms, unicodeGreeting } of profiles) {
   if (!Object.hasOwn(allRunners, id)) {
     throw new Error(`Executable profile ${id} has no native test runner`);
   }
@@ -384,6 +391,15 @@ for (const { id, forms } of profiles) {
         `${id} collection greeting`,
         'collection'
       );
+      checked += 1;
+    }
+  }
+  if (unicodeGreeting) {
+    for (const effect of localized) {
+      const source = translator.translate(writeEffect(effect), 'meta', id, {
+        mode: 'same-effect',
+      });
+      check(runner, source, expectedOutput(effect), `${id} localized greeting`);
       checked += 1;
     }
   }

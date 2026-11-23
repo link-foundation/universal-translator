@@ -14,6 +14,7 @@ import {
   reference,
   references,
 } from '../../src/translation/links.js';
+import { localizedGreetings } from './fixtures.mjs';
 
 const snapshot = new URL(
   '../../docs/case-studies/issue-1/data/corpus-coverage.lino',
@@ -184,6 +185,7 @@ if (treeDirectory) {
 
 const programs = reference(helloWorld.get('programs'));
 const humanLanguages = reference(helloWorld.get('human-languages'));
+let greetingsChecked = 0;
 const consolePrograms = namedLinks(
   helloWorld.get('verified-console-programs'),
   'program'
@@ -226,6 +228,40 @@ if (helloWorldPath) {
       .replace(/&(amp|gt|lt);/gu, (_, name) => entities[name]);
     verifyGreeting(source, language, form, message, anchor);
   }
+  const table = page.split('<a name="Human"></a>')[1].split('</table><p>')[0];
+  const named = {
+    aacute: 'á',
+    acirc: 'â',
+    agrave: 'à',
+    aring: 'å',
+    auml: 'ä',
+    ecirc: 'ê',
+    egrave: 'è',
+    euml: 'ë',
+    iexcl: '¡',
+    igrave: 'ì',
+    oacute: 'ó',
+    ograve: 'ò',
+    uuml: 'ü',
+  };
+  const greetings = [
+    ...table.matchAll(/<tr><td>.*?<\/td>\s*<td>(.*?)<\/td>/gu),
+  ].map(([, greeting]) =>
+    greeting.replace(/&(#x[\da-f]+|#\d+|[a-z]+);/giu, (_, entity) => {
+      if (entity.startsWith('#')) {
+        const code = entity.slice(1).replace(/^x/iu, '0x');
+        return String.fromCodePoint(Number(code));
+      }
+      assert.ok(Object.hasOwn(named, entity), entity);
+      return named[entity];
+    })
+  );
+  assert.equal(greetings.length, Number(humanLanguages));
+  assert.deepEqual(
+    greetings,
+    localizedGreetings().map(({ message }) => message)
+  );
+  greetingsChecked = greetings.length;
 }
 
 console.log(formatRecord('tiobe-coverage', counts));
@@ -234,6 +270,7 @@ console.log(
     programs,
     'human-languages': humanLanguages,
     'source-programs-checked': helloWorldPath ? consolePrograms.length : 0,
+    'localized-greetings-checked': greetingsChecked,
   })
 );
 console.log(
