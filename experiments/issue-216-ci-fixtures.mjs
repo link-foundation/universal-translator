@@ -37,7 +37,7 @@ try {
       }
       copyFileSync(
         'js/tests/changeset-config.test.js',
-        join(cwd, 'tests/changeset-config.test.js')
+        join(cwd, 'js/tests/changeset-config.test.js')
       );
       const command = kind === 'deno' ? 'deno' : process.execPath;
       const args =
@@ -47,12 +47,12 @@ try {
               '--allow-read',
               ...(process.argv.includes('--full-deno')
                 ? []
-                : ['tests/changeset-config.test.js']),
+                : ['js/tests/changeset-config.test.js']),
             ]
           : [
               '--test',
               '--test-timeout=30000',
-              'tests/changeset-config.test.js',
+              'js/tests/changeset-config.test.js',
             ];
       const result = spawnSync(command, args, { cwd, encoding: 'utf8' });
       console.log(

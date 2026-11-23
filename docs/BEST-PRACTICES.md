@@ -244,7 +244,7 @@ Current timeout bands:
 job it kills as **cancelled**, not **failed**, so the overrun can pass
 unnoticed on a pull request. Long steps therefore own an explicit
 budget through `scripts/run-with-budget-warning.sh` (or a step-level
-`timeout-minutes` for `uses:` steps), and `tests/ci-timeouts.test.js`
+`timeout-minutes` for `uses:` steps), and `js/tests/ci-timeouts.test.js`
 asserts every budget stays at or under 70% of the job cap it sits
 under. See [CI-TIMEOUT-BUDGETS.md](CI-TIMEOUT-BUDGETS.md).
 

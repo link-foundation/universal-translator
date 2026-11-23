@@ -119,7 +119,7 @@ Original logs are preserved locally in `ci-logs/`:
 Minimum reproductions use real processes in disposable fixtures:
 
 ```bash
-node --test --test-timeout=30000 tests/changeset-config.test.js tests/pr-guards.test.js
+node --test --test-timeout=30000 js/tests/changeset-config.test.js js/tests/pr-guards.test.js
 node experiments/issue-203-changesets-version.mjs
 node experiments/issue-216-release-dry-run.mjs
 node experiments/issue-216-ci-fixtures.mjs
