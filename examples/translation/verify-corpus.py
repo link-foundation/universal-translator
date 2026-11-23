@@ -98,10 +98,12 @@ def source_records(archive):
     )
 
 
-def verify(archive, rust_binary, hello_world=None):
+def verify(archive, rust_binary, hello_world=None, require_full_native=False):
     javascript = ["node", "examples/translation/verify-source-corpus.mjs", rust_binary]
     if archive is None:
         javascript.append("--hello-world-only")
+    if require_full_native:
+        javascript.append("--require-full-native")
     commands = [
         javascript,
         [
@@ -131,7 +133,10 @@ if __name__ == "__main__":
     parser.add_argument("archive", type=Path, nargs="?", help=f"GitHub source tarball at {REVISION}")
     parser.add_argument("--rust-binary", default="target/debug/universal-translator")
     parser.add_argument("--hello-world", type=Path, help="Pinned Hello World Collection HTML")
+    parser.add_argument("--require-full-native", action="store_true", help="Require native translation of all JavaScript and Rust examples")
     args = parser.parse_args()
     if args.archive is None and args.hello_world is None:
         parser.error("provide an archive or --hello-world")
-    verify(args.archive, args.rust_binary, args.hello_world)
+    if args.require_full_native and args.archive is None:
+        parser.error("--require-full-native needs the Rosetta Code archive")
+    verify(args.archive, args.rust_binary, args.hello_world, args.require_full_native)

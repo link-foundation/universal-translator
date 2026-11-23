@@ -130,7 +130,9 @@ node examples/translation/report-coverage.mjs
 To verify the complete pinned Rosetta Code archive, run the same source
 round-trip check used in CI. The drivers stream the archive and compare
 restored bytes in both implementations. They also validate the expected
-effects and Meta Language output of selected original programs.
+effects and Meta Language output of selected original programs. For the
+selected JavaScript and Rust files they execute both the original and the
+translated program and compare stdout with the task oracle.
 
 ```sh
 archive=$(mktemp)
@@ -140,6 +142,11 @@ curl --fail --location \
 python3 examples/translation/verify-corpus.py "$archive"
 rm "$archive"
 ```
+
+Add `--require-full-native` to require native execution and translation
+evidence for every archived JavaScript and Rust example. The coverage report
+prints counts for both source languages before the check exits. PR #5 runs
+this form when GitHub marks it ready for review.
 
 To round-trip all 591 text listings from the Hello World Collection, pass
 the pinned HTML page. The remaining 12 programs are provided as images.
@@ -160,8 +167,8 @@ node examples/translation/report-coverage.mjs \
 
 To check the Rosetta Code task directories and the sample counts for the
 three implemented tasks, also pass a directory containing the pinned Git
-Trees responses. This mode downloads twelve pinned Hello World Text files,
-four pinned FizzBuzz files, and one pinned GCD file from GitHub. It checks
+Trees responses. This mode downloads thirteen pinned Hello World Text files,
+five pinned FizzBuzz files, and one pinned GCD file from GitHub. It checks
 their blob hashes, exact round trips, and effects in both runtimes.
 
 ```sh

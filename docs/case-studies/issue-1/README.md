@@ -25,6 +25,10 @@ stored verbatim as a log. Package managers, tool configurations, and the
 GitHub API use the formats those tools require.
 [PR 5 feedback](https://github.com/link-foundation/universal-translator/pull/5#issuecomment-7092772656)
 
+The [readiness investigation](readiness.md) tracks why the solver marked the
+previous draft ready, the corpus verification now used at that transition,
+and the requirements that still need implementation.
+
 The [snapshot converter](../../../experiments/case-study-snapshot.mjs)
 reads a JSON file or standard input. Use `--decode` to export the
 equivalent JSON values for tools that consume them.
@@ -77,12 +81,15 @@ Notation source documents and compares restored bytes in both runtimes.
 The archive includes 750 Hello World Text samples,
 675 FizzBuzz samples, and 355 GCD samples. The implementation covers three
 task definitions with bounded contracts. The 1,755 other task definitions
-still need adapters and verification. The report verifies twelve original
-Rosetta Code Hello World Text programs, four original FizzBuzz programs, and
+still need adapters and verification. The report verifies thirteen original
+Rosetta Code Hello World Text programs, five original FizzBuzz programs, and
 one original GCD program against their pinned Git blob hashes. It checks
 exact round trips and the expected effects. The selected JavaScript and Rust
 originals also translate in both directions through the Meta Language effect.
-The remaining source variants still need effect verification.
+The archive check executes the original and translated programs and compares
+their stdout. It reports native verification for three JavaScript examples
+out of 1,985 and two Rust examples out of 1,481. The remaining source
+variants still need effect verification.
 The Hello World Collection homepage reports 603 programs and greetings in
 78 human languages. Both implementations round-trip its 591 text listings
 through Links Notation. Twelve programs are published as images.
@@ -110,7 +117,7 @@ Collection page, in that order, to verify their checksums and reported counts
 and check the selected original programs. Pass the compiled Rust CLI as the
 third argument to compare exact round trips and Meta Language output in both
 runtimes. A fourth argument accepts the pinned Git Trees responses to verify
-the source counts and the 17 original Rosetta Code programs.
+the source counts and the 19 original Rosetta Code programs.
 [Reproduction commands](../../../examples/translation/README.md#verification)
 
 The absent ranked entries include graphical formats and targets with
@@ -179,9 +186,8 @@ relationship to the system inspectable. [Associative technology stack](https://g
 
 ## Validation
 
-Each implementation checks 246 authored forms and 18,104 directed
-translations with shared task parameters and 2,184 localized greeting round
-trips. The parity runner checks every form, all 78 greetings, and all three
+Each implementation checks every authored form and directed translation with
+shared task parameters. The parity runner checks 262 forms, all 78 greetings, and all three
 modes across both command lines. It checks the explicit
 Links Notation intermediate in both directions. Two Ubuntu native jobs
 compare executable profiles to an independent stdout oracle. JavaScript

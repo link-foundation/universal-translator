@@ -4,7 +4,8 @@ The inventory follows issue 1 and the November follow-ups in PR 5.
 The verification commands are in the [examples](../../../examples/translation/README.md).
 [Issue 1](https://github.com/link-foundation/universal-translator/issues/1) ·
 [Initial PR feedback](https://github.com/link-foundation/universal-translator/pull/5#issuecomment-7092772656) ·
-[Full corpus feedback](https://github.com/link-foundation/universal-translator/pull/5#issuecomment-7106301969)
+[Full corpus feedback](https://github.com/link-foundation/universal-translator/pull/5#issuecomment-7106301969) ·
+[Process feedback](https://github.com/link-foundation/universal-translator/pull/5#issuecomment-7111124596)
 
 | Requirement                                                                                                              | Implementation and verification                                                                                                                                                                                                                                                                                                                                                  | Remaining scope                                                                                                                                                                                                                                                                                                                 |
 | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -29,6 +30,12 @@ The verification commands are in the [examples](../../../examples/translation/RE
 | Collect evidence, study alternatives, inventory requirements, and plan the single PR.                                    | The case study includes reversible API evidence, the reviewer’s requests, source links, alternatives, the inventory, and reproducible verification.                                                                                                                                                                                                                              | The coverage report records the exact bounds of the example catalog.                                                                                                                                                                                                                                                            |
 
 ## Extending the verified boundary
+
+The [readiness investigation](readiness.md) traces the solver's previous
+ready transition. The archive check reports native coverage from real
+executions and requires complete JavaScript and Rust coverage on a
+ready-for-review PR 5. Coverage beyond those two source languages and the
+remaining requirements above still need evidence.
 
 Measure Rosetta Code support at a pinned revision. Define the observable
 contract per task and classify every selected source by dialect, environment

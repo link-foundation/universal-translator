@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { Buffer } from 'node:buffer';
-import { readSync } from 'node:fs';
+import { appendFileSync, readSync } from 'node:fs';
 import { resolve } from 'node:path';
 import {
   createTranslator,
@@ -8,8 +8,10 @@ import {
   writeSourceDocument,
 } from '../../js/src/index.js';
 import {
+  formatRecord,
   linkFields,
   namedLinks,
+  reference,
   references,
 } from '../../js/src/translation/links.js';
 import {
@@ -42,9 +44,23 @@ const utf8 = new globalThis.TextDecoder('utf-8', {
 });
 const translator = createTranslator();
 const rust = resolve(process.argv[2] ?? 'target/debug/universal-translator');
+const flags = process.argv.slice(3);
+const helloWorldOnly = flags.includes('--hello-world-only');
+const requireFullNative = flags.includes('--require-full-native');
 const fixtures = new Map();
-if (process.argv[3] !== '--hello-world-only') {
+const native = new Map();
+if (!helloWorldOnly) {
   const rosetta = linkFields(readCorpusCoverage().get('rosetta-code'));
+  for (const [name, id] of [
+    ['JavaScript', 'javascript'],
+    ['Rust', 'rust'],
+  ]) {
+    native.set(name, {
+      available: 0,
+      checked: 0,
+      expected: Number(reference(rosetta.get(`archive-${id}-count`))),
+    });
+  }
   for (const entry of namedLinks(rosetta.get('authored-tasks'), 'task')) {
     const [task, name] = references(entry);
     for (const program of rosettaPrograms(rosetta, task)) {
@@ -54,7 +70,6 @@ if (process.argv[3] !== '--hello-world-only') {
 }
 let verified = 0;
 let verifiedEffects = 0;
-let verifiedNative = 0;
 for (let header; (header = readBytes(8, true)); ) {
   const path = utf8.decode(readBytes(header.readUInt32LE(0)));
   const bytes = readBytes(header.readUInt32LE(4));
@@ -63,10 +78,15 @@ for (let header; (header = readBytes(8, true)); ) {
   const document = readSourceDocument(notation);
   assert.equal(document.language, language, path);
   assert.deepEqual(Buffer.from(document.source), bytes, path);
+  const coverage = native.get(language);
+  if (coverage) {
+    coverage.available += 1;
+  }
   const fixture = fixtures.get(path);
   if (fixture) {
     if (verifyProgram(translator, document.source, fixture, rust, true)) {
-      verifiedNative += 1;
+      assert.ok(coverage, path);
+      coverage.checked += 1;
     }
     fixtures.delete(path);
     verifiedEffects += 1;
@@ -81,14 +101,38 @@ assert.equal(
 assert.ok(verified > 0, 'Expected a stream of pinned corpus source files');
 console.log(`JavaScript verified ${verified} source documents`);
 if (verifiedEffects) {
-  assert.ok(
-    verifiedNative > 0,
-    'Expected pinned JavaScript and Rust executions'
-  );
   console.log(
     `Both runtimes verified ${verifiedEffects} selected original program effects`
   );
-  console.log(
-    `Verified stdout for ${verifiedNative} pinned JavaScript and Rust examples and their translations`
+}
+if (!helloWorldOnly) {
+  let summary = '### Native Rosetta Code translation\n\n';
+  summary +=
+    '| Source language | Native translation verified | Archived examples |\n';
+  summary += '| --- | ---: | ---: |\n';
+  let complete = true;
+  for (const [language, { checked, available, expected }] of native) {
+    assert.equal(available, expected, `Pinned file count for ${language}`);
+    assert.ok(checked > 0, `Expected native checks for ${language}`);
+    console.log(
+      formatRecord('rosetta-native-coverage', {
+        language,
+        verified: checked,
+        archived: available,
+        remaining: available - checked,
+      })
+    );
+    summary += `| ${language} | ${checked} | ${available} |\n`;
+    complete &&= checked === available;
+  }
+  if (!complete) {
+    summary += '\nThe full native corpus requirement remains open.\n';
+  }
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
+  }
+  assert.ok(
+    !requireFullNative || complete,
+    'Full native Rosetta Code translation is required'
   );
 }

@@ -5,7 +5,7 @@ on:
     branches:
       - main
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
   # Manual release support - consolidated here to work with npm trusted publishing
   # npm only allows ONE workflow file as trusted publisher, so all publishing
   # must go through this workflow (release.yml)
@@ -452,13 +452,20 @@ jobs:
           node examples/translation/dependent-meanings.mjs
 
       - name: Round-trip the pinned Rosetta Code corpus
+        env:
+          # PR #5 owns the full native corpus requirement from issue #1.
+          REQUIRE_FULL_NATIVE: ${{ github.event.pull_request.number == 5 && !github.event.pull_request.draft }}
         run: |
           archive="$RUNNER_TEMP/rosetta-code.tar.gz"
           curl --fail --location --silent --show-error --retry 3 \
             https://codeload.github.com/acmeism/RosettaCodeData/tar.gz/1d475861d7141ef2fafff293d9339f56e4b0f5db \
             --output "$archive"
+          args=()
+          if [[ "$REQUIRE_FULL_NATIVE" == "true" ]]; then
+            args+=(--require-full-native)
+          fi
           bash scripts/run-with-budget-warning.sh 540 "Rosetta Code source round trips" \
-            python3 examples/translation/verify-corpus.py "$archive"
+            python3 examples/translation/verify-corpus.py "$archive" "${args[@]}"
 
   native-translation:
     name: Native translation (${{ matrix.group }})
