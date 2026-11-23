@@ -50,7 +50,7 @@ Catch bugs and enforce patterns before code reaches review:
 Tests run across multiple dimensions:
 
 - **Cross-runtime**: Node.js, Bun, and Deno
-- **Cross-platform**: Ubuntu, macOS, and Windows
+- **Hosted runner**: Ubuntu
 - **Test framework**: [test-anywhere](https://github.com/link-foundation/test-anywhere) for universal compatibility
 
 ### 5. Changeset-Based Versioning
@@ -174,7 +174,7 @@ The simulation logic is extracted to `scripts/simulate-fresh-merge.sh` for reuse
 
 ```
 Fast checks (~7-30s each):     Slow checks (~1-10 min each):
-├── test-compilation           └── test matrix (3 runtimes x 3 OS)
+├── test-compilation           └── Ubuntu tests (3 JS runtimes plus Rust and parity)
 ├── lint (format + ESLint)
 └── check-file-line-limits
 ```

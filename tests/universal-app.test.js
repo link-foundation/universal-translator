@@ -89,7 +89,7 @@ describe('universal React example app', () => {
     expect(workflow).toContain('actions/upload-pages-artifact');
     expect(workflow).toContain('actions/deploy-pages');
     expect(workflow).toContain('EXAMPLE_APP_ENABLE_ANDROID_BUILD');
-    expect(workflow).toContain('EXAMPLE_APP_ENABLE_IOS_BUILD');
+    expect(workflow).not.toContain('EXAMPLE_APP_ENABLE_IOS_BUILD');
   });
 
   it('documents local validation without store credentials', () => {

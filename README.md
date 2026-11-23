@@ -229,7 +229,7 @@ The GitHub Actions workflow (`.github/workflows/release.yml`) implements a fast-
 
 **Slow checks** (only run after all fast checks pass):
 
-7. **Test matrix**: 3 runtimes × 3 OS = 9 test combinations
+7. **Ubuntu tests**: Node.js, Bun, and Deno run in parallel with the Rust suite and cross-language output checks
 8. **Broken link checks**: Validates all links in Markdown/HTML files (separate workflow)
 
 **Release** (on merge to main):

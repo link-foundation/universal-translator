@@ -236,6 +236,7 @@ describe('workflow concurrency policy', () => {
       'lint',
       'docker-build',
       'validate-docs',
+      'translation',
     ]) {
       expectCancellableCheckConcurrency(
         getJobBlock(releaseWorkflow, jobName),
@@ -247,21 +248,20 @@ describe('workflow concurrency policy', () => {
     expectCancellableCheckConcurrency(
       getJobBlock(releaseWorkflow, 'test'),
       'test',
-      '-${{ matrix.runtime }}-${{ matrix.os }}',
+      '-${{ matrix.runtime }}',
       "${{ github.ref != 'refs/heads/main' }}"
     );
 
-    for (const jobName of ['web-build', 'android-build', 'ios-build']) {
+    expect(exampleAppWorkflow).not.toContain('  ios-build:');
+    for (const jobName of ['web-build', 'android-build', 'desktop-package']) {
+      expect(getJobBlock(exampleAppWorkflow, jobName)).toContain(
+        'runs-on: ubuntu-24.04'
+      );
       expectCancellableCheckConcurrency(
         getJobBlock(exampleAppWorkflow, jobName),
         jobName
       );
     }
-    expectCancellableCheckConcurrency(
-      getJobBlock(exampleAppWorkflow, 'desktop-package'),
-      'desktop-package',
-      '-${{ matrix.os }}'
-    );
     expectCancellableCheckConcurrency(
       getJobBlock(linksWorkflow, 'link-checker'),
       'link-checker'
@@ -488,6 +488,7 @@ describe('manual release quality gates', () => {
     releaseMode,
     lintResult = 'success',
     testResult = 'success',
+    translationResult = 'success',
     cancelled = false,
   }) {
     const context = createTestJobContext({
@@ -499,6 +500,7 @@ describe('manual release quality gates', () => {
     context.cancelled = cancelled;
     context.needs.lint.result = lintResult;
     context.needs.test = { result: testResult };
+    context.needs.translation = { result: translationResult };
     return context;
   }
 
@@ -506,6 +508,7 @@ describe('manual release quality gates', () => {
     const workflow = readWorkflow('.github/workflows/release.yml');
     const lintJob = getJobBlock(workflow, 'lint');
     const testJob = getJobBlock(workflow, 'test');
+    const translationJob = getJobBlock(workflow, 'translation');
     const instantReleaseJob = getJobBlock(workflow, 'instant-release');
     const context = getManualReleaseContext({ releaseMode: 'instant' });
 
@@ -515,13 +518,16 @@ describe('manual release quality gates', () => {
     expect(evaluateWorkflowIf(getMultilineIfExpression(testJob), context)).toBe(
       true
     );
+    expect(
+      evaluateWorkflowIf(getMultilineIfExpression(translationJob), context)
+    ).toBe(true);
     expect(instantReleaseJob).toContain('        release-preflight,');
     expect(
       evaluateWorkflowIf(getMultilineIfExpression(instantReleaseJob), context)
     ).toBe(true);
   });
 
-  it('blocks an instant manual release after either quality gate fails', () => {
+  it('blocks an instant manual release after a quality gate fails', () => {
     const workflow = readWorkflow('.github/workflows/release.yml');
     const condition = getMultilineIfExpression(
       getJobBlock(workflow, 'instant-release')
@@ -542,6 +548,15 @@ describe('manual release quality gates', () => {
         getManualReleaseContext({
           releaseMode: 'instant',
           testResult: 'failure',
+        })
+      )
+    ).toBe(false);
+    expect(
+      evaluateWorkflowIf(
+        condition,
+        getManualReleaseContext({
+          releaseMode: 'instant',
+          translationResult: 'failure',
         })
       )
     ).toBe(false);

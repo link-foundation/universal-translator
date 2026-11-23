@@ -69,6 +69,6 @@ submission require Apple signing credentials. Android emulator or physical
 device testing does not require a Google Play Console account, while Play Store
 submission requires the normal Google Play signing and service account setup.
 
-The workflow includes gated Android and iOS build jobs. Set
-`EXAMPLE_APP_ENABLE_ANDROID_BUILD=true` or `EXAMPLE_APP_ENABLE_IOS_BUILD=true`
-as repository variables before enabling those native CI paths.
+Set the repository variable `EXAMPLE_APP_ENABLE_ANDROID_BUILD=true` to
+enable the Android CI build. The hosted desktop job packages the Ubuntu
+app. Use the local Xcode steps above to build the iOS app.

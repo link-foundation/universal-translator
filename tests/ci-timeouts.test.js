@@ -278,6 +278,7 @@ describe('CI timeout policy', () => {
       'changeset-check': 10,
       lint: 10,
       test: 15,
+      translation: 20,
       'validate-docs': 5,
       release: 65,
       'instant-release': 65,
@@ -389,6 +390,7 @@ describe('CI execution budgets', () => {
       'instant-release',
       'release',
       'test',
+      'translation',
     ]);
 
     const violations = [];

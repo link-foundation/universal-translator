@@ -104,16 +104,12 @@ jobs:
         uses: actions/deploy-pages@v5
 
   desktop-package:
-    name: Package desktop app (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
+    name: Package desktop app (Ubuntu)
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     concurrency:
-      group: check-${{ github.workflow }}-${{ github.ref }}-desktop-package-${{ matrix.os }}
+      group: check-${{ github.workflow }}-${{ github.ref }}-desktop-package
       cancel-in-progress: true
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-24.04, macos-15, windows-2025]
     steps:
       - uses: actions/checkout@v6
         with:
@@ -152,7 +148,7 @@ jobs:
       - name: Upload desktop package
         uses: actions/upload-artifact@v7
         with:
-          name: universal-example-desktop-${{ matrix.os }}
+          name: universal-example-desktop-ubuntu-24.04
           path: examples/universal-app/out
           if-no-files-found: error
 
@@ -204,37 +200,6 @@ jobs:
             examples/universal-app/android/app/build/outputs/**/*.apk
             examples/universal-app/android/app/build/outputs/**/*.aab
           if-no-files-found: warn
-
-  ios-build:
-    name: Build iOS app
-    if: github.event_name == 'workflow_dispatch' && vars.EXAMPLE_APP_ENABLE_IOS_BUILD == 'true'
-    runs-on: macos-15
-    timeout-minutes: 30
-    concurrency:
-      group: check-${{ github.workflow }}-${{ github.ref }}-ios-build
-      cancel-in-progress: true
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '24.x'
-          cache: npm
-          cache-dependency-path: examples/universal-app/package-lock.json
-
-      - name: Install app dependencies
-        run: |
-          npm ci --omit=dev --ignore-scripts --no-audit --no-fund
-          npm ci --prefix examples/universal-app --no-audit --no-fund
-
-      - name: Add iOS project
-        run: npm --prefix examples/universal-app run mobile:ios:add
-
-      - name: Build iOS project
-        run: npm --prefix examples/universal-app run mobile:ios:build
 
   # Regenerate example-app preview screenshots (docs/screenshots/example-app/*)
   # using browser-commander + Playwright so README/site images always reflect
@@ -367,7 +332,6 @@ jobs:
       - pages-deploy
       - desktop-package
       - android-build
-      - ios-build
       - preview-regen
     steps:
       - uses: actions/checkout@v6

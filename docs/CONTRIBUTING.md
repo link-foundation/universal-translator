@@ -192,7 +192,7 @@ All PRs must pass:
 - [ ] File line limits check
 - [ ] Changeset validation (for code changes)
 - [ ] Documentation validation (when docs change)
-- [ ] Tests on all platforms (Ubuntu, macOS, Windows)
+- [ ] Rust tests and JavaScript/Rust translation parity on Ubuntu
 - [ ] Tests on all runtimes (Node.js, Bun, Deno)
 
 ### Fresh Merge Simulation
