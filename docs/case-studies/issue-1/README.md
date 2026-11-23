@@ -74,10 +74,11 @@ counts. Five tasks appear only in the source tree. Directly counting source
 files within language directories gives 750 Hello World Text samples,
 675 FizzBuzz samples, and 355 GCD samples. The implementation covers three
 task definitions with bounded contracts. The 1,755 other task definitions
-still need adapters and verification. The report verifies 10 original Rosetta
-Code Hello World Text programs against their pinned Git blob hashes and
-checks exact round trips and greeting effects. Other original source variants,
-including the FizzBuzz and GCD source files, still need per-entry verification.
+still need adapters and verification. The report verifies ten original Rosetta
+Code Hello World Text programs, three original FizzBuzz programs, and one
+original GCD program against their pinned Git blob hashes. It checks exact
+round trips and the expected effects. The remaining source variants still
+need per-entry verification.
 The Hello World Collection homepage reports 603 programs and greetings in
 78 human languages. The report extracts 24 original console snippets from
 the pinned page and applies the same round-trip and greeting checks. It also
@@ -103,7 +104,7 @@ Collection page, in that order, to verify their checksums and reported counts
 and check the selected original programs. Pass the compiled Rust CLI as the
 third argument to compare exact round trips and Meta Language output in both
 runtimes. A fourth argument accepts the pinned Git Trees responses to verify
-the source counts and the 10 original Rosetta Code programs.
+the source counts and the 14 original Rosetta Code programs.
 [Reproduction commands](../../../examples/translation/README.md#verification)
 
 The absent ranked entries include graphical formats and targets with
@@ -172,7 +173,7 @@ relationship to the system inspectable. [Associative technology stack](https://g
 
 ## Validation
 
-Each implementation checks 242 authored forms and 17,816 directed
+Each implementation checks 246 authored forms and 18,104 directed
 translations with shared task parameters and 2,184 localized greeting round
 trips. The parity runner checks every form, all 78 greetings, and all three
 modes across both command lines. It checks the explicit

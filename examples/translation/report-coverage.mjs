@@ -56,14 +56,28 @@ for (const [index, entry] of ranks.entries()) {
 
 const [inventoryPath, helloWorldPath, rustBinary, treeDirectory] =
   process.argv.slice(2);
-function verifyGreeting(source, language, form, message, origin) {
+function decodeEffect(task, parameters) {
+  switch (task) {
+    case 'hello':
+      return { task, message: parameters[0] };
+    case 'fizz-buzz':
+      return { task, limit: Number(parameters[0]) };
+    case 'greatest-common-divisor':
+      return {
+        task,
+        left: Number(parameters[0]),
+        right: Number(parameters[1]),
+      };
+    default:
+      assert.fail(`Unsupported task ${task}`);
+  }
+}
+
+function verifyProgram(source, language, form, effect, origin) {
   const document = translator.parse(source, language);
   assert.equal(translator.restore(document), source, origin);
   assert.equal(document.interpretation?.form, form, origin);
-  assert.deepEqual(document.interpretation.effect, {
-    task: 'hello',
-    message,
-  });
+  assert.deepEqual(document.interpretation.effect, effect, origin);
   if (rustBinary) {
     const rust = (args) =>
       execFileSync(rustBinary, args, { encoding: 'utf8', input: source });
@@ -156,14 +170,14 @@ if (treeDirectory) {
         samples: sampleCount,
       })
     );
-    if (task === 'hello') {
+    if (rosetta.has(`${task}-source-files`)) {
       const hashes = new Map(samples.map(({ path, sha }) => [path, sha]));
       const root = new URL('.', reference(rosetta.get('inventory')));
       const programs = namedLinks(
-        rosetta.get('verified-source-files'),
+        rosetta.get(`${task}-source-files`),
         'program'
       ).map(references);
-      for (const [path, language, form, message] of programs) {
+      for (const [path, language, form, ...parameters] of programs) {
         assert.ok(hashes.has(path), path);
         const relative = path.split('/').map(encodeURIComponent).join('/');
         const response = await fetch(new URL(`Task/${name}/${relative}`, root));
@@ -176,7 +190,8 @@ if (treeDirectory) {
         assert.equal(hash, hashes.get(path), path);
         const source = bytes.toString('utf8');
         assert.deepEqual(Buffer.from(source), bytes, path);
-        verifyGreeting(source, language, form, message, path);
+        const effect = decodeEffect(task, parameters);
+        verifyProgram(source, language, form, effect, path);
         checkedRosetta += 1;
       }
     }
@@ -226,7 +241,7 @@ if (helloWorldPath) {
     const source = block[1]
       .replace(/<\/?a(?:\s[^>]*)?>/gu, '')
       .replace(/&(amp|gt|lt);/gu, (_, name) => entities[name]);
-    verifyGreeting(source, language, form, message, anchor);
+    verifyProgram(source, language, form, { task: 'hello', message }, anchor);
   }
   const table = page.split('<a name="Human"></a>')[1].split('</table><p>')[0];
   const named = {

@@ -103,9 +103,9 @@ node examples/translation/report-coverage.mjs \
 
 To check the Rosetta Code task directories and the sample counts for the
 three implemented tasks, also pass a directory containing the pinned Git
-Trees responses. This mode also downloads 10 pinned Hello World Text source
-files from GitHub and checks their blob hashes, exact round trips, and greeting
-effects in both runtimes.
+Trees responses. This mode downloads ten pinned Hello World Text files,
+three pinned FizzBuzz files, and one pinned GCD file from GitHub. It checks
+their blob hashes, exact round trips, and effects in both runtimes.
 
 ```sh
 rosetta_trees=$(mktemp -d)

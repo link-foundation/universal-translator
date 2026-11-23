@@ -339,6 +339,11 @@ for (const id of requested) {
 }
 const missing = [];
 let checked = 0;
+const sourceForms = {
+  hello: 'collection',
+  'greatest-common-divisor': 'rosetta',
+  'fizz-buzz': 'rosetta',
+};
 const profiles = languageProfiles().filter(
   ({ kind }) => kind === 'programming' || kind === 'instruction'
 );
@@ -374,22 +379,20 @@ for (const { id, forms, unicodeGreeting } of profiles) {
     });
     check(runner, result, expectedOutput(effect), `${id} ${effect.task}`);
     checked += 1;
+    const form = sourceForms[effect.task];
     if (
-      effect.task === 'hello' &&
-      forms.some(
-        ({ task, name }) => task === effect.task && name === 'collection'
-      )
+      forms.some((entry) => entry.task === effect.task && entry.name === form)
     ) {
-      const collection = translator.translate(source, 'javascript', id, {
+      const originalForm = translator.translate(source, 'javascript', id, {
         mode: 'same-effect',
-        form: 'collection',
+        form,
       });
       check(
         runner,
-        collection,
+        originalForm,
         expectedOutput(effect),
-        `${id} collection greeting`,
-        'collection'
+        `${id} ${form} ${effect.task}`,
+        form
       );
       checked += 1;
     }

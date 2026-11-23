@@ -407,6 +407,14 @@ profile:
         (line: ~1{})
         (line: '(displayln (greatest-common-divisor {{left}} {{right}}))')
     form:
+      task: greatest-common-divisor
+      name: rosetta
+      requires: racket
+      source:
+        (line: '#lang racket')
+        (line: ~1{})
+        (line: '(gcd {{left}} {{right}})')
+    form:
       task: fizz-buzz
       name: standard
       requires: racket/base
