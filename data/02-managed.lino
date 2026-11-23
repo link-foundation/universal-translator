@@ -79,6 +79,22 @@ profile:
         (line: ~1{})
         (line: 'printLine(String(greatestCommonDivisor({{left}}, {{right}})));')
     form:
+      task: ackermann-value
+      name: standard
+      source:
+        (line: 'const first = {{left}};')
+        (line: 'const second = {{right}};')
+        (line: 'console.log(2 ** (second + first) - first);')
+    form:
+      task: ackermann-value
+      name: common
+      requires: './common-library.mjs'
+      output: printLine
+      source:
+        (line: "import { ackermann, printLine } from './common-library.mjs';")
+        (line: ~1{})
+        (line: 'printLine(String(ackermann({{left}}, {{right}})));')
+    form:
       task: ackermann-function
       name: standard
       fixed:

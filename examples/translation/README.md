@@ -207,8 +207,8 @@ node examples/translation/report-coverage.mjs \
 To check the Rosetta Code task directories and the sample counts for the
 five modeled tasks, also pass a directory containing the pinned Git Trees
 responses. This mode downloads thirteen pinned Hello World Text files, ten
-FizzBuzz files, five GCD files, one Empty Program, and four callable Ackermann
-functions from GitHub. It checks their blob hashes, exact round trips, and
+FizzBuzz files, five GCD files, one Empty Program, and five Ackermann
+sources from GitHub. It checks their blob hashes, exact round trips, and
 effects in both runtimes.
 
 ```sh

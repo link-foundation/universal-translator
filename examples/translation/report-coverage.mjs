@@ -35,14 +35,15 @@ const byTask = new Set(
   profiles.flatMap(({ forms }) => forms.map(({ task }) => task))
 );
 const authoredIds = new Set(authored.map(([id]) => id));
+const implementedIds = new Set(implemented.map(([id]) => id));
 const variants = namedLinks(rosetta.get('effect-variants'), 'variant').map(
   references
 );
 for (const [id, task] of variants) {
-  assert.ok(byTask.has(id) && authoredIds.has(task));
+  assert.ok(byTask.has(id) && implementedIds.has(task));
 }
 assert.deepEqual(
-  new Set([...implemented.map(([id]) => id), ...variants.map(([id]) => id)]),
+  new Set([...implementedIds, ...variants.map(([id]) => id)]),
   byTask
 );
 assert.equal(ranks.length, 50);

@@ -41,6 +41,13 @@ function decodeEffect(task, parameters) {
     case 'fizz-buzz':
       return { task: parameters[1] ?? task, limit: Number(parameters[0]) };
     case 'ackermann-function':
+      if (parameters[0] === 'ackermann-value') {
+        return {
+          task: 'ackermann-value',
+          left: 3,
+          right: Number(parameters[1]),
+        };
+      }
       return {
         task,
         left: Number(parameters[0]),

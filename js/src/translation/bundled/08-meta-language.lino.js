@@ -26,6 +26,9 @@ export default `profile:
       task: ackermann-function
       name: standard
     form:
+      task: ackermann-value
+      name: standard
+    form:
       task: fizz-buzz
       name: standard
     form:

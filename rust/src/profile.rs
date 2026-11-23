@@ -13,6 +13,7 @@ const REGISTRIES: &[&str] = &[
     include_str!("../../data/05-programming-languages.lino"),
     include_str!("../../data/06-programming-languages.lino"),
     include_str!("../../data/07-natural-languages.lino"),
+    include_str!("../../data/07b-natural-languages.lino"),
     include_str!("../../data/08-meta-language.lino"),
 ];
 

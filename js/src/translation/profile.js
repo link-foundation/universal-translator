@@ -35,6 +35,10 @@ const taskFields = {
     left: (value) => value === 3,
     right: (value) => value === 4,
   },
+  'ackermann-value': {
+    left: (value) => value === 3,
+    right: (value) => Number.isInteger(value) && value >= 0 && value <= 4,
+  },
   'gcd-function': { max: (value) => value === 2147483647 },
   'greatest-common-divisor': {
     left: (value) =>

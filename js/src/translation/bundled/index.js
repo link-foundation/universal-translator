@@ -6,7 +6,8 @@ import registry3 from './04-machine.lino.js';
 import registry4 from './05-programming-languages.lino.js';
 import registry5 from './06-programming-languages.lino.js';
 import registry6 from './07-natural-languages.lino.js';
-import registry7 from './08-meta-language.lino.js';
+import registry7 from './07b-natural-languages.lino.js';
+import registry8 from './08-meta-language.lino.js';
 
 export default [
   registry0,
@@ -17,4 +18,5 @@ export default [
   registry5,
   registry6,
   registry7,
+  registry8,
 ];

@@ -18,6 +18,10 @@ ackermann-function:
   left: 3
   right: 4
 
+ackermann-value:
+  left: 3
+  right: 4
+
 fizz-buzz-lowercase:
   limit: 100
 

@@ -25,6 +25,11 @@ export default `profile:
       source:
         (line: 'Write the text “{{message}}” to standard output without adding a newline.')
     form:
+      task: ackermann-value
+      name: standard
+      source:
+        (line: 'Write the Ackermann value A({{left}},{{right}}) in decimal to standard output, followed by a newline.')
+    form:
       task: ackermann-function
       name: standard
       source:
@@ -98,6 +103,11 @@ profile:
       name: standard
       source:
         (line: '向标准输出写入文本“{{message}}”，不追加换行符。')
+    form:
+      task: ackermann-value
+      name: standard
+      source:
+        (line: '将阿克曼函数值 A({{left}},{{right}}) 以十进制写入标准输出，然后换行。')
     form:
       task: ackermann-function
       name: standard
@@ -173,6 +183,11 @@ profile:
       source:
         (line: 'मानक आउटपुट पर “{{message}}” लिखें और उसके बाद नई पंक्ति न जोड़ें।')
     form:
+      task: ackermann-value
+      name: standard
+      source:
+        (line: 'एकरमान फलन का मान A({{left}},{{right}}) दशमलव में मानक आउटपुट पर लिखें और नई पंक्ति जोड़ें।')
+    form:
       task: ackermann-function
       name: standard
       source:
@@ -246,6 +261,11 @@ profile:
       name: standard
       source:
         (line: 'Escribe el texto «{{message}}» en la salida estándar sin añadir un salto de línea.')
+    form:
+      task: ackermann-value
+      name: standard
+      source:
+        (line: 'Escribe el valor de Ackermann A({{left}},{{right}}) en decimal en la salida estándar, seguido de un salto de línea.')
     form:
       task: ackermann-function
       name: standard
@@ -321,6 +341,11 @@ profile:
       source:
         (line: 'Écris le texte « {{message}} » sur la sortie standard sans ajouter de saut de ligne.')
     form:
+      task: ackermann-value
+      name: standard
+      source:
+        (line: 'Écrire la valeur d’Ackermann A({{left}},{{right}}) en décimal sur la sortie standard, suivie d’un saut de ligne.')
+    form:
       task: ackermann-function
       name: standard
       source:
@@ -394,6 +419,11 @@ profile:
       name: standard
       source:
         (line: 'اكتب النص «{{message}}» على المخرج القياسي من دون إضافة محرف سطر جديد.')
+    form:
+      task: ackermann-value
+      name: standard
+      source:
+        (line: 'اكتب قيمة أكرمان A({{left}},{{right}}) بالصيغة العشرية على المخرج القياسي، ثم أضف سطرًا جديدًا.')
     form:
       task: ackermann-function
       name: standard
@@ -469,6 +499,11 @@ profile:
       source:
         (line: 'মানক আউটপুটে “{{message}}” লেখাটি লিখুন এবং শেষে নতুন লাইন যোগ করবেন না।')
     form:
+      task: ackermann-value
+      name: standard
+      source:
+        (line: 'আকারম্যানের মান A({{left}},{{right}}) দশমিক আকারে মানক আউটপুটে লিখুন এবং শেষে একটি নতুন লাইন দিন।')
+    form:
       task: ackermann-function
       name: standard
       source:
@@ -542,6 +577,11 @@ profile:
       name: standard
       source:
         (line: 'Escreva o texto «{{message}}» na saída padrão sem acrescentar uma quebra de linha.')
+    form:
+      task: ackermann-value
+      name: standard
+      source:
+        (line: 'Escreva o valor de Ackermann A({{left}},{{right}}) em decimal na saída padrão e acrescente uma quebra de linha.')
     form:
       task: ackermann-function
       name: standard
@@ -617,6 +657,11 @@ profile:
       source:
         (line: 'Выведите текст «{{message}}» в стандартный поток вывода без перевода строки.')
     form:
+      task: ackermann-value
+      name: standard
+      source:
+        (line: 'Выведите значение функции Аккермана A({{left}},{{right}}) в десятичном виде в стандартный поток вывода, затем переведите строку.')
+    form:
       task: ackermann-function
       name: standard
       source:
@@ -691,6 +736,11 @@ profile:
       source:
         (line: 'متن «{{message}}» معیاری خروج پر لکھیں اور آخر میں سطر تبدیل نہ کریں۔')
     form:
+      task: ackermann-value
+      name: standard
+      source:
+        (line: 'ایکرمین تفاعل کی قدر A({{left}},{{right}}) معیاری آؤٹ پٹ پر عشری صورت میں لکھیں اور نئی سطر شامل کریں۔')
+    form:
       task: ackermann-function
       name: standard
       source:
@@ -738,744 +788,4 @@ profile:
         (line: 'جو عدد 3 اور 5 دونوں سے تقسیم ہو اس کے لیے fizzbuzz، صرف 3 سے ہو تو fizz، صرف 5 سے ہو تو buzz، ورنہ اعشاری صورت میں خود عدد لکھیں۔')
         (line: 'ہر نتیجہ معیاری خروج پر ایک الگ سطر میں لکھیں۔')
         (line: 'آخری نتیجے کے بعد ایک مزید سطر بدلنے کا حرف لکھیں۔')
-
-profile:
-  id: id
-  label: Indonesian
-  kind: natural-language
-  comment: '#'
-  call: instruction
-  output: Tulis
-  forms:
-    form:
-      task: empty-program
-      name: standard
-      fixed:
-        status: 0
-      source:
-        (line: 'Akhiri program dengan kode 0 tanpa menulis ke keluaran standar atau keluaran galat standar.')
-    form:
-      task: hello
-      name: standard
-      source:
-        (line: 'Tulis teks “{{message}}” ke keluaran standar, lalu tulis karakter baris baru.')
-    form:
-      task: write-text
-      name: standard
-      source:
-        (line: 'Tulis teks “{{message}}” ke keluaran standar tanpa menambahkan baris baru.')
-    form:
-      task: ackermann-function
-      name: standard
-      source:
-        (line: 'Kembalikan nilai fungsi Ackermann A(m,n) untuk masukan bilangan bulat 0 ≤ m ≤ {{left}} dan 0 ≤ n ≤ {{right}}. Tetapkan A(0,n)=n+1, A(m,0)=A(m−1,1) jika m>0, dan A(m,n)=A(m−1,A(m,n−1)) jika keduanya positif.')
-    form:
-      task: gcd-function
-      name: standard
-      source:
-        (line: 'Terima dua bilangan bulat dari −{{max}} sampai {{max}}, termasuk kedua batas, lalu ambil nilai mutlaknya.')
-        (line: 'Selama nilai kedua positif, ganti pasangan dengan nilai kedua dan sisa pembagian nilai pertama oleh nilai kedua. Kembalikan nilai pertama.')
-    form:
-      task: greatest-common-divisor
-      name: standard
-      source:
-        (line: 'Tetapkan nilai kiri ke {{left}} dan nilai kanan ke {{right}}.')
-        (line: 'Selama nilai kanan bukan nol, ganti kedua nilai secara bersamaan: nilai kiri baru adalah nilai kanan lama dan nilai kanan baru adalah sisa pembagian nilai kiri lama oleh nilai kanan lama.')
-        (line: 'Tulis nilai kiri dalam bentuk desimal ke keluaran standar, lalu tulis karakter baris baru.')
-    form:
-      task: fizz-buzz
-      name: standard
-      source:
-        (line: 'Telusuri setiap bilangan bulat dari 1 sampai {{limit}}, termasuk keduanya, dalam urutan menaik.')
-        (line: 'Untuk tiap bilangan, tulis FizzBuzz jika habis dibagi 3 dan 5, Fizz jika habis dibagi 3 saja, Buzz jika habis dibagi 5 saja, atau bilangan dalam bentuk desimal jika tidak keduanya.')
-        (line: 'Tulis setiap hasil pada baris tersendiri di keluaran standar.')
-    form:
-      task: fizz-buzz-lowercase
-      name: standard
-      source:
-        (line: 'Telusuri setiap bilangan bulat dari 1 sampai {{limit}}, termasuk keduanya, dalam urutan menaik.')
-        (line: 'Untuk tiap bilangan, tulis fizzbuzz jika habis dibagi 3 dan 5, fizz jika habis dibagi 3 saja, buzz jika habis dibagi 5 saja, atau bilangan dalam bentuk desimal jika tidak keduanya.')
-        (line: 'Tulis setiap hasil pada baris tersendiri di keluaran standar.')
-    form:
-      task: fizz-buzz-quoted
-      name: standard
-      source:
-        (line: 'Telusuri setiap bilangan bulat dari 1 sampai {{limit}}, termasuk keduanya, dalam urutan menaik.')
-        (line: 'Untuk tiap bilangan, tulis FizzBuzz jika habis dibagi 3 dan 5, Fizz jika habis dibagi 3 saja, Buzz jika habis dibagi 5 saja, atau bilangan dalam bentuk desimal jika tidak keduanya.')
-        (line: 'Tulis setiap hasil pada baris tersendiri di keluaran standar.')
-        (line: 'Apit setiap hasil dengan tanda kutip ganda ASCII sebelum menuliskannya.')
-    form:
-      task: fizz-buzz-lowercase-blank-line
-      name: standard
-      source:
-        (line: 'Telusuri setiap bilangan bulat dari 1 sampai {{limit}}, termasuk keduanya, dalam urutan menaik.')
-        (line: 'Untuk tiap bilangan, tulis fizzbuzz jika habis dibagi 3 dan 5, fizz jika habis dibagi 3 saja, buzz jika habis dibagi 5 saja, atau bilangan dalam bentuk desimal jika tidak keduanya.')
-        (line: 'Tulis setiap hasil pada baris tersendiri di keluaran standar.')
-        (line: 'Tulis satu karakter baris baru tambahan setelah hasil terakhir.')
-
-profile:
-  id: de
-  label: German
-  kind: natural-language
-  comment: '#'
-  call: instruction
-  output: Schreibe
-  forms:
-    form:
-      task: empty-program
-      name: standard
-      fixed:
-        status: 0
-      source:
-        (line: 'Beenden Sie das Programm mit Status 0 und lassen Sie Standardausgabe und Standardfehlerausgabe leer.')
-    form:
-      task: hello
-      name: standard
-      source:
-        (line: 'Schreibe den Text „{{message}}“ auf die Standardausgabe, gefolgt von einem Zeilenumbruch.')
-    form:
-      task: write-text
-      name: standard
-      source:
-        (line: 'Schreibe den Text „{{message}}“ ohne abschließenden Zeilenumbruch in die Standardausgabe.')
-    form:
-      task: ackermann-function
-      name: standard
-      source:
-        (line: 'Gib den Wert der Ackermannfunktion A(m,n) für ganze Zahlen 0 ≤ m ≤ {{left}} und 0 ≤ n ≤ {{right}} zurück. Setze A(0,n)=n+1, A(m,0)=A(m−1,1) für m>0 und A(m,n)=A(m−1,A(m,n−1)), wenn beide positiv sind.')
-    form:
-      task: gcd-function
-      name: standard
-      source:
-        (line: 'Nimm zwei ganze Zahlen von −{{max}} bis einschließlich {{max}} an und bilde ihre Beträge.')
-        (line: 'Solange der zweite Wert positiv ist, ersetze das Paar durch den zweiten Wert und den Rest der Division des ersten durch den zweiten. Gib den ersten Wert zurück.')
-    form:
-      task: greatest-common-divisor
-      name: standard
-      source:
-        (line: 'Setze den linken Wert auf {{left}} und den rechten auf {{right}}.')
-        (line: 'Solange der rechte Wert ungleich null ist, ersetze beide Werte gleichzeitig: links durch den alten rechten Wert, rechts durch den Rest der Division des alten linken durch den alten rechten Wert.')
-        (line: 'Schreibe den linken Wert dezimal auf die Standardausgabe, gefolgt von einem Zeilenumbruch.')
-    form:
-      task: fizz-buzz
-      name: standard
-      source:
-        (line: 'Durchlaufe die ganzen Zahlen von 1 bis einschließlich {{limit}} in aufsteigender Reihenfolge.')
-        (line: 'Schreibe für jede Zahl FizzBuzz, wenn sie durch 3 und 5 teilbar ist, Fizz bei Teilbarkeit nur durch 3, Buzz bei Teilbarkeit nur durch 5, sonst die Zahl in Dezimalschreibweise.')
-        (line: 'Schreibe jedes Ergebnis in eine eigene Zeile der Standardausgabe.')
-    form:
-      task: fizz-buzz-lowercase
-      name: standard
-      source:
-        (line: 'Durchlaufe die ganzen Zahlen von 1 bis einschließlich {{limit}} in aufsteigender Reihenfolge.')
-        (line: 'Schreibe für jede Zahl fizzbuzz, wenn sie durch 3 und 5 teilbar ist, fizz bei Teilbarkeit nur durch 3, buzz bei Teilbarkeit nur durch 5, sonst die Zahl in Dezimalschreibweise.')
-        (line: 'Schreibe jedes Ergebnis in eine eigene Zeile der Standardausgabe.')
-    form:
-      task: fizz-buzz-quoted
-      name: standard
-      source:
-        (line: 'Durchlaufe die ganzen Zahlen von 1 bis einschließlich {{limit}} in aufsteigender Reihenfolge.')
-        (line: 'Schreibe für jede Zahl FizzBuzz, wenn sie durch 3 und 5 teilbar ist, Fizz bei Teilbarkeit nur durch 3, Buzz bei Teilbarkeit nur durch 5, sonst die Zahl in Dezimalschreibweise.')
-        (line: 'Schreibe jedes Ergebnis in eine eigene Zeile der Standardausgabe.')
-        (line: 'Setze jedes Ergebnis vor der Ausgabe in doppelte ASCII-Anführungszeichen.')
-    form:
-      task: fizz-buzz-lowercase-blank-line
-      name: standard
-      source:
-        (line: 'Durchlaufe die ganzen Zahlen von 1 bis einschließlich {{limit}} in aufsteigender Reihenfolge.')
-        (line: 'Schreibe für jede Zahl fizzbuzz, wenn sie durch 3 und 5 teilbar ist, fizz bei Teilbarkeit nur durch 3, buzz bei Teilbarkeit nur durch 5, sonst die Zahl in Dezimalschreibweise.')
-        (line: 'Schreibe jedes Ergebnis in eine eigene Zeile der Standardausgabe.')
-        (line: 'Schreibe nach dem letzten Ergebnis einen zusätzlichen Zeilenumbruch.')
-
-profile:
-  id: ja
-  label: Japanese
-  kind: natural-language
-  comment: '#'
-  call: instruction
-  output: 出力
-  forms:
-    form:
-      task: empty-program
-      name: standard
-      fixed:
-        status: 0
-      source:
-        (line: '標準出力と標準エラー出力に何も書き込まず、終了コード 0 で終了する。')
-    form:
-      task: hello
-      name: standard
-      source:
-        (line: 文字列「{{message}}」を標準出力に書き込み、その後に改行する。)
-    form:
-      task: write-text
-      name: standard
-      source:
-        (line: 'テキスト「{{message}}」を末尾の改行を加えずに標準出力に書き出す。')
-    form:
-      task: ackermann-function
-      name: standard
-      source:
-        (line: '整数入力 0 ≤ m ≤ {{left}}、0 ≤ n ≤ {{right}} に対し、アッカーマン関数 A(m,n) の値を返す。A(0,n)=n+1 とし、m>0 のとき A(m,0)=A(m−1,1)、両方が正のとき A(m,n)=A(m−1,A(m,n−1)) とする。')
-    form:
-      task: gcd-function
-      name: standard
-      source:
-        (line: '−{{max}} 以上 {{max}} 以下の整数を二つ受け取り、それぞれの絶対値を取る。')
-        (line: '二番目の値が正の間、組を二番目の値と一番目を二番目で割った余りに置き換える。一番目の値を返す。')
-    form:
-      task: greatest-common-divisor
-      name: standard
-      source:
-        (line: '左の値を {{left}}、右の値を {{right}} に設定する。')
-        (line: '右の値が 0 でない間、左の値を更新前の右の値に、右の値を更新前の左の値を更新前の右の値で割った余りに同時に更新する。')
-        (line: 左の値を十進数で標準出力に書き込み、その後に改行する。)
-    form:
-      task: fizz-buzz
-      name: standard
-      source:
-        (line: '1 から {{limit}} までのすべての整数を昇順に処理する。')
-        (line: '3 と 5 の両方で割り切れる場合は FizzBuzz、3 だけで割り切れる場合は Fizz、5 だけで割り切れる場合は Buzz、それ以外は整数を十進数で出力する。')
-        (line: 各結果を標準出力に一行ずつ書き込む。)
-    form:
-      task: fizz-buzz-lowercase
-      name: standard
-      source:
-        (line: '1 から {{limit}} までのすべての整数を昇順に処理する。')
-        (line: '3 と 5 の両方で割り切れる場合は fizzbuzz、3 だけで割り切れる場合は fizz、5 だけで割り切れる場合は buzz、それ以外は整数を十進数で出力する。')
-        (line: 各結果を標準出力に一行ずつ書き込む。)
-    form:
-      task: fizz-buzz-quoted
-      name: standard
-      source:
-        (line: '1 から {{limit}} までのすべての整数を昇順に処理する。')
-        (line: '3 と 5 の両方で割り切れる場合は FizzBuzz、3 だけで割り切れる場合は Fizz、5 だけで割り切れる場合は Buzz、それ以外は整数を十進数で出力する。')
-        (line: 各結果を標準出力に一行ずつ書き込む。)
-        (line: '書き込む前に各結果を ASCII の二重引用符で囲む。')
-    form:
-      task: fizz-buzz-lowercase-blank-line
-      name: standard
-      source:
-        (line: '1 から {{limit}} までのすべての整数を昇順に処理する。')
-        (line: '3 と 5 の両方で割り切れる場合は fizzbuzz、3 だけで割り切れる場合は fizz、5 だけで割り切れる場合は buzz、それ以外は整数を十進数で出力する。')
-        (line: 各結果を標準出力に一行ずつ書き込む。)
-        (line: 最後の結果の後に改行文字を一つ追加する。)
-
-profile:
-  id: sw
-  label: Swahili
-  kind: natural-language
-  comment: '#'
-  call: instruction
-  output: Andika
-  forms:
-    form:
-      task: empty-program
-      name: standard
-      fixed:
-        status: 0
-      source:
-        (line: 'Maliza programu kwa msimbo wa hali 0 bila kuandika kwenye pato la kawaida au mkondo wa hitilafu wa kawaida.')
-    form:
-      task: hello
-      name: standard
-      source:
-        (line: 'Andika maandishi “{{message}}” kwenye pato la kawaida, kisha andika alama ya mstari mpya.')
-    form:
-      task: write-text
-      name: standard
-      source:
-        (line: 'Andika maandishi “{{message}}” katika towe la kawaida bila kuongeza alama ya mstari mpya.')
-    form:
-      task: ackermann-function
-      name: standard
-      source:
-        (line: 'Rudisha thamani ya fomula ya Ackermann A(m,n) kwa namba kamili 0 ≤ m ≤ {{left}} na 0 ≤ n ≤ {{right}}. Weka A(0,n)=n+1, A(m,0)=A(m−1,1) ikiwa m>0, na A(m,n)=A(m−1,A(m,n−1)) ikiwa zote mbili ni chanya.')
-    form:
-      task: gcd-function
-      name: standard
-      source:
-        (line: 'Pokea namba kamili mbili kuanzia −{{max}} hadi {{max}}, ikijumuisha mipaka yote miwili, kisha chukua thamani zao kamili.')
-        (line: 'Kadiri thamani ya pili ilivyo chanya, badilisha jozi iwe thamani ya pili na baki la kugawa thamani ya kwanza kwa ya pili. Rudisha thamani ya kwanza.')
-    form:
-      task: greatest-common-divisor
-      name: standard
-      source:
-        (line: 'Weka thamani ya kushoto kuwa {{left}} na ya kulia kuwa {{right}}.')
-        (line: 'Thamani ya kulia ikiwa si sifuri, badilisha thamani zote mbili kwa pamoja: ya kushoto iwe thamani ya awali ya kulia, na ya kulia iwe baki baada ya kugawa thamani ya awali ya kushoto kwa ya awali ya kulia.')
-        (line: 'Andika thamani ya kushoto kwa mfumo wa desimali kwenye pato la kawaida, kisha andika alama ya mstari mpya.')
-    form:
-      task: fizz-buzz
-      name: standard
-      source:
-        (line: 'Pitia kila namba kamili kuanzia 1 hadi {{limit}}, pamoja na namba za mipaka, kwa mpangilio wa kupanda.')
-        (line: 'Andika FizzBuzz ikiwa namba inagawanyika kwa 3 na 5, Fizz ikiwa inagawanyika kwa 3 pekee, Buzz ikiwa inagawanyika kwa 5 pekee, au namba kwa mfumo wa desimali vinginevyo.')
-        (line: 'Andika kila jibu kwenye mstari wake katika pato la kawaida.')
-    form:
-      task: fizz-buzz-lowercase
-      name: standard
-      source:
-        (line: 'Pitia kila namba kamili kuanzia 1 hadi {{limit}}, pamoja na namba za mipaka, kwa mpangilio wa kupanda.')
-        (line: 'Andika fizzbuzz ikiwa namba inagawanyika kwa 3 na 5, fizz ikiwa inagawanyika kwa 3 pekee, buzz ikiwa inagawanyika kwa 5 pekee, au namba kwa mfumo wa desimali vinginevyo.')
-        (line: 'Andika kila jibu kwenye mstari wake katika pato la kawaida.')
-    form:
-      task: fizz-buzz-quoted
-      name: standard
-      source:
-        (line: 'Pitia kila namba kamili kuanzia 1 hadi {{limit}}, pamoja na namba za mipaka, kwa mpangilio wa kupanda.')
-        (line: 'Andika FizzBuzz ikiwa namba inagawanyika kwa 3 na 5, Fizz ikiwa inagawanyika kwa 3 pekee, Buzz ikiwa inagawanyika kwa 5 pekee, au namba kwa mfumo wa desimali vinginevyo.')
-        (line: 'Andika kila jibu kwenye mstari wake katika pato la kawaida.')
-        (line: 'Weka kila jibu kati ya alama mbili za kunukuu za ASCII kabla ya kuliandika.')
-    form:
-      task: fizz-buzz-lowercase-blank-line
-      name: standard
-      source:
-        (line: 'Pitia kila namba kamili kuanzia 1 hadi {{limit}}, pamoja na namba za mipaka, kwa mpangilio wa kupanda.')
-        (line: 'Andika fizzbuzz ikiwa namba inagawanyika kwa 3 na 5, fizz ikiwa inagawanyika kwa 3 pekee, buzz ikiwa inagawanyika kwa 5 pekee, au namba kwa mfumo wa desimali vinginevyo.')
-        (line: 'Andika kila jibu kwenye mstari wake katika pato la kawaida.')
-        (line: 'Andika alama moja ya ziada ya mstari mpya baada ya jibu la mwisho.')
-
-profile:
-  id: mr
-  label: Marathi
-  kind: natural-language
-  comment: '#'
-  call: instruction
-  output: लिहा
-  forms:
-    form:
-      task: empty-program
-      name: standard
-      fixed:
-        status: 0
-      source:
-        (line: 'प्रमाणित आउटपुट आणि प्रमाणित त्रुटी प्रवाहात काहीही न लिहिता स्थिती कोड 0 ने कार्यक्रम संपवा.')
-    form:
-      task: hello
-      name: standard
-      source:
-        (line: 'प्रमाणित आउटपुटवर “{{message}}” हा मजकूर लिहा आणि त्यानंतर नवीन ओळ द्या.')
-    form:
-      task: write-text
-      name: standard
-      source:
-        (line: 'प्रमाणित आउटपुटवर “{{message}}” हा मजकूर लिहा आणि शेवटी नवीन ओळ जोडू नका.')
-    form:
-      task: ackermann-function
-      name: standard
-      source:
-        (line: '0 ≤ m ≤ {{left}} आणि 0 ≤ n ≤ {{right}} या पूर्णांक निविष्ट्यांसाठी ॲकरमन फलनाचे A(m,n) मूल्य परत करा. A(0,n)=n+1 ठेवा. m>0 असल्यास A(m,0)=A(m−1,1) आणि दोन्ही धन असल्यास A(m,n)=A(m−1,A(m,n−1)) ठेवा.')
-    form:
-      task: gcd-function
-      name: standard
-      source:
-        (line: '−{{max}} ते {{max}} या दोन्ही सीमांसह दोन पूर्णांक घ्या आणि त्यांची निरपेक्ष मूल्ये घ्या.')
-        (line: 'दुसरे मूल्य धन असताना जोडीच्या जागी दुसरे मूल्य आणि पहिल्या मूल्याला दुसऱ्याने भागल्यावर उरलेली बाकी ठेवा. पहिले मूल्य परत करा.')
-    form:
-      task: greatest-common-divisor
-      name: standard
-      source:
-        (line: 'डावीकडील मूल्य {{left}} आणि उजवीकडील मूल्य {{right}} ठेवा.')
-        (line: 'उजवीकडील मूल्य शून्य नसेपर्यंत दोन्ही मूल्ये एकाच वेळी बदला: नवीन डावे मूल्य म्हणजे जुने उजवे मूल्य आणि नवीन उजवे मूल्य म्हणजे जुन्या डाव्या मूल्याला जुन्या उजव्या मूल्याने भागल्यावर उरलेली बाकी.')
-        (line: 'डावीकडील मूल्य दशमान पद्धतीने प्रमाणित आउटपुटवर लिहा आणि नंतर नवीन ओळ द्या.')
-    form:
-      task: fizz-buzz
-      name: standard
-      source:
-        (line: '1 ते {{limit}} हे दोन्ही टोकांसह सर्व पूर्णांक चढत्या क्रमाने घ्या.')
-        (line: 'संख्येला 3 आणि 5 या दोन्हींनी निःशेष भाग जात असेल तर FizzBuzz, फक्त 3 ने तर Fizz, फक्त 5 ने तर Buzz, अन्यथा दशमान पद्धतीने ती संख्या लिहा.')
-        (line: 'प्रत्येक निकाल प्रमाणित आउटपुटवर स्वतंत्र ओळीत लिहा.')
-    form:
-      task: fizz-buzz-lowercase
-      name: standard
-      source:
-        (line: '1 ते {{limit}} हे दोन्ही टोकांसह सर्व पूर्णांक चढत्या क्रमाने घ्या.')
-        (line: 'संख्येला 3 आणि 5 या दोन्हींनी निःशेष भाग जात असेल तर fizzbuzz, फक्त 3 ने तर fizz, फक्त 5 ने तर buzz, अन्यथा दशमान पद्धतीने ती संख्या लिहा.')
-        (line: 'प्रत्येक निकाल प्रमाणित आउटपुटवर स्वतंत्र ओळीत लिहा.')
-    form:
-      task: fizz-buzz-quoted
-      name: standard
-      source:
-        (line: '1 ते {{limit}} हे दोन्ही टोकांसह सर्व पूर्णांक चढत्या क्रमाने घ्या.')
-        (line: 'संख्येला 3 आणि 5 या दोन्हींनी निःशेष भाग जात असेल तर FizzBuzz, फक्त 3 ने तर Fizz, फक्त 5 ने तर Buzz, अन्यथा दशमान पद्धतीने ती संख्या लिहा.')
-        (line: 'प्रत्येक निकाल प्रमाणित आउटपुटवर स्वतंत्र ओळीत लिहा.')
-        (line: 'लिहिण्यापूर्वी प्रत्येक निकाल ASCII च्या दुहेरी अवतरणचिन्हांत बंद करा.')
-    form:
-      task: fizz-buzz-lowercase-blank-line
-      name: standard
-      source:
-        (line: '1 ते {{limit}} हे दोन्ही टोकांसह सर्व पूर्णांक चढत्या क्रमाने घ्या.')
-        (line: 'संख्येला 3 आणि 5 या दोन्हींनी निःशेष भाग जात असेल तर fizzbuzz, फक्त 3 ने तर fizz, फक्त 5 ने तर buzz, अन्यथा दशमान पद्धतीने ती संख्या लिहा.')
-        (line: 'प्रत्येक निकाल प्रमाणित आउटपुटवर स्वतंत्र ओळीत लिहा.')
-        (line: 'शेवटच्या निकालानंतर आणखी एक नवीन ओळ लिहा.')
-
-profile:
-  id: te
-  label: Telugu
-  kind: natural-language
-  comment: '#'
-  call: instruction
-  output: రాయండి
-  forms:
-    form:
-      task: empty-program
-      name: standard
-      fixed:
-        status: 0
-      source:
-        (line: 'ప్రామాణిక అవుట్‌పుట్ మరియు ప్రామాణిక లోప ప్రవాహానికి ఏమీ రాయకుండా స్థితి కోడ్ 0 తో ముగించండి.')
-    form:
-      task: hello
-      name: standard
-      source:
-        (line: 'ప్రామాణిక అవుట్‌పుట్‌కు “{{message}}” అనే పాఠ్యాన్ని రాసి, తర్వాత కొత్త పంక్తిని రాయండి.')
-    form:
-      task: write-text
-      name: standard
-      source:
-        (line: '“{{message}}” అనే పాఠ్యాన్ని చివర కొత్త పంక్తిని జోడించకుండా ప్రామాణిక అవుట్‌పుట్‌కు రాయండి.')
-    form:
-      task: ackermann-function
-      name: standard
-      source:
-        (line: 'పూర్ణాంక ఇన్‌పుట్‌లు 0 ≤ m ≤ {{left}} మరియు 0 ≤ n ≤ {{right}} కోసం అకెర్మాన్ ప్రమేయం A(m,n) విలువను తిరిగి ఇవ్వండి. A(0,n)=n+1, m>0 అయితే A(m,0)=A(m−1,1), రెండూ ధనమైతే A(m,n)=A(m−1,A(m,n−1)) అని నిర్వచించండి.')
-    form:
-      task: gcd-function
-      name: standard
-      source:
-        (line: '−{{max}} నుంచి {{max}} వరకు రెండు హద్దులతో సహా రెండు పూర్ణాంకాలను తీసుకొని వాటి నిరపేక్ష విలువలను తీసుకోండి.')
-        (line: 'రెండవ విలువ ధనాత్మకంగా ఉన్నంతవరకు జత స్థానంలో రెండవ విలువను, మొదటి విలువను రెండవ విలువతో భాగించిన శేషాన్ని ఉంచండి. మొదటి విలువను తిరిగి ఇవ్వండి.')
-    form:
-      task: greatest-common-divisor
-      name: standard
-      source:
-        (line: 'ఎడమ విలువను {{left}}గా, కుడి విలువను {{right}}గా సెట్ చేయండి.')
-        (line: 'కుడి విలువ సున్నా కానంతవరకు రెండు విలువలను ఒకేసారి మార్చండి: కొత్త ఎడమ విలువ పాత కుడి విలువ, కొత్త కుడి విలువ పాత ఎడమ విలువను పాత కుడి విలువతో భాగించినప్పుడు వచ్చే శేషం.')
-        (line: 'ఎడమ విలువను దశాంశ రూపంలో ప్రామాణిక అవుట్‌పుట్‌కు రాసి, తర్వాత కొత్త పంక్తిని రాయండి.')
-    form:
-      task: fizz-buzz
-      name: standard
-      source:
-        (line: '1 నుంచి {{limit}} వరకు రెండు చివరలతో సహా ప్రతి పూర్ణాంకాన్ని ఆరోహణ క్రమంలో తీసుకోండి.')
-        (line: 'సంఖ్య 3 మరియు 5 రెండింటితో భాగించబడితే FizzBuzz, 3తో మాత్రమే భాగించబడితే Fizz, 5తో మాత్రమే భాగించబడితే Buzz, లేకపోతే సంఖ్యను దశాంశ రూపంలో రాయండి.')
-        (line: 'ప్రతి ఫలితాన్ని ప్రామాణిక అవుట్‌పుట్‌లో వేరే పంక్తిలో రాయండి.')
-    form:
-      task: fizz-buzz-lowercase
-      name: standard
-      source:
-        (line: '1 నుంచి {{limit}} వరకు రెండు చివరలతో సహా ప్రతి పూర్ణాంకాన్ని ఆరోహణ క్రమంలో తీసుకోండి.')
-        (line: 'సంఖ్య 3 మరియు 5 రెండింటితో భాగించబడితే fizzbuzz, 3తో మాత్రమే భాగించబడితే fizz, 5తో మాత్రమే భాగించబడితే buzz, లేకపోతే సంఖ్యను దశాంశ రూపంలో రాయండి.')
-        (line: 'ప్రతి ఫలితాన్ని ప్రామాణిక అవుట్‌పుట్‌లో వేరే పంక్తిలో రాయండి.')
-    form:
-      task: fizz-buzz-quoted
-      name: standard
-      source:
-        (line: '1 నుంచి {{limit}} వరకు రెండు చివరలతో సహా ప్రతి పూర్ణాంకాన్ని ఆరోహణ క్రమంలో తీసుకోండి.')
-        (line: 'సంఖ్య 3 మరియు 5 రెండింటితో భాగించబడితే FizzBuzz, 3తో మాత్రమే భాగించబడితే Fizz, 5తో మాత్రమే భాగించబడితే Buzz, లేకపోతే సంఖ్యను దశాంశ రూపంలో రాయండి.')
-        (line: 'ప్రతి ఫలితాన్ని ప్రామాణిక అవుట్‌పుట్‌లో వేరే పంక్తిలో రాయండి.')
-        (line: 'రాయడానికి ముందు ప్రతి ఫలితాన్ని ASCII ద్వంద్వ ఉల్లేఖన చిహ్నాల మధ్య ఉంచండి.')
-    form:
-      task: fizz-buzz-lowercase-blank-line
-      name: standard
-      source:
-        (line: '1 నుంచి {{limit}} వరకు రెండు చివరలతో సహా ప్రతి పూర్ణాంకాన్ని ఆరోహణ క్రమంలో తీసుకోండి.')
-        (line: 'సంఖ్య 3 మరియు 5 రెండింటితో భాగించబడితే fizzbuzz, 3తో మాత్రమే భాగించబడితే fizz, 5తో మాత్రమే భాగించబడితే buzz, లేకపోతే సంఖ్యను దశాంశ రూపంలో రాయండి.')
-        (line: 'ప్రతి ఫలితాన్ని ప్రామాణిక అవుట్‌పుట్‌లో వేరే పంక్తిలో రాయండి.')
-        (line: 'చివరి ఫలితం తర్వాత మరో కొత్త పంక్తి చిహ్నాన్ని రాయండి.')
-
-profile:
-  id: tr
-  label: Turkish
-  kind: natural-language
-  comment: '#'
-  call: instruction
-  output: Yaz
-  forms:
-    form:
-      task: empty-program
-      name: standard
-      fixed:
-        status: 0
-      source:
-        (line: 'Standart çıktı ve standart hata akışlarına yazmadan 0 durum koduyla çıkın.')
-    form:
-      task: hello
-      name: standard
-      source:
-        (line: 'Standart çıktıya “{{message}}” metnini yaz, ardından bir satır sonu yaz.')
-    form:
-      task: write-text
-      name: standard
-      source:
-        (line: '“{{message}}” metnini sonuna yeni satır eklemeden standart çıktıya yaz.')
-    form:
-      task: ackermann-function
-      name: standard
-      source:
-        (line: '0 ≤ m ≤ {{left}} ve 0 ≤ n ≤ {{right}} tam sayı girdileri için Ackermann işlevinin A(m,n) değerini döndür. A(0,n)=n+1, m>0 ise A(m,0)=A(m−1,1), ikisi de pozitifse A(m,n)=A(m−1,A(m,n−1)) olarak tanımla.')
-    form:
-      task: gcd-function
-      name: standard
-      source:
-        (line: '−{{max}} ile {{max}} arasındaki iki tam sayıyı, sınırlar dahil, al ve mutlak değerlerini hesapla.')
-        (line: 'İkinci değer pozitif olduğu sürece çifti ikinci değer ve birinci değerin ikinci değere bölümünden kalan ile değiştir. Birinci değeri döndür.')
-    form:
-      task: greatest-common-divisor
-      name: standard
-      source:
-        (line: 'Sol değeri {{left}}, sağ değeri {{right}} olarak belirle.')
-        (line: 'Sağ değer sıfır olmadığı sürece her iki değeri aynı anda değiştir: yeni sol değer eski sağ değer, yeni sağ değer ise eski sol değerin eski sağ değere bölümünden kalandır.')
-        (line: 'Sol değeri ondalık gösterimle standart çıktıya yaz ve ardından bir satır sonu yaz.')
-    form:
-      task: fizz-buzz
-      name: standard
-      source:
-        (line: '1 ile {{limit}} arasındaki bütün tam sayıları, uçlar dâhil, artan sırada işle.')
-        (line: 'Her sayı için hem 3 hem 5 ile bölünüyorsa FizzBuzz, yalnızca 3 ile bölünüyorsa Fizz, yalnızca 5 ile bölünüyorsa Buzz, aksi halde sayıyı ondalık gösterimle yaz.')
-        (line: 'Her sonucu standart çıktıda ayrı bir satıra yaz.')
-    form:
-      task: fizz-buzz-lowercase
-      name: standard
-      source:
-        (line: '1 ile {{limit}} arasındaki bütün tam sayıları, uçlar dâhil, artan sırada işle.')
-        (line: 'Her sayı için hem 3 hem 5 ile bölünüyorsa fizzbuzz, yalnızca 3 ile bölünüyorsa fizz, yalnızca 5 ile bölünüyorsa buzz, aksi halde sayıyı ondalık gösterimle yaz.')
-        (line: 'Her sonucu standart çıktıda ayrı bir satıra yaz.')
-    form:
-      task: fizz-buzz-quoted
-      name: standard
-      source:
-        (line: '1 ile {{limit}} arasındaki bütün tam sayıları, uçlar dâhil, artan sırada işle.')
-        (line: 'Her sayı için hem 3 hem 5 ile bölünüyorsa FizzBuzz, yalnızca 3 ile bölünüyorsa Fizz, yalnızca 5 ile bölünüyorsa Buzz, aksi halde sayıyı ondalık gösterimle yaz.')
-        (line: 'Her sonucu standart çıktıda ayrı bir satıra yaz.')
-        (line: 'Her sonucu yazmadan önce ASCII çift tırnak içine al.')
-    form:
-      task: fizz-buzz-lowercase-blank-line
-      name: standard
-      source:
-        (line: '1 ile {{limit}} arasındaki bütün tam sayıları, uçlar dâhil, artan sırada işle.')
-        (line: 'Her sayı için hem 3 hem 5 ile bölünüyorsa fizzbuzz, yalnızca 3 ile bölünüyorsa fizz, yalnızca 5 ile bölünüyorsa buzz, aksi halde sayıyı ondalık gösterimle yaz.')
-        (line: 'Her sonucu standart çıktıda ayrı bir satıra yaz.')
-        (line: 'Son sonuçtan sonra bir satır sonu daha yaz.')
-
-profile:
-  id: ta
-  label: Tamil
-  kind: natural-language
-  comment: '#'
-  call: instruction
-  output: எழுதவும்
-  forms:
-    form:
-      task: empty-program
-      name: standard
-      fixed:
-        status: 0
-      source:
-        (line: 'நிலையான வெளியீடு மற்றும் நிலையான பிழை ஓட்டங்களில் எதுவும் எழுதாமல் நிலைக் குறியீடு 0 உடன் வெளியேறவும்.')
-    form:
-      task: hello
-      name: standard
-      source:
-        (line: '“{{message}}” என்ற உரையை நிலையான வெளியீட்டில் எழுதி, பிறகு ஒரு புதிய வரியை எழுதவும்.')
-    form:
-      task: write-text
-      name: standard
-      source:
-        (line: '“{{message}}” என்ற உரையை முடிவில் புதிய வரியைச் சேர்க்காமல் தரநிலை வெளியீட்டில் எழுது.')
-    form:
-      task: ackermann-function
-      name: standard
-      source:
-        (line: 'முழு எண் உள்ளீடுகள் 0 ≤ m ≤ {{left}} மற்றும் 0 ≤ n ≤ {{right}} ஆகியவற்றுக்கு அக்கர்மன் சார்பின் A(m,n) மதிப்பைத் திருப்புக. A(0,n)=n+1, m>0 எனில் A(m,0)=A(m−1,1), இரண்டும் நேர்மம் எனில் A(m,n)=A(m−1,A(m,n−1)) என வரையறுக்கவும்.')
-    form:
-      task: gcd-function
-      name: standard
-      source:
-        (line: '−{{max}} முதல் {{max}} வரையிலான இரண்டு முழு எண்களை எல்லைகளையும் சேர்த்து ஏற்று, அவற்றின் தனி மதிப்புகளை எடு.')
-        (line: 'இரண்டாம் மதிப்பு நேர்மமாக இருக்கும்வரை, இந்த இணையை இரண்டாம் மதிப்பாலும் முதல் மதிப்பை இரண்டாம் மதிப்பால் வகுத்த மீதியாலும் மாற்று. முதல் மதிப்பைத் திருப்பிக் கொடு.')
-    form:
-      task: greatest-common-divisor
-      name: standard
-      source:
-        (line: 'இடது மதிப்பை {{left}} ஆகவும் வலது மதிப்பை {{right}} ஆகவும் அமைக்கவும்.')
-        (line: 'வலது மதிப்பு பூச்சியமாக இல்லாத வரை இரு மதிப்புகளையும் ஒரே நேரத்தில் மாற்றவும்: புதிய இடது மதிப்பு பழைய வலது மதிப்பு; புதிய வலது மதிப்பு பழைய இடது மதிப்பைப் பழைய வலது மதிப்பால் வகுக்கும்போது கிடைக்கும் மீதி.')
-        (line: 'இடது மதிப்பைப் பதின்ம வடிவில் நிலையான வெளியீட்டில் எழுதி, பிறகு ஒரு புதிய வரியை எழுதவும்.')
-    form:
-      task: fizz-buzz
-      name: standard
-      source:
-        (line: '1 முதல் {{limit}} வரை இரு எல்லைகளையும் சேர்த்து அனைத்து முழு எண்களையும் ஏறுவரிசையில் எடுத்துக்கொள்ளவும்.')
-        (line: 'எண் 3 மற்றும் 5 இரண்டாலும் வகுபட்டால் FizzBuzz, 3 ஆல் மட்டும் வகுபட்டால் Fizz, 5 ஆல் மட்டும் வகுபட்டால் Buzz, இல்லையெனில் எண்ணைப் பதின்ம வடிவில் எழுதவும்.')
-        (line: 'ஒவ்வொரு முடிவையும் நிலையான வெளியீட்டில் தனித்தனி வரியில் எழுதவும்.')
-    form:
-      task: fizz-buzz-lowercase
-      name: standard
-      source:
-        (line: '1 முதல் {{limit}} வரை இரு எல்லைகளையும் சேர்த்து அனைத்து முழு எண்களையும் ஏறுவரிசையில் எடுத்துக்கொள்ளவும்.')
-        (line: 'எண் 3 மற்றும் 5 இரண்டாலும் வகுபட்டால் fizzbuzz, 3 ஆல் மட்டும் வகுபட்டால் fizz, 5 ஆல் மட்டும் வகுபட்டால் buzz, இல்லையெனில் எண்ணைப் பதின்ம வடிவில் எழுதவும்.')
-        (line: 'ஒவ்வொரு முடிவையும் நிலையான வெளியீட்டில் தனித்தனி வரியில் எழுதவும்.')
-    form:
-      task: fizz-buzz-quoted
-      name: standard
-      source:
-        (line: '1 முதல் {{limit}} வரை இரு எல்லைகளையும் சேர்த்து அனைத்து முழு எண்களையும் ஏறுவரிசையில் எடுத்துக்கொள்ளவும்.')
-        (line: 'எண் 3 மற்றும் 5 இரண்டாலும் வகுபட்டால் FizzBuzz, 3 ஆல் மட்டும் வகுபட்டால் Fizz, 5 ஆல் மட்டும் வகுபட்டால் Buzz, இல்லையெனில் எண்ணைப் பதின்ம வடிவில் எழுதவும்.')
-        (line: 'ஒவ்வொரு முடிவையும் நிலையான வெளியீட்டில் தனித்தனி வரியில் எழுதவும்.')
-        (line: 'எழுதுவதற்கு முன் ஒவ்வொரு முடிவையும் ASCII இரட்டை மேற்கோள் குறிகளுக்கு இடையில் வைக்கவும்.')
-    form:
-      task: fizz-buzz-lowercase-blank-line
-      name: standard
-      source:
-        (line: '1 முதல் {{limit}} வரை இரு எல்லைகளையும் சேர்த்து அனைத்து முழு எண்களையும் ஏறுவரிசையில் எடுத்துக்கொள்ளவும்.')
-        (line: 'எண் 3 மற்றும் 5 இரண்டாலும் வகுபட்டால் fizzbuzz, 3 ஆல் மட்டும் வகுபட்டால் fizz, 5 ஆல் மட்டும் வகுபட்டால் buzz, இல்லையெனில் எண்ணைப் பதின்ம வடிவில் எழுதவும்.')
-        (line: 'ஒவ்வொரு முடிவையும் நிலையான வெளியீட்டில் தனித்தனி வரியில் எழுதவும்.')
-        (line: 'கடைசி முடிவுக்குப் பின்னர் கூடுதலாக ஒரு வரிமாற்றக் குறியை எழுதவும்.')
-
-profile:
-  id: vi
-  label: Vietnamese
-  kind: natural-language
-  comment: '#'
-  call: instruction
-  output: Ghi
-  forms:
-    form:
-      task: empty-program
-      name: standard
-      fixed:
-        status: 0
-      source:
-        (line: 'Kết thúc với mã trạng thái 0 và để trống luồng đầu ra chuẩn cũng như luồng lỗi chuẩn.')
-    form:
-      task: hello
-      name: standard
-      source:
-        (line: 'Ghi văn bản “{{message}}” ra đầu ra chuẩn, rồi ghi một ký tự xuống dòng.')
-    form:
-      task: write-text
-      name: standard
-      source:
-        (line: 'Ghi văn bản “{{message}}” ra đầu ra chuẩn mà không thêm ký tự xuống dòng.')
-    form:
-      task: ackermann-function
-      name: standard
-      source:
-        (line: 'Trả về giá trị hàm Ackermann A(m,n) cho hai số nguyên 0 ≤ m ≤ {{left}} và 0 ≤ n ≤ {{right}}. Đặt A(0,n)=n+1, A(m,0)=A(m−1,1) nếu m>0 và A(m,n)=A(m−1,A(m,n−1)) nếu cả hai đều dương.')
-    form:
-      task: gcd-function
-      name: standard
-      source:
-        (line: 'Nhận hai số nguyên từ −{{max}} đến {{max}}, kể cả hai đầu, rồi lấy giá trị tuyệt đối của chúng.')
-        (line: 'Khi giá trị thứ hai còn dương, thay cặp bằng giá trị thứ hai và số dư của phép chia giá trị thứ nhất cho giá trị thứ hai. Trả về giá trị thứ nhất.')
-    form:
-      task: greatest-common-divisor
-      name: standard
-      source:
-        (line: 'Đặt giá trị bên trái thành {{left}} và giá trị bên phải thành {{right}}.')
-        (line: 'Chừng nào giá trị bên phải khác không, hãy thay đồng thời cả hai giá trị: giá trị trái mới là giá trị phải cũ và giá trị phải mới là phần dư khi chia giá trị trái cũ cho giá trị phải cũ.')
-        (line: 'Ghi giá trị bên trái ở dạng thập phân ra đầu ra chuẩn, rồi ghi một ký tự xuống dòng.')
-    form:
-      task: fizz-buzz
-      name: standard
-      source:
-        (line: 'Duyệt lần lượt các số nguyên từ 1 đến {{limit}}, kể cả hai đầu, theo thứ tự tăng dần.')
-        (line: 'Với mỗi số, ghi FizzBuzz nếu chia hết cho cả 3 và 5, Fizz nếu chỉ chia hết cho 3, Buzz nếu chỉ chia hết cho 5, hoặc chính số đó ở dạng thập phân trong trường hợp còn lại.')
-        (line: 'Ghi mỗi kết quả trên một dòng riêng ở đầu ra chuẩn.')
-    form:
-      task: fizz-buzz-lowercase
-      name: standard
-      source:
-        (line: 'Duyệt lần lượt các số nguyên từ 1 đến {{limit}}, kể cả hai đầu, theo thứ tự tăng dần.')
-        (line: 'Với mỗi số, ghi fizzbuzz nếu chia hết cho cả 3 và 5, fizz nếu chỉ chia hết cho 3, buzz nếu chỉ chia hết cho 5, hoặc chính số đó ở dạng thập phân trong trường hợp còn lại.')
-        (line: 'Ghi mỗi kết quả trên một dòng riêng ở đầu ra chuẩn.')
-    form:
-      task: fizz-buzz-quoted
-      name: standard
-      source:
-        (line: 'Duyệt lần lượt các số nguyên từ 1 đến {{limit}}, kể cả hai đầu, theo thứ tự tăng dần.')
-        (line: 'Với mỗi số, ghi FizzBuzz nếu chia hết cho cả 3 và 5, Fizz nếu chỉ chia hết cho 3, Buzz nếu chỉ chia hết cho 5, hoặc chính số đó ở dạng thập phân trong trường hợp còn lại.')
-        (line: 'Ghi mỗi kết quả trên một dòng riêng ở đầu ra chuẩn.')
-        (line: 'Đặt mỗi kết quả trong dấu ngoặc kép ASCII trước khi ghi.')
-    form:
-      task: fizz-buzz-lowercase-blank-line
-      name: standard
-      source:
-        (line: 'Duyệt lần lượt các số nguyên từ 1 đến {{limit}}, kể cả hai đầu, theo thứ tự tăng dần.')
-        (line: 'Với mỗi số, ghi fizzbuzz nếu chia hết cho cả 3 và 5, fizz nếu chỉ chia hết cho 3, buzz nếu chỉ chia hết cho 5, hoặc chính số đó ở dạng thập phân trong trường hợp còn lại.')
-        (line: 'Ghi mỗi kết quả trên một dòng riêng ở đầu ra chuẩn.')
-        (line: 'Ghi thêm một ký tự xuống dòng sau kết quả cuối cùng.')
-
-profile:
-  id: ko
-  label: Korean
-  kind: natural-language
-  comment: '#'
-  call: instruction
-  output: 쓴다
-  forms:
-    form:
-      task: empty-program
-      name: standard
-      fixed:
-        status: 0
-      source:
-        (line: '표준 출력과 표준 오류에 아무것도 쓰지 않고 상태 코드 0으로 종료한다.')
-    form:
-      task: hello
-      name: standard
-      source:
-        (line: '표준 출력에 텍스트 “{{message}}”를 쓰고 줄을 바꾼다.')
-    form:
-      task: write-text
-      name: standard
-      source:
-        (line: '텍스트 “{{message}}”를 끝에 줄바꿈을 추가하지 않고 표준 출력에 쓴다.')
-    form:
-      task: ackermann-function
-      name: standard
-      source:
-        (line: '정수 입력 0 ≤ m ≤ {{left}}, 0 ≤ n ≤ {{right}}에 대해 아커만 함수 A(m,n)의 값을 반환한다. A(0,n)=n+1로, m>0이면 A(m,0)=A(m−1,1)로, 둘 다 양수이면 A(m,n)=A(m−1,A(m,n−1))로 정의한다.')
-    form:
-      task: gcd-function
-      name: standard
-      source:
-        (line: '−{{max}} 이상 {{max}} 이하의 정수 두 개를 받아 각각의 절댓값을 구한다.')
-        (line: '두 번째 값이 양수인 동안 두 번째 값과 첫 번째 값을 두 번째 값으로 나눈 나머지로 쌍을 바꾼다. 첫 번째 값을 반환한다.')
-    form:
-      task: greatest-common-divisor
-      name: standard
-      source:
-        (line: '왼쪽 값을 {{left}}로, 오른쪽 값을 {{right}}로 설정한다.')
-        (line: '오른쪽 값이 0이 아닌 동안 두 값을 동시에 바꾼다. 새 왼쪽 값은 이전 오른쪽 값이고, 새 오른쪽 값은 이전 왼쪽 값을 이전 오른쪽 값으로 나눈 나머지다.')
-        (line: '왼쪽 값을 십진수로 표준 출력에 쓰고 줄을 바꾼다.')
-    form:
-      task: fizz-buzz
-      name: standard
-      source:
-        (line: '1부터 {{limit}}까지 양 끝을 포함한 모든 정수를 오름차순으로 처리한다.')
-        (line: '3과 5 모두로 나누어떨어지면 FizzBuzz, 3으로만 나누어떨어지면 Fizz, 5로만 나누어떨어지면 Buzz, 그 외에는 정수를 십진수로 쓴다.')
-        (line: '각 결과를 표준 출력에 한 줄씩 쓴다.')
-    form:
-      task: fizz-buzz-lowercase
-      name: standard
-      source:
-        (line: '1부터 {{limit}}까지 양 끝을 포함한 모든 정수를 오름차순으로 처리한다.')
-        (line: '3과 5 모두로 나누어떨어지면 fizzbuzz, 3으로만 나누어떨어지면 fizz, 5로만 나누어떨어지면 buzz, 그 외에는 정수를 십진수로 쓴다.')
-        (line: '각 결과를 표준 출력에 한 줄씩 쓴다.')
-    form:
-      task: fizz-buzz-quoted
-      name: standard
-      source:
-        (line: '1부터 {{limit}}까지 양 끝을 포함한 모든 정수를 오름차순으로 처리한다.')
-        (line: '3과 5 모두로 나누어떨어지면 FizzBuzz, 3으로만 나누어떨어지면 Fizz, 5로만 나누어떨어지면 Buzz, 그 외에는 정수를 십진수로 쓴다.')
-        (line: '각 결과를 표준 출력에 한 줄씩 쓴다.')
-        (line: '쓰기 전에 각 결과를 ASCII 큰따옴표로 감싼다.')
-    form:
-      task: fizz-buzz-lowercase-blank-line
-      name: standard
-      source:
-        (line: '1부터 {{limit}}까지 양 끝을 포함한 모든 정수를 오름차순으로 처리한다.')
-        (line: '3과 5 모두로 나누어떨어지면 fizzbuzz, 3으로만 나누어떨어지면 fizz, 5로만 나누어떨어지면 buzz, 그 외에는 정수를 십진수로 쓴다.')
-        (line: '각 결과를 표준 출력에 한 줄씩 쓴다.')
-        (line: '마지막 결과 뒤에 줄바꿈 문자를 하나 더 쓴다.')
 `;

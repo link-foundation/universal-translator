@@ -28,6 +28,7 @@ const expectedProfiles = {
   'write-text': 23,
   'gcd-function': 23,
   'ackermann-function': 23,
+  'ackermann-value': 23,
   'fizz-buzz-lowercase': 23,
   'fizz-buzz-quoted': 23,
   'fizz-buzz-lowercase-blank-line': 23,

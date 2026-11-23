@@ -275,6 +275,48 @@ profile:
         (line: '    common_library::print_line(&divisor.to_string());')
         (line: })
     form:
+      task: ackermann-value
+      name: standard
+      source:
+        (line: 'fn main() {')
+        (line: '    let first = {{left}};')
+        (line: '    let second = {{right}};')
+        (line: '    println!("{}", (1_u64 << (second + first)) - first);')
+        (line: })
+    form:
+      task: ackermann-value
+      name: rosetta
+      fixed:
+        left: 3
+        right: 4
+      source:
+        (line: 'fn ack(m: isize, n: isize) -> isize {')
+        (line: '    if m == 0 {')
+        (line: '        n + 1')
+        (line: '    } else if n == 0 {')
+        (line: '        ack(m - 1, 1)')
+        (line: '    } else {')
+        (line: '        ack(m - 1, ack(m, n - 1))')
+        (line: '    }')
+        (line: })
+        (line: ~1{})
+        (line: 'fn main() {')
+        (line: '    let a = ack(3, 4);')
+        (line: '    println!("{}", a); // 125')
+        (line: })
+    form:
+      task: ackermann-value
+      name: common
+      requires: common_library
+      output: 'common_library::print_line'
+      source:
+        (line: 'mod common_library;')
+        (line: ~1{})
+        (line: 'fn main() {')
+        (line: '    let value = common_library::ackermann({{left}}, {{right}});')
+        (line: '    common_library::print_line(&value.to_string());')
+        (line: })
+    form:
       task: ackermann-function
       name: standard
       fixed:

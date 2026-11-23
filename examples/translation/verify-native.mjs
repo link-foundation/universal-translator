@@ -33,7 +33,14 @@ const commonLibraries = {
   'main.mjs': '../../js/src/common-library.mjs',
   'main.rs': '../../rust/src/common_library.rs',
 };
+const ackermannBoundaries = Array.from({ length: 4 }, (_, right) => ({
+  task: 'ackermann-value',
+  left: 3,
+  right,
+}));
 const boundaryEffects = {
+  rust: ackermannBoundaries,
+  javascript: ackermannBoundaries,
   cobol: [
     { task: 'hello', message: '' },
     { task: 'hello', message: ` ${'Hello'.repeat(18)} !?  ` },

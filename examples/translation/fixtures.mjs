@@ -73,6 +73,12 @@ export function expectedOutput(effect) {
         .get(effect.task)
         .cases.map(([, , result]) => `${result}\n`)
         .join('');
+    case 'ackermann-value': {
+      const [, , result] = ackermannCalls.find(
+        ([left, right]) => left === effect.left && right === effect.right
+      );
+      return `${result}\n`;
+    }
     case 'greatest-common-divisor': {
       let { left, right } = effect;
       while (right !== 0) {
