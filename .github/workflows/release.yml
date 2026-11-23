@@ -32,6 +32,13 @@ on:
         required: false
         type: string
 
+# A new PR event replaces the whole check run, including when only draft
+# status changes. Give publish-capable runs their own workflow group so
+# their writer jobs retain their existing serialization.
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('checks-and-release-pr-{0}', github.ref) || format('checks-and-release-run-{0}', github.run_id) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 # Least-privilege default for the highest-value token in the repository.
 # Every job starts read-only; the publishing jobs escalate individually.
 permissions:

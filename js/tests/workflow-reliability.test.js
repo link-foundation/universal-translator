@@ -211,7 +211,6 @@ describe('workflow concurrency policy', () => {
   it('uses job-level concurrency so stale checks cannot cancel active writers', () => {
     const workflowPaths = [
       '.github/workflows/example-app.yml',
-      '.github/workflows/release.yml',
       '.github/workflows/links.yml',
     ];
 
@@ -271,6 +270,21 @@ describe('workflow concurrency policy', () => {
     expectCancellableCheckConcurrency(
       getJobBlock(linksWorkflow, 'link-checker'),
       'link-checker'
+    );
+  });
+
+  it('supersedes whole release check runs across draft and ready events', () => {
+    const workflow = readWorkflow('.github/workflows/release.yml');
+    const triggers = workflow.slice(0, workflow.indexOf('\njobs:\n'));
+    expect(triggers).toContain(
+      'types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]'
+    );
+    expect(triggers).toContain(
+      [
+        '\nconcurrency:',
+        "  group: ${{ github.event_name == 'pull_request' && format('checks-and-release-pr-{0}', github.ref) || format('checks-and-release-run-{0}', github.run_id) }}",
+        "  cancel-in-progress: ${{ github.event_name == 'pull_request' }}",
+      ].join('\n')
     );
   });
 });
@@ -370,6 +384,14 @@ describe('workflow artifact and writer reliability', () => {
       "if: github.event_name == 'push' && github.ref == 'refs/heads/main'"
     );
     expect(configurePages).toContain('id: configure-pages');
+    expect(webBuild).toContain('      pages: read');
+    expectOrdered(webBuild, [
+      'name: Build app',
+      'name: Upload web build artifact',
+      'name: Explain GitHub Pages deployment skip',
+      "if: github.event_name == 'pull_request'",
+      'name: Configure GitHub Pages',
+    ]);
     expect(webBuild).toContain(
       "if: failure() && steps.configure-pages.conclusion == 'failure'"
     );

@@ -302,15 +302,12 @@ This design decouples PR validation from the need to pull changes from the defau
 
 ### Deploying the example app
 
-The `example-app.yml` workflow deploys the universal example app to GitHub
-Pages on every push to `main`. Before the first run on `main` in a new
-repository created from this template, open **Settings → Pages** and set
-**Source = GitHub Actions**. This is a one-time manual step and cannot be
-configured from a workflow because the Pages source defaults to
-_Deploy from a branch_. Without it, the `pages-deploy` job fails on
-`actions/deploy-pages` with `Get Pages site failed` /
-`Failed to create deployment`. After flipping the source, the workflow
-provisions the Pages site on its first run.
+The `example-app.yml` workflow publishes a downloadable web build on pull
+requests and deploys the app to GitHub Pages on matching pushes to `main`.
+For a new repository, open **Settings → Pages** and set **Source = GitHub
+Actions**. When the site is missing or misconfigured, the main workflow
+still uploads the web build and reports the setting to change in the
+**Configure GitHub Pages** step. Re-run the failed jobs after updating it.
 
 ### Auto-regenerated preview screenshots
 

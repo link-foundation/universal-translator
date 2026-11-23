@@ -34,6 +34,20 @@ marks it ready. A draft run exposes the current counts in the CI summary.
 This assertion covers native JavaScript and Rust corpus acceptance. The
 [requirements inventory](requirements.md) tracks the remaining issue scope.
 
+The automatic ready transition at 20:43 UTC triggered the strict check at
+`62820a3`. Both runtimes restored all 143,457 archive files and passed the
+seven cross-runtime CST checks. The strict check failed at log lines
+8043–8074 with 6 of 1,985 JavaScript sources and 9 of 1,481 Rust sources
+verified. Pipeline Status propagated the translation failure at lines
+12653–12656. [Translation job](https://github.com/link-foundation/universal-translator/actions/runs/45262333852/job/138052415703)
+
+The ready event also cancelled individual jobs in the earlier draft run.
+That run's Pipeline Status compared only commit SHAs and saw the same SHA
+on the branch, so it reported the two job cancellations as failures at
+lines 261–267. Checks and release now replaces the whole PR run on a new
+PR event. Push and manual release runs each use their own workflow group.
+[Earlier Pipeline Status job](https://github.com/link-foundation/universal-translator/actions/runs/45260759361/job/138025513054)
+
 The launcher still owns the ready transition and automatic restarts.
 The PR description carries the Hive Mind requirements report at the
 current head so a launcher with `--requirements-report` can detect the

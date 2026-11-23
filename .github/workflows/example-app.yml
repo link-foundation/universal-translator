@@ -39,6 +39,9 @@ jobs:
     name: Build web app
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: read
     concurrency:
       group: check-${{ github.workflow }}-${{ github.ref }}-web-build
       cancel-in-progress: true
@@ -53,16 +56,6 @@ jobs:
           node-version: '24.x'
           cache: npm
           cache-dependency-path: examples/universal-app/package-lock.json
-
-      - name: Configure GitHub Pages
-        id: configure-pages
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/configure-pages@v6
-
-      - name: Explain GitHub Pages configuration failure
-        if: failure() && steps.configure-pages.conclusion == 'failure'
-        run: |
-          echo '::error title=GitHub Pages configuration::In Settings > Pages, set the build source to GitHub Actions. If Pages is already configured, review the Configure GitHub Pages step for the reported error.'
 
       - name: Install app dependencies
         run: |
@@ -81,6 +74,20 @@ jobs:
           name: universal-example-web
           path: examples/universal-app/dist
           if-no-files-found: error
+
+      - name: Explain GitHub Pages deployment skip
+        if: github.event_name == 'pull_request'
+        run: echo '::notice title=GitHub Pages deployment::The PR web build is available as an artifact. GitHub Pages deployment runs on pushes to main.'
+
+      - name: Configure GitHub Pages
+        id: configure-pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/configure-pages@v6
+
+      - name: Explain GitHub Pages configuration failure
+        if: failure() && steps.configure-pages.conclusion == 'failure'
+        run: |
+          echo '::error title=GitHub Pages configuration::In Settings > Pages, set the build source to GitHub Actions. If Pages is already configured, review the Configure GitHub Pages step for the reported error.'
 
       - name: Upload GitHub Pages artifact
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
