@@ -42,22 +42,22 @@ const utf8 = new globalThis.TextDecoder('utf-8', {
 });
 const translator = createTranslator();
 const rust = resolve(process.argv[2] ?? 'target/debug/universal-translator');
-const rosetta = linkFields(readCorpusCoverage().get('rosetta-code'));
-const fixtures = new Map(
-  namedLinks(rosetta.get('authored-tasks'), 'task').flatMap((entry) => {
+const fixtures = new Map();
+if (process.argv[3] !== '--hello-world-only') {
+  const rosetta = linkFields(readCorpusCoverage().get('rosetta-code'));
+  for (const entry of namedLinks(rosetta.get('authored-tasks'), 'task')) {
     const [task, name] = references(entry);
-    return rosettaPrograms(rosetta, task).map((program) => [
-      `${name}/${program.path}`,
-      program,
-    ]);
-  })
-);
+    for (const program of rosettaPrograms(rosetta, task)) {
+      fixtures.set(`${name}/${program.path}`, program);
+    }
+  }
+}
 let verified = 0;
 let verifiedEffects = 0;
 for (let header; (header = readBytes(8, true)); ) {
   const path = utf8.decode(readBytes(header.readUInt32LE(0)));
   const bytes = readBytes(header.readUInt32LE(4));
-  const language = path.split('/')[1];
+  const language = path.slice(path.indexOf('/') + 1, path.lastIndexOf('/'));
   const notation = writeSourceDocument(language, utf8.decode(bytes));
   const document = readSourceDocument(notation);
   assert.equal(document.language, language, path);
@@ -77,6 +77,8 @@ assert.equal(
 );
 assert.ok(verified > 0, 'Expected a stream of pinned corpus source files');
 console.log(`JavaScript verified ${verified} source documents`);
-console.log(
-  `Both runtimes verified ${verifiedEffects} selected original program effects`
-);
+if (verifiedEffects) {
+  console.log(
+    `Both runtimes verified ${verifiedEffects} selected original program effects`
+  );
+}

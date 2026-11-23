@@ -4,6 +4,8 @@ import argparse
 from collections import Counter
 from contextlib import suppress
 from hashlib import file_digest
+from html.parser import HTMLParser
+from itertools import chain
 from pathlib import Path
 from struct import pack
 from subprocess import PIPE, Popen
@@ -12,10 +14,55 @@ from tarfile import open as open_tar
 
 REVISION = "1d475861d7141ef2fafff293d9339f56e4b0f5db"
 SHA256 = "6243ae216d0aa56951e2e26d6e44396a93ce8ac06076368c8f82d55cce1555df"
+HELLO_WORLD_SHA256 = "17055bc3f041d24bc3ae3b11145cdddaaf14ce14c84cb778359e8a995345575d"
 ROOT = Path(__file__).resolve().parents[2]
 
 
+class HelloWorldListings(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.language = "C (introductory example)"
+        self.listings = []
+        self.lines = None
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "a" and (anchor := dict(attrs).get("name")):
+            self.language = anchor
+        if tag == "pre":
+            self.lines = []
+
+    def handle_endtag(self, tag):
+        if tag == "pre":
+            self.listings.append((self.language, "".join(self.lines)))
+            self.lines = None
+
+    def handle_data(self, data):
+        if self.lines is not None:
+            self.lines.append(data)
+
+
+def hello_world_records(path):
+    if path is None:
+        return
+    with path.open("rb") as file:
+        if file_digest(file, "sha256").hexdigest() != HELLO_WORLD_SHA256:
+            raise ValueError("Hello World Collection SHA-256 does not match the pinned page")
+    page = HelloWorldListings()
+    page.feed(path.read_bytes().decode("utf-8"))
+    page.close()
+    if len(page.listings) != 591:
+        raise ValueError("Expected 591 textual Hello World Collection listings")
+    for index, (language, source) in enumerate(page.listings, 1):
+        yield f"Hello World Collection/{language}/{index}".encode(), source.encode()
+    print("Verified selection of 591 Hello World Collection text listings.", flush=True)
+
+
 def source_records(archive):
+    if archive is None:
+        return
+    with archive.open("rb") as file:
+        if file_digest(file, "sha256").hexdigest() != SHA256:
+            raise ValueError("Rosetta Code archive SHA-256 does not match the pinned corpus")
     tasks = set()
     covered_tasks = set()
     languages = Counter()
@@ -51,12 +98,12 @@ def source_records(archive):
     )
 
 
-def verify(archive, rust_binary):
-    with archive.open("rb") as file:
-        if file_digest(file, "sha256").hexdigest() != SHA256:
-            raise ValueError("Rosetta Code archive SHA-256 does not match the pinned corpus")
+def verify(archive, rust_binary, hello_world=None):
+    javascript = ["node", "examples/translation/verify-source-corpus.mjs", rust_binary]
+    if archive is None:
+        javascript.append("--hello-world-only")
     commands = [
-        ["node", "examples/translation/verify-source-corpus.mjs", rust_binary],
+        javascript,
         [
             "cargo", "test", "--locked", "--test", "source_document",
             "verify_source_corpus", "--", "--ignored", "--nocapture",
@@ -66,7 +113,7 @@ def verify(archive, rust_binary):
     try:
         for command in commands:
             workers.append(Popen(command, cwd=ROOT, stdin=PIPE))
-        for path, source in source_records(archive):
+        for path, source in chain(hello_world_records(hello_world), source_records(archive)):
             frame = pack("<II", len(path), len(source)) + path + source
             for worker in workers:
                 worker.stdin.write(frame)
@@ -81,7 +128,10 @@ def verify(archive, rust_binary):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("archive", type=Path, help=f"GitHub source tarball at {REVISION}")
+    parser.add_argument("archive", type=Path, nargs="?", help=f"GitHub source tarball at {REVISION}")
     parser.add_argument("--rust-binary", default="target/debug/universal-translator")
+    parser.add_argument("--hello-world", type=Path, help="Pinned Hello World Collection HTML")
     args = parser.parse_args()
-    verify(args.archive, args.rust_binary)
+    if args.archive is None and args.hello_world is None:
+        parser.error("provide an archive or --hello-world")
+    verify(args.archive, args.rust_binary, args.hello_world)

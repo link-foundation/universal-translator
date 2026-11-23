@@ -45,7 +45,12 @@ fn verify_source_corpus() {
         let mut source = vec![0; source_length];
         input.read_exact(&mut source).unwrap();
         let document = SourceDocument {
-            language: path.split('/').nth(1).unwrap().into(),
+            language: path
+                .split_once('/')
+                .and_then(|(_, path)| path.rsplit_once('/'))
+                .expect("expected corpus path with language")
+                .0
+                .into(),
             source: String::from_utf8(source).unwrap(),
         };
         let notation = document.to_links_notation().unwrap();

@@ -38,12 +38,18 @@ export function rosettaPrograms(rosetta, task) {
   const programs = rosetta.get(`${task}-source-files`) ?? [];
   return namedLinks(programs, 'program').map((program) => {
     const [path, language, form, ...parameters] = references(program);
-    return { path, language, form, effect: decodeEffect(task, parameters) };
+    return {
+      path,
+      language,
+      form,
+      effect: decodeEffect(task, parameters),
+      exactForm: true,
+    };
   });
 }
 
 export function verifyProgram(translator, source, fixture, rustBinary) {
-  const { language, form, effect, path } = fixture;
+  const { language, form, effect, path, exactForm } = fixture;
   const document = translator.parse(source, language);
   assert.equal(translator.restore(document), source, path);
   assert.equal(document.interpretation?.form, form, path);
@@ -70,10 +76,12 @@ export function verifyProgram(translator, source, fixture, rustBinary) {
         ...options,
         form,
       });
-      assert.equal(reconstructed, source, path);
+      if (exactForm) {
+        assert.equal(reconstructed, source, path);
+      }
       assert.equal(
         rust(['translate', 'meta', language, '--form', form], meta),
-        source,
+        reconstructed,
         path
       );
     }

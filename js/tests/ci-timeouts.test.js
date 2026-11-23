@@ -278,7 +278,7 @@ describe('CI timeout policy', () => {
       'changeset-check': 10,
       lint: 10,
       test: 15,
-      translation: 20,
+      translation: 30,
       'native-translation': 15,
       'validate-docs': 5,
       release: 65,

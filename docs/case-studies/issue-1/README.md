@@ -84,7 +84,9 @@ exact round trips and the expected effects. The selected JavaScript and Rust
 originals also translate in both directions through the Meta Language effect.
 The remaining source variants still need effect verification.
 The Hello World Collection homepage reports 603 programs and greetings in
-78 human languages. The report extracts 24 original console snippets from
+78 human languages. Both implementations round-trip its 591 text listings
+through Links Notation. Twelve programs are published as images.
+The report extracts 24 original console snippets from
 the pinned page and applies the same round-trip and greeting checks. It also
 verifies the text of all 78 localized greetings against the page. Both unit
 suites carry those greetings through Links Notation into all 20 plain-language

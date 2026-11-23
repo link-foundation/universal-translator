@@ -141,6 +141,13 @@ python3 examples/translation/verify-corpus.py "$archive"
 rm "$archive"
 ```
 
+To round-trip all 591 text listings from the Hello World Collection, pass
+the pinned HTML page. The remaining 12 programs are provided as images.
+
+```sh
+python3 examples/translation/verify-corpus.py --hello-world /path/to/hello-world-collection.html
+```
+
 To check the original console programs and all 78 localized greetings,
 download the two snapshots linked in the case study and run the coverage
 report with the files and Rust CLI.
