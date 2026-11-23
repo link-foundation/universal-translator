@@ -1,0 +1,6 @@
+(phrase-frequency: (corpus: en-2019) (phrase: 'white person') (frequency-2018: 3.268980037773872e-7) (frequency-2019: 3.6080490417589317e-7))
+(phrase-frequency: (corpus: en-2019) (phrase: 'person with white skin') (frequency-2018: 5.208887765562054e-10) (frequency-2019: 3.234850720623683e-10))
+(phrase-frequency: (corpus: en-2019) (phrase: 'person painted white') (frequency-2018: not-reported) (frequency-2019: not-reported))
+(phrase-frequency: (corpus: ru-2019) (phrase: 'белый человек') (frequency-2018: 3.7353200355028093e-7) (frequency-2019: 2.9662430733878864e-7))
+(phrase-frequency: (corpus: ru-2019) (phrase: 'человек с белой кожей') (frequency-2018: 2.0347499241069045e-9) (frequency-2019: 9.8343899690434e-10))
+(phrase-frequency: (corpus: ru-2019) (phrase: 'выкрашенный в белый цвет человек') (frequency-2018: not-reported) (frequency-2019: not-reported))

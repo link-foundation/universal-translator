@@ -44,6 +44,28 @@ specific implementations. The audit retains those distinctions.
 [TIOBE Index](https://www.tiobe.com/tiobe-index/) ·
 [TIOBE search definitions](https://www.tiobe.com/tiobe-index/programminglanguages_definition/)
 
+## Corpus observations for the dependent-meaning example
+
+The English 2019 and Russian 2019 Google Books corpora report higher
+relative frequencies for `white person` and `белый человек` than for the
+corresponding phrases that explicitly mention skin in 2018 and 2019.
+Neither query returned a series for the exact phrase describing a person
+painted white. The snapshot records those two observations as missing.
+The queries use case-sensitive matching and zero smoothing.
+[Captured observations](data/white-person-corpus.lino) ·
+[Google Books Ngram documentation](https://books.google.com/ngrams/info)
+
+These measurements describe exact phrases in published books. Sense
+frequencies would require individually annotated occurrences of the
+ambiguous phrase and corresponding bilingual evidence. The executable
+ranker demonstration uses synthetic counts to test how the evidence
+combines and how missing evidence propagates.
+
+```sh
+node experiments/white-person-corpus.mjs |
+  diff -u docs/case-studies/issue-1/data/white-person-corpus.lino -
+```
+
 ## Coverage
 
 The pinned Rosetta Code mirror lists 1,753 tasks and 108,960 entries. It
