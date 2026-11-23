@@ -46,9 +46,10 @@ still need per-entry recognition and verification. [Pinned Rosetta Code inventor
 [Hello World Collection](http://helloworldcollection.de/)
 
 The catalog includes 50 programming profiles and 20 plain-language profiles
-for all three tasks. Of the ranked TIOBE 50, 32 have forms for all three
+for all three tasks. Of the ranked TIOBE 50, 33 have forms for all three
 tasks and three have a related dialect profile. Assembly has five
-instruction profiles for the fixed Hello World greeting. Fourteen
+instruction profiles for the fixed Hello World greeting. The NASM x86-64
+profile also implements GCD and FizzBuzz. Fourteen
 ranked items have no profile. The [Links Notation census](data/corpus-coverage.lino)
 lists each mapping. Run `node examples/translation/report-coverage.mjs`
 from the repository root to check the mapping against the current catalog.
@@ -121,7 +122,7 @@ relationship to the system inspectable. [Associative technology stack](https://g
 
 ## Validation
 
-Each implementation checks 225 authored forms and 16,390 directed
+Each implementation checks 227 authored forms and 16,676 directed
 translations with shared task parameters. The parity runner checks every
 form and all three modes across both command lines. It checks the explicit
 Links Notation intermediate in both directions. Two Ubuntu native jobs

@@ -37,7 +37,7 @@ tiobe:
     (rank: 14 Scratch)
     (rank: 15 Perl perl)
     (rank: 16 MATLAB octave dialect)
-    (rank: 17 'Assembly language' nasm-x86-64 hello-only)
+    (rank: 17 'Assembly language' nasm-x86-64)
     (rank: 18 Swift swift)
     (rank: 19 'Delphi/Object Pascal' pascal)
     (rank: 20 Dart dart)

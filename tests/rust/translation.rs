@@ -137,7 +137,7 @@ fn all_authored_forms_and_directed_pairs() {
             .collect();
         assert_eq!(
             admitted.len(),
-            if effect.task() == "hello" { 76 } else { 71 }
+            if effect.task() == "hello" { 76 } else { 72 }
         );
         for source_profile in &admitted {
             for form in source_profile

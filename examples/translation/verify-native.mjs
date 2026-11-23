@@ -14,6 +14,11 @@ const boundaryEffects = {
     { task: 'hello', message: '' },
     { task: 'hello', message: ` ${'Hello'.repeat(18)} !?  ` },
   ],
+  'nasm-x86-64': [
+    { task: 'greatest-common-divisor', left: 0, right: 0 },
+    { task: 'greatest-common-divisor', left: 0, right: 2147483647 },
+    { task: 'fizz-buzz', limit: 1000 },
+  ],
 };
 const environment = {
   ...process.env,

@@ -127,7 +127,7 @@ describe('translation through meta-language', () => {
       const admitted = languages.filter(({ forms }) =>
         forms.some(({ task }) => task === effect.task)
       );
-      expect(admitted.length).toBe(effect.task === 'hello' ? 76 : 71);
+      expect(admitted.length).toBe(effect.task === 'hello' ? 76 : 72);
       for (const sourceLanguage of admitted) {
         for (const form of sourceLanguage.forms.filter(
           ({ task }) => task === effect.task

@@ -69,8 +69,9 @@ and UTF-8 bytes in Rust.
 
 NASM x86-64 Linux, GNU AArch64 Linux, LLVM IR, CIL ILAsm, and JVM Jasmin
 accept the fixed greeting `Hello, World!`. Their profiles contain assembly
-or instruction listings. Native verification assembles or compiles those
-listings before executing them.
+or instruction listings. NASM also has GCD and FizzBuzz forms. The native
+runner assembles these, including the zero and maximum GCD inputs and the
+maximum FizzBuzz limit, and compares their standard output with the oracle.
 
 ## Verification
 

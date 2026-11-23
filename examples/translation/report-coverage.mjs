@@ -32,7 +32,7 @@ const byTask = new Set(
 assert.deepEqual(new Set(authored.map(([id]) => id)), byTask);
 assert.equal(ranks.length, 50);
 
-const counts = { 'three-tasks': 0, dialect: 0, 'hello-only': 0, missing: 0 };
+const counts = { 'three-tasks': 0, dialect: 0, missing: 0 };
 for (const [index, entry] of ranks.entries()) {
   const [rank, language, id, status = id ? 'three-tasks' : 'missing'] = entry;
   assert.equal(Number(rank), index + 1);
@@ -40,10 +40,7 @@ for (const [index, entry] of ranks.entries()) {
   counts[status] += 1;
   if (id) {
     const tasks = new Set(byId.get(id).forms.map(({ task }) => task));
-    assert.deepEqual(
-      tasks,
-      status === 'hello-only' ? new Set(['hello']) : byTask
-    );
+    assert.deepEqual(tasks, byTask);
   }
   if (status !== 'three-tasks') {
     console.log(

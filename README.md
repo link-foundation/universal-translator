@@ -4,8 +4,8 @@ Translate small programs through a shared Meta Language with JavaScript or
 Rust. The catalog expresses Hello World, Greatest Common Divisor, and
 FizzBuzz in 50 programming languages and in precise plain language across
 20 human languages. Five textual instruction profiles support the Hello
-World fixture. The catalog covers three authored tasks from the source
-collections.
+World fixture, and NASM x86-64 also implements GCD and FizzBuzz. The catalog
+covers three authored tasks from the source collections.
 
 ## Translate a program
 
