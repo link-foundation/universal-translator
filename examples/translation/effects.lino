@@ -1,0 +1,9 @@
+hello:
+  message: 'Hello, World!'
+
+greatest-common-divisor:
+  left: 1071
+  right: 462
+
+fizz-buzz:
+  limit: 100

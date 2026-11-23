@@ -1,4 +1,4 @@
-import loadProfiles from '#translation-profiles';
+import loadProfiles from './profile-data.js';
 
 const slots = /\{\{([a-z]+)\}\}/g;
 const nonportableMessage = /[^ A-Za-z0-9,.!?;:_+/()=<>-]|\?\?[=/()!<>-]/;
@@ -37,7 +37,7 @@ const taskFields = {
 };
 
 export function languageProfiles() {
-  return globalThis.structuredClone(loadProfiles());
+  return loadProfiles();
 }
 
 export function validateEffect(effect) {
@@ -86,7 +86,11 @@ function readForm(form, source) {
     ) {
       return undefined;
     }
-    effect[field] = field === 'message' ? raw : Number(raw);
+    const value = field === 'message' ? raw : Number(raw);
+    if (Object.hasOwn(effect, field) && effect[field] !== value) {
+      return undefined;
+    }
+    effect[field] = value;
     offset = end + nextPart.length;
   }
   if (offset !== source.length) {
@@ -145,6 +149,7 @@ function safeComment(profile, text) {
       (text.includes(profile.comment) || text.includes(profile.commentEnd))
     ) &&
     !(profile.id === 'ocaml' && text.includes('"')) &&
+    !(profile.id === 'xslt' && text.includes('--')) &&
     !(profile.id === 'php' && text.includes('?>')) &&
     !(profile.id === 'python' && /coding[=:]/.test(text))
   );
@@ -161,6 +166,12 @@ function commentDirective(profile, line) {
       );
     case 'lua':
       return /^--\[=*\[/.test(content);
+    case 'julia':
+      return content.startsWith('#=');
+    case 'nim':
+      return /^##?\[/.test(content);
+    case 'raku':
+      return content.startsWith('#`');
     case 'powershell':
       return /^#requires\b/i.test(content);
     case 'ruby':

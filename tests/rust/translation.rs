@@ -1,10 +1,51 @@
 use universal_translator::{
-    Adapter, Candidate, Effect, Expression, Interpretation, Mode, Options, Translator,
-    language_profiles, rank_interpretations,
+    Adapter, Effect, Expression, Interpretation, Mode, Options, Translator, language_profiles,
+    rank_interpretations, read_referent_input,
 };
 
 const C: &str = include_str!("../../examples/translation/hello.c");
 const CSHARP: &str = include_str!("../../examples/translation/hello.cs");
+
+#[test]
+fn links_notation_intermediate_preserves_effect_and_whole_line_comments() {
+    let translator = Translator::default();
+    let literal = Options {
+        mode: Mode::Literal,
+        ..Options::default()
+    };
+    let intermediate = translator.translate(C, "c", "meta", &literal).unwrap();
+    let effect = Effect::Hello {
+        message: "Hello, World!".into(),
+    };
+    assert!(intermediate.contains(&effect.to_links_notation()));
+    assert_eq!(
+        Effect::read_links_notation(&intermediate).unwrap(),
+        [effect.clone()]
+    );
+    let output = translator
+        .translate(&intermediate, "meta", "csharp", &literal)
+        .unwrap();
+    assert!(output.contains("// Print a line by function call."));
+    let empty = Effect::Hello {
+        message: String::new(),
+    };
+    assert_eq!(
+        Effect::read_links_notation(&empty.to_links_notation()).unwrap(),
+        [empty]
+    );
+    assert!(Effect::read_links_notation("(hello: (message: Hi) (extra: 1))").is_err());
+    assert!(Effect::read_links_notation("(fizz-buzz: (limit: 010))").is_err());
+    assert!(
+        translator
+            .parse(
+                &format!("{intermediate}{}", effect.to_links_notation()),
+                "meta"
+            )
+            .unwrap()
+            .interpretation
+            .is_none()
+    );
+}
 
 #[test]
 fn source_links_comments_and_default_mode() {
@@ -68,8 +109,23 @@ fn source_links_comments_and_default_mode() {
 fn all_authored_forms_and_directed_pairs() {
     let translator = Translator::default();
     let effects: Vec<Effect> =
-        serde_json::from_str(include_str!("../../examples/translation/effects.json")).unwrap();
-    assert_eq!(translator.profiles().count(), 33);
+        Effect::read_links_notation(include_str!("../../examples/translation/effects.lino"))
+            .unwrap();
+    assert_eq!(translator.profiles().count(), 76);
+    for (kind, count) in [
+        ("programming", 50),
+        ("natural-language", 20),
+        ("instruction", 5),
+        ("meta-language", 1),
+    ] {
+        assert_eq!(
+            translator
+                .profiles()
+                .filter(|profile| profile.kind == kind)
+                .count(),
+            count
+        );
+    }
     let options = Options {
         mode: Mode::SameEffect,
         ..Options::default()
@@ -81,7 +137,7 @@ fn all_authored_forms_and_directed_pairs() {
             .collect();
         assert_eq!(
             admitted.len(),
-            if effect.task() == "hello" { 33 } else { 28 }
+            if effect.task() == "hello" { 76 } else { 71 }
         );
         for source_profile in &admitted {
             for form in source_profile
@@ -219,13 +275,10 @@ fn layers_and_decorators() {
 
 #[test]
 fn dependent_referents_keep_uncertainty() {
-    #[derive(serde::Deserialize)]
-    struct Fixture {
-        source: String,
-        candidates: Vec<Candidate>,
-    }
-    let Fixture { source, candidates } =
-        serde_json::from_str(include_str!("../../examples/translation/referents.json")).unwrap();
+    let (source, candidates) = read_referent_input(include_str!(
+        "../../examples/translation/referent-input.lino"
+    ))
+    .unwrap();
     let ranking = rank_interpretations(&source, &candidates, &[]).unwrap();
     assert_eq!(ranking.preferred[0].candidate.id, "white-skin");
     let scores: Vec<_> = ranking

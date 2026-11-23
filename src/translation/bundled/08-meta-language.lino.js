@@ -1,0 +1,19 @@
+// Generated from ../data/08-meta-language.lino.
+export default `profile:
+  id: meta
+  label: 'Meta Language (Links Notation)'
+  kind: meta-language
+  comment: '#'
+  call: effect
+  output: effect
+  forms:
+    form:
+      task: hello
+      name: standard
+    form:
+      task: greatest-common-divisor
+      name: standard
+    form:
+      task: fizz-buzz
+      name: standard
+`;

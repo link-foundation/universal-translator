@@ -1,25 +1,34 @@
-import { readFileSync } from 'node:fs';
-import { URL } from 'node:url';
-
-import { evaluate } from 'relative-meta-logic';
 import { rankInterpretations } from '../../src/index.js';
+import { formatRecord } from '../../src/translation/links.js';
+import { evaluate } from 'relative-meta-logic';
+import { fixture, referentInput } from './fixtures.mjs';
 
 export function demonstrate() {
-  const read = (name) => readFileSync(new URL(name, import.meta.url), 'utf8');
-  const { source, candidates } = JSON.parse(read('referents.json'));
+  const { source, candidates } = referentInput();
   const chosen = rankInterpretations(source, candidates);
-  const { results, diagnostics } = evaluate(read('referents.lino'));
+  const { results, diagnostics } = evaluate(fixture('referents.lino'));
   if (
     diagnostics.length ||
     Number(results[0]) !== chosen.preferred[0].confidence[0]
   ) {
     throw new Error(
-      `RML evidence differs from the preferred referent: ${JSON.stringify({ results, diagnostics })}`
+      'Relative Meta Logic evidence differs from the preferred referent'
     );
   }
   return chosen;
 }
 
 if (import.meta.main) {
-  console.log(JSON.stringify(demonstrate(), null, 2));
+  for (const candidate of demonstrate().candidates) {
+    const [lower, upper] = candidate.confidence;
+    console.log(
+      formatRecord('candidate', {
+        id: candidate.id,
+        target: candidate.target,
+        lower,
+        upper,
+        'round-trip': candidate.roundTrip,
+      })
+    );
+  }
 }

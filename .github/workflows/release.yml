@@ -433,6 +433,9 @@ jobs:
 
       - run: npm ci
 
+      - name: Check generated Links Notation registry
+        run: node scripts/bundle-translation-profiles.mjs --check
+
       - name: Check Rust formatting
         run: cargo fmt --check
 
@@ -445,19 +448,79 @@ jobs:
           node examples/translation/verify-parity.mjs
           node examples/translation/dependent-meanings.mjs
 
-      - name: Set up Dart for native translation tests
+  native-translation:
+    name: Native translation (${{ matrix.group }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [baseline, extended]
+    concurrency:
+      group: check-${{ github.workflow }}-${{ github.ref }}-native-translation-${{ matrix.group }}
+      cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+    needs: [detect-changes]
+    if: |
+      !cancelled() &&
+      (
+        needs.detect-changes.outputs.any-code-changed == 'true' ||
+        (
+          github.event_name == 'workflow_dispatch' &&
+          github.event.inputs.release_mode == 'instant'
+        )
+      )
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Simulate fresh merge with base branch (PR only)
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: bash scripts/simulate-fresh-merge.sh
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24.x'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Set up Dart for baseline native tests
+        if: matrix.group == 'baseline'
         uses: dart-lang/setup-dart@2286a0c042b44434fe26d292bbce8d34f7ec662b # v1
         with:
           sdk: '3.12.0'
 
-      - name: Check output with native tools
-        timeout-minutes: 4
+      - name: Set up Julia for extended native tests
+        if: matrix.group == 'extended'
+        uses: julia-actions/setup-julia@4c0cb0fce8556fdb04a90347310e5db8b1f98fb9 # v2
+        with:
+          version: '1.12'
+
+      - name: Install baseline native tools
+        if: matrix.group == 'baseline'
         run: |
           sudo apt-get -qq update
           sudo apt-get -qq install --no-install-recommends \
             fp-compiler gfortran gobjc jasmin-sable libgnustep-base-dev lld lua5.4 \
             mono-devel nasm ocaml qemu-user r-base-core scala tcl
-          node examples/translation/verify-native.mjs --require-all
+
+      - name: Install extended native tools
+        if: matrix.group == 'extended'
+        run: |
+          sudo apt-get -qq update
+          sudo apt-get -qq install --no-install-recommends \
+            clojure crystal elixir erlang-base fish ghc gnat gnucobol groovy \
+            guile-3.0 haxe ldc nim octave polyml racket rakudo sbcl swi-prolog-nox xsltproc
+
+      - name: Check output with native tools
+        timeout-minutes: 6
+        env:
+          NATIVE_GROUP: ${{ matrix.group }}
+        run: node examples/translation/verify-native.mjs --require-all --group="$NATIVE_GROUP"
 
   # === DOCKER IMAGE BUILD CHECK (pull requests) ===
   # Builds the Dockerfile without pushing so a broken image fails the pull
@@ -599,6 +662,7 @@ jobs:
         lint,
         test,
         translation,
+        native-translation,
         docker-build,
         validate-docs,
         release-preflight,
@@ -619,6 +683,7 @@ jobs:
       needs.lint.result == 'success' &&
       needs.test.result == 'success' &&
       needs.translation.result == 'success' &&
+      needs.native-translation.result == 'success' &&
       !contains(needs.*.result, 'failure') &&
       !contains(needs.*.result, 'cancelled')
     runs-on: ubuntu-24.04
@@ -752,6 +817,7 @@ jobs:
         lint,
         test,
         translation,
+        native-translation,
         docker-build,
         validate-docs,
         release-preflight,
@@ -764,6 +830,7 @@ jobs:
       needs.lint.result == 'success' &&
       needs.test.result == 'success' &&
       needs.translation.result == 'success' &&
+      needs.native-translation.result == 'success' &&
       !contains(needs.*.result, 'failure') &&
       !contains(needs.*.result, 'cancelled')
     runs-on: ubuntu-24.04
@@ -1132,6 +1199,7 @@ jobs:
       - lint
       - test
       - translation
+      - native-translation
       - docker-build
       - docker-publish-config
       - docker-publish-build

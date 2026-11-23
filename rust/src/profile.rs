@@ -1,21 +1,32 @@
+use crate::links::{self, Link};
 use crate::{Adapter, Comment, Effect, Expression, Interpretation, Placement};
 use regex::Regex;
 use serde::Deserialize;
-use serde_json::{Map, Value};
+use std::collections::BTreeMap;
 use std::sync::OnceLock;
 
 const REGISTRIES: &[&str] = &[
-    include_str!("../../src/translation/systems.json"),
-    include_str!("../../src/translation/managed.json"),
-    include_str!("../../src/translation/scripts.json"),
-    include_str!("../../src/translation/machine.json"),
+    include_str!("../../src/translation/data/01-systems.lino"),
+    include_str!("../../src/translation/data/02-managed.lino"),
+    include_str!("../../src/translation/data/03-scripts.lino"),
+    include_str!("../../src/translation/data/04-machine.lino"),
+    include_str!("../../src/translation/data/05-programming-languages.lino"),
+    include_str!("../../src/translation/data/06-programming-languages.lino"),
+    include_str!("../../src/translation/data/07-natural-languages.lino"),
+    include_str!("../../src/translation/data/08-meta-language.lino"),
 ];
+
+fn programming_kind() -> String {
+    "programming".into()
+}
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Profile {
     pub id: String,
     pub label: String,
+    #[serde(default = "programming_kind")]
+    pub kind: String,
     pub comment: String,
     pub comment_end: Option<String>,
     #[serde(default)]
@@ -30,19 +41,107 @@ pub struct Form {
     pub task: String,
     pub name: String,
     pub source: Vec<String>,
-    pub fixed: Option<Map<String, Value>>,
+    pub fixed: Option<BTreeMap<String, String>>,
     pub requires: Option<Vec<String>>,
     pub output: Option<String>,
 }
 
-pub fn language_profiles() -> Vec<Profile> {
-    REGISTRIES
-        .iter()
-        .flat_map(|registry| {
-            serde_json::from_str::<Vec<Profile>>(registry)
-                .expect("valid bundled translation profiles")
+impl Form {
+    fn from_link(link: &Link, kind: &str) -> Result<Self, String> {
+        let fields = links::fields(links::children(link, "form")?)?;
+        let source = if kind == "meta-language" {
+            Vec::new()
+        } else {
+            links::elements(&fields, "source")?
+                .iter()
+                .map(|line| links::reference(links::children(line, "line")?))
+                .collect::<Result<_, _>>()?
+        };
+        let fixed = fields
+            .get("fixed")
+            .map(|values| {
+                links::fields(values)?
+                    .into_iter()
+                    .map(|(name, value)| Ok((name.into(), links::reference(value)?)))
+                    .collect::<Result<_, String>>()
+            })
+            .transpose()?;
+        Ok(Self {
+            task: links::value(&fields, "task")?,
+            name: links::value(&fields, "name")?,
+            source,
+            fixed,
+            requires: fields
+                .get("requires")
+                .map(|values| links::references(values))
+                .transpose()?,
+            output: fields
+                .get("output")
+                .map(|values| links::reference(values))
+                .transpose()?,
         })
-        .collect()
+    }
+}
+
+impl Profile {
+    fn from_link(link: &Link) -> Result<Self, String> {
+        let fields = links::fields(links::children(link, "profile")?)?;
+        let kind = fields
+            .get("kind")
+            .map(|values| links::reference(values))
+            .transpose()?
+            .unwrap_or_else(programming_kind);
+        let forms = links::elements(&fields, "forms")?
+            .iter()
+            .map(|form| Form::from_link(form, &kind))
+            .collect::<Result<_, _>>()?;
+        Ok(Self {
+            id: links::value(&fields, "id")?,
+            label: links::value(&fields, "label")?,
+            kind,
+            comment: links::value(&fields, "comment")?,
+            comment_end: fields
+                .get("commentEnd")
+                .map(|values| links::reference(values))
+                .transpose()?,
+            header: fields
+                .get("header")
+                .map(|values| {
+                    links::reference(values)?
+                        .parse()
+                        .map_err(|_| "Invalid header length".to_owned())
+                })
+                .transpose()?
+                .unwrap_or_default(),
+            call: links::value(&fields, "call")?,
+            output: links::value(&fields, "output")?,
+            forms,
+        })
+    }
+}
+
+pub fn language_profiles() -> Vec<Profile> {
+    static PROFILES: OnceLock<Vec<Profile>> = OnceLock::new();
+    PROFILES
+        .get_or_init(|| {
+            REGISTRIES
+                .iter()
+                .flat_map(|registry| {
+                    links_notation::parse_lino_to_links(registry)
+                        .expect("valid bundled Links Notation registry")
+                })
+                .map(|link| {
+                    Profile::from_link(&link).unwrap_or_else(|error| {
+                        let id = links::children(&link, "profile")
+                            .ok()
+                            .and_then(|children| children.first())
+                            .map(|element| format!("{element:?}"));
+                        panic!("Invalid bundled translation profile {id:?}: {error}")
+                    })
+                })
+                .collect()
+        })
+        .clone()
 }
 
 fn slots() -> &'static Regex {
@@ -64,6 +163,7 @@ fn safe_comment(profile: &Profile, text: &str) -> bool {
             .as_ref()
             .is_some_and(|end| text.contains(&profile.comment) || text.contains(end))
         && !(profile.id == "ocaml" && text.contains('"'))
+        && !(profile.id == "xslt" && text.contains("--"))
         && !(profile.id == "php" && text.contains("?>"))
         && !(profile.id == "python" && (text.contains("coding:") || text.contains("coding=")))
 }
@@ -82,6 +182,9 @@ fn comment_directive(profile: &Profile, line: &str) -> bool {
         "lua" => LUA_BLOCK
             .get_or_init(|| Regex::new(r"^--\[=*\[").unwrap())
             .is_match(content),
+        "julia" => content.starts_with("#="),
+        "nim" => content.starts_with("#[") || content.starts_with("##["),
+        "raku" => content.starts_with("#`"),
         "powershell" => POWERSHELL_DIRECTIVE
             .get_or_init(|| Regex::new(r"(?i)^#requires\b").unwrap())
             .is_match(content),
@@ -155,14 +258,7 @@ impl CompiledForm {
         self.form
             .fixed
             .as_ref()
-            .and_then(|fields| self.build_effect(fields.clone()))
-    }
-
-    fn build_effect(&self, mut fields: Map<String, Value>) -> Option<Effect> {
-        fields.insert("task".into(), self.form.task.clone().into());
-        let effect: Effect = serde_json::from_value(fields.into()).ok()?;
-        effect.validate().ok()?;
-        Some(effect)
+            .and_then(|fields| Effect::from_fields(&self.form.task, fields))
     }
 
     fn read(&self, source: &str) -> Option<Effect> {
@@ -174,24 +270,17 @@ impl CompiledForm {
             } else {
                 remainder.split_once(next)?
             };
-            let parsed = if field == "message" {
-                Value::from(value)
-            } else {
-                if value.is_empty()
-                    || value != "0" && value.starts_with('0')
-                    || !value.bytes().all(|byte| byte.is_ascii_digit())
-                {
+            if let Some(previous) = values.insert(field.clone(), value.to_owned()) {
+                if previous != value {
                     return None;
                 }
-                Value::from(value.parse::<u32>().ok()?)
-            };
-            values.insert(field.clone(), parsed);
+            }
             remainder = after;
         }
         if !remainder.is_empty() {
             return None;
         }
-        self.build_effect(values)
+        Effect::from_fields(&self.form.task, &values)
     }
 }
 

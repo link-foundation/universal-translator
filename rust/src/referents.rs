@@ -1,3 +1,4 @@
+use crate::links::{self, Fields, Link};
 use rml::probability::{Aggregator, TruthValue};
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
@@ -44,6 +45,59 @@ pub struct RankedCandidate {
 pub struct Ranking {
     pub candidates: Vec<RankedCandidate>,
     pub preferred: Vec<RankedCandidate>,
+}
+
+/// Reads the source phrase and dependent candidates from a Links Notation document.
+pub fn read_referent_input(source: &str) -> Result<(String, Vec<Candidate>), String> {
+    let document =
+        links_notation::parse_lino_to_links(source).map_err(|error| error.to_string())?;
+    let [root] = document.as_slice() else {
+        return Err("Expected one referents link".into());
+    };
+    let fields = links::fields(links::children(root, "referents")?)?;
+    let candidates = links::elements(&fields, "candidates")?
+        .iter()
+        .map(read_candidate)
+        .collect::<Result<_, _>>()?;
+    Ok((links::value(&fields, "source")?, candidates))
+}
+
+fn read_candidate(link: &Link) -> Result<Candidate, String> {
+    let fields = links::fields(links::children(link, "candidate")?)?;
+    Ok(Candidate {
+        id: links::value(&fields, "id")?,
+        target: links::value(&fields, "target")?,
+        type_path: links::references(links::elements(&fields, "type")?)?,
+        back: links::references(links::elements(&fields, "back")?)?,
+        source_evidence: read_observation(&fields, "sourceEvidence")?,
+        target_evidence: read_observation(&fields, "targetEvidence")?,
+        context: fields
+            .get("context")
+            .map(|values| {
+                links::reference(values)?
+                    .parse()
+                    .map_err(|_| "Invalid context value".to_owned())
+            })
+            .transpose()?,
+    })
+}
+
+fn read_observation(fields: &Fields, name: &str) -> Result<Option<Observation>, String> {
+    fields
+        .get(name)
+        .map(|values| {
+            let fields = links::fields(values)?;
+            let number = |key| {
+                links::value(&fields, key)?
+                    .parse::<u32>()
+                    .map_err(|_| format!("Invalid {key}"))
+            };
+            Ok(Observation {
+                count: number("count")?,
+                total: number("total")?,
+            })
+        })
+        .transpose()
 }
 
 fn score(candidate: &Candidate) -> Result<[f64; 2], String> {

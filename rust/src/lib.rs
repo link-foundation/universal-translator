@@ -1,15 +1,20 @@
 //! Translate admitted program forms through a concrete source and an effect network.
 
+mod links;
+mod meta;
 mod network;
 mod profile;
 mod referents;
 
 use meta_language::{LinkId, LinkNetwork};
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use std::sync::OnceLock;
 
 pub use profile::{Form, Profile, language_profiles};
-pub use referents::{Candidate, Observation, RankedCandidate, Ranking, rank_interpretations};
+pub use referents::{
+    Candidate, Observation, RankedCandidate, Ranking, rank_interpretations, read_referent_input,
+};
 
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(tag = "task", rename_all = "kebab-case")]
@@ -36,6 +41,54 @@ impl Effect {
             }
             Self::FizzBuzz { limit } => vec![("limit", limit.to_string())],
         }
+    }
+
+    fn from_fields(task: &str, fields: &BTreeMap<String, String>) -> Option<Self> {
+        let integer = |name| {
+            let text: &String = fields.get(name)?;
+            let value: u32 = text.parse().ok()?;
+            (value.to_string() == *text).then_some(value)
+        };
+        let effect = match task {
+            "hello" if fields.len() == 1 => Self::Hello {
+                message: fields.get("message")?.clone(),
+            },
+            "greatest-common-divisor" if fields.len() == 2 => Self::GreatestCommonDivisor {
+                left: integer("left")?,
+                right: integer("right")?,
+            },
+            "fizz-buzz" if fields.len() == 1 => Self::FizzBuzz {
+                limit: integer("limit")?,
+            },
+            _ => return None,
+        };
+        effect.validate().ok()?;
+        Some(effect)
+    }
+
+    /// Reads one or more typed effects from their Links Notation representation.
+    pub fn read_links_notation(source: &str) -> Result<Vec<Self>, String> {
+        let records =
+            links_notation::parse_lino_to_links(source).map_err(|error| error.to_string())?;
+        if records.is_empty() {
+            return Err("Expected a Links Notation effect".into());
+        }
+        records
+            .iter()
+            .map(|link| {
+                let (task, values) = links::named(link)?;
+                let fields = links::fields(values)?
+                    .into_iter()
+                    .map(|(id, values)| Ok((id.into(), links::reference(values)?)))
+                    .collect::<Result<_, String>>()?;
+                Self::from_fields(task, &fields).ok_or_else(|| format!("Invalid {task} effect"))
+            })
+            .collect()
+    }
+
+    /// Writes the effect as a Links Notation expression usable by either implementation.
+    pub fn to_links_notation(&self) -> String {
+        links_notation::binary::format_document(&[links::record(self.task(), self.fields())])
     }
 
     fn validate(&self) -> Result<(), String> {
@@ -183,8 +236,11 @@ impl Translator {
         let languages = profiles
             .into_iter()
             .map(|profile| {
-                let adapter: Box<dyn Adapter> =
-                    Box::new(profile::ProfileAdapter::new(profile.clone()));
+                let adapter: Box<dyn Adapter> = if profile.kind == "meta-language" {
+                    Box::new(meta::MetaAdapter)
+                } else {
+                    Box::new(profile::ProfileAdapter::new(profile.clone()))
+                };
                 (profile, adapter)
             })
             .collect();

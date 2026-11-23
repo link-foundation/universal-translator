@@ -21,12 +21,6 @@
       "import": "./src/index.js"
     }
   },
-  "imports": {
-    "#translation-profiles": {
-      "node": "./src/translation/profile-data-node.js",
-      "default": "./src/translation/profile-data.js"
-    }
-  },
   "scripts": {
     "test": "node --test --test-timeout=30000 tests/*.test.js",
     "lint": "node scripts/lint.mjs",
@@ -96,6 +90,7 @@
     ]
   },
   "dependencies": {
+    "links-notation": "0.31.8",
     "meta-language": "0.46.0"
   }
 }

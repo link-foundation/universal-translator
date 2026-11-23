@@ -1,0 +1,150 @@
+// Generated from ../data/04-machine.lino.
+export default `profile:
+  id: nasm-x86-64
+  kind: instruction
+  label: 'NASM x86-64 (Linux)'
+  comment: ;
+  call: 'function call'
+  output: 'write syscall'
+  forms:
+    form:
+      task: hello
+      name: standard
+      fixed:
+        message: 'Hello, World!'
+      requires: 'Linux x86-64 syscall ABI'
+      source:
+        (line: 'global _start')
+        (line: ~1{})
+        (line: 'section .rodata')
+        (line: '    message db "Hello, World!", 10')
+        (line: '    message_length equ $ - message')
+        (line: ~1{})
+        (line: 'section .text')
+        (line: '_start:')
+        (line: '    mov eax, 1')
+        (line: '    mov edi, 1')
+        (line: '    lea rsi, [rel message]')
+        (line: '    mov edx, message_length')
+        (line: '    syscall')
+        (line: ~1{})
+        (line: '    mov eax, 60')
+        (line: '    xor edi, edi')
+        (line: '    syscall')
+
+profile:
+  id: gas-aarch64
+  kind: instruction
+  label: 'GNU AArch64 assembly (Linux)'
+  comment: //
+  call: 'function call'
+  output: 'write syscall'
+  forms:
+    form:
+      task: hello
+      name: standard
+      fixed:
+        message: 'Hello, World!'
+      requires: 'Linux AArch64 syscall ABI'
+      source:
+        (line: '.global _start')
+        (line: ~1{})
+        (line: '.section .rodata')
+        (line: 'message:')
+        (line: '    .ascii "Hello, World!\\n"')
+        (line: '.equ message_length, . - message')
+        (line: ~1{})
+        (line: .text)
+        (line: '_start:')
+        (line: '    mov x0, #1')
+        (line: '    adr x1, message')
+        (line: '    mov x2, #message_length')
+        (line: '    mov x8, #64')
+        (line: '    svc #0')
+        (line: ~1{})
+        (line: '    mov x0, #0')
+        (line: '    mov x8, #93')
+        (line: '    svc #0')
+
+profile:
+  id: llvm-ir
+  kind: instruction
+  label: 'LLVM IR'
+  comment: ;
+  call: 'function call'
+  output: puts
+  forms:
+    form:
+      task: hello
+      name: standard
+      fixed:
+        message: 'Hello, World!'
+      requires: 'libc puts'
+      source:
+        (line: '@message = private constant [14 x i8] c"Hello, World!\\00"')
+        (line: ~1{})
+        (line: 'declare i32 @puts(ptr)')
+        (line: ~1{})
+        (line: 'define i32 @main() {')
+        (line: '  call i32 @puts(ptr @message)')
+        (line: '  ret i32 0')
+        (line: })
+
+profile:
+  id: cil
+  kind: instruction
+  label: '.NET CIL (ILAsm)'
+  comment: //
+  call: 'method call'
+  output: 'System.Console::WriteLine'
+  forms:
+    form:
+      task: hello
+      name: standard
+      fixed:
+        message: 'Hello, World!'
+      requires: mscorlib HelloWorld
+      source:
+        (line: '.assembly extern mscorlib {}')
+        (line: '.assembly HelloWorld {}')
+        (line: '.module HelloWorld.exe')
+        (line: ~1{})
+        (line: '.class private auto ansi HelloWorld extends [mscorlib]System.Object')
+        (line: {)
+        (line: '    .method public hidebysig static void Main() cil managed')
+        (line: '    {')
+        (line: '        .entrypoint')
+        (line: '        .maxstack 1')
+        (line: '        ldstr "Hello, World!"')
+        (line: '        call void [mscorlib]System.Console::WriteLine(string)')
+        (line: '        ret')
+        (line: '    }')
+        (line: })
+
+profile:
+  id: jvm-jasmin
+  kind: instruction
+  label: 'JVM bytecode (Jasmin)'
+  comment: ;
+  call: 'method call'
+  output: java/io/PrintStream/println
+  forms:
+    form:
+      task: hello
+      name: standard
+      fixed:
+        message: 'Hello, World!'
+      requires: Main java/lang/System/out
+      source:
+        (line: '.class public Main')
+        (line: '.super java/lang/Object')
+        (line: ~1{})
+        (line: '.method public static main([Ljava/lang/String;)V')
+        (line: '    .limit stack 2')
+        (line: '    .limit locals 1')
+        (line: '    getstatic java/lang/System/out Ljava/io/PrintStream;')
+        (line: '    ldc "Hello, World!"')
+        (line: '    invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V')
+        (line: '    return')
+        (line: '.end method')
+`;

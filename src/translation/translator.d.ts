@@ -5,6 +5,12 @@ export type Effect =
   | { task: 'greatest-common-divisor'; left: number; right: number }
   | { task: 'fizz-buzz'; limit: number };
 
+export type LanguageKind =
+  | 'programming'
+  | 'instruction'
+  | 'natural-language'
+  | 'meta-language';
+
 export interface LanguageForm {
   task: Effect['task'];
   name: string;
@@ -17,6 +23,7 @@ export interface LanguageForm {
 export interface LanguageProfile {
   id: string;
   label: string;
+  kind?: LanguageKind;
   comment: string;
   commentEnd?: string;
   header?: number;
@@ -94,6 +101,7 @@ export interface Translator {
   listLanguages(): Array<{
     id: string;
     label: string;
+    kind: LanguageKind;
     forms: Array<Pick<LanguageForm, 'task' | 'name'>>;
   }>;
   parse(source: string, language: string): Document;
@@ -146,3 +154,6 @@ export declare function rankInterpretations(
   candidates: Candidate[],
   requiredType?: string[]
 ): { candidates: RankedCandidate[]; preferred: RankedCandidate[] };
+
+export function readEffects(source: string): Effect[];
+export function writeEffect(effect: Effect): string;

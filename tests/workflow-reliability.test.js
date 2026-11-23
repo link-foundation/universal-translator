@@ -251,6 +251,12 @@ describe('workflow concurrency policy', () => {
       '-${{ matrix.runtime }}',
       "${{ github.ref != 'refs/heads/main' }}"
     );
+    expectCancellableCheckConcurrency(
+      getJobBlock(releaseWorkflow, 'native-translation'),
+      'native-translation',
+      '-${{ matrix.group }}',
+      "${{ github.ref != 'refs/heads/main' }}"
+    );
 
     expect(exampleAppWorkflow).not.toContain('  ios-build:');
     for (const jobName of ['web-build', 'android-build', 'desktop-package']) {
@@ -489,6 +495,7 @@ describe('manual release quality gates', () => {
     lintResult = 'success',
     testResult = 'success',
     translationResult = 'success',
+    nativeTranslationResult = 'success',
     cancelled = false,
   }) {
     const context = createTestJobContext({
@@ -501,6 +508,7 @@ describe('manual release quality gates', () => {
     context.needs.lint.result = lintResult;
     context.needs.test = { result: testResult };
     context.needs.translation = { result: translationResult };
+    context.needs['native-translation'] = { result: nativeTranslationResult };
     return context;
   }
 

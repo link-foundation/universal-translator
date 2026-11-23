@@ -2,14 +2,13 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { URL } from 'node:url';
 
 import { createTranslator } from '../../src/index.js';
 
+import { exampleEffects, fixture } from './fixtures.mjs';
+
 const translator = createTranslator();
-const effects = JSON.parse(
-  readFileSync(new URL('effects.json', import.meta.url), 'utf8')
-);
+const effects = exampleEffects();
 const environment = {
   ...process.env,
   DOTNET_CLI_TELEMETRY_OPTOUT: '1',
@@ -209,6 +208,64 @@ const runners = {
   },
 };
 
+const extendedRunners = {
+  octave: interpreted('main.m', 'octave-cli', '--quiet', '--no-init-file'),
+  julia: interpreted('main.jl', 'julia', '--startup-file=no'),
+  cobol: compiled('main.cob', 'cobc', '-x', '-free'),
+  ada: compiled('main.adb', 'gnatmake', '-q'),
+  prolog: interpreted('main.pl', 'swipl', '-q', '-s'),
+  d: {
+    filename: 'main.d',
+    tools: ['ldc2'],
+    execute(directory) {
+      run(directory, 'ldc2', 'main.d', '-of=program');
+      return run(directory, './program');
+    },
+  },
+  'common-lisp': interpreted('main.lisp', 'sbcl', '--script'),
+  haskell: interpreted('Main.hs', 'runghc'),
+  xslt: {
+    filename: 'main.xsl',
+    tools: ['xsltproc'],
+    execute(directory) {
+      writeFileSync(join(directory, 'input.xml'), '<input/>\n');
+      return run(
+        directory,
+        'xsltproc',
+        '--maxdepth',
+        '5000',
+        'main.xsl',
+        'input.xml'
+      );
+    },
+  },
+  clojure: interpreted('main.clj', 'clojure'),
+  'standard-ml': interpreted('main.sml', 'poly', '--script'),
+  erlang: interpreted('main.erl', 'escript'),
+  elixir: interpreted('main.exs', 'elixir'),
+  fsharp: interpreted('main.fsx', 'dotnet', 'fsi', '--quiet', '--exec'),
+  groovy: interpreted('Main.groovy', 'groovy'),
+  raku: interpreted('main.raku', 'raku'),
+  scheme: interpreted('main.scm', 'guile', '--no-auto-compile', '-s'),
+  nim: interpreted(
+    'main.nim',
+    'nim',
+    'c',
+    '--hints:off',
+    '--warnings:off',
+    '-r'
+  ),
+  haxe: {
+    filename: 'Main.hx',
+    tools: ['haxe'],
+    execute: (directory) =>
+      run(directory, 'haxe', '--interp', '--main', 'Main'),
+  },
+  crystal: interpreted('main.cr', 'crystal', 'run'),
+  racket: interpreted('main.rkt', 'racket'),
+  fish: interpreted('main.fish', 'fish', '--no-config'),
+};
+
 function expectedOutput(effect) {
   if (effect.task === 'hello') {
     return `${effect.message}\n`;
@@ -236,7 +293,7 @@ function check(runner, source, expected, description) {
     const output = runner.execute(directory);
     if (output !== expected) {
       throw new Error(
-        `${description} expected ${JSON.stringify(expected)}, received ${JSON.stringify(output)}`
+        `${description} expected ${expected.length} bytes but received ${output.length} bytes:\n${output}`
       );
     }
   } finally {
@@ -245,19 +302,44 @@ function check(runner, source, expected, description) {
 }
 
 const requireAll = process.argv.includes('--require-all');
-const requested = process.argv
-  .slice(2)
-  .filter((argument) => argument !== '--require-all');
+const args = process.argv.slice(2);
+const group = args
+  .find((argument) => argument.startsWith('--group='))
+  ?.slice(8);
+const requested = args.filter((argument) => !argument.startsWith('--'));
+const allRunners = { ...runners, ...extendedRunners };
+const groups = { baseline: runners, extended: extendedRunners };
+if (group && !Object.hasOwn(groups, group)) {
+  throw new Error(`Unknown native test group ${group}`);
+}
+const selected = group ? groups[group] : allRunners;
+for (const id of requested) {
+  if (!Object.hasOwn(selected, id)) {
+    throw new Error(`Unknown native test profile ${id}`);
+  }
+}
 const missing = [];
 let checked = 0;
-for (const { id, forms } of translator.listLanguages()) {
+const profiles = translator
+  .listLanguages()
+  .filter(({ kind }) => kind === 'programming' || kind === 'instruction');
+for (const id of Object.keys(allRunners)) {
+  if (!profiles.some((profile) => profile.id === id)) {
+    throw new Error(`Native test runner ${id} has no executable profile`);
+  }
+}
+for (const { id, forms } of profiles) {
+  if (!Object.hasOwn(allRunners, id)) {
+    throw new Error(`Executable profile ${id} has no native test runner`);
+  }
+  if (!Object.hasOwn(selected, id)) {
+    continue;
+  }
   if (requested.length && !requested.includes(id)) {
     continue;
   }
-  const runner = runners[id];
-  const unavailable = runner
-    ? runner.tools.filter((tool) => !tools(tool))
-    : ['unregistered test runner'];
+  const runner = selected[id];
+  const unavailable = runner.tools.filter((tool) => !tools(tool));
   if (unavailable.length) {
     missing.push(`${id} (${unavailable.join(', ')})`);
     continue;
@@ -276,12 +358,8 @@ for (const { id, forms } of translator.listLanguages()) {
   }
   console.log(`PASS ${id}`);
 }
-if (
-  !requested.length ||
-  requested.includes('c') ||
-  requested.includes('csharp')
-) {
-  const source = readFileSync(new URL('hello.c', import.meta.url), 'utf8');
+if (group !== 'extended') {
+  const source = fixture('hello.c');
   for (const id of ['c', 'csharp'].filter(
     (id) => !requested.length || requested.includes(id)
   )) {

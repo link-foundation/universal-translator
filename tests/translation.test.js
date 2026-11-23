@@ -1,24 +1,21 @@
-import { readFileSync } from 'node:fs';
-import { URL } from 'node:url';
-
 import { describe, expect, it } from 'test-anywhere';
 
+import {
+  exampleEffects,
+  fixture,
+  referentInput,
+} from '../examples/translation/fixtures.mjs';
 import { runCli } from '../bin/universal-translator.js';
 import {
   createTranslator,
   languageProfiles,
   rankInterpretations,
+  readEffects,
   translate,
+  writeEffect,
 } from '../src/index.js';
 
-function fixture(name) {
-  return readFileSync(
-    new URL(`../examples/translation/${name}`, import.meta.url),
-    'utf8'
-  );
-}
-
-const effects = JSON.parse(fixture('effects.json'));
+const effects = exampleEffects();
 const hello = effects[0];
 const translator = createTranslator();
 const cSource = fixture('hello.c').replaceAll('\r\n', '\n');
@@ -78,14 +75,59 @@ describe('translation through meta-language', () => {
     expect(translate(alternate, 'javascript', 'javascript')).toBe(alternate);
   });
 
-  it('round-trips every authored form and verifies every supported directed pair', () => {
+  it('lists the complete authored roster by kind', () => {
     const languages = translator.listLanguages();
-    expect(languages.length).toBe(33);
-    for (const effect of effects) {
+    expect(new Set(languages.map(({ id }) => id)).size).toBe(76);
+    expect(languages.filter(({ kind }) => kind === 'programming').length).toBe(
+      50
+    );
+    expect(
+      languages.filter(({ kind }) => kind === 'natural-language').length
+    ).toBe(20);
+    expect(languages.filter(({ kind }) => kind === 'instruction').length).toBe(
+      5
+    );
+    expect(
+      languages.filter(({ kind }) => kind === 'meta-language').length
+    ).toBe(1);
+  });
+
+  it('uses Links Notation as an explicit intermediate and preserves whole-line comments', () => {
+    const intermediate = translator.translate(cSource, 'c', 'meta', {
+      mode: 'literal',
+    });
+    expect(intermediate).toContain(`${writeEffect(hello)}\n`);
+    expect(readEffects(intermediate)).toEqual([hello]);
+    const span = translator.parse(intermediate, 'meta').interpretation.comments;
+    expect(span.map(({ placement }) => placement)).toEqual(['leading', 'body']);
+    expect(translator.translate(intermediate, 'meta', 'ja')).toContain(
+      'Hello, World!'
+    );
+    expect(
+      translator.translate(intermediate, 'meta', 'csharp', { mode: 'literal' })
+    ).toContain('// Print a line by function call.');
+    expect(readEffects(writeEffect({ task: 'hello', message: '' }))).toEqual([
+      { task: 'hello', message: '' },
+    ]);
+    expect(() => readEffects('(hello: (message: Hi) (extra: 1))')).toThrow(
+      'Invalid hello'
+    );
+    expect(() => readEffects('(fizz-buzz: (limit: 010))')).toThrow(
+      'decimal integer'
+    );
+    expect(
+      translator.parse(`${intermediate}${writeEffect(hello)}`, 'meta')
+        .interpretation
+    ).toBe(undefined);
+  });
+
+  for (const effect of effects) {
+    it(`round-trips every ${effect.task} form and all directed pairs`, () => {
+      const languages = translator.listLanguages();
       const admitted = languages.filter(({ forms }) =>
         forms.some(({ task }) => task === effect.task)
       );
-      expect(admitted.length).toBe(effect.task === 'hello' ? 33 : 28);
+      expect(admitted.length).toBe(effect.task === 'hello' ? 76 : 71);
       for (const sourceLanguage of admitted) {
         for (const form of sourceLanguage.forms.filter(
           ({ task }) => task === effect.task
@@ -109,8 +151,8 @@ describe('translation through meta-language', () => {
           }
         }
       }
-    }
-  }, 15000);
+    }, 15000);
+  }
 });
 
 describe('translation rules and adapters', () => {
@@ -252,7 +294,7 @@ describe('translation diagnostics', () => {
 });
 
 describe('dependent referents', () => {
-  const { source, candidates } = JSON.parse(fixture('referents.json'));
+  const { source, candidates } = referentInput();
 
   it('prefers round-trip evidence and retains unresolved readings', () => {
     const ranked = rankInterpretations(source, candidates);

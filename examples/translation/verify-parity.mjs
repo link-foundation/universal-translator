@@ -1,13 +1,12 @@
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { URL } from 'node:url';
 
 import { createTranslator } from '../../src/index.js';
 
+import { exampleEffects, fixture } from './fixtures.mjs';
+
 const binary = resolve(process.argv[2] ?? 'target/debug/universal-translator');
-const fixture = (name) => readFileSync(new URL(name, import.meta.url), 'utf8');
-const effects = JSON.parse(fixture('effects.json'));
+const effects = exampleEffects();
 const translator = createTranslator();
 const rust = (args, input) =>
   execFileSync(binary, args, { encoding: 'utf8', input });
@@ -36,6 +35,18 @@ for (const mode of ['context-dependent', 'literal', 'same-effect']) {
   const args = ['translate', 'c', 'csharp', '--mode', mode];
   if (rust(args, c) !== translator.translate(c, 'c', 'csharp', { mode })) {
     throw new Error(`JavaScript/Rust mode diverged for ${mode}`);
+  }
+  const meta = rust(['translate', 'c', 'meta', '--mode', mode], c);
+  if (meta !== translator.translate(c, 'c', 'meta', { mode })) {
+    throw new Error(`JavaScript/Rust Links Notation differs in ${mode} mode`);
+  }
+  if (
+    rust(['translate', 'meta', 'ja', '--mode', mode], meta) !==
+    translator.translate(meta, 'meta', 'ja', { mode })
+  ) {
+    throw new Error(
+      `JavaScript/Rust translation from Links Notation differs in ${mode} mode`
+    );
   }
 }
 console.log(

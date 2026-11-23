@@ -1,4 +1,5 @@
 import { sourceNetwork, targetNetwork } from './network.js';
+import { metaAdapter } from './effect-links.js';
 import {
   dependencies,
   languageProfiles,
@@ -35,7 +36,12 @@ export function createTranslator({
       profile.id,
       {
         profile,
-        adapter: decorateAdapter(profile.id, profileAdapter(profile)),
+        adapter: decorateAdapter(
+          profile.id,
+          profile.kind === 'meta-language'
+            ? metaAdapter
+            : profileAdapter(profile)
+        ),
       },
     ])
   );
@@ -165,9 +171,10 @@ export function createTranslator({
     translate: (source, from, to, options) =>
       translateDetailed(source, from, to, options).code,
     listLanguages: () =>
-      profiles.map(({ id, label, forms }) => ({
+      profiles.map(({ id, label, kind = 'programming', forms }) => ({
         id,
         label,
+        kind,
         forms: forms.map(({ task, name }) => ({ task, name })),
       })),
   };
