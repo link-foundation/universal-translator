@@ -101,6 +101,7 @@ rosetta-code:
     (program: Rust/fizzbuzz-1.rs rust rosetta 100 fizz-buzz-lowercase)
     (program: Rust/fizzbuzz-2.rs rust rosetta 100 fizz-buzz-quoted)
     (program: Rust/fizzbuzz-3.rs rust rosetta 100 fizz-buzz-lowercase-blank-line)
+    (program: Rust/fizzbuzz-4.rs rust rosetta-legacy 100)
 
 tiobe:
   month: 2026-11

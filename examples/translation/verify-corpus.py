@@ -6,10 +6,13 @@ from contextlib import suppress
 from hashlib import file_digest
 from html.parser import HTMLParser
 from itertools import chain
+from os import environ
 from pathlib import Path
+from platform import machine, system
 from struct import pack
-from subprocess import PIPE, Popen
+from subprocess import PIPE, Popen, check_output
 from tarfile import open as open_tar
+from tempfile import TemporaryDirectory
 
 
 REVISION = "1d475861d7141ef2fafff293d9339f56e4b0f5db"
@@ -99,6 +102,23 @@ def source_records(archive):
 
 
 def verify(archive, rust_binary, hello_world=None, require_full_native=False):
+    env = environ.copy()
+    needs_legacy_rust = (
+        archive is not None
+        and not env.get("ROSETTA_LEGACY_RUSTC")
+        and (system(), machine()) == ("Linux", "x86_64")
+    )
+    if not needs_legacy_rust:
+        return verify_stream(archive, rust_binary, hello_world, require_full_native, env)
+    with TemporaryDirectory(prefix="translator-legacy-rust-") as workspace:
+        env["ROSETTA_LEGACY_RUSTC"] = check_output(
+            ["bash", "examples/translation/prepare-legacy-rust.sh", workspace],
+            cwd=ROOT, text=True,
+        ).strip()
+        return verify_stream(archive, rust_binary, hello_world, require_full_native, env)
+
+
+def verify_stream(archive, rust_binary, hello_world, require_full_native, env):
     javascript = ["node", "examples/translation/verify-source-corpus.mjs", rust_binary]
     if archive is None:
         javascript.append("--hello-world-only")
@@ -114,7 +134,7 @@ def verify(archive, rust_binary, hello_world=None, require_full_native=False):
     workers = []
     try:
         for command in commands:
-            workers.append(Popen(command, cwd=ROOT, stdin=PIPE))
+            workers.append(Popen(command, cwd=ROOT, stdin=PIPE, env=env))
         for path, source in chain(hello_world_records(hello_world), source_records(archive)):
             frame = pack("<II", len(path), len(source)) + path + source
             for worker in workers:

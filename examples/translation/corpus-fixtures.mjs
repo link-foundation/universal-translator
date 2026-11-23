@@ -8,7 +8,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { URL } from 'node:url';
 import {
   linkFields,
@@ -22,6 +22,8 @@ import {
   nativeArguments,
   nativeProgram,
 } from './fixtures.mjs';
+
+const legacyRust = 'rustc-1.5.0-nightly';
 
 export function readCorpusCoverage() {
   const snapshot = new URL(
@@ -103,6 +105,18 @@ function executePinnedPrograms(programs, effect, path) {
           }
           command = 'cargo';
           args = ['run', '--locked', '--quiet'];
+        } else if (requires.includes(legacyRust)) {
+          const compiler = resolve(process.env.ROSETTA_LEGACY_RUSTC);
+          execFileSync(compiler, ['fixture.rs', '-o', 'fixture'], {
+            ...options,
+            env: {
+              ...process.env,
+              LD_LIBRARY_PATH: resolve(compiler, '../../lib'),
+              RUST_LOG: 'error',
+            },
+          });
+          command = './fixture';
+          args = [];
         } else {
           execFileSync(
             'rustc',
@@ -187,6 +201,15 @@ export function verifyProgram(
         path
       );
       if (native && exactForm) {
+        if (
+          document.interpretation.requires.includes(legacyRust) &&
+          !process.env.ROSETTA_LEGACY_RUSTC
+        ) {
+          console.log(
+            `Native verification pending for ${path}: provide ROSETTA_LEGACY_RUSTC with the pinned x86-64 Linux compiler.`
+          );
+          return false;
+        }
         executePinnedPrograms(
           [
             [

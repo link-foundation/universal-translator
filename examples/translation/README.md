@@ -162,7 +162,13 @@ For callable GCD they invoke each function with signed integer inputs and
 compare the returned values. The imported Rust GCD uses the pinned `num`
 dependency in a dedicated fixture with a Cargo lockfile. For FizzBuzz they
 preserve lowercase labels, quotes around each result, and the final blank line
-where the original uses one.
+where the original uses one. The verifier also compares the legacy Rust
+FizzBuzz listing's exact 413 output bytes with the translated JavaScript
+and the task oracle. On x86-64 Linux the archive driver downloads a
+checksum-pinned Rust nightly from 2015-10-15 into a temporary directory.
+Set `ROSETTA_LEGACY_RUSTC` to the extracted `rustc` executable to reuse it.
+The native count on other platforms excludes this listing when that compiler
+is unavailable.
 For Empty Program they verify exit status 0 and both output streams.
 
 ```sh
@@ -206,7 +212,7 @@ node examples/translation/report-coverage.mjs \
 
 To check the Rosetta Code task directories and the sample counts for the
 five modeled tasks, also pass a directory containing the pinned Git Trees
-responses. This mode downloads thirteen pinned Hello World Text files, ten
+responses. This mode downloads thirteen pinned Hello World Text files, eleven
 FizzBuzz files, five GCD files, one Empty Program, and seven Ackermann
 sources from GitHub. It checks their blob hashes, exact round trips, and
 effects in both runtimes. The Ackermann checks cover callable inputs,
