@@ -180,6 +180,18 @@ profile:
         (line: '   Put_Line ("{{message}}");')
         (line: 'end Main;')
     form:
+      task: hello
+      name: collection
+      requires: Text_IO
+      output: Text_IO.Put_Line
+      source:
+        (line: 'with Text_IO;')
+        (line: 'procedure Hello_World is')
+        (line: ~1{})
+        (line: begin)
+        (line: '  Text_IO.Put_Line("{{message}}");')
+        (line: 'end Hello_World;')
+    form:
       task: greatest-common-divisor
       name: standard
       requires: Ada.Text_IO
@@ -289,6 +301,18 @@ profile:
         (line: '    writeln("{{message}}");')
         (line: })
     form:
+      task: hello
+      name: collection
+      requires: std.stdio
+      output: writefln
+      source:
+        (line: 'import std.stdio;')
+        (line: ~1{})
+        (line: 'void main()')
+        (line: {)
+        (line: '   writefln("{{message}}");')
+        (line: })
+    form:
       task: greatest-common-divisor
       name: standard
       requires: std.stdio
@@ -375,6 +399,12 @@ profile:
       requires: Prelude
       source:
         (line: 'main :: IO ()')
+        (line: 'main = putStrLn "{{message}}"')
+    form:
+      task: hello
+      name: collection
+      requires: Prelude
+      source:
         (line: 'main = putStrLn "{{message}}"')
     form:
       task: greatest-common-divisor
@@ -493,6 +523,15 @@ profile:
       requires: clojure.core
       source:
         (line: '(println "{{message}}")')
+    form:
+      task: hello
+      name: collection
+      requires: clojure.core
+      source:
+        (line: '(defn hello []')
+        (line: '  (println "{{message}}"))')
+        (line: ~1{})
+        (line: '(hello)')
     form:
       task: greatest-common-divisor
       name: standard

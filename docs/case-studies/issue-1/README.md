@@ -53,11 +53,11 @@ The implementation has one or more authored forms for those tasks, with
 bounded, testable contracts. It covers three task definitions, leaving
 1,750 task definitions and source variants outside that catalog. The Hello
 World Collection homepage reports 603 programs and greetings in 78 human
-languages. The coverage report can check 13 original console snippets
+languages. The coverage report can check 24 original console snippets
 against the pinned page. It extracts their program text, verifies exact
 round trips and checks that the output effect preserves each original
-greeting, including punctuation. The native runner also executes the six
-new matching forms. Other source entries, including platform-specific
+greeting, including punctuation. The native runner also executes the matching
+collection forms for each available toolchain. Other source entries, including platform-specific
 forms and localized greetings, still need recognition and verification.
 [Pinned Rosetta Code inventory](https://github.com/acmeism/RosettaCodeData/blob/1d475861d7141ef2fafff293d9339f56e4b0f5db/popular-tasks) ·
 [Hello World Collection](http://helloworldcollection.de/)
@@ -142,7 +142,7 @@ relationship to the system inspectable. [Associative technology stack](https://g
 
 ## Validation
 
-Each implementation checks 233 authored forms and 17,132 directed
+Each implementation checks 242 authored forms and 17,816 directed
 translations with shared task parameters. The parity runner checks every
 form and all three modes across both command lines. It checks the explicit
 Links Notation intermediate in both directions. Two Ubuntu native jobs

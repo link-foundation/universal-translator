@@ -139,6 +139,12 @@ profile:
       source:
         (line: "println '{{message}}'")
     form:
+      task: hello
+      name: collection
+      requires: 'Groovy standard library'
+      source:
+        (line: 'println "{{message}}"')
+    form:
       task: greatest-common-divisor
       name: standard
       requires: 'Groovy standard library'

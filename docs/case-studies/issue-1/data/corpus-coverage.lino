@@ -6,19 +6,30 @@ hello-world-collection:
   programs: 603
   human-languages: 78
   verified-console-programs:
+    (program: Ada ada collection 'Hello World!')
+    (program: AWK awk collection 'Hello World!')
+    (program: 'C&#9839;' csharp standard 'Hello, World!')
     (program: 'C&nbsp;(ANSI)' c collection 'Hello World!')
     (program: 'C++&nbsp;(ISO)' cpp collection 'Hello World!')
-    (program: 'C&#9839;' csharp standard 'Hello, World!')
+    (program: Clojure clojure collection 'Hello world!')
+    (program: D d collection 'Hello World!')
+    (program: Dart dart collection 'Hello world!')
     (program: Go go collection 'Hello World')
+    (program: Groovy groovy collection 'Hello World')
+    (program: Haskell haskell collection 'Hello World')
     (program: Java java collection 'Hello World!')
     (program: JavaScript javascript standard 'Hello World')
     (program: Julia julia standard 'Hello, World!')
+    (program: Kotlin kotlin collection 'Hello, world!')
+    (program: Nim nim standard 'Hello World')
     (program: OCaml ocaml collection 'Hello World!')
     (program: Perl perl collection 'Hello World!')
     (program: 'Python&nbsp;3' python standard 'Hello World')
     (program: R r standard 'Hello world')
     (program: Ruby ruby standard 'Hello World!')
     (program: Rust rust standard 'Hello World!')
+    (program: Scala scala collection 'Hello world!')
+    (program: Scheme scheme standard 'Hello, world!')
 
 rosetta-code:
   revision: 1d475861d7141ef2fafff293d9339f56e4b0f5db

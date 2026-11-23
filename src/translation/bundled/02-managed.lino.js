@@ -213,6 +213,13 @@ profile:
         (line: '    println("{{message}}")')
         (line: })
     form:
+      task: hello
+      name: collection
+      source:
+        (line: 'fun main(args : Array<String>) {')
+        (line: '    println("{{message}}")')
+        (line: })
+    form:
       task: greatest-common-divisor
       name: standard
       source:
@@ -345,6 +352,14 @@ profile:
         (line: '    }')
         (line: })
     form:
+      task: hello
+      name: collection
+      requires: HelloWorld scala.App
+      source:
+        (line: 'object HelloWorld extends App {')
+        (line: '  println("{{message}}")')
+        (line: })
+    form:
       task: greatest-common-divisor
       name: standard
       source:
@@ -388,6 +403,13 @@ profile:
       source:
         (line: 'void main() {')
         (line: '    print("{{message}}");')
+        (line: })
+    form:
+      task: hello
+      name: collection
+      source:
+        (line: 'main() {')
+        (line: "   print('{{message}}');")
         (line: })
     form:
       task: greatest-common-divisor

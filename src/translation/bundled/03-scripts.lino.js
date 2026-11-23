@@ -359,6 +359,13 @@ profile:
         (line: '    print "{{message}}"')
         (line: })
     form:
+      task: hello
+      name: collection
+      source:
+        (line: 'BEGIN {')
+        (line: '  print "{{message}}"')
+        (line: })
+    form:
       task: greatest-common-divisor
       name: standard
       source:

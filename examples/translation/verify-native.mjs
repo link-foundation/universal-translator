@@ -151,9 +151,10 @@ const runners = {
   scala: {
     filename: 'Main.scala',
     tools: ['scalac', 'scala'],
-    execute(directory) {
+    execute(directory, form) {
       run(directory, 'scalac', 'Main.scala');
-      return run(directory, 'scala', '-classpath', '.', 'Main');
+      const entryPoint = form === 'collection' ? 'HelloWorld' : 'Main';
+      return run(directory, 'scala', '-classpath', '.', entryPoint);
     },
   },
   'objective-c': {
@@ -296,12 +297,12 @@ function expectedOutput(effect) {
   }).join('');
 }
 
-function check(runner, source, expected, description) {
+function check(runner, source, expected, description, form = 'standard') {
   const directory = mkdtempSync(join(tmpdir(), 'translator-native-'));
   try {
     writeFileSync(join(directory, runner.filename), source);
     writeFileSync(join(directory, 'fixture'), source);
-    const output = runner.execute(directory);
+    const output = runner.execute(directory, form);
     if (output !== expected) {
       throw new Error(
         `${description} expected ${expected.length} bytes but received ${output.length} bytes:\n${output}`
@@ -380,7 +381,8 @@ for (const { id, forms } of profiles) {
         runner,
         collection,
         expectedOutput(effect),
-        `${id} collection greeting`
+        `${id} collection greeting`,
+        'collection'
       );
       checked += 1;
     }
