@@ -30,6 +30,7 @@ const limit = (value) => Number.isInteger(value) && value >= 1 && value <= 1000;
 const taskFields = {
   hello: { message },
   'write-text': { message },
+  'empty-program': { status: (value) => value === 0 },
   'gcd-function': { max: (value) => value === 2147483647 },
   'greatest-common-divisor': {
     left: (value) =>
@@ -315,7 +316,7 @@ export function profileAdapter(profile) {
       const indentation = lines[position]?.match(/^\s*/)[0] ?? '';
       lines.splice(position, 0, ...body.map((line) => indentation + line));
       lines.splice(profile.header ?? 0, 0, ...leading);
-      return `${lines.join('\n')}\n`;
+      return lines.length ? `${lines.join('\n')}\n` : '';
     },
   };
 }

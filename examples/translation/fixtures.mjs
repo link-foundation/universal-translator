@@ -44,6 +44,8 @@ export function nativeProgram(source, language, effect, entry = 'gcd') {
 
 export function expectedOutput(effect) {
   switch (effect.task) {
+    case 'empty-program':
+      return '';
     case 'hello':
       return `${effect.message}\n`;
     case 'write-text':

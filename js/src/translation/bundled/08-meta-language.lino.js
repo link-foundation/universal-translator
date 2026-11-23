@@ -8,6 +8,9 @@ export default `profile:
   output: effect
   forms:
     form:
+      task: empty-program
+      name: standard
+    form:
       task: hello
       name: standard
     form:

@@ -48,13 +48,20 @@ pub struct Form {
     pub output: Option<String>,
 }
 
+fn list_elements(links: &[Link]) -> &[Link] {
+    match links {
+        [Link::Link { id: None, values }] if values.is_empty() => &[],
+        _ => links,
+    }
+}
+
 impl Form {
     fn from_link(link: &Link, kind: &str) -> Result<Self, String> {
         let fields = links::fields(links::children(link, "form")?)?;
         let source = if kind == "meta-language" {
             Vec::new()
         } else {
-            links::elements(&fields, "source")?
+            list_elements(links::elements(&fields, "source")?)
                 .iter()
                 .map(|line| links::reference(links::children(line, "line")?))
                 .collect::<Result<_, _>>()?
@@ -75,7 +82,7 @@ impl Form {
             fixed,
             requires: fields
                 .get("requires")
-                .map(|values| links::references(values))
+                .map(|values| links::references(list_elements(values)))
                 .transpose()?,
             output: fields
                 .get("output")
@@ -485,6 +492,10 @@ impl Adapter for ProfileAdapter {
             body.iter().map(|line| format!("{indent}{line}")),
         );
         lines.splice(profile.header..profile.header, leading);
-        Ok(lines.join("\n") + "\n")
+        if lines.is_empty() {
+            Ok(String::new())
+        } else {
+            Ok(lines.join("\n") + "\n")
+        }
     }
 }

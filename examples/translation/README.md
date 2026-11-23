@@ -102,6 +102,7 @@ node bin/universal-translator.js translate meta javascript "$workspace/return.li
 | Hello World             | A greeting of up to 96 UTF-8 bytes using letters, marks, numbers, spaces, and selected punctuation | The original text and a newline                                               |
 | Greatest Common Divisor | Two nonnegative signed 32-bit integers                                                             | Their greatest common divisor as a line of decimal text, with `gcd(0, 0) = 0` |
 | FizzBuzz                | A limit from 1 to 1,000                                                                            | The sequence defined by divisibility by 3 and 5, one item per line            |
+| Empty Program           | No input                                                                                           | Empty output streams and exit status 0                                        |
 
 All 20 plain-language profiles and the C, C++, C#, Go, Java, JavaScript,
 Python, and Rust profiles can represent the 78 greetings preserved from the
@@ -138,6 +139,7 @@ compare the returned values. The imported Rust GCD uses the pinned `num`
 dependency in a dedicated fixture with a Cargo lockfile. For FizzBuzz they
 preserve lowercase labels, quotes around each result, and the final blank line
 where the original uses one.
+For Empty Program they verify exit status 0 and both output streams.
 
 ```sh
 archive=$(mktemp)
@@ -179,9 +181,9 @@ node examples/translation/report-coverage.mjs \
 ```
 
 To check the Rosetta Code task directories and the sample counts for the
-three implemented tasks, also pass a directory containing the pinned Git
+four supported tasks, also pass a directory containing the pinned Git
 Trees responses. This mode downloads thirteen pinned Hello World Text files,
-ten pinned FizzBuzz files, and five pinned GCD files from GitHub. It checks
+ten FizzBuzz files, five GCD files, and one Empty Program from GitHub. It checks
 their blob hashes, exact round trips, and effects in both runtimes.
 
 ```sh
@@ -195,6 +197,8 @@ gh api "$rosetta_api/751622a645e6f7c20c15145b45eed8d57b9811db?recursive=1" \
   > "$rosetta_trees/Greatest-common-divisor.json"
 gh api "$rosetta_api/f0d6e89cef62f34a13bb64cd149459c97b9d9c7d?recursive=1" \
   > "$rosetta_trees/FizzBuzz.json"
+gh api "$rosetta_api/301be355b23d72e65bdea09ec463057b370502c8?recursive=1" \
+  > "$rosetta_trees/Empty-program.json"
 node examples/translation/report-coverage.mjs \
   /path/to/popular-tasks /path/to/hello-world-collection.html \
   ./target/debug/universal-translator "$rosetta_trees"

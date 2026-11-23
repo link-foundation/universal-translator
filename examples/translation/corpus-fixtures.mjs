@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import {
   mkdirSync,
   mkdtempSync,
@@ -32,6 +32,9 @@ export function readCorpusCoverage() {
 
 function decodeEffect(task, parameters) {
   switch (task) {
+    case 'empty-program':
+      assert.deepEqual(parameters, ['0']);
+      return { task, status: 0 };
     case 'hello':
       assert.ok(parameters.length === 1 || parameters[1] === 'write-text');
       return { task: parameters[1] ?? task, message: parameters[0] };
@@ -51,6 +54,10 @@ function decodeEffect(task, parameters) {
   }
 }
 
+export function rosettaTasks(rosetta, key = 'authored-tasks') {
+  return namedLinks(rosetta.get(key), 'task').map(references);
+}
+
 export function rosettaPrograms(rosetta, task) {
   const programs = rosetta.get(`${task}-source-files`) ?? [];
   return namedLinks(programs, 'program').map((program) => {
@@ -65,38 +72,51 @@ export function rosettaPrograms(rosetta, task) {
   });
 }
 
-function executePinnedPrograms(programs, expected, path) {
+function executePinnedPrograms(programs, effect, path) {
   const workspace = mkdtempSync(join(tmpdir(), 'translator-rosetta-'));
   try {
     for (const [language, source, requires = []] of programs) {
       const cwd = join(workspace, language);
       mkdirSync(cwd);
       const options = { cwd, encoding: 'utf8', timeout: 45000 };
-      let output;
+      let command;
+      let args;
       if (language === 'javascript') {
         writeFileSync(join(cwd, 'fixture.cjs'), source);
-        output = execFileSync(process.execPath, ['fixture.cjs'], options);
+        command = process.execPath;
+        args = ['fixture.cjs'];
       } else {
         writeFileSync(join(cwd, 'fixture.rs'), source);
         if (requires.includes('num')) {
           for (const file of ['Cargo.toml', 'Cargo.lock']) {
             writeFileSync(join(cwd, file), readFixture(`rosetta-num/${file}`));
           }
-          output = execFileSync(
-            'cargo',
-            ['run', '--locked', '--quiet'],
-            options
-          );
+          command = 'cargo';
+          args = ['run', '--locked', '--quiet'];
         } else {
           execFileSync(
             'rustc',
             ['--edition=2021', 'fixture.rs', '-o', 'fixture'],
             options
           );
-          output = execFileSync('./fixture', [], options);
+          command = './fixture';
+          args = [];
         }
       }
-      assert.equal(output, expected, `${path} (${language} stdout)`);
+      const result = spawnSync(command, args, options);
+      if (result.error) {
+        throw result.error;
+      }
+      const label = `${path} (${language})`;
+      assert.equal(
+        result.status,
+        effect.status ?? 0,
+        `${label} ${result.signal ?? result.stderr}`
+      );
+      assert.equal(result.stdout, expectedOutput(effect), `${label} stdout`);
+      if (effect.task === 'empty-program') {
+        assert.equal(result.stderr, '', `${label} stderr`);
+      }
     }
   } finally {
     rmSync(workspace, { recursive: true, force: true });
@@ -160,7 +180,7 @@ export function verifyProgram(
             ],
             [target, nativeProgram(translated, target, effect)],
           ],
-          expectedOutput(effect),
+          effect,
           path
         );
         return true;

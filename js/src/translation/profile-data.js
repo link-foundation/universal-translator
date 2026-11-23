@@ -22,6 +22,13 @@ export function effectFields(values) {
   );
 }
 
+function listElements(values) {
+  const [first] = values;
+  return values.length === 1 && first.id === null && first.values.length === 0
+    ? []
+    : values;
+}
+
 function form(values, kind) {
   const fields = linkFields(values);
   return {
@@ -30,10 +37,10 @@ function form(values, kind) {
     source:
       kind === 'meta-language'
         ? []
-        : namedLinks(fields.get('source'), 'line').map(reference),
+        : namedLinks(listElements(fields.get('source')), 'line').map(reference),
     fixed: fields.has('fixed') ? effectFields(fields.get('fixed')) : undefined,
     requires: fields.has('requires')
-      ? references(fields.get('requires'))
+      ? references(listElements(fields.get('requires')))
       : undefined,
     output: fields.has('output') ? reference(fields.get('output')) : undefined,
   };

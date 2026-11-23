@@ -78,19 +78,21 @@ counts. Five tasks appear only in the source tree. Directly counting source
 files within language directories gives 143,457 source files across 883
 language directories. The CI archive check runs all of them through Links
 Notation source documents and compares restored bytes in both runtimes.
-The archive includes 750 Hello World Text samples,
-675 FizzBuzz samples, and 355 GCD samples. The implementation covers three
-task definitions with bounded contracts. The 1,755 other task definitions
+The archive includes 750 Hello World Text samples, 675 FizzBuzz samples,
+355 GCD samples, and 285 Empty Program samples. The first three tasks have
+forms across the programming catalog. Empty Program has JavaScript, Rust,
+Links Notation, and 20 plain-language forms. The other 1,754 task definitions
 still need adapters and verification. The report verifies thirteen original
-Rosetta Code Hello World Text programs, five original FizzBuzz programs, and
-four original GCD programs against their pinned Git blob hashes. It checks
-exact round trips and the expected effects. The selected JavaScript and Rust
+Hello World Text programs, ten FizzBuzz programs, five GCD programs, and one
+Empty Program against their pinned Git blob hashes. It checks exact round
+trips and the expected effects. The selected JavaScript and Rust
 originals also translate in both directions through the Meta Language effect.
 The archive check executes the original and translated programs and compares
-their stdout and the results of calling the GCD functions over signed and zero inputs.
-It reports native verification for four JavaScript examples out of 1,985
-and four Rust examples out of 1,481. The remaining source
-variants still need effect verification.
+their stdout and the results of calling the GCD functions over signed and
+zero inputs. It checks the exit status and both output streams for Empty
+Program. It reports native verification for six JavaScript examples out of
+1,985 and nine Rust examples out of 1,481. The remaining source variants
+still need effect verification.
 The Hello World Collection homepage reports 603 programs and greetings in
 78 human languages. Both implementations round-trip its 591 text listings
 through Links Notation. Twelve programs are published as images.
@@ -118,7 +120,7 @@ Collection page, in that order, to verify their checksums and reported counts
 and check the selected original programs. Pass the compiled Rust CLI as the
 third argument to compare exact round trips and Meta Language output in both
 runtimes. A fourth argument accepts the pinned Git Trees responses to verify
-the source counts and 28 original Rosetta Code programs.
+the source counts and 29 original Rosetta Code programs.
 [Reproduction commands](../../../examples/translation/README.md#verification)
 
 The portable program translator in Meta Language 1.0.0 reported semantic

@@ -8,6 +8,13 @@ export default `profile:
   output: Write
   forms:
     form:
+      task: empty-program
+      name: standard
+      fixed:
+        status: 0
+      source:
+        (line: 'Exit with status 0 without writing to standard output or standard error.')
+    form:
       task: hello
       name: standard
       source:
@@ -69,6 +76,13 @@ profile:
   call: instruction
   output: 输出
   forms:
+    form:
+      task: empty-program
+      name: standard
+      fixed:
+        status: 0
+      source:
+        (line: '以状态码 0 退出，标准输出和标准错误均保持为空。')
     form:
       task: hello
       name: standard
@@ -132,6 +146,13 @@ profile:
   output: लिखें
   forms:
     form:
+      task: empty-program
+      name: standard
+      fixed:
+        status: 0
+      source:
+        (line: 'मानक आउटपुट और मानक त्रुटि में कुछ लिखे बिना स्थिति कोड 0 के साथ समाप्त करें।')
+    form:
       task: hello
       name: standard
       source:
@@ -193,6 +214,13 @@ profile:
   call: instruction
   output: Escribe
   forms:
+    form:
+      task: empty-program
+      name: standard
+      fixed:
+        status: 0
+      source:
+        (line: 'Termine con código 0 sin escribir en la salida estándar ni en la salida de error estándar.')
     form:
       task: hello
       name: standard
@@ -256,6 +284,13 @@ profile:
   output: Écris
   forms:
     form:
+      task: empty-program
+      name: standard
+      fixed:
+        status: 0
+      source:
+        (line: 'Terminez avec le code 0 en laissant la sortie standard et la sortie d’erreur standard vides.')
+    form:
       task: hello
       name: standard
       source:
@@ -317,6 +352,13 @@ profile:
   call: instruction
   output: اكتب
   forms:
+    form:
+      task: empty-program
+      name: standard
+      fixed:
+        status: 0
+      source:
+        (line: 'أنه البرنامج بالحالة 0 من دون الكتابة إلى المخرجات القياسية أو مخرجات الخطأ القياسية.')
     form:
       task: hello
       name: standard
@@ -380,6 +422,13 @@ profile:
   output: লিখুন
   forms:
     form:
+      task: empty-program
+      name: standard
+      fixed:
+        status: 0
+      source:
+        (line: 'মানক আউটপুট বা মানক ত্রুটি প্রবাহে কিছু না লিখে স্ট্যাটাস কোড 0 দিয়ে প্রস্থান করুন।')
+    form:
       task: hello
       name: standard
       source:
@@ -441,6 +490,13 @@ profile:
   call: instruction
   output: Escreva
   forms:
+    form:
+      task: empty-program
+      name: standard
+      fixed:
+        status: 0
+      source:
+        (line: 'Termine com o código 0 sem escrever na saída padrão nem na saída de erro padrão.')
     form:
       task: hello
       name: standard
@@ -504,6 +560,13 @@ profile:
   output: Выведите
   forms:
     form:
+      task: empty-program
+      name: standard
+      fixed:
+        status: 0
+      source:
+        (line: 'Завершите программу с кодом 0, оставив стандартный вывод и стандартный поток ошибок пустыми.')
+    form:
       task: hello
       name: standard
       source:
@@ -565,6 +628,13 @@ profile:
   call: instruction
   output: لکھیں
   forms:
+    form:
+      task: empty-program
+      name: standard
+      fixed:
+        status: 0
+      source:
+        (line: 'معیاری آؤٹ پٹ اور معیاری خرابی کے دھارے میں کچھ لکھے بغیر کوڈ 0 کے ساتھ پروگرام ختم کریں۔')
     form:
       task: hello
       name: standard
@@ -628,6 +698,13 @@ profile:
   output: Tulis
   forms:
     form:
+      task: empty-program
+      name: standard
+      fixed:
+        status: 0
+      source:
+        (line: 'Akhiri program dengan kode 0 tanpa menulis ke keluaran standar atau keluaran galat standar.')
+    form:
       task: hello
       name: standard
       source:
@@ -689,6 +766,13 @@ profile:
   call: instruction
   output: Schreibe
   forms:
+    form:
+      task: empty-program
+      name: standard
+      fixed:
+        status: 0
+      source:
+        (line: 'Beenden Sie das Programm mit Status 0 und lassen Sie Standardausgabe und Standardfehlerausgabe leer.')
     form:
       task: hello
       name: standard
@@ -752,6 +836,13 @@ profile:
   output: 出力
   forms:
     form:
+      task: empty-program
+      name: standard
+      fixed:
+        status: 0
+      source:
+        (line: '標準出力と標準エラー出力に何も書き込まず、終了コード 0 で終了する。')
+    form:
       task: hello
       name: standard
       source:
@@ -813,6 +904,13 @@ profile:
   call: instruction
   output: Andika
   forms:
+    form:
+      task: empty-program
+      name: standard
+      fixed:
+        status: 0
+      source:
+        (line: 'Maliza programu kwa msimbo wa hali 0 bila kuandika kwenye pato la kawaida au mkondo wa hitilafu wa kawaida.')
     form:
       task: hello
       name: standard
@@ -876,6 +974,13 @@ profile:
   output: लिहा
   forms:
     form:
+      task: empty-program
+      name: standard
+      fixed:
+        status: 0
+      source:
+        (line: 'प्रमाणित आउटपुट आणि प्रमाणित त्रुटी प्रवाहात काहीही न लिहिता स्थिती कोड 0 ने कार्यक्रम संपवा.')
+    form:
       task: hello
       name: standard
       source:
@@ -937,6 +1042,13 @@ profile:
   call: instruction
   output: రాయండి
   forms:
+    form:
+      task: empty-program
+      name: standard
+      fixed:
+        status: 0
+      source:
+        (line: 'ప్రామాణిక అవుట్‌పుట్ మరియు ప్రామాణిక లోప ప్రవాహానికి ఏమీ రాయకుండా స్థితి కోడ్ 0 తో ముగించండి.')
     form:
       task: hello
       name: standard
@@ -1000,6 +1112,13 @@ profile:
   output: Yaz
   forms:
     form:
+      task: empty-program
+      name: standard
+      fixed:
+        status: 0
+      source:
+        (line: 'Standart çıktı ve standart hata akışlarına yazmadan 0 durum koduyla çıkın.')
+    form:
       task: hello
       name: standard
       source:
@@ -1061,6 +1180,13 @@ profile:
   call: instruction
   output: எழுதவும்
   forms:
+    form:
+      task: empty-program
+      name: standard
+      fixed:
+        status: 0
+      source:
+        (line: 'நிலையான வெளியீடு மற்றும் நிலையான பிழை ஓட்டங்களில் எதுவும் எழுதாமல் நிலைக் குறியீடு 0 உடன் வெளியேறவும்.')
     form:
       task: hello
       name: standard
@@ -1124,6 +1250,13 @@ profile:
   output: Ghi
   forms:
     form:
+      task: empty-program
+      name: standard
+      fixed:
+        status: 0
+      source:
+        (line: 'Kết thúc với mã trạng thái 0 và để trống luồng đầu ra chuẩn cũng như luồng lỗi chuẩn.')
+    form:
       task: hello
       name: standard
       source:
@@ -1185,6 +1318,13 @@ profile:
   call: instruction
   output: 쓴다
   forms:
+    form:
+      task: empty-program
+      name: standard
+      fixed:
+        status: 0
+      source:
+        (line: '표준 출력과 표준 오류에 아무것도 쓰지 않고 상태 코드 0으로 종료한다.')
     form:
       task: hello
       name: standard

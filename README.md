@@ -4,8 +4,8 @@ Translate small programs through a shared Meta Language with JavaScript or
 Rust. The catalog expresses Hello World, Greatest Common Divisor, and
 FizzBuzz in 50 programming languages and in precise plain language across
 20 human languages. Five textual instruction profiles support the Hello
-World fixture, and NASM x86-64 also implements GCD and FizzBuzz. The catalog
-covers three authored tasks from the source collections.
+World fixture, and NASM x86-64 also implements GCD and FizzBuzz. JavaScript,
+Rust, and the 20 plain-language profiles also support Empty Program.
 
 ## Translate a program
 
@@ -38,13 +38,14 @@ and line endings. Cross-language translation requires a recognized program
 form or an authored natural-language description. A `meta` document expresses
 one task and its inputs in Links Notation. Both implementations read, transform,
 and emit that same intermediate form. The supported effects describe
-return values or exact standard output, including newline and quoting behavior.
+return values, successful empty programs, or exact standard output, including
+newline and quoting behavior.
 
 Use `encode-source <language>` and `decode-source` to exchange a lossless
 Links Notation source document between the two CLIs. Both implementations
 verify this round trip for all 143,457 source files across the 1,758 tasks and
-883 language directories in the pinned Rosetta Code archive. The three
-authored task contracts define the current scope for executable translations.
+883 language directories in the pinned Rosetta Code archive. The task
+contracts define the current scope for executable translations.
 
 See the [runnable examples](examples/translation/README.md) and the
 [issue 1 case study](docs/case-studies/issue-1/README.md).

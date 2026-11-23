@@ -15,10 +15,11 @@ import { exampleEffects, fixture, localizedGreetings } from './fixtures.mjs';
 const binary = resolve(process.argv[2] ?? 'target/debug/universal-translator');
 const effects = exampleEffects();
 const translator = createTranslator();
+const languages = translator.listLanguages();
 const rust = (args, input) =>
   execFileSync(binary, args, { encoding: 'utf8', input });
 let checked = 0;
-for (const { id, forms } of translator.listLanguages()) {
+for (const { id, forms } of languages) {
   for (const { task, name } of forms) {
     const effect = effects.find(({ task: candidate }) => candidate === task);
     const input = translator.materialize(
@@ -45,6 +46,15 @@ for (const effect of effects) {
     const input = translator.materialize(translator.expression(from, effect));
     const meta = translator.translate(input, from, 'meta');
     assert.equal(rust(['translate', from, 'meta'], input), meta);
+    if (
+      !languages
+        .find(({ id }) => id === to)
+        ?.forms.some(
+          ({ task, name }) => task === effect.task && name === 'common'
+        )
+    ) {
+      continue;
+    }
     const common = translator.translate(meta, 'meta', to, { form: 'common' });
     assert.equal(
       rust(['translate', 'meta', to, '--form', 'common'], meta),

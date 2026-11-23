@@ -22,3 +22,6 @@ fizz-buzz-quoted:
 
 fizz-buzz-lowercase-blank-line:
   limit: 100
+
+empty-program:
+  status: 0

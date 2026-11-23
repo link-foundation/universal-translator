@@ -10,13 +10,12 @@ import {
 import {
   formatRecord,
   linkFields,
-  namedLinks,
   reference,
-  references,
 } from '../../js/src/translation/links.js';
 import {
   readCorpusCoverage,
   rosettaPrograms,
+  rosettaTasks,
   verifyProgram,
 } from './corpus-fixtures.mjs';
 
@@ -61,8 +60,10 @@ if (!helloWorldOnly) {
       expected: Number(reference(rosetta.get(`archive-${id}-count`))),
     });
   }
-  for (const entry of namedLinks(rosetta.get('authored-tasks'), 'task')) {
-    const [task, name] = references(entry);
+  for (const [task, name] of [
+    ...rosettaTasks(rosetta),
+    ...rosettaTasks(rosetta, 'partial-tasks'),
+  ]) {
     for (const program of rosettaPrograms(rosetta, task)) {
       fixtures.set(`${name}/${program.path}`, program);
     }

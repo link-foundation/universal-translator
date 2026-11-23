@@ -30,6 +30,7 @@ const expectedProfiles = {
   'fizz-buzz-lowercase': 23,
   'fizz-buzz-quoted': 23,
   'fizz-buzz-lowercase-blank-line': 23,
+  'empty-program': 23,
 };
 
 describe('translation through meta-language', () => {

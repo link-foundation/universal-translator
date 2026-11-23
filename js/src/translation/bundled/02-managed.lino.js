@@ -8,6 +8,14 @@ export default `profile:
   output: console.log
   forms:
     form:
+      task: empty-program
+      name: standard
+      requires: ()
+      output: exit
+      fixed:
+        status: 0
+      source: ()
+    form:
       task: hello
       name: standard
       requires: console

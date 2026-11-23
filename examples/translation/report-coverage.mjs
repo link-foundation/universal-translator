@@ -16,6 +16,7 @@ import { localizedGreetings } from './fixtures.mjs';
 import {
   readCorpusCoverage,
   rosettaPrograms,
+  rosettaTasks,
   verifyProgram,
 } from './corpus-fixtures.mjs';
 
@@ -23,9 +24,9 @@ const coverage = readCorpusCoverage();
 const helloWorld = linkFields(coverage.get('hello-world-collection'));
 const rosetta = linkFields(coverage.get('rosetta-code'));
 const tiobe = linkFields(coverage.get('tiobe'));
-const authored = namedLinks(rosetta.get('authored-tasks'), 'task').map(
-  references
-);
+const authored = rosettaTasks(rosetta);
+const partiallySupported = rosettaTasks(rosetta, 'partial-tasks');
+const implemented = [...authored, ...partiallySupported];
 const ranks = namedLinks(tiobe.get('ranks'), 'rank').map(references);
 const translator = createTranslator();
 const profiles = translator.listLanguages();
@@ -41,7 +42,7 @@ for (const [id, task] of variants) {
   assert.ok(byTask.has(id) && authoredIds.has(task));
 }
 assert.deepEqual(
-  new Set([...authoredIds, ...variants.map(([id]) => id)]),
+  new Set([...implemented.map(([id]) => id), ...variants.map(([id]) => id)]),
   byTask
 );
 assert.equal(ranks.length, 50);
@@ -98,7 +99,7 @@ if (inventoryPath) {
     [...inventoryTasks.values()].reduce((total, count) => total + count, 0),
     inventoryLanguageCount
   );
-  for (const [, task, count] of authored) {
+  for (const [, task, count] of implemented) {
     assert.equal(inventoryTasks.get(task), Number(count));
   }
 }
@@ -131,7 +132,7 @@ if (treeDirectory) {
       tasks: inventoryOmissions.join(', '),
     })
   );
-  for (const [task, name, , sha, languageCount, sampleCount] of authored) {
+  for (const [task, name, , sha, languageCount, sampleCount] of implemented) {
     assert.equal(tasks.get(name), sha, name);
     const entries = entriesFrom(name, sha);
     const languages = entries.filter(
@@ -279,7 +280,8 @@ console.log(
     'inventory-tasks': inventoryTaskCount,
     'inventory-language-count': inventoryLanguageCount,
     'authored-tasks': authored.length,
-    'unimplemented-tasks': taskCount - authored.length,
+    'partially-supported-tasks': partiallySupported.length,
+    'unimplemented-tasks': taskCount - implemented.length,
     'source-programs-checked': checkedRosetta,
   })
 );

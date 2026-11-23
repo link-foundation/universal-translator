@@ -346,6 +346,7 @@ const missing = [];
 let checked = 0;
 const sourceForms = {
   hello: 'collection',
+  'empty-program': 'rosetta',
   'greatest-common-divisor': 'rosetta',
   'fizz-buzz': 'rosetta',
   'fizz-buzz-lowercase': 'rosetta',
@@ -393,7 +394,10 @@ for (const { id, forms, unicodeGreeting } of profiles) {
       `${id} ${effect.task}`
     );
     checked += 1;
-    if (id === 'javascript' || id === 'rust') {
+    if (
+      (id === 'javascript' || id === 'rust') &&
+      forms.some(({ task, name }) => task === effect.task && name === 'common')
+    ) {
       const opposite = id === 'javascript' ? 'rust' : 'javascript';
       const options = { mode: 'same-effect' };
       const native = translator.materialize(

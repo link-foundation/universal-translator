@@ -180,6 +180,24 @@ profile:
   output: println!
   forms:
     form:
+      task: empty-program
+      name: standard
+      requires: ()
+      output: exit
+      fixed:
+        status: 0
+      source:
+        (line: 'fn main() {}')
+    form:
+      task: empty-program
+      name: rosetta
+      requires: ()
+      output: exit
+      fixed:
+        status: 0
+      source:
+        (line: 'fn main(){}')
+    form:
       task: hello
       name: standard
       source:
