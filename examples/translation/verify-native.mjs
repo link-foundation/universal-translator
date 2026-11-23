@@ -426,7 +426,10 @@ for (const { id, forms, unicodeGreeting } of profiles) {
       }
       checked += 1;
     }
-    const form = sourceForms[effect.task];
+    const form =
+      effect.task === 'hello' && (id === 'javascript' || id === 'rust')
+        ? 'rosetta'
+        : sourceForms[effect.task];
     if (
       forms.some((entry) => entry.task === effect.task && entry.name === form)
     ) {

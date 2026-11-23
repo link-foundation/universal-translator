@@ -58,6 +58,7 @@ rosetta-code:
     (program: Perl/hello-world-text-1.pl perl collection 'Hello world!')
     (program: Python/hello-world-text-3.py python standard 'Hello world!')
     (program: Ruby/hello-world-text-1.rb ruby standard 'Hello world!')
+    (program: Rust/hello-world-text-2.rs rust rosetta 'Hello world!')
     (program: Scheme/hello-world-text-2.scm scheme standard 'Hello world!')
     (program: Swift/hello-world-text-1.swift swift standard 'Hello world!')
   greatest-common-divisor-source-files:

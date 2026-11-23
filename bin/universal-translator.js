@@ -129,7 +129,7 @@ export function runCli(
 
   try {
     if (command === 'encode-source' && left && argv.length <= 3) {
-      write(writeSourceDocument(left, read(right)) + '\n');
+      write(`${writeSourceDocument(left, read(right))}\n`);
       return 0;
     }
     if (command === 'decode-source' && argv.length <= 2) {

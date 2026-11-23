@@ -49,13 +49,33 @@ export function verifyProgram(translator, source, fixture, rustBinary) {
   assert.equal(document.interpretation?.form, form, path);
   assert.deepEqual(document.interpretation.effect, effect, path);
   if (rustBinary) {
-    const rust = (args) =>
-      execFileSync(rustBinary, args, { encoding: 'utf8', input: source });
-    assert.equal(rust(['roundtrip', language]), source, path);
+    const rust = (args, input) =>
+      execFileSync(rustBinary, args, { encoding: 'utf8', input });
+    assert.equal(rust(['roundtrip', language], source), source, path);
+    const options = { mode: 'same-effect' };
     const args = ['translate', language, 'meta', '--mode', 'same-effect'];
-    const meta = translator.translate(source, language, 'meta', {
-      mode: 'same-effect',
-    });
-    assert.equal(rust(args), meta, path);
+    const meta = translator.translate(source, language, 'meta', options);
+    assert.equal(rust(args, source), meta, path);
+    if (language === 'javascript' || language === 'rust') {
+      const target = language === 'javascript' ? 'rust' : 'javascript';
+      const translated = translator.translate(meta, 'meta', target, options);
+      assert.equal(rust(['translate', 'meta', target], meta), translated, path);
+      assert.equal(rust(['translate', target, 'meta'], translated), meta, path);
+      assert.equal(
+        translator.translate(translated, target, 'meta', options),
+        meta,
+        path
+      );
+      const reconstructed = translator.translate(meta, 'meta', language, {
+        ...options,
+        form,
+      });
+      assert.equal(reconstructed, source, path);
+      assert.equal(
+        rust(['translate', 'meta', language, '--form', form], meta),
+        source,
+        path
+      );
+    }
   }
 }

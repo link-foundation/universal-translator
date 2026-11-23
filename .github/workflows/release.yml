@@ -374,7 +374,8 @@ jobs:
   translation:
     name: Rust and cross-language translation
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    # Leave headroom above the Rust tests and corpus verification budgets.
+    timeout-minutes: 30
     concurrency:
       group: check-${{ github.workflow }}-${{ github.ref }}-translation
       cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}

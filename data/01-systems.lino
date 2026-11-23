@@ -188,6 +188,13 @@ profile:
         (line: })
     form:
       task: hello
+      name: rosetta
+      source:
+        (line: 'fn main() {')
+        (line: '   println!("{{message}}");')
+        (line: })
+    form:
+      task: hello
       name: common
       requires: common_library
       output: 'common_library::print_line'

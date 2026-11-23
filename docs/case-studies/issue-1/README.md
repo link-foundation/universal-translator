@@ -71,14 +71,18 @@ node experiments/white-person-corpus.mjs |
 The pinned Rosetta Code source tree contains 1,758 task directories. The
 published popularity file lists 1,753 tasks and a sum of 108,960 language
 counts. Five tasks appear only in the source tree. Directly counting source
-files within language directories gives 750 Hello World Text samples,
+files within language directories gives 143,457 source files across 883
+language directories. The CI archive check runs all of them through Links
+Notation source documents and compares restored bytes in both runtimes.
+The archive includes 750 Hello World Text samples,
 675 FizzBuzz samples, and 355 GCD samples. The implementation covers three
 task definitions with bounded contracts. The 1,755 other task definitions
-still need adapters and verification. The report verifies ten original Rosetta
-Code Hello World Text programs, three original FizzBuzz programs, and one
-original GCD program against their pinned Git blob hashes. It checks exact
-round trips and the expected effects. The remaining source variants still
-need per-entry verification.
+still need adapters and verification. The report verifies twelve original
+Rosetta Code Hello World Text programs, four original FizzBuzz programs, and
+one original GCD program against their pinned Git blob hashes. It checks
+exact round trips and the expected effects. The selected JavaScript and Rust
+originals also translate in both directions through the Meta Language effect.
+The remaining source variants still need effect verification.
 The Hello World Collection homepage reports 603 programs and greetings in
 78 human languages. The report extracts 24 original console snippets from
 the pinned page and applies the same round-trip and greeting checks. It also
@@ -104,7 +108,7 @@ Collection page, in that order, to verify their checksums and reported counts
 and check the selected original programs. Pass the compiled Rust CLI as the
 third argument to compare exact round trips and Meta Language output in both
 runtimes. A fourth argument accepts the pinned Git Trees responses to verify
-the source counts and the 14 original Rosetta Code programs.
+the source counts and the 17 original Rosetta Code programs.
 [Reproduction commands](../../../examples/translation/README.md#verification)
 
 The absent ranked entries include graphical formats and targets with
