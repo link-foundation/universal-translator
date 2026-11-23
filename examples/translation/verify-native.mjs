@@ -1,7 +1,14 @@
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  copyFileSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { URL } from 'node:url';
 
 import {
   createTranslator,
@@ -16,6 +23,10 @@ const effects = exampleEffects();
 const localized = localizedGreetings().filter(({ message }) =>
   ["S'mae byd!", 'こんにちは、 世界！', 'ជំរាបសួរ ពិភពលោក'].includes(message)
 );
+const commonLibraries = {
+  'main.mjs': '../../js/src/common-library.mjs',
+  'main.rs': '../../rust/src/common_library.rs',
+};
 const boundaryEffects = {
   cobol: [
     { task: 'hello', message: '' },
@@ -309,6 +320,13 @@ function check(runner, source, expected, description, form = 'standard') {
   try {
     writeFileSync(join(directory, runner.filename), source);
     writeFileSync(join(directory, 'fixture'), source);
+    const library = form === 'common' && commonLibraries[runner.filename];
+    if (library) {
+      copyFileSync(
+        new URL(library, import.meta.url),
+        join(directory, library.split('/').at(-1))
+      );
+    }
     const output = runner.execute(directory, form);
     if (output !== expected) {
       throw new Error(
@@ -379,6 +397,35 @@ for (const { id, forms, unicodeGreeting } of profiles) {
     });
     check(runner, result, expectedOutput(effect), `${id} ${effect.task}`);
     checked += 1;
+    if (id === 'javascript' || id === 'rust') {
+      const opposite = id === 'javascript' ? 'rust' : 'javascript';
+      const options = { mode: 'same-effect' };
+      const native = translator.materialize(
+        translator.expression(opposite, effect)
+      );
+      const meta = translator.translate(native, opposite, 'meta', options);
+      const common = translator.translate(meta, 'meta', id, {
+        ...options,
+        form: 'common',
+      });
+      check(
+        runner,
+        common,
+        expectedOutput(effect),
+        `${id} common ${effect.task}`,
+        'common'
+      );
+      const reverse = translator.translate(common, id, 'meta', options);
+      if (
+        reverse !== meta ||
+        translator.translate(reverse, 'meta', opposite, options) !== native
+      ) {
+        throw new Error(
+          `Effect or standard form changed through ${id} common ${effect.task}`
+        );
+      }
+      checked += 1;
+    }
     const form = sourceForms[effect.task];
     if (
       forms.some((entry) => entry.task === effect.task && entry.name === form)

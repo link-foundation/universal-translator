@@ -188,6 +188,17 @@ profile:
         (line: '    println!("{{message}}");')
         (line: })
     form:
+      task: hello
+      name: common
+      requires: common_library
+      output: 'common_library::print_line'
+      source:
+        (line: 'mod common_library;')
+        (line: ~1{})
+        (line: 'fn main() {')
+        (line: '    common_library::print_line("{{message}}");')
+        (line: })
+    form:
       task: greatest-common-divisor
       name: standard
       source:
@@ -198,6 +209,18 @@ profile:
         (line: '        (left, right) = (right, left % right);')
         (line: '    }')
         (line: '    println!("{left}");')
+        (line: })
+    form:
+      task: greatest-common-divisor
+      name: common
+      requires: common_library
+      output: 'common_library::print_line'
+      source:
+        (line: 'mod common_library;')
+        (line: ~1{})
+        (line: 'fn main() {')
+        (line: '    let divisor = common_library::greatest_common_divisor({{left}}, {{right}});')
+        (line: '    common_library::print_line(&divisor.to_string());')
         (line: })
     form:
       task: fizz-buzz
@@ -212,6 +235,19 @@ profile:
         (line: '            (false, true) => println!("Buzz"),')
         (line: '            (false, false) => println!("{number}"),')
         (line: '        }')
+        (line: '    }')
+        (line: })
+    form:
+      task: fizz-buzz
+      name: common
+      requires: common_library
+      output: 'common_library::print_line'
+      source:
+        (line: 'mod common_library;')
+        (line: ~1{})
+        (line: 'fn main() {')
+        (line: '    for line in common_library::fizz_buzz_lines({{limit}}) {')
+        (line: '        common_library::print_line(&line);')
         (line: '    }')
         (line: })
 

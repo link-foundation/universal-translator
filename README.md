@@ -26,7 +26,8 @@ and Deno. Build the Rust CLI with a current stable Rust toolchain.
 - `literal` keeps comment text and uses comment delimiters from the destination.
 - `same-effect` keeps the task and its parameters and emits the canonical target form unless you select a different form.
 
-Use `--form` to pick a supported style or a shared library wrapper. The
+Use `--form` to pick a supported style or a shared library wrapper. JavaScript
+and Rust provide common library forms for all three tasks. The
 programmatic APIs let callers replace or decorate adapters and add ordered
 rule layers for project-specific transformations.
 
@@ -36,6 +37,12 @@ form or an authored natural-language description. A `meta` document expresses
 one task and its inputs in Links Notation. Both implementations read, transform,
 and emit that same intermediate form. The supported effect describes the
 program's standard-output lines.
+
+Use `encode-source <language>` and `decode-source` to exchange a lossless
+Links Notation source document between the two CLIs. Both implementations
+verify this round trip for all 143,457 source files across the 1,758 tasks and
+883 language directories in the pinned Rosetta Code archive. The three
+authored task contracts define the current scope for executable translations.
 
 See the [runnable examples](examples/translation/README.md) and the
 [issue 1 case study](docs/case-studies/issue-1/README.md).

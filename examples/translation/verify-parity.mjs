@@ -1,10 +1,13 @@
+import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
 
 import {
   createTranslator,
   languageProfiles,
+  readSourceDocument,
   writeEffect,
+  writeSourceDocument,
 } from '../../js/src/index.js';
 
 import { exampleEffects, fixture, localizedGreetings } from './fixtures.mjs';
@@ -32,6 +35,22 @@ for (const { id, forms } of translator.listLanguages()) {
       );
     }
     checked += 1;
+  }
+}
+for (const effect of effects) {
+  for (const [from, to] of [
+    ['javascript', 'rust'],
+    ['rust', 'javascript'],
+  ]) {
+    const input = translator.materialize(translator.expression(from, effect));
+    const meta = translator.translate(input, from, 'meta');
+    assert.equal(rust(['translate', from, 'meta'], input), meta);
+    const common = translator.translate(meta, 'meta', to, { form: 'common' });
+    assert.equal(
+      rust(['translate', 'meta', to, '--form', 'common'], meta),
+      common
+    );
+    assert.equal(rust(['translate', to, 'meta'], common), meta);
   }
 }
 const c = fixture('hello.c');
@@ -68,6 +87,17 @@ for (const mode of ['context-dependent', 'literal', 'same-effect']) {
     );
   }
 }
+for (const [language, source] of [
+  ['JavaScript', '\ufeff// 🦀\r\nconst text = "example";\r\n'],
+  ['Rust', 'fn main() {\n    println!("Bonjour");\n}\n'],
+  ['Other language', '\na\n\n  b\t'],
+  ['Empty source', ''],
+]) {
+  const jsNotation = writeSourceDocument(language, source);
+  const rustNotation = rust(['encode-source', language], source);
+  assert.deepEqual(readSourceDocument(rustNotation), { language, source });
+  assert.equal(rust(['decode-source'], jsNotation), source);
+}
 console.log(
-  `Verified identical JavaScript and Rust output for ${checked} program forms, ${localized.length} localized greetings, and all three modes.`
+  `Verified identical JavaScript and Rust output for ${checked} program forms, ${localized.length} localized greetings, all three modes, and bidirectional common library forms.`
 );

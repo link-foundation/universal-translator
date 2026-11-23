@@ -450,6 +450,15 @@ jobs:
           node examples/translation/verify-parity.mjs
           node examples/translation/dependent-meanings.mjs
 
+      - name: Round-trip the pinned Rosetta Code corpus
+        run: |
+          archive="$RUNNER_TEMP/rosetta-code.tar.gz"
+          curl --fail --location --silent --show-error --retry 3 \
+            https://codeload.github.com/acmeism/RosettaCodeData/tar.gz/1d475861d7141ef2fafff293d9339f56e4b0f5db \
+            --output "$archive"
+          bash scripts/run-with-budget-warning.sh 540 "Rosetta Code source round trips" \
+            python3 examples/translation/verify-corpus.py "$archive"
+
   native-translation:
     name: Native translation (${{ matrix.group }})
     runs-on: ubuntu-24.04

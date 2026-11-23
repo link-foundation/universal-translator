@@ -39,6 +39,11 @@ rosetta-code:
   inventory-language-count: 108960
   task-tree: c6cbdf28628322ccbfddc21556c061a9dc4a56b1
   task-count: 1758
+  archive-sha256: 6243ae216d0aa56951e2e26d6e44396a93ce8ac06076368c8f82d55cce1555df
+  archive-source-file-count: 143457
+  archive-language-count: 883
+  archive-javascript-count: 1985
+  archive-rust-count: 1481
   authored-tasks:
     (task: hello Hello-world-Text 595 9e55da45ac46c3aba4f34d449f865c001289e529 595 750)
     (task: greatest-common-divisor Greatest-common-divisor 233 751622a645e6f7c20c15145b45eed8d57b9811db 233 355)
@@ -48,6 +53,7 @@ rosetta-code:
     (program: Clojure/hello-world-text.clj clojure standard 'Hello world!')
     (program: Groovy/hello-world-text.groovy groovy collection 'Hello world!')
     (program: Haskell/hello-world-text.hs haskell collection 'Hello world!')
+    (program: JavaScript/hello-world-text-4.js javascript rosetta 'Hello world!')
     (program: Kotlin/hello-world-text.kts kotlin standard 'Hello world!')
     (program: Perl/hello-world-text-1.pl perl collection 'Hello world!')
     (program: Python/hello-world-text-3.py python standard 'Hello world!')
@@ -57,6 +63,7 @@ rosetta-code:
   greatest-common-divisor-source-files:
     (program: Racket/greatest-common-divisor-1.rkt racket rosetta 14 63)
   fizz-buzz-source-files:
+    (program: JavaScript/fizzbuzz-7.js javascript rosetta 100)
     (program: Python/fizzbuzz-4.py python rosetta 100)
     (program: Ruby/fizzbuzz-7.rb ruby rosetta 100)
     (program: Lua/fizzbuzz-3.lua lua rosetta 100)

@@ -1,5 +1,6 @@
 //! Translate admitted program forms through a concrete source and an effect network.
 
+pub mod common_library;
 mod links;
 mod meta;
 mod network;

@@ -25,7 +25,7 @@
 // - docs/case-studies/ folder (research documents)
 // - dev/log/ folder (development logs)
 // - experiments/ folder (experimental scripts)
-// - examples/ folder (example scripts)
+// - examples/ folder (except the translation verification scripts and fixtures)
 //
 // Additionally excluded from code changes (don't require changesets):
 // - Markdown files in any folder
@@ -48,6 +48,9 @@ const ignoredPathPrefixes = [
 ];
 
 const workflowPathPrefix = '.github/workflows/';
+const translationVerification = /^examples\/translation\/.+\.(lino|mjs|py)$/;
+const corpusCoveragePath =
+  'docs/case-studies/issue-1/data/corpus-coverage.lino';
 
 /**
  * Path prefix of the JavaScript package relative to the repository root:
@@ -310,6 +313,10 @@ function getChangedFiles() {
 }
 
 function isExcludedFromCodeChanges(filePath) {
+  if (filePath === corpusCoveragePath) {
+    return false;
+  }
+
   if (filePath.endsWith('.md')) {
     return true;
   }
@@ -336,7 +343,10 @@ async function detectChanges() {
   );
 
   const relevantChangedFiles = packageChangedFiles.filter(
-    (file) => !ignoredPathPrefixes.some((prefix) => file.startsWith(prefix))
+    (file) =>
+      file === corpusCoveragePath ||
+      translationVerification.test(file) ||
+      !ignoredPathPrefixes.some((prefix) => file.startsWith(prefix))
   );
 
   const jsChanged = relevantChangedFiles.some((file) =>
@@ -359,10 +369,11 @@ async function detectChanges() {
   }
   console.log('');
 
-  const codeFileExtensionPattern = /\.(mjs|cjs|js|json|yml|yaml|rs|toml)$/;
+  const codeFileExtensionPattern = /\.(mjs|cjs|js|json|lino|yml|yaml|rs|toml)$/;
   const anyCodeChanged = codeChangedFiles.some(
     (file) =>
       codeFileExtensionPattern.test(file) ||
+      translationVerification.test(file) ||
       file === 'Cargo.lock' ||
       file.startsWith(workflowPathPrefix)
   );

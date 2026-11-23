@@ -182,6 +182,12 @@ describe('detect-code-changes CLI', () => {
   for (const [filePath, expectedOutput] of [
     ['src/relevant.mjs', 'js-changed=true\n'],
     ['docs/relevant.md', 'docs-changed=true\n'],
+    ['data/profiles.lino', 'any-code-changed=true\n'],
+    ['examples/translation/verify-corpus.py', 'any-code-changed=true\n'],
+    [
+      'docs/case-studies/issue-1/data/corpus-coverage.lino',
+      'any-code-changed=true\n',
+    ],
   ]) {
     itUnless(sandboxed)(
       `keeps detecting non-ignored ${filePath} changes`,

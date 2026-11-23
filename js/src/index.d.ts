@@ -27,6 +27,7 @@ export declare const multiply: (a: number, b: number) => number;
 export declare const delay: (ms: number) => Promise<void>;
 
 export * from './translation/translator.js';
+export * as commonLibrary from './common-library.mjs';
 
 export function readSourceDocument(notation: string): {
   language: string;

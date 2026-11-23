@@ -31,6 +31,7 @@ export { createTranslator, translate } from './translation/translator.js';
 export { languageProfiles } from './translation/profile.js';
 export { rankInterpretations } from './translation/referents.js';
 export { readEffects, writeEffect } from './translation/effect-links.js';
+export * as commonLibrary from './common-library.mjs';
 export {
   readSourceDocument,
   writeSourceDocument,

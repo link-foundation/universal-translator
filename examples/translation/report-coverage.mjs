@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import { Buffer } from 'node:buffer';
-import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -10,17 +9,17 @@ import {
   formatRecord,
   linkFields,
   namedLinks,
-  parseLinks,
   reference,
   references,
 } from '../../js/src/translation/links.js';
 import { localizedGreetings } from './fixtures.mjs';
+import {
+  readCorpusCoverage,
+  rosettaPrograms,
+  verifyProgram,
+} from './corpus-fixtures.mjs';
 
-const snapshot = new URL(
-  '../../docs/case-studies/issue-1/data/corpus-coverage.lino',
-  import.meta.url
-);
-const coverage = linkFields(parseLinks(readFileSync(snapshot, 'utf8')));
+const coverage = readCorpusCoverage();
 const helloWorld = linkFields(coverage.get('hello-world-collection'));
 const rosetta = linkFields(coverage.get('rosetta-code'));
 const tiobe = linkFields(coverage.get('tiobe'));
@@ -56,39 +55,6 @@ for (const [index, entry] of ranks.entries()) {
 
 const [inventoryPath, helloWorldPath, rustBinary, treeDirectory] =
   process.argv.slice(2);
-function decodeEffect(task, parameters) {
-  switch (task) {
-    case 'hello':
-      return { task, message: parameters[0] };
-    case 'fizz-buzz':
-      return { task, limit: Number(parameters[0]) };
-    case 'greatest-common-divisor':
-      return {
-        task,
-        left: Number(parameters[0]),
-        right: Number(parameters[1]),
-      };
-    default:
-      assert.fail(`Unsupported task ${task}`);
-  }
-}
-
-function verifyProgram(source, language, form, effect, origin) {
-  const document = translator.parse(source, language);
-  assert.equal(translator.restore(document), source, origin);
-  assert.equal(document.interpretation?.form, form, origin);
-  assert.deepEqual(document.interpretation.effect, effect, origin);
-  if (rustBinary) {
-    const rust = (args) =>
-      execFileSync(rustBinary, args, { encoding: 'utf8', input: source });
-    assert.equal(rust(['roundtrip', language]), source, origin);
-    const args = ['translate', language, 'meta', '--mode', 'same-effect'];
-    const meta = translator.translate(source, language, 'meta', {
-      mode: 'same-effect',
-    });
-    assert.equal(rust(args), meta, origin);
-  }
-}
 
 const taskCount = Number(reference(rosetta.get('task-count')));
 const inventoryTaskCount = Number(
@@ -173,11 +139,8 @@ if (treeDirectory) {
     if (rosetta.has(`${task}-source-files`)) {
       const hashes = new Map(samples.map(({ path, sha }) => [path, sha]));
       const root = new URL('.', reference(rosetta.get('inventory')));
-      const programs = namedLinks(
-        rosetta.get(`${task}-source-files`),
-        'program'
-      ).map(references);
-      for (const [path, language, form, ...parameters] of programs) {
+      for (const program of rosettaPrograms(rosetta, task)) {
+        const { path } = program;
         assert.ok(hashes.has(path), path);
         const relative = path.split('/').map(encodeURIComponent).join('/');
         const response = await fetch(new URL(`Task/${name}/${relative}`, root));
@@ -190,8 +153,7 @@ if (treeDirectory) {
         assert.equal(hash, hashes.get(path), path);
         const source = bytes.toString('utf8');
         assert.deepEqual(Buffer.from(source), bytes, path);
-        const effect = decodeEffect(task, parameters);
-        verifyProgram(source, language, form, effect, path);
+        verifyProgram(translator, source, program, rustBinary);
         checkedRosetta += 1;
       }
     }
@@ -241,7 +203,17 @@ if (helloWorldPath) {
     const source = block[1]
       .replace(/<\/?a(?:\s[^>]*)?>/gu, '')
       .replace(/&(amp|gt|lt);/gu, (_, name) => entities[name]);
-    verifyProgram(source, language, form, { task: 'hello', message }, anchor);
+    verifyProgram(
+      translator,
+      source,
+      {
+        language,
+        form,
+        effect: { task: 'hello', message },
+        path: anchor,
+      },
+      rustBinary
+    );
   }
   const table = page.split('<a name="Human"></a>')[1].split('</table><p>')[0];
   const named = {

@@ -20,6 +20,21 @@ export default `profile:
       source:
         (line: "console.log('{{message}}');")
     form:
+      task: hello
+      name: rosetta
+      requires: console
+      source:
+        (line: 'console.log("{{message}}")')
+    form:
+      task: hello
+      name: common
+      requires: './common-library.mjs'
+      output: printLine
+      source:
+        (line: "import { printLine } from './common-library.mjs';")
+        (line: ~1{})
+        (line: 'printLine("{{message}}");')
+    form:
       task: greatest-common-divisor
       name: standard
       source:
@@ -32,6 +47,15 @@ export default `profile:
         (line: })
         (line: 'console.log(left);')
     form:
+      task: greatest-common-divisor
+      name: common
+      requires: './common-library.mjs'
+      output: printLine
+      source:
+        (line: "import { greatestCommonDivisor, printLine } from './common-library.mjs';")
+        (line: ~1{})
+        (line: 'printLine(String(greatestCommonDivisor({{left}}, {{right}})));')
+    form:
       task: fizz-buzz
       name: standard
       source:
@@ -39,6 +63,27 @@ export default `profile:
         (line: 'for (let number = 1; number <= limit; number += 1) {')
         (line: '    const label = (number % 3 === 0 ? "Fizz" : "") + (number % 5 === 0 ? "Buzz" : "");')
         (line: '    console.log(label || number);')
+        (line: })
+    form:
+      task: fizz-buzz
+      name: rosetta
+      source:
+        (line: "const factors = [[3, 'Fizz'], [5, 'Buzz']]")
+        (line: "const fizzBuzz = num => factors.map(([factor,text]) => (num % factor)?'':text).join('') || num")
+        (line: 'const range1 = x => [...Array(x+1).keys()].slice(1)')
+        (line: 'const outputs = range1({{limit}}).map(fizzBuzz)')
+        (line: ~1{})
+        (line: "console.log(outputs.join('\\n'))")
+    form:
+      task: fizz-buzz
+      name: common
+      requires: './common-library.mjs'
+      output: printLine
+      source:
+        (line: "import { fizzBuzzLines, printLine } from './common-library.mjs';")
+        (line: ~1{})
+        (line: 'for (const line of fizzBuzzLines({{limit}})) {')
+        (line: '    printLine(line);')
         (line: })
 
 profile:
