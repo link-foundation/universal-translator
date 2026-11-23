@@ -99,8 +99,17 @@ profile:
       source:
         (line: 'identification division.')
         (line: 'program-id. main-program.')
+        (line: 'data division.')
+        (line: 'working-storage section.')
+        (line: '01 greeting pic X(97) value "X{{message}}".')
+        (line: '01 greeting-length binary-long.')
         (line: 'procedure division.')
-        (line: '    display "{{message}}"')
+        (line: '    compute greeting-length = function length("X{{message}}") - 1')
+        (line: '    if greeting-length = 0')
+        (line: '        display x"0A" with no advancing')
+        (line: '    else')
+        (line: '        display greeting(2:greeting-length)')
+        (line: '    end-if')
         (line: '    stop run.')
     form:
       task: greatest-common-divisor

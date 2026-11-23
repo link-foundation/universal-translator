@@ -9,6 +9,12 @@ import { exampleEffects, fixture } from './fixtures.mjs';
 
 const translator = createTranslator();
 const effects = exampleEffects();
+const boundaryEffects = {
+  cobol: [
+    { task: 'hello', message: '' },
+    { task: 'hello', message: ` ${'Hello'.repeat(18)} !?  ` },
+  ],
+};
 const environment = {
   ...process.env,
   DOTNET_CLI_TELEMETRY_OPTOUT: '1',
@@ -344,8 +350,8 @@ for (const { id, forms } of profiles) {
     missing.push(`${id} (${unavailable.join(', ')})`);
     continue;
   }
-  for (const effect of effects.filter((effect) =>
-    forms.some((form) => form.task === effect.task)
+  for (const effect of [...effects, ...(boundaryEffects[id] ?? [])].filter(
+    (effect) => forms.some((form) => form.task === effect.task)
   )) {
     const source = translator.materialize(
       translator.expression('javascript', effect)
