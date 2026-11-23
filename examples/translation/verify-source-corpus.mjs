@@ -78,7 +78,9 @@ for (let header; (header = readBytes(8, true)); ) {
   const document = readSourceDocument(notation);
   assert.equal(document.language, language, path);
   assert.deepEqual(Buffer.from(document.source), bytes, path);
-  const coverage = native.get(language);
+  const coverage = path.startsWith('Hello World Collection/')
+    ? undefined
+    : native.get(language);
   if (coverage) {
     coverage.available += 1;
   }

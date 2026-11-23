@@ -158,6 +158,14 @@ the pinned HTML page. The remaining 12 programs are provided as images.
 python3 examples/translation/verify-corpus.py --hello-world /path/to/hello-world-collection.html
 ```
 
+Pass both inputs to verify that the archives round-trip in the same execution
+and that the Rosetta Code native coverage uses only Rosetta Code files.
+
+```sh
+python3 examples/translation/verify-corpus.py /path/to/rosetta-code.tar.gz \
+  --hello-world /path/to/hello-world-collection.html
+```
+
 To check the original console programs and all 78 localized greetings,
 download the two snapshots linked in the case study and run the coverage
 report with the files and Rust CLI.
