@@ -53,8 +53,14 @@ jobs:
           cache-dependency-path: examples/universal-app/package-lock.json
 
       - name: Configure GitHub Pages
+        id: configure-pages
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v6
+
+      - name: Explain GitHub Pages configuration failure
+        if: failure() && steps.configure-pages.conclusion == 'failure'
+        run: |
+          echo '::error title=GitHub Pages configuration::In Settings > Pages, set the build source to GitHub Actions. If Pages is already configured, review the Configure GitHub Pages step for the reported error.'
 
       - name: Install app dependencies
         run: |

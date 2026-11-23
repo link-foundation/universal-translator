@@ -360,6 +360,24 @@ describe('workflow reliability policy', () => {
 });
 
 describe('workflow artifact and writer reliability', () => {
+  it('checks the web build on pull requests and explains Pages configuration failures on main', () => {
+    const workflow = readWorkflow('.github/workflows/example-app.yml');
+    const webBuild = getJobBlock(workflow, 'web-build');
+    const configurePages = webBuild.match(
+      /- name: Configure GitHub Pages\n([\s\S]*?)(?=\n +- name: )/u
+    )?.[1];
+    expect(configurePages).toContain(
+      "if: github.event_name == 'push' && github.ref == 'refs/heads/main'"
+    );
+    expect(configurePages).toContain('id: configure-pages');
+    expect(webBuild).toContain(
+      "if: failure() && steps.configure-pages.conclusion == 'failure'"
+    );
+    expect(webBuild).toContain(
+      'In Settings > Pages, set the build source to GitHub Actions'
+    );
+  });
+
   it('serializes main writers and retries generated pushes after rebasing', () => {
     const exampleAppWorkflow = readWorkflow(
       '.github/workflows/example-app.yml'
