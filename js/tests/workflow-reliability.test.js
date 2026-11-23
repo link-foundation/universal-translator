@@ -646,6 +646,23 @@ describe('manual release quality gates', () => {
   }
 });
 
+describe('native translation tool setup', () => {
+  it('updates signed Ubuntu package indexes before installing native tools', () => {
+    const workflow = readWorkflow('.github/workflows/release.yml');
+    const job = getJobBlock(workflow, 'native-translation');
+
+    expectOrdered(job, [
+      'name: Install native tools',
+      'signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://archive.ubuntu.com/ubuntu noble main universe',
+      'signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://security.ubuntu.com/ubuntu noble-security main universe',
+      '-o "Dir::Etc::sourcelist=$apt_sources" -o \'Dir::Etc::sourceparts=-\'',
+      'sudo apt-get "${apt_options[@]}" update --error-on=any',
+      'sudo apt-get "${apt_options[@]}" install --yes --no-install-recommends "${packages[@]}"',
+      'name: Check output with native tools',
+    ]);
+  });
+});
+
 describe('npm publish token bootstrap', () => {
   // The first publish of a brand-new package cannot use OIDC trusted publishing
   // (npm returns E404 because a trusted publisher can only be configured for an

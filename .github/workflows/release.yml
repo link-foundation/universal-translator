@@ -463,7 +463,7 @@ jobs:
   native-translation:
     name: Native translation (${{ matrix.group }})
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -512,21 +512,38 @@ jobs:
         with:
           version: '1.12'
 
-      - name: Install baseline native tools
-        if: matrix.group == 'baseline'
+      - name: Install native tools
+        timeout-minutes: 6
+        env:
+          NATIVE_GROUP: ${{ matrix.group }}
         run: |
-          sudo apt-get -qq update
-          sudo apt-get -qq install --no-install-recommends \
-            fp-compiler gfortran gobjc jasmin-sable libgnustep-base-dev lld lua5.4 \
-            mono-devel nasm ocaml qemu-user r-base-core scala tcl
-
-      - name: Install extended native tools
-        if: matrix.group == 'extended'
-        run: |
-          sudo apt-get -qq update
-          sudo apt-get -qq install --no-install-recommends \
-            clojure crystal elixir erlang-base fish ghc gnat gnucobol groovy \
-            guile-3.0 haxe ldc nim octave polyml racket rakudo sbcl swi-prolog-nox xsltproc
+          # Use Ubuntu's primary archives to avoid stalled runner mirrors.
+          apt_sources="$RUNNER_TEMP/native-tools.list"
+          cat > "$apt_sources" <<'EOF'
+          deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://archive.ubuntu.com/ubuntu noble main universe
+          deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://archive.ubuntu.com/ubuntu noble-updates main universe
+          deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://security.ubuntu.com/ubuntu noble-security main universe
+          EOF
+          apt_options=(
+            -o "Dir::Etc::sourcelist=$apt_sources" -o 'Dir::Etc::sourceparts=-'
+            -o Acquire::Retries=2 -o Acquire::https::Timeout=20
+          )
+          case "$NATIVE_GROUP" in
+            baseline)
+              packages=(fp-compiler gfortran gobjc jasmin-sable libgnustep-base-dev lld lua5.4
+                mono-devel nasm ocaml qemu-user r-base-core scala tcl)
+              ;;
+            extended)
+              packages=(clojure crystal elixir erlang-base fish ghc gnat gnucobol groovy
+                guile-3.0 haxe ldc nim octave polyml racket rakudo sbcl swi-prolog-nox xsltproc)
+              ;;
+            *)
+              printf 'Unknown native tool group: %s\n' "$NATIVE_GROUP" >&2
+              exit 2
+              ;;
+          esac
+          sudo apt-get "${apt_options[@]}" update --error-on=any
+          sudo apt-get "${apt_options[@]}" install --yes --no-install-recommends "${packages[@]}"
 
       - name: Check output with native tools
         timeout-minutes: 6
