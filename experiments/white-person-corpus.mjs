@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { URL, URLSearchParams } from 'node:url';
 
-import { formatRecord } from '../src/translation/links.js';
+import { formatRecord } from '../js/src/translation/links.js';
 
 const studies = [
   [

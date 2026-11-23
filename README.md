@@ -101,16 +101,20 @@ node bin/universal-translator.js add 2 3
 ├── .changeset/           # Changeset configuration
 ├── .github/workflows/    # GitHub Actions CI/CD
 ├── .husky/               # Git hooks (pre-commit)
+├── data/                 # Shared Links Notation profiles
 ├── examples/             # Usage examples
 │   └── universal-app/    # React + GitHub Pages + Electron + Capacitor app
+├── js/
+│   ├── src/              # JavaScript library and TypeScript declarations
+│   └── tests/            # JavaScript and repository tooling tests
+├── rust/
+│   ├── src/              # Rust library and CLI
+│   └── tests/            # Rust integration tests
 ├── scripts/              # Build and release scripts
-├── src/                  # Source code
-│   ├── index.js          # Main entry point
-│   └── index.d.ts        # TypeScript definitions
-├── tests/                # Test files
-├── .eslintrc.js          # ESLint configuration
+├── eslint.config.js      # ESLint configuration
 ├── .prettierrc           # Prettier configuration
 ├── bunfig.toml           # Bun configuration
+├── Cargo.toml            # Rust package manifest
 ├── deno.json             # Deno configuration
 └── package.json          # Node.js package manifest
 ```
@@ -142,7 +146,7 @@ Note: `package-lock.json` is not committed by default to allow any package manag
 ### Universal App Example
 
 The template includes `examples/universal-app`, a Vite React app that imports
-`add` and `multiply` from `src/index.js` and renders a visual calculator UI.
+`add` and `multiply` from `js/src/index.js` and renders a visual calculator UI.
 The same static build is used by:
 
 - GitHub Pages (`npm run example:web:build`)

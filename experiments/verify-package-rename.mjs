@@ -37,7 +37,7 @@ try {
     [
       '--test',
       '--test-timeout=30000',
-      resolve('tests/package-artifact.test.js'),
+      resolve('js/tests/package-artifact.test.js'),
     ],
     { cwd: fixture, encoding: 'utf8' }
   );

@@ -6,14 +6,14 @@ use std::collections::BTreeMap;
 use std::sync::OnceLock;
 
 const REGISTRIES: &[&str] = &[
-    include_str!("../../src/translation/data/01-systems.lino"),
-    include_str!("../../src/translation/data/02-managed.lino"),
-    include_str!("../../src/translation/data/03-scripts.lino"),
-    include_str!("../../src/translation/data/04-machine.lino"),
-    include_str!("../../src/translation/data/05-programming-languages.lino"),
-    include_str!("../../src/translation/data/06-programming-languages.lino"),
-    include_str!("../../src/translation/data/07-natural-languages.lino"),
-    include_str!("../../src/translation/data/08-meta-language.lino"),
+    include_str!("../../data/01-systems.lino"),
+    include_str!("../../data/02-managed.lino"),
+    include_str!("../../data/03-scripts.lino"),
+    include_str!("../../data/04-machine.lino"),
+    include_str!("../../data/05-programming-languages.lino"),
+    include_str!("../../data/06-programming-languages.lino"),
+    include_str!("../../data/07-natural-languages.lino"),
+    include_str!("../../data/08-meta-language.lino"),
 ];
 
 fn programming_kind() -> String {

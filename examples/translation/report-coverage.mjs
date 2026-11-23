@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { URL } from 'node:url';
-import { createTranslator } from '../../src/index.js';
+import { createTranslator } from '../../js/src/index.js';
 import {
   formatRecord,
   linkFields,
@@ -13,7 +13,7 @@ import {
   parseLinks,
   reference,
   references,
-} from '../../src/translation/links.js';
+} from '../../js/src/translation/links.js';
 import { localizedGreetings } from './fixtures.mjs';
 
 const snapshot = new URL(

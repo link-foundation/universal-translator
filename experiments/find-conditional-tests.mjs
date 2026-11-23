@@ -3,16 +3,16 @@
 // exists: an `if (...)` block that wraps `it(`/`describe(` calls, or a
 // describe callback that `return`s early. Either way the runtime never hears
 // about the test, so it is neither run nor reported as skipped.
-// Usage: node experiments/find-conditional-tests.mjs [tests/*.test.js]
+// Usage: node experiments/find-conditional-tests.mjs [js/tests/*.test.js]
 import { readdirSync, readFileSync } from 'node:fs';
-import { findConditionalRegistrations } from '../tests/helpers/conditional-registration.js';
+import { findConditionalRegistrations } from '../js/tests/helpers/conditional-registration.js';
 
 const files =
   process.argv.length > 2
     ? process.argv.slice(2)
-    : readdirSync('tests')
+    : readdirSync('js/tests')
         .filter((file) => file.endsWith('.test.js'))
-        .map((file) => `tests/${file}`);
+        .map((file) => `js/tests/${file}`);
 
 let total = 0;
 for (const file of files) {

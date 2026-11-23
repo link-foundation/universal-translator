@@ -252,7 +252,7 @@ Per-test timeouts are also enforced inside the runners that support a
 global budget:
 
 ```bash
-node --test --test-timeout=30000 tests/*.test.js
+node --test --test-timeout=30000 js/tests/*.test.js
 bun test --timeout 30000
 ```
 

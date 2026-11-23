@@ -1,13 +1,13 @@
 import { readFileSync } from 'node:fs';
 import { URL } from 'node:url';
-import { readEffects } from '../../src/index.js';
+import { readEffects } from '../../js/src/index.js';
 import {
   linkFields,
   namedLinks,
   parseLinks,
   reference,
   references,
-} from '../../src/translation/links.js';
+} from '../../js/src/translation/links.js';
 
 export function fixture(name) {
   return readFileSync(new URL(name, import.meta.url), 'utf8');

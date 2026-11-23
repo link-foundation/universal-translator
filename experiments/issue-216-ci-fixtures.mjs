@@ -36,7 +36,7 @@ try {
         );
       }
       copyFileSync(
-        'tests/changeset-config.test.js',
+        'js/tests/changeset-config.test.js',
         join(cwd, 'tests/changeset-config.test.js')
       );
       const command = kind === 'deno' ? 'deno' : process.execPath;

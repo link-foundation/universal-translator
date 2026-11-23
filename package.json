@@ -3,26 +3,27 @@
   "version": "0.11.32",
   "description": "Source-preserving translation for small programs through a shared meta-language",
   "type": "module",
-  "main": "src/index.js",
-  "types": "src/index.d.ts",
+  "main": "js/src/index.js",
+  "types": "js/src/index.d.ts",
   "bin": {
     "universal-translator": "./bin/universal-translator.js"
   },
   "files": [
     "bin/",
-    "src/",
+    "js/src/",
+    "data/",
     "CHANGELOG.md",
     "LICENSE",
     "README.md"
   ],
   "exports": {
     ".": {
-      "types": "./src/index.d.ts",
-      "import": "./src/index.js"
+      "types": "./js/src/index.d.ts",
+      "import": "./js/src/index.js"
     }
   },
   "scripts": {
-    "test": "node --test --test-timeout=30000 tests/*.test.js",
+    "test": "node --test --test-timeout=30000 js/tests/*.test.js",
     "lint": "node scripts/lint.mjs",
     "lint:all": "eslint .",
     "lint:fix": "eslint . --fix",

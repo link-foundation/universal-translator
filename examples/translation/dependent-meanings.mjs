@@ -1,5 +1,5 @@
-import { rankInterpretations } from '../../src/index.js';
-import { formatRecord } from '../../src/translation/links.js';
+import { rankInterpretations } from '../../js/src/index.js';
+import { formatRecord } from '../../js/src/translation/links.js';
 import { evaluate } from 'relative-meta-logic';
 import { fixture, referentInput } from './fixtures.mjs';
 

@@ -4,6 +4,6 @@ import { execFileSync } from 'node:child_process';
 
 execFileSync(
   process.execPath,
-  ['--test', '--test-timeout=30000', 'tests/changeset-config.test.js'],
+  ['--test', '--test-timeout=30000', 'js/tests/changeset-config.test.js'],
   { stdio: 'inherit' }
 );

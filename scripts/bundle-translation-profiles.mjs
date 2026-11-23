@@ -1,9 +1,9 @@
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { URL } from 'node:url';
 
-const dataDirectory = new URL('../src/translation/data/', import.meta.url);
+const dataDirectory = new URL('../data/', import.meta.url);
 const bundledDirectory = new URL(
-  '../src/translation/bundled/',
+  '../js/src/translation/bundled/',
   import.meta.url
 );
 const check = process.argv.includes('--check');
@@ -35,7 +35,7 @@ for (const [index, name] of files.entries()) {
   imports.push(`import registry${index} from './${module}';`);
   write(
     module,
-    `// Generated from ../data/${name}.\nexport default \`${literal}\`;\n`
+    `// Generated from data/${name}.\nexport default \`${literal}\`;\n`
   );
 }
 write(

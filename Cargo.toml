@@ -7,8 +7,8 @@ license = "Unlicense"
 repository = "https://github.com/link-foundation/universal-translator"
 include = [
     "/rust/src/**",
-    "/src/translation/data/*.lino",
-    "/tests/rust/**",
+    "/data/*.lino",
+    "/rust/tests/**",
     "/examples/translation/hello.c",
     "/examples/translation/hello.cs",
     "/examples/translation/effects.lino",
@@ -34,4 +34,4 @@ links-notation = { version = "=0.31.8", default-features = false }
 
 [[test]]
 name = "translation"
-path = "tests/rust/translation.rs"
+path = "rust/tests/translation.rs"

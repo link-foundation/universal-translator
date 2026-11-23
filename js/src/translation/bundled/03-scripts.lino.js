@@ -1,0 +1,450 @@
+// Generated from data/03-scripts.lino.
+export default `profile:
+  id: python
+  unicodeGreeting: true
+  label: Python
+  comment: '#'
+  call: 'function call'
+  output: print
+  forms:
+    form:
+      task: hello
+      name: standard
+      source:
+        (line: 'print("{{message}}")')
+    form:
+      task: hello
+      name: single-quotes
+      source:
+        (line: "print('{{message}}')")
+    form:
+      task: greatest-common-divisor
+      name: standard
+      source:
+        (line: 'left = {{left}}')
+        (line: 'right = {{right}}')
+        (line: 'while right != 0:')
+        (line: '    left, right = right, left % right')
+        (line: 'print(left)')
+    form:
+      task: fizz-buzz
+      name: standard
+      source:
+        (line: 'limit = {{limit}}')
+        (line: 'for number in range(1, limit + 1):')
+        (line: '    label = ("Fizz" if number % 3 == 0 else "") + ("Buzz" if number % 5 == 0 else "")')
+        (line: '    print(label or number)')
+    form:
+      task: fizz-buzz
+      name: rosetta
+      fixed:
+        limit: 100
+      source:
+        (line: 'for i in range(1,101): print("Fizz"*(i%3==0) + "Buzz"*(i%5==0) or i)')
+
+profile:
+  id: ruby
+  label: Ruby
+  comment: '#'
+  call: 'function call'
+  output: puts
+  forms:
+    form:
+      task: hello
+      name: standard
+      source:
+        (line: 'puts "{{message}}"')
+    form:
+      task: greatest-common-divisor
+      name: standard
+      source:
+        (line: 'left = {{left}}')
+        (line: 'right = {{right}}')
+        (line: 'until right.zero?')
+        (line: '  left, right = right, left % right')
+        (line: end)
+        (line: 'puts left')
+    form:
+      task: fizz-buzz
+      name: standard
+      source:
+        (line: 'limit = {{limit}}')
+        (line: '(1..limit).each do |number|')
+        (line: '  label = (number % 3 == 0 ? "Fizz" : "") + (number % 5 == 0 ? "Buzz" : "")')
+        (line: '  puts(label.empty? ? number : label)')
+        (line: end)
+    form:
+      task: fizz-buzz
+      name: rosetta
+      source:
+        (line: '1.upto({{limit}}) { |i| puts "#{[:Fizz][i%3]}#{[:Buzz][i%5]}"[/.+/] || i }')
+
+profile:
+  id: php
+  label: PHP
+  comment: //
+  call: 'function call'
+  output: echo
+  forms:
+    form:
+      task: hello
+      name: standard
+      source:
+        (line: <?php)
+        (line: 'echo "{{message}}\\n";')
+    form:
+      task: greatest-common-divisor
+      name: standard
+      source:
+        (line: <?php)
+        (line: '$left = {{left}};')
+        (line: '$right = {{right}};')
+        (line: 'while ($right !== 0) {')
+        (line: '    [$left, $right] = [$right, $left % $right];')
+        (line: })
+        (line: 'echo $left, PHP_EOL;')
+    form:
+      task: fizz-buzz
+      name: standard
+      source:
+        (line: <?php)
+        (line: '$limit = {{limit}};')
+        (line: 'for ($number = 1; $number <= $limit; $number++) {')
+        (line: '    $label = ($number % 3 === 0 ? "Fizz" : "") . ($number % 5 === 0 ? "Buzz" : "");')
+        (line: '    echo ($label === "" ? $number : $label), PHP_EOL;')
+        (line: })
+  header: 1
+
+profile:
+  id: shell
+  label: Bash
+  comment: '#'
+  call: 'function call'
+  output: printf
+  forms:
+    form:
+      task: hello
+      name: standard
+      source:
+        (line: '#!/bin/sh')
+        (line: "printf '%s\\n' '{{message}}'")
+    form:
+      task: hello
+      name: no-shebang
+      source:
+        (line: "printf '%s\\n' '{{message}}'")
+    form:
+      task: greatest-common-divisor
+      name: standard
+      source:
+        (line: '#!/bin/sh')
+        (line: left={{left}})
+        (line: right={{right}})
+        (line: 'while [ "$right" -ne 0 ]; do')
+        (line: '    remainder=$((left % right))')
+        (line: '    left=$right')
+        (line: '    right=$remainder')
+        (line: done)
+        (line: \`printf '%s\\n' "$left"\`)
+    form:
+      task: fizz-buzz
+      name: standard
+      source:
+        (line: '#!/bin/sh')
+        (line: limit={{limit}})
+        (line: number=1)
+        (line: 'while [ "$number" -le "$limit" ]; do')
+        (line: '    if [ "$((number % 15))" -eq 0 ]; then')
+        (line: "        printf '%s\\n' FizzBuzz")
+        (line: '    elif [ "$((number % 3))" -eq 0 ]; then')
+        (line: "        printf '%s\\n' Fizz")
+        (line: '    elif [ "$((number % 5))" -eq 0 ]; then')
+        (line: "        printf '%s\\n' Buzz")
+        (line: '    else')
+        (line: \`        printf '%s\\n' "$number"\`)
+        (line: '    fi')
+        (line: '    number=$((number + 1))')
+        (line: done)
+  header: 1
+
+profile:
+  id: perl
+  label: Perl
+  comment: '#'
+  call: 'function call'
+  output: print
+  forms:
+    form:
+      task: hello
+      name: standard
+      source:
+        (line: 'use strict;')
+        (line: 'use warnings;')
+        (line: ~1{})
+        (line: 'print "{{message}}\\n";')
+    form:
+      task: hello
+      name: collection
+      source:
+        (line: 'print "{{message}}\\n";')
+    form:
+      task: greatest-common-divisor
+      name: standard
+      source:
+        (line: 'use strict;')
+        (line: 'use warnings;')
+        (line: ~1{})
+        (line: 'my $left = {{left}};')
+        (line: 'my $right = {{right}};')
+        (line: 'while ($right != 0) {')
+        (line: '    ($left, $right) = ($right, $left % $right);')
+        (line: })
+        (line: 'print "$left\\n";')
+    form:
+      task: fizz-buzz
+      name: standard
+      source:
+        (line: 'use strict;')
+        (line: 'use warnings;')
+        (line: ~1{})
+        (line: 'my $limit = {{limit}};')
+        (line: 'for my $number (1 .. $limit) {')
+        (line: '    my $label = ($number % 3 == 0 ? "Fizz" : "") . ($number % 5 == 0 ? "Buzz" : "");')
+        (line: '    print (($label eq "" ? $number : $label) . "\\n");')
+        (line: })
+
+profile:
+  id: r
+  label: R
+  comment: '#'
+  call: 'function call'
+  output: cat
+  forms:
+    form:
+      task: hello
+      name: standard
+      source:
+        (line: 'cat("{{message}}\\n")')
+    form:
+      task: greatest-common-divisor
+      name: standard
+      source:
+        (line: 'left <- {{left}}')
+        (line: 'right <- {{right}}')
+        (line: 'while (right != 0) {')
+        (line: '    remainder <- left %% right')
+        (line: '    left <- right')
+        (line: '    right <- remainder')
+        (line: })
+        (line: 'cat(sprintf("%d\\n", left))')
+    form:
+      task: fizz-buzz
+      name: standard
+      source:
+        (line: 'limit <- {{limit}}')
+        (line: 'for (number in seq_len(limit)) {')
+        (line: '    label <- paste0(if (number %% 3 == 0) "Fizz" else "", if (number %% 5 == 0) "Buzz" else "")')
+        (line: '    if (label == "") {')
+        (line: '        label <- as.character(number)')
+        (line: '    }')
+        (line: '    cat(label, "\\n", sep = "")')
+        (line: })
+
+profile:
+  id: lua
+  label: Lua
+  comment: --
+  call: 'function call'
+  output: print
+  forms:
+    form:
+      task: hello
+      name: standard
+      source:
+        (line: 'print("{{message}}")')
+    form:
+      task: greatest-common-divisor
+      name: standard
+      source:
+        (line: 'local left = {{left}}')
+        (line: 'local right = {{right}}')
+        (line: 'while right ~= 0 do')
+        (line: '    left, right = right, left % right')
+        (line: end)
+        (line: 'print(left)')
+    form:
+      task: fizz-buzz
+      name: standard
+      source:
+        (line: 'local limit = {{limit}}')
+        (line: 'for number = 1, limit do')
+        (line: '    local label = (number % 3 == 0 and "Fizz" or "") .. (number % 5 == 0 and "Buzz" or "")')
+        (line: '    print(label == "" and number or label)')
+        (line: end)
+    form:
+      task: fizz-buzz
+      name: rosetta
+      source:
+        (line: 'word = {"Fizz", "Buzz", "FizzBuzz"}')
+        (line: ~1{})
+        (line: 'for i = 1, {{limit}} do')
+        (line: '        print(word[(i % 3 == 0 and 1 or 0) + (i % 5 == 0 and 2 or 0)] or i)')
+        (line: end)
+
+profile:
+  id: sqlite
+  label: 'SQLite SQL'
+  comment: --
+  call: query
+  output: SELECT
+  forms:
+    form:
+      task: hello
+      name: standard
+      source:
+        (line: "SELECT '{{message}}';")
+    form:
+      task: greatest-common-divisor
+      name: standard
+      source:
+        (line: 'WITH RECURSIVE steps(left_value, right_value) AS (')
+        (line: '    VALUES ({{left}}, {{right}})')
+        (line: '    UNION ALL')
+        (line: '    SELECT right_value, left_value % right_value FROM steps WHERE right_value <> 0')
+        (line: ')')
+        (line: 'SELECT left_value FROM steps WHERE right_value = 0;')
+    form:
+      task: fizz-buzz
+      name: standard
+      source:
+        (line: 'WITH RECURSIVE numbers(number) AS (')
+        (line: '    VALUES (1)')
+        (line: '    UNION ALL')
+        (line: '    SELECT number + 1 FROM numbers WHERE number < {{limit}}')
+        (line: ')')
+        (line: 'SELECT CASE')
+        (line: "    WHEN number % 15 = 0 THEN 'FizzBuzz'")
+        (line: "    WHEN number % 3 = 0 THEN 'Fizz'")
+        (line: "    WHEN number % 5 = 0 THEN 'Buzz'")
+        (line: '    ELSE CAST(number AS TEXT)')
+        (line: END)
+        (line: 'FROM numbers ORDER BY number;')
+
+profile:
+  id: tcl
+  label: Tcl
+  comment: '#'
+  call: 'function call'
+  output: puts
+  forms:
+    form:
+      task: hello
+      name: standard
+      source:
+        (line: 'puts "{{message}}"')
+    form:
+      task: greatest-common-divisor
+      name: standard
+      source:
+        (line: 'set left {{left}}')
+        (line: 'set right {{right}}')
+        (line: 'while {$right != 0} {')
+        (line: '    set remainder [expr {$left % $right}]')
+        (line: '    set left $right')
+        (line: '    set right $remainder')
+        (line: })
+        (line: 'puts $left')
+    form:
+      task: fizz-buzz
+      name: standard
+      source:
+        (line: 'set limit {{limit}}')
+        (line: 'for {set number 1} {$number <= $limit} {incr number} {')
+        (line: '    set label ""')
+        (line: '    if {$number % 3 == 0} {append label "Fizz"}')
+        (line: '    if {$number % 5 == 0} {append label "Buzz"}')
+        (line: '    puts [expr {$label eq "" ? $number : $label}]')
+        (line: })
+
+profile:
+  id: awk
+  label: Awk
+  comment: '#'
+  call: 'function call'
+  output: print
+  forms:
+    form:
+      task: hello
+      name: standard
+      source:
+        (line: 'BEGIN {')
+        (line: '    print "{{message}}"')
+        (line: })
+    form:
+      task: hello
+      name: collection
+      source:
+        (line: 'BEGIN {')
+        (line: '  print "{{message}}"')
+        (line: })
+    form:
+      task: greatest-common-divisor
+      name: standard
+      source:
+        (line: 'BEGIN {')
+        (line: '    left = {{left}}')
+        (line: '    right = {{right}}')
+        (line: '    while (right != 0) {')
+        (line: '        remainder = left % right')
+        (line: '        left = right')
+        (line: '        right = remainder')
+        (line: '    }')
+        (line: '    printf "%d\\n", left')
+        (line: })
+    form:
+      task: fizz-buzz
+      name: standard
+      source:
+        (line: 'BEGIN {')
+        (line: '    limit = {{limit}}')
+        (line: '    for (number = 1; number <= limit; number++) {')
+        (line: '        label = (number % 3 == 0 ? "Fizz" : "") (number % 5 == 0 ? "Buzz" : "")')
+        (line: '        print (label == "" ? number : label)')
+        (line: '    }')
+        (line: })
+
+profile:
+  id: powershell
+  label: PowerShell
+  comment: '#'
+  call: 'method call'
+  output: '[Console]::WriteLine'
+  forms:
+    form:
+      task: hello
+      name: standard
+      source:
+        (line: '[Console]::WriteLine("{{message}}")')
+    form:
+      task: greatest-common-divisor
+      name: standard
+      source:
+        (line: '$left = {{left}}')
+        (line: '$right = {{right}}')
+        (line: 'while ($right -ne 0) {')
+        (line: '    $left, $right = $right, ($left % $right)')
+        (line: })
+        (line: '[Console]::WriteLine($left)')
+    form:
+      task: fizz-buzz
+      name: standard
+      source:
+        (line: '$limit = {{limit}}')
+        (line: 'foreach ($number in 1..$limit) {')
+        (line: '    $label = ""')
+        (line: '    if ($number % 3 -eq 0) { $label += "Fizz" }')
+        (line: '    if ($number % 5 -eq 0) { $label += "Buzz" }')
+        (line: '    if ($label.Length -eq 0) { $label = [string]$number }')
+        (line: '    [Console]::WriteLine($label)')
+        (line: })
+`;

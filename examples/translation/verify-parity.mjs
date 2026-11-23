@@ -5,7 +5,7 @@ import {
   createTranslator,
   languageProfiles,
   writeEffect,
-} from '../../src/index.js';
+} from '../../js/src/index.js';
 
 import { exampleEffects, fixture, localizedGreetings } from './fixtures.mjs';
 

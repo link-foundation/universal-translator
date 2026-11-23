@@ -31,7 +31,7 @@ and after the effect survive `literal` translation when the destination can
 safely express them. `same-effect` omits comments.
 
 Natural-language profiles recognize the precise wordings checked into the
-[profile catalog](../../src/translation/data/07-natural-languages.lino).
+[profile catalog](../../data/07-natural-languages.lino).
 The parameter values remain translatable even when the description is in a
 non-Latin script. The profiles preserve the printed string and the output
 tokens `Fizz`, `Buzz`, and `FizzBuzz` across all languages.
@@ -130,7 +130,7 @@ evaluated referent example uses
 synthetic observations to show how a narrower description and exact reverse
 translation affect rankings.
 
-Edit profile data in `src/translation/data` and run
+Edit profile data in `data` and run
 `node scripts/bundle-translation-profiles.mjs` to refresh the browser-compatible
 JavaScript bundle. Rust reads the same Links Notation source at build time.
 The [corpus coverage report](../../docs/case-studies/issue-1/README.md#coverage)

@@ -3,7 +3,7 @@
 import { readFileSync, realpathSync } from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
 
-import { add, createTranslator, multiply } from '../src/index.js';
+import { add, createTranslator, multiply } from '../js/src/index.js';
 
 const COMMANDS = {
   add,
