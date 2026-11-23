@@ -19,13 +19,13 @@ All investigation artifacts are stored in this directory:
 
 | File                                                | Purpose                                                             |
 | --------------------------------------------------- | ------------------------------------------------------------------- |
-| `data/issue-40.json`                                | Full issue metadata and comments for this repository                |
-| `data/pr-43.json`                                   | PR metadata and status checks before this fix                       |
-| `data/ci-runs-branch.json`                          | Recent CI runs for branch `issue-40-712d252c6da1`                   |
-| `data/ci-run-25212337438.json`                      | Metadata for the initial PR CI run                                  |
+| `data/issue-40.lino`                                | Full issue metadata and comments for this repository                |
+| `data/pr-43.lino`                                   | PR metadata and status checks before this fix                       |
+| `data/ci-runs-branch.lino`                          | Recent CI runs for branch `issue-40-712d252c6da1`                   |
+| `data/ci-run-25212337438.lino`                      | Metadata for the initial PR CI run                                  |
 | `ci-logs/checks-and-release-25212337438.log`        | Downloaded log for the initial PR CI run                            |
-| `data/downstream-web-capture-issue-98.json`         | Downstream bug report that exposed the issue                        |
-| `data/downstream-web-capture-pr-99.json`            | Downstream fix PR metadata                                          |
+| `data/downstream-web-capture-issue-98.lino`         | Downstream bug report that exposed the issue                        |
+| `data/downstream-web-capture-pr-99.lino`            | Downstream fix PR metadata                                          |
 | `data/downstream-web-capture-pr-99.diff`            | Downstream fix diff for comparison                                  |
 | `data/shields-broken-prefixed-badge.svg`            | Live shields.io response for the broken prefixed badge URL          |
 | `data/shields-working-normalized-badge.svg`         | Live shields.io response for the normalized badge URL               |

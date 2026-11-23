@@ -29,13 +29,13 @@ This case study preserves the issue data, PR data, CI logs, code-search evidence
 
 Raw evidence is stored under `docs/case-studies/issue-42/data/` and `docs/case-studies/issue-42/ci-logs/`.
 
-- `issue-42.json` and `issue-42-comments.json`: issue body and expanded requirements.
-- `pr-45.json`, `pr-45-conversation-comments.json`, `pr-45-review-comments.json`, and `pr-45-reviews.json`: PR metadata and comment channels.
-- `ci-runs-branch.json` and `ci-logs/checks-and-release-25212342558.log`: branch CI history and the initial successful placeholder-run log.
+- `issue-42.lino` and `issue-42-comments.lino`: issue body and expanded requirements.
+- `pr-45.lino`, `pr-45-conversation-comments.lino`, `pr-45-review-comments.lino`, and `pr-45-reviews.lino`: PR metadata and comment channels.
+- `ci-runs-branch.lino` and `ci-logs/checks-and-release-25212342558.log`: branch CI history and the initial successful placeholder-run log.
 - `js-template-file-tree.txt`: JavaScript template file tree used for CI/CD script review.
 - `rust-template-file-tree.txt`, `rust-template-head.txt`, and `rust-template-ci-cd-findings.txt`: Rust template comparison data.
 - `link-foundation-my-package-search.txt` and `link-foundation-package-name-search.txt`: GitHub code-search evidence for placeholder usage across related repositories.
-- `related-merged-prs-publish-to-npm.json` and `related-merged-prs-check-release-needed.json`: related historical PRs used to understand local conventions.
+- `related-merged-prs-publish-to-npm.lino` and `related-merged-prs-check-release-needed.lino`: related historical PRs used to understand local conventions.
 
 ## Online References
 

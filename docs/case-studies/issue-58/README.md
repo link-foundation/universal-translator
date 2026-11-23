@@ -67,7 +67,7 @@ The selected fix is to make this repository a real scoped test package:
 - A changeset is included so the next main release has an explicit release
   trigger.
 
-The npm registry probe in `data/npm-historical-template-package-view.json` returned
+The npm registry probe in `data/npm-historical-template-package-view.log` returned
 404 before this PR, meaning the package is not visible as an already-published
 package to this environment. The first successful main release still depends on
 the npm-side trusted publisher being configured for the new package and this
@@ -85,7 +85,7 @@ enabled.
 The selected fix has two parts:
 
 - Repository Pages was enabled for workflow deployments and the resulting state
-  was saved in `data/pages-status-after-enable.json`.
+  was saved in `data/pages-status-after-enable.lino`.
 - `.github/workflows/example-app.yml` now includes `actions/configure-pages@v6`
   before uploading and deploying the Pages artifact on `main` pushes.
 
@@ -132,21 +132,21 @@ Raw evidence is stored under `docs/case-studies/issue-58/data/`.
 
 | File                                                                                                 | Purpose                                                                                                        |
 | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `issue-58.json`, `issue-58-comments.json`                                                            | Issue metadata, body, and comments.                                                                            |
-| `pr-59.json`, `pr-59-conversation-comments.json`, `pr-59-review-comments.json`, `pr-59-reviews.json` | PR metadata and all PR comment channels.                                                                       |
-| `main-ci-runs.json`                                                                                  | Recent `main` workflow runs used to identify current failures.                                                 |
-| `checks-and-release-25733140225.json`, `checks-and-release-25733140225.log`                          | Failed main release run showing the `my-package` npm publish failure.                                          |
-| `example-app-25733140224.json`, `example-app-25733140224.log`                                        | Failed example app run showing successful artifacts and failed Pages deployment.                               |
-| `ci-run-25743983223.json`, `checks-and-release-25743983223.log`                                      | Initial PR branch run for the prepared branch.                                                                 |
-| `npm-historical-template-package-view.json`                                                          | npm registry probe for `historical-template-package`.                                                          |
+| `issue-58.lino`, `issue-58-comments.lino`                                                            | Issue metadata, body, and comments.                                                                            |
+| `pr-59.lino`, `pr-59-conversation-comments.lino`, `pr-59-review-comments.lino`, `pr-59-reviews.lino` | PR metadata and all PR comment channels.                                                                       |
+| `main-ci-runs.lino`                                                                                  | Recent `main` workflow runs used to identify current failures.                                                 |
+| `checks-and-release-25733140225.lino`, `checks-and-release-25733140225.log`                          | Failed main release run showing the `my-package` npm publish failure.                                          |
+| `example-app-25733140224.lino`, `example-app-25733140224.log`                                        | Failed example app run showing successful artifacts and failed Pages deployment.                               |
+| `ci-run-25743983223.lino`, `checks-and-release-25743983223.log`                                      | Initial PR branch run for the prepared branch.                                                                 |
+| `npm-historical-template-package-view.log`                                                           | npm registry probe for `historical-template-package`.                                                          |
 | `npm-whoami.log`                                                                                     | Local npm auth probe showing this environment cannot configure npm-side trusted publishing directly.           |
 | `npm-global-install.log`                                                                             | Temporary-prefix global install check for the generated `historical-template-package` command.                 |
-| `npm-pack-dry-run-final.json`                                                                        | `npm pack --dry-run --json --ignore-scripts` output showing the package name, tarball name, and shipped files. |
-| `pages-enable-result.json`, `pages-status-after-enable.json`                                         | GitHub Pages REST API enablement result and final repository Pages status.                                     |
+| `npm-pack-dry-run-final.lino`                                                                        | `npm pack --dry-run --json --ignore-scripts` output showing the package name, tarball name, and shipped files. |
+| `pages-enable-result.lino`, `pages-status-after-enable.lino`                                         | GitHub Pages REST API enablement result and final repository Pages status.                                     |
 | `actions-*-release.json`                                                                             | Current release metadata for GitHub Actions used by the workflows.                                             |
 | `{js,rust,python,csharp}-template-file-tree.txt`                                                     | File-tree captures for CI/CD comparison.                                                                       |
 | `{rust,python,csharp}-template-release.yml`                                                          | Release workflow captures for sibling-template comparison.                                                     |
-| `pr-57.json`, `pr-57.diff`                                                                           | The previous universal-app PR that introduced the failing main workflows.                                      |
+| `pr-57.lino`, `pr-57.diff`                                                                           | The previous universal-app PR that introduced the failing main workflows.                                      |
 | `regression-before.log`, `regression-after.log`, `regression-after-2.log`, `regression-after-3.log`  | Focused regression test output before and after the implementation.                                            |
 
 ## Online References
@@ -173,7 +173,7 @@ Focused regression verification is stored in `data/regression-after.log` and
 `data/regression-after-2.log`, with the final CLI symlink regression in
 `data/regression-after-3.log`.
 
-The package tarball dry run in `data/npm-pack-dry-run-final.json` shows:
+The package tarball dry run in `data/npm-pack-dry-run-final.lino` shows:
 
 - package id `historical-template-package@0.10.0`;
 - tarball `historical-template-package-0.10.0.tgz`;

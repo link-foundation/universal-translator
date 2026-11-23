@@ -18,9 +18,22 @@ issue comments, sub-issues, PR discussion, inline comments, reviews, and
 three related PRs. The issue had zero comments and zero sub-issues. The PR
 had no inline comments or submitted reviews. The conversation contains the
 follow-up request for Ubuntu-only CI, Links Notation, and a larger example
-corpus. The capture script verifies that the Links Notation preserves the
-GitHub API values. Package-manager and GitHub API boundaries still use the
-formats those tools require. [PR 5 feedback](https://github.com/link-foundation/universal-translator/pull/5#issuecomment-7092772656)
+corpus. The capture script validates that each Links Notation snapshot
+decodes to the same values as the original JSON. The same check covers 93
+historical case-study snapshots, and the captured npm error transcript is
+stored verbatim as a log. Package managers, tool configurations, and the
+GitHub API use the formats those tools require.
+[PR 5 feedback](https://github.com/link-foundation/universal-translator/pull/5#issuecomment-7092772656)
+
+The [snapshot converter](../../../experiments/case-study-snapshot.mjs)
+reads a JSON file or standard input. Use `--decode` to export the
+equivalent JSON values for tools that consume them.
+
+```sh
+gh api repos/link-foundation/universal-translator/issues/1 |
+  node experiments/case-study-snapshot.mjs > issue-1.lino
+node experiments/case-study-snapshot.mjs --decode issue-1.lino
+```
 
 GitHub, RedMonk, and the Stack Overflow survey informed the original
 28-language roster. The follow-up does not name a ranking. This audit

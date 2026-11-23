@@ -4,16 +4,16 @@
 
 Raw research snapshots are stored in `data/`:
 
-- `issue-93.json` and `issue-93-comments.json`: issue body and discussion.
-- `pr-94.json`: prepared pull request metadata and initial CI checks.
-- `ci-runs-issue-93.json`: branch workflow runs captured before implementation.
-- `link-foundation-eslint-rules-search.json`: org code search for existing
+- `issue-93.lino` and `issue-93-comments.lino`: issue body and discussion.
+- `pr-94.lino`: prepared pull request metadata and initial CI checks.
+- `ci-runs-issue-93.lino`: branch workflow runs captured before implementation.
+- `link-foundation-eslint-rules-search.lino`: org code search for existing
   local ESLint rule patterns.
-- `link-foundation-no-changelog-comments-search.json`: org code search for an
+- `link-foundation-no-changelog-comments-search.lino`: org code search for an
   exact existing rule name.
-- `merged-prs-eslint.json` and `merged-prs-case-study.json`: recent related
+- `merged-prs-eslint.lino` and `merged-prs-case-study.lino`: recent related
   merged pull requests for local style.
-- `npm-search-eslint-changelog-comments.json`: npm search for related ESLint
+- `npm-search-eslint-changelog-comments.lino`: npm search for related ESLint
   packages.
 
 Additional online references reviewed on 2026-06-26:

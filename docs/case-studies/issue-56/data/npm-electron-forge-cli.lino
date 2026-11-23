@@ -1,0 +1,1 @@
+(snapshot: (object: (version: (string: 7.11.1)) (repository: (object: (url: (string: 'git+https://github.com/electron/forge.git')) (type: (string: git)))) (homepage: (string: 'https://github.com/electron/forge#readme')) (license: (string: MIT)) (description: (string: 'A complete tool for building modern Electron applications'))))
