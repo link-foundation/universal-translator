@@ -131,6 +131,15 @@ still needs independent execution and a comparison of the original and
 translated effects before it can be included in native coverage.
 [Meta Language portable translator](https://github.com/link-foundation/meta-language/blob/v1.0.0/rust/src/program_translation.rs#L133)
 
+The Rust CST round-trip test exercises 25 ranked languages against small
+representative programs. It checks grammar structure and exact source
+restoration from the serialized network. The tagged JavaScript 1.0 engine
+and the Rust CLI exchange CSTs in both directions for seven specimens,
+including UTF-8, CRLF, missing final newlines, and empty source. Catalog-wide
+grammar and concept coverage remain open. The JavaScript codec requires the
+tagged engine while the matching npm release is pending.
+[CST verification](../../../examples/translation/README.md#exchange-a-grammar-tree)
+
 Run the probe after preparing the pinned archive with the example commands.
 It reuses the locked dependency and bounds the parser process's memory and
 stack. It prints the candidate paths and per-language totals.

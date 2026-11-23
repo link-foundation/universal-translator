@@ -450,6 +450,7 @@ jobs:
           cargo build --locked --bin universal-translator
           node examples/translation/verify-parity.mjs
           node examples/translation/dependent-meanings.mjs
+          bash experiments/verify-syntax-exchange.sh
 
       - name: Round-trip the pinned Rosetta Code corpus
         env:

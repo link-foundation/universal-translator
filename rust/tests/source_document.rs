@@ -1,3 +1,4 @@
+use meta_language::{LinkNetwork, LinkType};
 use universal_translator::SourceDocument;
 
 #[test]
@@ -25,6 +26,127 @@ fn rejects_malformed_records_and_line_boundaries() {
     ] {
         assert!(SourceDocument::from_links_notation(notation).is_err());
     }
+}
+
+#[test]
+fn grammar_network_preserves_structure_and_source() {
+    for (language, source, syntax) in [
+        (
+            "JavaScript",
+            "\u{feff}// 🐍\r\nconst value = 1;\r\n",
+            "lexical_declaration",
+        ),
+        ("Rust", "fn main() { /* 🦀 */ }\n", "function_item"),
+        (
+            "Python",
+            "# 🐍\ndef greet():\r\n    return 'hi'\t",
+            "function_definition",
+        ),
+        (
+            "C",
+            include_str!("../../examples/translation/hello.c"),
+            "function_definition",
+        ),
+        (
+            "C#",
+            include_str!("../../examples/translation/hello.cs"),
+            "class_declaration",
+        ),
+        ("sql-sqlite", "  SELECT 1; -- comment\n", "statement"),
+        ("rust", "", "source_file"),
+    ] {
+        let document = SourceDocument {
+            language: language.into(),
+            source: source.into(),
+        };
+        let notation = document.syntax_network().unwrap().to_lino();
+        let network = LinkNetwork::from_lino(&notation).unwrap();
+        assert!(
+            network.links().any(|link| {
+                link.metadata().link_type() == Some(LinkType::Syntax)
+                    && link.metadata().term() == Some(syntax)
+            }),
+            "{language} CST lacks {syntax}"
+        );
+        assert_eq!(network.to_lino(), notation);
+        assert_eq!(
+            SourceDocument::from_syntax_notation(&notation).unwrap(),
+            document
+        );
+    }
+}
+
+#[test]
+fn ranked_language_grammars_round_trip_programs() {
+    for (language, source) in [
+        ("Python", "print('Hello')\n"),
+        ("C", include_str!("../../examples/translation/hello.c")),
+        (
+            "Java",
+            "class Hello { public static void main(String[] args) {} }\n",
+        ),
+        ("C++", "int main() { return 0; }\n"),
+        ("C#", include_str!("../../examples/translation/hello.cs")),
+        ("JavaScript", "console.log('Hello');\n"),
+        ("R", "print('Hello')\n"),
+        ("sql-ansi", "SELECT 1;\n"),
+        (
+            "Visual Basic",
+            "Module Main\n    Sub Hello()\n    End Sub\nEnd Module\n",
+        ),
+        ("Go", "package main\nfunc main() {}\n"),
+        ("Rust", "fn main() {}\n"),
+        ("PHP", "<?php echo 'Hello';\n"),
+        ("Perl", "print 'Hello';\n"),
+        ("MATLAB", "disp('Hello');\n"),
+        ("Swift", "print(\"Hello\")\n"),
+        ("Delphi/Object Pascal", "program Hello;\nbegin\nend.\n"),
+        ("Dart", "void main() {}\n"),
+        ("Ruby", "puts 'Hello'\n"),
+        ("Lua", "print('Hello')\n"),
+        ("Kotlin", "fun main() {}\n"),
+        ("OCaml", "let () = print_endline \"Hello\"\n"),
+        (
+            "Scala",
+            "object Hello { def main(args: Array[String]): Unit = () }\n",
+        ),
+        ("Haskell", "main = putStrLn \"Hello\"\n"),
+        ("TypeScript", "const greeting: string = 'Hello';\n"),
+        ("Solidity", "contract Hello {}\n"),
+    ] {
+        let document = SourceDocument {
+            language: language.into(),
+            source: source.into(),
+        };
+        let network = document
+            .syntax_network()
+            .unwrap_or_else(|error| panic!("{language}: {error}"));
+        assert!(
+            !network.links().any(|link| {
+                link.metadata().link_type() == Some(LinkType::Syntax)
+                    && link.metadata().flags().has_error()
+            }),
+            "{language} CST contains a parse error"
+        );
+        assert_eq!(
+            SourceDocument::from_syntax_notation(&network.to_lino()).unwrap(),
+            document
+        );
+    }
+}
+
+#[test]
+fn grammar_network_rejects_unsupported_language_and_non_cst_documents() {
+    let document = SourceDocument {
+        language: "Nonexistent grammar".into(),
+        source: "(text)".into(),
+    };
+    assert!(document.syntax_network().is_err());
+    assert!(SourceDocument::from_syntax_notation(&document.to_links_notation().unwrap()).is_err());
+    let backwards_span = "(1: (meta: (t: document) (span: 4 3 0 0 0 0)))";
+    assert!(SourceDocument::from_syntax_notation(backwards_span).is_err());
+    let overflowing_id = "(18446744073709551615: (meta: (t: document)))";
+    assert!(SourceDocument::from_syntax_notation(overflowing_id).is_err());
 }
 
 #[test]

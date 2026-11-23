@@ -7,6 +7,8 @@ const USAGE: &str = "Usage:
   universal-translator roundtrip <language> [file|-]
   universal-translator encode-source <language> [file|-]
   universal-translator decode-source [file|-]
+  universal-translator encode-cst <language> [file|-]
+  universal-translator decode-cst [file|-]
   universal-translator languages
   universal-translator --version
 
@@ -88,6 +90,16 @@ fn run(arguments: &[String]) -> Result<String, String> {
         }
         ["decode-source", trailing @ ..] if trailing.len() <= 1 => {
             Ok(SourceDocument::from_links_notation(&source(trailing.first().copied())?)?.source)
+        }
+        ["encode-cst", language, trailing @ ..] if trailing.len() <= 1 => {
+            let document = SourceDocument {
+                language: (*language).to_owned(),
+                source: source(trailing.first().copied())?,
+            };
+            Ok(document.syntax_network()?.to_lino())
+        }
+        ["decode-cst", trailing @ ..] if trailing.len() <= 1 => {
+            Ok(SourceDocument::from_syntax_notation(&source(trailing.first().copied())?)?.source)
         }
         ["translate", from, to, trailing @ ..] => {
             translate(&Translator::default(), from, to, trailing)

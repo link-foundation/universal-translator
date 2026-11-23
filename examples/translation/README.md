@@ -70,6 +70,30 @@ documents. A source document supports exact restoration for any language
 label. The effect intermediate supports translation for admitted program
 forms.
 
+## Exchange a grammar tree
+
+```sh
+cargo run --locked -- encode-cst C examples/translation/hello.c > /tmp/hello-cst.lino
+cargo run --locked -- decode-cst /tmp/hello-cst.lino | cmp examples/translation/hello.c -
+```
+
+The CST retains grammar nodes, parser provenance, UTF-8 byte spans and source
+tokens. `SourceDocument::syntax_network()` exposes the Meta Language network in
+Rust and `SourceDocument::from_syntax_notation()` restores its source. Languages
+without a grammar can use the `encode-source` and `decode-source` commands.
+
+JavaScript accepts the `LinkNetwork` class from Meta Language 1.0 through
+`createSourceSyntaxCodec(LinkNetwork)`. The codec's `write(language, source)`
+and `read(notation)` exchange serialized networks with Rust. The package's
+locked npm Meta Language dependency is 0.46.0. For the 1.0 codec, use Node.js 22
+or later and build the JavaScript subtree of the matching upstream tag.
+[Matching npm release](https://github.com/link-foundation/meta-language/pull/251)
+
+```sh
+CARGO_BUILD_JOBS=1 CARGO_PROFILE_DEV_DEBUG=0 cargo build --locked --bin universal-translator
+bash experiments/verify-syntax-exchange.sh
+```
+
 ## JavaScript and Rust shared-library forms
 
 Both implementations ship callable functions for line output, Euclidean GCD,

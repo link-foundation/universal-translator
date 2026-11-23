@@ -47,6 +47,12 @@ verify this round trip for all 143,457 source files across the 1,758 tasks and
 883 language directories in the pinned Rosetta Code archive. The task
 contracts define the current scope for executable translations.
 
+The Rust CLI also provides `encode-cst <language>` and `decode-cst` for Meta
+Language grammar trees with byte spans, source tokens, and parser provenance.
+JavaScript can exchange the same serialized networks through
+`createSourceSyntaxCodec` with the Meta Language 1.0 JavaScript implementation.
+[Grammar round-trip examples](examples/translation/README.md#exchange-a-grammar-tree)
+
 See the [runnable examples](examples/translation/README.md) and the
 [issue 1 case study](docs/case-studies/issue-1/README.md).
 

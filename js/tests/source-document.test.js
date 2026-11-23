@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'test-anywhere';
 import { runCli } from '../../bin/universal-translator.js';
-import { readSourceDocument, writeSourceDocument } from '../src/index.js';
+import {
+  createSourceSyntaxCodec,
+  readSourceDocument,
+  writeSourceDocument,
+} from '../src/index.js';
 
 describe('Links Notation source documents', () => {
   it('preserves line endings, BOM, blank lines, and final text', () => {
@@ -42,5 +46,11 @@ describe('Links Notation source documents', () => {
       })
     ).toBe(0);
     expect(restored).toBe(source);
+  });
+});
+
+describe('Meta Language source syntax', () => {
+  it('requires a parser with grammar provenance', () => {
+    expect(() => createSourceSyntaxCodec()).toThrow('grammar provenance');
   });
 });

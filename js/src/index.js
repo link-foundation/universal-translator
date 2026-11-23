@@ -33,6 +33,7 @@ export { rankInterpretations } from './translation/referents.js';
 export { readEffects, writeEffect } from './translation/effect-links.js';
 export * as commonLibrary from './common-library.mjs';
 export {
+  createSourceSyntaxCodec,
   readSourceDocument,
   writeSourceDocument,
 } from './translation/source-document.js';

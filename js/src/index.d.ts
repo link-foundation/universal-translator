@@ -34,3 +34,21 @@ export function readSourceDocument(notation: string): {
   source: string;
 };
 export function writeSourceDocument(language: string, source: string): string;
+
+interface SyntaxNetwork {
+  links(): Array<{
+    metadata(): { linkType?: string; language?: string; span?: unknown };
+  }>;
+  parseGrammars(): Array<{ language: string }>;
+  reconstructText(): string;
+  toLino(): string;
+}
+
+export function createSourceSyntaxCodec(linkNetwork: {
+  prototype: SyntaxNetwork;
+  parse(source: string, language: string): SyntaxNetwork;
+  fromLino(notation: string): SyntaxNetwork;
+}): {
+  write(language: string, source: string): string;
+  read(notation: string): { language: string; source: string };
+};

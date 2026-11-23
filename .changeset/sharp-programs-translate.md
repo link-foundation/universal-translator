@@ -11,3 +11,5 @@ JavaScript and Rust also translate a callable GCD function with signed integer i
 Translate FizzBuzz variants that write lowercase results, quote each result, or add a final blank line. The common library forms and all 20 natural-language profiles preserve the exact output layout.
 
 Translate an empty program between JavaScript, Rust, Links Notation, and all 20 natural-language profiles. Verify the original Rust specimen and the generated JavaScript program for a successful exit and empty output streams.
+
+Expose Meta Language grammar CST encoding and decoding in the Rust CLI and a JavaScript codec for the matching Meta Language 1.0 engine. Preserve grammar nodes, parser provenance, and UTF-8 source bytes in the exchanged Links Notation network.
