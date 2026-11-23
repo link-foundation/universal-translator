@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
+import { Buffer } from 'node:buffer';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { URL } from 'node:url';
 import { createTranslator } from '../../src/index.js';
 import {
@@ -51,9 +53,37 @@ for (const [index, entry] of ranks.entries()) {
   }
 }
 
-const [inventoryPath, helloWorldPath, rustBinary] = process.argv.slice(2);
+const [inventoryPath, helloWorldPath, rustBinary, treeDirectory] =
+  process.argv.slice(2);
+function verifyGreeting(source, language, form, message, origin) {
+  const document = translator.parse(source, language);
+  assert.equal(translator.restore(document), source, origin);
+  assert.equal(document.interpretation?.form, form, origin);
+  assert.deepEqual(document.interpretation.effect, {
+    task: 'hello',
+    message,
+  });
+  if (rustBinary) {
+    const rust = (args) =>
+      execFileSync(rustBinary, args, { encoding: 'utf8', input: source });
+    assert.equal(rust(['roundtrip', language]), source, origin);
+    const args = ['translate', language, 'meta', '--mode', 'same-effect'];
+    const meta = translator.translate(source, language, 'meta', {
+      mode: 'same-effect',
+    });
+    assert.equal(rust(args), meta, origin);
+  }
+}
+
 const taskCount = Number(reference(rosetta.get('task-count')));
-const entryCount = Number(reference(rosetta.get('entry-count')));
+const inventoryTaskCount = Number(
+  reference(rosetta.get('inventory-task-count'))
+);
+const inventoryLanguageCount = Number(
+  reference(rosetta.get('inventory-language-count'))
+);
+let inventoryTasks;
+let checkedRosetta = 0;
 if (inventoryPath) {
   const input = readFileSync(inventoryPath);
   assert.equal(
@@ -61,21 +91,94 @@ if (inventoryPath) {
     reference(rosetta.get('sha256'))
   );
   const [header, ...rows] = input.toString('utf8').trimEnd().split('\n');
-  assert.equal(header, `${entryCount} Total`);
-  assert.equal(rows.length, taskCount);
-  const entries = new Map(
+  assert.equal(header, `${inventoryLanguageCount} Total`);
+  assert.equal(rows.length, inventoryTaskCount);
+  inventoryTasks = new Map(
     rows.map((row) => {
       const [count, task] = row.split(' ');
       return [task, Number(count)];
     })
   );
-  assert.equal(entries.size, taskCount);
+  assert.equal(inventoryTasks.size, inventoryTaskCount);
   assert.equal(
-    [...entries.values()].reduce((total, count) => total + count, 0),
-    entryCount
+    [...inventoryTasks.values()].reduce((total, count) => total + count, 0),
+    inventoryLanguageCount
   );
   for (const [, task, count] of authored) {
-    assert.equal(entries.get(task), Number(count));
+    assert.equal(inventoryTasks.get(task), Number(count));
+  }
+}
+
+if (treeDirectory) {
+  // GitHub's Git Trees API exposes tree entries as JSON. Check the selected
+  // revision and the response's truncation flag before using its counts.
+  const entriesFrom = (name, sha) => {
+    const input = readFileSync(join(treeDirectory, `${name}.json`), 'utf8');
+    const { truncated, sha: actual, tree } = JSON.parse(input);
+    assert.equal(actual, sha, name);
+    assert.equal(truncated, false, name);
+    return tree;
+  };
+  const taskEntries = entriesFrom('tasks', reference(rosetta.get('task-tree')));
+  const tasks = new Map(
+    taskEntries
+      .filter(({ type }) => type === 'tree')
+      .map(({ path, sha }) => [path, sha])
+  );
+  assert.equal(tasks.size, taskCount);
+  for (const name of inventoryTasks.keys()) {
+    assert.ok(tasks.has(name), `Missing task ${name} from source tree`);
+  }
+  const inventoryOmissions = [...tasks.keys()].filter(
+    (name) => !inventoryTasks.has(name)
+  );
+  console.log(
+    formatRecord('rosetta-tree-only-tasks', {
+      tasks: inventoryOmissions.join(', '),
+    })
+  );
+  for (const [task, name, , sha, languageCount, sampleCount] of authored) {
+    assert.equal(tasks.get(name), sha, name);
+    const entries = entriesFrom(name, sha);
+    const languages = entries.filter(
+      ({ type, path }) => type === 'tree' && !path.includes('/')
+    );
+    const samples = entries.filter(
+      ({ type, path }) => type === 'blob' && /^[^/]+\/(?!00-)[^/]+$/.test(path)
+    );
+    assert.equal(languages.length, Number(languageCount), name);
+    assert.equal(samples.length, Number(sampleCount), name);
+    console.log(
+      formatRecord('rosetta-task-source-count', {
+        task: name,
+        languages: languageCount,
+        samples: sampleCount,
+      })
+    );
+    if (task === 'hello') {
+      const hashes = new Map(samples.map(({ path, sha }) => [path, sha]));
+      const root = new URL('.', reference(rosetta.get('inventory')));
+      const programs = namedLinks(
+        rosetta.get('verified-source-files'),
+        'program'
+      ).map(references);
+      for (const [path, language, form, message] of programs) {
+        assert.ok(hashes.has(path), path);
+        const relative = path.split('/').map(encodeURIComponent).join('/');
+        const response = await fetch(new URL(`Task/${name}/${relative}`, root));
+        assert.ok(response.ok, path);
+        const bytes = Buffer.from(await response.arrayBuffer());
+        const hash = createHash('sha1')
+          .update(`blob ${bytes.length}\0`)
+          .update(bytes)
+          .digest('hex');
+        assert.equal(hash, hashes.get(path), path);
+        const source = bytes.toString('utf8');
+        assert.deepEqual(Buffer.from(source), bytes, path);
+        verifyGreeting(source, language, form, message, path);
+        checkedRosetta += 1;
+      }
+    }
   }
 }
 
@@ -121,23 +224,7 @@ if (helloWorldPath) {
     const source = block[1]
       .replace(/<\/?a(?:\s[^>]*)?>/gu, '')
       .replace(/&(amp|gt|lt);/gu, (_, name) => entities[name]);
-    const document = translator.parse(source, language);
-    assert.equal(translator.restore(document), source, anchor);
-    assert.equal(document.interpretation?.form, form, anchor);
-    assert.deepEqual(document.interpretation.effect, {
-      task: 'hello',
-      message,
-    });
-    if (rustBinary) {
-      const rust = (args) =>
-        execFileSync(rustBinary, args, { encoding: 'utf8', input: source });
-      assert.equal(rust(['roundtrip', language]), source, anchor);
-      const args = ['translate', language, 'meta', '--mode', 'same-effect'];
-      const meta = translator.translate(source, language, 'meta', {
-        mode: 'same-effect',
-      });
-      assert.equal(rust(args), meta, anchor);
-    }
+    verifyGreeting(source, language, form, message, anchor);
   }
 }
 
@@ -151,9 +238,11 @@ console.log(
 );
 console.log(
   formatRecord('rosetta-code-coverage', {
-    tasks: taskCount,
-    entries: entryCount,
+    'source-tasks': taskCount,
+    'inventory-tasks': inventoryTaskCount,
+    'inventory-language-count': inventoryLanguageCount,
     'authored-tasks': authored.length,
     'unimplemented-tasks': taskCount - authored.length,
+    'source-programs-checked': checkedRosetta,
   })
 );

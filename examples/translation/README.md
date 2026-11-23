@@ -94,6 +94,28 @@ node examples/translation/report-coverage.mjs \
   ./target/debug/universal-translator
 ```
 
+To check the Rosetta Code task directories and the sample counts for the
+three implemented tasks, also pass a directory containing the pinned Git
+Trees responses. This mode also downloads 10 pinned Hello World Text source
+files from GitHub and checks their blob hashes, exact round trips, and greeting
+effects in both runtimes.
+
+```sh
+rosetta_trees=$(mktemp -d)
+rosetta_api=repos/acmeism/RosettaCodeData/git/trees
+gh api "$rosetta_api/c6cbdf28628322ccbfddc21556c061a9dc4a56b1" \
+  > "$rosetta_trees/tasks.json"
+gh api "$rosetta_api/9e55da45ac46c3aba4f34d449f865c001289e529?recursive=1" \
+  > "$rosetta_trees/Hello-world-Text.json"
+gh api "$rosetta_api/751622a645e6f7c20c15145b45eed8d57b9811db?recursive=1" \
+  > "$rosetta_trees/Greatest-common-divisor.json"
+gh api "$rosetta_api/f0d6e89cef62f34a13bb64cd149459c97b9d9c7d?recursive=1" \
+  > "$rosetta_trees/FizzBuzz.json"
+node examples/translation/report-coverage.mjs \
+  /path/to/popular-tasks /path/to/hello-world-collection.html \
+  ./target/debug/universal-translator "$rosetta_trees"
+```
+
 The native runner uses a temporary directory per program. It accepts profile
 IDs or `--group=baseline` and `--group=extended` to focus a run. Both Ubuntu
 CI jobs use `--require-all` so missing tools fail the job. The separately

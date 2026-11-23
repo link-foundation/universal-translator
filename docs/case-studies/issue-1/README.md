@@ -68,19 +68,22 @@ node experiments/white-person-corpus.mjs |
 
 ## Coverage
 
-The pinned Rosetta Code mirror lists 1,753 tasks and 108,960 entries. It
-counts variants and environments. The three authored tasks correspond to
-595 Hello World text entries, 344 FizzBuzz entries, and 233 GCD entries.
-The implementation has one or more authored forms for those tasks, with
-bounded, testable contracts. It covers three task definitions, leaving
-1,750 task definitions and source variants outside that catalog. The Hello
-World Collection homepage reports 603 programs and greetings in 78 human
-languages. The coverage report can check 24 original console snippets
-against the pinned page. It extracts their program text, verifies exact
-round trips and checks that the output effect preserves each original
-greeting, including punctuation. The native runner also executes the matching
-collection forms for each available toolchain. Other source entries, including platform-specific
-forms and localized greetings, still need recognition and verification.
+The pinned Rosetta Code source tree contains 1,758 task directories. The
+published popularity file lists 1,753 tasks and a sum of 108,960 language
+counts. Five tasks appear only in the source tree. Directly counting source
+files within language directories gives 750 Hello World Text samples,
+675 FizzBuzz samples, and 355 GCD samples. The implementation covers three
+task definitions with bounded contracts. The 1,755 other task definitions
+still need adapters and verification. The report verifies 10 original Rosetta
+Code Hello World Text programs against their pinned Git blob hashes and
+checks exact round trips and greeting effects. Other original source variants,
+including the FizzBuzz and GCD source files, still need per-entry verification.
+The Hello World Collection homepage reports 603 programs and greetings in
+78 human languages. The report extracts 24 original console snippets from
+the pinned page and applies the same round-trip and greeting checks. The
+native runner executes matching collection forms for each available toolchain.
+The other collection entries, including platform-specific forms and localized
+greetings, still need recognition and verification.
 [Pinned Rosetta Code inventory](https://github.com/acmeism/RosettaCodeData/blob/1d475861d7141ef2fafff293d9339f56e4b0f5db/popular-tasks) ·
 [Hello World Collection](http://helloworldcollection.de/)
 
@@ -96,7 +99,9 @@ Pass local copies of the linked Rosetta Code inventory and the Hello World
 Collection page, in that order, to verify their checksums and reported counts
 and check the selected original programs. Pass the compiled Rust CLI as the
 third argument to compare exact round trips and Meta Language output in both
-runtimes.
+runtimes. A fourth argument accepts the pinned Git Trees responses to verify
+the source counts and the 10 original Rosetta Code programs.
+[Reproduction commands](../../../examples/translation/README.md#verification)
 
 The absent ranked entries include graphical formats and targets with
 non-console observations. Scratch and LabVIEW require project or diagram
