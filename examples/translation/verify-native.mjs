@@ -21,6 +21,7 @@ import {
   expectedOutput,
   fixture,
   localizedGreetings,
+  nativeArguments,
   nativeProgram,
 } from './fixtures.mjs';
 
@@ -74,8 +75,12 @@ function interpreted(filename, command, ...argumentsBeforeFilename) {
   return {
     filename,
     tools: [command],
-    execute: (directory) =>
-      run(directory, command, ...argumentsBeforeFilename, filename),
+    execute: (directory, _form, invocations) =>
+      invocations
+        .map((args) =>
+          run(directory, command, ...argumentsBeforeFilename, filename, ...args)
+        )
+        .join(''),
   };
 }
 
@@ -83,9 +88,11 @@ function compiled(filename, compiler, ...flags) {
   return {
     filename,
     tools: [compiler],
-    execute(directory) {
+    execute(directory, _form, invocations) {
       run(directory, compiler, ...flags, filename, '-o', 'program');
-      return run(directory, './program');
+      return invocations
+        .map((args) => run(directory, './program', ...args))
+        .join('');
     },
   };
 }
@@ -309,7 +316,14 @@ const extendedRunners = {
   fish: interpreted('main.fish', 'fish', '--no-config'),
 };
 
-function check(runner, source, expected, description, form = 'standard') {
+function check(
+  runner,
+  source,
+  expected,
+  description,
+  form = 'standard',
+  effect
+) {
   const directory = mkdtempSync(join(tmpdir(), 'translator-native-'));
   try {
     writeFileSync(join(directory, runner.filename), source);
@@ -321,7 +335,7 @@ function check(runner, source, expected, description, form = 'standard') {
         join(directory, library.split('/').at(-1))
       );
     }
-    const output = runner.execute(directory, form);
+    const output = runner.execute(directory, form, nativeArguments(effect));
     if (output !== expected) {
       throw new Error(
         `${description} expected ${expected.length} bytes but received ${output.length} bytes:\n${output}`
@@ -398,7 +412,9 @@ for (const { id, forms, unicodeGreeting } of profiles) {
       runner,
       observe(result),
       expectedOutput(effect),
-      `${id} ${effect.task}`
+      `${id} ${effect.task}`,
+      'standard',
+      effect
     );
     checked += 1;
     if (
@@ -420,7 +436,8 @@ for (const { id, forms, unicodeGreeting } of profiles) {
         observe(common),
         expectedOutput(effect),
         `${id} common ${effect.task}`,
-        'common'
+        'common',
+        effect
       );
       const reverse = translator.translate(common, id, 'meta', options);
       if (
@@ -449,7 +466,8 @@ for (const { id, forms, unicodeGreeting } of profiles) {
         originalForm,
         expectedOutput(effect),
         `${id} ${form} ${effect.task}`,
-        form
+        form,
+        effect
       );
       checked += 1;
     }

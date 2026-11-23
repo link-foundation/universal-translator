@@ -43,6 +43,12 @@ const callableEffects = new Map([
   ['ackermann-function', { entry: 'ackermann', cases: ackermannCalls }],
 ]);
 
+export function nativeArguments(effect) {
+  return effect?.task === 'ackermann-cli'
+    ? ackermannCalls.map(([left, right]) => [String(left), String(right)])
+    : [[]];
+}
+
 export function nativeProgram(source, language, effect, entry) {
   const callable = callableEffects.get(effect.task);
   if (!callable) {
@@ -59,6 +65,19 @@ export function nativeProgram(source, language, effect, entry) {
   return `${source}\nfn main() {\n${body}\n}\n`;
 }
 
+function expectedFizzBuzz({ task, limit }) {
+  const lowercase =
+    task === 'fizz-buzz-lowercase' || task === 'fizz-buzz-lowercase-blank-line';
+  const lines = Array.from({ length: limit }, (_, index) => {
+    const number = index + 1;
+    const fizz = number % 3 === 0 ? (lowercase ? 'fizz' : 'Fizz') : '';
+    const buzz = number % 5 === 0 ? (lowercase ? 'buzz' : 'Buzz') : '';
+    const line = fizz + buzz || number;
+    return task === 'fizz-buzz-quoted' ? `"${line}"\n` : `${line}\n`;
+  }).join('');
+  return task === 'fizz-buzz-lowercase-blank-line' ? `${lines}\n` : lines;
+}
+
 export function expectedOutput(effect) {
   switch (effect.task) {
     case 'empty-program':
@@ -73,6 +92,16 @@ export function expectedOutput(effect) {
         .get(effect.task)
         .cases.map(([, , result]) => `${result}\n`)
         .join('');
+    case 'ackermann-cli':
+      return ackermannCalls.map(([, , result]) => `${result}\n`).join('');
+    case 'ackermann-json': {
+      const results = ackermannCalls
+        .filter(
+          ([left, right]) => left <= effect.left && right === effect.right
+        )
+        .map(([, , result]) => result);
+      return `${JSON.stringify(results)}\n`;
+    }
     case 'ackermann-value': {
       const [, , result] = ackermannCalls.find(
         ([left, right]) => left === effect.left && right === effect.right
@@ -89,21 +118,8 @@ export function expectedOutput(effect) {
     case 'fizz-buzz':
     case 'fizz-buzz-lowercase':
     case 'fizz-buzz-quoted':
-    case 'fizz-buzz-lowercase-blank-line': {
-      const lowercase =
-        effect.task === 'fizz-buzz-lowercase' ||
-        effect.task === 'fizz-buzz-lowercase-blank-line';
-      const lines = Array.from({ length: effect.limit }, (_, index) => {
-        const number = index + 1;
-        const fizz = number % 3 === 0 ? (lowercase ? 'fizz' : 'Fizz') : '';
-        const buzz = number % 5 === 0 ? (lowercase ? 'buzz' : 'Buzz') : '';
-        const line = fizz + buzz || number;
-        return effect.task === 'fizz-buzz-quoted' ? `"${line}"\n` : `${line}\n`;
-      }).join('');
-      return effect.task === 'fizz-buzz-lowercase-blank-line'
-        ? `${lines}\n`
-        : lines;
-    }
+    case 'fizz-buzz-lowercase-blank-line':
+      return expectedFizzBuzz(effect);
     default:
       throw new Error(`No stdout expectation for ${effect.task}`);
   }

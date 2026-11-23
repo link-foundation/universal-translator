@@ -79,6 +79,120 @@ profile:
         (line: ~1{})
         (line: 'printLine(String(greatestCommonDivisor({{left}}, {{right}})));')
     form:
+      task: ackermann-cli
+      name: standard
+      requires: process.argv console
+      source:
+        (line: 'function ackermann(first, second) {')
+        (line: '    if (first === 0) return second + 1;')
+        (line: '    if (second === 0) return ackermann(first - 1, 1);')
+        (line: '    return ackermann(first - 1, ackermann(first, second - 1));')
+        (line: })
+        (line: ~1{})
+        (line: 'const [first, second] = process.argv.slice(2).map((value) => Number.parseInt(value, 10));')
+        (line: 'if (first >= 0 && first <= {{left}} && second >= 0 && second <= {{right}}) {')
+        (line: '    console.log(ackermann(first, second));')
+        (line: })
+    form:
+      task: ackermann-cli
+      name: rosetta
+      fixed:
+        left: 3
+        right: 4
+      requires: process.argv console
+      source:
+        (line: '#!/usr/bin/env nodejs')
+        (line: 'function ack(M, N){')
+        (line: '	const next = new Float64Array(M + 1);')
+        (line: '	const goal = new Float64Array(M + 1).fill(1, 0, M);')
+        (line: '	const n = N + 1;')
+        (line: ~1{})
+        (line: '	goal[M] = -1;')
+        (line: ~1{})
+        (line: '	let v;')
+        (line: '	do {')
+        (line: '		v = next[0] + 1;')
+        (line: '		let m = 0;')
+        (line: '		while (next[m] === goal[m]) {')
+        (line: '			goal[m] = v;')
+        (line: '			next[m++]++;')
+        (line: '		}')
+        (line: '		next[m]++;')
+        (line: '	} while (next[M] !== n);')
+        (line: '	return v;')
+        (line: })
+        (line: 'var args = process.argv;')
+        (line: 'console.log(ack(parseInt(args[2]), parseInt(args[3])));')
+    form:
+      task: ackermann-cli
+      name: common
+      requires: './common-library.mjs' process.argv console
+      source:
+        (line: "import { ackermann } from './common-library.mjs';")
+        (line: ~1{})
+        (line: 'const [first, second] = process.argv.slice(2).map((value) => Number.parseInt(value, 10));')
+        (line: 'if (first >= 0 && first <= {{left}} && second >= 0 && second <= {{right}}) {')
+        (line: '    console.log(ackermann(first, second));')
+        (line: })
+    form:
+      task: ackermann-json
+      name: standard
+      source:
+        (line: 'const last = {{left}};')
+        (line: 'const second = {{right}};')
+        (line: 'const values = [second + 1, second + 2, 2 * second + 3, 2 ** (second + 3) - 3];')
+        (line: 'const results = values.slice(0, last + 1);')
+        (line: 'console.log(JSON.stringify(results));')
+    form:
+      task: ackermann-json
+      name: rosetta
+      fixed:
+        left: 3
+        right: 3
+      source:
+        (line: '(() => {')
+        (line: "    'use strict';")
+        (line: ~1{})
+        (line: '    const ackermann = m => n => {')
+        (line: '        const go = (m, n) =>')
+        (line: '            0 === m ? (')
+        (line: '                succ(n)')
+        (line: '            ) : go(pred(m), 0 === n ? (')
+        (line: '                1')
+        (line: '            ) : go(m, pred(n)));')
+        (line: '        return go(m, n);')
+        (line: '    };')
+        (line: ~1{})
+        (line: '    const main = () => console.log(JSON.stringify(')
+        (line: '        [0, 1, 2, 3].map(')
+        (line: '            flip(ackermann)(3)')
+        (line: '        )')
+        (line: '    ));')
+        (line: ~1{})
+        (line: ~1{})
+        (line: ~1{})
+        (line: '    const flip = f =>')
+        (line: '        x => y => f(y)(x);')
+        (line: ~1{})
+        (line: '    const pred = x => x - 1;')
+        (line: ~1{})
+        (line: '    const succ = x => 1 + x;')
+        (line: ~1{})
+        (line: ~1{})
+        (line: '    return main();')
+        (line: '})();')
+    form:
+      task: ackermann-json
+      name: common
+      requires: './common-library.mjs'
+      source:
+        (line: "import { ackermann } from './common-library.mjs';")
+        (line: ~1{})
+        (line: 'const last = {{left}};')
+        (line: 'const second = {{right}};')
+        (line: 'const results = Array.from({ length: last + 1 }, (_, first) => ackermann(first, second));')
+        (line: 'console.log(JSON.stringify(results));')
+    form:
       task: ackermann-value
       name: standard
       source:

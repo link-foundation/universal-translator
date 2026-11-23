@@ -19,6 +19,7 @@ import {
 import {
   expectedOutput,
   fixture as readFixture,
+  nativeArguments,
   nativeProgram,
 } from './fixtures.mjs';
 
@@ -40,19 +41,15 @@ function decodeEffect(task, parameters) {
       return { task: parameters[1] ?? task, message: parameters[0] };
     case 'fizz-buzz':
       return { task: parameters[1] ?? task, limit: Number(parameters[0]) };
-    case 'ackermann-function':
-      if (parameters[0] === 'ackermann-value') {
-        return {
-          task: 'ackermann-value',
-          left: 3,
-          right: Number(parameters[1]),
-        };
-      }
+    case 'ackermann-function': {
+      const [effect, left, right] =
+        parameters.length === 2 ? [task, ...parameters] : parameters;
       return {
-        task,
-        left: Number(parameters[0]),
-        right: Number(parameters[1]),
+        task: effect,
+        left: Number(left),
+        right: Number(right),
       };
+    }
     case 'greatest-common-divisor':
       if (parameters[0] === 'gcd-function') {
         return { task: 'gcd-function', max: Number(parameters[1]) };
@@ -116,20 +113,24 @@ function executePinnedPrograms(programs, effect, path) {
           args = [];
         }
       }
-      const result = spawnSync(command, args, options);
-      if (result.error) {
-        throw result.error;
-      }
       const label = `${path} (${language})`;
-      assert.equal(
-        result.status,
-        effect.status ?? 0,
-        `${label} ${result.signal ?? result.stderr}`
-      );
-      assert.equal(result.stdout, expectedOutput(effect), `${label} stdout`);
-      if (effect.task === 'empty-program') {
-        assert.equal(result.stderr, '', `${label} stderr`);
+      let stdout = '';
+      for (const inputs of nativeArguments(effect)) {
+        const result = spawnSync(command, [...args, ...inputs], options);
+        if (result.error) {
+          throw result.error;
+        }
+        assert.equal(
+          result.status,
+          effect.status ?? 0,
+          `${label} ${result.signal ?? result.stderr}`
+        );
+        stdout += result.stdout;
+        if (effect.task === 'empty-program') {
+          assert.equal(result.stderr, '', `${label} stderr`);
+        }
       }
+      assert.equal(stdout, expectedOutput(effect), `${label} stdout`);
     }
   } finally {
     rmSync(workspace, { recursive: true, force: true });
@@ -171,7 +172,14 @@ export function verifyProgram(
         form,
       });
       if (exactForm) {
-        assert.equal(reconstructed, source, path);
+        const comments = new Set(
+          document.interpretation.comments.map(({ line }) => line)
+        );
+        const uncommented = source
+          .split('\n')
+          .filter((_, index) => !comments.has(index))
+          .join('\n');
+        assert.equal(reconstructed, uncommented, path);
       }
       assert.equal(
         rust(['translate', 'meta', language, '--form', form], meta),

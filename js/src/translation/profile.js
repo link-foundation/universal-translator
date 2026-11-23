@@ -35,6 +35,14 @@ const taskFields = {
     left: (value) => value === 3,
     right: (value) => value === 4,
   },
+  'ackermann-cli': {
+    left: (value) => value === 3,
+    right: (value) => value === 4,
+  },
+  'ackermann-json': {
+    left: (value) => value === 3,
+    right: (value) => value === 3,
+  },
   'ackermann-value': {
     left: (value) => value === 3,
     right: (value) => Number.isInteger(value) && value >= 0 && value <= 4,

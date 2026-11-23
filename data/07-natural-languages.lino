@@ -24,6 +24,16 @@ profile:
       source:
         (line: 'Write the text “{{message}}” to standard output without adding a newline.')
     form:
+      task: ackermann-cli
+      name: standard
+      source:
+        (line: 'Read two integer command-line arguments m and n with 0 ≤ m ≤ {{left}} and 0 ≤ n ≤ {{right}}. For m equal to 0, 1, 2, or 3, compute respectively n+1, n+2, 2n+3, or 2^(n+3)−3. Print the result in decimal followed by a newline.')
+    form:
+      task: ackermann-json
+      name: standard
+      source:
+        (line: 'For each m from 0 through {{left}}, compute A(m,n) with n={{right}}. A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. Write the results in order as a JSON array of numbers without spaces, followed by a newline.')
+    form:
       task: ackermann-value
       name: standard
       source:
@@ -102,6 +112,16 @@ profile:
       name: standard
       source:
         (line: '向标准输出写入文本“{{message}}”，不追加换行符。')
+    form:
+      task: ackermann-cli
+      name: standard
+      source:
+        (line: '读取命令行中的两个整数实参 m 和 n，满足 0 ≤ m ≤ {{left}} 且 0 ≤ n ≤ {{right}}。当 m 分别为 0、1、2、3 时，计算 n+1、n+2、2n+3、2^(n+3)−3。以十进制打印结果并换行。')
+    form:
+      task: ackermann-json
+      name: standard
+      source:
+        (line: '令 n={{right}}，对从 0 到 {{left}} 的每个整数 m 计算 A(m,n)。 A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. 把结果按顺序写为无空格的 JSON 数字数组，最后换行。')
     form:
       task: ackermann-value
       name: standard
@@ -182,6 +202,16 @@ profile:
       source:
         (line: 'मानक आउटपुट पर “{{message}}” लिखें और उसके बाद नई पंक्ति न जोड़ें।')
     form:
+      task: ackermann-cli
+      name: standard
+      source:
+        (line: 'कमांड लाइन से दो पूर्णांक m और n पढ़ें जिनके लिए 0 ≤ m ≤ {{left}} और 0 ≤ n ≤ {{right}} हों। m के 0, 1, 2 और 3 के लिए क्रमशः n+1, n+2, 2n+3 और 2^(n+3)−3 निकालें। दशमलव परिणाम और एक नई पंक्ति लिखें।')
+    form:
+      task: ackermann-json
+      name: standard
+      source:
+        (line: 'n={{right}} रखकर 0 से {{left}} तक प्रत्येक m के लिए A(m,n) निकालें। A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. परिणाम क्रम से बिना रिक्त स्थान वाले संख्यात्मक JSON सरणी में लिखें और नई पंक्ति जोड़ें।')
+    form:
       task: ackermann-value
       name: standard
       source:
@@ -260,6 +290,16 @@ profile:
       name: standard
       source:
         (line: 'Escribe el texto «{{message}}» en la salida estándar sin añadir un salto de línea.')
+    form:
+      task: ackermann-cli
+      name: standard
+      source:
+        (line: 'Lee dos argumentos enteros m y n de la línea de comandos con 0 ≤ m ≤ {{left}} y 0 ≤ n ≤ {{right}}. Para m igual a 0, 1, 2 o 3, calcula respectivamente n+1, n+2, 2n+3 o 2^(n+3)−3. Imprime el resultado en decimal seguido de un salto de línea.')
+    form:
+      task: ackermann-json
+      name: standard
+      source:
+        (line: 'Para cada m entre 0 y {{left}}, ambos incluidos, calcula A(m,n) con n={{right}}. A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. Escribe los resultados en orden como un arreglo JSON numérico sin espacios, seguido de un salto de línea.')
     form:
       task: ackermann-value
       name: standard
@@ -340,6 +380,16 @@ profile:
       source:
         (line: 'Écris le texte « {{message}} » sur la sortie standard sans ajouter de saut de ligne.')
     form:
+      task: ackermann-cli
+      name: standard
+      source:
+        (line: 'Lis deux arguments entiers m et n sur la ligne de commande, avec 0 ≤ m ≤ {{left}} et 0 ≤ n ≤ {{right}}. Pour m égal à 0, 1, 2 ou 3, calcule respectivement n+1, n+2, 2n+3 ou 2^(n+3)−3. Écris le résultat décimal suivi d’un saut de ligne.')
+    form:
+      task: ackermann-json
+      name: standard
+      source:
+        (line: 'Pour m de 0 à {{left}} inclus, calcule A(m,n) avec n={{right}}. A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. Écris les résultats dans l’ordre sous forme de tableau JSON de nombres sans espaces, suivi d’un saut de ligne.')
+    form:
       task: ackermann-value
       name: standard
       source:
@@ -418,6 +468,16 @@ profile:
       name: standard
       source:
         (line: 'اكتب النص «{{message}}» على المخرج القياسي من دون إضافة محرف سطر جديد.')
+    form:
+      task: ackermann-cli
+      name: standard
+      source:
+        (line: 'اقرأ وسيطين صحيحين m و n من سطر الأوامر بحيث 0 ≤ m ≤ {{left}} و 0 ≤ n ≤ {{right}}. للقيم 0 و 1 و 2 و 3 للمتغير m احسب على الترتيب n+1 و n+2 و 2n+3 و 2^(n+3)−3. اطبع الناتج بالنظام العشري ثم انتقل إلى سطر جديد.')
+    form:
+      task: ackermann-json
+      name: standard
+      source:
+        (line: 'لكل m من 0 إلى {{left}} مع تضمين الحدين احسب A(m,n) حيث n={{right}}. A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. اكتب النتائج بالترتيب في مصفوفة JSON رقمية بلا مسافات وأتبعها بسطر جديد.')
     form:
       task: ackermann-value
       name: standard
@@ -498,6 +558,16 @@ profile:
       source:
         (line: 'মানক আউটপুটে “{{message}}” লেখাটি লিখুন এবং শেষে নতুন লাইন যোগ করবেন না।')
     form:
+      task: ackermann-cli
+      name: standard
+      source:
+        (line: 'কমান্ড লাইন থেকে m ও n পূর্ণসংখ্যা পড়ুন, যেখানে 0 ≤ m ≤ {{left}} এবং 0 ≤ n ≤ {{right}}। m এর মান 0, 1, 2 ও 3 হলে যথাক্রমে n+1, n+2, 2n+3 ও 2^(n+3)−3 গণনা করুন। ফল দশমিক আকারে লিখে নতুন লাইন দিন।')
+    form:
+      task: ackermann-json
+      name: standard
+      source:
+        (line: 'n={{right}} রেখে 0 থেকে {{left}} পর্যন্ত প্রতিটি m এর জন্য A(m,n) গণনা করুন। A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. ফলগুলি ক্রমানুসারে ফাঁক ছাড়া সংখ্যার JSON অ্যারেতে লিখে নতুন লাইন দিন।')
+    form:
       task: ackermann-value
       name: standard
       source:
@@ -576,6 +646,16 @@ profile:
       name: standard
       source:
         (line: 'Escreva o texto «{{message}}» na saída padrão sem acrescentar uma quebra de linha.')
+    form:
+      task: ackermann-cli
+      name: standard
+      source:
+        (line: 'Leia dois argumentos inteiros m e n da linha de comando, com 0 ≤ m ≤ {{left}} e 0 ≤ n ≤ {{right}}. Para m igual a 0, 1, 2 ou 3, calcule respectivamente n+1, n+2, 2n+3 ou 2^(n+3)−3. Imprima o resultado em decimal seguido de uma quebra de linha.')
+    form:
+      task: ackermann-json
+      name: standard
+      source:
+        (line: 'Para cada m de 0 a {{left}}, inclusive, calcule A(m,n) com n={{right}}. A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. Escreva os resultados em ordem como uma matriz JSON de números sem espaços, seguida de uma quebra de linha.')
     form:
       task: ackermann-value
       name: standard
@@ -656,6 +736,16 @@ profile:
       source:
         (line: 'Выведите текст «{{message}}» в стандартный поток вывода без перевода строки.')
     form:
+      task: ackermann-cli
+      name: standard
+      source:
+        (line: 'Прочитайте два целых аргумента m и n из командной строки, где 0 ≤ m ≤ {{left}} и 0 ≤ n ≤ {{right}}. При m, равном 0, 1, 2 или 3, вычислите соответственно n+1, n+2, 2n+3 или 2^(n+3)−3. Выведите десятичный результат и перевод строки.')
+    form:
+      task: ackermann-json
+      name: standard
+      source:
+        (line: 'Для каждого m от 0 до {{left}} включительно вычислите A(m,n) при n={{right}}. A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. Выведите результаты по порядку в виде числового массива JSON без пробелов, затем переведите строку.')
+    form:
       task: ackermann-value
       name: standard
       source:
@@ -734,6 +824,16 @@ profile:
       name: standard
       source:
         (line: 'متن «{{message}}» معیاری خروج پر لکھیں اور آخر میں سطر تبدیل نہ کریں۔')
+    form:
+      task: ackermann-cli
+      name: standard
+      source:
+        (line: 'کمانڈ لائن سے دو صحیح عدد m اور n پڑھیں، جہاں 0 ≤ m ≤ {{left}} اور 0 ≤ n ≤ {{right}} ہو۔ m کی قدروں 0، 1، 2 اور 3 کے لیے بالترتیب n+1، n+2، 2n+3 اور 2^(n+3)−3 نکالیں۔ نتیجہ اعشاری صورت میں لکھیں اور نئی سطر شامل کریں۔')
+    form:
+      task: ackermann-json
+      name: standard
+      source:
+        (line: 'n={{right}} رکھ کر، m کی 0 سے {{left}} تک ہر قدر کے لیے A(m,n) نکالیں۔ A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. نتائج کو ترتیب وار بغیر خالی جگہ کے اعداد کی JSON صف میں لکھیں اور نئی سطر شامل کریں۔')
     form:
       task: ackermann-value
       name: standard

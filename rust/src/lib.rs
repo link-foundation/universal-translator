@@ -27,6 +27,8 @@ pub enum Effect {
     WriteText { message: String },
     EmptyProgram { status: u32 },
     AckermannFunction { left: u32, right: u32 },
+    AckermannCli { left: u32, right: u32 },
+    AckermannJson { left: u32, right: u32 },
     AckermannValue { left: u32, right: u32 },
     GcdFunction { max: u32 },
     GreatestCommonDivisor { left: u32, right: u32 },
@@ -43,6 +45,8 @@ impl Effect {
             Self::WriteText { .. } => "write-text",
             Self::EmptyProgram { .. } => "empty-program",
             Self::AckermannFunction { .. } => "ackermann-function",
+            Self::AckermannCli { .. } => "ackermann-cli",
+            Self::AckermannJson { .. } => "ackermann-json",
             Self::AckermannValue { .. } => "ackermann-value",
             Self::GcdFunction { .. } => "gcd-function",
             Self::GreatestCommonDivisor { .. } => "greatest-common-divisor",
@@ -62,6 +66,8 @@ impl Effect {
             Self::EmptyProgram { status } => vec![("status", status.to_string())],
             Self::GreatestCommonDivisor { left, right }
             | Self::AckermannFunction { left, right }
+            | Self::AckermannCli { left, right }
+            | Self::AckermannJson { left, right }
             | Self::AckermannValue { left, right } => {
                 vec![("left", left.to_string()), ("right", right.to_string())]
             }
@@ -92,6 +98,14 @@ impl Effect {
                 max: integer("max")?,
             },
             "ackermann-function" if fields.len() == 2 => Self::AckermannFunction {
+                left: integer("left")?,
+                right: integer("right")?,
+            },
+            "ackermann-cli" if fields.len() == 2 => Self::AckermannCli {
+                left: integer("left")?,
+                right: integer("right")?,
+            },
+            "ackermann-json" if fields.len() == 2 => Self::AckermannJson {
                 left: integer("left")?,
                 right: integer("right")?,
             },
@@ -167,7 +181,10 @@ impl Effect {
                 *left <= i32::MAX as u32 && *right <= i32::MAX as u32
             }
             Self::GcdFunction { max } => *max == i32::MAX as u32,
-            Self::AckermannFunction { left, right } => *left == 3 && *right == 4,
+            Self::AckermannFunction { left, right } | Self::AckermannCli { left, right } => {
+                *left == 3 && *right == 4
+            }
+            Self::AckermannJson { left, right } => *left == 3 && *right == 3,
             Self::AckermannValue { left, right } => *left == 3 && *right <= 4,
             Self::EmptyProgram { status } => *status == 0,
             Self::FizzBuzz { limit }

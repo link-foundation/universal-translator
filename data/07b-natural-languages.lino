@@ -24,6 +24,16 @@ profile:
       source:
         (line: 'Tulis teks “{{message}}” ke keluaran standar tanpa menambahkan baris baru.')
     form:
+      task: ackermann-cli
+      name: standard
+      source:
+        (line: 'Baca dua argumen bilangan bulat m dan n dari baris perintah, dengan 0 ≤ m ≤ {{left}} dan 0 ≤ n ≤ {{right}}. Untuk m bernilai 0, 1, 2, atau 3, hitung berturut-turut n+1, n+2, 2n+3, atau 2^(n+3)−3. Cetak hasil desimal lalu baris baru.')
+    form:
+      task: ackermann-json
+      name: standard
+      source:
+        (line: 'Untuk setiap m dari 0 hingga {{left}}, hitung A(m,n) dengan n={{right}}. A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. Tulis hasil berurutan sebagai larik angka JSON tanpa spasi, diikuti baris baru.')
+    form:
       task: ackermann-value
       name: standard
       source:
@@ -102,6 +112,16 @@ profile:
       name: standard
       source:
         (line: 'Schreibe den Text „{{message}}“ ohne abschließenden Zeilenumbruch in die Standardausgabe.')
+    form:
+      task: ackermann-cli
+      name: standard
+      source:
+        (line: 'Lies zwei ganzzahlige Kommandozeilenargumente m und n mit 0 ≤ m ≤ {{left}} und 0 ≤ n ≤ {{right}}. Berechne für m gleich 0, 1, 2 oder 3 jeweils n+1, n+2, 2n+3 oder 2^(n+3)−3. Gib das Ergebnis dezimal mit abschließendem Zeilenumbruch aus.')
+    form:
+      task: ackermann-json
+      name: standard
+      source:
+        (line: 'Berechne für jedes m von 0 bis einschließlich {{left}} den Wert A(m,n) mit n={{right}}. A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. Gib die Ergebnisse der Reihe nach als JSON-Array aus Zahlen ohne Leerzeichen mit abschließendem Zeilenumbruch aus.')
     form:
       task: ackermann-value
       name: standard
@@ -182,6 +202,16 @@ profile:
       source:
         (line: 'テキスト「{{message}}」を末尾の改行を加えずに標準出力に書き出す。')
     form:
+      task: ackermann-cli
+      name: standard
+      source:
+        (line: 'コマンドライン引数から 0 ≤ m ≤ {{left}} と 0 ≤ n ≤ {{right}} を満たす整数 m と n を読み取る。m が 0、1、2、3 のとき、それぞれ n+1、n+2、2n+3、2^(n+3)−3 を計算する。結果を十進数で出力して改行する。')
+    form:
+      task: ackermann-json
+      name: standard
+      source:
+        (line: 'n={{right}} とし、0 から {{left}} までの各 m について A(m,n) を計算する。 A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. 結果を順番どおり空白のない JSON の数値配列として出力し、改行する。')
+    form:
       task: ackermann-value
       name: standard
       source:
@@ -260,6 +290,16 @@ profile:
       name: standard
       source:
         (line: 'Andika maandishi “{{message}}” katika towe la kawaida bila kuongeza alama ya mstari mpya.')
+    form:
+      task: ackermann-cli
+      name: standard
+      source:
+        (line: 'Soma hoja mbili kamili m na n kutoka mstari wa amri, ambapo 0 ≤ m ≤ {{left}} na 0 ≤ n ≤ {{right}}. Kwa m iliyo 0, 1, 2 au 3, hesabu kwa mtiririko huo n+1, n+2, 2n+3 au 2^(n+3)−3. Chapisha jibu katika mfumo wa desimali, kisha anza mstari mpya.')
+    form:
+      task: ackermann-json
+      name: standard
+      source:
+        (line: 'Kwa kila m kutoka 0 hadi {{left}}, hesabu A(m,n) kwa kutumia n={{right}}. A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. Andika majibu kwa mpangilio kama safu ya nambari za JSON isiyo na nafasi, kisha anza mstari mpya.')
     form:
       task: ackermann-value
       name: standard
@@ -340,6 +380,16 @@ profile:
       source:
         (line: 'प्रमाणित आउटपुटवर “{{message}}” हा मजकूर लिहा आणि शेवटी नवीन ओळ जोडू नका.')
     form:
+      task: ackermann-cli
+      name: standard
+      source:
+        (line: 'कमांड लाइनमधून m आणि n या दोन पूर्णांक किंमती वाचा. त्यांच्यासाठी 0 ≤ m ≤ {{left}} आणि 0 ≤ n ≤ {{right}} असावे. m चे मूल्य 0, 1, 2 किंवा 3 असेल तेव्हा अनुक्रमे n+1, n+2, 2n+3 किंवा 2^(n+3)−3 काढा. दशमान निकाल लिहून ओळ बदला.')
+    form:
+      task: ackermann-json
+      name: standard
+      source:
+        (line: 'n={{right}} ठेवून 0 ते {{left}} या प्रत्येक m साठी A(m,n) काढा. A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. निकाल क्रमाने मोकळी जागा नसलेल्या JSON संख्या-सरणीत लिहा आणि ओळ बदला.')
+    form:
       task: ackermann-value
       name: standard
       source:
@@ -418,6 +468,16 @@ profile:
       name: standard
       source:
         (line: '“{{message}}” అనే పాఠ్యాన్ని చివర కొత్త పంక్తిని జోడించకుండా ప్రామాణిక అవుట్‌పుట్‌కు రాయండి.')
+    form:
+      task: ackermann-cli
+      name: standard
+      source:
+        (line: 'కమాండ్ లైన్ నుండి m మరియు n అనే రెండు పూర్ణాంక ఆర్గ్యుమెంట్లను చదవండి. 0 ≤ m ≤ {{left}} మరియు 0 ≤ n ≤ {{right}} ఉండాలి. m విలువ 0, 1, 2 లేదా 3 అయినప్పుడు వరుసగా n+1, n+2, 2n+3 లేదా 2^(n+3)−3 లెక్కించండి. దశాంశ ఫలితాన్ని ముద్రించి కొత్త పంక్తి జోడించండి.')
+    form:
+      task: ackermann-json
+      name: standard
+      source:
+        (line: 'n={{right}} గా ఉంచి 0 నుండి {{left}} వరకు ప్రతి m కు A(m,n) లెక్కించండి. A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. ఫలితాలను క్రమంలో ఖాళీలు లేని JSON సంఖ్యల శ్రేణిగా రాసి కొత్త పంక్తి జోడించండి.')
     form:
       task: ackermann-value
       name: standard
@@ -498,6 +558,16 @@ profile:
       source:
         (line: '“{{message}}” metnini sonuna yeni satır eklemeden standart çıktıya yaz.')
     form:
+      task: ackermann-cli
+      name: standard
+      source:
+        (line: 'Komut satırından 0 ≤ m ≤ {{left}} ve 0 ≤ n ≤ {{right}} koşullarını sağlayan iki tamsayı m ve n okuyun. m 0, 1, 2 veya 3 olduğunda sırasıyla n+1, n+2, 2n+3 veya 2^(n+3)−3 hesaplayın. Ondalık sonucu ve ardından bir satır sonu yazın.')
+    form:
+      task: ackermann-json
+      name: standard
+      source:
+        (line: '0 ile {{left}} arasındaki her m için n={{right}} alarak A(m,n) hesaplayın. A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. Sonuçları boşluksuz bir JSON sayı dizisinde sırasıyla yazın ve satırı sonlandırın.')
+    form:
       task: ackermann-value
       name: standard
       source:
@@ -576,6 +646,16 @@ profile:
       name: standard
       source:
         (line: '“{{message}}” என்ற உரையை முடிவில் புதிய வரியைச் சேர்க்காமல் தரநிலை வெளியீட்டில் எழுது.')
+    form:
+      task: ackermann-cli
+      name: standard
+      source:
+        (line: 'கட்டளை வரியிலிருந்து 0 ≤ m ≤ {{left}} மற்றும் 0 ≤ n ≤ {{right}} ஆகியவற்றை நிறைவு செய்யும் m, n என்ற இரு முழு எண்களைப் படிக்கவும். m இன் மதிப்பு 0, 1, 2 அல்லது 3 என்றால் முறையே n+1, n+2, 2n+3 அல்லது 2^(n+3)−3 கணக்கிடவும். முடிவைப் பதின்மத்தில் அச்சிட்டுப் புதிய வரியைச் சேர்க்கவும்.')
+    form:
+      task: ackermann-json
+      name: standard
+      source:
+        (line: 'n={{right}} என வைத்துக்கொண்டு 0 முதல் {{left}} வரையிலான ஒவ்வொரு m க்கும் A(m,n) கணக்கிடவும். A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. முடிவுகளை வரிசையாக இடைவெளியில்லாத JSON எண் அணியாக எழுதியபின் புதிய வரியைச் சேர்க்கவும்.')
     form:
       task: ackermann-value
       name: standard
@@ -656,6 +736,16 @@ profile:
       source:
         (line: 'Ghi văn bản “{{message}}” ra đầu ra chuẩn mà không thêm ký tự xuống dòng.')
     form:
+      task: ackermann-cli
+      name: standard
+      source:
+        (line: 'Đọc từ dòng lệnh hai số nguyên m và n thỏa mãn 0 ≤ m ≤ {{left}} và 0 ≤ n ≤ {{right}}. Với m bằng 0, 1, 2 hoặc 3, lần lượt tính n+1, n+2, 2n+3 hoặc 2^(n+3)−3. In kết quả dưới dạng số thập phân rồi xuống dòng.')
+    form:
+      task: ackermann-json
+      name: standard
+      source:
+        (line: 'Với mỗi m từ 0 đến {{left}}, tính A(m,n) khi n={{right}}. A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. Ghi lần lượt các kết quả dưới dạng mảng số JSON không chứa dấu cách, rồi xuống dòng.')
+    form:
       task: ackermann-value
       name: standard
       source:
@@ -734,6 +824,16 @@ profile:
       name: standard
       source:
         (line: '텍스트 “{{message}}”를 끝에 줄바꿈을 추가하지 않고 표준 출력에 쓴다.')
+    form:
+      task: ackermann-cli
+      name: standard
+      source:
+        (line: '명령줄 인수에서 0 ≤ m ≤ {{left}} 및 0 ≤ n ≤ {{right}}를 만족하는 정수 m과 n을 읽는다. m이 0, 1, 2 또는 3이면 각각 n+1, n+2, 2n+3 또는 2^(n+3)−3을 계산한다. 십진수 결과를 출력한 뒤 줄을 바꾼다.')
+    form:
+      task: ackermann-json
+      name: standard
+      source:
+        (line: 'n={{right}}일 때 0부터 {{left}}까지 각 m에 대해 A(m,n)을 계산한다. A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. 결과를 순서대로 공백 없는 JSON 숫자 배열로 쓰고 줄을 바꾼다.')
     form:
       task: ackermann-value
       name: standard

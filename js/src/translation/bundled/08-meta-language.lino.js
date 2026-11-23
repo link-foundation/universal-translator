@@ -26,6 +26,12 @@ export default `profile:
       task: ackermann-function
       name: standard
     form:
+      task: ackermann-cli
+      name: standard
+    form:
+      task: ackermann-json
+      name: standard
+    form:
       task: ackermann-value
       name: standard
     form:

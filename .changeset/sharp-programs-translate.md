@@ -8,7 +8,7 @@ Both packages preserve any UTF-8 source as an ordered Links Notation document. J
 
 JavaScript and Rust also translate a callable GCD function with signed integer inputs. The callable GCD and text-output variants have instructions in all 20 natural-language profiles.
 
-Recognize four original Rosetta Code Ackermann functions and a Rust program that prints an Ackermann result. Compare return values for all 20 bounded input pairs and preserve the exact output of the standalone program.
+Recognize all seven pinned JavaScript and Rust Rosetta Code Ackermann listings. Compare function results and command-line output for all 20 bounded input pairs. Preserve the exact decimal and JSON output of the standalone programs.
 
 Translate FizzBuzz variants that write lowercase results, quote each result, or add a final blank line. The common library forms and all 20 natural-language profiles preserve the exact output layout.
 

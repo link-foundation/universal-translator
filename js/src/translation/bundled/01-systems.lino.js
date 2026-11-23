@@ -275,6 +275,78 @@ profile:
         (line: '    common_library::print_line(&divisor.to_string());')
         (line: })
     form:
+      task: ackermann-cli
+      name: standard
+      requires: 'std::env::args' println!
+      source:
+        (line: 'fn ackermann(first: u64, second: u64) -> u64 {')
+        (line: '    match (first, second) {')
+        (line: '        (0, n) => n + 1,')
+        (line: '        (m, 0) => ackermann(m - 1, 1),')
+        (line: '        (m, n) => ackermann(m - 1, ackermann(m, n - 1)),')
+        (line: '    }')
+        (line: })
+        (line: ~1{})
+        (line: 'fn main() {')
+        (line: '    let mut arguments = std::env::args().skip(1);')
+        (line: '    let (Some(first), Some(second)) = (arguments.next(), arguments.next()) else {')
+        (line: '        return;')
+        (line: '    };')
+        (line: '    let (Ok(first), Ok(second)) = (first.parse::<u64>(), second.parse::<u64>()) else {')
+        (line: '        return;')
+        (line: '    };')
+        (line: '    if first <= {{left}} && second <= {{right}} {')
+        (line: '        println!("{}", ackermann(first, second));')
+        (line: '    }')
+        (line: })
+    form:
+      task: ackermann-cli
+      name: common
+      requires: common_library 'std::env::args' println!
+      source:
+        (line: 'mod common_library;')
+        (line: ~1{})
+        (line: 'fn main() {')
+        (line: '    let mut arguments = std::env::args().skip(1);')
+        (line: '    let (Some(first), Some(second)) = (arguments.next(), arguments.next()) else {')
+        (line: '        return;')
+        (line: '    };')
+        (line: '    let (Ok(first), Ok(second)) = (first.parse::<u64>(), second.parse::<u64>()) else {')
+        (line: '        return;')
+        (line: '    };')
+        (line: '    if first <= {{left}} && second <= {{right}} {')
+        (line: '        println!("{}", common_library::ackermann(first, second));')
+        (line: '    }')
+        (line: })
+    form:
+      task: ackermann-json
+      name: standard
+      source:
+        (line: 'fn main() {')
+        (line: '    let last = {{left}};')
+        (line: '    let second = {{right}};')
+        (line: '    let values = [second + 1, second + 2, 2 * second + 3, (1_u64 << (second + 3)) - 3];')
+        (line: '    let results: Vec<_> = values[..=last].iter()')
+        (line: '        .map(ToString::to_string)')
+        (line: '        .collect();')
+        (line: '    println!("[{}]", results.join(","));')
+        (line: })
+    form:
+      task: ackermann-json
+      name: common
+      requires: common_library
+      source:
+        (line: 'mod common_library;')
+        (line: ~1{})
+        (line: 'fn main() {')
+        (line: '    let last = {{left}};')
+        (line: '    let second = {{right}};')
+        (line: '    let results: Vec<_> = (0..=last)')
+        (line: '        .map(|first| common_library::ackermann(first, second).to_string())')
+        (line: '        .collect();')
+        (line: '    println!("[{}]", results.join(","));')
+        (line: })
+    form:
       task: ackermann-value
       name: standard
       source:

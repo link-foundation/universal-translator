@@ -7,7 +7,8 @@ FizzBuzz in 50 programming languages and in precise plain language across
 World fixture, and NASM x86-64 also implements GCD and FizzBuzz. JavaScript,
 Rust, and the 20 plain-language profiles also support Empty Program and the
 Ackermann function on integer inputs from 0 through 3 and 0 through 4, with
-a separate form that prints the result for first argument 3.
+separate forms for returning a value, printing a decimal result, reading
+command-line arguments, and printing a JSON array.
 
 ## Translate a program
 

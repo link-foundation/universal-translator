@@ -28,6 +28,8 @@ const expectedProfiles = {
   'write-text': 23,
   'gcd-function': 23,
   'ackermann-function': 23,
+  'ackermann-cli': 23,
+  'ackermann-json': 23,
   'ackermann-value': 23,
   'fizz-buzz-lowercase': 23,
   'fizz-buzz-quoted': 23,
