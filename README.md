@@ -27,8 +27,8 @@ and Deno. Build the Rust CLI with a current stable Rust toolchain.
 - `same-effect` keeps the task and its parameters and emits the canonical target form unless you select a different form.
 
 Use `--form` to pick a supported style or a shared library wrapper. JavaScript
-and Rust provide common library forms for all three tasks and for text output
-without a trailing newline. The
+and Rust provide common library forms for all three tasks, including text
+output without a trailing newline and GCD as a callable function. The
 programmatic APIs let callers replace or decorate adapters and add ordered
 rule layers for project-specific transformations.
 

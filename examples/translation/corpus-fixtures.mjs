@@ -16,7 +16,7 @@ import {
   parseLinks,
   references,
 } from '../../js/src/translation/links.js';
-import { expectedOutput } from './fixtures.mjs';
+import { expectedOutput, nativeProgram } from './fixtures.mjs';
 
 export function readCorpusCoverage() {
   const snapshot = new URL(
@@ -34,6 +34,9 @@ function decodeEffect(task, parameters) {
     case 'fizz-buzz':
       return { task, limit: Number(parameters[0]) };
     case 'greatest-common-divisor':
+      if (parameters[0] === 'gcd-function') {
+        return { task: 'gcd-function', max: Number(parameters[1]) };
+      }
       return {
         task,
         left: Number(parameters[0]),
@@ -130,8 +133,16 @@ export function verifyProgram(
       if (native && exactForm) {
         executePinnedPrograms(
           [
-            [language, source],
-            [target, translated],
+            [
+              language,
+              nativeProgram(
+                source,
+                language,
+                effect,
+                document.interpretation.output
+              ),
+            ],
+            [target, nativeProgram(translated, target, effect)],
           ],
           expectedOutput(effect),
           path

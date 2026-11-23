@@ -25,6 +25,7 @@ pub use source_document::SourceDocument;
 pub enum Effect {
     Hello { message: String },
     WriteText { message: String },
+    GcdFunction { max: u32 },
     GreatestCommonDivisor { left: u32, right: u32 },
     FizzBuzz { limit: u32 },
 }
@@ -34,6 +35,7 @@ impl Effect {
         match self {
             Self::Hello { .. } => "hello",
             Self::WriteText { .. } => "write-text",
+            Self::GcdFunction { .. } => "gcd-function",
             Self::GreatestCommonDivisor { .. } => "greatest-common-divisor",
             Self::FizzBuzz { .. } => "fizz-buzz",
         }
@@ -44,6 +46,7 @@ impl Effect {
             Self::Hello { message } | Self::WriteText { message } => {
                 vec![("message", message.clone())]
             }
+            Self::GcdFunction { max } => vec![("max", max.to_string())],
             Self::GreatestCommonDivisor { left, right } => {
                 vec![("left", left.to_string()), ("right", right.to_string())]
             }
@@ -63,6 +66,9 @@ impl Effect {
             },
             "write-text" if fields.len() == 1 => Self::WriteText {
                 message: fields.get("message")?.clone(),
+            },
+            "gcd-function" if fields.len() == 1 => Self::GcdFunction {
+                max: integer("max")?,
             },
             "greatest-common-divisor" if fields.len() == 2 => Self::GreatestCommonDivisor {
                 left: integer("left")?,
@@ -120,6 +126,7 @@ impl Effect {
             Self::GreatestCommonDivisor { left, right } => {
                 *left <= i32::MAX as u32 && *right <= i32::MAX as u32
             }
+            Self::GcdFunction { max } => *max == i32::MAX as u32,
             Self::FizzBuzz { limit } => (1..=1000).contains(limit),
         };
         valid

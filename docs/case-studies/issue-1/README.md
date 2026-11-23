@@ -83,12 +83,13 @@ The archive includes 750 Hello World Text samples,
 task definitions with bounded contracts. The 1,755 other task definitions
 still need adapters and verification. The report verifies thirteen original
 Rosetta Code Hello World Text programs, five original FizzBuzz programs, and
-one original GCD program against their pinned Git blob hashes. It checks
+four original GCD programs against their pinned Git blob hashes. It checks
 exact round trips and the expected effects. The selected JavaScript and Rust
 originals also translate in both directions through the Meta Language effect.
 The archive check executes the original and translated programs and compares
-their stdout. It reports native verification for three JavaScript examples
-out of 1,985 and two Rust examples out of 1,481. The remaining source
+their stdout and the results of calling the GCD functions over signed and zero inputs.
+It reports native verification for four JavaScript examples out of 1,985
+and four Rust examples out of 1,481. The remaining source
 variants still need effect verification.
 The Hello World Collection homepage reports 603 programs and greetings in
 78 human languages. Both implementations round-trip its 591 text listings
@@ -117,7 +118,7 @@ Collection page, in that order, to verify their checksums and reported counts
 and check the selected original programs. Pass the compiled Rust CLI as the
 third argument to compare exact round trips and Meta Language output in both
 runtimes. A fourth argument accepts the pinned Git Trees responses to verify
-the source counts and the 19 original Rosetta Code programs.
+the source counts and the 22 original Rosetta Code programs.
 [Reproduction commands](../../../examples/translation/README.md#verification)
 
 The absent ranked entries include graphical formats and targets with
@@ -187,7 +188,7 @@ relationship to the system inspectable. [Associative technology stack](https://g
 ## Validation
 
 Each implementation checks every authored form and directed translation with
-shared task parameters. The parity runner checks 262 forms, all 78 greetings, and all three
+shared task parameters. The parity runner checks 310 forms, all 78 greetings, and all three
 modes across both command lines. It checks the explicit
 Links Notation intermediate in both directions. Two Ubuntu native jobs
 compare executable profiles to an independent stdout oracle. JavaScript

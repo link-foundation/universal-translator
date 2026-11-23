@@ -17,6 +17,9 @@ export default `profile:
       task: greatest-common-divisor
       name: standard
     form:
+      task: gcd-function
+      name: standard
+    form:
       task: fizz-buzz
       name: standard
 `;

@@ -29,6 +29,7 @@ const message = (value) =>
 const taskFields = {
   hello: { message },
   'write-text': { message },
+  'gcd-function': { max: (value) => value === 2147483647 },
   'greatest-common-divisor': {
     left: (value) =>
       Number.isInteger(value) && value >= 0 && value <= 2147483647,

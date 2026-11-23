@@ -256,6 +256,61 @@ profile:
         (line: '    common_library::print_line(&divisor.to_string());')
         (line: })
     form:
+      task: gcd-function
+      name: standard
+      fixed:
+        max: 2147483647
+      output: gcd
+      source:
+        (line: 'fn gcd(mut left: i32, mut right: i32) -> i32 {')
+        (line: '    while right != 0 {')
+        (line: '        (left, right) = (right, left % right);')
+        (line: '    }')
+        (line: '    left.abs()')
+        (line: })
+    form:
+      task: gcd-function
+      name: rosetta-iterative
+      fixed:
+        max: 2147483647
+      output: gcd
+      source:
+        (line: 'fn gcd(mut m: i32, mut n: i32) -> i32 {')
+        (line: '   while m != 0 {')
+        (line: '       let old_m = m;')
+        (line: '       m = n % m;')
+        (line: '       n = old_m;')
+        (line: '   }')
+        (line: '   n.abs()')
+        (line: })
+    form:
+      task: gcd-function
+      name: rosetta-recursive
+      fixed:
+        max: 2147483647
+      output: gcd
+      source:
+        (line: 'fn gcd(m: i32, n: i32) -> i32 {')
+        (line: '   if m == 0 {')
+        (line: '      n.abs()')
+        (line: '   } else {')
+        (line: '      gcd(n % m, m)')
+        (line: '   }')
+        (line: })
+    form:
+      task: gcd-function
+      name: common
+      fixed:
+        max: 2147483647
+      output: gcd
+      requires: common_library
+      source:
+        (line: 'mod common_library;')
+        (line: ~1{})
+        (line: 'fn gcd(left: i32, right: i32) -> i32 {')
+        (line: '    common_library::greatest_common_divisor(left.unsigned_abs(), right.unsigned_abs()) as i32')
+        (line: })
+    form:
       task: fizz-buzz
       name: standard
       source:

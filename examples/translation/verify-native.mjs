@@ -21,6 +21,7 @@ import {
   expectedOutput,
   fixture,
   localizedGreetings,
+  nativeProgram,
 } from './fixtures.mjs';
 
 const translator = createTranslator();
@@ -381,7 +382,13 @@ for (const { id, forms, unicodeGreeting } of profiles) {
     const result = translator.translate(source, 'javascript', id, {
       mode: 'same-effect',
     });
-    check(runner, result, expectedOutput(effect), `${id} ${effect.task}`);
+    const observe = (code) => nativeProgram(code, id, effect);
+    check(
+      runner,
+      observe(result),
+      expectedOutput(effect),
+      `${id} ${effect.task}`
+    );
     checked += 1;
     if (id === 'javascript' || id === 'rust') {
       const opposite = id === 'javascript' ? 'rust' : 'javascript';
@@ -396,7 +403,7 @@ for (const { id, forms, unicodeGreeting } of profiles) {
       });
       check(
         runner,
-        common,
+        observe(common),
         expectedOutput(effect),
         `${id} common ${effect.task}`,
         'common'

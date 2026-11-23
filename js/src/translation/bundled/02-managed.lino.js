@@ -72,6 +72,42 @@ export default `profile:
         (line: ~1{})
         (line: 'printLine(String(greatestCommonDivisor({{left}}, {{right}})));')
     form:
+      task: gcd-function
+      name: standard
+      fixed:
+        max: 2147483647
+      output: gcd
+      source:
+        (line: 'function gcd(left, right) {')
+        (line: '    while (right !== 0) {')
+        (line: '        [left, right] = [right, left % right];')
+        (line: '    }')
+        (line: '    return Math.abs(left);')
+        (line: })
+    form:
+      task: gcd-function
+      name: rosetta-recursive
+      fixed:
+        max: 2147483647
+      output: gcd_rec
+      source:
+        (line: 'function gcd_rec(a, b) {')
+        (line: '  return b ? gcd_rec(b, a % b) : Math.abs(a);')
+        (line: })
+    form:
+      task: gcd-function
+      name: common
+      fixed:
+        max: 2147483647
+      output: gcd
+      requires: './common-library.mjs'
+      source:
+        (line: "import { greatestCommonDivisor } from './common-library.mjs';")
+        (line: ~1{})
+        (line: 'function gcd(left, right) {')
+        (line: '    return greatestCommonDivisor(Math.abs(left), Math.abs(right));')
+        (line: })
+    form:
       task: fizz-buzz
       name: standard
       source:

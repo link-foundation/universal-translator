@@ -17,12 +17,39 @@ export function exampleEffects() {
   return readEffects(fixture('effects.lino'));
 }
 
+// Include zero, negative operands, both bound endpoints, and a long
+// Euclidean remainder chain. Supply the expected results independently.
+const gcdCalls = [
+  [0, 0, 0],
+  [0, -3999, 3999],
+  [-3999, 0, 3999],
+  [399, -3999, 3],
+  [-1071, -462, 21],
+  [462, 1071, 21],
+  [1134903170, 1836311903, 1],
+  [2147483647, -2147483647, 2147483647],
+];
+
+export function nativeProgram(source, language, effect, entry = 'gcd') {
+  if (effect.task !== 'gcd-function') {
+    return source;
+  }
+  const calls = gcdCalls.map(([left, right]) => `${entry}(${left}, ${right})`);
+  if (language === 'javascript') {
+    return `${source}\n${calls.map((call) => `console.log(${call});`).join('\n')}\n`;
+  }
+  const body = calls.map((call) => `    println!("{}", ${call});`).join('\n');
+  return `${source}\nfn main() {\n${body}\n}\n`;
+}
+
 export function expectedOutput(effect) {
   switch (effect.task) {
     case 'hello':
       return `${effect.message}\n`;
     case 'write-text':
       return effect.message;
+    case 'gcd-function':
+      return gcdCalls.map(([, , result]) => `${result}\n`).join('');
     case 'greatest-common-divisor': {
       let { left, right } = effect;
       while (right !== 0) {

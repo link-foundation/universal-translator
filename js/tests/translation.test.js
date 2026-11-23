@@ -144,7 +144,11 @@ describe('translation through meta-language', () => {
       const admitted = languages.filter(({ forms }) =>
         forms.some(({ task }) => task === effect.task)
       );
-      const expectedProfiles = { hello: 76, 'write-text': 3 };
+      const expectedProfiles = {
+        hello: 76,
+        'write-text': 23,
+        'gcd-function': 23,
+      };
       expect(admitted.length).toBe(expectedProfiles[effect.task] ?? 72);
       for (const sourceLanguage of admitted) {
         for (const form of sourceLanguage.forms.filter(

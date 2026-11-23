@@ -12,6 +12,17 @@ profile:
       source:
         (line: 'Write the text “{{message}}” to standard output, then write a newline.')
     form:
+      task: write-text
+      name: standard
+      source:
+        (line: 'Write the text “{{message}}” to standard output without adding a newline.')
+    form:
+      task: gcd-function
+      name: standard
+      source:
+        (line: 'Accept two integers between −{{max}} and {{max}}, inclusive, and take their absolute values.')
+        (line: 'While the second value is positive, replace the pair with the second value and the remainder of the first divided by the second. Return the first value.')
+    form:
       task: greatest-common-divisor
       name: standard
       source:
@@ -39,6 +50,17 @@ profile:
       name: standard
       source:
         (line: 向标准输出写入文本“{{message}}”，然后换行。)
+    form:
+      task: write-text
+      name: standard
+      source:
+        (line: '向标准输出写入文本“{{message}}”，不追加换行符。')
+    form:
+      task: gcd-function
+      name: standard
+      source:
+        (line: '接收两个从 −{{max}} 到 {{max}} 的整数，包括两端，并取各自的绝对值。')
+        (line: '当第二个值为正数时，用第二个值和第一个值除以第二个值所得的余数同时替换这两个值。返回第一个值。')
     form:
       task: greatest-common-divisor
       name: standard
@@ -68,6 +90,17 @@ profile:
       source:
         (line: 'मानक आउटपुट पर “{{message}}” लिखें, फिर एक नई पंक्ति लिखें।')
     form:
+      task: write-text
+      name: standard
+      source:
+        (line: 'मानक आउटपुट पर “{{message}}” लिखें और उसके बाद नई पंक्ति न जोड़ें।')
+    form:
+      task: gcd-function
+      name: standard
+      source:
+        (line: '−{{max}} से {{max}} तक के दो पूर्णांक लें, दोनों सीमाएँ शामिल हैं, और उनके निरपेक्ष मान लें।')
+        (line: 'जब तक दूसरा मान धनात्मक है, दोनों मानों को क्रमशः दूसरे मान और पहले मान को दूसरे से भाग देने पर बचे शेषफल से बदलें। पहला मान लौटाएँ।')
+    form:
       task: greatest-common-divisor
       name: standard
       source:
@@ -95,6 +128,17 @@ profile:
       name: standard
       source:
         (line: 'Escribe el texto «{{message}}» en la salida estándar y luego escribe un salto de línea.')
+    form:
+      task: write-text
+      name: standard
+      source:
+        (line: 'Escribe el texto «{{message}}» en la salida estándar sin añadir un salto de línea.')
+    form:
+      task: gcd-function
+      name: standard
+      source:
+        (line: 'Recibe dos enteros entre −{{max}} y {{max}}, ambos inclusive, y toma sus valores absolutos.')
+        (line: 'Mientras el segundo valor sea positivo, sustituye el par por el segundo valor y el resto de dividir el primero entre el segundo. Devuelve el primer valor.')
     form:
       task: greatest-common-divisor
       name: standard
@@ -124,6 +168,17 @@ profile:
       source:
         (line: 'Écris le texte « {{message}} » sur la sortie standard, puis un saut de ligne.')
     form:
+      task: write-text
+      name: standard
+      source:
+        (line: 'Écris le texte « {{message}} » sur la sortie standard sans ajouter de saut de ligne.')
+    form:
+      task: gcd-function
+      name: standard
+      source:
+        (line: 'Reçois deux entiers compris entre −{{max}} et {{max}}, bornes incluses, et prends leurs valeurs absolues.')
+        (line: 'Tant que la deuxième valeur est positive, remplace la paire par la deuxième valeur et le reste de la division de la première par la deuxième. Renvoie la première valeur.')
+    form:
       task: greatest-common-divisor
       name: standard
       source:
@@ -151,6 +206,17 @@ profile:
       name: standard
       source:
         (line: 'اكتب النص «{{message}}» على المخرج القياسي، ثم اكتب محرف سطر جديد.')
+    form:
+      task: write-text
+      name: standard
+      source:
+        (line: 'اكتب النص «{{message}}» على المخرج القياسي من دون إضافة محرف سطر جديد.')
+    form:
+      task: gcd-function
+      name: standard
+      source:
+        (line: 'اقبل عددين صحيحين من −{{max}} إلى {{max}} شاملًا الحدين، وخذ القيمة المطلقة لكل منهما.')
+        (line: 'ما دامت القيمة الثانية موجبة، استبدل الزوج بالقيمة الثانية وباقي قسمة القيمة الأولى عليها. أعد القيمة الأولى.')
     form:
       task: greatest-common-divisor
       name: standard
@@ -180,6 +246,17 @@ profile:
       source:
         (line: 'মানক আউটপুটে “{{message}}” লেখাটি লিখুন, তারপর একটি নতুন লাইন লিখুন।')
     form:
+      task: write-text
+      name: standard
+      source:
+        (line: 'মানক আউটপুটে “{{message}}” লেখাটি লিখুন এবং শেষে নতুন লাইন যোগ করবেন না।')
+    form:
+      task: gcd-function
+      name: standard
+      source:
+        (line: '−{{max}} থেকে {{max}} পর্যন্ত সীমার উভয় প্রান্তসহ দুটি পূর্ণসংখ্যা নিন এবং তাদের পরম মান নিন।')
+        (line: 'দ্বিতীয় মান ধনাত্মক থাকলে জোড়াটিকে দ্বিতীয় মান এবং প্রথম মানকে দ্বিতীয় মান দিয়ে ভাগ করার ভাগশেষ দিয়ে বদলান। প্রথম মান ফেরত দিন।')
+    form:
       task: greatest-common-divisor
       name: standard
       source:
@@ -207,6 +284,17 @@ profile:
       name: standard
       source:
         (line: 'Escreva o texto «{{message}}» na saída padrão, seguido de uma quebra de linha.')
+    form:
+      task: write-text
+      name: standard
+      source:
+        (line: 'Escreva o texto «{{message}}» na saída padrão sem acrescentar uma quebra de linha.')
+    form:
+      task: gcd-function
+      name: standard
+      source:
+        (line: 'Receba dois números inteiros entre −{{max}} e {{max}}, inclusive, e tome seus valores absolutos.')
+        (line: 'Enquanto o segundo valor for positivo, substitua o par pelo segundo valor e pelo resto da divisão do primeiro pelo segundo. Retorne o primeiro valor.')
     form:
       task: greatest-common-divisor
       name: standard
@@ -236,6 +324,17 @@ profile:
       source:
         (line: 'Выведите текст «{{message}}» в стандартный поток вывода, затем переведите строку.')
     form:
+      task: write-text
+      name: standard
+      source:
+        (line: 'Выведите текст «{{message}}» в стандартный поток вывода без перевода строки.')
+    form:
+      task: gcd-function
+      name: standard
+      source:
+        (line: 'Примите два целых числа от −{{max}} до {{max}} включительно и возьмите их абсолютные значения.')
+        (line: 'Пока второе значение положительно, заменяйте пару вторым значением и остатком от деления первого на второе. Верните первое значение.')
+    form:
       task: greatest-common-divisor
       name: standard
       source:
@@ -263,6 +362,17 @@ profile:
       name: standard
       source:
         (line: 'متن «{{message}}» معیاری خروج پر لکھیں، پھر سطر بدلیں۔')
+    form:
+      task: write-text
+      name: standard
+      source:
+        (line: 'متن «{{message}}» معیاری خروج پر لکھیں اور آخر میں سطر تبدیل نہ کریں۔')
+    form:
+      task: gcd-function
+      name: standard
+      source:
+        (line: '−{{max}} سے {{max}} تک دو صحیح اعداد لیں، دونوں حدیں شامل ہیں، اور ان کی مطلق قدریں لیں۔')
+        (line: 'جب تک دوسری قدر مثبت ہو، جوڑے کو دوسری قدر اور پہلی قدر کو دوسری پر تقسیم کرنے کے باقی سے بدلیں۔ پہلی قدر واپس کریں۔')
     form:
       task: greatest-common-divisor
       name: standard
@@ -292,6 +402,17 @@ profile:
       source:
         (line: 'Tulis teks “{{message}}” ke keluaran standar, lalu tulis karakter baris baru.')
     form:
+      task: write-text
+      name: standard
+      source:
+        (line: 'Tulis teks “{{message}}” ke keluaran standar tanpa menambahkan baris baru.')
+    form:
+      task: gcd-function
+      name: standard
+      source:
+        (line: 'Terima dua bilangan bulat dari −{{max}} sampai {{max}}, termasuk kedua batas, lalu ambil nilai mutlaknya.')
+        (line: 'Selama nilai kedua positif, ganti pasangan dengan nilai kedua dan sisa pembagian nilai pertama oleh nilai kedua. Kembalikan nilai pertama.')
+    form:
       task: greatest-common-divisor
       name: standard
       source:
@@ -319,6 +440,17 @@ profile:
       name: standard
       source:
         (line: 'Schreibe den Text „{{message}}“ auf die Standardausgabe, gefolgt von einem Zeilenumbruch.')
+    form:
+      task: write-text
+      name: standard
+      source:
+        (line: 'Schreibe den Text „{{message}}“ ohne abschließenden Zeilenumbruch in die Standardausgabe.')
+    form:
+      task: gcd-function
+      name: standard
+      source:
+        (line: 'Nimm zwei ganze Zahlen von −{{max}} bis einschließlich {{max}} an und bilde ihre Beträge.')
+        (line: 'Solange der zweite Wert positiv ist, ersetze das Paar durch den zweiten Wert und den Rest der Division des ersten durch den zweiten. Gib den ersten Wert zurück.')
     form:
       task: greatest-common-divisor
       name: standard
@@ -348,6 +480,17 @@ profile:
       source:
         (line: 文字列「{{message}}」を標準出力に書き込み、その後に改行する。)
     form:
+      task: write-text
+      name: standard
+      source:
+        (line: 'テキスト「{{message}}」を末尾の改行を加えずに標準出力に書き出す。')
+    form:
+      task: gcd-function
+      name: standard
+      source:
+        (line: '−{{max}} 以上 {{max}} 以下の整数を二つ受け取り、それぞれの絶対値を取る。')
+        (line: '二番目の値が正の間、組を二番目の値と一番目を二番目で割った余りに置き換える。一番目の値を返す。')
+    form:
       task: greatest-common-divisor
       name: standard
       source:
@@ -375,6 +518,17 @@ profile:
       name: standard
       source:
         (line: 'Andika maandishi “{{message}}” kwenye pato la kawaida, kisha andika alama ya mstari mpya.')
+    form:
+      task: write-text
+      name: standard
+      source:
+        (line: 'Andika maandishi “{{message}}” katika towe la kawaida bila kuongeza alama ya mstari mpya.')
+    form:
+      task: gcd-function
+      name: standard
+      source:
+        (line: 'Pokea namba kamili mbili kuanzia −{{max}} hadi {{max}}, ikijumuisha mipaka yote miwili, kisha chukua thamani zao kamili.')
+        (line: 'Kadiri thamani ya pili ilivyo chanya, badilisha jozi iwe thamani ya pili na baki la kugawa thamani ya kwanza kwa ya pili. Rudisha thamani ya kwanza.')
     form:
       task: greatest-common-divisor
       name: standard
@@ -404,6 +558,17 @@ profile:
       source:
         (line: 'प्रमाणित आउटपुटवर “{{message}}” हा मजकूर लिहा आणि त्यानंतर नवीन ओळ द्या.')
     form:
+      task: write-text
+      name: standard
+      source:
+        (line: 'प्रमाणित आउटपुटवर “{{message}}” हा मजकूर लिहा आणि शेवटी नवीन ओळ जोडू नका.')
+    form:
+      task: gcd-function
+      name: standard
+      source:
+        (line: '−{{max}} ते {{max}} या दोन्ही सीमांसह दोन पूर्णांक घ्या आणि त्यांची निरपेक्ष मूल्ये घ्या.')
+        (line: 'दुसरे मूल्य धन असताना जोडीच्या जागी दुसरे मूल्य आणि पहिल्या मूल्याला दुसऱ्याने भागल्यावर उरलेली बाकी ठेवा. पहिले मूल्य परत करा.')
+    form:
       task: greatest-common-divisor
       name: standard
       source:
@@ -431,6 +596,17 @@ profile:
       name: standard
       source:
         (line: 'ప్రామాణిక అవుట్‌పుట్‌కు “{{message}}” అనే పాఠ్యాన్ని రాసి, తర్వాత కొత్త పంక్తిని రాయండి.')
+    form:
+      task: write-text
+      name: standard
+      source:
+        (line: '“{{message}}” అనే పాఠ్యాన్ని చివర కొత్త పంక్తిని జోడించకుండా ప్రామాణిక అవుట్‌పుట్‌కు రాయండి.')
+    form:
+      task: gcd-function
+      name: standard
+      source:
+        (line: '−{{max}} నుంచి {{max}} వరకు రెండు హద్దులతో సహా రెండు పూర్ణాంకాలను తీసుకొని వాటి నిరపేక్ష విలువలను తీసుకోండి.')
+        (line: 'రెండవ విలువ ధనాత్మకంగా ఉన్నంతవరకు జత స్థానంలో రెండవ విలువను, మొదటి విలువను రెండవ విలువతో భాగించిన శేషాన్ని ఉంచండి. మొదటి విలువను తిరిగి ఇవ్వండి.')
     form:
       task: greatest-common-divisor
       name: standard
@@ -460,6 +636,17 @@ profile:
       source:
         (line: 'Standart çıktıya “{{message}}” metnini yaz, ardından bir satır sonu yaz.')
     form:
+      task: write-text
+      name: standard
+      source:
+        (line: '“{{message}}” metnini sonuna yeni satır eklemeden standart çıktıya yaz.')
+    form:
+      task: gcd-function
+      name: standard
+      source:
+        (line: '−{{max}} ile {{max}} arasındaki iki tam sayıyı, sınırlar dahil, al ve mutlak değerlerini hesapla.')
+        (line: 'İkinci değer pozitif olduğu sürece çifti ikinci değer ve birinci değerin ikinci değere bölümünden kalan ile değiştir. Birinci değeri döndür.')
+    form:
       task: greatest-common-divisor
       name: standard
       source:
@@ -487,6 +674,17 @@ profile:
       name: standard
       source:
         (line: '“{{message}}” என்ற உரையை நிலையான வெளியீட்டில் எழுதி, பிறகு ஒரு புதிய வரியை எழுதவும்.')
+    form:
+      task: write-text
+      name: standard
+      source:
+        (line: '“{{message}}” என்ற உரையை முடிவில் புதிய வரியைச் சேர்க்காமல் தரநிலை வெளியீட்டில் எழுது.')
+    form:
+      task: gcd-function
+      name: standard
+      source:
+        (line: '−{{max}} முதல் {{max}} வரையிலான இரண்டு முழு எண்களை எல்லைகளையும் சேர்த்து ஏற்று, அவற்றின் தனி மதிப்புகளை எடு.')
+        (line: 'இரண்டாம் மதிப்பு நேர்மமாக இருக்கும்வரை, இந்த இணையை இரண்டாம் மதிப்பாலும் முதல் மதிப்பை இரண்டாம் மதிப்பால் வகுத்த மீதியாலும் மாற்று. முதல் மதிப்பைத் திருப்பிக் கொடு.')
     form:
       task: greatest-common-divisor
       name: standard
@@ -516,6 +714,17 @@ profile:
       source:
         (line: 'Ghi văn bản “{{message}}” ra đầu ra chuẩn, rồi ghi một ký tự xuống dòng.')
     form:
+      task: write-text
+      name: standard
+      source:
+        (line: 'Ghi văn bản “{{message}}” ra đầu ra chuẩn mà không thêm ký tự xuống dòng.')
+    form:
+      task: gcd-function
+      name: standard
+      source:
+        (line: 'Nhận hai số nguyên từ −{{max}} đến {{max}}, kể cả hai đầu, rồi lấy giá trị tuyệt đối của chúng.')
+        (line: 'Khi giá trị thứ hai còn dương, thay cặp bằng giá trị thứ hai và số dư của phép chia giá trị thứ nhất cho giá trị thứ hai. Trả về giá trị thứ nhất.')
+    form:
       task: greatest-common-divisor
       name: standard
       source:
@@ -543,6 +752,17 @@ profile:
       name: standard
       source:
         (line: '표준 출력에 텍스트 “{{message}}”를 쓰고 줄을 바꾼다.')
+    form:
+      task: write-text
+      name: standard
+      source:
+        (line: '텍스트 “{{message}}”를 끝에 줄바꿈을 추가하지 않고 표준 출력에 쓴다.')
+    form:
+      task: gcd-function
+      name: standard
+      source:
+        (line: '−{{max}} 이상 {{max}} 이하의 정수 두 개를 받아 각각의 절댓값을 구한다.')
+        (line: '두 번째 값이 양수인 동안 두 번째 값과 첫 번째 값을 두 번째 값으로 나눈 나머지로 쌍을 바꾼다. 첫 번째 값을 반환한다.')
     form:
       task: greatest-common-divisor
       name: standard
