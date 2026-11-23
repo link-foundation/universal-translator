@@ -517,6 +517,7 @@ describe('manual release quality gates', () => {
     const lintJob = getJobBlock(workflow, 'lint');
     const testJob = getJobBlock(workflow, 'test');
     const translationJob = getJobBlock(workflow, 'translation');
+    const nativeTranslationJob = getJobBlock(workflow, 'native-translation');
     const instantReleaseJob = getJobBlock(workflow, 'instant-release');
     const context = getManualReleaseContext({ releaseMode: 'instant' });
 
@@ -528,6 +529,12 @@ describe('manual release quality gates', () => {
     );
     expect(
       evaluateWorkflowIf(getMultilineIfExpression(translationJob), context)
+    ).toBe(true);
+    expect(
+      evaluateWorkflowIf(
+        getMultilineIfExpression(nativeTranslationJob),
+        context
+      )
     ).toBe(true);
     expect(instantReleaseJob).toContain('        release-preflight,');
     expect(
@@ -565,6 +572,15 @@ describe('manual release quality gates', () => {
         getManualReleaseContext({
           releaseMode: 'instant',
           translationResult: 'failure',
+        })
+      )
+    ).toBe(false);
+    expect(
+      evaluateWorkflowIf(
+        condition,
+        getManualReleaseContext({
+          releaseMode: 'instant',
+          nativeTranslationResult: 'failure',
         })
       )
     ).toBe(false);

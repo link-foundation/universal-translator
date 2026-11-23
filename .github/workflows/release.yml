@@ -434,7 +434,9 @@ jobs:
       - run: npm ci
 
       - name: Check generated Links Notation registry
-        run: node scripts/bundle-translation-profiles.mjs --check
+        run: |
+          node scripts/bundle-translation-profiles.mjs --check
+          node examples/translation/report-coverage.mjs
 
       - name: Check Rust formatting
         run: cargo fmt --check

@@ -15,6 +15,27 @@ The default C# output matches `hello.cs`. The C program uses `stdio.h` and
 small wrapper implemented in each language. The target program prints the
 same line, including the punctuation from the source.
 
+## Translate through a Links Notation document
+
+```sh
+node bin/universal-translator.js translate c meta examples/translation/hello.c --mode same-effect > /tmp/hello.lino
+cargo run --locked -- translate meta es /tmp/hello.lino --mode same-effect > /tmp/hello.es.txt
+node bin/universal-translator.js translate es rust /tmp/hello.es.txt --mode same-effect
+```
+
+The intermediate document contains `(hello: (message: 'Hello, World!'))`.
+It is editable and accepted by both CLIs. `readEffects` and `writeEffect`
+in JavaScript and `Effect::read_links_notation` and `Effect::to_links_notation`
+in Rust expose the same format. Whole-line Links Notation comments before
+and after the effect survive `literal` translation when the destination can
+safely express them. `same-effect` omits comments.
+
+Natural-language profiles recognize the precise wordings checked into the
+[profile catalog](../../src/translation/data/07-natural-languages.lino).
+The parameter values remain translatable even when the description is in a
+non-Latin script. The profiles preserve the printed string and the output
+tokens `Fizz`, `Buzz`, and `FizzBuzz` across all languages.
+
 The library exposes the two stages of translation.
 
 ```js
@@ -60,10 +81,18 @@ cargo build --locked --bin universal-translator
 node examples/translation/verify-parity.mjs
 node examples/translation/dependent-meanings.mjs
 node examples/translation/verify-native.mjs
+node examples/translation/report-coverage.mjs
 ```
 
-The native runner uses a temporary directory per program. It reports missing
-toolchains and accepts profile IDs to focus a run. CI uses `--require-all` so
-missing tools fail the job. The separately evaluated referent example uses
+The native runner uses a temporary directory per program. It accepts profile
+IDs or `--group=baseline` and `--group=extended` to focus a run. Both Ubuntu
+CI jobs use `--require-all` so missing tools fail the job. The separately
+evaluated referent example uses
 synthetic observations to show how a narrower description and exact reverse
 translation affect rankings.
+
+Edit profile data in `src/translation/data` and run
+`node scripts/bundle-translation-profiles.mjs` to refresh the browser-compatible
+JavaScript bundle. Rust reads the same Links Notation source at build time.
+The [corpus coverage report](../../docs/case-studies/issue-1/README.md#coverage)
+records which tasks and ranked languages the catalog supports.

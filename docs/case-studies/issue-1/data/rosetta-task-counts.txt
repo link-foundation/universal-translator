@@ -1,7 +1,0 @@
-108960 Total
-000595 Hello-world-Text
-000362 100-doors
-000361 Fibonacci-sequence
-000344 FizzBuzz
-000233 Greatest-common-divisor
-000167 Hello-world-Standard-error

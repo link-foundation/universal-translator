@@ -1,48 +1,68 @@
 # Issue 1 case study
 
-[Issue 1](https://github.com/link-foundation/universal-translator/issues/1)
-asks whether translation can be expressed as dependency resolution over
-source, candidate meanings, and context. It asks for a first manual
-implementation in JavaScript and Rust, with source preservation, a
-configurable transformation stage, and readable examples in the most used
-programming languages. The [requirements inventory](requirements.md) tracks
-the delivered evidence and distinguishes the scope of each claim.
+Translation in an unrestricted grammar is the hypothesis in issue 1. A
+reading binds a word or structure to a physical or abstract referent.
+Additional type constraints narrow the possible values, while corpus
+observations and context can support several competing readings. Exact
+reverse translation is evidence in favor of an interpretation. Irony and
+paradox can intentionally keep incompatible readings in play. The first
+implementation applies a bounded version of this model to programs with
+observable output and to authored readings of a phrase. The
+[requirements inventory](requirements.md) tracks the issue and the later
+review. [Issue 1](https://github.com/link-foundation/universal-translator/issues/1)
 
 ## Evidence collected
 
-The [data directory](data/) contains the issue, issue comment and sub-issue
-responses, the initial PR and all three review channels, and snapshots of
-three related PRs. The issue had zero comments and zero linked sub-issues
-when collected. This PR had no review or discussion feedback at that point.
-Coverage counts come from the corpus mirror's published inventory. The
-inventory records entries per task with variants. It does not count
-independently verified translations. Direct access to the Rosetta Code wiki
-and Hello World Collection was unavailable when checking the issue links.
-[PR 5](https://github.com/link-foundation/universal-translator/pull/5) ·
-[Rosetta Code Data inventory at the reviewed revision](https://github.com/acmeism/RosettaCodeData/blob/1d475861d7141ef2fafff293d9339f56e4b0f5db/popular-tasks)
+The [data directory](data/) contains Links Notation snapshots of the issue,
+issue comments, sub-issues, PR discussion, inline comments, reviews, and
+three related PRs. The issue had zero comments and zero sub-issues. The PR
+had no inline comments or submitted reviews. The conversation contains the
+follow-up request for Ubuntu-only CI, Links Notation, and a larger example
+corpus. The capture script verifies that the Links Notation preserves the
+GitHub API values. Package-manager and GitHub API boundaries still use the
+formats those tools require. [PR 5 feedback](https://github.com/link-foundation/universal-translator/pull/5#issuecomment-7092772656)
 
-GitHub activity indicates adoption in repositories and RedMonk combines
-GitHub and Stack Overflow signals. The developer survey also captures SQL
-and shell use. These rankings measure different populations, so the roster
-uses their overlap and includes representative imperative, functional,
-query and scripting environments. The profiles use SQLite for SQL and a
-POSIX shell for shell. HTML and CSS describe presentation and fall outside
-the three executable tasks. The 28 source profiles are C, C++, Rust, Go,
-Swift, Fortran, Pascal, Objective-C, JavaScript, TypeScript, Java, C#, Kotlin,
-VB.NET, OCaml, Scala, Dart, Python, Ruby, PHP, POSIX shell, Perl, R, Lua,
-SQLite, Tcl, AWK, and PowerShell.
-[GitHub Octoverse 2026](https://github.blog/news-insights/octoverse/octoverse-commits-pushes-reach-new-highs-in-2026-as-developers-build-with-agents/) ·
-[RedMonk rankings](https://redmonk.com/sogrady/2026/04/14/language-rankings-1-26/) ·
-[Stack Overflow Developer Survey](https://survey.stackoverflow.co/2026)
+GitHub, RedMonk, and the Stack Overflow survey informed the original
+28-language roster. The follow-up does not name a ranking. This audit
+uses TIOBE's November 2026 table and records every ranked item and its
+matching profile, if one exists. TIOBE tracks MATLAB and GNU Octave,
+Caml and OCaml, as well as the broad Lisp and ML names separately from
+specific implementations. The audit retains those distinctions.
+[TIOBE Index](https://www.tiobe.com/tiobe-index/) ·
+[TIOBE search definitions](https://www.tiobe.com/tiobe-index/programminglanguages_definition/)
 
-The corpus inventory records 595 Hello World text entries, 344 FizzBuzz
-entries, and 233 GCD entries. The selected tasks add distinct behaviors with
-compact examples. Hello World exercises literal data, dependencies, and
-program entry points. GCD tests mutable state and arithmetic. FizzBuzz tests
-branch order and output sequences. The examples here are authored for the
-stated contracts. In particular, the FizzBuzz limit varies and the GCD
-program prints one value. The recognizers accept the catalogued forms.
-[Captured task counts](data/rosetta-task-counts.txt)
+## Coverage
+
+The pinned Rosetta Code mirror lists 1,753 tasks and 108,960 entries. It
+counts variants and environments. The three authored tasks correspond to
+595 Hello World text entries, 344 FizzBuzz entries, and 233 GCD entries.
+The implementation has one or more authored forms for those tasks, with
+bounded, testable contracts. It covers three task definitions, leaving
+1,750 task definitions and source variants outside that catalog. The Hello
+World Collection homepage reports 603 programs and greetings in 78 human
+languages. The published HTTP page was retrievable, and its checksum and
+publication date are captured. Its platform-specific forms and greetings
+still need per-entry recognition and verification. [Pinned Rosetta Code inventory](https://github.com/acmeism/RosettaCodeData/blob/1d475861d7141ef2fafff293d9339f56e4b0f5db/popular-tasks) ·
+[Hello World Collection](http://helloworldcollection.de/)
+
+The catalog includes 50 programming profiles and 20 plain-language profiles
+for all three tasks. Of the ranked TIOBE 50, 32 have forms for all three
+tasks and three have a related dialect profile. Assembly has five
+instruction profiles for the fixed Hello World greeting. Fourteen
+ranked items have no profile. The [Links Notation census](data/corpus-coverage.lino)
+lists each mapping. Run `node examples/translation/report-coverage.mjs`
+from the repository root to check the mapping against the current catalog.
+Pass local copies of the linked Rosetta Code inventory and the Hello World
+Collection page, in that order, to verify their checksums and reported counts.
+
+The absent ranked entries include graphical formats and targets with
+non-console observations. Scratch and LabVIEW require project or diagram
+representations. Ladder Logic requires time and controller state. Solidity
+requires an EVM execution model and an observable event or return value.
+ABAP, SAS, PL/SQL, Transact-SQL, and other product-bound languages require
+dialect-specific output and execution verification. Executing the three
+current contracts in an unrelated dialect would not establish coverage of
+those targets.
 
 ## Architecture and alternatives
 
@@ -101,10 +121,12 @@ relationship to the system inspectable. [Associative technology stack](https://g
 
 ## Validation
 
-Each implementation checks 96 authored forms and 2,888 directed translations
-with shared task parameters. The parity runner checks every form and all
-three modes across both command lines. The native runner adds a separate
-oracle for all standard targets and the two common-wrapper forms. The two
-stages detect different failures. A port may produce structurally recognized
-code whose actual runtime output differs from the requested effect. See the
-[example verification commands](../../../examples/translation/README.md#verification).
+Each implementation checks 225 authored forms and 16,390 directed
+translations with shared task parameters. The parity runner checks every
+form and all three modes across both command lines. It checks the explicit
+Links Notation intermediate in both directions. Two Ubuntu native jobs
+compare executable profiles to an independent stdout oracle. JavaScript
+runtime checks and the Rust job use locked dependency installs. Both the
+automatic and instant release gates wait for the language and native jobs.
+[Links Notation CI precedent](https://github.com/link-foundation/links-notation/tree/6f2be531c163d6359d8337d40014dc925e278089/.github/workflows) ·
+[Verification commands](../../../examples/translation/README.md#verification)

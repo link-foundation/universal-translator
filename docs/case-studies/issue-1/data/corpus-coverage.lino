@@ -1,0 +1,73 @@
+hello-world-collection:
+  source: 'http://helloworldcollection.de/'
+  revision: 2021-02-26
+  retrieved: 2026-11-23
+  sha256: 17055bc3f041d24bc3ae3b11145cdddaaf14ce14c84cb778359e8a995345575d
+  programs: 603
+  human-languages: 78
+
+rosetta-code:
+  revision: 1d475861d7141ef2fafff293d9339f56e4b0f5db
+  inventory: 'https://raw.githubusercontent.com/acmeism/RosettaCodeData/1d475861d7141ef2fafff293d9339f56e4b0f5db/popular-tasks'
+  sha256: 39e7e9f5589682ccca610956dec6c206d7914f3d735784ddd3fb651ef5d2b263
+  task-count: 1753
+  entry-count: 108960
+  authored-tasks:
+    (task: hello Hello-world-Text 595)
+    (task: greatest-common-divisor Greatest-common-divisor 233)
+    (task: fizz-buzz FizzBuzz 344)
+
+tiobe:
+  month: 2026-11
+  source: 'https://www.tiobe.com/tiobe-index/'
+  ranks:
+    (rank: 1 Python python)
+    (rank: 2 C c)
+    (rank: 3 Java java)
+    (rank: 4 C++ cpp)
+    (rank: 5 C# csharp)
+    (rank: 6 JavaScript javascript)
+    (rank: 7 R r)
+    (rank: 8 SQL sqlite)
+    (rank: 9 'Visual Basic' vbnet)
+    (rank: 10 Go go)
+    (rank: 11 Rust rust)
+    (rank: 12 PHP php)
+    (rank: 13 Fortran fortran)
+    (rank: 14 Scratch)
+    (rank: 15 Perl perl)
+    (rank: 16 MATLAB octave dialect)
+    (rank: 17 'Assembly language' nasm-x86-64 hello-only)
+    (rank: 18 Swift swift)
+    (rank: 19 'Delphi/Object Pascal' pascal)
+    (rank: 20 Dart dart)
+    (rank: 21 VBScript)
+    (rank: 22 'Classic Visual Basic')
+    (rank: 23 Julia julia)
+    (rank: 24 COBOL cobol)
+    (rank: 25 ABAP)
+    (rank: 26 SAS)
+    (rank: 27 PL/SQL)
+    (rank: 28 Ada ada)
+    (rank: 29 Objective-C objective-c)
+    (rank: 30 Ruby ruby)
+    (rank: 31 Prolog prolog)
+    (rank: 32 Lua lua)
+    (rank: 33 Kotlin kotlin)
+    (rank: 34 OCaml ocaml)
+    (rank: 35 D d)
+    (rank: 36 Lisp common-lisp dialect)
+    (rank: 37 'Ladder Logic')
+    (rank: 38 Scala scala)
+    (rank: 39 Haskell haskell)
+    (rank: 40 Caml)
+    (rank: 41 TypeScript typescript)
+    (rank: 42 GML)
+    (rank: 43 ML standard-ml dialect)
+    (rank: 44 Xojo)
+    (rank: 45 '(Visual) FoxPro')
+    (rank: 46 XSLT xslt)
+    (rank: 47 Transact-SQL)
+    (rank: 48 LabVIEW)
+    (rank: 49 Solidity)
+    (rank: 50 Clojure clojure)

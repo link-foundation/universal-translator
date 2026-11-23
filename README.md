@@ -1,8 +1,11 @@
 # @link-foundation/universal-translator
 
-Translate small programs through a shared meta-language with JavaScript or
-Rust. The built-in profiles cover Hello World in 33 source and instruction
-formats, and Greatest Common Divisor and FizzBuzz in 28 programming languages.
+Translate small programs through a shared Meta Language with JavaScript or
+Rust. The catalog expresses Hello World, Greatest Common Divisor, and
+FizzBuzz in 50 programming languages and in precise plain language across
+20 human languages. Five textual instruction profiles support the Hello
+World fixture. The catalog covers three authored tasks from the source
+collections.
 
 ## Translate a program
 
@@ -11,6 +14,8 @@ npm ci
 node bin/universal-translator.js translate c csharp examples/translation/hello.c
 node bin/universal-translator.js roundtrip c examples/translation/hello.c
 cargo run --locked -- translate c csharp examples/translation/hello.c --mode same-effect
+node bin/universal-translator.js translate c meta examples/translation/hello.c --mode same-effect |
+  node bin/universal-translator.js translate meta ja --mode same-effect
 ```
 
 Both CLIs accept a file or standard input. Run `languages` to list the target
@@ -27,7 +32,10 @@ rule layers for project-specific transformations.
 
 `roundtrip` restores the original UTF-8 source, including whitespace, comments,
 and line endings. Cross-language translation requires a recognized program
-form. The supported effect describes the program's standard-output lines.
+form or an authored natural-language description. A `meta` document expresses
+one task and its inputs in Links Notation. Both implementations read, transform,
+and emit that same intermediate form. The supported effect describes the
+program's standard-output lines.
 
 See the [runnable examples](examples/translation/README.md) and the
 [issue 1 case study](docs/case-studies/issue-1/README.md).
