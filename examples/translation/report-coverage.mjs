@@ -33,7 +33,17 @@ const byId = new Map(profiles.map((profile) => [profile.id, profile]));
 const byTask = new Set(
   profiles.flatMap(({ forms }) => forms.map(({ task }) => task))
 );
-assert.deepEqual(new Set(authored.map(([id]) => id)), byTask);
+const authoredIds = new Set(authored.map(([id]) => id));
+const variants = namedLinks(rosetta.get('effect-variants'), 'variant').map(
+  references
+);
+for (const [id, task] of variants) {
+  assert.ok(byTask.has(id) && authoredIds.has(task));
+}
+assert.deepEqual(
+  new Set([...authoredIds, ...variants.map(([id]) => id)]),
+  byTask
+);
 assert.equal(ranks.length, 50);
 
 const counts = { 'three-tasks': 0, dialect: 0, missing: 0 };
@@ -44,7 +54,10 @@ for (const [index, entry] of ranks.entries()) {
   counts[status] += 1;
   if (id) {
     const tasks = new Set(byId.get(id).forms.map(({ task }) => task));
-    assert.deepEqual(tasks, byTask);
+    assert.ok(
+      [...authoredIds].every((task) => tasks.has(task)),
+      language
+    );
   }
   if (status !== 'three-tasks') {
     console.log(

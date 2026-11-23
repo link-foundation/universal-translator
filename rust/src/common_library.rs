@@ -4,6 +4,10 @@ pub fn print_line(message: &str) {
     println!("{message}");
 }
 
+pub fn write_text(message: &str) {
+    print!("{message}");
+}
+
 pub fn greatest_common_divisor(mut left: u32, mut right: u32) -> u32 {
     while right != 0 {
         (left, right) = (right, left % right);

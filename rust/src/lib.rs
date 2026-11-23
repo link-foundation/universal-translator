@@ -24,6 +24,7 @@ pub use source_document::SourceDocument;
 #[serde(tag = "task", rename_all = "kebab-case")]
 pub enum Effect {
     Hello { message: String },
+    WriteText { message: String },
     GreatestCommonDivisor { left: u32, right: u32 },
     FizzBuzz { limit: u32 },
 }
@@ -32,6 +33,7 @@ impl Effect {
     pub fn task(&self) -> &'static str {
         match self {
             Self::Hello { .. } => "hello",
+            Self::WriteText { .. } => "write-text",
             Self::GreatestCommonDivisor { .. } => "greatest-common-divisor",
             Self::FizzBuzz { .. } => "fizz-buzz",
         }
@@ -39,7 +41,9 @@ impl Effect {
 
     fn fields(&self) -> Vec<(&'static str, String)> {
         match self {
-            Self::Hello { message } => vec![("message", message.clone())],
+            Self::Hello { message } | Self::WriteText { message } => {
+                vec![("message", message.clone())]
+            }
             Self::GreatestCommonDivisor { left, right } => {
                 vec![("left", left.to_string()), ("right", right.to_string())]
             }
@@ -55,6 +59,9 @@ impl Effect {
         };
         let effect = match task {
             "hello" if fields.len() == 1 => Self::Hello {
+                message: fields.get("message")?.clone(),
+            },
+            "write-text" if fields.len() == 1 => Self::WriteText {
                 message: fields.get("message")?.clone(),
             },
             "greatest-common-divisor" if fields.len() == 2 => Self::GreatestCommonDivisor {
@@ -97,7 +104,7 @@ impl Effect {
 
     fn validate(&self) -> Result<(), String> {
         let valid = match self {
-            Self::Hello { message } => {
+            Self::Hello { message } | Self::WriteText { message } => {
                 static MESSAGE: OnceLock<Regex> = OnceLock::new();
                 message.len() <= 96
                     && !message

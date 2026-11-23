@@ -48,6 +48,8 @@ rosetta-code:
     (task: hello Hello-world-Text 595 9e55da45ac46c3aba4f34d449f865c001289e529 595 750)
     (task: greatest-common-divisor Greatest-common-divisor 233 751622a645e6f7c20c15145b45eed8d57b9811db 233 355)
     (task: fizz-buzz FizzBuzz 344 f0d6e89cef62f34a13bb64cd149459c97b9d9c7d 345 675)
+  effect-variants:
+    (variant: write-text hello)
   hello-source-files:
     (program: C-sharp/hello-world-text-2.cs csharp top-level 'Hello world!')
     (program: Clojure/hello-world-text.clj clojure standard 'Hello world!')
@@ -58,12 +60,14 @@ rosetta-code:
     (program: Perl/hello-world-text-1.pl perl collection 'Hello world!')
     (program: Python/hello-world-text-3.py python standard 'Hello world!')
     (program: Ruby/hello-world-text-1.rb ruby standard 'Hello world!')
+    (program: Rust/hello-world-text-1.rs rust rosetta 'Hello world!' write-text)
     (program: Rust/hello-world-text-2.rs rust rosetta 'Hello world!')
     (program: Scheme/hello-world-text-2.scm scheme standard 'Hello world!')
     (program: Swift/hello-world-text-1.swift swift standard 'Hello world!')
   greatest-common-divisor-source-files:
     (program: Racket/greatest-common-divisor-1.rkt racket rosetta 14 63)
   fizz-buzz-source-files:
+    (program: JavaScript/fizzbuzz-2.js javascript rosetta-lookup 100)
     (program: JavaScript/fizzbuzz-7.js javascript rosetta 100)
     (program: Python/fizzbuzz-4.py python rosetta 100)
     (program: Ruby/fizzbuzz-7.rb ruby rosetta 100)

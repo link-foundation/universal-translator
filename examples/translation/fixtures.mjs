@@ -17,6 +17,31 @@ export function exampleEffects() {
   return readEffects(fixture('effects.lino'));
 }
 
+export function expectedOutput(effect) {
+  switch (effect.task) {
+    case 'hello':
+      return `${effect.message}\n`;
+    case 'write-text':
+      return effect.message;
+    case 'greatest-common-divisor': {
+      let { left, right } = effect;
+      while (right !== 0) {
+        [left, right] = [right, left % right];
+      }
+      return `${left}\n`;
+    }
+    case 'fizz-buzz':
+      return Array.from({ length: effect.limit }, (_, index) => {
+        const number = index + 1;
+        const fizz = number % 3 === 0 ? 'Fizz' : '';
+        const buzz = number % 5 === 0 ? 'Buzz' : '';
+        return `${fizz + buzz || number}\n`;
+      }).join('');
+    default:
+      throw new Error(`No stdout expectation for ${effect.task}`);
+  }
+}
+
 export function localizedGreetings() {
   return readEffects(fixture('localized-greetings.lino'));
 }

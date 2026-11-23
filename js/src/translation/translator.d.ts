@@ -2,6 +2,7 @@ import type { LinkId, LinkNetwork } from 'meta-language';
 
 export type Effect =
   | { task: 'hello'; message: string }
+  | { task: 'write-text'; message: string }
   | { task: 'greatest-common-divisor'; left: number; right: number }
   | { task: 'fizz-buzz'; limit: number };
 

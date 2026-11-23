@@ -23,6 +23,22 @@ const cSource = fixture('hello.c').replaceAll('\r\n', '\n');
 const csharpSource = fixture('hello.cs').replaceAll('\r\n', '\n');
 
 describe('translation through meta-language', () => {
+  it('preserves a Rust greeting without a trailing newline in JavaScript and back', () => {
+    const source = 'fn main() {\n   print!("Hello world!");\n}\n';
+    const intermediate = translator.translate(source, 'rust', 'meta');
+    expect(readEffects(intermediate)).toEqual([
+      { task: 'write-text', message: 'Hello world!' },
+    ]);
+    const javascript = translator.translate(intermediate, 'meta', 'javascript');
+    expect(javascript).toBe('process.stdout.write("Hello world!");\n');
+    expect(translator.translate(javascript, 'javascript', 'meta')).toBe(
+      intermediate
+    );
+    expect(
+      translator.translate(intermediate, 'meta', 'rust', { form: 'rosetta' })
+    ).toBe(source);
+  });
+
   it('translates the C source and adapts the comments by default', () => {
     const result = translator.translateDetailed(cSource, 'c', 'csharp');
     expect(result.code).toBe(csharpSource);
@@ -128,7 +144,8 @@ describe('translation through meta-language', () => {
       const admitted = languages.filter(({ forms }) =>
         forms.some(({ task }) => task === effect.task)
       );
-      expect(admitted.length).toBe(effect.task === 'hello' ? 76 : 72);
+      const expectedProfiles = { hello: 76, 'write-text': 3 };
+      expect(admitted.length).toBe(expectedProfiles[effect.task] ?? 72);
       for (const sourceLanguage of admitted) {
         for (const form of sourceLanguage.forms.filter(
           ({ task }) => task === effect.task

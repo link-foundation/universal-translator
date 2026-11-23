@@ -11,6 +11,9 @@ export default `profile:
       task: hello
       name: standard
     form:
+      task: write-text
+      name: standard
+    form:
       task: greatest-common-divisor
       name: standard
     form:

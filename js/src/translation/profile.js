@@ -21,14 +21,14 @@ const blockComments = new Set([
   'swift',
   'typescript',
 ]);
+const message = (value) =>
+  typeof value === 'string' &&
+  value.length <= 96 &&
+  !invalidMessage.test(value) &&
+  messageEncoder.encode(value).length <= 96;
 const taskFields = {
-  hello: {
-    message: (value) =>
-      typeof value === 'string' &&
-      value.length <= 96 &&
-      !invalidMessage.test(value) &&
-      messageEncoder.encode(value).length <= 96,
-  },
+  hello: { message },
+  'write-text': { message },
   'greatest-common-divisor': {
     left: (value) =>
       Number.isInteger(value) && value >= 0 && value <= 2147483647,
@@ -144,7 +144,7 @@ function compileForm(form) {
 }
 
 function supportsEffect(profile, form, effect) {
-  if (effect.task !== 'hello' || !extendedMessage.test(effect.message)) {
+  if (effect.message === undefined || !extendedMessage.test(effect.message)) {
     return true;
   }
   return (

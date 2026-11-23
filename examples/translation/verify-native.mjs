@@ -16,7 +16,12 @@ import {
   writeEffect,
 } from '../../js/src/index.js';
 
-import { exampleEffects, fixture, localizedGreetings } from './fixtures.mjs';
+import {
+  exampleEffects,
+  expectedOutput,
+  fixture,
+  localizedGreetings,
+} from './fixtures.mjs';
 
 const translator = createTranslator();
 const effects = exampleEffects();
@@ -295,25 +300,6 @@ const extendedRunners = {
   racket: interpreted('main.rkt', 'racket'),
   fish: interpreted('main.fish', 'fish', '--no-config'),
 };
-
-function expectedOutput(effect) {
-  if (effect.task === 'hello') {
-    return `${effect.message}\n`;
-  }
-  if (effect.task === 'greatest-common-divisor') {
-    let { left, right } = effect;
-    while (right !== 0) {
-      [left, right] = [right, left % right];
-    }
-    return `${left}\n`;
-  }
-  return Array.from({ length: effect.limit }, (_, index) => {
-    const number = index + 1;
-    const fizz = number % 3 === 0 ? 'Fizz' : '';
-    const buzz = number % 5 === 0 ? 'Buzz' : '';
-    return `${fizz + buzz || number}\n`;
-  }).join('');
-}
 
 function check(runner, source, expected, description, form = 'standard') {
   const directory = mkdtempSync(join(tmpdir(), 'translator-native-'));

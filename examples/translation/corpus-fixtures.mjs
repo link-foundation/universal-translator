@@ -1,6 +1,14 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { URL } from 'node:url';
 import {
   linkFields,
@@ -8,6 +16,7 @@ import {
   parseLinks,
   references,
 } from '../../js/src/translation/links.js';
+import { expectedOutput } from './fixtures.mjs';
 
 export function readCorpusCoverage() {
   const snapshot = new URL(
@@ -20,7 +29,8 @@ export function readCorpusCoverage() {
 function decodeEffect(task, parameters) {
   switch (task) {
     case 'hello':
-      return { task, message: parameters[0] };
+      assert.ok(parameters.length === 1 || parameters[1] === 'write-text');
+      return { task: parameters[1] ?? task, message: parameters[0] };
     case 'fizz-buzz':
       return { task, limit: Number(parameters[0]) };
     case 'greatest-common-divisor':
@@ -48,7 +58,40 @@ export function rosettaPrograms(rosetta, task) {
   });
 }
 
-export function verifyProgram(translator, source, fixture, rustBinary) {
+function executePinnedPrograms(programs, expected, path) {
+  const workspace = mkdtempSync(join(tmpdir(), 'translator-rosetta-'));
+  try {
+    for (const [language, source] of programs) {
+      const cwd = join(workspace, language);
+      mkdirSync(cwd);
+      const options = { cwd, encoding: 'utf8', timeout: 45000 };
+      let output;
+      if (language === 'javascript') {
+        writeFileSync(join(cwd, 'fixture.cjs'), source);
+        output = execFileSync(process.execPath, ['fixture.cjs'], options);
+      } else {
+        writeFileSync(join(cwd, 'fixture.rs'), source);
+        execFileSync(
+          'rustc',
+          ['--edition=2021', 'fixture.rs', '-o', 'fixture'],
+          options
+        );
+        output = execFileSync('./fixture', [], options);
+      }
+      assert.equal(output, expected, `${path} (${language} stdout)`);
+    }
+  } finally {
+    rmSync(workspace, { recursive: true, force: true });
+  }
+}
+
+export function verifyProgram(
+  translator,
+  source,
+  fixture,
+  rustBinary,
+  native = false
+) {
   const { language, form, effect, path, exactForm } = fixture;
   const document = translator.parse(source, language);
   assert.equal(translator.restore(document), source, path);
@@ -84,6 +127,18 @@ export function verifyProgram(translator, source, fixture, rustBinary) {
         reconstructed,
         path
       );
+      if (native && exactForm) {
+        executePinnedPrograms(
+          [
+            [language, source],
+            [target, translated],
+          ],
+          expectedOutput(effect),
+          path
+        );
+        return true;
+      }
     }
   }
+  return false;
 }

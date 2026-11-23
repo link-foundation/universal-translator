@@ -54,6 +54,7 @@ if (process.argv[3] !== '--hello-world-only') {
 }
 let verified = 0;
 let verifiedEffects = 0;
+let verifiedNative = 0;
 for (let header; (header = readBytes(8, true)); ) {
   const path = utf8.decode(readBytes(header.readUInt32LE(0)));
   const bytes = readBytes(header.readUInt32LE(4));
@@ -64,7 +65,9 @@ for (let header; (header = readBytes(8, true)); ) {
   assert.deepEqual(Buffer.from(document.source), bytes, path);
   const fixture = fixtures.get(path);
   if (fixture) {
-    verifyProgram(translator, document.source, fixture, rust);
+    if (verifyProgram(translator, document.source, fixture, rust, true)) {
+      verifiedNative += 1;
+    }
     fixtures.delete(path);
     verifiedEffects += 1;
   }
@@ -78,7 +81,14 @@ assert.equal(
 assert.ok(verified > 0, 'Expected a stream of pinned corpus source files');
 console.log(`JavaScript verified ${verified} source documents`);
 if (verifiedEffects) {
+  assert.ok(
+    verifiedNative > 0,
+    'Expected pinned JavaScript and Rust executions'
+  );
   console.log(
     `Both runtimes verified ${verifiedEffects} selected original program effects`
+  );
+  console.log(
+    `Verified stdout for ${verifiedNative} pinned JavaScript and Rust examples and their translations`
   );
 }

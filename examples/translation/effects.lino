@@ -7,3 +7,6 @@ greatest-common-divisor:
 
 fizz-buzz:
   limit: 100
+
+write-text:
+  message: 'Hello world!'

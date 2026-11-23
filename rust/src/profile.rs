@@ -325,7 +325,7 @@ impl ProfileAdapter {
     }
 
     fn supports_effect(&self, form: &CompiledForm, effect: &Effect) -> bool {
-        if let Effect::Hello { message } = effect {
+        if let Effect::Hello { message } | Effect::WriteText { message } = effect {
             let apostrophe = message.contains('\'');
             if apostrophe || !message.is_ascii() {
                 return (self.profile.kind == "natural-language" || self.profile.unicode_greeting)

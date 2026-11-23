@@ -34,6 +34,22 @@ profile:
         (line: ~1{})
         (line: 'printLine("{{message}}");')
     form:
+      task: write-text
+      name: standard
+      requires: process.stdout
+      output: process.stdout.write
+      source:
+        (line: 'process.stdout.write("{{message}}");')
+    form:
+      task: write-text
+      name: common
+      requires: './common-library.mjs'
+      output: writeText
+      source:
+        (line: "import { writeText } from './common-library.mjs';")
+        (line: ~1{})
+        (line: 'writeText("{{message}}");')
+    form:
       task: greatest-common-divisor
       name: standard
       source:
@@ -73,6 +89,17 @@ profile:
         (line: 'const outputs = range1({{limit}}).map(fizzBuzz)')
         (line: ~1{})
         (line: "console.log(outputs.join('\n'))")
+    form:
+      task: fizz-buzz
+      name: rosetta-lookup
+      source:
+        (line: 'for (var i = 1; i <= {{limit}}; i++) {')
+        (line: '  console.log({')
+        (line: "    truefalse: 'Fizz',")
+        (line: "    falsetrue: 'Buzz',")
+        (line: "    truetrue: 'FizzBuzz'")
+        (line: "  }[(i%3==0) + '' + (i%5==0)] || i)")
+        (line: })
     form:
       task: fizz-buzz
       name: common
