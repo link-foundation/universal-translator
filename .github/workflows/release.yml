@@ -464,7 +464,6 @@ jobs:
           cargo build --locked --bin universal-translator
           node examples/translation/verify-parity.mjs
           node examples/translation/dependent-meanings.mjs
-          bash experiments/verify-syntax-exchange.sh
 
       - name: Install Wine CScript for the pinned Windows Script Host listing
         run: |
@@ -476,7 +475,7 @@ jobs:
           fi
           test -x /usr/lib/wine/wine64
 
-      - name: Round-trip the pinned source corpora
+      - name: Check grammar exchange, native translation, and pinned corpora
         id: corpus
         env:
           ROSETTA_WINE: /usr/lib/wine/wine64
@@ -489,7 +488,7 @@ jobs:
           curl --fail --location --silent --show-error --retry 3 \
             http://helloworldcollection.de/ --output "$collection"
           bash scripts/run-with-budget-warning.sh 540 "Pinned source round trips" \
-            python3 examples/translation/verify-corpus.py "$archive" \
+            bash experiments/verify-syntax-exchange.sh --corpus "$archive" \
               --hello-world "$collection"
 
   native-corpus-readiness:

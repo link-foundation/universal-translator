@@ -94,6 +94,47 @@ CARGO_BUILD_JOBS=1 CARGO_PROFILE_DEV_DEBUG=0 cargo build --locked --bin universa
 bash experiments/verify-syntax-exchange.sh
 ```
 
+## Compile a checked JavaScript or Rust program
+
+```sh
+workspace=$(mktemp -d)
+printf '%s\n' 'const answer = 6 * 7;' 'console.log(answer);' |
+  target/debug/universal-translator encode-cst javascript > "$workspace/program.lino"
+target/debug/universal-translator translate-program cst rust "$workspace/program.lino" > "$workspace/main.rs"
+rustc --edition=2021 "$workspace/main.rs" -o "$workspace/main"
+"$workspace/main"
+```
+
+Use `translate-program javascript rust` with raw source, or reverse the
+language arguments for Rust to JavaScript. The compiler checks source syntax
+and constructs a typed program in Meta Language's portable core. It emits
+native code and parses the target with its grammar before returning the source.
+Invalid syntax and unsupported constructs produce an error. The checked
+compiler currently covers a subset of each language and observes printed lines
+on non-aborting executions. Source comments are retained in the CST.
+
+Rust exposes `translate_program(&SourceDocument, target)`. JavaScript exposes
+`createProgramTranslator(grammarEngine).translate({ language, source }, target)`.
+Set `UNIVERSAL_TRANSLATOR_META_LANGUAGE` to the installed engine's `src/index.js`
+to run the corresponding JavaScript CLI commands. For example, use the same
+engine revision as the exchange test.
+
+```sh
+engine=$(mktemp -d)
+revision=a79782093cae3b33606483ac9f3e1d05faf36de0
+curl -fsSL "https://codeload.github.com/link-foundation/meta-language/tar.gz/$revision" |
+  tar -xz --strip-components=2 -C "$engine" --wildcards \
+    '*/js/package.json' '*/js/package-lock.json' '*/js/src'
+npm ci --omit=dev --ignore-scripts --prefix "$engine"
+UNIVERSAL_TRANSLATOR_META_LANGUAGE="$engine/src/index.js" \
+  node bin/universal-translator.js translate-program cst rust "$workspace/program.lino"
+```
+
+For JavaScript and Rust programs without an authored effect, `translate` also
+uses the compiler in `same-effect` mode when no custom rule layers, verifier,
+or form are selected. The JavaScript library requires a configured
+`grammarEngine` for this behavior.
+
 ## JavaScript and Rust shared-library forms
 
 Both implementations ship callable functions for line output, Euclidean GCD,
@@ -245,9 +286,17 @@ Pass both inputs to verify that the archives round-trip in the same execution
 and that the Rosetta Code native coverage uses only Rosetta Code files.
 
 ```sh
-python3 examples/translation/verify-corpus.py /path/to/rosetta-code.tar.gz \
+bash experiments/verify-syntax-exchange.sh --corpus /path/to/rosetta-code.tar.gz \
   --hello-world /path/to/hello-world-collection.html
 ```
+
+This command prepares the pinned JavaScript grammar engine, checks CST
+exchange and compilation in both directions, and enables the four additional
+checked-program specimens during replay. The native verifier executes each
+archived original and the outputs of both translator implementations. It
+compares exit status, standard output, and standard error against the fixture
+contract.
+[Pinned paths and output contracts](portable-programs.lino)
 
 To check the original console programs and all 78 localized greetings,
 download the two snapshots linked in the case study and run the coverage

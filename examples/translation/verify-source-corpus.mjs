@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import { Buffer } from 'node:buffer';
 import { appendFileSync, readSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import {
+  createProgramTranslator,
   createTranslator,
   readSourceDocument,
   writeSourceDocument,
@@ -18,6 +20,10 @@ import {
   rosettaTasks,
   verifyProgram,
 } from './corpus-fixtures.mjs';
+import {
+  readPortablePrograms,
+  verifyPortableProgram,
+} from './portable-programs.mjs';
 
 // The archive driver sends two little-endian lengths followed by the UTF-8
 // path and contents. A clean EOF is only legal between records.
@@ -46,6 +52,12 @@ const rust = resolve(process.argv[2] ?? 'target/debug/universal-translator');
 const flags = process.argv.slice(3);
 const helloWorldOnly = flags.includes('--hello-world-only');
 const requireFullNative = flags.includes('--require-full-native');
+const enginePath = process.env.UNIVERSAL_TRANSLATOR_META_LANGUAGE;
+const programTranslator =
+  !helloWorldOnly && enginePath
+    ? createProgramTranslator(await import(pathToFileURL(resolve(enginePath))))
+    : undefined;
+const portable = programTranslator ? readPortablePrograms() : new Map();
 const fixtures = new Map();
 const native = new Map();
 if (!helloWorldOnly) {
@@ -86,7 +98,19 @@ for (let header; (header = readBytes(8, true)); ) {
     coverage.available += 1;
   }
   const fixture = fixtures.get(path);
-  if (fixture) {
+  const stdout = portable.get(path);
+  if (stdout !== undefined) {
+    assert.ok(coverage && !fixture, path);
+    verifyPortableProgram(programTranslator, rust, {
+      path,
+      language,
+      source: document.source,
+      stdout,
+    });
+    coverage.checked += 1;
+    portable.delete(path);
+    verifiedEffects += 1;
+  } else if (fixture) {
     if (await verifyProgram(translator, document.source, fixture, rust, true)) {
       assert.ok(coverage, path);
       coverage.checked += 1;
@@ -100,6 +124,11 @@ assert.equal(
   fixtures.size,
   0,
   `Missing pinned specimens: ${[...fixtures.keys()]}`
+);
+assert.equal(
+  portable.size,
+  0,
+  `Missing pinned specimens: ${[...portable.keys()]}`
 );
 assert.ok(verified > 0, 'Expected a stream of pinned corpus source files');
 console.log(`JavaScript verified ${verified} source documents`);

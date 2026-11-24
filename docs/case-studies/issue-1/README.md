@@ -85,7 +85,7 @@ samples and 439 A+B samples.
 The first three tasks have forms across the programming catalog. Empty
 Program, bounded Ackermann, the modeled browser effects, and signed A+B have
 JavaScript, Rust, Links Notation, and 20 plain-language forms. The remaining
-1,750 task definitions and most source variants still need adapters and
+1,746 task definitions and most source variants still need adapters and
 verification. The report checks the selected programs against their pinned
 Git blob hashes, then checks exact round trips and their expected effects.
 The JavaScript and Rust originals also translate in both directions through
@@ -183,10 +183,13 @@ the source counts and 53 original Rosetta Code programs.
 The portable program translator in Meta Language 1.0.0 reported semantic
 translation candidates for 107 of the 1,985 JavaScript files and six of the
 1,481 Rust files. The probe skipped one JavaScript file and three Rust files
-above 24 KiB. It counts only results with a semantics record. Each candidate
-still needs independent execution and a comparison of the original and
-translated effects before it can be included in native coverage.
+above 24 KiB. It counts only results with a semantics record. The archive
+runner now includes native output checks for four additional candidates.
+The selection exercises recursive control flow, array length, case-sensitive
+bindings, and Unicode output. Other candidates require their own observations
+and invocation contracts before they count toward native coverage.
 [Meta Language portable translator](https://github.com/link-foundation/meta-language/blob/v1.0.0/rust/src/program_translation.rs#L133)
+[Pinned paths and output](../../../examples/translation/portable-programs.lino)
 
 The Rust CST round-trip test exercises 25 ranked languages against small
 representative programs. It checks grammar structure and exact source
@@ -194,7 +197,12 @@ restoration from the serialized network. The tagged JavaScript 1.0 engine
 and the Rust CLI exchange CSTs in both directions for seven specimens,
 including UTF-8, CRLF, missing final newlines, and empty source. Catalog-wide
 grammar and concept coverage remain open. The JavaScript codec requires the
-tagged engine while the matching npm release is pending.
+tagged engine while the matching npm release is pending. The ordinary Rust
+parser and the configured JavaScript parser now use grammar networks for
+their registered programming languages and attach effect links to the parsed
+root. The checked compiler takes an exchanged CST and emits executable code
+for the supported JavaScript and Rust subset. The cross-runtime test executes
+both directions and checks that the compiler rejects unsupported input.
 [CST verification](../../../examples/translation/README.md#exchange-a-grammar-tree)
 
 Run the probe after preparing the pinned archive with the example commands.
