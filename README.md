@@ -30,12 +30,10 @@ and Deno. Build the Rust CLI with a current stable Rust toolchain.
 - `same-effect` keeps the task and its parameters and emits the canonical target form unless you select a different form.
 
 Use `--form` to pick a supported style or a shared library wrapper. JavaScript
-and Rust provide common library forms for Hello World, GCD, FizzBuzz, and
-the bounded Ackermann function. They include text output without a trailing
-newline, GCD as a callable function, and FizzBuzz with lowercase labels,
-quoted results, or an extra blank line. The
-programmatic APIs let callers replace or decorate adapters and add ordered
-rule layers for project-specific transformations.
+and Rust share standard-output primitives. The emitted programs implement
+GCD, FizzBuzz, and bounded Ackermann directly and can use those primitives
+to write their results. The programmatic APIs let callers replace or decorate
+adapters and add ordered rule layers for project-specific transformations.
 
 `roundtrip` restores the original UTF-8 source, including whitespace, comments,
 and line endings. The profile-based translator handles recognized program

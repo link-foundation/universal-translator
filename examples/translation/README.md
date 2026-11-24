@@ -137,8 +137,10 @@ or form are selected. The JavaScript library requires a configured
 
 ## JavaScript and Rust shared-library forms
 
-Both implementations ship callable functions for line output, Euclidean GCD,
-and FizzBuzz. The `common` forms use relative imports. Place
+Both implementations ship wrappers for writing a line or writing exact text
+to standard output. In `common` forms, GCD, FizzBuzz, and Ackermann are
+computed in the emitted program. Forms that only return a value use the
+standard implementation. The `common` forms use relative imports. Place
 `js/src/common-library.mjs` alongside generated JavaScript and
 `rust/src/common_library.rs` alongside generated Rust. Native forms are the
 default and use the language's own control flow and output operations.

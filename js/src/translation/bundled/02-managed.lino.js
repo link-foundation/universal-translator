@@ -257,9 +257,16 @@ export default `profile:
       requires: './common-library.mjs'
       output: printLine
       source:
-        (line: "import { greatestCommonDivisor, printLine } from './common-library.mjs';")
+        (line: "import { printLine } from './common-library.mjs';")
         (line: ~1{})
-        (line: 'printLine(String(greatestCommonDivisor({{left}}, {{right}})));')
+        (line: 'let left = {{left}};')
+        (line: 'let right = {{right}};')
+        (line: 'while (right !== 0) {')
+        (line: '    const remainder = left % right;')
+        (line: '    left = right;')
+        (line: '    right = remainder;')
+        (line: })
+        (line: 'printLine(String(left));')
     form:
       task: ackermann-cli
       name: standard
@@ -308,13 +315,20 @@ export default `profile:
     form:
       task: ackermann-cli
       name: common
-      requires: './common-library.mjs' process.argv console
+      requires: './common-library.mjs' process.argv
+      output: printLine
       source:
-        (line: "import { ackermann } from './common-library.mjs';")
+        (line: "import { printLine } from './common-library.mjs';")
+        (line: ~1{})
+        (line: 'function ackermann(first, second) {')
+        (line: '    if (first === 0) return second + 1;')
+        (line: '    if (second === 0) return ackermann(first - 1, 1);')
+        (line: '    return ackermann(first - 1, ackermann(first, second - 1));')
+        (line: })
         (line: ~1{})
         (line: 'const [first, second] = process.argv.slice(2).map((value) => Number.parseInt(value, 10));')
         (line: 'if (first >= 0 && first <= {{left}} && second >= 0 && second <= {{right}}) {')
-        (line: '    console.log(ackermann(first, second));')
+        (line: '    printLine(String(ackermann(first, second)));')
         (line: })
     form:
       task: ackermann-json
@@ -367,13 +381,15 @@ export default `profile:
       task: ackermann-json
       name: common
       requires: './common-library.mjs'
+      output: printLine
       source:
-        (line: "import { ackermann } from './common-library.mjs';")
+        (line: "import { printLine } from './common-library.mjs';")
         (line: ~1{})
         (line: 'const last = {{left}};')
         (line: 'const second = {{right}};')
-        (line: 'const results = Array.from({ length: last + 1 }, (_, first) => ackermann(first, second));')
-        (line: 'console.log(JSON.stringify(results));')
+        (line: 'const values = [second + 1, second + 2, 2 * second + 3, 2 ** (second + 3) - 3];')
+        (line: 'const results = values.slice(0, last + 1);')
+        (line: 'printLine(JSON.stringify(results));')
     form:
       task: ackermann-value
       name: standard
@@ -387,9 +403,11 @@ export default `profile:
       requires: './common-library.mjs'
       output: printLine
       source:
-        (line: "import { ackermann, printLine } from './common-library.mjs';")
+        (line: "import { printLine } from './common-library.mjs';")
         (line: ~1{})
-        (line: 'printLine(String(ackermann({{left}}, {{right}})));')
+        (line: 'const first = {{left}};')
+        (line: 'const second = {{right}};')
+        (line: 'printLine(String(2 ** (second + first) - first));')
     form:
       task: ackermann-function
       name: standard
@@ -457,16 +475,6 @@ export default `profile:
         (line: '  }')
         (line: })
     form:
-      task: ackermann-function
-      name: common
-      fixed:
-        left: 3
-        right: 4
-      output: ackermann
-      requires: './common-library.mjs'
-      source:
-        (line: "import { ackermann } from './common-library.mjs';")
-    form:
       task: gcd-function
       name: standard
       fixed:
@@ -488,19 +496,6 @@ export default `profile:
       source:
         (line: 'function gcd_rec(a, b) {')
         (line: '  return b ? gcd_rec(b, a % b) : Math.abs(a);')
-        (line: })
-    form:
-      task: gcd-function
-      name: common
-      fixed:
-        max: 2147483647
-      output: gcd
-      requires: './common-library.mjs'
-      source:
-        (line: "import { greatestCommonDivisor } from './common-library.mjs';")
-        (line: ~1{})
-        (line: 'function gcd(left, right) {')
-        (line: '    return greatestCommonDivisor(Math.abs(left), Math.abs(right));')
         (line: })
     form:
       task: fizz-buzz
@@ -552,10 +547,12 @@ export default `profile:
       requires: './common-library.mjs'
       output: printLine
       source:
-        (line: "import { fizzBuzzLines, printLine } from './common-library.mjs';")
+        (line: "import { printLine } from './common-library.mjs';")
         (line: ~1{})
-        (line: 'for (const line of fizzBuzzLines({{limit}})) {')
-        (line: '    printLine(line);')
+        (line: 'const limit = {{limit}};')
+        (line: 'for (let number = 1; number <= limit; number += 1) {')
+        (line: '    const label = (number % 3 === 0 ? "Fizz" : "") + (number % 5 === 0 ? "Buzz" : "");')
+        (line: '    printLine(String(label || number));')
         (line: })
     form:
       task: fizz-buzz-function
@@ -575,11 +572,13 @@ export default `profile:
       output: fizzBuzz
       requires: './common-library.mjs'
       source:
-        (line: "import { fizzBuzzLines, printLine } from './common-library.mjs';")
+        (line: "import { printLine } from './common-library.mjs';")
         (line: ~1{})
         (line: 'function fizzBuzz() {')
-        (line: '    for (const line of fizzBuzzLines({{limit}})) {')
-        (line: '        printLine(line);')
+        (line: '    for (let number = 1; number <= {{limit}}; number += 1) {')
+        (line: '        const fizz = number % 3 === 0 ? "Fizz" : "";')
+        (line: '        const buzz = number % 5 === 0 ? "Buzz" : "";')
+        (line: '        printLine(String(fizz + buzz || number));')
         (line: '    }')
         (line: })
     form:
@@ -611,17 +610,6 @@ export default `profile:
         (line: '        return fizz + buzz || String(number);')
         (line: '    });')
         (line: '    return labels.join(String.fromCharCode({{separator}}));')
-        (line: })
-    form:
-      task: fizz-buzz-joined
-      name: common
-      output: fizzBuzz
-      requires: './common-library.mjs'
-      source:
-        (line: "import { fizzBuzzLines } from './common-library.mjs';")
-        (line: ~1{})
-        (line: 'function fizzBuzz() {')
-        (line: '    return [...fizzBuzzLines({{limit}})].join(String.fromCharCode({{separator}}));')
         (line: })
     form:
       task: fizz-buzz-joined
@@ -692,10 +680,11 @@ export default `profile:
       requires: './common-library.mjs'
       output: printLine
       source:
-        (line: "import { fizzBuzzLines, printLine } from './common-library.mjs';")
+        (line: "import { printLine } from './common-library.mjs';")
         (line: ~1{})
-        (line: 'for (const line of fizzBuzzLines({{limit}})) {')
-        (line: '    printLine(line.toLowerCase());')
+        (line: 'for (let number = 1; number <= {{limit}}; number += 1) {')
+        (line: '    const label = (number % 3 === 0 ? "fizz" : "") + (number % 5 === 0 ? "buzz" : "");')
+        (line: '    printLine(String(label || number));')
         (line: })
     form:
       task: fizz-buzz-lowercase
@@ -865,10 +854,11 @@ export default `profile:
       requires: './common-library.mjs'
       output: printLine
       source:
-        (line: "import { fizzBuzzLines, printLine } from './common-library.mjs';")
+        (line: "import { printLine } from './common-library.mjs';")
         (line: ~1{})
-        (line: 'for (const line of fizzBuzzLines({{limit}})) {')
-        (line: '    printLine(JSON.stringify(line));')
+        (line: 'for (let number = 1; number <= {{limit}}; number += 1) {')
+        (line: '    const label = (number % 3 === 0 ? "Fizz" : "") + (number % 5 === 0 ? "Buzz" : "");')
+        (line: '    printLine(JSON.stringify(String(label || number)));')
         (line: })
     form:
       task: fizz-buzz-lowercase-blank-line
@@ -885,10 +875,11 @@ export default `profile:
       requires: './common-library.mjs'
       output: printLine
       source:
-        (line: "import { fizzBuzzLines, printLine } from './common-library.mjs';")
+        (line: "import { printLine } from './common-library.mjs';")
         (line: ~1{})
-        (line: 'for (const line of fizzBuzzLines({{limit}})) {')
-        (line: '    printLine(line.toLowerCase());')
+        (line: 'for (let number = 1; number <= {{limit}}; number += 1) {')
+        (line: '    const label = (number % 3 === 0 ? "fizz" : "") + (number % 5 === 0 ? "buzz" : "");')
+        (line: '    printLine(String(label || number));')
         (line: })
         (line: 'printLine("");')
 

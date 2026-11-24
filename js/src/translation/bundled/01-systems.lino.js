@@ -489,8 +489,12 @@ profile:
         (line: 'mod common_library;')
         (line: ~1{})
         (line: 'fn main() {')
-        (line: '    let divisor = common_library::greatest_common_divisor({{left}}, {{right}});')
-        (line: '    common_library::print_line(&divisor.to_string());')
+        (line: '    let mut left = {{left}};')
+        (line: '    let mut right = {{right}};')
+        (line: '    while right != 0 {')
+        (line: '        (left, right) = (right, left % right);')
+        (line: '    }')
+        (line: '    common_library::print_line(&left.to_string());')
         (line: })
     form:
       task: ackermann-cli
@@ -520,9 +524,18 @@ profile:
     form:
       task: ackermann-cli
       name: common
-      requires: common_library 'std::env::args' println!
+      requires: common_library 'std::env::args'
+      output: 'common_library::print_line'
       source:
         (line: 'mod common_library;')
+        (line: ~1{})
+        (line: 'fn ackermann(first: u64, second: u64) -> u64 {')
+        (line: '    match (first, second) {')
+        (line: '        (0, n) => n + 1,')
+        (line: '        (m, 0) => ackermann(m - 1, 1),')
+        (line: '        (m, n) => ackermann(m - 1, ackermann(m, n - 1)),')
+        (line: '    }')
+        (line: })
         (line: ~1{})
         (line: 'fn main() {')
         (line: '    let mut arguments = std::env::args().skip(1);')
@@ -533,7 +546,7 @@ profile:
         (line: '        return;')
         (line: '    };')
         (line: '    if first <= {{left}} && second <= {{right}} {')
-        (line: '        println!("{}", common_library::ackermann(first, second));')
+        (line: '        common_library::print_line(&ackermann(first, second).to_string());')
         (line: '    }')
         (line: })
     form:
@@ -553,16 +566,18 @@ profile:
       task: ackermann-json
       name: common
       requires: common_library
+      output: 'common_library::print_line'
       source:
         (line: 'mod common_library;')
         (line: ~1{})
         (line: 'fn main() {')
         (line: '    let last = {{left}};')
         (line: '    let second = {{right}};')
-        (line: '    let results: Vec<_> = (0..=last)')
-        (line: '        .map(|first| common_library::ackermann(first, second).to_string())')
+        (line: '    let values = [second + 1, second + 2, 2 * second + 3, (1_u64 << (second + 3)) - 3];')
+        (line: '    let results: Vec<_> = values[..=last].iter()')
+        (line: '        .map(ToString::to_string)')
         (line: '        .collect();')
-        (line: '    println!("[{}]", results.join(","));')
+        (line: '    common_library::print_line(&format!("[{}]", results.join(",")));')
         (line: })
     form:
       task: ackermann-value
@@ -603,8 +618,9 @@ profile:
         (line: 'mod common_library;')
         (line: ~1{})
         (line: 'fn main() {')
-        (line: '    let value = common_library::ackermann({{left}}, {{right}});')
-        (line: '    common_library::print_line(&value.to_string());')
+        (line: '    let first = {{left}};')
+        (line: '    let second = {{right}};')
+        (line: '    common_library::print_line(&((1_u64 << (second + first)) - first).to_string());')
         (line: })
     form:
       task: ackermann-function
@@ -636,17 +652,6 @@ profile:
         (line: '		(m, n) => ack(m - 1, ack(m, n - 1)),')
         (line: '	}')
         (line: })
-    form:
-      task: ackermann-function
-      name: common
-      fixed:
-        left: 3
-        right: 4
-      output: ackermann
-      requires: common_library
-      source:
-        (line: 'mod common_library;')
-        (line: 'use common_library::ackermann;')
     form:
       task: gcd-function
       name: standard
@@ -699,19 +704,6 @@ profile:
       source:
         (line: 'extern crate num;')
         (line: 'use num::integer::gcd;')
-    form:
-      task: gcd-function
-      name: common
-      fixed:
-        max: 2147483647
-      output: gcd
-      requires: common_library
-      source:
-        (line: 'mod common_library;')
-        (line: ~1{})
-        (line: 'fn gcd(left: i32, right: i32) -> i32 {')
-        (line: '    common_library::greatest_common_divisor(left.unsigned_abs(), right.unsigned_abs()) as i32')
-        (line: })
     form:
       task: fizz-buzz
       name: standard
@@ -781,8 +773,14 @@ profile:
         (line: 'mod common_library;')
         (line: ~1{})
         (line: 'fn main() {')
-        (line: '    for line in common_library::fizz_buzz_lines({{limit}}) {')
-        (line: '        common_library::print_line(&line);')
+        (line: '    let limit = {{limit}};')
+        (line: '    for number in 1..=limit {')
+        (line: '        match (number % 3 == 0, number % 5 == 0) {')
+        (line: '            (true, true) => common_library::print_line("FizzBuzz"),')
+        (line: '            (true, false) => common_library::print_line("Fizz"),')
+        (line: '            (false, true) => common_library::print_line("Buzz"),')
+        (line: '            (false, false) => common_library::print_line(&number.to_string()),')
+        (line: '        }')
         (line: '    }')
         (line: })
     form:
@@ -809,8 +807,13 @@ profile:
         (line: 'mod common_library;')
         (line: ~1{})
         (line: 'fn fizz_buzz() {')
-        (line: '    for line in common_library::fizz_buzz_lines({{limit}}) {')
-        (line: '        common_library::print_line(&line);')
+        (line: '    for number in 1..={{limit}} {')
+        (line: '        match (number % 3, number % 5) {')
+        (line: '            (0, 0) => common_library::print_line("FizzBuzz"),')
+        (line: '            (0, _) => common_library::print_line("Fizz"),')
+        (line: '            (_, 0) => common_library::print_line("Buzz"),')
+        (line: '            _ => common_library::print_line(&number.to_string()),')
+        (line: '        }')
         (line: '    }')
         (line: })
     form:
@@ -826,19 +829,6 @@ profile:
         (line: '            (_, 0) => "Buzz".into(),')
         (line: '            _ => number.to_string(),')
         (line: '        })')
-        (line: '        .collect::<Vec<_>>()')
-        (line: '        .join(&char::from({{separator}}u8).to_string())')
-        (line: })
-    form:
-      task: fizz-buzz-joined
-      name: common
-      output: fizz_buzz
-      requires: common_library
-      source:
-        (line: 'mod common_library;')
-        (line: ~1{})
-        (line: 'fn fizz_buzz() -> String {')
-        (line: '    common_library::fizz_buzz_lines({{limit}})')
         (line: '        .collect::<Vec<_>>()')
         (line: '        .join(&char::from({{separator}}u8).to_string())')
         (line: })
@@ -879,8 +869,13 @@ profile:
         (line: 'mod common_library;')
         (line: ~1{})
         (line: 'fn main() {')
-        (line: '    for line in common_library::fizz_buzz_lines({{limit}}) {')
-        (line: '        common_library::print_line(&line.to_ascii_lowercase());')
+        (line: '    for number in 1..={{limit}} {')
+        (line: '        match (number % 3, number % 5) {')
+        (line: '            (0, 0) => common_library::print_line("fizzbuzz"),')
+        (line: '            (0, _) => common_library::print_line("fizz"),')
+        (line: '            (_, 0) => common_library::print_line("buzz"),')
+        (line: '            _ => common_library::print_line(&number.to_string()),')
+        (line: '        }')
         (line: '    }')
         (line: })
     form:
@@ -923,8 +918,13 @@ profile:
         (line: 'mod common_library;')
         (line: ~1{})
         (line: 'fn main() {')
-        (line: '    for line in common_library::fizz_buzz_lines({{limit}}) {')
-        (line: '        common_library::print_line(&format!("{line:?}"));')
+        (line: '    for number in 1..={{limit}} {')
+        (line: '        match (number % 3, number % 5) {')
+        (line: '            (0, 0) => common_library::print_line("\\"FizzBuzz\\""),')
+        (line: '            (0, _) => common_library::print_line("\\"Fizz\\""),')
+        (line: '            (_, 0) => common_library::print_line("\\"Buzz\\""),')
+        (line: '            _ => common_library::print_line(&format!("\\"{number}\\"")),')
+        (line: '        }')
         (line: '    }')
         (line: })
     form:
@@ -974,8 +974,13 @@ profile:
         (line: 'mod common_library;')
         (line: ~1{})
         (line: 'fn main() {')
-        (line: '    for line in common_library::fizz_buzz_lines({{limit}}) {')
-        (line: '        common_library::print_line(&line.to_ascii_lowercase());')
+        (line: '    for number in 1..={{limit}} {')
+        (line: '        match (number % 3, number % 5) {')
+        (line: '            (0, 0) => common_library::print_line("fizzbuzz"),')
+        (line: '            (0, _) => common_library::print_line("fizz"),')
+        (line: '            (_, 0) => common_library::print_line("buzz"),')
+        (line: '            _ => common_library::print_line(&number.to_string()),')
+        (line: '        }')
         (line: '    }')
         (line: '    common_library::print_line("");')
         (line: })

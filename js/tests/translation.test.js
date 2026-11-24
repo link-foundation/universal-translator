@@ -8,6 +8,7 @@ import {
 } from '../../examples/translation/fixtures.mjs';
 import { runCli } from '../../bin/universal-translator.js';
 import {
+  commonLibrary,
   createTranslator,
   languageProfiles,
   rankInterpretations,
@@ -44,6 +45,22 @@ const expectedProfiles = {
   'integer-sum-or-usage': 23,
   'browser-integer-sum': 23,
 };
+
+it('keeps the algorithm in a program that uses the shared stdout library', () => {
+  expect(Object.keys(commonLibrary)).toEqual(['printLine', 'writeText']);
+  const source = translator.materialize(
+    translator.expression(
+      'javascript',
+      { task: 'greatest-common-divisor', left: 1071, right: 462 },
+      { form: 'common' }
+    )
+  );
+  expect(source).toContain('left % right');
+  expect(source).toContain('printLine(String(left));');
+  expect(
+    readEffects(translator.translate(source, 'javascript', 'meta'))
+  ).toEqual([{ task: 'greatest-common-divisor', left: 1071, right: 462 }]);
+});
 
 describe('translation through meta-language', () => {
   it('preserves a Rust greeting without a trailing newline in JavaScript and back', () => {
