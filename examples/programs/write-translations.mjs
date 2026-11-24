@@ -11,6 +11,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createGrammarTranslator } from '../../js/src/grammar/translator.js';
 import { grammarLanguageIds } from '../../js/src/grammar/languages.js';
+import { machineTargetIds } from '../../js/src/grammar/machine.js';
 import { extensions, programFiles } from './verify-native.mjs';
 
 const folder = dirname(fileURLToPath(import.meta.url));
@@ -20,7 +21,7 @@ export function expectedTranslations() {
   return programFiles()
     .filter(({ language }) => language === 'javascript')
     .flatMap(({ path, task }) =>
-      grammarLanguageIds.map((target) => ({
+      [...grammarLanguageIds, ...machineTargetIds].map((target) => ({
         task,
         target,
         path: join(folder, 'translated', task, `${task}${extensions[target]}`),

@@ -1,3 +1,5 @@
+import { machineTargets } from './machine.js';
+
 // Surface syntax descriptions for the grammar-based translator.
 //
 // Each description is plain data. The lexer, parser and emitter read these
@@ -283,7 +285,7 @@ export function namingConvention(syntax, role) {
 }
 
 export function languageSyntax(identifier) {
-  const syntax = languages[identifier];
+  const syntax = languages[identifier] ?? machineTargets[identifier];
   if (!syntax) {
     throw new Error(`The grammar translator does not describe "${identifier}"`);
   }

@@ -7,6 +7,7 @@ import { grammarLanguageIds } from '../src/grammar/languages.js';
 import { meaningDifference, rewrite } from '../src/grammar/meta.js';
 import { nameWords, spellName } from '../src/grammar/names.js';
 import { contextRules, understandingRules } from '../src/grammar/rules.js';
+import { lowerProgram } from '../src/grammar/lowering.js';
 
 const translator = createGrammarTranslator();
 const programs = programFiles();
@@ -222,5 +223,68 @@ describe('shared golden translations', () => {
     for (const { path, text } of expectedTranslations()) {
       expect(readFileSync(path, 'utf8')).toBe(text);
     }
+  });
+});
+
+describe('machine targets', () => {
+  const lower = (code) =>
+    lowerProgram(translator.toMeta(code, 'javascript')).main.code;
+
+  it('adapts comments and spells names for assembly, CIL and JVM', () => {
+    const gcd = read(source('greatest-common-divisor'));
+    const nasm = translator.translate(gcd, 'javascript', 'nasm');
+    expect(nasm).toContain('; Greatest common divisor in x86-64 assembly');
+    expect(nasm).toContain('call greatest_common_divisor');
+    const cil = translator.translate(gcd, 'javascript', 'cil');
+    expect(cil).toContain('call int64 Program::GreatestCommonDivisor');
+    const jvm = translator.translate(gcd, 'javascript', 'jvm', {
+      mode: 'same-effect',
+    });
+    expect(jvm).toContain('invokestatic Program/greatestCommonDivisor(JJ)J');
+    expect(jvm).not.toContain('; Greatest');
+  });
+
+  it('short-circuits conditions with jumps', () => {
+    expect(
+      lower('let a = 1;\nif (a > 0 && !(a === 2)) {\n  console.log(a);\n}\n')
+    ).toEqual([
+      ['push', 1],
+      ['store', 0],
+      ['load', 0],
+      ['push', 0],
+      ['compare-jump', 'lessOrEqual', 'L1'],
+      ['load', 0],
+      ['push', 2],
+      ['compare-jump', 'equal', 'L1'],
+      ['load', 0],
+      ['print-integer'],
+      ['print-newline'],
+      ['jump', 'L2'],
+      ['label', 'L1'],
+      ['label', 'L2'],
+      ['return-nothing'],
+    ]);
+    const either = lower(
+      'let a = 1;\nwhile (a < 0 || a === 1) {\n  a += 1;\n}\n'
+    );
+    expect(either.slice(2, 10)).toEqual([
+      ['label', 'L1'],
+      ['load', 0],
+      ['push', 0],
+      ['compare-jump', 'less', 'L3'],
+      ['load', 0],
+      ['push', 1],
+      ['compare-jump', 'notEqual', 'L2'],
+      ['label', 'L3'],
+    ]);
+  });
+
+  it('refuses programs it cannot lower and machine code as a source', () => {
+    expect(() =>
+      translator.translate('let name = "Ada";\n', 'javascript', 'nasm')
+    ).toThrow('cannot lower');
+    expect(() => translator.translate('ret', 'nasm', 'c')).toThrow(
+      'lowering target'
+    );
   });
 });

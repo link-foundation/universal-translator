@@ -37,6 +37,9 @@ export type {
   TranslationOptions,
 } from './grammar/translator.js';
 export * from './grammar/languages.js';
+export declare const machineTargetIds: string[];
+export declare const machineTargets: Record<string, Record<string, unknown>>;
+export declare function lowerProgram(program: unknown): unknown;
 export * from './translation/source-document.js';
 export * from './translation/program.js';
 export * as commonLibrary from './common-library.mjs';

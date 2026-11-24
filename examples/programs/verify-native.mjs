@@ -37,7 +37,15 @@ export const extensions = {
   rust: '.rs',
   kotlin: '.kt',
   swift: '.swift',
+  nasm: '.asm',
+  cil: '.il',
+  jvm: '.j',
 };
+
+// Machine targets need an assembler. ILASM names the ilasm executable and
+// JASMIN_CLASSPATH the Jasmin jar (with java_cup) when they are not on PATH.
+const ilasm = process.env.ILASM || 'ilasm';
+const jasmin = process.env.JASMIN_CLASSPATH;
 
 const run = (command, args, options = {}) => {
   const result = spawnSync(command, args, {
@@ -54,8 +62,14 @@ const run = (command, args, options = {}) => {
 };
 
 function available(command) {
-  return spawnSync('sh', ['-c', `command -v ${command}`]).status === 0;
+  if (command === 'jasmin') {
+    return Boolean(jasmin) && available('java');
+  }
+  return spawnSync('sh', ['-c', `command -v "${command}"`]).status === 0;
 }
+
+const dotnetFramework = () =>
+  `net${run('dotnet', ['--version']).split('.')[0]}.0`;
 
 // How to run a single source file in each language.
 const runners = {
@@ -112,7 +126,7 @@ const runners = {
     run: (file) => {
       const project = join(dirname(file), 'project');
       mkdirSync(project, { recursive: true });
-      const framework = `net${run('dotnet', ['--version']).split('.')[0]}.0`;
+      const framework = dotnetFramework();
       writeFileSync(
         join(project, 'Program.csproj'),
         `<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>${framework}</TargetFramework><ImplicitUsings>disable</ImplicitUsings></PropertyGroup></Project>`
@@ -120,6 +134,43 @@ const runners = {
       writeFileSync(join(project, 'Program.cs'), readFileSync(file, 'utf8'));
       return run('dotnet', ['run', '--project', project]);
     },
+  },
+  nasm: {
+    tool: 'nasm',
+    run: (file) => (
+      run('nasm', ['-f', 'elf64', '-o', `${file}.o`, file]),
+      run('gcc', ['-o', `${file}.out`, `${file}.o`]),
+      run(`${file}.out`, [])
+    ),
+  },
+  cil: {
+    tool: ilasm,
+    run: (file) => {
+      const assembly = join(dirname(file), 'Program.dll');
+      run(ilasm, ['-dll', '-quiet', `-output=${assembly}`, file]);
+      const version = run('dotnet', ['--list-runtimes'])
+        .split('\n')
+        .filter((line) => line.startsWith('Microsoft.NETCore.App '))
+        .at(-1)
+        .split(' ')[1];
+      writeFileSync(
+        join(dirname(file), 'Program.runtimeconfig.json'),
+        JSON.stringify({
+          runtimeOptions: {
+            tfm: dotnetFramework(),
+            framework: { name: 'Microsoft.NETCore.App', version },
+          },
+        })
+      );
+      return run('dotnet', [assembly]);
+    },
+  },
+  jvm: {
+    tool: 'jasmin',
+    run: (file) => (
+      run('java', ['-cp', jasmin, 'jasmin.Main', '-d', dirname(file), file]),
+      run('java', ['-cp', dirname(file), 'Program'])
+    ),
   },
 };
 

@@ -32,6 +32,8 @@ export {
   translate,
 } from './grammar/translator.js';
 export { grammarLanguageIds, languages } from './grammar/languages.js';
+export { machineTargetIds, machineTargets } from './grammar/machine.js';
+export { lowerProgram } from './grammar/lowering.js';
 export { createProgramTranslator } from './translation/program.js';
 export { rankInterpretations } from './translation/referents.js';
 export * as commonLibrary from './common-library.mjs';

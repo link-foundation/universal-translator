@@ -12,6 +12,7 @@ import { parseProgram } from './parser.js';
 import { contextRules, meaningRules, understandingRules } from './rules.js';
 import { inferTypes } from './types.js';
 import { emitProgram } from './emitter.js';
+import { emitMachine, machineTargetIds } from './machine.js';
 
 const modes = ['context-dependent', 'literal', 'same-effect'];
 
@@ -26,10 +27,16 @@ export function createGrammarTranslator({
   context = contextRules,
   layers = [],
   emit = emitProgram,
+  emitMachineCode = emitMachine,
   trace = () => {},
 } = {}) {
   function toMeta(source, from) {
     const syntax = languageSyntax(from);
+    if (syntax.machine) {
+      throw new Error(
+        `${syntax.label} is a lowering target; translate into it, not from it`
+      );
+    }
     const sourceTree = parse(source, syntax);
     trace('parsed', sourceTree);
     const meta = applyRules(sourceTree, understanding, { from });
@@ -54,7 +61,9 @@ export function createGrammarTranslator({
     trace('transformed', transformed);
     const adapted = applyRules(transformed, context, settings);
     trace('adapted', adapted);
-    return emit(adapted, to);
+    return machineTargetIds.includes(to)
+      ? emitMachineCode(adapted, to)
+      : emit(adapted, to);
   }
 
   return {
