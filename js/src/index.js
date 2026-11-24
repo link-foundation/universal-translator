@@ -34,6 +34,13 @@ export {
 export { grammarLanguageIds, languages } from './grammar/languages.js';
 export { machineTargetIds, machineTargets } from './grammar/machine.js';
 export { lowerProgram } from './grammar/lowering.js';
+export { liftProgram } from './grammar/lifting.js';
+export {
+  machineReaders,
+  readCil,
+  readJvm,
+  readNasm,
+} from './grammar/machine-reader.js';
 export {
   commentGlossary,
   contextRules,

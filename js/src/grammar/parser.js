@@ -439,15 +439,15 @@ class Parser {
   statement() {
     const token = this.peek();
     const word = token.type === 'name' ? token.value : undefined;
-    const keyword = {
+    const keywords = {
       if: () => this.ifStatement(),
       while: () => this.whileStatement(),
       for: () => this.forStatement(),
       return: () => this.returnStatement(),
       echo: () => this.echoStatement(),
-    }[word];
-    if (keyword) {
-      return keyword();
+    };
+    if (word && Object.hasOwn(keywords, word)) {
+      return keywords[word]();
     }
     if (this.syntax.id === 'ruby' && this.isRangeEach()) {
       return this.rangeEach();

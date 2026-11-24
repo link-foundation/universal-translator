@@ -279,12 +279,33 @@ describe('machine targets', () => {
     ]);
   });
 
-  it('refuses programs it cannot lower and machine code as a source', () => {
+  it('refuses programs it cannot lower', () => {
     expect(() =>
       translator.translate('let name = "Ada";\n', 'javascript', 'nasm')
     ).toThrow('cannot lower');
-    expect(() => translator.translate('ret', 'nasm', 'c')).toThrow(
-      'lowering target'
-    );
+  });
+});
+
+describe('grammar translator: library spellings and names', () => {
+  it('reads integer division written by the JavaScript and PHP emitters', () => {
+    expect(
+      translator.translate(
+        'console.log(Math.trunc(7 / 2));\n',
+        'javascript',
+        'python'
+      )
+    ).toContain('print(7 // 2)');
+    expect(
+      translator.translate('<?php\necho intdiv(7, 2);\n', 'php', 'lua')
+    ).toContain('7 // 2');
+  });
+
+  it('treats names inherited by JavaScript objects as ordinary names', () => {
+    expect(
+      translator.translate('toString("hi {}", 1);\n', 'rust', 'python')
+    ).toContain('toString("hi {}", 1)');
+    expect(
+      translator.translate('constructor;\n', 'javascript', 'python')
+    ).toContain('constructor');
   });
 });

@@ -9,10 +9,19 @@
 
 import { grammarLanguageIds, languageSyntax } from './languages.js';
 import { parseProgram } from './parser.js';
-import { contextRules, meaningRules, understandingRules } from './rules.js';
+import {
+  contextRules,
+  inferMutability,
+  meaningRules,
+  understandingRules,
+} from './rules.js';
 import { inferTypes } from './types.js';
 import { emitProgram } from './emitter.js';
 import { emitMachine, machineTargetIds } from './machine.js';
+import { machineReaders } from './machine-reader.js';
+import { liftProgram } from './lifting.js';
+
+const readMachine = (source, from) => machineReaders[from](source);
 
 const modes = ['context-dependent', 'literal', 'same-effect'];
 
@@ -28,14 +37,19 @@ export function createGrammarTranslator({
   layers = [],
   emit = emitProgram,
   emitMachineCode = emitMachine,
+  lift = liftProgram,
   trace = () => {},
 } = {}) {
   function toMeta(source, from) {
     const syntax = languageSyntax(from);
     if (syntax.machine) {
-      throw new Error(
-        `${syntax.label} is a lowering target; translate into it, not from it`
-      );
+      // Machine code has no grammar to parse: read its instructions, lift
+      // them to the meta language and continue like any other source.
+      const lifted = inferMutability(lift(readMachine(source, from)));
+      trace('lifted', lifted);
+      const typed = applyRules(infer(lifted), meaning, { from });
+      trace('typed', typed);
+      return typed;
     }
     const sourceTree = parse(source, syntax);
     trace('parsed', sourceTree);

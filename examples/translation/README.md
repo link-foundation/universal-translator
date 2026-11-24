@@ -17,8 +17,24 @@ node bin/universal-translator.js meta python examples/programs/hand-written/grea
 
 The `meta` command prints the typed meta program as JSON. It is the same
 structure that the rule layers receive. `languages` lists every identifier and
-its display name. The machine targets `nasm`, `cil` and `jvm` can be
-translated into but not from.
+its display name. The machine targets `nasm`, `cil` and `jvm` work in both
+directions, so assembly, CIL and JVM bytecode translate into each other and
+into every language:
+
+```sh
+node bin/universal-translator.js translate jvm nasm examples/programs/translated/factorial/factorial.j
+node bin/universal-translator.js translate nasm python examples/programs/translated/fizz-buzz/fizz-buzz.asm
+```
+
+Machine code is read by `machine-reader.js`, which matches the instruction
+sequences that `machine.js` writes and returns stack machine code. Then
+`lifting.js` rebuilds the meta program from it. It uses a symbolic stack for
+expressions and recognizes the jump patterns of conditions (including `and`,
+`or` and `not`), `if`/`else if`/`else`, `while`, counting loops and boolean
+values. Variable names survive the round trip, because the machine code keeps
+them: NASM `%define %$name`, CIL named parameters and locals, and Jasmin
+`.var` directives. Lifting `x → machine → meta` and lowering again gives the
+same machine code.
 
 ## Translate from JavaScript
 

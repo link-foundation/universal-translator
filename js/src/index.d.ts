@@ -40,6 +40,14 @@ export * from './grammar/languages.js';
 export declare const machineTargetIds: string[];
 export declare const machineTargets: Record<string, Record<string, unknown>>;
 export declare function lowerProgram(program: unknown): unknown;
+export declare function liftProgram(machine: unknown): unknown;
+export declare function readNasm(source: string): unknown;
+export declare function readCil(source: string): unknown;
+export declare function readJvm(source: string): unknown;
+export declare const machineReaders: Record<
+  string,
+  (source: string) => unknown
+>;
 import type { Rule } from './grammar/translator.js';
 export declare const understandingRules: Rule[];
 export declare const meaningRules: Rule[];

@@ -14,6 +14,8 @@ export interface GrammarTranslatorOptions {
   context?: Rule[];
   layers?: Rule[][];
   emit?: (meta: unknown, to: string) => string;
+  emitMachineCode?: (meta: unknown, to: string) => string;
+  lift?: (machine: unknown) => unknown;
   trace?: (stage: string, tree: unknown) => void;
 }
 

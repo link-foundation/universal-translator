@@ -242,7 +242,9 @@ function printFromCall(call) {
     const { parts, newline } = withoutTrailingNewline(flat);
     return node('Print', { value: partsToValue(parts), newline });
   }
-  const style = formatCalls[call.callee];
+  const style = Object.hasOwn(formatCalls, call.callee)
+    ? formatCalls[call.callee]
+    : undefined;
   if (style && values[0]?.kind === 'Text') {
     const { parts, newline } = withoutTrailingNewline(
       readFormat(values[0].value, values.slice(1), style)
@@ -432,6 +434,29 @@ export function dropParameterCopies(program) {
   };
 }
 
+// JavaScript spells integer division `Math.trunc(a / b)` and PHP spells it
+// `intdiv(a, b)`. Both mean the meta operator "divide".
+export function integerDivisionCalls(program) {
+  return rewrite(program, (current) => {
+    if (current.kind !== 'Call') {
+      return current;
+    }
+    const [first, second] = current.arguments;
+    if (
+      current.callee === 'Math.trunc' &&
+      current.arguments.length === 1 &&
+      first.kind === 'Binary' &&
+      first.operator === 'divide'
+    ) {
+      return first;
+    }
+    if (current.callee === 'intdiv' && current.arguments.length === 2) {
+      return node('Binary', { operator: 'divide', left: first, right: second });
+    }
+    return current;
+  });
+}
+
 // `greatest_common_divisor` and `greatestCommonDivisor` are one name.
 export function neutralNames(program) {
   return renameDeclared(program, neutralName);
@@ -440,6 +465,7 @@ export function neutralNames(program) {
 export const understandingRules = [
   findEntryPoint,
   concatenationOperator,
+  integerDivisionCalls,
   recognizePrint,
   expandCompoundAssignment,
   dropParameterCopies,
