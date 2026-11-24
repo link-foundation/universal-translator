@@ -15,6 +15,13 @@ export default `profile:
       source:
         (line: 'alert("{{message}}");')
     form:
+      task: browser-write
+      name: standard
+      output: document.write
+      requires: browser
+      source:
+        (line: 'document.write("{{message}}");')
+    form:
       task: empty-program
       name: standard
       requires: ()
@@ -40,6 +47,13 @@ export default `profile:
       requires: console
       source:
         (line: 'console.log("{{message}}")')
+    form:
+      task: hello
+      name: shell-print
+      output: print
+      requires: quickjs
+      source:
+        (line: "print('{{message}}');")
     form:
       task: hello
       name: common

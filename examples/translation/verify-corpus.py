@@ -2,7 +2,7 @@
 
 import argparse
 from collections import Counter
-from contextlib import suppress
+from contextlib import ExitStack, suppress
 from hashlib import file_digest
 from html.parser import HTMLParser
 from itertools import chain
@@ -103,18 +103,20 @@ def source_records(archive):
 
 def verify(archive, rust_binary, hello_world=None, require_full_native=False):
     env = environ.copy()
-    needs_legacy_rust = (
-        archive is not None
-        and not env.get("ROSETTA_LEGACY_RUSTC")
-        and (system(), machine()) == ("Linux", "x86_64")
-    )
-    if not needs_legacy_rust:
-        return verify_stream(archive, rust_binary, hello_world, require_full_native, env)
-    with TemporaryDirectory(prefix="translator-legacy-rust-") as workspace:
-        env["ROSETTA_LEGACY_RUSTC"] = check_output(
-            ["bash", "examples/translation/prepare-legacy-rust.sh", workspace],
-            cwd=ROOT, text=True,
-        ).strip()
+    with ExitStack() as toolchains:
+        if archive is not None and (system(), machine()) == ("Linux", "x86_64"):
+            for variable, script in (
+                ("ROSETTA_LEGACY_RUSTC", "prepare-legacy-rust.sh"),
+                ("ROSETTA_QUICKJS", "prepare-quickjs.sh"),
+            ):
+                if not env.get(variable):
+                    workspace = toolchains.enter_context(
+                        TemporaryDirectory(prefix=f"translator-{script.removesuffix('.sh')}-")
+                    )
+                    env[variable] = check_output(
+                        ["bash", f"examples/translation/{script}", workspace],
+                        cwd=ROOT, text=True,
+                    ).strip()
         return verify_stream(archive, rust_binary, hello_world, require_full_native, env)
 
 

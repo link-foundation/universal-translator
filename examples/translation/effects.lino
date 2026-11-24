@@ -4,6 +4,9 @@ hello:
 browser-alert:
   message: 'Hello, World!'
 
+browser-write:
+  message: '<p>Bonjour le navigateur !</p>'
+
 greatest-common-divisor:
   left: 1071
   right: 462

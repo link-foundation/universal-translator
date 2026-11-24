@@ -4,9 +4,9 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { chromium } from 'playwright-core';
-import { showWasmAlert } from './browser-alert-wasm.mjs';
+import { runBrowserWasm } from './browser-wasm.mjs';
 
-async function observeDialog(browser, run, message) {
+async function verifyObservation(browser, run, { task, message }) {
   const page = await browser.newPage();
   const dialogs = [];
   const unexpected = [];
@@ -18,17 +18,22 @@ async function observeDialog(browser, run, message) {
       await dialog.dismiss();
     });
     await run(page);
-    assert.deepEqual(dialogs, [['alert', message]]);
+    if (task === 'browser-alert') {
+      assert.deepEqual(dialogs, [['alert', message]]);
+    } else {
+      assert.deepEqual(dialogs, []);
+      assert.equal(await page.locator('body').innerHTML(), message);
+    }
     assert.deepEqual(unexpected, []);
   } finally {
     await page.close();
   }
 }
 
-export async function verifyBrowserAlert(javascript, rust, message) {
+export async function verifyBrowser(javascript, rust, effect) {
   const workspace = mkdtempSync(join(tmpdir(), 'translator-browser-'));
   try {
-    writeFileSync(join(workspace, 'alert.rs'), rust);
+    writeFileSync(join(workspace, 'browser.rs'), rust);
     execFileSync(
       'rustc',
       [
@@ -39,24 +44,26 @@ export async function verifyBrowserAlert(javascript, rust, message) {
         'opt-level=s',
         '-C',
         'strip=symbols',
-        'alert.rs',
+        'browser.rs',
         '-o',
-        'alert.wasm',
+        'browser.wasm',
       ],
-      { cwd: workspace, encoding: 'utf8' }
+      { cwd: workspace, encoding: 'utf8', timeout: 45000 }
     );
-    const bytes = [...readFileSync(join(workspace, 'alert.wasm'))];
+    const bytes = [...readFileSync(join(workspace, 'browser.wasm'))];
+    const entry =
+      effect.task === 'browser-alert' ? 'show_alert' : 'write_document';
     const browser = await chromium.launch({ channel: 'chrome' });
     try {
-      await observeDialog(
+      await verifyObservation(
         browser,
         (page) => page.addScriptTag({ content: javascript }),
-        message
+        effect
       );
-      await observeDialog(
+      await verifyObservation(
         browser,
-        (page) => page.evaluate(showWasmAlert, bytes),
-        message
+        (page) => page.evaluate(runBrowserWasm, { bytes, entry }),
+        effect
       );
     } finally {
       await browser.close();

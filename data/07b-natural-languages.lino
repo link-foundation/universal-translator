@@ -24,6 +24,11 @@ profile:
       source:
         (line: 'Buka dialog peringatan pada peramban yang menampilkan teks “{{message}}” dan tunggu hingga pengguna menutupnya.')
     form:
+      task: browser-write
+      name: standard
+      source:
+        (line: 'Tulis string HTML “{{message}}” ke dokumen peramban dengan document.write tanpa menambahkan baris baru.')
+    form:
       task: write-text
       name: standard
       source:
@@ -130,6 +135,11 @@ profile:
       name: standard
       source:
         (line: 'Öffnen Sie im Browser einen Hinweisdialog mit dem Text „{{message}}“ und warten Sie, bis der Benutzer ihn schließt.')
+    form:
+      task: browser-write
+      name: standard
+      source:
+        (line: 'Schreibe die HTML-Zeichenfolge „{{message}}“ mit document.write in das Browserdokument, ohne einen Zeilenumbruch hinzuzufügen.')
     form:
       task: write-text
       name: standard
@@ -238,6 +248,11 @@ profile:
       source:
         (line: 'ブラウザーで「{{message}}」と表示するアラートを開き、ユーザーが閉じるまで待機する。')
     form:
+      task: browser-write
+      name: standard
+      source:
+        (line: 'document.write を使って HTML 文字列「{{message}}」をブラウザーの文書へ書き込み、改行は追加しない。')
+    form:
       task: write-text
       name: standard
       source:
@@ -344,6 +359,11 @@ profile:
       name: standard
       source:
         (line: 'Fungua kisanduku cha arifa kwenye kivinjari chenye maandishi “{{message}}” na usubiri mtumiaji akifunge.')
+    form:
+      task: browser-write
+      name: standard
+      source:
+        (line: 'Andika tungo ya HTML “{{message}}” katika hati ya kivinjari kwa kutumia document.write bila kuongeza mstari mpya.')
     form:
       task: write-text
       name: standard
@@ -452,6 +472,11 @@ profile:
       source:
         (line: 'ब्राउझरमध्ये “{{message}}” हा मजकूर दाखवणारा सूचना संवाद उघडा आणि वापरकर्ता तो बंद करेपर्यंत थांबा.')
     form:
+      task: browser-write
+      name: standard
+      source:
+        (line: 'document.write वापरून “{{message}}” ही HTML स्ट्रिंग ब्राउझरच्या दस्तऐवजात लिहा आणि नवीन ओळ जोडू नका.')
+    form:
       task: write-text
       name: standard
       source:
@@ -558,6 +583,11 @@ profile:
       name: standard
       source:
         (line: 'బ్రౌజర్‌లో “{{message}}” అనే పాఠ్యంతో హెచ్చరిక సంభాషణ పెట్టెను తెరవండి. వినియోగదారు దాన్ని మూసే వరకు వేచి ఉండండి.')
+    form:
+      task: browser-write
+      name: standard
+      source:
+        (line: 'document.write ద్వారా “{{message}}” అనే HTML స్ట్రింగ్‌ను బ్రౌజర్ పత్రంలో రాయండి, కొత్త పంక్తిని జోడించవద్దు.')
     form:
       task: write-text
       name: standard
@@ -666,6 +696,11 @@ profile:
       source:
         (line: 'Tarayıcıda “{{message}}” metnini içeren bir uyarı penceresi açın ve kullanıcının pencereyi kapatmasını bekleyin.')
     form:
+      task: browser-write
+      name: standard
+      source:
+        (line: 'HTML dizgesi “{{message}}” değerini document.write ile tarayıcı belgesine yaz ve satır sonu ekleme.')
+    form:
       task: write-text
       name: standard
       source:
@@ -772,6 +807,11 @@ profile:
       name: standard
       source:
         (line: 'உலாவியில் “{{message}}” என்ற உரையைக் காட்டும் எச்சரிக்கைப் பெட்டியைத் திறந்து, பயனர் அதை மூடும் வரை காத்திருக்கவும்.')
+    form:
+      task: browser-write
+      name: standard
+      source:
+        (line: 'document.write மூலம் “{{message}}” என்ற HTML சரத்தை உலாவி ஆவணத்தில் எழுது, புதிய வரியைச் சேர்க்காதே.')
     form:
       task: write-text
       name: standard
@@ -880,6 +920,11 @@ profile:
       source:
         (line: 'Mở hộp thoại cảnh báo trên trình duyệt hiển thị văn bản “{{message}}” và chờ người dùng đóng hộp thoại.')
     form:
+      task: browser-write
+      name: standard
+      source:
+        (line: 'Ghi chuỗi HTML “{{message}}” vào tài liệu của trình duyệt bằng document.write mà không thêm ký tự xuống dòng.')
+    form:
       task: write-text
       name: standard
       source:
@@ -986,6 +1031,11 @@ profile:
       name: standard
       source:
         (line: '브라우저에서 “{{message}}” 문구를 표시하는 경고 대화 상자를 열고 사용자가 닫을 때까지 기다린다.')
+    form:
+      task: browser-write
+      name: standard
+      source:
+        (line: 'document.write로 HTML 문자열 “{{message}}”을 브라우저 문서에 쓰고 줄바꿈을 추가하지 않는다.')
     form:
       task: write-text
       name: standard

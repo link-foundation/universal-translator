@@ -25,6 +25,11 @@ export default `profile:
       source:
         (line: 'Open a browser alert containing the text “{{message}}” and wait for the user to dismiss it.')
     form:
+      task: browser-write
+      name: standard
+      source:
+        (line: 'Write the HTML string “{{message}}” to the browser document with document.write, without adding a newline.')
+    form:
       task: write-text
       name: standard
       source:
@@ -131,6 +136,11 @@ profile:
       name: standard
       source:
         (line: '打开显示文本“{{message}}”的浏览器警告对话框，并等待用户关闭它。')
+    form:
+      task: browser-write
+      name: standard
+      source:
+        (line: '使用 document.write 将 HTML 字符串“{{message}}”写入浏览器文档，不添加换行符。')
     form:
       task: write-text
       name: standard
@@ -239,6 +249,11 @@ profile:
       source:
         (line: 'ब्राउज़र में “{{message}}” लिखा चेतावनी संवाद खोलें और उपयोगकर्ता के उसे बंद करने तक प्रतीक्षा करें।')
     form:
+      task: browser-write
+      name: standard
+      source:
+        (line: 'document.write से HTML स्ट्रिंग “{{message}}” को ब्राउज़र दस्तावेज़ में लिखें और नई पंक्ति न जोड़ें।')
+    form:
       task: write-text
       name: standard
       source:
@@ -345,6 +360,11 @@ profile:
       name: standard
       source:
         (line: 'Abre en el navegador un cuadro de alerta con el texto «{{message}}» y espera a que el usuario lo cierre.')
+    form:
+      task: browser-write
+      name: standard
+      source:
+        (line: 'Escribe la cadena HTML “{{message}}” en el documento del navegador con document.write sin agregar un salto de línea.')
     form:
       task: write-text
       name: standard
@@ -453,6 +473,11 @@ profile:
       source:
         (line: 'Ouvrez dans le navigateur une boîte d’alerte contenant le texte « {{message}} » et attendez que la personne la ferme.')
     form:
+      task: browser-write
+      name: standard
+      source:
+        (line: 'Écris la chaîne HTML « {{message}} » dans le document du navigateur avec document.write sans ajouter de saut de ligne.')
+    form:
       task: write-text
       name: standard
       source:
@@ -559,6 +584,11 @@ profile:
       name: standard
       source:
         (line: 'افتح مربع تنبيه في المتصفح يحتوي على النص «{{message}}» وانتظر حتى يغلقه المستخدم.')
+    form:
+      task: browser-write
+      name: standard
+      source:
+        (line: 'اكتب سلسلة HTML «{{message}}» في مستند المتصفح باستخدام document.write دون إضافة سطر جديد.')
     form:
       task: write-text
       name: standard
@@ -667,6 +697,11 @@ profile:
       source:
         (line: 'ব্রাউজারে “{{message}}” লেখা একটি সতর্কতা সংলাপ খুলুন এবং ব্যবহারকারী সেটি বন্ধ করা পর্যন্ত অপেক্ষা করুন।')
     form:
+      task: browser-write
+      name: standard
+      source:
+        (line: 'document.write দিয়ে HTML স্ট্রিং “{{message}}” ব্রাউজারের নথিতে লিখুন, কোনো নতুন লাইন যোগ করবেন না।')
+    form:
       task: write-text
       name: standard
       source:
@@ -773,6 +808,11 @@ profile:
       name: standard
       source:
         (line: 'Abra uma caixa de alerta no navegador com o texto «{{message}}» e aguarde até que o utilizador a feche.')
+    form:
+      task: browser-write
+      name: standard
+      source:
+        (line: 'Escreva a cadeia HTML “{{message}}” no documento do navegador com document.write, sem acrescentar uma quebra de linha.')
     form:
       task: write-text
       name: standard
@@ -881,6 +921,11 @@ profile:
       source:
         (line: 'Откройте в браузере диалог оповещения с текстом «{{message}}» и дождитесь, пока пользователь его закроет.')
     form:
+      task: browser-write
+      name: standard
+      source:
+        (line: 'Запишите строку HTML «{{message}}» в документ браузера через document.write без добавления перевода строки.')
+    form:
       task: write-text
       name: standard
       source:
@@ -987,6 +1032,11 @@ profile:
       name: standard
       source:
         (line: 'براؤزر میں «{{message}}» کے متن والا انتباہی مکالمہ کھولیں اور صارف کے اسے بند کرنے تک انتظار کریں۔')
+    form:
+      task: browser-write
+      name: standard
+      source:
+        (line: 'HTML سٹرنگ «{{message}}» کو document.write کے ذریعے براؤزر کی دستاویز میں لکھیں اور سطر نو شامل نہ کریں۔')
     form:
       task: write-text
       name: standard

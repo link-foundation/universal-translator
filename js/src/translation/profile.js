@@ -30,6 +30,7 @@ const limit = (value) => Number.isInteger(value) && value >= 1 && value <= 1000;
 const taskFields = {
   hello: { message },
   'browser-alert': { message },
+  'browser-write': { message },
   'write-text': { message },
   'empty-program': { status: (value) => value === 0 },
   'ackermann-function': {

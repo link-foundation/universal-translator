@@ -25,6 +25,7 @@ pub use source_document::SourceDocument;
 pub enum Effect {
     Hello { message: String },
     BrowserAlert { message: String },
+    BrowserWrite { message: String },
     WriteText { message: String },
     EmptyProgram { status: u32 },
     AckermannFunction { left: u32, right: u32 },
@@ -46,6 +47,7 @@ impl Effect {
         match self {
             Self::Hello { .. } => "hello",
             Self::BrowserAlert { .. } => "browser-alert",
+            Self::BrowserWrite { .. } => "browser-write",
             Self::WriteText { .. } => "write-text",
             Self::EmptyProgram { .. } => "empty-program",
             Self::AckermannFunction { .. } => "ackermann-function",
@@ -67,6 +69,7 @@ impl Effect {
         match self {
             Self::Hello { message }
             | Self::BrowserAlert { message }
+            | Self::BrowserWrite { message }
             | Self::WriteText { message } => {
                 vec![("message", message.clone())]
             }
@@ -104,6 +107,9 @@ impl Effect {
                 message: fields.get("message")?.clone(),
             },
             "browser-alert" if fields.len() == 1 => Self::BrowserAlert {
+                message: fields.get("message")?.clone(),
+            },
+            "browser-write" if fields.len() == 1 => Self::BrowserWrite {
                 message: fields.get("message")?.clone(),
             },
             "write-text" if fields.len() == 1 => Self::WriteText {
@@ -191,6 +197,7 @@ impl Effect {
         let valid = match self {
             Self::Hello { message }
             | Self::BrowserAlert { message }
+            | Self::BrowserWrite { message }
             | Self::WriteText { message } => {
                 static MESSAGE: OnceLock<Regex> = OnceLock::new();
                 message.len() <= 96

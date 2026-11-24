@@ -24,6 +24,7 @@ import {
 } from './fixtures.mjs';
 
 const legacyRust = 'rustc-1.5.0-nightly';
+const quickJs = 'quickjs';
 
 export function readCorpusCoverage() {
   const snapshot = new URL(
@@ -41,7 +42,9 @@ function decodeEffect(task, parameters) {
     case 'hello':
       assert.ok(
         parameters.length === 1 ||
-          ['browser-alert', 'write-text'].includes(parameters[1])
+          ['browser-alert', 'browser-write', 'write-text'].includes(
+            parameters[1]
+          )
       );
       return { task: parameters[1] ?? task, message: parameters[0] };
     case 'fizz-buzz': {
@@ -106,8 +109,20 @@ function executePinnedPrograms(programs, effect, path) {
       let args;
       if (language === 'javascript') {
         writeFileSync(join(cwd, 'fixture.cjs'), source);
-        command = process.execPath;
-        args = ['fixture.cjs'];
+        if (requires.includes(quickJs)) {
+          command = resolve(process.env.ROSETTA_QUICKJS);
+          args = [
+            '--script',
+            '--memory-limit',
+            '32M',
+            '--stack-size',
+            '256K',
+            'fixture.cjs',
+          ];
+        } else {
+          command = process.execPath;
+          args = ['fixture.cjs'];
+        }
       } else {
         writeFileSync(join(cwd, 'fixture.rs'), source);
         if (requires.includes('num')) {
@@ -152,6 +167,7 @@ function executePinnedPrograms(programs, effect, path) {
         );
         stdout += result.stdout;
         if (
+          requires.includes(quickJs) ||
           ['empty-program', 'fizz-buzz-function', 'fizz-buzz-joined'].includes(
             effect.task
           )
@@ -166,7 +182,50 @@ function executePinnedPrograms(programs, effect, path) {
   }
 }
 
-export async function verifyProgram(
+async function verifyNativePrograms(
+  source,
+  translated,
+  { language, effect, path },
+  target,
+  { requires, output }
+) {
+  if (['browser-alert', 'browser-write'].includes(effect.task)) {
+    const { verifyBrowser } = await import('./verify-browser.mjs');
+    const programs = { [language]: source, [target]: translated };
+    await verifyBrowser(programs.javascript, programs.rust, effect);
+    return true;
+  }
+  if (requires.includes(legacyRust) && !process.env.ROSETTA_LEGACY_RUSTC) {
+    console.log(
+      `Native verification pending for ${path}: provide ROSETTA_LEGACY_RUSTC with the pinned x86-64 Linux compiler.`
+    );
+    return false;
+  }
+  if (requires.includes(quickJs) && !process.env.ROSETTA_QUICKJS) {
+    console.log(
+      `Native verification pending for ${path}: set ROSETTA_QUICKJS to the QuickJS shell's executable path.`
+    );
+    return false;
+  }
+  const original =
+    effect.task === 'fizz-buzz-joined' && language === 'javascript'
+      ? `const { runInNewContext } = require('node:vm');
+const value = runInNewContext(${JSON.stringify(source)}, { console }, { timeout: 500 });
+process.stdout.write(JSON.stringify(value));
+`
+      : nativeProgram(source, language, effect, output);
+  executePinnedPrograms(
+    [
+      [language, original, requires],
+      [target, nativeProgram(translated, target, effect)],
+    ],
+    effect,
+    path
+  );
+  return true;
+}
+
+export function verifyProgram(
   translator,
   source,
   fixture,
@@ -216,47 +275,13 @@ export async function verifyProgram(
         path
       );
       if (native && exactForm) {
-        if (effect.task === 'browser-alert') {
-          const { verifyBrowserAlert } =
-            await import('./verify-browser-alert.mjs');
-          const programs = { [language]: source, [target]: translated };
-          await verifyBrowserAlert(
-            programs.javascript,
-            programs.rust,
-            effect.message
-          );
-          return true;
-        }
-        if (
-          document.interpretation.requires.includes(legacyRust) &&
-          !process.env.ROSETTA_LEGACY_RUSTC
-        ) {
-          console.log(
-            `Native verification pending for ${path}: provide ROSETTA_LEGACY_RUSTC with the pinned x86-64 Linux compiler.`
-          );
-          return false;
-        }
-        const original =
-          effect.task === 'fizz-buzz-joined' && language === 'javascript'
-            ? `const { runInNewContext } = require('node:vm');
-const value = runInNewContext(${JSON.stringify(source)}, { console }, { timeout: 500 });
-process.stdout.write(JSON.stringify(value));
-`
-            : nativeProgram(
-                source,
-                language,
-                effect,
-                document.interpretation.output
-              );
-        executePinnedPrograms(
-          [
-            [language, original, document.interpretation.requires],
-            [target, nativeProgram(translated, target, effect)],
-          ],
-          effect,
-          path
+        return verifyNativePrograms(
+          source,
+          translated,
+          fixture,
+          target,
+          document.interpretation
         );
-        return true;
       }
     }
   }

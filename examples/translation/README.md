@@ -177,11 +177,19 @@ is unavailable.
 For Empty Program they verify exit status 0 and both output streams.
 Hello World Newbie has two console specimens and a JavaScript browser alert.
 The alert check compiles the translated Rust source to WebAssembly and uses
-the [browser import](browser-alert-wasm.mjs) to decode the message and open
+the [browser import](browser-wasm.mjs) to decode the message and open
 the dialog. Playwright intercepts and dismisses the actual alert in Google
 Chrome. Both programs must produce one alert with the original greeting.
+The JavaScript `document.write` listing and its Rust WebAssembly translation
+both write the exact greeting to the browser document. The standalone
+`print` listing runs in the QuickJS shell with the original source intact,
+and its Rust translation must produce the same stdout bytes. The archive
+driver downloads checksum-pinned QuickJS on x86-64 Linux. On other systems,
+set `ROSETTA_QUICKJS` to the full path of a compatible QuickJS executable.
 The Ubuntu runner provides Chrome. For a local replay, install Chrome and
 run `rustup target add wasm32-unknown-unknown` before running the driver.
+[Published JavaScript listings](https://rosettagit.org/tasks/hello-world-text/#javascript) ·
+[QuickJS binary releases](https://bellard.org/quickjs/binary_releases/)
 
 ```sh
 archive=$(mktemp)

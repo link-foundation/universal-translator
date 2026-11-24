@@ -16,6 +16,8 @@ Translate FizzBuzz functions that print only when called or return a string join
 
 Translate the pinned Hello World Newbie console programs and browser alert. Rust emits a WebAssembly module that uses an explicit browser alert import. Playwright verifies both versions in Chrome.
 
+Preserve JavaScript document writes through a Rust browser import, and translate QuickJS print calls to an equivalent console line. The corpus replay checks the original and translated behavior in their hosts.
+
 Translate an empty program between JavaScript, Rust, Links Notation, and all 20 natural-language profiles. Verify the original Rust specimen and the generated JavaScript program for a successful exit and empty output streams.
 
 Expose Meta Language grammar CST encoding and decoding in the Rust CLI and a JavaScript codec for the matching Meta Language 1.0 engine. Preserve grammar nodes, parser provenance, and UTF-8 source bytes in the exchanged Links Notation network.
