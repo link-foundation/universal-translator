@@ -8,13 +8,23 @@ import { tokenize } from '../js/src/natural/tokens.js';
 const id = process.argv[2] ?? 'english';
 const language = naturalLanguage(id);
 const t = createGrammarTranslator();
-for (const file of readdirSync('examples/programs').filter((f) => f.endsWith('.js'))) {
-  const text = writeNatural(t.toMeta(readFileSync(`examples/programs/${file}`, 'utf8'), 'javascript'), id);
+for (const file of readdirSync('examples/programs').filter((f) =>
+  f.endsWith('.js')
+)) {
+  const text = writeNatural(
+    t.toMeta(readFileSync(`examples/programs/${file}`, 'utf8'), 'javascript'),
+    id
+  );
   let longest = '';
   let max = 0;
   for (const line of text.split('\n')) {
-    const n = tokenize(line, language).filter((x) => ['word', 'number', 'text'].includes(x.type)).length;
-    if (n > max) { max = n; longest = line.trim(); }
+    const n = tokenize(line, language).filter((x) =>
+      ['word', 'number', 'text'].includes(x.type)
+    ).length;
+    if (n > max) {
+      max = n;
+      longest = line.trim();
+    }
   }
   console.log(String(max).padStart(3), file, '|', longest);
 }

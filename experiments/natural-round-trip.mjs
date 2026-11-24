@@ -15,19 +15,25 @@ let failed = 0;
 for (const file of readdirSync('examples/programs').filter((f) =>
   f.endsWith('.js')
 )) {
-  if (only && only !== file) continue;
+  if (only && only !== file) {
+    continue;
+  }
   const meta = t.toMeta(
     readFileSync(`examples/programs/${file}`, 'utf8'),
     'javascript'
   );
   try {
     const words = writeNatural(meta, language);
-    if (print) console.log(words);
+    if (print) {
+      console.log(words);
+    }
     const back = readNatural(words, language);
     if (!sameMeaning(meta, back)) {
       failed++;
       console.log(file, 'DIFFERS', meaningDifference(meta, back));
-    } else console.log(file, 'ok');
+    } else {
+      console.log(file, 'ok');
+    }
   } catch (error) {
     failed++;
     console.log(file, 'ERROR', error.message);
