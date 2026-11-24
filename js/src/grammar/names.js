@@ -25,6 +25,7 @@ export const conventions = {
       .map((word, index) => (index === 0 ? word : capitalize(word)))
       .join(''),
   pascal: (words) => words.map(capitalize).join(''),
+  ada: (words) => words.map(capitalize).join('_'),
   snake: (words) => words.join('_'),
 };
 
@@ -138,6 +139,7 @@ const reservedLists = {
     'and array asm begin break case const constructor continue destructor div do downto else end exit file for forward function goto if implementation in inherited inline interface label mod nil not object of on operator or packed procedure program record repeat result self set shl shr string then to type unit until uses var while with xor true false write writeln int64 boolean main',
   fortran:
     'allocatable call character contains do else end exit function if implicit integer intent logical mod module none print program recursive result return stop subroutine then use value while write main',
+  ada: 'abort abs abstract accept access aliased all and array at begin body case constant declare delay delta digits do else elsif end entry exception exit for function generic goto if in interface is limited loop mod new not null of or others out overriding package parallel pragma private procedure protected raise range record rem renames requeue return reverse select separate some subtype synchronized tagged task terminate then type until use when while with xor put put_line new_line long_io integer_io long_long_integer boolean string true false main',
   groovy:
     'abstract as assert boolean break byte case catch char class const continue def default do double else enum extends false final finally float for goto if implements import in instanceof int interface long native new null package private protected public return short static super switch synchronized this threadsafe throw throws transient true try var void volatile while',
 };
@@ -149,9 +151,12 @@ export const reservedWords = Object.fromEntries(
   ])
 );
 
+// Ada names cannot end with an underscore.
+const reservedSuffixes = { ada: '_Value' };
+
 // A spelled name that does not collide with a reserved word of the language.
 export function avoidReserved(spelled, language) {
   return reservedWords[language]?.has(spelled.toLowerCase())
-    ? `${spelled}_`
+    ? `${spelled}${reservedSuffixes[language] ?? '_'}`
     : spelled;
 }

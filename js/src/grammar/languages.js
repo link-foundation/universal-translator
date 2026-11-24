@@ -591,6 +591,42 @@ export const languages = {
     },
     terms: { call: 'subroutine call', routine: 'procedure' },
   },
+  ada: {
+    naming: 'ada',
+    // In parameters are constants, so a reassigned one is copied first.
+    immutableParameters: 'renamed',
+    label: 'Ada',
+    // Statements, subprograms and the program layout are in dialects/ada.js.
+    blocks: 'keywords',
+    caseInsensitive: true,
+    // A subprogram called before its body is announced by its specification.
+    forwardDeclarations: 'heading',
+    lineComment: '--',
+    quotes: ['"'],
+    doubledQuotes: true,
+    declarations: [],
+    assignment: ':=',
+    compoundAssignment: false,
+    operators: {
+      and: 'and then',
+      or: 'or else',
+      not: 'not',
+      equal: '=',
+      notEqual: '/=',
+      remainder: 'rem',
+      integerDivide: '/',
+    },
+    words: { true: 'True', false: 'False' },
+    entryPoint: 'top-level',
+    typed: 'annotation',
+    types: {
+      integer: 'Long_Long_Integer',
+      text: 'String',
+      boolean: 'Boolean',
+      nothing: '',
+    },
+    terms: { call: 'procedure call', routine: 'subprogram' },
+  },
 };
 
 // How a language spells a declared name with the given role.

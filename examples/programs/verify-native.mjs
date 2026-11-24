@@ -60,6 +60,8 @@ export const libraryFiles = {
   d: 'common_library.d',
   pascal: 'CommonLibrary.pas',
   fortran: 'common_library.f90',
+  // A package specification and its body.
+  ada: ['common_library.ads', 'common_library.adb'],
 };
 const libraryFolder = join(folder, '..', '..', 'common-library');
 
@@ -89,6 +91,7 @@ export const extensions = {
   d: '.d',
   pascal: '.pas',
   fortran: '.f90',
+  ada: '.adb',
   nasm: '.asm',
   cil: '.il',
   jvm: '.j',
@@ -313,6 +316,19 @@ const runners = {
       run(`${file}.out`, [])
     ),
   },
+  // GNAT finds the Common_Library package beside the main procedure, which
+  // must be in main.adb.
+  ada: {
+    tool: 'gnatmake',
+    run: (file) => (
+      run(
+        'gnatmake',
+        ['-q', '-gnat2022', '-gnatwa', '-gnatwe', '-o', `${file}.out`, file],
+        { cwd: dirname(file) }
+      ),
+      run(`${file}.out`, [])
+    ),
+  },
   csharp: {
     tool: 'dotnet',
     run: (file, library) => {
@@ -455,14 +471,16 @@ if (
       // files are compiled together.
       const output = join(
         directory,
-        { java: 'Main.java', swift: 'main.swift' }[target] ??
+        { java: 'Main.java', swift: 'main.swift', ada: 'main.adb' }[target] ??
           `program${extensions[target]}`
       );
       const library = [];
       if (commonLibrary) {
-        const copy = join(directory, libraryFiles[target]);
-        copyFileSync(join(libraryFolder, libraryFiles[target]), copy);
-        library.push(copy);
+        for (const name of [libraryFiles[target]].flat()) {
+          const copy = join(directory, name);
+          copyFileSync(join(libraryFolder, name), copy);
+          library.push(copy);
+        }
       }
       try {
         writeFileSync(
@@ -472,7 +490,9 @@ if (
           })
         );
         // Header and module libraries are found by the compiler itself.
-        const sources = ['c', 'cpp', 'objc', 'rust', 'pascal'].includes(target)
+        const sources = ['c', 'cpp', 'objc', 'rust', 'pascal', 'ada'].includes(
+          target
+        )
           ? []
           : library;
         const actual = runner.run(output, sources);
