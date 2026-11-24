@@ -4,6 +4,7 @@
 
 pub mod grammar;
 mod links;
+pub mod natural;
 mod program;
 mod referents;
 mod source_document;

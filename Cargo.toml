@@ -49,3 +49,7 @@ path = "rust/tests/common_library.rs"
 [[test]]
 name = "lifting"
 path = "rust/tests/lifting.rs"
+
+[[test]]
+name = "natural"
+path = "rust/tests/natural.rs"

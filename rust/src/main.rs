@@ -1,8 +1,9 @@
 use std::fs;
 use std::io::{self, Read, Write};
 use universal_translator::grammar::{
-    Translator, language_ids, languages::language_syntax, meta::to_json,
+    Translator, language_ids, languages::language_syntax, meta::to_json, natural_languages,
 };
+use universal_translator::natural::check_text;
 use universal_translator::{Mode, Options, SourceDocument, translate_program};
 
 const USAGE: &str = "Usage:
@@ -14,7 +15,13 @@ const USAGE: &str = "Usage:
   universal-translator encode-cst <language> [file|-]
   universal-translator decode-cst [file|-]
   universal-translator languages
+  universal-translator check-words <natural> [file|-]
   universal-translator --version
+
+A language may be a controlled natural language (english, russian,
+english-asd-ste100, minimal-english, ...): translate reads and writes
+its sentences like any programming language. check-words checks a text
+against the rules of a controlled language.
 
 Modes: context-dependent (default), literal, same-effect
 --trace writes every pipeline stage to standard error as \"[stage] <json>\".
@@ -85,7 +92,20 @@ fn run(arguments: &[String]) -> Result<String, String> {
             .into_iter()
             .filter_map(|id| language_syntax(id).ok())
             .map(|syntax| format!("{}\t{}\n", syntax.id, syntax.label))
+            .chain(
+                natural_languages()
+                    .into_iter()
+                    .map(|language| format!("{}\t{} (natural)\n", language.id, language.label)),
+            )
             .collect()),
+        ["check-words", language, trailing @ ..] if trailing.len() <= 1 => {
+            let problems = check_text(&source(trailing.first().copied())?, language)?;
+            if problems.is_empty() {
+                Ok(format!("The text keeps the rules of {language}\n"))
+            } else {
+                Err(problems.join("\n"))
+            }
+        }
         ["meta", language, trailing @ ..] if trailing.len() <= 1 => {
             let meta = Translator::new()
                 .to_meta(&source(trailing.first().copied())?, language)
