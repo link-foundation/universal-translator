@@ -542,6 +542,7 @@ describe('translation checks', () => {
       'node examples/programs/write-translations.mjs --check',
       'node scripts/build-natural-sources.mjs --check',
       'node examples/programs/write-natural.mjs --check',
+      'node scripts/check-requirements.mjs',
       'cargo test --locked',
       'bash experiments/verify-syntax-exchange.sh',
     ]);

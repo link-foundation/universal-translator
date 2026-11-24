@@ -1,0 +1,61 @@
+rosetta-coverage:
+  output:
+    text: 'Printing text and numbers, with and without a line end'
+    status: covered
+    tasks: hello-world ninety-nine-bottles
+  integer-arithmetic:
+    text: 'Integer arithmetic, integer division and remainder'
+    status: covered
+    tasks: sum-of-squares sum-digits-of-an-integer leap-year
+  conditionals:
+    text: 'Conditional statements and boolean logic'
+    status: covered
+    tasks: fizz-buzz leap-year
+  iteration:
+    text: 'Counting loops and while loops'
+    status: covered
+    tasks: fizz-buzz hailstone-sequence fibonacci-sequence
+  functions:
+    text: 'Functions with parameters and return values'
+    status: covered
+    tasks: factorial greatest-common-divisor
+  recursion:
+    text: 'Recursion, including deep and mutual recursion'
+    status: covered
+    tasks: ackermann-function towers-of-hanoi factorial
+  number-theory:
+    text: 'Prime numbers, divisors and number sequences'
+    status: covered
+    tasks: primality-by-trial-division greatest-common-divisor hailstone-sequence
+  text-concatenation:
+    text: 'Building text from text and numbers'
+    status: covered
+    tasks: ninety-nine-bottles towers-of-hanoi
+  arrays:
+    text: 'Arrays and lists, sorting and searching'
+    status: blocked
+    reason: 'The meta language has no list values yet; adding them means new syntax tables in all programming languages, lowering to three machine targets and sentences in every controlled natural language'
+  floating-point:
+    text: 'Floating point arithmetic'
+    status: blocked
+    reason: 'Machine targets and the meta language work with 64-bit integers only'
+  string-manipulation:
+    text: 'Character access, substrings and string transformation'
+    status: blocked
+    reason: 'Text values can be printed and concatenated but not indexed or transformed'
+  higher-order-functions:
+    text: 'Functions as values, closures and higher-order functions'
+    status: blocked
+    reason: 'Functions are top-level declarations only'
+  data-structures:
+    text: 'Records, maps, stacks and queues'
+    status: blocked
+    reason: 'The meta language has no compound values yet'
+  input-output:
+    text: 'Reading input and files'
+    status: blocked
+    reason: 'Programs only write to standard output, which is what the native checks compare'
+  objects-and-concurrency:
+    text: 'Classes, objects, threads and networking'
+    status: blocked
+    reason: 'Outside the meta language; these differ most between languages and need the common library to grow first'

@@ -447,6 +447,11 @@ jobs:
           node scripts/build-natural-sources.mjs --check
           node examples/programs/write-natural.mjs --check
 
+      # Test driven: fails while any requirement of issue 1 is neither done
+      # (with its evidence and check) nor reported as blocked with a reason.
+      - name: Check the requirements of issue 1
+        run: node scripts/check-requirements.mjs
+
       - name: Check Rust formatting
         run: cargo fmt --check
 
