@@ -36,3 +36,7 @@ path = "rust/tests/translation.rs"
 [[test]]
 name = "source_document"
 path = "rust/tests/source_document.rs"
+
+[[test]]
+name = "grammar"
+path = "rust/tests/grammar.rs"
