@@ -15,6 +15,7 @@
 //! Every rule list is ordinary data, so callers can add, remove, reorder or
 //! decorate rules, and a trace hook sees the tree after every stage.
 
+pub mod common_library;
 pub mod emitter;
 pub mod languages;
 pub mod lexer;
@@ -69,6 +70,14 @@ impl fmt::Display for GrammarError {
 }
 
 impl std::error::Error for GrammarError {}
+
+/// How a translation is written.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Options {
+    pub mode: Mode,
+    /// Print through the calls of the common library in `common-library/`.
+    pub common_library: bool,
+}
 
 /// What a rule knows about the translation it takes part in.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -191,17 +200,41 @@ impl Translator {
         from: Option<&str>,
         mode: Mode,
     ) -> Result<String, GrammarError> {
+        let options = Options {
+            mode,
+            ..Options::default()
+        };
+        self.from_meta_with(meta, to, from, options)
+    }
+
+    /// [`Translator::from_meta`] with all translation options.
+    pub fn from_meta_with(
+        &self,
+        meta: &Node,
+        to: &str,
+        from: Option<&str>,
+        options: Options,
+    ) -> Result<String, GrammarError> {
         let syntax = languages::language_syntax(to)?;
+        if options.common_library && syntax.machine {
+            return Err(GrammarError::new(format!(
+                "Machine targets have no common library ({to})"
+            )));
+        }
         let settings = Settings {
             from: from.unwrap_or(to).to_owned(),
             to: to.to_owned(),
-            mode,
+            mode: options.mode,
         };
         // Custom layers are meta -> meta transformations, so they see the
         // target independent program; context rules then adapt it.
-        let transformed = self.layers.iter().fold(meta.clone(), |current, layer| {
+        let mut transformed = self.layers.iter().fold(meta.clone(), |current, layer| {
             apply_rules(current, layer, &settings)
         });
+        // The common library route is one more meta layer, run last.
+        if options.common_library {
+            transformed = common_library::use_common_library(transformed)?;
+        }
         self.report("transformed", &transformed);
         let adapted = apply_rules(transformed, &self.context, &settings);
         self.report("adapted", &adapted);
@@ -220,8 +253,23 @@ impl Translator {
         to: &str,
         mode: Mode,
     ) -> Result<String, GrammarError> {
+        let options = Options {
+            mode,
+            ..Options::default()
+        };
+        self.translate_with(source, from, to, options)
+    }
+
+    /// [`Translator::translate`] with all translation options.
+    pub fn translate_with(
+        &self,
+        source: &str,
+        from: &str,
+        to: &str,
+        options: Options,
+    ) -> Result<String, GrammarError> {
         let meta = self.to_meta(source, from)?;
-        self.from_meta(&meta, to, Some(from), mode)
+        self.from_meta_with(&meta, to, Some(from), options)
     }
 }
 

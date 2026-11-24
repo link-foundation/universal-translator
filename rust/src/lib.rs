@@ -2,14 +2,13 @@
 //! translator, exchange sources as Links Notation documents and concrete
 //! syntax trees, and rank dependent interpretations.
 
-pub mod common_library;
 pub mod grammar;
 mod links;
 mod program;
 mod referents;
 mod source_document;
 
-pub use grammar::{GrammarError, Translator};
+pub use grammar::{GrammarError, Options, Translator};
 pub use program::translate_program;
 pub use referents::{
     Candidate, Observation, RankedCandidate, Ranking, rank_interpretations, read_referent_input,

@@ -8,6 +8,7 @@
 use std::collections::HashSet;
 use std::sync::Arc;
 
+use super::common_library::{recognize_common_library, spell_common_library};
 use super::languages::{Syntax, language_syntax};
 use super::meta::{Node, binary, block, rewrite, rewrite_opt, text, walk};
 use super::names::{neutral_name, rename_declared, spell_name};
@@ -29,6 +30,9 @@ pub fn understanding_rules() -> Vec<Rule> {
         }),
         rule("integerDivisionCalls", |program, _| {
             integer_division_calls(program)
+        }),
+        rule("recognizeCommonLibrary", |program, _| {
+            recognize_common_library(program)
         }),
         rule("recognizePrint", |program, _| recognize_print(program)),
         rule("expandCompoundAssignment", |program, _| {
@@ -61,6 +65,7 @@ pub fn context_rules() -> Vec<Rule> {
         rule("adaptComments", adapt_comments),
         rule("copyReassignedParameters", copy_reassigned_parameters),
         rule("spellNames", spell_names),
+        rule("spellCommonLibrary", spell_common_library),
     ]
 }
 
@@ -301,7 +306,7 @@ fn text_value(node: &Node) -> Option<&str> {
     }
 }
 
-fn parts_to_value(parts: Vec<Node>) -> Node {
+pub fn parts_to_value(parts: Vec<Node>) -> Node {
     let mut merged: Vec<Node> = Vec::new();
     for part in parts {
         if let (Some(value), Some(previous)) =
