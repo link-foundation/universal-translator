@@ -45,6 +45,12 @@ export const libraryFiles = {
   rust: 'common_library.rs',
   kotlin: 'CommonLibrary.kt',
   swift: 'CommonLibrary.swift',
+  perl: 'common_library.pl',
+  dart: 'common_library.dart',
+  scala: 'CommonLibrary.scala',
+  julia: 'common_library.jl',
+  r: 'common_library.R',
+  groovy: 'CommonLibrary.groovy',
 };
 const libraryFolder = join(folder, '..', '..', 'common-library');
 
@@ -176,16 +182,33 @@ const runners = {
       run(`${file}.out`, [])
     ),
   },
-  perl: { tool: 'perl', run: (file) => run('perl', [file]) },
+  // Perl and R find the library relative to the working folder.
+  perl: {
+    tool: 'perl',
+    run: (file) => run('perl', [file], { cwd: dirname(file) }),
+  },
   dart: { tool: 'dart', run: (file) => run('dart', ['run', file]) },
   // Both the Scala 2 runner and Scala 3's command line run a single file.
-  scala: { tool: 'scala', run: (file) => run('scala', [file]) },
+  scala: {
+    tool: 'scala',
+    run: (file, library) =>
+      library.length === 0
+        ? run('scala', [file])
+        : (run('scalac', ['-d', dirname(file), file, ...library]),
+          run('scala', ['-classpath', dirname(file), 'Main'])),
+  },
   julia: {
     tool: 'julia',
     run: (file) => run('julia', ['--startup-file=no', file]),
   },
-  r: { tool: 'Rscript', run: (file) => run('Rscript', [file]) },
-  groovy: { tool: 'groovy', run: (file) => run('groovy', [file]) },
+  r: {
+    tool: 'Rscript',
+    run: (file) => run('Rscript', [file], { cwd: dirname(file) }),
+  },
+  groovy: {
+    tool: 'groovy',
+    run: (file) => run('groovy', ['-cp', dirname(file), file]),
+  },
   csharp: {
     tool: 'dotnet',
     run: (file, library) => {

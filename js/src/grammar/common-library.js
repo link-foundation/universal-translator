@@ -56,6 +56,12 @@ export const commonLibraryAccess = {
   },
   kotlin: {},
   swift: {},
+  perl: { imports: () => ['require "./common_library.pl";'] },
+  dart: { imports: () => ["import 'common_library.dart';"] },
+  scala: { prefix: 'CommonLibrary.' },
+  julia: { imports: () => ['include("common_library.jl")'] },
+  r: { imports: () => ['source("common_library.R")'] },
+  groovy: { prefix: 'CommonLibrary.' },
 };
 
 const call = (operation, argument) =>
@@ -106,11 +112,18 @@ export function useCommonLibrary(program) {
 // The lines that make the library available are not part of the program.
 const isLibraryImport = (text) => /common[-_]?library/i.test(text);
 
-// Lua loads the library into a variable: `local common_library = require(...)`.
-const isLibraryLoad = (statement) =>
-  statement.value?.kind === 'Call' &&
-  statement.value.callee === 'require' &&
-  isLibraryImport(statement.value.arguments[0]?.value ?? '');
+// Some languages load the library with a call: Lua's
+// `local common_library = require(...)`, Julia's `include(...)` and R's
+// `source(...)`.
+const loaders = new Set(['require', 'include', 'source']);
+const isLibraryLoad = (statement) => {
+  const call = statement.value ?? statement.expression;
+  return (
+    call?.kind === 'Call' &&
+    loaders.has(call.callee) &&
+    isLibraryImport(call.arguments[0]?.value ?? '')
+  );
+};
 
 // Consecutive prints that came from library calls are one print statement:
 // the writes up to and including the one that ends the line are joined.
