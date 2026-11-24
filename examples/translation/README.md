@@ -67,6 +67,20 @@ calls it. `toMeta` and `fromMeta` expose the two halves of the pipeline.
 
 [`custom-layer.mjs`](custom-layer.mjs) runs this example.
 
+## Translate through the common library
+
+```sh
+node bin/universal-translator.js translate javascript python examples/programs/fizz-buzz.js --common-library
+node examples/programs/verify-native.mjs --common-library
+```
+
+With `--common-library` every print becomes a call to the small library in
+[`common-library/`](../../common-library): `printLine`, `writeText`,
+`writeInteger` and `endLine`, spelled in each language's naming convention.
+The output part of the program is then the same line for line in every
+language. Reading such a program back recognizes the calls, drops the library
+import and joins the writes into one print again.
+
 ## Change comments without changing the code
 
 ```sh

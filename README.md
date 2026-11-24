@@ -40,8 +40,9 @@ Pick a mode with `--mode`:
 - `same-effect` keeps only what the program does and may restructure it.
 
 `createTranslator({ layers })` takes rule layers that can be replaced or
-decorated. The common library only hides differences between standard
-libraries, such as printing.
+decorated. The common library in `common-library/` only hides differences
+between standard libraries, such as printing. `--common-library` translates
+every print into a call to it.
 
 Every program in `examples/programs` has been translated into every target
 in `examples/programs/translated`. These shared files are what the JavaScript

@@ -129,10 +129,13 @@ NASM / CIL / Jasmin ──machine reader──▶ stack machine ──lifting─
    rebuilds conditions, `if`/`else if`, `while`, counting loops and boolean
    values from their jump patterns. So machine code translates to every
    language, and assembly, CIL and JVM bytecode translate into each other.
-6. **The common library** (`js/src/common-library.mjs` and the Rust
-   equivalent) only smooths over standard-library differences, such as
-   printing with or without a newline. The translated programs keep their
-   own algorithms.
+6. **The common library** (`common-library/`, one file per language) only
+   smooths over standard-library differences: `printLine`, `writeText`,
+   `writeInteger` and `endLine`. With the `commonLibrary` option
+   (`--common-library`) a meta layer replaces every print with these calls,
+   so the output code is the same line for line in every language. Reading
+   such a program recognizes the calls as prints again. The translated
+   programs keep their own algorithms.
 7. **Natural language.** `referents.js` ranks the readings of an ambiguous
    phrase. Each reading is a path in a type hierarchy (`person → white
 person → person with white skin`), with probability ranges from corpus

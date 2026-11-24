@@ -4,13 +4,17 @@
 // standard output. Languages whose toolchain is missing are reported as
 // skipped, never as passed.
 //
-//   node examples/programs/verify-native.mjs [--require-all] [language ...]
+//   node examples/programs/verify-native.mjs [--require-all]
+//     [--common-library] [language ...]
 //
-// --require-all turns a missing toolchain into a failure. LUA names the Lua
+// --require-all turns a missing toolchain into a failure. --common-library
+// translates with the common library route and copies the library file from
+// common-library/ next to each program. LUA names the Lua
 // interpreter when it is not called lua.
 
 import { spawnSync } from 'node:child_process';
 import {
+  copyFileSync,
   mkdtempSync,
   readdirSync,
   readFileSync,
@@ -24,6 +28,25 @@ import { createGrammarTranslator } from '../../js/src/grammar/translator.js';
 
 const folder = dirname(fileURLToPath(import.meta.url));
 const translator = createGrammarTranslator();
+
+// The common library implementation of each language.
+export const libraryFiles = {
+  javascript: 'common-library.mjs',
+  typescript: 'common-library.ts',
+  python: 'common_library.py',
+  ruby: 'common_library.rb',
+  lua: 'common_library.lua',
+  php: 'common_library.php',
+  c: 'common_library.h',
+  cpp: 'common_library.hpp',
+  csharp: 'CommonLibrary.cs',
+  java: 'CommonLibrary.java',
+  go: 'common_library.go',
+  rust: 'common_library.rs',
+  kotlin: 'CommonLibrary.kt',
+  swift: 'CommonLibrary.swift',
+};
+const libraryFolder = join(folder, '..', '..', 'common-library');
 
 export const extensions = {
   javascript: '.js',
@@ -85,7 +108,14 @@ const runners = {
   },
   python: { tool: 'python3', run: (file) => run('python3', [file]) },
   ruby: { tool: 'ruby', run: (file) => run('ruby', [file]) },
-  lua: { tool: lua, run: (file) => run(lua, [file]) },
+  // Lua's require searches LUA_PATH, so the program's folder is added.
+  lua: {
+    tool: lua,
+    run: (file) =>
+      run(lua, [file], {
+        env: { ...process.env, LUA_PATH: `${dirname(file)}/?.lua;;` },
+      }),
+  },
   php: { tool: 'php', run: (file) => run('php', [file]) },
   c: {
     tool: 'gcc',
@@ -101,7 +131,10 @@ const runners = {
       run(`${file}.out`, [])
     ),
   },
-  go: { tool: 'go', run: (file) => run('go', ['run', file]) },
+  go: {
+    tool: 'go',
+    run: (file, library) => run('go', ['run', file, ...library]),
+  },
   rust: {
     tool: 'rustc',
     run: (file) => (
@@ -109,26 +142,37 @@ const runners = {
       run(`${file}.out`, [])
     ),
   },
-  java: { tool: 'java', run: (file) => run('java', [file]) },
+  java: {
+    tool: 'java',
+    run: (file, library) =>
+      library.length === 0
+        ? run('java', [file])
+        : (run('javac', ['-d', dirname(file), file, ...library]),
+          run('java', ['-cp', dirname(file), 'Main'])),
+  },
   kotlin: {
     tool: 'kotlinc',
-    run: (file) => (
-      run('kotlinc', [file, '-include-runtime', '-d', `${file}.jar`], {
-        stdio: 'pipe',
-      }),
+    run: (file, library) => (
+      run(
+        'kotlinc',
+        [file, ...library, '-include-runtime', '-d', `${file}.jar`],
+        {
+          stdio: 'pipe',
+        }
+      ),
       run('java', ['-jar', `${file}.jar`])
     ),
   },
   swift: {
     tool: 'swiftc',
-    run: (file) => (
-      run('swiftc', ['-o', `${file}.out`, file]),
+    run: (file, library) => (
+      run('swiftc', ['-o', `${file}.out`, file, ...library]),
       run(`${file}.out`, [])
     ),
   },
   csharp: {
     tool: 'dotnet',
-    run: (file) => {
+    run: (file, library) => {
       const project = join(dirname(file), 'project');
       mkdirSync(project, { recursive: true });
       const framework = dotnetFramework();
@@ -137,6 +181,9 @@ const runners = {
         `<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>${framework}</TargetFramework><ImplicitUsings>disable</ImplicitUsings></PropertyGroup></Project>`
       );
       writeFileSync(join(project, 'Program.cs'), readFileSync(file, 'utf8'));
+      for (const path of library) {
+        copyFileSync(path, join(project, basename(path)));
+      }
       return run('dotnet', ['run', '--project', project]);
     },
   },
@@ -202,8 +249,11 @@ export function programFiles() {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const options = process.argv.slice(2);
   const requireAll = options.includes('--require-all');
-  const chosen = options.filter((option) => option !== '--require-all');
-  const targets = chosen.length ? chosen : Object.keys(extensions);
+  const commonLibrary = options.includes('--common-library');
+  const chosen = options.filter((option) => !option.startsWith('--'));
+  const targets = (chosen.length ? chosen : Object.keys(extensions)).filter(
+    (target) => !commonLibrary || libraryFiles[target]
+  );
   const work = mkdtempSync(join(tmpdir(), 'grammar-native-'));
   let failures = 0;
   for (const { path, file, task, language } of programFiles()) {
@@ -219,16 +269,29 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       }
       const directory = join(work, `${task}-${language}-${target}`);
       mkdirSync(directory, { recursive: true });
+      // Swift allows top-level code only in main.swift when several
+      // files are compiled together.
       const output = join(
         directory,
-        target === 'java' ? 'Main.java' : `program${extensions[target]}`
+        { java: 'Main.java', swift: 'main.swift' }[target] ??
+          `program${extensions[target]}`
       );
+      const library = [];
+      if (commonLibrary) {
+        const copy = join(directory, libraryFiles[target]);
+        copyFileSync(join(libraryFolder, libraryFiles[target]), copy);
+        library.push(copy);
+      }
       try {
         writeFileSync(
           output,
-          translator.translate(readFileSync(path, 'utf8'), language, target)
+          translator.translate(readFileSync(path, 'utf8'), language, target, {
+            commonLibrary,
+          })
         );
-        const actual = runner.run(output);
+        // Header and module libraries are found by the compiler itself.
+        const sources = ['c', 'cpp', 'rust'].includes(target) ? [] : library;
+        const actual = runner.run(output, sources);
         if (actual !== expected) {
           throw new Error(`output differs:\n${actual}`);
         }
