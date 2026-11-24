@@ -62,6 +62,8 @@ export const commonLibraryAccess = {
   julia: { imports: () => ['include("common_library.jl")'] },
   r: { imports: () => ['source("common_library.R")'] },
   groovy: { prefix: 'CommonLibrary.' },
+  objc: { imports: () => ['#import "CommonLibrary.h"'] },
+  d: { imports: () => ['import common_library;'] },
 };
 
 const call = (operation, argument) =>

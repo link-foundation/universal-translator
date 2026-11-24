@@ -47,6 +47,7 @@ const conditionParentheses = new Set([
   'scala',
   'r',
   'groovy',
+  'd',
 ]);
 const withoutTerminator = new Set([
   'python',
@@ -65,6 +66,9 @@ const blockCommentLanguages = new Set(['c', 'csharp']);
 class Emitter {
   constructor(syntax) {
     this.syntax = syntax;
+    // A dialect such as Objective-C is written with the tables of the
+    // language family it extends (C), plus its own differences.
+    this.id = syntax.family ?? syntax.id;
     this.unit = syntax.id === 'go' ? '\t' : '    ';
     this.lines = [];
     this.depth = 0;
@@ -76,7 +80,7 @@ class Emitter {
   }
 
   terminator() {
-    return withoutTerminator.has(this.syntax.id) ? '' : ';';
+    return withoutTerminator.has(this.id) ? '' : ';';
   }
 
   // ---- names, types, literals ----
@@ -88,10 +92,12 @@ class Emitter {
 
   type(meta) {
     const types = this.syntax.types ?? {};
-    if (meta === 'text' && this.syntax.id === 'cpp') {
+    if (meta === 'text' && this.id === 'cpp') {
       this.uses.add('string');
     }
-    if (meta === 'boolean' && this.syntax.id === 'c') {
+    if (meta === 'boolean' && this.syntax.id === 'objc') {
+      this.uses.add('objc');
+    } else if (meta === 'boolean' && this.id === 'c') {
       this.uses.add('stdbool');
     }
     return types[meta] ?? types.integer;
@@ -108,7 +114,7 @@ class Emitter {
     for (const sigil of this.syntax.escapeSigils ?? []) {
       result = result.replaceAll(sigil, `\\${sigil}`);
     }
-    if (this.syntax.id === 'ruby') {
+    if (this.id === 'ruby') {
       result = result.replace(/#\{/g, '\\#{');
     }
     if (format === 'percent') {
@@ -176,8 +182,7 @@ class Emitter {
     // R's %% and %/% bind tighter than * and /, so their operands that are
     // themselves operations keep parentheses.
     const tight =
-      this.syntax.id === 'r' &&
-      ['divide', 'remainder'].includes(expression.operator);
+      this.id === 'r' && ['divide', 'remainder'].includes(expression.operator);
     // `a && b || c` keeps its meaning without parentheses, but readers (and
     // C compilers with -Wparentheses) expect them around the inner "and".
     const inner = expression.operator === 'or' ? precedence.and + 1 : level;
@@ -213,12 +218,12 @@ class Emitter {
 
   // Text built from literal and computed parts, outside of output calls.
   interpolation(parts) {
-    const delimited = embeddings[this.syntax.id];
+    const delimited = embeddings[this.id];
     if (delimited) {
       const { prefix = '', open, close, format } = delimited;
       return `${prefix}"${parts.map((part) => (part.kind === 'Text' ? this.escape(part.value, { format }) : `${open}${this.expression(part)}${close}`)).join('')}"`;
     }
-    switch (this.syntax.id) {
+    switch (this.id) {
       case 'javascript':
       case 'typescript':
         return `\`${parts.map((part) => (part.kind === 'Text' ? part.value.replace(/[`\\]/g, '\\$&').replace(/\$\{/g, '\\${').replace(/\n/g, '\\n') : `\${${this.expression(part)}}`)).join('')}\``;
@@ -235,6 +240,9 @@ class Emitter {
               : this.expression(part, 6)
           )
           .join(' . ');
+      case 'd':
+        this.uses.add('std.conv');
+        return `text(${parts.map((part) => this.expression(part)).join(', ')})`;
       case 'rust':
         return `format!(${this.formatArguments(parts, 'braces')})`;
       case 'go':
@@ -281,7 +289,7 @@ class Emitter {
   // "format string", value, value  — for printf-like and format!-like calls.
   formatArguments(parts, style) {
     const placeholders = { integer: '%d', text: '%s', boolean: '%d' };
-    if (this.syntax.id === 'go') {
+    if (this.id === 'go') {
       placeholders.boolean = '%t';
     }
     const format = parts
@@ -301,7 +309,7 @@ class Emitter {
 
   // ---- statements ----
   print({ value, newline }) {
-    const printer = printers[this.syntax.id];
+    const printer = printers[this.id];
     if (!printer) {
       throw new Error(`No output procedure for ${this.syntax.label}`);
     }
@@ -323,7 +331,7 @@ class Emitter {
   }
 
   comment(text) {
-    if (blockCommentLanguages.has(this.syntax.id)) {
+    if (blockCommentLanguages.has(this.id)) {
       this.line(`/* ${text} */`);
     } else {
       this.line(`${this.syntax.lineComment} ${text}`);
@@ -334,16 +342,16 @@ class Emitter {
     const end = this.terminator();
     // R's return is a function: a bare `return` would not leave.
     if (!value) {
-      return this.syntax.id === 'r' ? 'return(invisible())' : `return${end}`;
+      return this.id === 'r' ? 'return(invisible())' : `return${end}`;
     }
-    return this.syntax.id === 'r'
+    return this.id === 'r'
       ? `return(${this.expression(value)})`
       : `return ${this.expression(value)}${end}`;
   }
 
   condition(expression) {
     const value = this.expression(expression);
-    return conditionParentheses.has(this.syntax.id) ? `(${value})` : value;
+    return conditionParentheses.has(this.id) ? `(${value})` : value;
   }
 
   openBlock(header) {
@@ -407,7 +415,7 @@ class Emitter {
 
   declaration({ name, type, value, mutable }) {
     const initial = value ? this.expression(value) : this.expression(number(0));
-    const declare = declarers[this.syntax.id] ?? declarers.typedPrefix;
+    const declare = declarers[this.id] ?? declarers.typedPrefix;
     return declare(this, { name, type, mutable, initial });
   }
 
@@ -435,7 +443,7 @@ class Emitter {
   }
 
   ifStatement(statement) {
-    const then = this.syntax.id === 'lua' ? ' then' : '';
+    const then = this.id === 'lua' ? ' then' : '';
     this.openBlock(`if ${this.condition(statement.condition)}${then}`);
     this.body(statement.then);
     let otherwise = statement.otherwise;
@@ -465,10 +473,10 @@ class Emitter {
     if (this.syntax.blocks === 'braces') {
       return `} ${this.syntax.bracedElseIf ?? 'else if'} ${condition} {`;
     }
-    if (this.syntax.id === 'python') {
+    if (this.id === 'python') {
       return `elif ${condition}:`;
     }
-    if (this.syntax.id === 'lua') {
+    if (this.id === 'lua') {
       return `elseif ${condition} then`;
     }
     return `${this.syntax.elseIf} ${condition}`;
@@ -477,9 +485,9 @@ class Emitter {
   whileStatement(statement) {
     const condition = this.condition(statement.condition);
     const header =
-      this.syntax.id === 'go'
+      this.id === 'go'
         ? `for ${condition}`
-        : this.syntax.id === 'lua'
+        : this.id === 'lua'
           ? `while ${condition} do`
           : `while ${condition}`;
     this.openBlock(header);
@@ -489,7 +497,7 @@ class Emitter {
 
   countingLoop(loop) {
     const { variable: identifier, start, end, body } = loop;
-    if (this.syntax.id === 'r' && !isLiteralRange(start, end)) {
+    if (this.id === 'r' && !isLiteralRange(start, end)) {
       return this.countingWhile(loop);
     }
     const from = this.expression(start);
@@ -521,8 +529,9 @@ class Emitter {
       julia: `for ${identifier} in ${from}:${last}`,
       r: `for (${identifier} in ${from}:${last})`,
       groovy: `for (${identifier} in ${from}..<${to})`,
+      d: `for (long ${identifier} = ${from}; ${identifier} < ${to}; ${identifier}++)`,
     };
-    this.openBlock(headers[this.syntax.id]);
+    this.openBlock(headers[this.id]);
     this.body(body);
     this.closeBlock();
   }
@@ -553,7 +562,7 @@ class Emitter {
 
   // ---- functions and program ----
   signature(item) {
-    const write = signatures[this.syntax.id] ?? signatures.typedPrefix;
+    const write = signatures[this.id] ?? signatures.typedPrefix;
     const typed = (render) =>
       item.parameters
         .map((parameter) => render(parameter.name, this.type(parameter.type)))
@@ -597,7 +606,8 @@ class Emitter {
       dart: 'void main()',
       scala: 'def main(args: Array[String]): Unit =',
       julia: 'function main()',
-    }[this.syntax.id];
+      d: 'void main()',
+    }[this.id];
   }
 
   program(program) {
@@ -605,7 +615,7 @@ class Emitter {
     if (insideClass) {
       this.openBlock(
         this.syntax.container ??
-          (this.syntax.id === 'csharp' ? 'class Program' : 'class Main')
+          (this.id === 'csharp' ? 'class Program' : 'class Main')
       );
     }
     for (const item of program.functions) {
@@ -622,7 +632,7 @@ class Emitter {
     const body = this.lines;
     this.lines = [];
     // File comments come first, except where a header must open the file.
-    if (this.syntax.id === 'php') {
+    if (this.id === 'php') {
       this.lines.push('<?php', '');
     }
     for (const text of program.comments) {
@@ -656,14 +666,20 @@ class Emitter {
 
   prelude(program) {
     const lines = [];
-    if (this.syntax.id === 'go') {
+    if (this.id === 'go') {
       lines.push('package main', '');
     }
     lines.push(...(this.syntax.prelude ?? []));
+    if (this.uses.has('std.conv')) {
+      lines.push('import std.conv;');
+    }
     if (this.uses.has('dart:io')) {
       lines.push("import 'dart:io';");
     }
     lines.push(...(program.libraryImports ?? []));
+    if (this.uses.has('objc')) {
+      lines.push('#import <objc/objc.h>');
+    }
     if (this.uses.has('stdbool')) {
       lines.push('#include <stdbool.h>');
     }
@@ -682,7 +698,10 @@ class Emitter {
     if (lines.length && lines.at(-1) !== '') {
       lines.push('');
     }
-    return lines;
+    // Objective-C includes each header once with #import.
+    return this.syntax.id === 'objc'
+      ? lines.map((line) => line.replace(/^#include\b/, '#import'))
+      : lines;
   }
 }
 
@@ -783,6 +802,8 @@ const printers = {
       .map((part) => emitter.expression(part))
       .join(', ')}, sep = "")`,
 };
+printers.d = (emitter, { parts, newline }) =>
+  `${newline ? 'writeln' : 'write'}(${parts.map((part) => emitter.expression(part)).join(', ')});`;
 printers.typescript = printers.javascript;
 printers.scala = printers.kotlin;
 printers.groovy = printers.kotlin;

@@ -253,6 +253,13 @@ function printFromCall(call, syntax) {
       .filter((value) => value.kind === 'NamedArgument')
       .map((value) => [value.name, value.value])
   );
+  // D's writeln prints its arguments one after another, without spaces.
+  if (kind === 'line' && syntax.printCalls?.adjacent) {
+    const flat = values.flatMap((value) =>
+      value.kind === 'Interpolation' ? value.parts : [value]
+    );
+    return node('Print', { value: partsToValue(flat), newline: true });
+  }
   if (kind === 'line') {
     const newline = !(
       named.end &&

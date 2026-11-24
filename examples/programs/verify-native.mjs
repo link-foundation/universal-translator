@@ -10,7 +10,9 @@
 // --require-all turns a missing toolchain into a failure. --common-library
 // translates with the common library route and copies the library file from
 // common-library/ next to each program. LUA names the Lua
-// interpreter when it is not called lua. The checks run in parallel worker
+// interpreter when it is not called lua, OBJC_CC and OBJC_FLAGS the
+// Objective-C compiler when it is not gcc, DC the D compiler when it is not
+// gdc. The checks run in parallel worker
 // processes, one per CPU unless --jobs=N says otherwise; each worker takes
 // every Nth check (--shard=K/N).
 
@@ -53,6 +55,8 @@ export const libraryFiles = {
   julia: 'common_library.jl',
   r: 'common_library.R',
   groovy: 'CommonLibrary.groovy',
+  objc: 'CommonLibrary.h',
+  d: 'common_library.d',
 };
 const libraryFolder = join(folder, '..', '..', 'common-library');
 
@@ -77,6 +81,8 @@ export const extensions = {
   julia: '.jl',
   r: '.R',
   groovy: '.groovy',
+  objc: '.m',
+  d: '.d',
   nasm: '.asm',
   cil: '.il',
   jvm: '.j',
@@ -88,6 +94,9 @@ const ilasm = process.env.ILASM || 'ilasm';
 // Without JASMIN_CLASSPATH the jasmin command (Debian jasmin-sable) is used.
 const jasmin = process.env.JASMIN_CLASSPATH;
 const lua = process.env.LUA || 'lua';
+const d = process.env.DC || 'gdc';
+const objc = process.env.OBJC_CC || 'gcc';
+const objcFlags = (process.env.OBJC_FLAGS ?? '').split(' ').filter(Boolean);
 
 const run = (command, args, options = {}) => {
   const result = spawnSync(command, args, {
@@ -210,6 +219,40 @@ const runners = {
   groovy: {
     tool: 'groovy',
     run: (file) => run('groovy', ['-cp', dirname(file), file]),
+  },
+  // GCC's Objective-C front end (gobjc) brings the GNU runtime headers.
+  // OBJC_CC and OBJC_FLAGS choose another compiler, such as clang with
+  // -fobjc-runtime=gcc and the runtime headers on its include path.
+  objc: {
+    tool: objc,
+    run: (file) => (
+      run(objc, [
+        ...objcFlags,
+        '-x',
+        'objective-c',
+        '-Wall',
+        '-Werror',
+        '-o',
+        `${file}.out`,
+        file,
+      ]),
+      run(`${file}.out`, [])
+    ),
+  },
+  // DC names another D compiler with GDC's options, such as LDC's ldc2
+  // (which takes -w and -of= instead).
+  d: {
+    tool: d,
+    run: (file, library) => (
+      run(d, [
+        ...(d.endsWith('ldc2')
+          ? ['-w', `-of=${file}.out`]
+          : ['-Wall', '-Werror', '-o', `${file}.out`]),
+        file,
+        ...library,
+      ]),
+      run(`${file}.out`, [])
+    ),
   },
   csharp: {
     tool: 'dotnet',
@@ -370,7 +413,9 @@ if (
           })
         );
         // Header and module libraries are found by the compiler itself.
-        const sources = ['c', 'cpp', 'rust'].includes(target) ? [] : library;
+        const sources = ['c', 'cpp', 'objc', 'rust'].includes(target)
+          ? []
+          : library;
         const actual = runner.run(output, sources);
         if (actual !== expected) {
           throw new Error(`output differs:\n${actual}`);

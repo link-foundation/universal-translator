@@ -131,6 +131,8 @@ const reservedLists = {
   julia:
     'baremodule begin break catch const continue do else elseif end export false finally for function global if import let local macro module quote return struct true try using while',
   r: 'if else repeat while function for next break true false null inf nan na in',
+  objc: 'auto break case char const continue default do double else enum extern float for goto if inline int long register restrict return short signed sizeof static struct switch typedef union unsigned void volatile while bool id self super nil yes no in out inout bycopy byref oneway main',
+  d: 'abstract alias align asm assert auto body bool break byte case cast catch cdouble cent cfloat char class const continue creal dchar debug default delegate delete deprecated do double else enum export extern false final finally float for foreach foreach_reverse function goto idouble if ifloat immutable import in inout int interface invariant ireal is lazy long macro mixin module new nothrow null out override package pragma private protected public pure real ref return scope shared short static struct super switch synchronized template this throw true try typeid typeof ubyte ucent uint ulong union unittest ushort version void wchar while with text write writeln main',
   groovy:
     'abstract as assert boolean break byte case catch char class const continue def default do double else enum extends false final finally float for goto if implements import in instanceof int interface long native new null package private protected public return short static super switch synchronized this threadsafe throw throws transient true try var void volatile while',
 };
