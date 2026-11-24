@@ -27,28 +27,6 @@ export declare const multiply: (a: number, b: number) => number;
 export declare const delay: (ms: number) => Promise<void>;
 
 export * from './translation/translator.js';
+export * from './translation/source-document.js';
+export * from './translation/program.js';
 export * as commonLibrary from './common-library.mjs';
-
-export function readSourceDocument(notation: string): {
-  language: string;
-  source: string;
-};
-export function writeSourceDocument(language: string, source: string): string;
-
-interface SyntaxNetwork {
-  links(): Array<{
-    metadata(): { linkType?: string; language?: string; span?: unknown };
-  }>;
-  parseGrammars(): Array<{ language: string }>;
-  reconstructText(): string;
-  toLino(): string;
-}
-
-export function createSourceSyntaxCodec(linkNetwork: {
-  prototype: SyntaxNetwork;
-  parse(source: string, language: string): SyntaxNetwork;
-  fromLino(notation: string): SyntaxNetwork;
-}): {
-  write(language: string, source: string): string;
-  read(notation: string): { language: string; source: string };
-};

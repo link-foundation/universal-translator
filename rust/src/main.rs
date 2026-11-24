@@ -1,9 +1,10 @@
 use std::fs;
 use std::io::{self, Read, Write};
-use universal_translator::{Mode, Options, SourceDocument, Translator};
+use universal_translator::{Mode, Options, SourceDocument, Translator, translate_program};
 
 const USAGE: &str = "Usage:
   universal-translator translate <from> <to> [file|-] [--mode <mode>] [--form <form>]
+  universal-translator translate-program <from|cst> <to> [file|-]
   universal-translator roundtrip <language> [file|-]
   universal-translator encode-source <language> [file|-]
   universal-translator decode-source [file|-]
@@ -103,6 +104,18 @@ fn run(arguments: &[String]) -> Result<String, String> {
         }
         ["translate", from, to, trailing @ ..] => {
             translate(&Translator::default(), from, to, trailing)
+        }
+        ["translate-program", from, to, trailing @ ..] if trailing.len() <= 1 => {
+            let input = source(trailing.first().copied())?;
+            let document = if *from == "cst" {
+                SourceDocument::from_syntax_notation(&input)?
+            } else {
+                SourceDocument {
+                    language: (*from).to_owned(),
+                    source: input,
+                }
+            };
+            translate_program(&document, to)
         }
         _ => Err(USAGE.into()),
     }

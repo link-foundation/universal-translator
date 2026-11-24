@@ -23,3 +23,5 @@ Preserve JavaScript document writes through a Rust browser import, and translate
 Translate an empty program between JavaScript, Rust, Links Notation, and all 20 natural-language profiles. Verify the original Rust specimen and the generated JavaScript program for a successful exit and empty output streams.
 
 Expose Meta Language grammar CST encoding and decoding in the Rust CLI and a JavaScript codec for the matching Meta Language 1.0 engine. Preserve grammar nodes, parser provenance, and UTF-8 source bytes in the exchanged Links Notation network.
+
+Use grammar trees in the translator's source graphs when the matching parser is available. Compile supported JavaScript and Rust programs through Meta Language's checked portable core from source text or an exchanged Links Notation CST.

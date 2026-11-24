@@ -60,11 +60,15 @@ export function sourceNetwork(source, language, interpretation) {
     interpretation?.form ?? 'unclassified',
     [ordered(network, language, lines)]
   );
+  bindSource(network, language, interpretation, root);
+  return network;
+}
+
+export function bindSource(network, language, interpretation, root) {
   if (interpretation) {
     const meaning = effectNetwork(interpretation.effect, network);
     bindOperation(network, language, interpretation, root, meaning.id);
   }
-  return network;
 }
 
 function bindOperation(network, language, { output, requires }, root, meaning) {

@@ -75,20 +75,22 @@ export function createSourceSyntaxCodec(LinkNetwork) {
   if (typeof LinkNetwork?.prototype?.parseGrammars !== 'function') {
     throw new Error('Expected Meta Language 1.0 with grammar provenance');
   }
+  function parse(language, source) {
+    if (!language || !isUnicodeText(language) || !isUnicodeText(source)) {
+      throw new Error('Expected a language name and Unicode source text');
+    }
+    const network = LinkNetwork.parse(source, language);
+    if (syntaxLanguage(network) !== language) {
+      throw new Error(`Expected a grammar tree for ${language}`);
+    }
+    if (network.reconstructText() !== source) {
+      throw new Error(`${language} grammar did not preserve source bytes`);
+    }
+    return network;
+  }
   return {
-    write(language, source) {
-      if (!language || !isUnicodeText(language) || !isUnicodeText(source)) {
-        throw new Error('Expected a language name and Unicode source text');
-      }
-      const network = LinkNetwork.parse(source, language);
-      if (syntaxLanguage(network) !== language) {
-        throw new Error(`Expected a grammar tree for ${language}`);
-      }
-      if (network.reconstructText() !== source) {
-        throw new Error(`${language} grammar did not preserve source bytes`);
-      }
-      return network.toLino();
-    },
+    parse,
+    write: (language, source) => parse(language, source).toLino(),
     read(notation) {
       if (!isUnicodeText(notation)) {
         throw new Error('Expected Links Notation as Unicode text');

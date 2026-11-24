@@ -42,10 +42,20 @@ pub(crate) fn source_network(
     let label = interpretation.map_or("unclassified", |value| value.form.as_str());
     let children = ordered(&mut network, language, &lines);
     let root = network.insert_link([children], metadata(language, LinkType::Syntax, label));
+    bind_source(&mut network, language, interpretation, root);
+    network
+}
+
+pub(crate) fn bind_source(
+    network: &mut LinkNetwork,
+    language: &str,
+    interpretation: Option<&Interpretation>,
+    root: LinkId,
+) {
     if let Some(value) = interpretation {
-        let meaning = insert_effect(&mut network, &value.effect);
+        let meaning = insert_effect(network, &value.effect);
         bind_operation(
-            &mut network,
+            network,
             language,
             &value.output,
             &value.requires,
@@ -53,7 +63,6 @@ pub(crate) fn source_network(
             meaning,
         );
     }
-    network
 }
 
 fn bind_operation(

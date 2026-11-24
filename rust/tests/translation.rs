@@ -1,4 +1,5 @@
 use links_notation::{LiNo, parse_lino_to_links};
+use meta_language::LinkType;
 use universal_translator::{
     Adapter, Effect, Expression, Interpretation, Mode, Options, Translator, language_profiles,
     rank_interpretations, read_referent_input,
@@ -59,6 +60,19 @@ fn source_links_comments_and_default_mode() {
         .unwrap();
     assert_eq!(result.code, CSHARP);
     assert_eq!(result.document.restore(), C);
+    let network = &result.document.network;
+    assert!(network.links().any(|link| {
+        let metadata = link.metadata();
+        metadata.link_type() == Some(LinkType::Syntax)
+            && metadata.term() == Some("function_definition")
+    }));
+    let realizes = network
+        .links()
+        .find(|link| link.metadata().term() == Some("realizes"))
+        .unwrap();
+    let operation = network.link(realizes.references()[0]).unwrap();
+    let root = network.link(operation.references()[0]).unwrap();
+    assert_eq!(root.metadata().link_type(), Some(LinkType::Document));
     assert_eq!(
         result.document.interpretation.unwrap().requires,
         ["stdio.h"]
@@ -173,9 +187,9 @@ fn all_authored_forms_and_directed_pairs() {
                     let expression = translator
                         .transform(&document, &target_profile.id, &options)
                         .unwrap();
-                    let source = translator.materialize(&expression).unwrap();
-                    let target = translator.parse(&source, &target_profile.id).unwrap();
-                    assert_eq!(target.interpretation.unwrap().effect, effect);
+                    assert_eq!(expression.effect, effect);
+                    // Materialization already reparses the result to verify the effect.
+                    translator.materialize(&expression).unwrap();
                 }
             }
         }

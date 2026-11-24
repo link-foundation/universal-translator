@@ -1,4 +1,6 @@
 import type { LinkId, LinkNetwork } from 'meta-language';
+import type { CompileProgram } from './program.js';
+import type { SyntaxNetworkClass } from './source-document.js';
 
 export type Effect =
   | { task: 'hello'; message: string }
@@ -110,6 +112,11 @@ export interface TranslatorConfig {
   layers?: Array<
     Array<(projection: Projection, context: Context) => Projection>
   >;
+  grammarEngine?: {
+    LinkNetwork: SyntaxNetworkClass;
+    grammarProvenance(language: string): readonly unknown[];
+    translateProgram?: CompileProgram;
+  };
   verify?: (
     expected: Effect,
     parsed: Effect | undefined,

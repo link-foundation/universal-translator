@@ -5,16 +5,18 @@ mod links;
 mod meta;
 mod network;
 mod profile;
+mod program;
 mod referents;
 mod source_document;
 
-use meta_language::{LinkId, LinkNetwork};
+use meta_language::{LinkId, LinkNetwork, grammar_provenance};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::sync::OnceLock;
 
 pub use profile::{Form, Profile, language_profiles};
+pub use program::translate_program;
 pub use referents::{
     Candidate, Observation, RankedCandidate, Ranking, rank_interpretations, read_referent_input,
 };
@@ -372,7 +374,7 @@ type Verifier = dyn Fn(&Effect, Option<&Effect>, &Expression) -> bool + Send + S
 pub struct Translator {
     languages: Vec<(Profile, Box<dyn Adapter>)>,
     layers: Vec<Vec<Rule>>,
-    verify: Box<Verifier>,
+    verify: Option<Box<Verifier>>,
 }
 
 impl Default for Translator {
@@ -397,7 +399,7 @@ impl Translator {
         Self {
             languages,
             layers: Vec::new(),
-            verify: Box::new(|expected, actual, _| Some(expected) == actual),
+            verify: None,
         }
     }
 
@@ -424,7 +426,7 @@ impl Translator {
         &mut self,
         verifier: impl Fn(&Effect, Option<&Effect>, &Expression) -> bool + Send + Sync + 'static,
     ) {
-        self.verify = Box::new(verifier);
+        self.verify = Some(Box::new(verifier));
     }
 
     pub fn add_layer(&mut self, rules: Vec<Rule>) {
@@ -439,9 +441,24 @@ impl Translator {
     }
 
     pub fn parse(&self, source: &str, language: &str) -> Result<Document, String> {
-        let (_, adapter) = self.language(language)?;
-        let interpretation = adapter.parse(source);
-        let network = network::source_network(source, language, interpretation.as_ref());
+        let (profile, adapter) = self.language(language)?;
+        let grammar = (profile.kind == "programming")
+            .then(|| [language, profile.label.as_str()])
+            .into_iter()
+            .flatten()
+            .find(|name| !grammar_provenance(name).is_empty());
+        let (network, interpretation) = if let Some(grammar) = grammar {
+            let mut network = source_document::parse_syntax(source, grammar)?;
+            let root = source_document::syntax_root(&network, grammar)
+                .ok_or_else(|| format!("Expected a grammar document for {grammar}"))?;
+            let interpretation = adapter.parse(&network.reconstruct_text());
+            network::bind_source(&mut network, language, interpretation.as_ref(), root);
+            (network, interpretation)
+        } else {
+            let interpretation = adapter.parse(source);
+            let network = network::source_network(source, language, interpretation.as_ref());
+            (network, interpretation)
+        };
         Ok(Document {
             language: language.into(),
             network,
@@ -496,11 +513,12 @@ impl Translator {
         expression.effect.validate()?;
         let (_, adapter) = self.language(&expression.language)?;
         let code = adapter.emit(expression)?;
-        let actual = adapter.parse(&code);
-        if !(self.verify)(
-            &expression.effect,
-            actual.as_ref().map(|value| &value.effect),
-            expression,
+        let parsed = adapter.parse(&code);
+        let actual = parsed.as_ref().map(|value| &value.effect);
+        let expected = &expression.effect;
+        if !self.verify.as_ref().map_or_else(
+            || Some(expected) == actual,
+            |verify| verify(expected, actual, expression),
         ) {
             return Err(format!(
                 "Emitted program failed the effect round trip for {}",
@@ -518,8 +536,17 @@ impl Translator {
         options: &Options<'_>,
     ) -> Result<Translation, String> {
         let document = self.parse(source, from)?;
+        self.translate_document(document, to, options)
+    }
+
+    fn translate_document(
+        &self,
+        document: Document,
+        to: &str,
+        options: &Options<'_>,
+    ) -> Result<Translation, String> {
         let expression = self.transform(&document, to, options)?;
-        let restore_original = from == to
+        let restore_original = document.language == to
             && options.mode != Mode::SameEffect
             && options.form.is_none()
             && self.layers.is_empty();
@@ -542,7 +569,18 @@ impl Translator {
         to: &str,
         options: &Options<'_>,
     ) -> Result<String, String> {
-        Ok(self.translate_detailed(source, from, to, options)?.code)
+        let document = self.parse(source, from)?;
+        if document.interpretation.is_none()
+            && options.mode == Mode::SameEffect
+            && options.form.is_none()
+            && self.layers.is_empty()
+            && self.verify.is_none()
+            && matches!((from, to), ("javascript", "rust") | ("rust", "javascript"))
+        {
+            self.language(to)?;
+            return program::translate_syntax(&document.network, from, to);
+        }
+        Ok(self.translate_document(document, to, options)?.code)
     }
 }
 

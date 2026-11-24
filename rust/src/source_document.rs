@@ -1,6 +1,6 @@
 use crate::links;
 use links_notation::{LiNo, ParserConfig, parse_lino_to_links_with_config};
-use meta_language::{LinkNetwork, LinkType, ParseConfiguration, grammar_provenance};
+use meta_language::{LinkId, LinkNetwork, LinkType, ParseConfiguration, grammar_provenance};
 
 /// A lossless, language-labeled representation of source lines.
 #[derive(Debug, PartialEq, Eq)]
@@ -13,21 +13,7 @@ impl SourceDocument {
     /// Parses the source with Meta Language and retains grammar nodes and tokens.
     /// Returns an error if Meta Language has no grammar or cannot retain the bytes.
     pub fn syntax_network(&self) -> Result<LinkNetwork, String> {
-        if grammar_provenance(&self.language).is_empty() {
-            return Err(format!("No Meta Language grammar for {}", self.language));
-        }
-        let network =
-            LinkNetwork::parse(&self.source, &self.language, ParseConfiguration::default());
-        if syntax_language(&network)? != self.language {
-            return Err(format!("Expected a grammar tree for {}", self.language));
-        }
-        if network.reconstruct_text() != self.source {
-            return Err(format!(
-                "{} grammar did not preserve source bytes",
-                self.language
-            ));
-        }
-        Ok(network)
+        parse_syntax(&self.source, &self.language)
     }
 
     /// Restores source and its language from a serialized Meta Language CST.
@@ -88,6 +74,31 @@ impl SourceDocument {
         }
         Ok(Self { language, source })
     }
+}
+
+pub(crate) fn parse_syntax(source: &str, language: &str) -> Result<LinkNetwork, String> {
+    if grammar_provenance(language).is_empty() {
+        return Err(format!("No Meta Language grammar for {language}"));
+    }
+    let network = LinkNetwork::parse(source, language, ParseConfiguration::default());
+    if syntax_language(&network)? != language {
+        return Err(format!("Expected a grammar tree for {language}"));
+    }
+    if network.reconstruct_text() != source {
+        return Err(format!("{language} grammar did not preserve source bytes"));
+    }
+    Ok(network)
+}
+
+pub(crate) fn syntax_root(network: &LinkNetwork, language: &str) -> Option<LinkId> {
+    network
+        .links()
+        .find(|link| {
+            let metadata = link.metadata();
+            metadata.link_type() == Some(LinkType::Document)
+                && metadata.language() == Some(language)
+        })
+        .map(meta_language::Link::id)
 }
 
 fn syntax_language(network: &LinkNetwork) -> Result<String, String> {

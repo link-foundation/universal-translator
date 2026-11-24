@@ -28,6 +28,7 @@ export const delay = (ms) =>
   new Promise((resolve) => globalThis.setTimeout(resolve, ms));
 
 export { createTranslator, translate } from './translation/translator.js';
+export { createProgramTranslator } from './translation/program.js';
 export { languageProfiles } from './translation/profile.js';
 export { rankInterpretations } from './translation/referents.js';
 export { readEffects, writeEffect } from './translation/effect-links.js';

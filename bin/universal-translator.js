@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 
 import { readFileSync, realpathSync } from 'node:fs';
-import { fileURLToPath, URL } from 'node:url';
+import { fileURLToPath, pathToFileURL, URL } from 'node:url';
 
 import {
   add,
+  createProgramTranslator,
+  createSourceSyntaxCodec,
   createTranslator,
   multiply,
   readSourceDocument,
@@ -16,6 +18,17 @@ const COMMANDS = {
   multiply,
 };
 
+const GRAMMAR_ENGINE =
+  'Set UNIVERSAL_TRANSLATOR_META_LANGUAGE to the Meta Language 1.0 module file';
+const GRAMMAR_COMMANDS = ['encode-cst', 'decode-cst', 'translate-program'];
+const TRANSLATION_COMMANDS = ['translate', 'roundtrip', 'languages'];
+const SOURCE_COMMANDS = [
+  'encode-source',
+  'decode-source',
+  ...GRAMMAR_COMMANDS,
+  ...TRANSLATION_COMMANDS,
+];
+
 function usage() {
   return [
     'Usage: universal-translator <command> [arguments]',
@@ -24,13 +37,17 @@ function usage() {
     '  add       Add two numbers',
     '  multiply  Multiply two numbers',
     '  translate <from> <to> [file|-] [--mode <mode>] [--form <form>]',
+    '  translate-program <from|cst> <to> [file|-]  Translate a checked JavaScript or Rust program',
     '  roundtrip <language> [file|-]  Reconstruct the original source',
     '  encode-source <language> [file|-]  Write a Links Notation source document',
     '  decode-source [file|-]  Restore source from a Links Notation document',
+    '  encode-cst <language> [file|-]  Parse source into a Meta Language CST',
+    '  decode-cst [file|-]  Restore source from a Meta Language CST',
     '  languages  List language identifiers',
     '',
     'Modes: context-dependent (default), literal, same-effect',
     'Omit the file or pass - to read standard input.',
+    `${GRAMMAR_ENGINE} for the grammar commands.`,
     '',
     'Options:',
     '  --help     Show this help',
@@ -86,8 +103,8 @@ function translationArguments(args) {
   return { file, options };
 }
 
-function runTranslation(command, args, read, write) {
-  const translator = createTranslator();
+function runTranslation(command, args, read, write, grammarEngine) {
+  const translator = createTranslator({ grammarEngine });
   const [from, to, ...trailing] = args;
   if (command === 'languages' && args.length === 0) {
     write(
@@ -106,6 +123,46 @@ function runTranslation(command, args, read, write) {
   }
 }
 
+function runGrammarCommand(command, args, read, write, grammarEngine) {
+  if (!grammarEngine) {
+    throw new Error(GRAMMAR_ENGINE);
+  }
+  const [from, to, file] = args;
+  const codec = createSourceSyntaxCodec(grammarEngine.LinkNetwork);
+  if (command === 'encode-cst' && from && args.length <= 2) {
+    write(codec.write(from, read(to)));
+  } else if (command === 'decode-cst' && args.length <= 1) {
+    write(codec.read(read(from)).source);
+  } else if (
+    command === 'translate-program' &&
+    from &&
+    to &&
+    args.length <= 3
+  ) {
+    const input = read(file);
+    const document =
+      from === 'cst' ? codec.read(input) : { language: from, source: input };
+    write(createProgramTranslator(grammarEngine).translate(document, to));
+  } else {
+    throw new Error(usage());
+  }
+}
+
+function runSourceCommand(command, args, { read, write, grammarEngine }) {
+  const [language, file] = args;
+  if (command === 'encode-source' && language && args.length <= 2) {
+    write(`${writeSourceDocument(language, read(file))}\n`);
+  } else if (command === 'decode-source' && args.length <= 1) {
+    write(readSourceDocument(read(language)).source);
+  } else if (GRAMMAR_COMMANDS.includes(command)) {
+    runGrammarCommand(command, args, read, write, grammarEngine);
+  } else if (TRANSLATION_COMMANDS.includes(command)) {
+    runTranslation(command, args, read, write, grammarEngine);
+  } else {
+    throw new Error(usage());
+  }
+}
+
 export function runCli(
   argv,
   {
@@ -113,6 +170,7 @@ export function runCli(
     stdout = console.log,
     read = readSource,
     write = stdout,
+    grammarEngine,
   } = {}
 ) {
   const [command, left, right] = argv;
@@ -128,16 +186,8 @@ export function runCli(
   }
 
   try {
-    if (command === 'encode-source' && left && argv.length <= 3) {
-      write(`${writeSourceDocument(left, read(right))}\n`);
-      return 0;
-    }
-    if (command === 'decode-source' && argv.length <= 2) {
-      write(readSourceDocument(read(left)).source);
-      return 0;
-    }
-    if (['translate', 'roundtrip', 'languages'].includes(command)) {
-      runTranslation(command, argv.slice(1), read, write);
+    if (SOURCE_COMMANDS.includes(command)) {
+      runSourceCommand(command, argv.slice(1), { read, write, grammarEngine });
       return 0;
     }
     if (!Object.hasOwn(COMMANDS, command)) {
@@ -172,7 +222,16 @@ function isCliEntryPoint() {
 }
 
 if (isCliEntryPoint()) {
-  process.exitCode = runCli(process.argv.slice(2), {
-    write: (output) => process.stdout.write(output),
-  });
+  try {
+    const moduleFile = process.env.UNIVERSAL_TRANSLATOR_META_LANGUAGE;
+    const grammarEngine =
+      moduleFile && (await import(pathToFileURL(moduleFile).href));
+    process.exitCode = runCli(process.argv.slice(2), {
+      grammarEngine,
+      write: (output) => process.stdout.write(output),
+    });
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
+  }
 }

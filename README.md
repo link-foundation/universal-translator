@@ -38,8 +38,8 @@ programmatic APIs let callers replace or decorate adapters and add ordered
 rule layers for project-specific transformations.
 
 `roundtrip` restores the original UTF-8 source, including whitespace, comments,
-and line endings. Cross-language translation requires a recognized program
-form or an authored natural-language description. A `meta` document expresses
+and line endings. The profile-based translator handles recognized program
+forms and authored natural-language descriptions. A `meta` document expresses
 one task and its inputs in Links Notation. Both implementations read, transform,
 and emit that same intermediate form. The supported effects describe
 return values, successful empty programs, or exact standard output, including
@@ -51,11 +51,13 @@ verify this round trip for all 143,457 source files across the 1,758 tasks and
 883 language directories in the pinned Rosetta Code archive. The task
 contracts define the current scope for executable translations.
 
-The Rust CLI also provides `encode-cst <language>` and `decode-cst` for Meta
-Language grammar trees with byte spans, source tokens, and parser provenance.
-JavaScript can exchange the same serialized networks through
-`createSourceSyntaxCodec` with the Meta Language 1.0 JavaScript implementation.
-[Grammar round-trip examples](examples/translation/README.md#exchange-a-grammar-tree)
+The CLIs provide `encode-cst <language>` and `decode-cst` for Meta Language
+grammar trees with byte spans, source tokens, and parser provenance.
+`translate-program <from|cst> <to>` checks and compiles a supported JavaScript
+or Rust program into the other language, including programs outside the
+authored effect catalog. `translate --mode same-effect` can also use this path.
+The JavaScript CLI grammar commands need the Meta Language 1.0 engine.
+[Grammar and checked translation examples](examples/translation/README.md#exchange-a-grammar-tree)
 
 See the [runnable examples](examples/translation/README.md) and the
 [issue 1 case study](docs/case-studies/issue-1/README.md).

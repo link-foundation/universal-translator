@@ -1,5 +1,8 @@
-import { sourceNetwork, targetNetwork } from './network.js';
+import { LinkType } from 'meta-language';
+import { bindSource, sourceNetwork, targetNetwork } from './network.js';
 import { metaAdapter } from './effect-links.js';
+import { translateSyntax } from './program.js';
+import { createSourceSyntaxCodec } from './source-document.js';
 import {
   dependencies,
   languageProfiles,
@@ -25,12 +28,63 @@ function adaptComment(comment, source, target) {
   };
 }
 
+function parseDocument(source, { adapter, profile }, grammarEngine, syntax) {
+  if (typeof source !== 'string' || /\p{Surrogate}/u.test(source)) {
+    throw new Error('Source must be Unicode text');
+  }
+  const language = profile.id;
+  const grammar =
+    grammarEngine &&
+    (profile.kind ?? 'programming') === 'programming' &&
+    [language, profile.label].find(
+      (name) => grammarEngine.grammarProvenance(name).length
+    );
+  if (grammar) {
+    const network = syntax.parse(grammar, source);
+    const interpretation = adapter.parse(network.reconstructText());
+    if (interpretation) {
+      // The JavaScript engine inserts CST links in postorder.
+      const root = network.links().findLast((link) => {
+        const metadata = link.metadata();
+        return (
+          metadata.linkType === LinkType.Syntax &&
+          metadata.language === grammar &&
+          metadata.span !== undefined
+        );
+      });
+      bindSource(network, language, interpretation, root.id());
+    }
+    return { language, network, interpretation };
+  }
+  const interpretation = adapter.parse(source);
+  return {
+    language,
+    network: sourceNetwork(source, language, interpretation),
+    interpretation,
+  };
+}
+
+function bind(profile, projection) {
+  const form = profile.forms.find(
+    ({ task, name }) =>
+      task === projection.effect.task && name === projection.form
+  );
+  return {
+    ...projection,
+    ...targetNetwork(profile.id, projection, dependencies(profile, form)),
+    language: profile.id,
+  };
+}
+
 export function createTranslator({
   profiles = languageProfiles(),
   decorateAdapter = (_, adapter) => adapter,
   layers = [],
   verify = sameEffect,
+  grammarEngine,
 } = {}) {
+  const syntax =
+    grammarEngine && createSourceSyntaxCodec(grammarEngine.LinkNetwork);
   const registry = new Map(
     profiles.map((profile) => [
       profile.id,
@@ -55,28 +109,7 @@ export function createTranslator({
   }
 
   function parse(source, identifier) {
-    const { adapter } = language(identifier);
-    if (typeof source !== 'string' || /\p{Surrogate}/u.test(source)) {
-      throw new Error('Source must be Unicode text');
-    }
-    const interpretation = adapter.parse(source);
-    return {
-      language: identifier,
-      network: sourceNetwork(source, identifier, interpretation),
-      interpretation,
-    };
-  }
-
-  function bind(profile, projection) {
-    const form = profile.forms.find(
-      ({ task, name }) =>
-        task === projection.effect.task && name === projection.form
-    );
-    return {
-      ...projection,
-      ...targetNetwork(profile.id, projection, dependencies(profile, form)),
-      language: profile.id,
-    };
+    return parseDocument(source, language(identifier), grammarEngine, syntax);
   }
 
   function transform(
@@ -147,11 +180,10 @@ export function createTranslator({
     return bind(profile, { effect, comments, form });
   }
 
-  function translateDetailed(source, from, to, options = {}) {
-    const document = parse(source, from);
+  function translateDocument(document, to, options = {}) {
     const expression = transform(document, to, options);
     const restoreOriginal =
-      from === to &&
+      document.language === to &&
       options.mode !== 'same-effect' &&
       options.form === undefined &&
       layers.length === 0;
@@ -161,15 +193,34 @@ export function createTranslator({
     return { code, document, expression };
   }
 
+  function translate(source, from, to, options = {}) {
+    const document = parse(source, from);
+    if (
+      !document.interpretation &&
+      options.mode === 'same-effect' &&
+      options.form === undefined &&
+      layers.length === 0 &&
+      verify === sameEffect &&
+      typeof grammarEngine?.translateProgram === 'function' &&
+      document.network instanceof grammarEngine.LinkNetwork &&
+      ((from === 'javascript' && to === 'rust') ||
+        (from === 'rust' && to === 'javascript'))
+    ) {
+      language(to);
+      return translateSyntax(grammarEngine, document.network, from, to);
+    }
+    return translateDocument(document, to, options).code;
+  }
+
   return {
     parse,
     restore: (document) => document.network.reconstructText(),
     transform,
     expression,
     materialize,
-    translateDetailed,
-    translate: (source, from, to, options) =>
-      translateDetailed(source, from, to, options).code,
+    translateDetailed: (source, from, to, options) =>
+      translateDocument(parse(source, from), to, options),
+    translate,
     listLanguages: () =>
       profiles.map(({ id, label, kind = 'programming', forms }) => ({
         id,
