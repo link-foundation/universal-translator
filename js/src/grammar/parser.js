@@ -5,6 +5,7 @@
 
 import { decodeEscapes, SyntaxError, tokenize } from './lexer.js';
 import { add, block, name, node, number, text } from './meta.js';
+import { dialects } from './dialects/index.js';
 
 const binaryLevels = [
   { or: ['||', 'or'] },
@@ -48,7 +49,23 @@ const modifiers = new Set([
 ]);
 
 export function parseProgram(source, syntax) {
-  return new Parser(tokenize(source, syntax), syntax).program();
+  const LanguageParser = parserFor(syntax);
+  return new LanguageParser(tokenize(source, syntax), syntax).program();
+}
+
+// Languages whose statements follow a grammar of their own (Fortran, Pascal,
+// Ada, Visual Basic, Bash) extend the shared parser in dialects/; they keep
+// its expressions and token helpers.
+const dialectParsers = new Map();
+function parserFor(syntax) {
+  const extend = dialects[syntax.id]?.parser;
+  if (!extend) {
+    return Parser;
+  }
+  if (!dialectParsers.has(syntax.id)) {
+    dialectParsers.set(syntax.id, extend(Parser));
+  }
+  return dialectParsers.get(syntax.id);
 }
 
 const controlWords = new Set([
@@ -102,6 +119,9 @@ class Parser {
   }
   is(value, offset = 0) {
     const token = this.peek(offset);
+    if (token.type === 'name' && this.syntax.caseInsensitive) {
+      return token.value.toLowerCase() === String(value).toLowerCase();
+    }
     return (
       (token.type === 'symbol' || token.type === 'name') &&
       token.value === value
@@ -1082,7 +1102,13 @@ class Parser {
         this.next();
         const values = [];
         while (!this.is(')')) {
-          if (this.peek().type === 'name' && this.is('=', 1)) {
+          // Where "=" compares (Pascal, Ada, Visual Basic), `f(a = b)`
+          // passes a truth value, not a named argument.
+          if (
+            this.syntax.operators.equal !== '=' &&
+            this.peek().type === 'name' &&
+            this.is('=', 1)
+          ) {
             const label = this.next().value;
             this.next();
             values.push(
@@ -1148,21 +1174,23 @@ class Parser {
       token.quote === "'" && ['php', 'ruby'].includes(this.syntax.id)
         ? 'plain'
         : token.style;
+    // Text read with doubled quotes (token.decoded) has no escapes.
+    const decode = (raw) => (token.decoded ? raw : decodeEscapes(raw));
     if (style === 'plain' || !style) {
       return text(
         token.quote === "'" && this.syntax.id === 'php'
           ? token.value
-          : decodeEscapes(token.value)
+          : decode(token.value)
       );
     }
     const parts = [];
     for (const piece of splitInterpolation(token.value, style)) {
       if (typeof piece === 'string') {
-        parts.push(text(decodeEscapes(piece)));
+        parts.push(text(decode(piece)));
       } else {
         const innerSyntax = { ...this.syntax, variableSigil: '$' };
         parts.push(
-          new Parser(
+          new this.constructor(
             tokenize(piece.code, innerSyntax),
             innerSyntax
           ).expression()

@@ -512,6 +512,44 @@ export const languages = {
     types: { ...integerTypes, integer: 'long' },
     terms: { call: 'function call', routine: 'function' },
   },
+  pascal: {
+    naming: 'pascal',
+    label: 'Pascal',
+    // Statements, routines and the program layout are in dialects/pascal.js.
+    blocks: 'keywords',
+    caseInsensitive: true,
+    forwardDeclarations: true,
+    lineComment: '//',
+    blockComment: ['{', '}'],
+    quotes: ["'"],
+    doubledQuotes: true,
+    declarations: [],
+    symbols: ['<>'],
+    assignment: ':=',
+    compoundAssignment: false,
+    operators: {
+      and: 'and',
+      or: 'or',
+      not: 'not',
+      equal: '=',
+      notEqual: '<>',
+      remainder: 'mod',
+      integerDivide: 'div',
+    },
+    words: { true: 'True', false: 'False' },
+    // WriteLn and Write print their arguments one after another.
+    printCalls: { line: ['WriteLn'], text: ['Write'], adjacent: true },
+    prelude: ['program Main;'],
+    entryPoint: 'top-level',
+    typed: 'annotation',
+    types: {
+      integer: 'Int64',
+      text: 'String',
+      boolean: 'Boolean',
+      nothing: '',
+    },
+    terms: { call: 'procedure call', routine: 'procedure' },
+  },
 };
 
 // How a language spells a declared name with the given role.

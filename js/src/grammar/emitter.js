@@ -4,6 +4,7 @@
 
 import { add, block, laterCalls, name, node, number } from './meta.js';
 import { languageSyntax } from './languages.js';
+import { dialects } from './dialects/index.js';
 
 const precedence = {
   or: 1,
@@ -769,7 +770,22 @@ const compoundOperators = {
 };
 
 export function emitProgram(program, languageId) {
-  return new Emitter(languageSyntax(languageId)).program(program);
+  const LanguageEmitter = emitterFor(languageId);
+  return new LanguageEmitter(languageSyntax(languageId)).program(program);
+}
+
+// Languages with a program layout of their own (Fortran, Pascal, Ada,
+// Visual Basic, Bash) extend the shared emitter in dialects/.
+const dialectEmitters = new Map();
+function emitterFor(languageId) {
+  const extend = dialects[languageId]?.emitter;
+  if (!extend) {
+    return Emitter;
+  }
+  if (!dialectEmitters.has(languageId)) {
+    dialectEmitters.set(languageId, extend(Emitter));
+  }
+  return dialectEmitters.get(languageId);
 }
 
 // How each language writes a value to standard output. C, Go and Rust use
