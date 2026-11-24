@@ -64,6 +64,7 @@ export const libraryFiles = {
   ada: ['common_library.ads', 'common_library.adb'],
   vb: 'CommonLibrary.vb',
   bash: 'common_library.sh',
+  matlab: 'common_library.m',
 };
 const libraryFolder = join(folder, '..', '..', 'common-library');
 
@@ -96,6 +97,8 @@ export const extensions = {
   ada: '.adb',
   vb: '.vb',
   bash: '.sh',
+  // .m is Objective-C's; Octave runs a script with any extension.
+  matlab: '.matlab',
   nasm: '.asm',
   cil: '.il',
   jvm: '.j',
@@ -110,6 +113,7 @@ const lua = process.env.LUA || 'lua';
 const d = process.env.DC || 'gdc';
 const nim = process.env.NIM || 'nim';
 const objc = process.env.OBJC_CC || 'gcc';
+const octave = process.env.OCTAVE || 'octave';
 const objcFlags = (process.env.OBJC_FLAGS ?? '').split(' ').filter(Boolean);
 
 const run = (command, args, options = {}) => {
@@ -356,6 +360,15 @@ const runners = {
   csharp: { tool: 'dotnet', run: (file, library) => dotnet(file, library) },
   vb: { tool: 'dotnet', run: (file, library) => dotnet(file, library) },
   bash: { tool: 'bash', run: (file) => run('bash', [file]) },
+  // OCTAVE names the Octave interpreter when it is not on PATH; the common
+  // library is sourced from the working folder.
+  matlab: {
+    tool: octave,
+    run: (file) =>
+      run(octave, ['--no-gui', '--quiet', '--norc', file], {
+        cwd: dirname(file),
+      }),
+  },
   nasm: {
     tool: 'nasm',
     run: (file) => (

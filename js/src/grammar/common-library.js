@@ -70,6 +70,7 @@ export const commonLibraryAccess = {
   ada: { imports: () => ['Common_Library'] },
   vb: { prefix: 'CommonLibrary.' },
   bash: { imports: () => ['source "$(dirname "$0")/common_library.sh"'] },
+  matlab: { imports: () => ["source('common_library.m');"] },
 };
 
 const call = (operation, argument) =>

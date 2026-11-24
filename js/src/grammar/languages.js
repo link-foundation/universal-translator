@@ -670,6 +670,25 @@ export const languages = {
     typed: false,
     terms: { call: 'function call', routine: 'function' },
   },
+  matlab: {
+    naming: 'snake',
+    label: 'MATLAB/Octave',
+    // Functions, fprintf formats and the script layout are in
+    // dialects/matlab.js.
+    blocks: 'keywords',
+    lineComment: '%',
+    quotes: ["'"],
+    doubledQuotes: true,
+    declarations: [],
+    symbols: ['~=', '~'],
+    operators: { and: '&&', or: '||', not: '~', notEqual: '~=' },
+    // Numbers are doubles, so integer division truncates the quotient.
+    integerDivision: { wrapper: 'fix' },
+    compoundAssignment: false,
+    entryPoint: 'top-level',
+    typed: false,
+    terms: { call: 'function call', routine: 'function' },
+  },
 };
 
 // How a language spells a declared name with the given role.
