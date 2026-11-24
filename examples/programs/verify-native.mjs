@@ -40,6 +40,12 @@ export const extensions = {
   rust: '.rs',
   kotlin: '.kt',
   swift: '.swift',
+  perl: '.pl',
+  dart: '.dart',
+  scala: '.scala',
+  julia: '.jl',
+  r: '.R',
+  groovy: '.groovy',
   nasm: '.asm',
   cil: '.il',
   jvm: '.j',
@@ -126,6 +132,16 @@ const runners = {
       run(`${file}.out`, [])
     ),
   },
+  perl: { tool: 'perl', run: (file) => run('perl', [file]) },
+  dart: { tool: 'dart', run: (file) => run('dart', ['run', file]) },
+  // Both the Scala 2 runner and Scala 3's command line run a single file.
+  scala: { tool: 'scala', run: (file) => run('scala', [file]) },
+  julia: {
+    tool: 'julia',
+    run: (file) => run('julia', ['--startup-file=no', file]),
+  },
+  r: { tool: 'Rscript', run: (file) => run('Rscript', [file]) },
+  groovy: { tool: 'groovy', run: (file) => run('groovy', [file]) },
   csharp: {
     tool: 'dotnet',
     run: (file) => {

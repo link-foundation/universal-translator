@@ -2,7 +2,7 @@
 // language-specific spelling comes from languages.js or from the small
 // tables below; the structure of the output follows the meta tree.
 
-import { add, number } from './meta.js';
+import { add, block, name, node, number } from './meta.js';
 import { languageSyntax } from './languages.js';
 
 const precedence = {
@@ -42,6 +42,23 @@ const conditionParentheses = new Set([
   'typescript',
   'kotlin',
   'php',
+  'perl',
+  'dart',
+  'scala',
+  'r',
+  'groovy',
+]);
+const withoutTerminator = new Set([
+  'python',
+  'ruby',
+  'lua',
+  'go',
+  'kotlin',
+  'swift',
+  'scala',
+  'julia',
+  'r',
+  'groovy',
 ]);
 const blockCommentLanguages = new Set(['c', 'csharp']);
 
@@ -59,11 +76,7 @@ class Emitter {
   }
 
   terminator() {
-    return ['python', 'ruby', 'lua', 'go', 'kotlin', 'swift'].includes(
-      this.syntax.id
-    )
-      ? ''
-      : ';';
+    return withoutTerminator.has(this.syntax.id) ? '' : ';';
   }
 
   // ---- names, types, literals ----
@@ -88,14 +101,18 @@ class Emitter {
       .replace(/\n/g, '\\n')
       .replace(/\t/g, '\\t')
       .replace(/\r/g, '\\r');
-    if (['php', 'kotlin'].includes(this.syntax.id)) {
-      result = result.replace(/\$/g, '\\$');
+    // Characters that would start an embedded variable, such as $ in PHP.
+    for (const sigil of this.syntax.escapeSigils ?? []) {
+      result = result.replaceAll(sigil, `\\${sigil}`);
     }
     if (this.syntax.id === 'ruby') {
       result = result.replace(/#\{/g, '\\#{');
     }
     if (format === 'percent') {
       result = result.replace(/%/g, '%%');
+    }
+    if (format === 'dollar') {
+      result = result.replaceAll('$', '$$$$');
     }
     if (format === 'braces') {
       result = result.replace(/\{/g, '{{').replace(/\}/g, '}}');
@@ -119,9 +136,7 @@ class Emitter {
   expression(expression, parent = 0) {
     switch (expression.kind) {
       case 'Number':
-        return expression.value < 0 && parent > 6
-          ? `(${expression.value})`
-          : String(expression.value);
+        return this.number(expression, parent);
       case 'Text':
         return this.quote(expression.value);
       case 'Boolean':
@@ -144,22 +159,37 @@ class Emitter {
     }
   }
 
+  number({ value }, parent) {
+    // R needs a suffix to keep integers integral: 1L.
+    const suffix = Number.isInteger(value)
+      ? (this.syntax.numberSuffix ?? '')
+      : '';
+    const written = `${value}${suffix}`;
+    return value < 0 && parent > 6 ? `(${written})` : written;
+  }
+
   binary(expression, parent) {
     const level = precedence[expression.operator];
-    const left = this.expression(expression.left, level);
-    const right = this.expression(expression.right, level + 1);
+    // R's %% and %/% bind tighter than * and /, so their operands that are
+    // themselves operations keep parentheses.
+    const tight =
+      this.syntax.id === 'r' &&
+      ['divide', 'remainder'].includes(expression.operator);
+    const left = this.expression(expression.left, tight ? 7 : level);
+    const right = this.expression(expression.right, tight ? 7 : level + 1);
     let result;
     if (expression.operator === 'divide') {
       const integer = this.syntax.operators.integerDivide;
+      const spelling = this.syntax.integerDivision;
+      const whole = (part) => this.expression(part);
       if (integer) {
         result = `${left} ${integer} ${right}`;
-      } else if (
-        this.syntax.id === 'javascript' ||
-        this.syntax.id === 'typescript'
-      ) {
-        return `Math.trunc(${this.expression(expression.left)} / ${this.expression(expression.right)})`;
-      } else if (this.syntax.id === 'php') {
-        return `intdiv(${this.expression(expression.left)}, ${this.expression(expression.right)})`;
+      } else if (spelling?.wrapper) {
+        return `${spelling.wrapper}(${whole(expression.left)} / ${whole(expression.right)})`;
+      } else if (spelling?.call) {
+        return `${spelling.call}(${whole(expression.left)}, ${whole(expression.right)})`;
+      } else if (spelling?.method) {
+        return `${this.expression(expression.left, 8)}.${spelling.method}(${whole(expression.right)})`;
       } else {
         result = `${left} / ${right}`;
       }
@@ -174,22 +204,21 @@ class Emitter {
 
   // Text built from literal and computed parts, outside of output calls.
   interpolation(parts) {
-    const render = (open, close, escapeOptions) =>
-      `"${parts.map((part) => (part.kind === 'Text' ? this.escape(part.value, escapeOptions) : `${open}${this.expression(part)}${close}`)).join('')}"`;
+    const delimited = embeddings[this.syntax.id];
+    if (delimited) {
+      const { prefix = '', open, close, format } = delimited;
+      return `${prefix}"${parts.map((part) => (part.kind === 'Text' ? this.escape(part.value, { format }) : `${open}${this.expression(part)}${close}`)).join('')}"`;
+    }
     switch (this.syntax.id) {
       case 'javascript':
       case 'typescript':
         return `\`${parts.map((part) => (part.kind === 'Text' ? part.value.replace(/[`\\]/g, '\\$&').replace(/\$\{/g, '\\${').replace(/\n/g, '\\n') : `\${${this.expression(part)}}`)).join('')}\``;
-      case 'python':
-        return `f${render('{', '}', { format: 'braces' })}`;
-      case 'csharp':
-        return `$${render('{', '}', { format: 'braces' })}`;
-      case 'ruby':
-        return render('#{', '}');
-      case 'kotlin':
-        return render('${', '}');
+      case 'r':
+        return `paste0(${parts.map((part) => this.expression(part)).join(', ')})`;
       case 'php':
-        // PHP interpolates only variables, so computed parts are concatenated.
+      case 'perl':
+        // PHP and Perl interpolate only variables, so computed parts are
+        // concatenated.
         return parts
           .map((part) =>
             part.kind === 'Text'
@@ -197,8 +226,6 @@ class Emitter {
               : this.expression(part, 6)
           )
           .join(' . ');
-      case 'swift':
-        return render('\\(', ')');
       case 'rust':
         return `format!(${this.formatArguments(parts, 'braces')})`;
       case 'go':
@@ -280,15 +307,7 @@ class Emitter {
   }
 
   interpolationOrText(parts) {
-    const merged = parts.reduce((result, part) => {
-      if (part.kind === 'Text' && result.at(-1)?.kind === 'Text') {
-        return [
-          ...result.slice(0, -1),
-          { kind: 'Text', value: result.at(-1).value + part.value },
-        ];
-      }
-      return [...result, part];
-    }, []);
+    const merged = mergeTexts(parts);
     return merged.length === 1 && merged[0].kind === 'Text'
       ? this.quote(merged[0].value)
       : this.interpolation(merged);
@@ -300,6 +319,17 @@ class Emitter {
     } else {
       this.line(`${this.syntax.lineComment} ${text}`);
     }
+  }
+
+  returnStatement({ value }) {
+    const end = this.terminator();
+    if (!value) {
+      return `return${end}`;
+    }
+    // R's return is a function.
+    return this.syntax.id === 'r'
+      ? `return(${this.expression(value)})`
+      : `return ${this.expression(value)}${end}`;
   }
 
   condition(expression) {
@@ -350,11 +380,7 @@ class Emitter {
       case 'Evaluate':
         return this.line(`${this.expression(statement.expression)}${end}`);
       case 'Return':
-        return this.line(
-          statement.value
-            ? `return ${this.expression(statement.value)}${end}`
-            : `return${end}`
-        );
+        return this.line(this.returnStatement(statement));
       case 'Declaration':
         return this.line(this.declaration(statement));
       case 'Assignment':
@@ -383,14 +409,14 @@ class Emitter {
     const compound = compoundOperators[value.operator];
     if (
       compound &&
-      this.syntax.id !== 'lua' &&
+      this.syntax.compoundAssignment !== false &&
       value.kind === 'Binary' &&
       value.left.kind === 'Name' &&
       value.left.name === identifier
     ) {
       return `${target} ${compound} ${this.expression(value.right)}${this.terminator()}`;
     }
-    return `${target} = ${this.expression(value)}${this.terminator()}`;
+    return `${target} ${this.syntax.assignment ?? '='} ${this.expression(value)}${this.terminator()}`;
   }
 
   ifStatement(statement) {
@@ -422,7 +448,7 @@ class Emitter {
   elseIfHeader(expression) {
     const condition = this.condition(expression);
     if (this.syntax.blocks === 'braces') {
-      return `} else if ${condition} {`;
+      return `} ${this.syntax.bracedElseIf ?? 'else if'} ${condition} {`;
     }
     if (this.syntax.id === 'python') {
       return `elif ${condition}:`;
@@ -446,8 +472,13 @@ class Emitter {
     this.closeBlock();
   }
 
-  countingLoop({ variable: identifier, start, end, body }) {
+  countingLoop(loop) {
+    const { variable: identifier, start, end, body } = loop;
+    if (this.syntax.id === 'r' && !isLiteralRange(start, end)) {
+      return this.countingWhile(loop);
+    }
     const from = this.expression(start);
+    const last = this.expression(add(end, number(-1)), 5);
     const to = this.expression(end, 5);
     const target = this.variable(identifier);
     const headers = {
@@ -468,10 +499,41 @@ class Emitter {
       rust: `for ${identifier} in ${from}..${to}`,
       kotlin: `for (${identifier} in ${from} until ${to})`,
       swift: `for ${identifier} in ${from}..<${to}`,
+      perl: `for my ${target} (${from} .. ${last})`,
+      dart: `for (var ${identifier} = ${from}; ${identifier} < ${to}; ${identifier}++)`,
+      // A Long start makes the range Long, so a Long end fits.
+      scala: `for (${identifier} <- ${start.kind === 'Number' ? `${from}${this.syntax.longSuffix}` : from} until ${to})`,
+      julia: `for ${identifier} in ${from}:${last}`,
+      r: `for (${identifier} in ${from}:${last})`,
+      groovy: `for (${identifier} in ${from}..<${to})`,
     };
     this.openBlock(headers[this.syntax.id]);
     this.body(body);
     this.closeBlock();
+  }
+
+  // R's a:b counts down when b < a, so a range that may be empty becomes
+  // a while loop.
+  countingWhile({ variable: identifier, start, end, body }) {
+    const counter = name(identifier);
+    this.statement(
+      node('Declaration', { name: identifier, value: start, mutable: true })
+    );
+    this.whileStatement({
+      condition: node('Binary', {
+        operator: 'less',
+        left: counter,
+        right: end,
+      }),
+      body: block([
+        ...body.statements,
+        node('Assignment', {
+          name: identifier,
+          operator: '=',
+          value: add(counter, number(1)),
+        }),
+      ]),
+    });
   }
 
   // ---- functions and program ----
@@ -499,6 +561,11 @@ class Emitter {
       this.comment(text);
     }
     this.openBlock(this.signature(item));
+    // Perl receives its arguments in @_.
+    if (this.syntax.parameters === 'unpacked' && item.parameters.length) {
+      const names = item.parameters.map(({ name: id }) => this.variable(id));
+      this.line(`my (${names.join(', ')}) = @_;`);
+    }
     this.body(item.body);
     this.closeBlock();
   }
@@ -512,6 +579,9 @@ class Emitter {
       kotlin: 'fun main()',
       csharp: 'static void Main()',
       java: 'public static void main(String[] args)',
+      dart: 'void main()',
+      scala: 'def main(args: Array[String]): Unit =',
+      julia: 'function main()',
     }[this.syntax.id];
   }
 
@@ -519,27 +589,15 @@ class Emitter {
     const insideClass = this.syntax.entryPoint === 'class-method';
     if (insideClass) {
       this.openBlock(
-        this.syntax.id === 'csharp' ? 'class Program' : 'class Main'
+        this.syntax.container ??
+          (this.syntax.id === 'csharp' ? 'class Program' : 'class Main')
       );
     }
     for (const item of program.functions) {
       this.functionDefinition(item);
       this.line();
     }
-    const header = this.mainHeader();
-    if (header) {
-      for (const text of program.mainComments ?? []) {
-        this.comment(text);
-      }
-      this.openBlock(header);
-      this.body(program.main);
-      this.closeBlock();
-    } else {
-      for (const text of program.mainComments ?? []) {
-        this.comment(text);
-      }
-      this.body(program.main);
-    }
+    this.main(program);
     if (insideClass) {
       this.closeBlock();
     }
@@ -561,10 +619,34 @@ class Emitter {
     return `${[...this.lines, ...this.prelude(), ...body].join('\n')}\n`;
   }
 
+  // The top-level statements, in a main procedure where the language has one.
+  main(program) {
+    for (const text of program.mainComments ?? []) {
+      this.comment(text);
+    }
+    const header = this.mainHeader();
+    if (!header) {
+      this.body(program.main);
+      return;
+    }
+    this.openBlock(header);
+    this.body(program.main);
+    this.closeBlock();
+    // Julia calls its main function itself.
+    if (this.syntax.callMain) {
+      this.line();
+      this.line(this.syntax.callMain);
+    }
+  }
+
   prelude() {
     const lines = [];
     if (this.syntax.id === 'go') {
       lines.push('package main', '');
+    }
+    lines.push(...(this.syntax.prelude ?? []));
+    if (this.uses.has('dart:io')) {
+      lines.push("import 'dart:io';");
     }
     if (this.uses.has('stdio')) {
       lines.push('#include <stdio.h>');
@@ -584,6 +666,36 @@ class Emitter {
     return lines;
   }
 }
+
+// Languages that embed expressions in a double-quoted literal between two
+// delimiters, with the prefix that marks such a literal.
+const dollarBraces = { open: '${', close: '}' };
+const embeddings = {
+  python: { prefix: 'f', open: '{', close: '}', format: 'braces' },
+  csharp: { prefix: '$', open: '{', close: '}', format: 'braces' },
+  ruby: { open: '#{', close: '}' },
+  kotlin: dollarBraces,
+  dart: dollarBraces,
+  groovy: dollarBraces,
+  scala: { ...dollarBraces, prefix: 's', format: 'dollar' },
+  julia: { open: '$(', close: ')' },
+  swift: { open: '\\(', close: ')' },
+};
+
+function mergeTexts(parts) {
+  return parts.reduce((result, part) => {
+    if (part.kind === 'Text' && result.at(-1)?.kind === 'Text') {
+      return [
+        ...result.slice(0, -1),
+        { kind: 'Text', value: result.at(-1).value + part.value },
+      ];
+    }
+    return [...result, part];
+  }, []);
+}
+
+const isLiteralRange = (start, end) =>
+  start.kind === 'Number' && end.kind === 'Number' && start.value < end.value;
 
 const compoundOperators = {
   add: '+=',
@@ -636,8 +748,25 @@ const printers = {
     `${newline ? 'println' : 'print'}(${single()})`,
   swift: (emitter, { newline, single }) =>
     newline ? `print(${single()})` : `print(${single()}, terminator: "")`,
+  perl: (emitter, { lineParts }) =>
+    `print ${emitter.interpolationOrText(lineParts)};`,
+  dart: (emitter, { newline, single }) => {
+    if (newline) {
+      return `print(${single()});`;
+    }
+    emitter.uses.add('dart:io');
+    return `stdout.write(${single()});`;
+  },
+  julia: (emitter, { newline, single }) =>
+    `${newline ? 'println' : 'print'}(${single()})`,
+  r: (emitter, { lineParts }) =>
+    `cat(${mergeTexts(lineParts)
+      .map((part) => emitter.expression(part))
+      .join(', ')}, sep = "")`,
 };
 printers.typescript = printers.javascript;
+printers.scala = printers.kotlin;
+printers.groovy = printers.kotlin;
 
 // How each language declares a local variable.
 const declarers = {
@@ -653,11 +782,19 @@ const declarers = {
     `${mutable ? 'var' : 'val'} ${name} = ${initial}${emitter.terminator()}`,
   swift: (emitter, { name, mutable, initial }) =>
     `${mutable ? 'var' : 'let'} ${name} = ${initial}`,
+  perl: (emitter, { name, initial }) =>
+    `my ${emitter.variable(name)} = ${initial};`,
+  dart: (emitter, { name, mutable, initial }) =>
+    `${mutable ? 'var' : 'final'} ${name} = ${initial};`,
+  scala: (emitter, { name, type, mutable, initial }) =>
+    `${mutable ? 'var' : 'val'} ${name}: ${emitter.type(type)} = ${initial}`,
+  r: (emitter, { name, initial }) => `${name} <- ${initial}`,
   typedPrefix: (emitter, { name, type, initial }) =>
-    `${emitter.type(type)} ${name} = ${initial};`,
+    `${emitter.type(type)} ${name} = ${initial}${emitter.terminator()}`,
 };
 declarers.typescript = declarers.javascript;
 declarers.ruby = declarers.python;
+declarers.julia = declarers.python;
 
 // How each language writes a function head.
 const signatures = {
@@ -677,6 +814,11 @@ const signatures = {
     `func ${name}(${typed((id, type) => `_ ${id}: ${type}`)})${after(' -> ')}`,
   csharp: ({ name, typed, returns }) =>
     `static ${returns} ${name}(${typed((id, type) => `${type} ${id}`)})`,
+  perl: ({ name }) => `sub ${name}`,
+  scala: ({ name, typed, returns }) =>
+    `def ${name}(${typed((id, type) => `${id}: ${type}`)}): ${returns} =`,
+  julia: ({ name, names }) => `function ${name}(${names})`,
+  r: ({ name, names }) => `${name} <- function(${names})`,
   typedPrefix: ({ name, typed, returns }) =>
     `${returns} ${name}(${typed((id, type) => `${type} ${id}`)})`,
 };
