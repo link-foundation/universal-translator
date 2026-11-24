@@ -22,11 +22,11 @@ rosetta-coverage:
   recursion:
     text: 'Recursion, including deep and mutual recursion'
     status: covered
-    tasks: ackermann-function towers-of-hanoi factorial
+    tasks: ackermann-function towers-of-hanoi factorial mutual-recursion
   number-theory:
     text: 'Prime numbers, divisors and number sequences'
     status: covered
-    tasks: primality-by-trial-division greatest-common-divisor hailstone-sequence
+    tasks: primality-by-trial-division greatest-common-divisor hailstone-sequence perfect-numbers
   text-concatenation:
     text: 'Building text from text and numbers'
     status: covered
