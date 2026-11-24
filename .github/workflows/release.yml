@@ -468,8 +468,8 @@ jobs:
     name: Native translation
     runs-on: ubuntu-24.04
     # Typical run: about 15 minutes, mostly the Kotlin, Swift, Scala and .NET
-    # compilers. 45min bounds a stalled toolchain download.
-    timeout-minutes: 45
+    # compilers. 50min bounds a stalled toolchain download.
+    timeout-minutes: 50
     concurrency:
       group: check-${{ github.workflow }}-${{ github.ref }}-native-translation
       cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
@@ -502,7 +502,7 @@ jobs:
 
       # The translator reads its natural language data with links-notation.
       - name: Install dependencies
-        timeout-minutes: 3
+        timeout-minutes: 1
         run: npm ci
 
       - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
