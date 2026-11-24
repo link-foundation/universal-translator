@@ -102,6 +102,17 @@ For Empty Program, it checks the exit status and both output streams. The
 native verification covers eleven JavaScript examples out of 1,985 and
 twelve Rust examples out of 1,481 on x86-64 Linux. The remaining source
 variants still need effect verification.
+
+The fifth pinned Rust GCD listing comes from the published Tests section.
+It contains three calls and the expected output. Running the whole listing
+through `rustc` reports `expected item, found 3` on the first output line.
+The context probe keeps the three calls intact, supplies the pinned signed
+recursive implementation, and checks its output and the translated
+JavaScript against the published transcript. This verifies the calls in
+context. The mixed listing remains outside the verified native count.
+[Published Tests section](https://rosettagit.org/tasks/greatest-common-divisor/#tests-1) ·
+[Reproduction commands](../../../examples/translation/README.md#verification)
+
 The Hello World Collection homepage reports 603 programs and greetings in
 78 human languages. Both implementations round-trip its 591 text listings
 through Links Notation. Twelve programs are published as images.

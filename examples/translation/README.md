@@ -185,6 +185,18 @@ evidence for every archived JavaScript and Rust example. The coverage report
 prints counts for both source languages before the check exits. PR #5 runs
 this form when GitHub marks it ready for review.
 
+To verify the three calls from the Rust GCD Tests section in context, pass
+the pinned signed recursive implementation and the listing with its output
+transcript. The probe runs the original call statements with the Rust
+implementation and calls the translated JavaScript on the same arguments.
+
+```sh
+root=/path/to/pinned/RosettaCodeData/Task/Greatest-common-divisor/Rust
+node experiments/rosetta-gcd-tests.mjs \
+  "$root/greatest-common-divisor-3.rs" \
+  "$root/greatest-common-divisor-5.rs"
+```
+
 To round-trip all 591 text listings from the Hello World Collection, pass
 the pinned HTML page. The remaining 12 programs are provided as images.
 
