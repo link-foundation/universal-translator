@@ -43,7 +43,13 @@ export function add(left, right) {
   if (right.kind === 'Number' && right.value < 0) {
     return subtract(left, number(-right.value));
   }
-  if (left.kind === 'Binary' && left.operator === 'subtract' && right.kind === 'Number' && left.right.kind === 'Number' && left.right.value === right.value) {
+  if (
+    left.kind === 'Binary' &&
+    left.operator === 'subtract' &&
+    right.kind === 'Number' &&
+    left.right.kind === 'Number' &&
+    left.right.value === right.value
+  ) {
     return left.left;
   }
   return node('Binary', { operator: 'add', left, right });
@@ -53,7 +59,13 @@ export function subtract(left, right) {
   if (left.kind === 'Number' && right.kind === 'Number') {
     return number(left.value - right.value);
   }
-  if (left.kind === 'Binary' && left.operator === 'add' && right.kind === 'Number' && left.right.kind === 'Number' && left.right.value === right.value) {
+  if (
+    left.kind === 'Binary' &&
+    left.operator === 'add' &&
+    right.kind === 'Number' &&
+    left.right.kind === 'Number' &&
+    left.right.value === right.value
+  ) {
     return left.left;
   }
   return node('Binary', { operator: 'subtract', left, right });
@@ -73,7 +85,8 @@ export function rewrite(tree, visit) {
   }
   const copy = {};
   for (const [key, value] of Object.entries(tree)) {
-    copy[key] = value && typeof value === 'object' ? rewrite(value, visit) : value;
+    copy[key] =
+      value && typeof value === 'object' ? rewrite(value, visit) : value;
   }
   return visit(copy);
 }
@@ -88,25 +101,47 @@ export function walk(tree, visit) {
 
 // Structural comparison that ignores source-only details such as types that
 // an untyped language cannot express and comment wording.
-const ignoredKeys = new Set(['type', 'returnType', 'comments', 'mainComments', 'imports', 'mutable']);
+const ignoredKeys = new Set([
+  'type',
+  'returnType',
+  'comments',
+  'mainComments',
+  'imports',
+  'mutable',
+]);
 
 // The meaning of a program, without details that do not change behaviour:
 // comments, imports, inferred types and mutability.
 export function essence(tree) {
-  const withoutComments = rewrite(tree, (current) => (current.kind === 'Comment' ? undefined : current));
-  return JSON.parse(JSON.stringify(withoutComments, (key, value) => (ignoredKeys.has(key) ? undefined : value)));
+  const withoutComments = rewrite(tree, (current) =>
+    current.kind === 'Comment' ? undefined : current
+  );
+  return JSON.parse(
+    JSON.stringify(withoutComments, (key, value) =>
+      ignoredKeys.has(key) ? undefined : value
+    )
+  );
 }
 
 // The first path where two programs differ in meaning, or undefined.
 export function meaningDifference(left, right, path = '') {
   const [a, b] = path ? [left, right] : [essence(left), essence(right)];
-  if (a === b) return undefined;
-  if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) {
+  if (a === b) {
+    return undefined;
+  }
+  if (
+    typeof a !== 'object' ||
+    typeof b !== 'object' ||
+    a === null ||
+    b === null
+  ) {
     return `${path || '/'}: ${JSON.stringify(a)} != ${JSON.stringify(b)}`;
   }
   for (const key of new Set([...Object.keys(a), ...Object.keys(b)])) {
     const difference = meaningDifference(a[key], b[key], `${path}/${key}`);
-    if (difference) return difference;
+    if (difference) {
+      return difference;
+    }
   }
   return undefined;
 }

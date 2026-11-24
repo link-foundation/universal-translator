@@ -11,5 +11,5 @@ function sumOfSquares(limit) {
 }
 
 const limit = 10;
-console.log("Sum of squares from 1 to " + limit + ":");
+console.log(`Sum of squares from 1 to ${limit}:`);
 console.log(sumOfSquares(limit));

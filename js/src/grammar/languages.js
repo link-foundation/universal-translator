@@ -1,9 +1,8 @@
 // Surface syntax descriptions for the grammar-based translator.
 //
 // Each description is plain data. The lexer, parser and emitter read these
-// tables instead of hard-coding one language at a time, so a new language
-// (or a project-specific dialect) is added by describing it, not by writing
-// a new translator.
+// tables, so supporting another language (or a project-specific dialect)
+// means describing it here.
 
 const braceOperators = {
   and: '&&',
@@ -21,6 +20,7 @@ const integerTypes = {
 
 export const languages = {
   javascript: {
+    naming: 'camel',
     label: 'JavaScript',
     blocks: 'braces',
     lineComment: '//',
@@ -35,6 +35,7 @@ export const languages = {
     terms: { call: 'function call', routine: 'function' },
   },
   typescript: {
+    naming: 'camel',
     label: 'TypeScript',
     blocks: 'braces',
     lineComment: '//',
@@ -46,18 +47,30 @@ export const languages = {
     print: { line: 'console.log' },
     entryPoint: 'top-level',
     typed: 'annotation',
-    types: { integer: 'number', text: 'string', boolean: 'boolean', nothing: 'void' },
+    types: {
+      integer: 'number',
+      text: 'string',
+      boolean: 'boolean',
+      nothing: 'void',
+    },
     returnArrow: ':',
     terms: { call: 'function call', routine: 'function' },
   },
   python: {
+    naming: 'snake',
     label: 'Python',
     blocks: 'indentation',
     lineComment: '#',
     quotes: ['"', "'"],
     declarations: [],
     functionKeyword: 'def',
-    operators: { and: 'and', or: 'or', not: 'not', notEqual: '!=', integerDivide: '//' },
+    operators: {
+      and: 'and',
+      or: 'or',
+      not: 'not',
+      notEqual: '!=',
+      integerDivide: '//',
+    },
     words: { true: 'True', false: 'False' },
     print: { line: 'print' },
     entryPoint: 'top-level',
@@ -65,6 +78,7 @@ export const languages = {
     terms: { call: 'function call', routine: 'function' },
   },
   ruby: {
+    naming: 'snake',
     label: 'Ruby',
     blocks: 'end',
     lineComment: '#',
@@ -79,13 +93,20 @@ export const languages = {
     terms: { call: 'method call', routine: 'method' },
   },
   lua: {
+    naming: 'snake',
     label: 'Lua',
     blocks: 'end',
     lineComment: '--',
     quotes: ['"', "'"],
     declarations: ['local'],
     functionKeyword: 'function',
-    operators: { and: 'and', or: 'or', not: 'not', notEqual: '~=', integerDivide: '//' },
+    operators: {
+      and: 'and',
+      or: 'or',
+      not: 'not',
+      notEqual: '~=',
+      integerDivide: '//',
+    },
     elseIf: 'elseif',
     print: { line: 'print' },
     entryPoint: 'top-level',
@@ -93,6 +114,7 @@ export const languages = {
     terms: { call: 'function call', routine: 'function' },
   },
   php: {
+    naming: 'camel',
     label: 'PHP',
     blocks: 'braces',
     lineComment: '//',
@@ -101,7 +123,12 @@ export const languages = {
     declarations: [],
     variableSigil: '$',
     functionKeyword: 'function',
-    operators: { ...braceOperators, equal: '===', notEqual: '!==', concatenate: '.' },
+    operators: {
+      ...braceOperators,
+      equal: '===',
+      notEqual: '!==',
+      concatenate: '.',
+    },
     elseIf: 'elseif',
     print: { line: 'echo' },
     entryPoint: 'top-level',
@@ -110,6 +137,7 @@ export const languages = {
     terms: { call: 'function call', routine: 'function' },
   },
   c: {
+    naming: 'snake',
     label: 'C',
     blocks: 'braces',
     lineComment: '//',
@@ -124,6 +152,7 @@ export const languages = {
     terms: { call: 'function call', routine: 'function' },
   },
   cpp: {
+    naming: 'snake',
     label: 'C++',
     blocks: 'braces',
     lineComment: '//',
@@ -138,6 +167,7 @@ export const languages = {
     terms: { call: 'function call', routine: 'function' },
   },
   csharp: {
+    naming: { function: 'pascal', variable: 'camel' },
     label: 'C#',
     blocks: 'braces',
     lineComment: '//',
@@ -153,6 +183,7 @@ export const languages = {
     terms: { call: 'method call', routine: 'method' },
   },
   java: {
+    naming: 'camel',
     label: 'Java',
     blocks: 'braces',
     lineComment: '//',
@@ -168,6 +199,7 @@ export const languages = {
     terms: { call: 'method call', routine: 'method' },
   },
   go: {
+    naming: 'camel',
     label: 'Go',
     blocks: 'braces',
     lineComment: '//',
@@ -183,6 +215,7 @@ export const languages = {
     terms: { call: 'function call', routine: 'function' },
   },
   rust: {
+    naming: 'snake',
     immutableParameters: true,
     label: 'Rust',
     blocks: 'braces',
@@ -200,6 +233,7 @@ export const languages = {
     terms: { call: 'macro call', routine: 'function' },
   },
   kotlin: {
+    naming: 'camel',
     immutableParameters: true,
     label: 'Kotlin',
     blocks: 'braces',
@@ -212,11 +246,17 @@ export const languages = {
     print: { line: 'println' },
     entryPoint: 'main-function',
     typed: 'annotation',
-    types: { integer: 'Int', text: 'String', boolean: 'Boolean', nothing: 'Unit' },
+    types: {
+      integer: 'Int',
+      text: 'String',
+      boolean: 'Boolean',
+      nothing: 'Unit',
+    },
     returnArrow: ':',
     terms: { call: 'function call', routine: 'function' },
   },
   swift: {
+    naming: 'camel',
     immutableParameters: true,
     label: 'Swift',
     blocks: 'braces',
@@ -234,6 +274,13 @@ export const languages = {
     terms: { call: 'function call', routine: 'function' },
   },
 };
+
+// How a language spells a declared name with the given role.
+export function namingConvention(syntax, role) {
+  return typeof syntax.naming === 'string'
+    ? syntax.naming
+    : syntax.naming[role];
+}
 
 export function languageSyntax(identifier) {
   const syntax = languages[identifier];

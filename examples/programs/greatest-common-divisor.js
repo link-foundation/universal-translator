@@ -9,4 +9,6 @@ function greatestCommonDivisor(first, second) {
   return first;
 }
 
-console.log(`The greatest common divisor of 1071 and 462 is ${greatestCommonDivisor(1071, 462)}`);
+console.log(
+  `The greatest common divisor of 1071 and 462 is ${greatestCommonDivisor(1071, 462)}`
+);

@@ -2,7 +2,7 @@
 //
 //   source text --parse--> source tree --understanding rules--> meta program
 //     --type inference--> typed meta program --meaning rules-->
-//     --context rules + custom layers--> --emit--> target text
+//     --custom meta layers--> --context rules--> --emit--> target text
 //
 // Every stage is a replaceable function, and every rule list is ordinary
 // data, so callers can add, remove, reorder or decorate rules.
@@ -15,7 +15,8 @@ import { emitProgram } from './emitter.js';
 
 const modes = ['context-dependent', 'literal', 'same-effect'];
 
-const applyRules = (tree, rules, context) => rules.reduce((current, rule) => rule(current, context), tree);
+const applyRules = (tree, rules, context) =>
+  rules.reduce((current, rule) => rule(current, context), tree);
 
 export function createGrammarTranslator({
   parse = parseProgram,
@@ -44,16 +45,24 @@ export function createGrammarTranslator({
     }
     languageSyntax(to);
     const settings = { from, to, mode };
-    const adapted = applyRules(meta, context, settings);
-    const transformed = layers.reduce((current, layer) => applyRules(current, layer, settings), adapted);
+    // Custom layers are meta -> meta transformations, so they see the target
+    // independent program; context rules then adapt it to the target.
+    const transformed = layers.reduce(
+      (current, layer) => applyRules(current, layer, settings),
+      meta
+    );
     trace('transformed', transformed);
-    return emit(transformed, to);
+    const adapted = applyRules(transformed, context, settings);
+    trace('adapted', adapted);
+    return emit(adapted, to);
   }
 
   return {
-    languages: () => grammarLanguageIds.map((id) => ({ id, label: languageSyntax(id).label })),
+    languages: () =>
+      grammarLanguageIds.map((id) => ({ id, label: languageSyntax(id).label })),
     toMeta,
     fromMeta,
-    translate: (source, from, to, options = {}) => fromMeta(toMeta(source, from), to, { ...options, from }),
+    translate: (source, from, to, options = {}) =>
+      fromMeta(toMeta(source, from), to, { ...options, from }),
   };
 }

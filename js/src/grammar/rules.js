@@ -6,7 +6,8 @@
 // "context" rules adapt the program to its target (for example comments).
 
 import { block, node, rewrite, text } from './meta.js';
-import { languageSyntax } from './languages.js';
+import { languageSyntax, namingConvention } from './languages.js';
+import { neutralName, renameDeclared, spellName } from './names.js';
 
 // ---------------------------------------------------------------------------
 // Understanding layer
@@ -15,101 +16,165 @@ import { languageSyntax } from './languages.js';
 const entryNames = new Set(['main', 'Main']);
 
 function flattenClasses(items) {
-  return items.flatMap((item) => (item.kind === 'Class' ? flattenClasses(item.items) : [item]));
+  return items.flatMap((item) =>
+    item.kind === 'Class' ? flattenClasses(item.items) : [item]
+  );
 }
 
 function isCallTo(statement, functionName) {
-  const expression = statement.kind === 'Evaluate' ? statement.expression : undefined;
-  return expression?.kind === 'Call' && expression.callee === functionName && expression.arguments.length === 0;
+  const expression =
+    statement.kind === 'Evaluate' ? statement.expression : undefined;
+  return (
+    expression?.kind === 'Call' &&
+    expression.callee === functionName &&
+    expression.arguments.length === 0
+  );
 }
 
 function isPythonMainGuard(statement) {
-  return statement.kind === 'If' && statement.condition.kind === 'Binary' && statement.condition.left.kind === 'Name' && statement.condition.left.name === '__name__';
+  return (
+    statement.kind === 'If' &&
+    statement.condition.kind === 'Binary' &&
+    statement.condition.left.kind === 'Name' &&
+    statement.condition.left.name === '__name__'
+  );
 }
 
-// Collect functions, the entry point and file comments into a Program.
-export function findEntryPoint(source) {
-  const items = flattenClasses(source.items);
-  const program = node('Program', { comments: [], imports: [], functions: [], main: block() });
-  let pendingComments = [];
-  let seenCode = false;
-  let entryFunction;
+// Sort top-level items into file comments, imports, functions and
+// statements. Comments directly above a function belong to that function.
+function collectItems(items) {
+  const program = node('Program', {
+    comments: [],
+    imports: [],
+    functions: [],
+    main: block(),
+  });
+  let pending = [];
   for (const item of items) {
     if (item.kind === 'Comment') {
-      pendingComments.push(item);
+      pending.push(item);
       continue;
     }
-    if (!seenCode) {
-      program.comments.push(...pendingComments.map((comment) => comment.text));
-      pendingComments = [];
+    const isFirstCode =
+      program.imports.length +
+        program.functions.length +
+        program.main.statements.length ===
+      0;
+    if (isFirstCode) {
+      program.comments.push(...pending.map((comment) => comment.text));
+      pending = [];
     }
-    seenCode = true;
     if (item.kind === 'Import') {
       program.imports.push(item.text);
-      continue;
+    } else if (item.kind === 'Function') {
+      program.functions.push({
+        ...item,
+        comments: pending.map((comment) => comment.text),
+      });
+    } else {
+      program.main.statements.push(...pending, item);
     }
-    if (item.kind === 'Function') {
-      const comments = pendingComments.map((comment) => comment.text);
-      pendingComments = [];
-      if (entryNames.has(item.name)) {
-        entryFunction = { ...item, comments };
-      } else {
-        program.functions.push({ ...item, comments });
-      }
-      continue;
-    }
-    program.main.statements.push(...pendingComments, item);
-    pendingComments = [];
+    pending = [];
   }
-  program.main.statements.push(...pendingComments);
-  if (entryFunction) {
-    const leftovers = program.main.statements.filter((statement) => !isCallTo(statement, entryFunction.name) && !isPythonMainGuard(statement));
-    program.main = block([...leftovers, ...entryFunction.body.statements]);
-    program.mainComments = entryFunction.comments;
-    // `return 0;` at the end of C's main is the default exit status.
-    const last = program.main.statements.at(-1);
-    if (last?.kind === 'Return' && last.value?.kind === 'Number' && last.value.value === 0) {
-      program.main.statements.pop();
-    }
-  }
-  if (!seenCode && pendingComments.length === 0 && !entryFunction) {
-    program.main = block();
-  }
+  program.main.statements.push(...pending);
   return program;
+}
+
+const isExitSuccess = (statement) =>
+  statement?.kind === 'Return' &&
+  statement.value?.kind === 'Number' &&
+  statement.value.value === 0;
+
+// Collect functions, the entry point and file comments into a Program. The
+// body of `main` becomes the program's main block.
+export function findEntryPoint(source) {
+  const program = collectItems(flattenClasses(source.items));
+  const entry = program.functions.find((item) => entryNames.has(item.name));
+  if (!entry) {
+    return program;
+  }
+  const leftovers = program.main.statements.filter(
+    (statement) =>
+      !isCallTo(statement, entry.name) && !isPythonMainGuard(statement)
+  );
+  const statements = [...leftovers, ...entry.body.statements];
+  // `return 0;` at the end of C's main is the default exit status.
+  if (isExitSuccess(statements.at(-1))) {
+    statements.pop();
+  }
+  return {
+    ...program,
+    functions: program.functions.filter((item) => item !== entry),
+    main: block(statements),
+    mainComments: entry.comments,
+  };
 }
 
 // The output procedures of each language, described as data.
 const lineCalls = new Set([
-  'console.log', 'print', 'puts', 'System.Console.WriteLine', 'Console.WriteLine',
-  'System.out.println', 'fmt.Println', 'println', 'Console.Out.WriteLine',
+  'console.log',
+  'print',
+  'puts',
+  'System.Console.WriteLine',
+  'Console.WriteLine',
+  'System.out.println',
+  'fmt.Println',
+  'println',
+  'Console.Out.WriteLine',
 ]);
-const textCalls = new Set(['System.Console.Write', 'Console.Write', 'System.out.print', 'fmt.Print', 'process.stdout.write', 'io.write']);
-const formatCalls = { printf: 'percent', 'fmt.Printf': 'percent', 'println!': 'braces', 'print!': 'braces' };
+const textCalls = new Set([
+  'System.Console.Write',
+  'Console.Write',
+  'System.out.print',
+  'fmt.Print',
+  'process.stdout.write',
+  'io.write',
+]);
+const formatCalls = {
+  printf: 'percent',
+  'fmt.Printf': 'percent',
+  'println!': 'braces',
+  'print!': 'braces',
+};
 
 function joinWithSpaces(values) {
-  if (values.length === 1) return values[0];
+  if (values.length === 1) {
+    return values[0];
+  }
   const parts = [];
   values.forEach((value, index) => {
-    if (index > 0) parts.push(text(' '));
+    if (index > 0) {
+      parts.push(text(' '));
+    }
     parts.push(value);
   });
   return node('Interpolation', { parts });
 }
 
 function readFormat(format, values, style) {
-  const pattern = style === 'percent' ? /%(?:l{0,2}d|i|s|c|v|t|%)/g : /\{\{|\}\}|\{\}/g;
+  const pattern =
+    style === 'percent' ? /%(?:l{0,2}d|i|s|c|v|t|%)/g : /\{\{|\}\}|\{\}/g;
   const parts = [];
   let last = 0;
   let index = 0;
   for (const match of format.matchAll(pattern)) {
-    if (match.index > last) parts.push(text(format.slice(last, match.index)));
-    if (match[0] === '%%') parts.push(text('%'));
-    else if (match[0] === '{{') parts.push(text('{'));
-    else if (match[0] === '}}') parts.push(text('}'));
-    else parts.push(values[index++]);
+    if (match.index > last) {
+      parts.push(text(format.slice(last, match.index)));
+    }
+    if (match[0] === '%%') {
+      parts.push(text('%'));
+    } else if (match[0] === '{{') {
+      parts.push(text('{'));
+    } else if (match[0] === '}}') {
+      parts.push(text('}'));
+    } else {
+      parts.push(values[index++]);
+    }
     last = match.index + match[0].length;
   }
-  if (last < format.length) parts.push(text(format.slice(last)));
+  if (last < format.length) {
+    parts.push(text(format.slice(last)));
+  }
   return parts;
 }
 
@@ -122,16 +187,23 @@ function partsToValue(parts) {
       merged.push(part);
     }
   }
-  if (merged.length === 0) return text('');
+  if (merged.length === 0) {
+    return text('');
+  }
   // A format with a single placeholder prints just that value.
-  if (merged.length === 1) return merged[0];
+  if (merged.length === 1) {
+    return merged[0];
+  }
   return node('Interpolation', { parts: merged });
 }
 
 function withoutTrailingNewline(parts) {
   const last = parts.at(-1);
   if (last?.kind === 'Text' && last.value.endsWith('\n')) {
-    return { parts: [...parts.slice(0, -1), text(last.value.slice(0, -1))], newline: true };
+    return {
+      parts: [...parts.slice(0, -1), text(last.value.slice(0, -1))],
+      newline: true,
+    };
   }
   return { parts, newline: false };
 }
@@ -144,21 +216,41 @@ function streamParts(expression) {
 }
 
 function printFromCall(call) {
-  const values = call.arguments.filter((value) => value.kind !== 'NamedArgument');
-  const named = Object.fromEntries(call.arguments.filter((value) => value.kind === 'NamedArgument').map((value) => [value.name, value.value]));
+  const values = call.arguments.filter(
+    (value) => value.kind !== 'NamedArgument'
+  );
+  const named = Object.fromEntries(
+    call.arguments
+      .filter((value) => value.kind === 'NamedArgument')
+      .map((value) => [value.name, value.value])
+  );
   if (lineCalls.has(call.callee)) {
-    const newline = !(named.end && named.end.kind === 'Text' && named.end.value === '');
-    return node('Print', { value: values.length ? joinWithSpaces(values) : text(''), newline });
+    const newline = !(
+      named.end &&
+      named.end.kind === 'Text' &&
+      named.end.value === ''
+    );
+    return node('Print', {
+      value: values.length ? joinWithSpaces(values) : text(''),
+      newline,
+    });
   }
   if (textCalls.has(call.callee) || call.callee === 'echo') {
-    const flat = values.flatMap((value) => (value.kind === 'Interpolation' ? value.parts : [value]));
+    const flat = values.flatMap((value) =>
+      value.kind === 'Interpolation' ? value.parts : [value]
+    );
     const { parts, newline } = withoutTrailingNewline(flat);
     return node('Print', { value: partsToValue(parts), newline });
   }
   const style = formatCalls[call.callee];
   if (style && values[0]?.kind === 'Text') {
-    const { parts, newline } = withoutTrailingNewline(readFormat(values[0].value, values.slice(1), style));
-    return node('Print', { value: partsToValue(parts), newline: newline || call.callee === 'println!' });
+    const { parts, newline } = withoutTrailingNewline(
+      readFormat(values[0].value, values.slice(1), style)
+    );
+    return node('Print', {
+      value: partsToValue(parts),
+      newline: newline || call.callee === 'println!',
+    });
   }
   return undefined;
 }
@@ -166,14 +258,21 @@ function printFromCall(call) {
 // Replace each known output procedure with the Print concept.
 export function recognizePrint(program) {
   return rewrite(program, (current) => {
-    if (current.kind !== 'Evaluate') return current;
+    if (current.kind !== 'Evaluate') {
+      return current;
+    }
     const expression = current.expression;
-    if (expression.kind === 'Call') return printFromCall(expression) ?? current;
+    if (expression.kind === 'Call') {
+      return printFromCall(expression) ?? current;
+    }
     if (expression.kind === 'Binary' && expression.operator === 'stream') {
       const [stream, ...values] = streamParts(expression);
       if (stream.kind === 'Name' && /cout$/.test(stream.name)) {
-        const endsLine = values.at(-1)?.kind === 'Name' && /endl$/.test(values.at(-1).name);
-        const { parts, newline } = withoutTrailingNewline(endsLine ? [...values.slice(0, -1), text('\n')] : values);
+        const endsLine =
+          values.at(-1)?.kind === 'Name' && /endl$/.test(values.at(-1).name);
+        const { parts, newline } = withoutTrailingNewline(
+          endsLine ? [...values.slice(0, -1), text('\n')] : values
+        );
         return node('Print', { value: partsToValue(parts), newline });
       }
     }
@@ -189,13 +288,35 @@ export function declareOnFirstAssignment(program) {
     const visitBlock = (current) => ({
       ...current,
       statements: current.statements.map((statement) => {
-        if (statement.kind === 'Assignment' && statement.operator === '=' && !scope.has(statement.name)) {
+        if (
+          statement.kind === 'Assignment' &&
+          statement.operator === '=' &&
+          !scope.has(statement.name)
+        ) {
           scope.add(statement.name);
-          return node('Declaration', { name: statement.name, value: statement.value, mutable: true });
+          return node('Declaration', {
+            name: statement.name,
+            value: statement.value,
+            mutable: true,
+          });
         }
-        if (statement.kind === 'Declaration') scope.add(statement.name);
-        if (statement.kind === 'If') return { ...statement, then: visitBlock(statement.then), otherwise: statement.otherwise && (statement.otherwise.kind === 'Block' ? visitBlock(statement.otherwise) : visitBlock(block([statement.otherwise])).statements[0]) };
-        if (statement.kind === 'While') return { ...statement, body: visitBlock(statement.body) };
+        if (statement.kind === 'Declaration') {
+          scope.add(statement.name);
+        }
+        if (statement.kind === 'If') {
+          return {
+            ...statement,
+            then: visitBlock(statement.then),
+            otherwise:
+              statement.otherwise &&
+              (statement.otherwise.kind === 'Block'
+                ? visitBlock(statement.otherwise)
+                : visitBlock(block([statement.otherwise])).statements[0]),
+          };
+        }
+        if (statement.kind === 'While') {
+          return { ...statement, body: visitBlock(statement.body) };
+        }
         if (statement.kind === 'CountingLoop') {
           scope.add(statement.variable);
           return { ...statement, body: visitBlock(statement.body) };
@@ -207,7 +328,13 @@ export function declareOnFirstAssignment(program) {
   };
   return {
     ...program,
-    functions: program.functions.map((item) => ({ ...item, body: declareIn(item.body, item.parameters.map((parameter) => parameter.name)) })),
+    functions: program.functions.map((item) => ({
+      ...item,
+      body: declareIn(
+        item.body,
+        item.parameters.map((parameter) => parameter.name)
+      ),
+    })),
     main: declareIn(program.main, []),
   };
 }
@@ -216,39 +343,70 @@ export function declareOnFirstAssignment(program) {
 export function inferMutability(program) {
   const assigned = new Set();
   rewrite(program, (current) => {
-    if (current.kind === 'Assignment') assigned.add(current.name);
+    if (current.kind === 'Assignment') {
+      assigned.add(current.name);
+    }
     return current;
   });
-  return rewrite(program, (current) => (current.kind === 'Declaration' ? { ...current, mutable: assigned.has(current.name) } : current));
+  return rewrite(program, (current) =>
+    current.kind === 'Declaration'
+      ? { ...current, mutable: assigned.has(current.name) }
+      : current
+  );
 }
 
 export function dropSourceDetails(program) {
   return rewrite(program, (current) => {
     if (current.kind === 'Return' && current.implicit) {
-      const { implicit: _implicit, ...rest } = current;
+      const rest = { ...current };
+      delete rest.implicit;
       return rest;
     }
     return current;
   });
 }
 
-const compoundMeanings = { '+=': 'add', '-=': 'subtract', '*=': 'multiply', '/=': 'divide', '%=': 'remainder' };
+const compoundMeanings = {
+  '+=': 'add',
+  '-=': 'subtract',
+  '*=': 'multiply',
+  '/=': 'divide',
+  '%=': 'remainder',
+};
 
 // `x += v` means `x = x + v`; the meta language keeps only the plain form.
 export function expandCompoundAssignment(program) {
   return rewrite(program, (current) => {
-    if (current.kind !== 'Assignment' || current.operator === '=') return current;
+    if (current.kind !== 'Assignment' || current.operator === '=') {
+      return current;
+    }
     const operator = compoundMeanings[current.operator];
-    if (!operator) throw new Error(`Unknown assignment operator "${current.operator}"`);
-    return node('Assignment', { name: current.name, operator: '=', value: node('Binary', { operator, left: { kind: 'Name', name: current.name }, right: current.value }) });
+    if (!operator) {
+      throw new Error(`Unknown assignment operator "${current.operator}"`);
+    }
+    return node('Assignment', {
+      name: current.name,
+      operator: '=',
+      value: node('Binary', {
+        operator,
+        left: { kind: 'Name', name: current.name },
+        right: current.value,
+      }),
+    });
   });
 }
 
 // PHP's "." operator joins text: the same concept as an interpolation.
 export function concatenationOperator(program) {
   return rewrite(program, (current) => {
-    if (current.kind !== 'Binary' || current.operator !== 'concatenate') return current;
-    return partsToValue([current.left, current.right].flatMap((part) => (part.kind === 'Interpolation' ? part.parts : [part])));
+    if (current.kind !== 'Binary' || current.operator !== 'concatenate') {
+      return current;
+    }
+    return partsToValue(
+      [current.left, current.right].flatMap((part) =>
+        part.kind === 'Interpolation' ? part.parts : [part]
+      )
+    );
   });
 }
 
@@ -261,12 +419,22 @@ export function dropParameterCopies(program) {
     functions: program.functions.map((item) => {
       const statements = [...item.body.statements];
       const names = new Set(item.parameters.map((parameter) => parameter.name));
-      while (statements[0]?.kind === 'Declaration' && names.has(statements[0].name) && statements[0].value?.kind === 'Name' && statements[0].value.name === statements[0].name) {
+      while (
+        statements[0]?.kind === 'Declaration' &&
+        names.has(statements[0].name) &&
+        statements[0].value?.kind === 'Name' &&
+        statements[0].value.name === statements[0].name
+      ) {
         statements.shift();
       }
       return { ...item, body: { ...item.body, statements } };
     }),
   };
+}
+
+// `greatest_common_divisor` and `greatestCommonDivisor` are one name.
+export function neutralNames(program) {
+  return renameDeclared(program, neutralName);
 }
 
 export const understandingRules = [
@@ -278,6 +446,7 @@ export const understandingRules = [
   declareOnFirstAssignment,
   inferMutability,
   dropSourceDetails,
+  neutralNames,
 ];
 
 // ---------------------------------------------------------------------------
@@ -288,8 +457,14 @@ export const understandingRules = [
 // as one interpolation independent of the target's operator.
 export function concatenationToInterpolation(program) {
   return rewrite(program, (current) => {
-    if (current.kind === 'Binary' && current.operator === 'add' && current.type === 'text') {
-      const parts = [current.left, current.right].flatMap((part) => (part.kind === 'Interpolation' ? part.parts : [part]));
+    if (
+      current.kind === 'Binary' &&
+      current.operator === 'add' &&
+      current.type === 'text'
+    ) {
+      const parts = [current.left, current.right].flatMap((part) =>
+        part.kind === 'Interpolation' ? part.parts : [part]
+      );
       return { ...partsToValue(parts), type: 'text' };
     }
     return current;
@@ -309,11 +484,17 @@ function escapeExpression(value) {
 export function adaptCommentText(comment, from, to) {
   const source = languageSyntax(from);
   const target = languageSyntax(to);
-  let result = comment.replace(new RegExp(`(\\bin )${escapeExpression(source.label)}(?![\\w#+])`, 'g'), `$1${target.label}`);
+  let result = comment.replace(
+    new RegExp(`(\\bin )${escapeExpression(source.label)}(?![\\w#+])`, 'g'),
+    `$1${target.label}`
+  );
   for (const [term, sourceWord] of Object.entries(source.terms)) {
     const targetWord = target.terms[term];
     if (targetWord && sourceWord !== targetWord) {
-      result = result.replace(new RegExp(`\\b${escapeExpression(sourceWord)}\\b`, 'g'), targetWord);
+      result = result.replace(
+        new RegExp(`\\b${escapeExpression(sourceWord)}\\b`, 'g'),
+        targetWord
+      );
     }
   }
   return result;
@@ -321,38 +502,79 @@ export function adaptCommentText(comment, from, to) {
 
 export function adaptComments(program, { from, to, mode }) {
   if (mode === 'same-effect') {
-    const stripped = rewrite(program, (current) => (current.kind === 'Comment' ? undefined : current));
-    return { ...stripped, comments: [], mainComments: [], functions: stripped.functions.map((item) => ({ ...item, comments: [] })) };
+    const stripped = rewrite(program, (current) =>
+      current.kind === 'Comment' ? undefined : current
+    );
+    return {
+      ...stripped,
+      comments: [],
+      mainComments: [],
+      functions: stripped.functions.map((item) => ({ ...item, comments: [] })),
+    };
   }
-  if (mode === 'literal' || from === to) return program;
+  if (mode === 'literal' || from === to) {
+    return program;
+  }
   const adapt = (value) => adaptCommentText(value, from, to);
-  const adapted = rewrite(program, (current) => (current.kind === 'Comment' ? { ...current, text: adapt(current.text) } : current));
+  const adapted = rewrite(program, (current) =>
+    current.kind === 'Comment'
+      ? { ...current, text: adapt(current.text) }
+      : current
+  );
   return {
     ...adapted,
     comments: adapted.comments.map(adapt),
     mainComments: (adapted.mainComments ?? []).map(adapt),
-    functions: adapted.functions.map((item) => ({ ...item, comments: (item.comments ?? []).map(adapt) })),
+    functions: adapted.functions.map((item) => ({
+      ...item,
+      comments: (item.comments ?? []).map(adapt),
+    })),
   };
 }
 
 // Rust, Kotlin and Swift parameters cannot be reassigned. When a function
 // assigns a parameter, the target works on a mutable local copy instead.
 export function copyReassignedParameters(program, { to }) {
-  if (!languageSyntax(to).immutableParameters) return program;
+  if (!languageSyntax(to).immutableParameters) {
+    return program;
+  }
   return {
     ...program,
     functions: program.functions.map((item) => {
       const assigned = new Set();
       rewrite(item.body, (current) => {
-        if (current.kind === 'Assignment') assigned.add(current.name);
+        if (current.kind === 'Assignment') {
+          assigned.add(current.name);
+        }
         return current;
       });
       const copies = item.parameters
         .filter((parameter) => assigned.has(parameter.name))
-        .map((parameter) => node('Declaration', { name: parameter.name, type: parameter.type, value: { kind: 'Name', name: parameter.name, type: parameter.type }, mutable: true }));
-      return copies.length ? { ...item, body: block([...copies, ...item.body.statements]) } : item;
+        .map((parameter) =>
+          node('Declaration', {
+            name: parameter.name,
+            type: parameter.type,
+            value: { kind: 'Name', name: parameter.name, type: parameter.type },
+            mutable: true,
+          })
+        );
+      return copies.length
+        ? { ...item, body: block([...copies, ...item.body.statements]) }
+        : item;
     }),
   };
 }
 
-export const contextRules = [adaptComments, copyReassignedParameters];
+// Spell every declared name in the target's naming convention.
+export function spellNames(program, { to }) {
+  const syntax = languageSyntax(to);
+  return renameDeclared(program, (identifier, role) =>
+    spellName(identifier, namingConvention(syntax, role))
+  );
+}
+
+export const contextRules = [
+  adaptComments,
+  copyReassignedParameters,
+  spellNames,
+];

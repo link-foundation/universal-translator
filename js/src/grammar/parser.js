@@ -16,16 +16,51 @@ const binaryLevels = [
 ];
 
 const typeWords = new Set([
-  'int', 'long', 'short', 'char', 'void', 'bool', 'boolean', 'double', 'float',
-  'string', 'String', 'var', 'auto', 'const', 'unsigned', 'signed', 'std',
+  'int',
+  'long',
+  'short',
+  'char',
+  'void',
+  'bool',
+  'boolean',
+  'double',
+  'float',
+  'string',
+  'String',
+  'var',
+  'auto',
+  'const',
+  'unsigned',
+  'signed',
+  'std',
 ]);
-const modifiers = new Set(['public', 'private', 'protected', 'static', 'internal', 'final', 'export', 'inline', 'async', 'local']);
+const modifiers = new Set([
+  'public',
+  'private',
+  'protected',
+  'static',
+  'internal',
+  'final',
+  'export',
+  'inline',
+  'async',
+  'local',
+]);
 
 export function parseProgram(source, syntax) {
   return new Parser(tokenize(source, syntax), syntax).program();
 }
 
-const controlWords = new Set(['if', 'else', 'while', 'for', 'switch', 'return', 'do', 'catch']);
+const controlWords = new Set([
+  'if',
+  'else',
+  'while',
+  'for',
+  'switch',
+  'return',
+  'do',
+  'catch',
+]);
 
 class Parser {
   constructor(tokens, syntax) {
@@ -36,14 +71,19 @@ class Parser {
 
   // ---- token helpers ----
   peek(offset = 0) {
-    return this.tokens[Math.min(this.position + offset, this.tokens.length - 1)];
+    return this.tokens[
+      Math.min(this.position + offset, this.tokens.length - 1)
+    ];
   }
   next() {
     return this.tokens[this.position++];
   }
   is(value, offset = 0) {
     const token = this.peek(offset);
-    return (token.type === 'symbol' || token.type === 'name') && token.value === value;
+    return (
+      (token.type === 'symbol' || token.type === 'name') &&
+      token.value === value
+    );
   }
   accept(value) {
     if (this.is(value)) {
@@ -54,14 +94,20 @@ class Parser {
   expect(value) {
     const token = this.accept(value);
     if (!token) {
-      throw new SyntaxError(`Expected "${value}" but found "${this.peek().value || this.peek().type}"`, this.peek().line);
+      throw new SyntaxError(
+        `Expected "${value}" but found "${this.peek().value || this.peek().type}"`,
+        this.peek().line
+      );
     }
     return token;
   }
   expectName() {
     const token = this.next();
     if (token.type !== 'name') {
-      throw new SyntaxError(`Expected a name but found "${token.value}"`, token.line);
+      throw new SyntaxError(
+        `Expected a name but found "${token.value}"`,
+        token.line
+      );
     }
     return token.value;
   }
@@ -75,10 +121,18 @@ class Parser {
       this.skipSeparators();
       return;
     }
-    if (this.is('}') || this.peek().type === 'end' || this.peek().type === 'dedent' || this.is('end')) {
+    if (
+      this.is('}') ||
+      this.peek().type === 'end' ||
+      this.peek().type === 'dedent' ||
+      this.is('end')
+    ) {
       return;
     }
-    throw new SyntaxError(`Unexpected "${this.peek().value}" after statement`, this.peek().line);
+    throw new SyntaxError(
+      `Unexpected "${this.peek().value}" after statement`,
+      this.peek().line
+    );
   }
 
   // ---- program structure ----
@@ -107,7 +161,11 @@ class Parser {
       this.next();
       return node('Import', { text: token.value });
     }
-    if (['import', 'using', 'package', 'use', 'require'].includes(token.value) && token.type === 'name' && !this.is('(', 1)) {
+    if (
+      ['import', 'using', 'package', 'use', 'require'].includes(token.value) &&
+      token.type === 'name' &&
+      !this.is('(', 1)
+    ) {
       return this.importStatement();
     }
     if (this.isNamespaceOrClass()) {
@@ -122,12 +180,19 @@ class Parser {
   importStatement() {
     const parts = [];
     const line = this.peek().line;
-    while (this.peek().type !== 'newline' && !this.is(';') && this.peek().type !== 'end' && this.peek().line === line) {
+    while (
+      this.peek().type !== 'newline' &&
+      !this.is(';') &&
+      this.peek().type !== 'end' &&
+      this.peek().line === line
+    ) {
       const token = this.next();
       parts.push(token.type === 'text' ? `"${token.value}"` : token.value);
     }
     this.endStatement();
-    return node('Import', { text: parts.join(' ').replace(/ \. /g, '.').replace(/ :: /g, '::') });
+    return node('Import', {
+      text: parts.join(' ').replace(/ \. /g, '.').replace(/ :: /g, '::'),
+    });
   }
 
   isNamespaceOrClass() {
@@ -135,7 +200,10 @@ class Parser {
     while (modifiers.has(this.peek(offset).value)) {
       offset += 1;
     }
-    return ['class', 'namespace', 'object'].includes(this.peek(offset).value) && this.peek(offset).type === 'name';
+    return (
+      ['class', 'namespace', 'object'].includes(this.peek(offset).value) &&
+      this.peek(offset).type === 'name'
+    );
   }
 
   classDefinition() {
@@ -144,6 +212,9 @@ class Parser {
     }
     const kind = this.next().value;
     const title = this.expectName();
+    while (this.peek().type === 'newline') {
+      this.next();
+    }
     this.expect('{');
     const items = this.items(() => this.is('}'));
     this.expect('}');
@@ -151,36 +222,62 @@ class Parser {
   }
 
   isFunctionStart() {
-    if (this.syntax.functionKeyword) {
-      let offset = 0;
-      while (modifiers.has(this.peek(offset).value)) {
-        offset += 1;
-      }
-      return this.is(this.syntax.functionKeyword, offset) && this.peek(offset + 1).type === 'name';
-    }
-    // Prefix-typed languages: [modifiers] [type] name ( ... ) {
-    if (controlWords.has(this.peek().value)) return false;
+    return this.syntax.functionKeyword
+      ? this.isKeywordFunctionStart()
+      : this.isPrefixFunctionStart();
+  }
+
+  // [modifiers] function-keyword name
+  isKeywordFunctionStart() {
     let offset = 0;
-    while (this.peek(offset).type === 'name' || ['*', '::', '[', ']', '<', '>'].includes(this.peek(offset).value)) {
+    while (modifiers.has(this.peek(offset).value)) {
       offset += 1;
     }
-    if (!this.is('(', offset) || offset === 0 || this.peek(offset - 1).type !== 'name') {
+    return (
+      this.is(this.syntax.functionKeyword, offset) &&
+      this.peek(offset + 1).type === 'name'
+    );
+  }
+
+  // Prefix-typed languages: [modifiers] [type] name ( ... ) {
+  isPrefixFunctionStart() {
+    if (controlWords.has(this.peek().value)) {
       return false;
     }
+    let offset = 0;
+    while (
+      this.peek(offset).type === 'name' ||
+      ['*', '::', '[', ']', '<', '>'].includes(this.peek(offset).value)
+    ) {
+      offset += 1;
+    }
+    return (
+      offset > 0 &&
+      this.is('(', offset) &&
+      this.peek(offset - 1).type === 'name' &&
+      this.isBlockAfterParentheses(offset)
+    );
+  }
+
+  // Whether the parentheses opening at offset are followed by a { block.
+  isBlockAfterParentheses(offset) {
     let depth = 0;
-    for (let index = offset; ; index += 1) {
-      const token = this.peek(index);
-      if (token.type === 'end') return false;
-      if (token.value === '(') depth += 1;
-      if (token.value === ')') {
-        depth -= 1;
-        if (depth === 0) {
-          let after = index + 1;
-          while (this.peek(after).type === 'newline') after += 1;
-          return this.is('{', after);
-        }
+    let index = offset;
+    for (; this.peek(index).type !== 'end'; index += 1) {
+      const { value } = this.peek(index);
+      depth += value === '(' ? 1 : value === ')' ? -1 : 0;
+      if (depth === 0) {
+        break;
       }
     }
+    if (this.peek(index).type === 'end') {
+      return false;
+    }
+    let after = index + 1;
+    while (this.peek(after).type === 'newline') {
+      after += 1;
+    }
+    return this.is('{', after);
   }
 
   functionDefinition() {
@@ -200,15 +297,26 @@ class Parser {
       functionName = words.pop();
       returnType = words.length ? sourceType(words.join(' ')) : undefined;
     }
-    const parameters = this.peek().type === 'newline' && this.syntax.id === 'ruby' ? [] : this.parameterList();
-    if (this.accept('->') || (this.syntax.returnArrow === ':' && this.accept(':'))) {
+    const parameters =
+      this.peek().type === 'newline' && this.syntax.id === 'ruby'
+        ? []
+        : this.parameterList();
+    if (
+      this.accept('->') ||
+      (this.syntax.returnArrow === ':' && this.accept(':'))
+    ) {
       returnType = this.typeExpression();
     } else if (this.syntax.typed === 'suffix' && !this.is('{')) {
       returnType = this.typeExpression();
     }
     const body = this.block();
     this.closeKeywordBlock();
-    return node('Function', { name: functionName, parameters, returnType, body });
+    return node('Function', {
+      name: functionName,
+      parameters,
+      returnType,
+      body,
+    });
   }
 
   parameterList() {
@@ -222,7 +330,10 @@ class Parser {
           words.push(this.next().value);
         }
         const parameterName = words.pop();
-        parameters.push({ name: parameterName, type: sourceType(words.join(' ')) });
+        parameters.push({
+          name: parameterName,
+          type: sourceType(words.join(' ')),
+        });
       } else if (this.syntax.typed === 'suffix') {
         pendingNames.push(this.expectName());
         if (!this.is(',') && !this.is(')')) {
@@ -252,10 +363,22 @@ class Parser {
     let depth = 0;
     while (true) {
       const token = this.peek();
-      if (token.value === '<') depth += 1;
-      if (token.value === '>') depth -= 1;
-      if (depth === 0 && (token.type === 'newline' || ['{', '=', ',', ')', ';'].includes(token.value))) break;
-      if (token.type === 'end') break;
+      if (token.value === '<') {
+        depth += 1;
+      }
+      if (token.value === '>') {
+        depth -= 1;
+      }
+      if (
+        depth === 0 &&
+        (token.type === 'newline' ||
+          ['{', '=', ',', ')', ';'].includes(token.value))
+      ) {
+        break;
+      }
+      if (token.type === 'end') {
+        break;
+      }
       words.push(this.next().value);
     }
     return sourceType(words.join(' '));
@@ -264,7 +387,9 @@ class Parser {
   // ---- blocks ----
   block() {
     if (this.syntax.blocks === 'braces') {
-      while (this.peek().type === 'newline') this.next();
+      while (this.peek().type === 'newline') {
+        this.next();
+      }
       this.expect('{');
       const statements = this.items(() => this.is('}'));
       this.expect('}');
@@ -274,25 +399,34 @@ class Parser {
       this.expect(':');
       this.skipComments();
       if (this.peek().type !== 'newline') {
-        throw new SyntaxError('Expected a new line after ":"', this.peek().line);
+        throw new SyntaxError(
+          'Expected a new line after ":"',
+          this.peek().line
+        );
       }
       this.skipSeparators();
       if (this.next().type !== 'indent') {
         throw new SyntaxError('Expected an indented block', this.peek().line);
       }
-      const statements = this.items(() => this.peek().type === 'dedent' || this.peek().type === 'end');
+      const statements = this.items(
+        () => this.peek().type === 'dedent' || this.peek().type === 'end'
+      );
       this.next();
       return block(statements);
     }
     // Keyword-delimited blocks (Ruby, Lua) stop at end / else / elsif.
     this.accept('then');
     this.accept('do');
-    const statements = this.items(() => ['end', 'else', 'elsif', 'elseif'].some((word) => this.is(word)));
+    const statements = this.items(() =>
+      ['end', 'else', 'elsif', 'elseif'].some((word) => this.is(word))
+    );
     return block(statements);
   }
 
   skipComments() {
-    while (this.peek().type === 'comment') this.next();
+    while (this.peek().type === 'comment') {
+      this.next();
+    }
   }
 
   closeKeywordBlock() {
@@ -305,25 +439,20 @@ class Parser {
   statement() {
     const token = this.peek();
     const word = token.type === 'name' ? token.value : undefined;
-    switch (word) {
-      case 'if':
-        return this.ifStatement();
-      case 'while':
-        return this.whileStatement();
-      case 'for':
-        return this.forStatement();
-      case 'return': {
-        this.next();
-        const value = this.isStatementEnd() ? undefined : this.expression();
-        this.endStatement();
-        return node('Return', { value });
-      }
-      case 'echo':
-        return this.echoStatement();
-      default:
-        break;
+    const keyword = {
+      if: () => this.ifStatement(),
+      while: () => this.whileStatement(),
+      for: () => this.forStatement(),
+      return: () => this.returnStatement(),
+      echo: () => this.echoStatement(),
+    }[word];
+    if (keyword) {
+      return keyword();
     }
-    if (word && (this.syntax.declarations.includes(word) || (this.syntax.id === 'go' && word === 'var'))) {
+    if (this.syntax.id === 'ruby' && this.isRangeEach()) {
+      return this.rangeEach();
+    }
+    if (word && this.syntax.declarations.includes(word)) {
       return this.declaration();
     }
     if (this.syntax.typed === 'prefix' && this.isTypedDeclaration()) {
@@ -332,17 +461,38 @@ class Parser {
     return this.simpleStatement();
   }
 
+  returnStatement() {
+    this.next();
+    const value = this.isStatementEnd() ? undefined : this.expression();
+    this.endStatement();
+    return node('Return', { value });
+  }
+
   isStatementEnd() {
     const token = this.peek();
-    return token.type === 'newline' || token.type === 'end' || this.is(';') || this.is('}') || token.type === 'dedent';
+    return (
+      token.type === 'newline' ||
+      token.type === 'end' ||
+      this.is(';') ||
+      this.is('}') ||
+      token.type === 'dedent'
+    );
   }
 
   isTypedDeclaration() {
     let offset = 0;
-    while (this.peek(offset).type === 'name' || ['*', '::', '[', ']'].includes(this.peek(offset).value)) {
+    while (
+      this.peek(offset).type === 'name' ||
+      ['*', '::', '[', ']'].includes(this.peek(offset).value)
+    ) {
       offset += 1;
     }
-    return offset >= 2 && this.peek(offset - 1).type === 'name' && (this.is('=', offset) || this.is(';', offset)) && (typeWords.has(this.peek().value) || this.peek(1).type === 'name');
+    return (
+      offset >= 2 &&
+      this.peek(offset - 1).type === 'name' &&
+      (this.is('=', offset) || this.is(';', offset)) &&
+      (typeWords.has(this.peek().value) || this.peek(1).type === 'name')
+    );
   }
 
   typedDeclaration() {
@@ -354,12 +504,21 @@ class Parser {
     const type = sourceType(words.join(' '));
     const value = this.accept('=') ? this.expression() : undefined;
     this.endStatement();
-    return node('Declaration', { name: variable, type, value, mutable: !words.includes('const') });
+    return node('Declaration', {
+      name: variable,
+      type,
+      value,
+      mutable: !words.includes('const'),
+    });
   }
 
   declaration() {
     const keyword = this.next().value;
-    const mutable = this.accept('mut') ? true : !['const', 'val', 'let'].includes(keyword) || this.syntax.id === 'javascript' || this.syntax.id === 'typescript';
+    const mutable = this.accept('mut')
+      ? true
+      : !['const', 'val', 'let'].includes(keyword) ||
+        this.syntax.id === 'javascript' ||
+        this.syntax.id === 'typescript';
     const variable = this.expectName();
     let type;
     if (this.accept(':')) {
@@ -369,36 +528,29 @@ class Parser {
     }
     const value = this.accept('=') ? this.expression() : undefined;
     this.endStatement();
-    return node('Declaration', { name: variable, type, value, mutable: keyword === 'const' ? false : mutable });
+    return node('Declaration', {
+      name: variable,
+      type,
+      value,
+      mutable: keyword === 'const' ? false : mutable,
+    });
   }
 
   simpleStatement() {
     if (this.peek().type === 'name' && this.is(':=', 1)) {
-      const variable = this.next().value;
-      this.next();
-      const value = this.expression();
-      this.endStatement();
-      return node('Declaration', { name: variable, value, mutable: true });
+      return this.shortDeclaration();
     }
     if ((this.is('++') || this.is('--')) && this.peek(1).type === 'name') {
-      const operator = this.next().value === '++' ? '+=' : '-=';
-      const variable = this.next().value;
-      this.endStatement();
-      return node('Assignment', { name: variable, operator, value: number(1) });
+      return this.prefixStep();
     }
-    if (this.peek().type === 'name' && ['=', '+=', '-=', '*=', '/=', '%=', '++', '--'].some((symbol) => this.is(symbol, 1))) {
-      const variable = this.next().value;
-      const operator = this.next().value;
-      const value = operator === '++' || operator === '--' ? number(1) : this.expression();
-      this.endStatement();
-      return node('Assignment', { name: variable, operator: operator === '++' ? '+=' : operator === '--' ? '-=' : operator, value });
+    if (
+      this.peek().type === 'name' &&
+      assignmentSymbols.some((symbol) => this.is(symbol, 1))
+    ) {
+      return this.assignment();
     }
     if (this.isCommandCall()) {
-      const callee = this.next().value;
-      const values = [this.expression()];
-      while (this.accept(',')) values.push(this.expression());
-      this.endStatement();
-      return node('Evaluate', { expression: node('Call', { callee, arguments: values }) });
+      return this.commandCall();
     }
     const expression = this.expression();
     const terminated = this.is(';');
@@ -409,19 +561,69 @@ class Parser {
     return node('Evaluate', { expression });
   }
 
+  // Go: name := value
+  shortDeclaration() {
+    const variable = this.next().value;
+    this.next();
+    const value = this.expression();
+    this.endStatement();
+    return node('Declaration', { name: variable, value, mutable: true });
+  }
+
+  // ++name and --name
+  prefixStep() {
+    const operator = stepOperators[this.next().value];
+    const variable = this.next().value;
+    this.endStatement();
+    return node('Assignment', { name: variable, operator, value: number(1) });
+  }
+
+  // name = value, name += value, name++ ...
+  assignment() {
+    const variable = this.next().value;
+    const written = this.next().value;
+    const operator = stepOperators[written] ?? written;
+    const value = stepOperators[written] ? number(1) : this.expression();
+    this.endStatement();
+    return node('Assignment', { name: variable, operator, value });
+  }
+
+  // Calls written without parentheses: puts value, print value
+  commandCall() {
+    const callee = this.next().value;
+    const values = [this.expression()];
+    while (this.accept(',')) {
+      values.push(this.expression());
+    }
+    this.endStatement();
+    return node('Evaluate', {
+      expression: node('Call', { callee, arguments: values }),
+    });
+  }
+
   // Ruby allows calls without parentheses, such as `puts "Hello"`.
   isCommandCall() {
-    if (this.syntax.id !== 'ruby' || this.peek().type !== 'name') return false;
+    if (this.syntax.id !== 'ruby' || this.peek().type !== 'name') {
+      return false;
+    }
     const following = this.peek(1);
-    return ['text', 'number', 'name'].includes(following.type) && following.line === this.peek().line && !['do', 'then', 'if'].includes(following.value);
+    return (
+      ['text', 'number', 'name'].includes(following.type) &&
+      following.line === this.peek().line &&
+      !['do', 'then', 'if'].includes(following.value)
+    );
   }
 
   echoStatement() {
     this.next();
     const values = [this.expression()];
-    while (this.accept(',')) values.push(this.expression());
+    while (this.accept(',')) {
+      values.push(this.expression());
+    }
     this.endStatement();
-    return node('Evaluate', { expression: node('Call', { callee: 'echo', arguments: values }) });
+    return node('Evaluate', {
+      expression: node('Call', { callee: 'echo', arguments: values }),
+    });
   }
 
   condition() {
@@ -461,8 +663,12 @@ class Parser {
 
   skipBlankLinesBeforeElse() {
     let offset = 0;
-    while (this.peek(offset).type === 'newline') offset += 1;
-    if (['else', 'elif', 'elsif', 'elseif'].some((word) => this.is(word, offset))) {
+    while (this.peek(offset).type === 'newline') {
+      offset += 1;
+    }
+    if (
+      ['else', 'elif', 'elsif', 'elseif'].some((word) => this.is(word, offset))
+    ) {
       this.position += offset;
     }
   }
@@ -477,16 +683,25 @@ class Parser {
 
   forStatement() {
     this.next();
-    const parenthesized = this.syntax.id !== 'go' && this.is('(') && (this.syntax.id === 'kotlin' || this.syntax.blocks === 'braces');
-    if (parenthesized) this.expect('(');
+    const parenthesized =
+      this.syntax.id !== 'go' &&
+      this.is('(') &&
+      (this.syntax.id === 'kotlin' || this.syntax.blocks === 'braces');
+    if (parenthesized) {
+      this.expect('(');
+    }
     // C family: for (init; condition; update)
-    const isClassic = this.tokensUntilBlock().some((token) => token.value === ';');
+    const isClassic = this.tokensUntilBlock().some(
+      (token) => token.value === ';'
+    );
     if (isClassic) {
       const initial = this.statement();
       const condition = this.expression();
       this.expect(';');
       const update = this.forUpdate();
-      if (parenthesized) this.expect(')');
+      if (parenthesized) {
+        this.expect(')');
+      }
       const body = this.block();
       return countingLoop(initial, condition, update, body);
     }
@@ -502,11 +717,53 @@ class Parser {
       const last = this.expression();
       const body = this.block();
       this.closeKeywordBlock();
-      return node('CountingLoop', { variable, start, end: add(last, number(1)), body });
+      return node('CountingLoop', {
+        variable,
+        start,
+        end: add(last, number(1)),
+        body,
+      });
     }
     this.expect('in');
     const range = this.rangeExpression();
-    if (parenthesized) this.expect(')');
+    if (parenthesized) {
+      this.expect(')');
+    }
+    const body = this.block();
+    this.closeKeywordBlock();
+    return node('CountingLoop', { variable, ...range, body });
+  }
+
+  // Ruby: (first..last).each do |variable| ... end
+  isRangeEach() {
+    if (!this.is('(')) {
+      return false;
+    }
+    let depth = 0;
+    for (let offset = 0; ; offset += 1) {
+      const token = this.peek(offset);
+      if (token.type === 'end' || token.type === 'newline') {
+        return false;
+      }
+      if (token.value === '(') {
+        depth += 1;
+      }
+      if (token.value === ')' && --depth === 0) {
+        return this.is('.', offset + 1) && this.is('each', offset + 2);
+      }
+    }
+  }
+
+  rangeEach() {
+    this.expect('(');
+    const range = this.rangeExpression();
+    this.expect(')');
+    this.expect('.');
+    this.expect('each');
+    this.expect('do');
+    this.expect('|');
+    const variable = this.expectName();
+    this.expect('|');
     const body = this.block();
     this.closeKeywordBlock();
     return node('CountingLoop', { variable, ...range, body });
@@ -516,7 +773,13 @@ class Parser {
     const tokens = [];
     for (let offset = 0; ; offset += 1) {
       const token = this.peek(offset);
-      if (token.type === 'end' || token.value === '{' || token.type === 'newline') return tokens;
+      if (
+        token.type === 'end' ||
+        token.value === '{' ||
+        token.type === 'newline'
+      ) {
+        return tokens;
+      }
       tokens.push(token);
     }
   }
@@ -524,9 +787,16 @@ class Parser {
   forUpdate() {
     const variable = this.expectName();
     const operator = this.next().value;
-    if (operator === '++') return { name: variable, step: 1 };
-    if (operator === '+=') return { name: variable, step: this.expression().value };
-    throw new SyntaxError('Only counting loops with increasing steps are supported', this.peek().line);
+    if (operator === '++') {
+      return { name: variable, step: 1 };
+    }
+    if (operator === '+=') {
+      return { name: variable, step: this.expression().value };
+    }
+    throw new SyntaxError(
+      'Only counting loops with increasing steps are supported',
+      this.peek().line
+    );
   }
 
   rangeExpression() {
@@ -536,7 +806,9 @@ class Parser {
       const first = this.expression();
       const second = this.accept(',') ? this.expression() : undefined;
       this.expect(')');
-      return second ? { start: first, end: second } : { start: number(0), end: first };
+      return second
+        ? { start: first, end: second }
+        : { start: number(0), end: first };
     }
     const start = this.additive();
     const operator = this.next().value;
@@ -546,13 +818,20 @@ class Parser {
       case '..<':
         return { start, end: last };
       case '...':
-        return this.syntax.id === 'ruby' ? { start, end: last } : { start, end: add(last, number(1)) };
+        return this.syntax.id === 'ruby'
+          ? { start, end: last }
+          : { start, end: add(last, number(1)) };
       case '..':
-        return this.syntax.id === 'rust' ? { start, end: last } : { start, end: add(last, number(1)) };
+        return this.syntax.id === 'rust'
+          ? { start, end: last }
+          : { start, end: add(last, number(1)) };
       case '..=':
         return { start, end: add(last, number(1)) };
       default:
-        throw new SyntaxError(`Unsupported range operator "${operator}"`, this.peek().line);
+        throw new SyntaxError(
+          `Unsupported range operator "${operator}"`,
+          this.peek().line
+        );
     }
   }
 
@@ -572,13 +851,25 @@ class Parser {
     let left = this.binary(level + 1);
     while (true) {
       const token = this.peek();
-      const operator = Object.entries(binaryLevels[level]).find(([, surfaces]) => surfaces.includes(token.value) && (token.type === 'symbol' || token.type === 'name'));
+      const operator = Object.entries(binaryLevels[level]).find(
+        ([, surfaces]) =>
+          surfaces.includes(token.value) &&
+          (token.type === 'symbol' || token.type === 'name')
+      );
       if (!operator) {
         // C++ stream output: std::cout << a << b
         // PHP joins text with "."
-        if (level === 4 && token.type === 'symbol' && token.value === this.syntax.operators.concatenate) {
+        if (
+          level === 4 &&
+          token.type === 'symbol' &&
+          token.value === this.syntax.operators.concatenate
+        ) {
           this.next();
-          left = node('Binary', { operator: 'concatenate', left, right: this.binary(level + 1) });
+          left = node('Binary', {
+            operator: 'concatenate',
+            left,
+            right: this.binary(level + 1),
+          });
           continue;
         }
         if (level === 4 && token.value === '<<') {
@@ -589,7 +880,9 @@ class Parser {
         }
         return left;
       }
-      if (token.value === '..' && this.syntax.id !== 'lua') return left;
+      if (token.value === '..' && this.syntax.id !== 'lua') {
+        return left;
+      }
       this.next();
       const right = this.binary(level + 1);
       left = node('Binary', { operator: operator[0], left, right });
@@ -599,7 +892,9 @@ class Parser {
   unary() {
     if (this.accept('-')) {
       const operand = this.unary();
-      return operand.kind === 'Number' ? number(-operand.value) : node('Unary', { operator: 'negate', operand });
+      return operand.kind === 'Number'
+        ? number(-operand.value)
+        : node('Unary', { operator: 'negate', operand });
     }
     if (this.accept('!') || this.accept('not')) {
       return node('Unary', { operator: 'not', operand: this.unary() });
@@ -610,9 +905,15 @@ class Parser {
   postfix() {
     let expression = this.primary();
     while (true) {
-      if (((this.is('.') && this.syntax.operators.concatenate !== '.') || this.is('::')) && this.peek(1).type === 'name') {
+      if (
+        ((this.is('.') && this.syntax.operators.concatenate !== '.') ||
+          this.is('::')) &&
+        this.peek(1).type === 'name'
+      ) {
         const separator = this.next().value;
-        expression = name(`${calleeName(expression)}${separator}${this.next().value}`);
+        expression = name(
+          `${calleeName(expression)}${separator}${this.next().value}`
+        );
         continue;
       }
       if (this.is('(')) {
@@ -622,14 +923,21 @@ class Parser {
           if (this.peek().type === 'name' && this.is('=', 1)) {
             const label = this.next().value;
             this.next();
-            values.push(node('NamedArgument', { name: label, value: this.expression() }));
+            values.push(
+              node('NamedArgument', { name: label, value: this.expression() })
+            );
           } else {
             values.push(this.expression());
           }
-          if (!this.accept(',')) break;
+          if (!this.accept(',')) {
+            break;
+          }
         }
         this.expect(')');
-        expression = node('Call', { callee: calleeName(expression), arguments: values });
+        expression = node('Call', {
+          callee: calleeName(expression),
+          arguments: values,
+        });
         continue;
       }
       return expression;
@@ -644,8 +952,12 @@ class Parser {
       case 'text':
         return this.textLiteral(token);
       case 'name':
-        if (['true', 'True'].includes(token.value)) return node('Boolean', { value: true });
-        if (['false', 'False'].includes(token.value)) return node('Boolean', { value: false });
+        if (['true', 'True'].includes(token.value)) {
+          return node('Boolean', { value: true });
+        }
+        if (['false', 'False'].includes(token.value)) {
+          return node('Boolean', { value: false });
+        }
         return name(token.value);
       case 'symbol':
         if (token.value === '(') {
@@ -657,13 +969,23 @@ class Parser {
       default:
         break;
     }
-    throw new SyntaxError(`Unexpected "${token.value || token.type}" in expression`, token.line);
+    throw new SyntaxError(
+      `Unexpected "${token.value || token.type}" in expression`,
+      token.line
+    );
   }
 
   textLiteral(token) {
-    const style = token.quote === "'" && ['php', 'ruby'].includes(this.syntax.id) ? 'plain' : token.style;
+    const style =
+      token.quote === "'" && ['php', 'ruby'].includes(this.syntax.id)
+        ? 'plain'
+        : token.style;
     if (style === 'plain' || !style) {
-      return text(token.quote === "'" && this.syntax.id === 'php' ? token.value : decodeEscapes(token.value));
+      return text(
+        token.quote === "'" && this.syntax.id === 'php'
+          ? token.value
+          : decodeEscapes(token.value)
+      );
     }
     const parts = [];
     for (const piece of splitInterpolation(token.value, style)) {
@@ -671,10 +993,17 @@ class Parser {
         parts.push(text(decodeEscapes(piece)));
       } else {
         const innerSyntax = { ...this.syntax, variableSigil: '$' };
-        parts.push(new Parser(tokenize(piece.code, innerSyntax), innerSyntax).expression());
+        parts.push(
+          new Parser(
+            tokenize(piece.code, innerSyntax),
+            innerSyntax
+          ).expression()
+        );
       }
     }
-    if (parts.length === 1 && parts[0].kind === 'Text') return parts[0];
+    if (parts.length === 1 && parts[0].kind === 'Text') {
+      return parts[0];
+    }
     return node('Interpolation', { parts });
   }
 }
@@ -684,7 +1013,10 @@ const interpolationOpeners = {
   braces: [['{', '}']],
   'dollar-braces': [['${', '}']],
   'hash-braces': [['#{', '}']],
-  dollar: [['${', '}'], ['{$', '}', '$']],
+  dollar: [
+    ['${', '}'],
+    ['{$', '}', '$'],
+  ],
   'backslash-parentheses': [['\\(', ')']],
 };
 
@@ -693,54 +1025,80 @@ const interpolationOpeners = {
 function splitInterpolation(value, style) {
   const pieces = [];
   let literal = '';
+  const flush = () => {
+    if (literal) {
+      pieces.push(literal);
+    }
+    literal = '';
+  };
   let index = 0;
   while (index < value.length) {
-    if (value[index] === '\\' && style !== 'backslash-parentheses') {
-      literal += value.slice(index, index + 2);
-      index += 2;
+    const code = embeddedCode(value, index, style);
+    if (code) {
+      flush();
+      pieces.push({ code: code.code });
+      index = code.end;
       continue;
     }
-    if (style === 'braces' && (value.startsWith('{{', index) || value.startsWith('}}', index))) {
-      literal += value[index];
-      index += 2;
-      continue;
-    }
-    const opener = interpolationOpeners[style].find(([open]) => value.startsWith(open, index));
-    const variable = style === 'dollar' && !opener && /^\$[A-Za-z_]\w*/.exec(value.slice(index));
-    if (variable) {
-      if (literal) pieces.push(literal);
-      literal = '';
-      pieces.push({ code: variable[0].slice(1) });
-      index += variable[0].length;
-      continue;
-    }
-    if (!opener) {
-      if (value[index] === '\\') {
-        literal += value.slice(index, index + 2);
-        index += 2;
-      } else {
-        literal += value[index];
-        index += 1;
-      }
-      continue;
-    }
-    const [open, close, keep = ''] = opener;
-    const inner = close === '}' ? '{' : '(';
-    let depth = 1;
-    let end = index + open.length;
-    while (end < value.length && depth > 0) {
-      if (value[end] === inner) depth += 1;
-      else if (value[end] === close) depth -= 1;
-      end += 1;
-    }
-    if (depth !== 0) throw new SyntaxError(`Unclosed "${open}" in text`, 0);
-    if (literal) pieces.push(literal);
-    literal = '';
-    pieces.push({ code: keep + value.slice(index + open.length, end - 1) });
-    index = end;
+    const length = literalLength(value, index, style);
+    // A doubled brace stands for one brace.
+    literal +=
+      length === 2 && value[index] !== '\\'
+        ? value[index]
+        : value.slice(index, index + length);
+    index += length;
   }
-  if (literal) pieces.push(literal);
+  flush();
   return pieces;
+}
+
+// How many characters of literal text start at index: an escape sequence or
+// a doubled brace counts as two.
+function literalLength(value, index, style) {
+  if (value[index] === '\\' && style !== 'backslash-parentheses') {
+    return 2;
+  }
+  if (
+    style === 'braces' &&
+    (value.startsWith('{{', index) || value.startsWith('}}', index))
+  ) {
+    return 2;
+  }
+  return value[index] === '\\' && !value.startsWith('\\(', index) ? 2 : 1;
+}
+
+// Code embedded in text at index, with the index just after it.
+function embeddedCode(value, index, style) {
+  if (literalLength(value, index, style) === 2) {
+    return undefined;
+  }
+  const opener = interpolationOpeners[style].find(([open]) =>
+    value.startsWith(open, index)
+  );
+  if (!opener) {
+    const variable =
+      style === 'dollar' && /^\$[A-Za-z_]\w*/.exec(value.slice(index));
+    return variable
+      ? { code: variable[0].slice(1), end: index + variable[0].length }
+      : undefined;
+  }
+  const [open, close, keep = ''] = opener;
+  const end = closingIndex(value, index + open.length, close);
+  return { code: keep + value.slice(index + open.length, end - 1), end };
+}
+
+// The index just after the bracket that closes one already opened.
+function closingIndex(value, start, close) {
+  const inner = close === '}' ? '{' : '(';
+  let depth = 1;
+  let end = start;
+  for (; end < value.length && depth > 0; end += 1) {
+    depth += value[end] === inner ? 1 : value[end] === close ? -1 : 0;
+  }
+  if (depth !== 0) {
+    throw new SyntaxError(`Unclosed "${inner}" in text`, 0);
+  }
+  return end;
 }
 
 function calleeName(expression) {
@@ -752,21 +1110,55 @@ function calleeName(expression) {
 
 function countingLoop(initial, condition, update, body) {
   const variable = initial.name;
-  const ok = (initial.kind === 'Declaration' || initial.kind === 'Assignment') && condition.kind === 'Binary' && condition.left.kind === 'Name' && condition.left.name === variable && update.name === variable && update.step === 1;
+  const ok =
+    (initial.kind === 'Declaration' || initial.kind === 'Assignment') &&
+    condition.kind === 'Binary' &&
+    condition.left.kind === 'Name' &&
+    condition.left.name === variable &&
+    update.name === variable &&
+    update.step === 1;
   if (!ok || !['less', 'lessOrEqual'].includes(condition.operator)) {
-    throw new SyntaxError('Only counting loops of the form for (i = a; i < b; i++) are supported', 0);
+    throw new SyntaxError(
+      'Only counting loops of the form for (i = a; i < b; i++) are supported',
+      0
+    );
   }
-  const end = condition.operator === 'less' ? condition.right : add(condition.right, number(1));
+  const end =
+    condition.operator === 'less'
+      ? condition.right
+      : add(condition.right, number(1));
   return node('CountingLoop', { variable, start: initial.value, end, body });
 }
 
 // Map a source type spelling to a meta type.
 export function sourceType(spelling) {
-  const words = spelling.replace(/\b(const|static|unsigned|signed|mut)\b/g, '').replace(/\s+/g, ' ').trim();
-  if (/^(int|long|short|i8|i16|i32|i64|isize|u8|u16|u32|u64|usize|Int|Long|number|integer)$/.test(words)) return 'integer';
-  if (/^(char ?\*|std ?:: ?string|string|String|& ?str|&'static str)$/.test(words)) return 'text';
-  if (/^(bool|boolean|Bool|Boolean)$/.test(words)) return 'boolean';
-  if (/^(void|\(\)|Unit|Void)$/.test(words)) return 'nothing';
-  if (words === '' || words === 'var' || words === 'auto') return undefined;
+  const words = spelling
+    .replace(/\b(const|static|unsigned|signed|mut)\b/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (
+    /^(int|long|short|i8|i16|i32|i64|isize|u8|u16|u32|u64|usize|Int|Long|number|integer)$/.test(
+      words
+    )
+  ) {
+    return 'integer';
+  }
+  if (
+    /^(char ?\*|std ?:: ?string|string|String|& ?str|&'static str)$/.test(words)
+  ) {
+    return 'text';
+  }
+  if (/^(bool|boolean|Bool|Boolean)$/.test(words)) {
+    return 'boolean';
+  }
+  if (/^(void|\(\)|Unit|Void)$/.test(words)) {
+    return 'nothing';
+  }
+  if (words === '' || words === 'var' || words === 'auto') {
+    return undefined;
+  }
   return `source:${words}`;
 }
+
+const assignmentSymbols = ['=', '+=', '-=', '*=', '/=', '%=', '++', '--'];
+const stepOperators = { '++': '+=', '--': '-=' };
