@@ -20,6 +20,11 @@ export default `profile:
       source:
         (line: 'Tulis teks “{{message}}” ke keluaran standar, lalu tulis karakter baris baru.')
     form:
+      task: browser-alert
+      name: standard
+      source:
+        (line: 'Buka dialog peringatan pada peramban yang menampilkan teks “{{message}}” dan tunggu hingga pengguna menutupnya.')
+    form:
       task: write-text
       name: standard
       source:
@@ -121,6 +126,11 @@ profile:
       name: standard
       source:
         (line: 'Schreibe den Text „{{message}}“ auf die Standardausgabe, gefolgt von einem Zeilenumbruch.')
+    form:
+      task: browser-alert
+      name: standard
+      source:
+        (line: 'Öffnen Sie im Browser einen Hinweisdialog mit dem Text „{{message}}“ und warten Sie, bis der Benutzer ihn schließt.')
     form:
       task: write-text
       name: standard
@@ -224,6 +234,11 @@ profile:
       source:
         (line: 文字列「{{message}}」を標準出力に書き込み、その後に改行する。)
     form:
+      task: browser-alert
+      name: standard
+      source:
+        (line: 'ブラウザーで「{{message}}」と表示するアラートを開き、ユーザーが閉じるまで待機する。')
+    form:
       task: write-text
       name: standard
       source:
@@ -325,6 +340,11 @@ profile:
       name: standard
       source:
         (line: 'Andika maandishi “{{message}}” kwenye pato la kawaida, kisha andika alama ya mstari mpya.')
+    form:
+      task: browser-alert
+      name: standard
+      source:
+        (line: 'Fungua kisanduku cha arifa kwenye kivinjari chenye maandishi “{{message}}” na usubiri mtumiaji akifunge.')
     form:
       task: write-text
       name: standard
@@ -428,6 +448,11 @@ profile:
       source:
         (line: 'प्रमाणित आउटपुटवर “{{message}}” हा मजकूर लिहा आणि त्यानंतर नवीन ओळ द्या.')
     form:
+      task: browser-alert
+      name: standard
+      source:
+        (line: 'ब्राउझरमध्ये “{{message}}” हा मजकूर दाखवणारा सूचना संवाद उघडा आणि वापरकर्ता तो बंद करेपर्यंत थांबा.')
+    form:
       task: write-text
       name: standard
       source:
@@ -529,6 +554,11 @@ profile:
       name: standard
       source:
         (line: 'ప్రామాణిక అవుట్‌పుట్‌కు “{{message}}” అనే పాఠ్యాన్ని రాసి, తర్వాత కొత్త పంక్తిని రాయండి.')
+    form:
+      task: browser-alert
+      name: standard
+      source:
+        (line: 'బ్రౌజర్‌లో “{{message}}” అనే పాఠ్యంతో హెచ్చరిక సంభాషణ పెట్టెను తెరవండి. వినియోగదారు దాన్ని మూసే వరకు వేచి ఉండండి.')
     form:
       task: write-text
       name: standard
@@ -632,6 +662,11 @@ profile:
       source:
         (line: 'Standart çıktıya “{{message}}” metnini yaz, ardından bir satır sonu yaz.')
     form:
+      task: browser-alert
+      name: standard
+      source:
+        (line: 'Tarayıcıda “{{message}}” metnini içeren bir uyarı penceresi açın ve kullanıcının pencereyi kapatmasını bekleyin.')
+    form:
       task: write-text
       name: standard
       source:
@@ -733,6 +768,11 @@ profile:
       name: standard
       source:
         (line: '“{{message}}” என்ற உரையை நிலையான வெளியீட்டில் எழுதி, பிறகு ஒரு புதிய வரியை எழுதவும்.')
+    form:
+      task: browser-alert
+      name: standard
+      source:
+        (line: 'உலாவியில் “{{message}}” என்ற உரையைக் காட்டும் எச்சரிக்கைப் பெட்டியைத் திறந்து, பயனர் அதை மூடும் வரை காத்திருக்கவும்.')
     form:
       task: write-text
       name: standard
@@ -836,6 +876,11 @@ profile:
       source:
         (line: 'Ghi văn bản “{{message}}” ra đầu ra chuẩn, rồi ghi một ký tự xuống dòng.')
     form:
+      task: browser-alert
+      name: standard
+      source:
+        (line: 'Mở hộp thoại cảnh báo trên trình duyệt hiển thị văn bản “{{message}}” và chờ người dùng đóng hộp thoại.')
+    form:
       task: write-text
       name: standard
       source:
@@ -937,6 +982,11 @@ profile:
       name: standard
       source:
         (line: '표준 출력에 텍스트 “{{message}}”를 쓰고 줄을 바꾼다.')
+    form:
+      task: browser-alert
+      name: standard
+      source:
+        (line: '브라우저에서 “{{message}}” 문구를 표시하는 경고 대화 상자를 열고 사용자가 닫을 때까지 기다린다.')
     form:
       task: write-text
       name: standard

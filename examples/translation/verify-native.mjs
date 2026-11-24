@@ -26,7 +26,8 @@ import {
 } from './fixtures.mjs';
 
 const translator = createTranslator();
-const effects = exampleEffects();
+// Browser alerts run in the pinned corpus check with a real browser host.
+const effects = exampleEffects().filter(({ task }) => task !== 'browser-alert');
 const localized = localizedGreetings().filter(({ message }) =>
   ["S'mae byd!", 'こんにちは、 世界！', 'ជំរាបសួរ ពិភពលោក'].includes(message)
 );

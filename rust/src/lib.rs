@@ -24,6 +24,7 @@ pub use source_document::SourceDocument;
 #[serde(tag = "task", rename_all = "kebab-case")]
 pub enum Effect {
     Hello { message: String },
+    BrowserAlert { message: String },
     WriteText { message: String },
     EmptyProgram { status: u32 },
     AckermannFunction { left: u32, right: u32 },
@@ -44,6 +45,7 @@ impl Effect {
     pub fn task(&self) -> &'static str {
         match self {
             Self::Hello { .. } => "hello",
+            Self::BrowserAlert { .. } => "browser-alert",
             Self::WriteText { .. } => "write-text",
             Self::EmptyProgram { .. } => "empty-program",
             Self::AckermannFunction { .. } => "ackermann-function",
@@ -63,7 +65,9 @@ impl Effect {
 
     fn fields(&self) -> Vec<(&'static str, String)> {
         match self {
-            Self::Hello { message } | Self::WriteText { message } => {
+            Self::Hello { message }
+            | Self::BrowserAlert { message }
+            | Self::WriteText { message } => {
                 vec![("message", message.clone())]
             }
             Self::GcdFunction { max } => vec![("max", max.to_string())],
@@ -97,6 +101,9 @@ impl Effect {
         };
         let effect = match task {
             "hello" if fields.len() == 1 => Self::Hello {
+                message: fields.get("message")?.clone(),
+            },
+            "browser-alert" if fields.len() == 1 => Self::BrowserAlert {
                 message: fields.get("message")?.clone(),
             },
             "write-text" if fields.len() == 1 => Self::WriteText {
@@ -182,7 +189,9 @@ impl Effect {
 
     fn validate(&self) -> Result<(), String> {
         let valid = match self {
-            Self::Hello { message } | Self::WriteText { message } => {
+            Self::Hello { message }
+            | Self::BrowserAlert { message }
+            | Self::WriteText { message } => {
                 static MESSAGE: OnceLock<Regex> = OnceLock::new();
                 message.len() <= 96
                     && !message

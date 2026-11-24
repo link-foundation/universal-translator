@@ -175,6 +175,13 @@ Set `ROSETTA_LEGACY_RUSTC` to the extracted `rustc` executable to reuse it.
 The native count on other platforms excludes this listing when that compiler
 is unavailable.
 For Empty Program they verify exit status 0 and both output streams.
+Hello World Newbie has two console specimens and a JavaScript browser alert.
+The alert check compiles the translated Rust source to WebAssembly and uses
+the [browser import](browser-alert-wasm.mjs) to decode the message and open
+the dialog. Playwright intercepts and dismisses the actual alert in Google
+Chrome. Both programs must produce one alert with the original greeting.
+The Ubuntu runner provides Chrome. For a local replay, install Chrome and
+run `rustup target add wasm32-unknown-unknown` before running the driver.
 
 ```sh
 archive=$(mktemp)
@@ -228,10 +235,11 @@ node examples/translation/report-coverage.mjs \
 ```
 
 To check the Rosetta Code task directories and the sample counts for the
-five modeled tasks, also pass a directory containing the pinned Git Trees
+six modeled tasks, also pass a directory containing the pinned Git Trees
 responses. This mode downloads thirteen pinned Hello World Text files, fourteen
-FizzBuzz files, five GCD files, one Empty Program, and seven Ackermann
-sources from GitHub. It checks their blob hashes, exact round trips, and
+FizzBuzz files, five GCD files, one Empty Program, seven Ackermann files,
+and three Hello World Newbie sources from GitHub. It checks their blob hashes,
+exact round trips, and
 effects in both runtimes. The Ackermann checks cover callable inputs,
 command-line inputs, the standalone decimal result, and the compact JSON
 array printed by the pinned JavaScript listing.
@@ -251,6 +259,8 @@ gh api "$rosetta_api/301be355b23d72e65bdea09ec463057b370502c8?recursive=1" \
   > "$rosetta_trees/Empty-program.json"
 gh api "$rosetta_api/723cbc36ff1dac44417f312a4a594a6cffa2aadb?recursive=1" \
   > "$rosetta_trees/Ackermann-function.json"
+gh api "$rosetta_api/aec40331f71266270b317cabf5b13618c110380a?recursive=1" \
+  > "$rosetta_trees/Hello-world-Newbie.json"
 node examples/translation/report-coverage.mjs \
   /path/to/popular-tasks /path/to/hello-world-collection.html \
   ./target/debug/universal-translator "$rosetta_trees"

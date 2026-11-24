@@ -19,6 +19,11 @@ profile:
       source:
         (line: 'Write the text “{{message}}” to standard output, then write a newline.')
     form:
+      task: browser-alert
+      name: standard
+      source:
+        (line: 'Open a browser alert containing the text “{{message}}” and wait for the user to dismiss it.')
+    form:
       task: write-text
       name: standard
       source:
@@ -120,6 +125,11 @@ profile:
       name: standard
       source:
         (line: 向标准输出写入文本“{{message}}”，然后换行。)
+    form:
+      task: browser-alert
+      name: standard
+      source:
+        (line: '打开显示文本“{{message}}”的浏览器警告对话框，并等待用户关闭它。')
     form:
       task: write-text
       name: standard
@@ -223,6 +233,11 @@ profile:
       source:
         (line: 'मानक आउटपुट पर “{{message}}” लिखें, फिर एक नई पंक्ति लिखें।')
     form:
+      task: browser-alert
+      name: standard
+      source:
+        (line: 'ब्राउज़र में “{{message}}” लिखा चेतावनी संवाद खोलें और उपयोगकर्ता के उसे बंद करने तक प्रतीक्षा करें।')
+    form:
       task: write-text
       name: standard
       source:
@@ -324,6 +339,11 @@ profile:
       name: standard
       source:
         (line: 'Escribe el texto «{{message}}» en la salida estándar y luego escribe un salto de línea.')
+    form:
+      task: browser-alert
+      name: standard
+      source:
+        (line: 'Abre en el navegador un cuadro de alerta con el texto «{{message}}» y espera a que el usuario lo cierre.')
     form:
       task: write-text
       name: standard
@@ -427,6 +447,11 @@ profile:
       source:
         (line: 'Écris le texte « {{message}} » sur la sortie standard, puis un saut de ligne.')
     form:
+      task: browser-alert
+      name: standard
+      source:
+        (line: 'Ouvrez dans le navigateur une boîte d’alerte contenant le texte « {{message}} » et attendez que la personne la ferme.')
+    form:
       task: write-text
       name: standard
       source:
@@ -528,6 +553,11 @@ profile:
       name: standard
       source:
         (line: 'اكتب النص «{{message}}» على المخرج القياسي، ثم اكتب محرف سطر جديد.')
+    form:
+      task: browser-alert
+      name: standard
+      source:
+        (line: 'افتح مربع تنبيه في المتصفح يحتوي على النص «{{message}}» وانتظر حتى يغلقه المستخدم.')
     form:
       task: write-text
       name: standard
@@ -631,6 +661,11 @@ profile:
       source:
         (line: 'মানক আউটপুটে “{{message}}” লেখাটি লিখুন, তারপর একটি নতুন লাইন লিখুন।')
     form:
+      task: browser-alert
+      name: standard
+      source:
+        (line: 'ব্রাউজারে “{{message}}” লেখা একটি সতর্কতা সংলাপ খুলুন এবং ব্যবহারকারী সেটি বন্ধ করা পর্যন্ত অপেক্ষা করুন।')
+    form:
       task: write-text
       name: standard
       source:
@@ -732,6 +767,11 @@ profile:
       name: standard
       source:
         (line: 'Escreva o texto «{{message}}» na saída padrão, seguido de uma quebra de linha.')
+    form:
+      task: browser-alert
+      name: standard
+      source:
+        (line: 'Abra uma caixa de alerta no navegador com o texto «{{message}}» e aguarde até que o utilizador a feche.')
     form:
       task: write-text
       name: standard
@@ -835,6 +875,11 @@ profile:
       source:
         (line: 'Выведите текст «{{message}}» в стандартный поток вывода, затем переведите строку.')
     form:
+      task: browser-alert
+      name: standard
+      source:
+        (line: 'Откройте в браузере диалог оповещения с текстом «{{message}}» и дождитесь, пока пользователь его закроет.')
+    form:
       task: write-text
       name: standard
       source:
@@ -936,6 +981,11 @@ profile:
       name: standard
       source:
         (line: 'متن «{{message}}» معیاری خروج پر لکھیں، پھر سطر بدلیں۔')
+    form:
+      task: browser-alert
+      name: standard
+      source:
+        (line: 'براؤزر میں «{{message}}» کے متن والا انتباہی مکالمہ کھولیں اور صارف کے اسے بند کرنے تک انتظار کریں۔')
     form:
       task: write-text
       name: standard

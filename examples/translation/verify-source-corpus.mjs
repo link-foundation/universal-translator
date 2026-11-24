@@ -60,12 +60,12 @@ if (!helloWorldOnly) {
       expected: Number(reference(rosetta.get(`archive-${id}-count`))),
     });
   }
-  for (const [task, name] of [
+  for (const task of [
     ...rosettaTasks(rosetta),
     ...rosettaTasks(rosetta, 'partial-tasks'),
   ]) {
     for (const program of rosettaPrograms(rosetta, task)) {
-      fixtures.set(`${name}/${program.path}`, program);
+      fixtures.set(`${task.name}/${program.path}`, program);
     }
   }
 }
@@ -87,7 +87,7 @@ for (let header; (header = readBytes(8, true)); ) {
   }
   const fixture = fixtures.get(path);
   if (fixture) {
-    if (verifyProgram(translator, document.source, fixture, rust, true)) {
+    if (await verifyProgram(translator, document.source, fixture, rust, true)) {
       assert.ok(coverage, path);
       coverage.checked += 1;
     }

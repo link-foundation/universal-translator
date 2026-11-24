@@ -14,6 +14,8 @@ Translate FizzBuzz variants that write lowercase results, quote each result, or 
 
 Translate FizzBuzz functions that print only when called or return a string joined by spaces or newlines. The native checks compare the original JavaScript listings with Rust and verify the callable and common-library forms.
 
+Translate the pinned Hello World Newbie console programs and browser alert. Rust emits a WebAssembly module that uses an explicit browser alert import. Playwright verifies both versions in Chrome.
+
 Translate an empty program between JavaScript, Rust, Links Notation, and all 20 natural-language profiles. Verify the original Rust specimen and the generated JavaScript program for a successful exit and empty output streams.
 
 Expose Meta Language grammar CST encoding and decoding in the Rust CLI and a JavaScript codec for the matching Meta Language 1.0 engine. Preserve grammar nodes, parser provenance, and UTF-8 source bytes in the exchanged Links Notation network.

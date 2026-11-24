@@ -49,6 +49,7 @@ rosetta-code:
     (task: greatest-common-divisor Greatest-common-divisor 233 751622a645e6f7c20c15145b45eed8d57b9811db 233 355)
     (task: fizz-buzz FizzBuzz 344 f0d6e89cef62f34a13bb64cd149459c97b9d9c7d 345 675)
   partial-tasks:
+    (task: hello-newbie Hello-world-Newbie 84 aec40331f71266270b317cabf5b13618c110380a 85 151 hello)
     (task: empty-program Empty-program 215 301be355b23d72e65bdea09ec463057b370502c8 215 285)
     (task: ackermann-function Ackermann-function 260 723cbc36ff1dac44417f312a4a594a6cffa2aadb 260 374)
   effect-variants:
@@ -56,6 +57,7 @@ rosetta-code:
     (variant: ackermann-json ackermann-function)
     (variant: ackermann-value ackermann-function)
     (variant: write-text hello)
+    (variant: browser-alert hello)
     (variant: gcd-function greatest-common-divisor)
     (variant: fizz-buzz-function fizz-buzz)
     (variant: fizz-buzz-lowercase fizz-buzz)
@@ -72,6 +74,10 @@ rosetta-code:
     (program: JavaScript/ackermann-function-5.js javascript rosetta ackermann-json 3 3)
     (program: Rust/ackermann-function-1.rs rust rosetta ackermann-value 3 4)
     (program: Rust/ackermann-function-2.rs rust rosetta-recursive 3 4)
+  hello-newbie-source-files:
+    (program: JavaScript/hello-world-newbie-1.js javascript standard 'Hello, World!')
+    (program: JavaScript/hello-world-newbie-2.js javascript standard 'Hello, World!' browser-alert)
+    (program: Rust/hello-world-newbie.rs rust standard 'Hello world!')
   hello-source-files:
     (program: C-sharp/hello-world-text-2.cs csharp top-level 'Hello world!')
     (program: Clojure/hello-world-text.clj clojure standard 'Hello world!')

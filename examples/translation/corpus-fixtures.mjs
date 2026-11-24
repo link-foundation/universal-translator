@@ -39,7 +39,10 @@ function decodeEffect(task, parameters) {
       assert.deepEqual(parameters, ['0']);
       return { task, status: 0 };
     case 'hello':
-      assert.ok(parameters.length === 1 || parameters[1] === 'write-text');
+      assert.ok(
+        parameters.length === 1 ||
+          ['browser-alert', 'write-text'].includes(parameters[1])
+      );
       return { task: parameters[1] ?? task, message: parameters[0] };
     case 'fizz-buzz': {
       const [limit, variant = task, separator] = parameters;
@@ -71,18 +74,22 @@ function decodeEffect(task, parameters) {
 }
 
 export function rosettaTasks(rosetta, key = 'authored-tasks') {
-  return namedLinks(rosetta.get(key), 'task').map(references);
+  return namedLinks(rosetta.get(key), 'task').map((task) => {
+    const [id, name, inventory, tree, languages, samples, effect = id] =
+      references(task);
+    return { id, name, inventory, tree, languages, samples, effect };
+  });
 }
 
 export function rosettaPrograms(rosetta, task) {
-  const programs = rosetta.get(`${task}-source-files`) ?? [];
+  const programs = rosetta.get(`${task.id}-source-files`) ?? [];
   return namedLinks(programs, 'program').map((program) => {
     const [path, language, form, ...parameters] = references(program);
     return {
       path,
       language,
       form,
-      effect: decodeEffect(task, parameters),
+      effect: decodeEffect(task.effect, parameters),
       exactForm: true,
     };
   });
@@ -159,7 +166,7 @@ function executePinnedPrograms(programs, effect, path) {
   }
 }
 
-export function verifyProgram(
+export async function verifyProgram(
   translator,
   source,
   fixture,
@@ -209,6 +216,17 @@ export function verifyProgram(
         path
       );
       if (native && exactForm) {
+        if (effect.task === 'browser-alert') {
+          const { verifyBrowserAlert } =
+            await import('./verify-browser-alert.mjs');
+          const programs = { [language]: source, [target]: translated };
+          await verifyBrowserAlert(
+            programs.javascript,
+            programs.rust,
+            effect.message
+          );
+          return true;
+        }
         if (
           document.interpretation.requires.includes(legacyRust) &&
           !process.env.ROSETTA_LEGACY_RUSTC

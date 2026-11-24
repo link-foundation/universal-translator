@@ -180,6 +180,22 @@ profile:
   output: println!
   forms:
     form:
+      task: browser-alert
+      name: standard
+      output: browser.alert_utf8
+      requires: wasm32-unknown-unknown browser
+      source:
+        (line: '#[link(wasm_import_module = "browser")]')
+        (line: 'extern "C" {')
+        (line: '    fn alert_utf8(pointer: *const u8, length: usize);')
+        (line: })
+        (line: ~1{})
+        (line: '#[no_mangle]')
+        (line: 'pub extern "C" fn show_alert() {')
+        (line: '    let message = "{{message}}";')
+        (line: '    unsafe { alert_utf8(message.as_ptr(), message.len()) };')
+        (line: })
+    form:
       task: empty-program
       name: standard
       requires: ()

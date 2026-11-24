@@ -23,6 +23,7 @@ const cSource = fixture('hello.c').replaceAll('\r\n', '\n');
 const csharpSource = fixture('hello.cs').replaceAll('\r\n', '\n');
 const expectedProfiles = {
   hello: 76,
+  'browser-alert': 23,
   'greatest-common-divisor': 72,
   'fizz-buzz': 72,
   'fizz-buzz-function': 23,

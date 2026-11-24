@@ -34,8 +34,8 @@ const byId = new Map(profiles.map((profile) => [profile.id, profile]));
 const byTask = new Set(
   profiles.flatMap(({ forms }) => forms.map(({ task }) => task))
 );
-const authoredIds = new Set(authored.map(([id]) => id));
-const implementedIds = new Set(implemented.map(([id]) => id));
+const authoredIds = new Set(authored.map(({ effect }) => effect));
+const implementedIds = new Set(implemented.map(({ effect }) => effect));
 const variants = namedLinks(rosetta.get('effect-variants'), 'variant').map(
   references
 );
@@ -100,8 +100,8 @@ if (inventoryPath) {
     [...inventoryTasks.values()].reduce((total, count) => total + count, 0),
     inventoryLanguageCount
   );
-  for (const [, task, count] of implemented) {
-    assert.equal(inventoryTasks.get(task), Number(count));
+  for (const { name, inventory } of implemented) {
+    assert.equal(inventoryTasks.get(name), Number(inventory));
   }
 }
 
@@ -133,9 +133,10 @@ if (treeDirectory) {
       tasks: inventoryOmissions.join(', '),
     })
   );
-  for (const [task, name, , sha, languageCount, sampleCount] of implemented) {
-    assert.equal(tasks.get(name), sha, name);
-    const entries = entriesFrom(name, sha);
+  for (const task of implemented) {
+    const { name, tree, languages: languageCount, samples: sampleCount } = task;
+    assert.equal(tasks.get(name), tree, name);
+    const entries = entriesFrom(name, tree);
     const languages = entries.filter(
       ({ type, path }) => type === 'tree' && !path.includes('/')
     );
@@ -151,7 +152,7 @@ if (treeDirectory) {
         samples: sampleCount,
       })
     );
-    if (rosetta.has(`${task}-source-files`)) {
+    if (rosetta.has(`${task.id}-source-files`)) {
       const hashes = new Map(samples.map(({ path, sha }) => [path, sha]));
       const root = new URL('.', reference(rosetta.get('inventory')));
       for (const program of rosettaPrograms(rosetta, task)) {
@@ -168,7 +169,7 @@ if (treeDirectory) {
         assert.equal(hash, hashes.get(path), path);
         const source = bytes.toString('utf8');
         assert.deepEqual(Buffer.from(source), bytes, path);
-        verifyProgram(translator, source, program, rustBinary);
+        await verifyProgram(translator, source, program, rustBinary);
         checkedRosetta += 1;
       }
     }
@@ -218,7 +219,7 @@ if (helloWorldPath) {
     const source = block[1]
       .replace(/<\/?a(?:\s[^>]*)?>/gu, '')
       .replace(/&(amp|gt|lt);/gu, (_, name) => entities[name]);
-    verifyProgram(
+    await verifyProgram(
       translator,
       source,
       {

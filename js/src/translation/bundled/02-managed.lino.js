@@ -8,6 +8,13 @@ export default `profile:
   output: console.log
   forms:
     form:
+      task: browser-alert
+      name: standard
+      output: alert
+      requires: browser
+      source:
+        (line: 'alert("{{message}}");')
+    form:
       task: empty-program
       name: standard
       requires: ()

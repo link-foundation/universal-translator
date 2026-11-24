@@ -14,6 +14,9 @@ export default `profile:
       task: hello
       name: standard
     form:
+      task: browser-alert
+      name: standard
+    form:
       task: write-text
       name: standard
     form:

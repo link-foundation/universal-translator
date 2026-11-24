@@ -79,13 +79,15 @@ files within language directories gives 143,457 source files across 883
 language directories. The CI archive check runs all of them through Links
 Notation source documents and compares restored bytes in both runtimes.
 The archive includes 750 Hello World Text samples, 675 FizzBuzz samples,
-355 GCD samples, 285 Empty Program samples, and 374 Ackermann samples.
+355 GCD samples, 285 Empty Program samples, 374 Ackermann samples, and 151
+Hello World Newbie samples.
 The first three tasks have forms across the programming catalog. Empty
 Program and the bounded Ackermann function have JavaScript, Rust, Links
-Notation, and 20 plain-language forms. The other 1,753 task definitions
+Notation, and 20 plain-language forms. The other 1,752 task definitions
 still need adapters and verification. The report checks thirteen original
 Hello World Text programs, fourteen FizzBuzz programs, five GCD programs, one
-Empty Program, and seven Ackermann sources against their pinned Git blob
+Empty Program, seven Ackermann sources, and three Hello World Newbie sources
+against their pinned Git blob
 hashes. It checks exact round trips and the expected effects. The
 selected JavaScript and Rust
 originals also translate in both directions through the Meta Language effect.
@@ -109,8 +111,16 @@ bytes to stdout. The verifier compiles it with the checksum-pinned Rust
 nightly from 2015-10-15 on x86-64 Linux and compares all 100 output lines
 with the translated JavaScript and an independent oracle.
 For Empty Program, it checks the exit status and both output streams. The
-native verification covers fourteen JavaScript examples out of 1,985 and
-twelve Rust examples out of 1,481 on x86-64 Linux. The remaining source
+Hello World Newbie console listings preserve each source's capitalization
+and punctuation. The third original opens a browser alert. The Rust form
+compiles to WebAssembly and imports the browser alert operation. The native
+check observes and dismisses exactly one alert with the same message for
+each program in Google Chrome. All 20 plain-language profiles distinguish the
+alert from console output.
+[Pinned browser listing](https://github.com/acmeism/RosettaCodeData/blob/1d475861d7141ef2fafff293d9339f56e4b0f5db/Task/Hello-world-Newbie/JavaScript/hello-world-newbie-2.js)
+
+Native verification covers sixteen JavaScript examples out of 1,985 and
+thirteen Rust examples out of 1,481 on x86-64 Linux. The remaining source
 variants still need effect verification.
 
 The fifth pinned Rust GCD listing comes from the published Tests section.
@@ -150,7 +160,7 @@ Collection page, in that order, to verify their checksums and reported counts
 and check the selected original programs. Pass the compiled Rust CLI as the
 third argument to compare exact round trips and Meta Language output in both
 runtimes. A fourth argument accepts the pinned Git Trees responses to verify
-the source counts and 40 original Rosetta Code programs.
+the source counts and 43 original Rosetta Code programs.
 [Reproduction commands](../../../examples/translation/README.md#verification)
 
 The portable program translator in Meta Language 1.0.0 reported semantic
