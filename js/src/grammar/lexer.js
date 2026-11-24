@@ -107,9 +107,6 @@ export function decodeEscapes(raw) {
   );
 }
 
-// Text prefixes that turn a literal into an interpolated one.
-const interpolationPrefixes = { f: 'braces', $: 'braces' };
-
 export function tokenize(source, syntax) {
   return new Lexer(source, syntax).run();
 }
@@ -129,11 +126,12 @@ class Lexer {
     this.lineStart = true;
     this.indentation = [0];
     this.depth = 0; // open brackets; newlines inside them are not significant
+    this.symbols = [...(syntax.symbols ?? []), ...symbols];
     this.readers = [
       () => this.newline(),
       () => this.space(),
-      () => this.lineComment(),
       () => this.blockComment(),
+      () => this.lineComment(),
       () => this.directive(),
       () => this.text(),
       () => this.number(),
@@ -267,9 +265,11 @@ class Lexer {
 
   text() {
     const character = this.source[this.index];
-    const prefixed =
-      Boolean(interpolationPrefixes[character]) &&
-      this.syntax.quotes.includes(this.source[this.index + 1]);
+    const prefixed = (this.syntax.interpolation ?? []).some(
+      ({ prefix }) =>
+        prefix === character &&
+        this.syntax.quotes.includes(this.source[this.index + 1])
+    );
     if (!prefixed && !this.syntax.quotes.includes(character)) {
       return false;
     }
@@ -279,7 +279,7 @@ class Lexer {
     const style = interpolationStyle(
       this.syntax,
       quote,
-      prefixed ? character : ''
+      prefixed ? character : undefined
     );
     this.push('text', raw, { quote, style });
     this.line += raw.split('\n').length - 1;
@@ -294,6 +294,11 @@ class Lexer {
     }
     this.push('number', number[0]);
     this.index += number[0].length;
+    // R writes integers as 1L and Scala long ones.
+    const suffix = this.syntax.numberSuffix ?? this.syntax.longSuffix;
+    if (suffix && this.source.startsWith(suffix, this.index)) {
+      this.index += suffix.length;
+    }
     return true;
   }
 
@@ -325,7 +330,7 @@ class Lexer {
   }
 
   symbol() {
-    const symbol = symbols.find((candidate) =>
+    const symbol = this.symbols.find((candidate) =>
       this.source.startsWith(candidate, this.index)
     );
     if (!symbol) {
@@ -347,27 +352,14 @@ class Lexer {
   }
 }
 
+// Which interpolation style a text literal uses, from the language's
+// interpolation table: each entry names a quote, an optional prefix such as
+// Python's f, and the style. Literals that match no entry are plain text.
 function interpolationStyle(syntax, quote, prefix) {
-  if (prefix === 'f' && syntax.id === 'python') {
-    return 'braces';
-  }
-  if (prefix === '$' && syntax.id === 'csharp') {
-    return 'braces';
-  }
-  if (quote === '`' && syntax.id.endsWith('script')) {
-    return 'dollar-braces';
-  }
-  if (quote === '"' && syntax.id === 'ruby') {
-    return 'hash-braces';
-  }
-  if (quote === '"' && syntax.id === 'kotlin') {
-    return 'dollar';
-  }
-  if (quote === '"' && syntax.id === 'php') {
-    return 'dollar';
-  }
-  if (quote === '"' && syntax.id === 'swift') {
-    return 'backslash-parentheses';
-  }
-  return 'plain';
+  const entry = (syntax.interpolation ?? []).find(
+    (candidate) =>
+      candidate.prefix === prefix &&
+      (candidate.quote === undefined || candidate.quote === quote)
+  );
+  return entry?.style ?? 'plain';
 }

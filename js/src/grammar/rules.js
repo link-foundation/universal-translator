@@ -11,7 +11,7 @@ import {
 } from './common-library.js';
 import { block, node, rewrite, text } from './meta.js';
 import { languageSyntax, namingConvention } from './languages.js';
-import { neutralName, renameDeclared, spellName } from './names.js';
+import { nameWords, neutralName, renameDeclared, spellName } from './names.js';
 
 // ---------------------------------------------------------------------------
 // Understanding layer
@@ -219,7 +219,24 @@ function streamParts(expression) {
   return [expression];
 }
 
-function printFromCall(call) {
+// Which kind of output procedure a call names: 'line' when it ends the line,
+// 'text' when the text carries its own line ends.
+function printKind(callee, { printCalls: own }) {
+  if (own) {
+    return own.line.includes(callee)
+      ? 'line'
+      : own.text.includes(callee)
+        ? 'text'
+        : undefined;
+  }
+  if (lineCalls.has(callee)) {
+    return 'line';
+  }
+  return textCalls.has(callee) || callee === 'echo' ? 'text' : undefined;
+}
+
+function printFromCall(call, syntax) {
+  const kind = printKind(call.callee, syntax);
   const values = call.arguments.filter(
     (value) => value.kind !== 'NamedArgument'
   );
@@ -228,7 +245,7 @@ function printFromCall(call) {
       .filter((value) => value.kind === 'NamedArgument')
       .map((value) => [value.name, value.value])
   );
-  if (lineCalls.has(call.callee)) {
+  if (kind === 'line') {
     const newline = !(
       named.end &&
       named.end.kind === 'Text' &&
@@ -239,7 +256,7 @@ function printFromCall(call) {
       newline,
     });
   }
-  if (textCalls.has(call.callee) || call.callee === 'echo') {
+  if (kind === 'text') {
     const flat = values.flatMap((value) =>
       value.kind === 'Interpolation' ? value.parts : [value]
     );
@@ -262,14 +279,15 @@ function printFromCall(call) {
 }
 
 // Replace each known output procedure with the Print concept.
-export function recognizePrint(program) {
+export function recognizePrint(program, { from } = {}) {
+  const syntax = from ? languageSyntax(from) : {};
   return rewrite(program, (current) => {
     if (current.kind !== 'Evaluate') {
       return current;
     }
     const expression = current.expression;
     if (expression.kind === 'Call') {
-      return printFromCall(expression) ?? current;
+      return printFromCall(expression, syntax) ?? current;
     }
     if (expression.kind === 'Binary' && expression.operator === 'stream') {
       const [stream, ...values] = streamParts(expression);
@@ -403,13 +421,20 @@ export function expandCompoundAssignment(program) {
 }
 
 // PHP's "." operator joins text: the same concept as an interpolation.
-export function concatenationOperator(program) {
+export function concatenationOperator(program, { from } = {}) {
+  const call = from && languageSyntax(from).concatenateCall;
   return rewrite(program, (current) => {
-    if (current.kind !== 'Binary' || current.operator !== 'concatenate') {
+    const joined =
+      current.kind === 'Binary' && current.operator === 'concatenate'
+        ? [current.left, current.right]
+        : current.kind === 'Call' && current.callee === call
+          ? current.arguments
+          : undefined;
+    if (!joined) {
       return current;
     }
     return partsToValue(
-      [current.left, current.right].flatMap((part) =>
+      joined.flatMap((part) =>
         part.kind === 'Interpolation' ? part.parts : [part]
       )
     );
@@ -424,38 +449,93 @@ export function dropParameterCopies(program) {
     ...program,
     functions: program.functions.map((item) => {
       const statements = [...item.body.statements];
-      const names = new Set(item.parameters.map((parameter) => parameter.name));
-      while (
-        statements[0]?.kind === 'Declaration' &&
-        names.has(statements[0].name) &&
-        statements[0].value?.kind === 'Name' &&
-        statements[0].value.name === statements[0].name
+      let parameters = item.parameters;
+      const copiedParameter = (statement) =>
+        statement?.kind === 'Declaration' &&
+        statement.value?.kind === 'Name' &&
+        parameters.find(
+          ({ name }) =>
+            name === statement.value.name &&
+            (name === statement.name ||
+              copyName(statement.name) === neutralName(name))
+        );
+      for (
+        let parameter = copiedParameter(statements[0]);
+        parameter;
+        parameter = copiedParameter(statements[0])
       ) {
-        statements.shift();
+        const copy = statements.shift().name;
+        parameters = parameters.map((current) =>
+          current === parameter ? { ...current, name: copy } : current
+        );
       }
-      return { ...item, body: { ...item.body, statements } };
+      return {
+        ...item,
+        parameters,
+        body: { ...item.body, statements },
+      };
     }),
   };
 }
 
-// JavaScript spells integer division `Math.trunc(a / b)` and PHP spells it
-// `intdiv(a, b)`. Both mean the meta operator "divide".
-export function integerDivisionCalls(program) {
+// The neutral name of the parameter that a copy named `name` is made from.
+const copyName = (name) => ['initial', ...nameWords(name)].join('-');
+
+// Languages without an integer division operator call a library procedure:
+// JavaScript writes `Math.trunc(a / b)`, Perl `int(a / b)`, PHP
+// `intdiv(a, b)`, Julia `div(a, b)` and Groovy `a.intdiv(b)`. Each means
+// the meta operator "divide". The language description names its spelling.
+const integerDivisionSpellings = [
+  { wrapper: 'Math.trunc' },
+  { call: 'intdiv' },
+];
+
+function integerDivision(call, { wrapper, call: callee, method }) {
+  const [first, second] = call.arguments;
+  const divide = (left, right) =>
+    node('Binary', { operator: 'divide', left, right });
+  if (
+    call.callee === wrapper &&
+    call.arguments.length === 1 &&
+    first.kind === 'Binary' &&
+    first.operator === 'divide'
+  ) {
+    return first;
+  }
+  if (call.callee === callee && call.arguments.length === 2) {
+    return divide(first, second);
+  }
+  if (method && call.callee === `.${method}` && call.arguments.length === 2) {
+    return divide(first, second);
+  }
+  // a.intdiv(b) with a named receiver reads as the callee "a.intdiv".
+  if (
+    method &&
+    call.callee.endsWith(`.${method}`) &&
+    call.arguments.length === 1
+  ) {
+    return divide(
+      { kind: 'Name', name: call.callee.slice(0, -method.length - 1) },
+      first
+    );
+  }
+  return undefined;
+}
+
+export function integerDivisionCalls(program, { from } = {}) {
+  const own = from && languageSyntax(from).integerDivision;
+  const spellings = own
+    ? [own, ...integerDivisionSpellings]
+    : integerDivisionSpellings;
   return rewrite(program, (current) => {
     if (current.kind !== 'Call') {
       return current;
     }
-    const [first, second] = current.arguments;
-    if (
-      current.callee === 'Math.trunc' &&
-      current.arguments.length === 1 &&
-      first.kind === 'Binary' &&
-      first.operator === 'divide'
-    ) {
-      return first;
-    }
-    if (current.callee === 'intdiv' && current.arguments.length === 2) {
-      return node('Binary', { operator: 'divide', left: first, right: second });
+    for (const spelling of spellings) {
+      const divided = integerDivision(current, spelling);
+      if (divided) {
+        return divided;
+      }
     }
     return current;
   });
@@ -585,8 +665,12 @@ export function commentGlossary(phrases) {
 
 // Rust, Kotlin and Swift parameters cannot be reassigned. When a function
 // assigns a parameter, the target works on a mutable local copy instead.
+// Scala cannot declare a local with the name of a parameter, so there the
+// parameter itself is renamed: `def f(initialFirst: Long)` with
+// `var first: Long = initialFirst`.
 export function copyReassignedParameters(program, { to }) {
-  if (!languageSyntax(to).immutableParameters) {
+  const immutable = languageSyntax(to).immutableParameters;
+  if (!immutable) {
     return program;
   }
   return {
@@ -599,18 +683,33 @@ export function copyReassignedParameters(program, { to }) {
         }
         return current;
       });
+      const source = (parameter) =>
+        assigned.has(parameter.name) && immutable === 'renamed'
+          ? copyName(parameter.name)
+          : parameter.name;
       const copies = item.parameters
         .filter((parameter) => assigned.has(parameter.name))
         .map((parameter) =>
           node('Declaration', {
             name: parameter.name,
             type: parameter.type,
-            value: { kind: 'Name', name: parameter.name, type: parameter.type },
+            value: {
+              kind: 'Name',
+              name: source(parameter),
+              type: parameter.type,
+            },
             mutable: true,
           })
         );
       return copies.length
-        ? { ...item, body: block([...copies, ...item.body.statements]) }
+        ? {
+            ...item,
+            parameters: item.parameters.map((parameter) => ({
+              ...parameter,
+              name: source(parameter),
+            })),
+            body: block([...copies, ...item.body.statements]),
+          }
         : item;
     }),
   };

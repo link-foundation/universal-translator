@@ -67,6 +67,16 @@ class Parser {
     this.tokens = tokens;
     this.position = 0;
     this.syntax = syntax;
+    const { remainder, integerDivide } = syntax.operators;
+    const extra = { remainder, divide: integerDivide };
+    this.levels = binaryLevels.map((level) =>
+      Object.fromEntries(
+        Object.entries(level).map(([operator, surfaces]) => [
+          operator,
+          extra[operator] ? [...surfaces, extra[operator]] : surfaces,
+        ])
+      )
+    );
   }
 
   // ---- token helpers ----
@@ -241,6 +251,13 @@ class Parser {
   }
 
   isFunctionStart() {
+    if (this.syntax.functionForm === 'assigned') {
+      return (
+        this.peek().type === 'name' &&
+        this.is(this.syntax.assignment, 1) &&
+        this.is('function', 2)
+      );
+    }
     return this.syntax.functionKeyword
       ? this.isKeywordFunctionStart()
       : this.isPrefixFunctionStart();
@@ -305,7 +322,11 @@ class Parser {
     }
     let returnType;
     let functionName;
-    if (this.syntax.functionKeyword) {
+    if (this.syntax.functionForm === 'assigned') {
+      functionName = this.expectName();
+      this.expect(this.syntax.assignment);
+      this.expect('function');
+    } else if (this.syntax.functionKeyword) {
       this.expect(this.syntax.functionKeyword);
       functionName = this.expectName();
     } else {
@@ -316,10 +337,8 @@ class Parser {
       functionName = words.pop();
       returnType = words.length ? sourceType(words.join(' ')) : undefined;
     }
-    const parameters =
-      this.peek().type === 'newline' && this.syntax.id === 'ruby'
-        ? []
-        : this.parameterList();
+    // Ruby and Perl may leave out the parentheses of a parameter list.
+    let parameters = this.is('(') ? this.parameterList() : [];
     if (
       this.accept('->') ||
       (this.syntax.returnArrow === ':' && this.accept(':'))
@@ -328,8 +347,18 @@ class Parser {
     } else if (this.syntax.typed === 'suffix' && !this.is('{')) {
       returnType = this.typeExpression();
     }
+    // Scala: def name(...): Type = { ... }
+    if (this.syntax.bodyAfter) {
+      this.accept(this.syntax.bodyAfter);
+    }
     const body = this.block();
     this.closeKeywordBlock();
+    // Perl: sub name { my ($first, $second) = @_; ... }
+    if (body.statements[0]?.kind === 'Parameters') {
+      parameters = body.statements
+        .shift()
+        .names.map((parameterName) => ({ name: parameterName }));
+    }
     return node('Function', {
       name: functionName,
       parameters,
@@ -532,6 +561,9 @@ class Parser {
   }
 
   declaration() {
+    if (this.syntax.parameters === 'unpacked' && this.is('(', 1)) {
+      return this.unpackedParameters();
+    }
     const keyword = this.next().value;
     const mutable = this.accept('mut')
       ? true
@@ -555,6 +587,22 @@ class Parser {
     });
   }
 
+  // Perl passes arguments in @_; a function names them by unpacking it.
+  unpackedParameters() {
+    this.next();
+    this.expect('(');
+    const names = [this.expectName()];
+    while (this.accept(',')) {
+      names.push(this.expectName());
+    }
+    this.expect(')');
+    this.expect('=');
+    this.expect('@');
+    this.expect('_');
+    this.endStatement();
+    return node('Parameters', { names });
+  }
+
   simpleStatement() {
     if (this.peek().type === 'name' && this.is(':=', 1)) {
       return this.shortDeclaration();
@@ -564,7 +612,9 @@ class Parser {
     }
     if (
       this.peek().type === 'name' &&
-      assignmentSymbols.some((symbol) => this.is(symbol, 1))
+      [...assignmentSymbols, this.syntax.assignment].some(
+        (symbol) => symbol && this.is(symbol, 1)
+      )
     ) {
       return this.assignment();
     }
@@ -601,7 +651,9 @@ class Parser {
   assignment() {
     const variable = this.next().value;
     const written = this.next().value;
-    const operator = stepOperators[written] ?? written;
+    const operator =
+      stepOperators[written] ??
+      (written === this.syntax.assignment ? '=' : written);
     const value = stepOperators[written] ? number(1) : this.expression();
     this.endStatement();
     return node('Assignment', { name: variable, operator, value });
@@ -622,7 +674,7 @@ class Parser {
 
   // Ruby allows calls without parentheses, such as `puts "Hello"`.
   isCommandCall() {
-    if (this.syntax.id !== 'ruby' || this.peek().type !== 'name') {
+    if (!this.syntax.commandCalls || this.peek().type !== 'name') {
       return false;
     }
     const following = this.peek(1);
@@ -728,24 +780,41 @@ class Parser {
       const condition = this.expression();
       return node('While', { condition, body: this.block() });
     }
-    const variable = this.expectName();
-    if (this.syntax.id === 'lua') {
-      this.expect('=');
-      const start = this.expression();
-      this.expect(',');
-      const last = this.expression();
-      const body = this.block();
-      this.closeKeywordBlock();
-      return node('CountingLoop', {
-        variable,
-        start,
-        end: add(last, number(1)),
-        body,
-      });
+    // Perl declares the loop variable: for my $i (...)
+    if (
+      this.syntax.declarations.includes(this.peek().value) &&
+      this.peek(1).type === 'name'
+    ) {
+      this.next();
     }
-    this.expect('in');
+    const variable = this.expectName();
+    return this.syntax.id === 'lua'
+      ? this.numericFor(variable)
+      : this.rangeFor(variable, parenthesized);
+  }
+
+  // Lua: for i = first, last do ... end
+  numericFor(variable) {
+    this.expect('=');
+    const start = this.expression();
+    this.expect(',');
+    const last = this.expression();
+    const body = this.block();
+    this.closeKeywordBlock();
+    return node('CountingLoop', {
+      variable,
+      start,
+      end: add(last, number(1)),
+      body,
+    });
+  }
+
+  // for i in range, for my $i (range), for (i <- range)
+  rangeFor(variable, parenthesized) {
+    const opener = this.syntax.forIn ?? 'in';
+    this.expect(opener);
     const range = this.rangeExpression();
-    if (parenthesized) {
+    if (opener === '(' || parenthesized) {
       this.expect(')');
     }
     const body = this.block();
@@ -845,6 +914,8 @@ class Parser {
           ? { start, end: last }
           : { start, end: add(last, number(1)) };
       case '..=':
+      case 'to': // Scala
+      case ':': // Julia and R
         return { start, end: add(last, number(1)) };
       default:
         throw new SyntaxError(
@@ -864,13 +935,13 @@ class Parser {
   }
 
   binary(level) {
-    if (level === binaryLevels.length) {
+    if (level === this.levels.length) {
       return this.unary();
     }
     let left = this.binary(level + 1);
     while (true) {
       const token = this.peek();
-      const operator = Object.entries(binaryLevels[level]).find(
+      const operator = Object.entries(this.levels[level]).find(
         ([, surfaces]) =>
           surfaces.includes(token.value) &&
           (token.type === 'symbol' || token.type === 'name')
@@ -930,6 +1001,13 @@ class Parser {
         this.peek(1).type === 'name'
       ) {
         const separator = this.next().value;
+        if (expression.kind !== 'Name') {
+          expression = node('Method', {
+            receiver: expression,
+            name: this.next().value,
+          });
+          continue;
+        }
         expression = name(
           `${calleeName(expression)}${separator}${this.next().value}`
         );
@@ -953,10 +1031,16 @@ class Parser {
           }
         }
         this.expect(')');
-        expression = node('Call', {
-          callee: calleeName(expression),
-          arguments: values,
-        });
+        expression =
+          expression.kind === 'Method'
+            ? node('Call', {
+                callee: `.${expression.name}`,
+                arguments: [expression.receiver, ...values],
+              })
+            : node('Call', {
+                callee: calleeName(expression),
+                arguments: values,
+              });
         continue;
       }
       return expression;
@@ -971,11 +1055,11 @@ class Parser {
       case 'text':
         return this.textLiteral(token);
       case 'name':
-        if (['true', 'True'].includes(token.value)) {
-          return node('Boolean', { value: true });
-        }
-        if (['false', 'False'].includes(token.value)) {
-          return node('Boolean', { value: false });
+        for (const value of [true, false]) {
+          const spellings = [String(value), this.syntax.words?.[value]];
+          if (spellings.includes(token.value)) {
+            return node('Boolean', { value });
+          }
         }
         return name(token.value);
       case 'symbol':
@@ -1037,7 +1121,15 @@ const interpolationOpeners = {
     ['{$', '}', '$'],
   ],
   'backslash-parentheses': [['\\(', ')']],
+  'dollar-doubled': [['${', '}']],
+  'dollar-parentheses': [['$(', ')']],
 };
+// Styles where $name embeds a variable.
+const dollarStyles = new Set([
+  'dollar',
+  'dollar-doubled',
+  'dollar-parentheses',
+]);
 
 // Split interpolated text into literal strings and { code } pieces. Nested
 // brackets inside the embedded expression are balanced, so "\(f(x))" works.
@@ -1083,6 +1175,9 @@ function literalLength(value, index, style) {
   ) {
     return 2;
   }
+  if (style === 'dollar-doubled' && value.startsWith('$$', index)) {
+    return 2;
+  }
   return value[index] === '\\' && !value.startsWith('\\(', index) ? 2 : 1;
 }
 
@@ -1096,7 +1191,7 @@ function embeddedCode(value, index, style) {
   );
   if (!opener) {
     const variable =
-      style === 'dollar' && /^\$[A-Za-z_]\w*/.exec(value.slice(index));
+      dollarStyles.has(style) && /^\$[A-Za-z_]\w*/.exec(value.slice(index));
     return variable
       ? { code: variable[0].slice(1), end: index + variable[0].length }
       : undefined;

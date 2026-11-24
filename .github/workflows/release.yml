@@ -457,7 +457,7 @@ jobs:
   native-translation:
     name: Native translation
     runs-on: ubuntu-24.04
-    # Typical run: about 8 minutes, mostly the Kotlin, Swift and .NET
+    # Typical run: about 12 minutes, mostly the Kotlin, Swift, Scala and .NET
     # compilers. 30min bounds a stalled toolchain download.
     timeout-minutes: 30
     concurrency:
@@ -512,7 +512,7 @@ jobs:
             -o "Dir::Etc::sourcelist=$apt_sources" -o 'Dir::Etc::sourceparts=-'
             -o Acquire::Retries=2 -o Acquire::https::Timeout=20
           )
-          packages=(lua5.4 nasm php-cli ruby jasmin-sable)
+          packages=(lua5.4 nasm php-cli ruby jasmin-sable perl r-base-core)
           sudo apt-get "${apt_options[@]}" update --error-on=any
           sudo apt-get "${apt_options[@]}" install --yes --no-install-recommends "${packages[@]}"
           # ILAsm ships as a NuGet package for each runtime identifier.
@@ -523,12 +523,43 @@ jobs:
           chmod +x "$RUNNER_TEMP/ilasm/runtimes/linux-x64/native/ilasm"
           echo "ILASM=$RUNNER_TEMP/ilasm/runtimes/linux-x64/native/ilasm" >> "$GITHUB_ENV"
 
+      - name: Install Dart, Julia, Scala and Groovy
+        timeout-minutes: 5
+        run: |
+          # Pinned official archives, checked against their SHA-256 sums.
+          # Noble's scala (2.11) and groovy (2.4) predate the runner's JDK.
+          tools="$RUNNER_TEMP/tools"
+          mkdir -p "$tools"
+          fetch() {
+            curl --fail --location --silent --show-error --retry 3 "$1" --output "$tools/$2"
+            echo "$3  $tools/$2" | sha256sum --check --quiet
+          }
+          fetch https://storage.googleapis.com/dart-archive/channels/stable/release/3.6.0/sdk/dartsdk-linux-x64-release.zip \
+            dart.zip 8e14ff436e1eec72618dabc94f421a97251f2068c9cc9ad2d3bb9d232d6155a3
+          fetch https://julialang-s3.julialang.org/bin/linux/x64/1.11/julia-1.11.2-linux-x86_64.tar.gz \
+            julia.tar.gz 8a372ad262d4d4d55a1044f4fe3bce7c9a4a3ce8c513d2470e58e8071eecd476
+          fetch https://github.com/scala/scala3/releases/download/3.3.4/scala3-3.3.4.tar.gz \
+            scala.tar.gz fd0eca29ef1f6c41874b6711e7b6514f1dc7c387c087742fb873f6e720963770
+          fetch https://archive.apache.org/dist/groovy/4.0.24/distribution/apache-groovy-binary-4.0.24.zip \
+            groovy.zip dbff36835568bec2271876f70bfcca6deb80e1b179453cca934a502ea301bb80
+          unzip -q "$tools/dart.zip" -d "$tools"
+          unzip -q "$tools/groovy.zip" -d "$tools"
+          tar -xzf "$tools/julia.tar.gz" -C "$tools"
+          tar -xzf "$tools/scala.tar.gz" -C "$tools"
+          echo "GROOVY_HOME=$tools/groovy-4.0.24" >> "$GITHUB_ENV"
+          {
+            echo "$tools/dart-sdk/bin"
+            echo "$tools/julia-1.11.2/bin"
+            echo "$tools/scala3-3.3.4/bin"
+            echo "$tools/groovy-4.0.24/bin"
+          } >> "$GITHUB_PATH"
+
       - name: Run every translation with its native toolchain
-        timeout-minutes: 8
+        timeout-minutes: 14
         env:
           LUA: lua5.4
         run: |
-          bash scripts/run-with-budget-warning.sh 300 "Native translations" \
+          bash scripts/run-with-budget-warning.sh 540 "Native translations" \
             node examples/programs/verify-native.mjs --require-all
 
       - name: Run every common library translation with its native toolchain
