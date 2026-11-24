@@ -10,9 +10,11 @@
 // --require-all turns a missing toolchain into a failure. --common-library
 // translates with the common library route and copies the library file from
 // common-library/ next to each program. LUA names the Lua
-// interpreter when it is not called lua.
+// interpreter when it is not called lua. The checks run in parallel worker
+// processes, one per CPU unless --jobs=N says otherwise; each worker takes
+// every Nth check (--shard=K/N).
 
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import {
   copyFileSync,
   mkdtempSync,
@@ -21,7 +23,7 @@ import {
   writeFileSync,
   mkdirSync,
 } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { availableParallelism, tmpdir } from 'node:os';
 import { basename, dirname, extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createGrammarTranslator } from '../../js/src/grammar/translator.js';
@@ -285,8 +287,43 @@ export function programFiles() {
   return [...listed('.'), ...listed('hand-written')];
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+// Run the checks in `jobs` worker processes and stream their output.
+function runShards(jobs) {
+  const script = fileURLToPath(import.meta.url);
   const options = process.argv.slice(2);
+  let failed = false;
+  let pending = jobs;
+  for (let shard = 0; shard < jobs; shard += 1) {
+    const child = spawn(
+      process.execPath,
+      [script, ...options, `--shard=${shard}/${jobs}`],
+      { stdio: ['ignore', 'inherit', 'inherit'] }
+    );
+    child.on('exit', (code) => {
+      failed ||= code !== 0;
+      pending -= 1;
+      if (pending === 0) {
+        process.exitCode = failed ? 1 : 0;
+      }
+    });
+  }
+}
+
+const optionValue = (options, name) =>
+  options.find((option) => option.startsWith(`--${name}=`))?.split('=')[1];
+
+if (
+  process.argv[1] === fileURLToPath(import.meta.url) &&
+  !optionValue(process.argv.slice(2), 'shard')
+) {
+  const jobs =
+    Number(optionValue(process.argv.slice(2), 'jobs')) ||
+    availableParallelism();
+  runShards(jobs);
+} else if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  const options = process.argv.slice(2);
+  const [shard, shards] = optionValue(options, 'shard').split('/').map(Number);
+  let index = -1;
   const requireAll = options.includes('--require-all');
   const commonLibrary = options.includes('--common-library');
   const chosen = options.filter((option) => !option.startsWith('--'));
@@ -299,6 +336,10 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     // The expected output is the output of the JavaScript program for the task.
     const expected = runners.javascript.run(join(folder, `${task}.js`));
     for (const target of targets) {
+      index += 1;
+      if (index % shards !== shard) {
+        continue;
+      }
       const runner = runners[target];
       const label = `${file} -> ${target}`;
       if (!available(runner.tool)) {

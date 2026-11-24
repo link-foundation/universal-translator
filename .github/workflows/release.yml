@@ -530,7 +530,7 @@ jobs:
           key: native-tools-dart3.6.0-julia1.11.2-scala3.3.4-groovy4.0.24
 
       - name: Install Dart, Julia, Scala and Groovy
-        timeout-minutes: 5
+        timeout-minutes: 3
         run: |
           # Pinned official archives, checked against their SHA-256 sums.
           # Noble's scala (2.11) and groovy (2.4) predate the runner's JDK.
