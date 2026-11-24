@@ -65,6 +65,11 @@ export default `profile:
         (line: 'For each integer, write FizzBuzz if it is divisible by both 3 and 5, Fizz if it is divisible only by 3, Buzz if it is divisible only by 5, or the integer in decimal otherwise.')
         (line: 'Write each result on its own line of standard output.')
     form:
+      task: fizz-buzz-joined
+      name: standard
+      source:
+        (line: 'Return one string containing the results for integers 1 through {{limit}} in ascending order, separated by ASCII character number {{separator}}. Use FizzBuzz for multiples of both 3 and 5, Fizz for multiples of 3 only, Buzz for multiples of 5 only, and the decimal integer otherwise.')
+    form:
       task: fizz-buzz-lowercase
       name: standard
       source:
@@ -153,6 +158,11 @@ profile:
         (line: '按升序遍历从 1 到 {{limit}} 的每个整数，包括两端。')
         (line: '对每个整数，若能同时被 3 和 5 整除则输出 FizzBuzz；若只能被 3 整除则输出 Fizz；若只能被 5 整除则输出 Buzz；否则输出该整数的十进制表示。')
         (line: 将每个结果各占一行写入标准输出。)
+    form:
+      task: fizz-buzz-joined
+      name: standard
+      source:
+        (line: '按升序处理从 1 到 {{limit}} 的整数。能同时被 3 和 5 整除的用 FizzBuzz，仅能被 3 整除的用 Fizz，仅能被 5 整除的用 Buzz，其余用十进制整数。用编号为 {{separator}} 的 ASCII 字符连接各项，返回一个字符串。')
     form:
       task: fizz-buzz-lowercase
       name: standard
@@ -243,6 +253,11 @@ profile:
         (line: 'यदि संख्या 3 और 5 दोनों से विभाज्य है तो FizzBuzz, केवल 3 से तो Fizz, केवल 5 से तो Buzz, अन्यथा संख्या को दशमलव में लिखें।')
         (line: 'हर परिणाम को मानक आउटपुट पर अलग पंक्ति में लिखें।')
     form:
+      task: fizz-buzz-joined
+      name: standard
+      source:
+        (line: '1 से {{limit}} तक के पूर्णांकों के परिणाम बढ़ते क्रम में एक स्ट्रिंग में लौटाएँ और उन्हें ASCII कोड {{separator}} वाले वर्ण से अलग करें। 3 और 5 दोनों के गुणज के लिए FizzBuzz, केवल 3 के गुणज के लिए Fizz, केवल 5 के गुणज के लिए Buzz, और अन्यथा दशमलव पूर्णांक का उपयोग करें।')
+    form:
       task: fizz-buzz-lowercase
       name: standard
       source:
@@ -331,6 +346,11 @@ profile:
         (line: 'Recorre en orden ascendente los enteros de 1 a {{limit}}, ambos inclusive.')
         (line: 'Para cada entero, escribe FizzBuzz si es divisible por 3 y 5, Fizz si solo es divisible por 3, Buzz si solo es divisible por 5 o el entero en decimal en los demás casos.')
         (line: 'Escribe cada resultado en una línea de la salida estándar.')
+    form:
+      task: fizz-buzz-joined
+      name: standard
+      source:
+        (line: 'Devuelve una cadena con los resultados de los enteros del 1 al {{limit}} en orden ascendente, separados por el carácter ASCII de código {{separator}}. Usa FizzBuzz para los múltiplos de 3 y 5, Fizz para los múltiplos solo de 3, Buzz para los múltiplos solo de 5 y el entero en decimal en los demás casos.')
     form:
       task: fizz-buzz-lowercase
       name: standard
@@ -421,6 +441,11 @@ profile:
         (line: 'Pour chaque entier, écris FizzBuzz s’il est divisible par 3 et par 5, Fizz s’il est divisible par 3 seulement, Buzz s’il est divisible par 5 seulement, ou l’entier en décimal sinon.')
         (line: 'Écris chaque résultat sur une ligne de la sortie standard.')
     form:
+      task: fizz-buzz-joined
+      name: standard
+      source:
+        (line: 'Renvoie une chaîne contenant, dans l’ordre croissant, les résultats pour les entiers de 1 à {{limit}}, séparés par le caractère ASCII de code {{separator}}. Utilise FizzBuzz pour les multiples de 3 et de 5, Fizz pour les seuls multiples de 3, Buzz pour les seuls multiples de 5 et la représentation décimale de l’entier dans les autres cas.')
+    form:
       task: fizz-buzz-lowercase
       name: standard
       source:
@@ -509,6 +534,11 @@ profile:
         (line: 'مرّ بالأعداد الصحيحة من 1 إلى {{limit}} شاملًا الطرفين وبترتيب تصاعدي.')
         (line: 'لكل عدد، اكتب FizzBuzz إن قبل القسمة على 3 و5 معًا، وFizz إن قبل القسمة على 3 فقط، وBuzz إن قبل القسمة على 5 فقط، وإلا فاكتب العدد بالنظام العشري.')
         (line: 'اكتب كل نتيجة في سطر مستقل على المخرج القياسي.')
+    form:
+      task: fizz-buzz-joined
+      name: standard
+      source:
+        (line: 'أعد سلسلة واحدة تضم نتائج الأعداد الصحيحة من 1 إلى {{limit}} بالترتيب التصاعدي، وافصل بينها بمحرف ASCII ذي الرمز {{separator}}. استخدم FizzBuzz لمضاعفات 3 و5 معًا، وFizz لمضاعفات 3 فقط، وBuzz لمضاعفات 5 فقط، والتمثيل العشري للعدد في غير ذلك.')
     form:
       task: fizz-buzz-lowercase
       name: standard
@@ -599,6 +629,11 @@ profile:
         (line: 'সংখ্যাটি 3 ও 5 উভয়টি দিয়ে বিভাজ্য হলে FizzBuzz, শুধু 3 দিয়ে হলে Fizz, শুধু 5 দিয়ে হলে Buzz, অন্যথায় দশমিক সংখ্যাটি লিখুন।')
         (line: 'প্রতিটি ফল মানক আউটপুটে আলাদা লাইনে লিখুন।')
     form:
+      task: fizz-buzz-joined
+      name: standard
+      source:
+        (line: '1 থেকে {{limit}} পর্যন্ত পূর্ণসংখ্যার ফল ঊর্ধ্বক্রমে একটি স্ট্রিং হিসেবে ফেরত দাও এবং ASCII কোড {{separator}}-এর অক্ষর দিয়ে ফলগুলি আলাদা করো। 3 ও 5 উভয়ের গুণিতকের জন্য FizzBuzz, শুধু 3-এর গুণিতকের জন্য Fizz, শুধু 5-এর গুণিতকের জন্য Buzz এবং অন্যথায় দশমিক পূর্ণসংখ্যা ব্যবহার করো।')
+    form:
       task: fizz-buzz-lowercase
       name: standard
       source:
@@ -687,6 +722,11 @@ profile:
         (line: 'Percorra em ordem crescente todos os inteiros de 1 a {{limit}}, inclusive.')
         (line: 'Para cada inteiro, escreva FizzBuzz se for divisível por 3 e 5, Fizz se for divisível apenas por 3, Buzz se for divisível apenas por 5 ou o inteiro em decimal nos demais casos.')
         (line: 'Escreva cada resultado em sua própria linha na saída padrão.')
+    form:
+      task: fizz-buzz-joined
+      name: standard
+      source:
+        (line: 'Retorne uma cadeia com os resultados dos inteiros de 1 a {{limit}} em ordem crescente, separados pelo caractere ASCII de código {{separator}}. Use FizzBuzz para múltiplos de 3 e 5, Fizz para múltiplos apenas de 3, Buzz para múltiplos apenas de 5 e o inteiro em decimal nos demais casos.')
     form:
       task: fizz-buzz-lowercase
       name: standard
@@ -777,6 +817,11 @@ profile:
         (line: 'Для каждого числа выведите FizzBuzz, если оно делится на 3 и 5, Fizz, если делится только на 3, Buzz, если делится только на 5, иначе выведите число в десятичной записи.')
         (line: 'Выведите каждый результат в отдельной строке стандартного потока вывода.')
     form:
+      task: fizz-buzz-joined
+      name: standard
+      source:
+        (line: 'Верни одну строку с результатами для целых чисел от 1 до {{limit}} в порядке возрастания, разделёнными символом ASCII с кодом {{separator}}. Используй FizzBuzz для чисел, кратных 3 и 5, Fizz для кратных только 3, Buzz для кратных только 5, иначе используй десятичную запись числа.')
+    form:
       task: fizz-buzz-lowercase
       name: standard
       source:
@@ -865,6 +910,11 @@ profile:
         (line: '1 سے {{limit}} تک ہر صحیح عدد کو بڑھتی ترتیب میں لیں، دونوں سروں سمیت۔')
         (line: 'جو عدد 3 اور 5 دونوں سے تقسیم ہو اس کے لیے FizzBuzz، صرف 3 سے ہو تو Fizz، صرف 5 سے ہو تو Buzz، ورنہ اعشاری صورت میں خود عدد لکھیں۔')
         (line: 'ہر نتیجہ معیاری خروج پر ایک الگ سطر میں لکھیں۔')
+    form:
+      task: fizz-buzz-joined
+      name: standard
+      source:
+        (line: '1 سے {{limit}} تک کے صحیح اعداد کے نتائج بڑھتی ہوئی ترتیب میں ایک سٹرنگ کی صورت میں واپس کرو اور ان کے درمیان ASCII کوڈ {{separator}} والا حرف رکھو۔ 3 اور 5 دونوں کے مضرب کے لیے FizzBuzz، صرف 3 کے مضرب کے لیے Fizz، صرف 5 کے مضرب کے لیے Buzz، اور باقی کے لیے عدد کی اعشاری صورت استعمال کرو۔')
     form:
       task: fizz-buzz-lowercase
       name: standard

@@ -567,6 +567,35 @@ profile:
         (line: '    }')
         (line: })
     form:
+      task: fizz-buzz-joined
+      name: standard
+      output: fizz_buzz
+      source:
+        (line: 'fn fizz_buzz() -> String {')
+        (line: '    (1..={{limit}})')
+        (line: '        .map(|number| match (number % 3, number % 5) {')
+        (line: '            (0, 0) => "FizzBuzz".into(),')
+        (line: '            (0, _) => "Fizz".into(),')
+        (line: '            (_, 0) => "Buzz".into(),')
+        (line: '            _ => number.to_string(),')
+        (line: '        })')
+        (line: '        .collect::<Vec<_>>()')
+        (line: '        .join(&char::from({{separator}}u8).to_string())')
+        (line: })
+    form:
+      task: fizz-buzz-joined
+      name: common
+      output: fizz_buzz
+      requires: common_library
+      source:
+        (line: 'mod common_library;')
+        (line: ~1{})
+        (line: 'fn fizz_buzz() -> String {')
+        (line: '    common_library::fizz_buzz_lines({{limit}})')
+        (line: '        .collect::<Vec<_>>()')
+        (line: '        .join(&char::from({{separator}}u8).to_string())')
+        (line: })
+    form:
       task: fizz-buzz-lowercase
       name: standard
       source:

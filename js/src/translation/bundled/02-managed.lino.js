@@ -377,6 +377,86 @@ export default `profile:
         (line: '    printLine(line);')
         (line: })
     form:
+      task: fizz-buzz-joined
+      name: standard
+      output: fizzBuzz
+      source:
+        (line: 'function fizzBuzz() {')
+        (line: '    const labels = Array.from({ length: {{limit}} }, (_, index) => {')
+        (line: '        const number = index + 1;')
+        (line: '        const fizz = number % 3 === 0 ? "Fizz" : "";')
+        (line: '        const buzz = number % 5 === 0 ? "Buzz" : "";')
+        (line: '        return fizz + buzz || String(number);')
+        (line: '    });')
+        (line: '    return labels.join(String.fromCharCode({{separator}}));')
+        (line: })
+    form:
+      task: fizz-buzz-joined
+      name: common
+      output: fizzBuzz
+      requires: './common-library.mjs'
+      source:
+        (line: "import { fizzBuzzLines } from './common-library.mjs';")
+        (line: ~1{})
+        (line: 'function fizzBuzz() {')
+        (line: '    return [...fizzBuzzLines({{limit}})].join(String.fromCharCode({{separator}}));')
+        (line: })
+    form:
+      task: fizz-buzz-joined
+      name: rosetta-space
+      fixed:
+        limit: 100
+        separator: 32
+      output: join
+      source:
+        (line: '(function rng(i) {')
+        (line: '    return i ? rng(i - 1).concat(i) : []')
+        (line: '})(100).map(')
+        (line: '    function (n) {')
+        (line: '        return n % 3 ? (')
+        (line: '            n % 5 ? n : "Buzz"')
+        (line: '        ) : (')
+        (line: '            n % 5 ? "Fizz" : "FizzBuzz"')
+        (line: '        )')
+        (line: '    }')
+        (line: ").join(' ')")
+    form:
+      task: fizz-buzz-joined
+      name: rosetta-lines
+      fixed:
+        limit: 100
+        separator: 10
+      output: unlines
+      source:
+        (line: '(() => {')
+        (line: ~1{})
+        (line: ~1{})
+        (line: '    const fizzBuzz = n =>')
+        (line: '        caseOf(n, [')
+        (line: '            [x => x % 15 === 0, "FizzBuzz"],')
+        (line: '            [x => x % 3 === 0, "Fizz"],')
+        (line: '            [x => x % 5 === 0, "Buzz"]')
+        (line: '        ], n.toString());')
+        (line: ~1{})
+        (line: ~1{})
+        (line: '    const caseOf = (e, pvs, otherwise) =>')
+        (line: '        pvs.reduce((a, [p, v]) =>')
+        (line: '            a !== otherwise ? a : (p(e) ? v : a), otherwise);')
+        (line: ~1{})
+        (line: '    const enumFromTo = (m, n) =>')
+        (line: '        Array.from({')
+        (line: '            length: Math.floor(n - m) + 1')
+        (line: '        }, (_, i) => m + i);')
+        (line: ~1{})
+        (line: '    const map = (f, xs) => xs.map(f);')
+        (line: ~1{})
+        (line: "    const unlines = xs => xs.join('\\n');")
+        (line: ~1{})
+        (line: '    return unlines(')
+        (line: '        map(fizzBuzz, enumFromTo(1, 100))')
+        (line: '    );')
+        (line: '})();')
+    form:
       task: fizz-buzz-lowercase
       name: standard
       source:

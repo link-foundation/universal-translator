@@ -39,5 +39,13 @@ fizz-buzz-quoted:
 fizz-buzz-lowercase-blank-line:
   limit: 100
 
+fizz-buzz-joined:
+  limit: 100
+  separator: 10
+
+fizz-buzz-joined:
+  limit: 100
+  separator: 32
+
 empty-program:
   status: 0

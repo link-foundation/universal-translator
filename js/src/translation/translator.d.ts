@@ -13,6 +13,7 @@ export type Effect =
   | { task: 'fizz-buzz'; limit: number }
   | { task: 'fizz-buzz-lowercase'; limit: number }
   | { task: 'fizz-buzz-quoted'; limit: number }
+  | { task: 'fizz-buzz-joined'; limit: number; separator: 10 | 32 }
   | { task: 'fizz-buzz-lowercase-blank-line'; limit: number };
 
 export type LanguageKind =

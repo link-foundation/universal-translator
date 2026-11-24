@@ -36,6 +36,7 @@ pub enum Effect {
     FizzBuzzLowercase { limit: u32 },
     FizzBuzzQuoted { limit: u32 },
     FizzBuzzLowercaseBlankLine { limit: u32 },
+    FizzBuzzJoined { limit: u32, separator: u32 },
 }
 
 impl Effect {
@@ -54,6 +55,7 @@ impl Effect {
             Self::FizzBuzzLowercase { .. } => "fizz-buzz-lowercase",
             Self::FizzBuzzQuoted { .. } => "fizz-buzz-quoted",
             Self::FizzBuzzLowercaseBlankLine { .. } => "fizz-buzz-lowercase-blank-line",
+            Self::FizzBuzzJoined { .. } => "fizz-buzz-joined",
         }
     }
 
@@ -75,6 +77,12 @@ impl Effect {
             | Self::FizzBuzzLowercase { limit }
             | Self::FizzBuzzQuoted { limit }
             | Self::FizzBuzzLowercaseBlankLine { limit } => vec![("limit", limit.to_string())],
+            Self::FizzBuzzJoined { limit, separator } => {
+                vec![
+                    ("limit", limit.to_string()),
+                    ("separator", separator.to_string()),
+                ]
+            }
         }
     }
 
@@ -131,6 +139,10 @@ impl Effect {
                     limit: integer("limit")?,
                 }
             }
+            "fizz-buzz-joined" if fields.len() == 2 => Self::FizzBuzzJoined {
+                limit: integer("limit")?,
+                separator: integer("separator")?,
+            },
             _ => return None,
         };
         effect.validate().ok()?;
@@ -191,6 +203,9 @@ impl Effect {
             | Self::FizzBuzzLowercase { limit }
             | Self::FizzBuzzQuoted { limit }
             | Self::FizzBuzzLowercaseBlankLine { limit } => (1..=1000).contains(limit),
+            Self::FizzBuzzJoined { limit, separator } => {
+                (1..=1000).contains(limit) && matches!(separator, 10 | 32)
+            }
         };
         valid
             .then_some(())

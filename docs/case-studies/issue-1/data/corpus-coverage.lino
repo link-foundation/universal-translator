@@ -60,6 +60,7 @@ rosetta-code:
     (variant: fizz-buzz-lowercase fizz-buzz)
     (variant: fizz-buzz-quoted fizz-buzz)
     (variant: fizz-buzz-lowercase-blank-line fizz-buzz)
+    (variant: fizz-buzz-joined fizz-buzz)
   empty-program-source-files:
     (program: Rust/empty-program.rs rust rosetta 0)
   ackermann-function-source-files:
@@ -94,6 +95,8 @@ rosetta-code:
     (program: JavaScript/fizzbuzz-2.js javascript rosetta-lookup 100)
     (program: JavaScript/fizzbuzz-3.js javascript rosetta-assignment 100)
     (program: JavaScript/fizzbuzz-4.js javascript rosetta-concise 100)
+    (program: JavaScript/fizzbuzz-5.js javascript rosetta-space 100 fizz-buzz-joined 32)
+    (program: JavaScript/fizzbuzz-6.js javascript rosetta-lines 100 fizz-buzz-joined 10)
     (program: JavaScript/fizzbuzz-7.js javascript rosetta 100)
     (program: Python/fizzbuzz-4.py python rosetta 100)
     (program: Ruby/fizzbuzz-7.rb ruby rosetta 100)

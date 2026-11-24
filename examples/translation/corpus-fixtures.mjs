@@ -41,8 +41,12 @@ function decodeEffect(task, parameters) {
     case 'hello':
       assert.ok(parameters.length === 1 || parameters[1] === 'write-text');
       return { task: parameters[1] ?? task, message: parameters[0] };
-    case 'fizz-buzz':
-      return { task: parameters[1] ?? task, limit: Number(parameters[0]) };
+    case 'fizz-buzz': {
+      const [limit, variant = task, separator] = parameters;
+      return variant === 'fizz-buzz-joined'
+        ? { task: variant, limit: Number(limit), separator: Number(separator) }
+        : { task: variant, limit: Number(limit) };
+    }
     case 'ackermann-function': {
       const [effect, left, right] =
         parameters.length === 2 ? [task, ...parameters] : parameters;
@@ -140,7 +144,7 @@ function executePinnedPrograms(programs, effect, path) {
           `${label} ${result.signal ?? result.stderr}`
         );
         stdout += result.stdout;
-        if (effect.task === 'empty-program') {
+        if (['empty-program', 'fizz-buzz-joined'].includes(effect.task)) {
           assert.equal(result.stderr, '', `${label} stderr`);
         }
       }
@@ -210,18 +214,21 @@ export function verifyProgram(
           );
           return false;
         }
-        executePinnedPrograms(
-          [
-            [
-              language,
-              nativeProgram(
+        const original =
+          effect.task === 'fizz-buzz-joined' && language === 'javascript'
+            ? `const { runInNewContext } = require('node:vm');
+const value = runInNewContext(${JSON.stringify(source)}, { console }, { timeout: 500 });
+process.stdout.write(JSON.stringify(value));
+`
+            : nativeProgram(
                 source,
                 language,
                 effect,
                 document.interpretation.output
-              ),
-              document.interpretation.requires,
-            ],
+              );
+        executePinnedPrograms(
+          [
+            [language, original, document.interpretation.requires],
             [target, nativeProgram(translated, target, effect)],
           ],
           effect,

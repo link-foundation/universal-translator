@@ -58,6 +58,10 @@ const taskFields = {
   'fizz-buzz-lowercase': { limit },
   'fizz-buzz-quoted': { limit },
   'fizz-buzz-lowercase-blank-line': { limit },
+  'fizz-buzz-joined': {
+    limit,
+    separator: (value) => value === 10 || value === 32,
+  },
 };
 
 export function languageProfiles() {

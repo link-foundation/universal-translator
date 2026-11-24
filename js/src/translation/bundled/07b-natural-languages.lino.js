@@ -65,6 +65,11 @@ export default `profile:
         (line: 'Untuk tiap bilangan, tulis FizzBuzz jika habis dibagi 3 dan 5, Fizz jika habis dibagi 3 saja, Buzz jika habis dibagi 5 saja, atau bilangan dalam bentuk desimal jika tidak keduanya.')
         (line: 'Tulis setiap hasil pada baris tersendiri di keluaran standar.')
     form:
+      task: fizz-buzz-joined
+      name: standard
+      source:
+        (line: 'Kembalikan satu string berisi hasil untuk bilangan bulat 1 hingga {{limit}} dalam urutan menaik, dipisahkan oleh karakter ASCII berkode {{separator}}. Gunakan FizzBuzz untuk kelipatan 3 dan 5, Fizz untuk kelipatan 3 saja, Buzz untuk kelipatan 5 saja, dan bilangan dalam bentuk desimal untuk sisanya.')
+    form:
       task: fizz-buzz-lowercase
       name: standard
       source:
@@ -153,6 +158,11 @@ profile:
         (line: 'Durchlaufe die ganzen Zahlen von 1 bis einschließlich {{limit}} in aufsteigender Reihenfolge.')
         (line: 'Schreibe für jede Zahl FizzBuzz, wenn sie durch 3 und 5 teilbar ist, Fizz bei Teilbarkeit nur durch 3, Buzz bei Teilbarkeit nur durch 5, sonst die Zahl in Dezimalschreibweise.')
         (line: 'Schreibe jedes Ergebnis in eine eigene Zeile der Standardausgabe.')
+    form:
+      task: fizz-buzz-joined
+      name: standard
+      source:
+        (line: 'Gib eine Zeichenkette mit den Ergebnissen für die ganzen Zahlen von 1 bis {{limit}} in aufsteigender Reihenfolge zurück, getrennt durch das ASCII-Zeichen mit dem Code {{separator}}. Verwende FizzBuzz für Vielfache von 3 und 5, Fizz für Vielfache nur von 3, Buzz für Vielfache nur von 5 und sonst die Dezimaldarstellung der Zahl.')
     form:
       task: fizz-buzz-lowercase
       name: standard
@@ -243,6 +253,11 @@ profile:
         (line: '3 と 5 の両方で割り切れる場合は FizzBuzz、3 だけで割り切れる場合は Fizz、5 だけで割り切れる場合は Buzz、それ以外は整数を十進数で出力する。')
         (line: 各結果を標準出力に一行ずつ書き込む。)
     form:
+      task: fizz-buzz-joined
+      name: standard
+      source:
+        (line: '1 から {{limit}} までの整数を昇順に処理する。3 と 5 の両方の倍数には FizzBuzz、3 だけの倍数には Fizz、5 だけの倍数には Buzz、それ以外には整数の十進表記を使う。結果を ASCII コード {{separator}} の文字で区切り、1 つの文字列として返す。')
+    form:
       task: fizz-buzz-lowercase
       name: standard
       source:
@@ -331,6 +346,11 @@ profile:
         (line: 'Pitia kila namba kamili kuanzia 1 hadi {{limit}}, pamoja na namba za mipaka, kwa mpangilio wa kupanda.')
         (line: 'Andika FizzBuzz ikiwa namba inagawanyika kwa 3 na 5, Fizz ikiwa inagawanyika kwa 3 pekee, Buzz ikiwa inagawanyika kwa 5 pekee, au namba kwa mfumo wa desimali vinginevyo.')
         (line: 'Andika kila jibu kwenye mstari wake katika pato la kawaida.')
+    form:
+      task: fizz-buzz-joined
+      name: standard
+      source:
+        (line: 'Rudisha mfuatano mmoja wa herufi wenye matokeo ya namba kamili kuanzia 1 hadi {{limit}} kwa mpangilio wa kupanda, ukitenganisha matokeo kwa herufi yenye msimbo wa ASCII {{separator}}. Tumia FizzBuzz kwa namba inayogawanyika kwa 3 na 5, Fizz kwa inayogawanyika kwa 3 pekee, Buzz kwa inayogawanyika kwa 5 pekee, na uwakilishi wa desimali katika hali nyingine.')
     form:
       task: fizz-buzz-lowercase
       name: standard
@@ -421,6 +441,11 @@ profile:
         (line: 'संख्येला 3 आणि 5 या दोन्हींनी निःशेष भाग जात असेल तर FizzBuzz, फक्त 3 ने तर Fizz, फक्त 5 ने तर Buzz, अन्यथा दशमान पद्धतीने ती संख्या लिहा.')
         (line: 'प्रत्येक निकाल प्रमाणित आउटपुटवर स्वतंत्र ओळीत लिहा.')
     form:
+      task: fizz-buzz-joined
+      name: standard
+      source:
+        (line: '1 ते {{limit}} पर्यंतच्या पूर्णांकांचे निकाल चढत्या क्रमाने एका स्ट्रिंगमध्ये परत करा आणि निकालांमध्ये ASCII कोड {{separator}} असलेले चिन्ह वापरा. 3 आणि 5 दोन्हींच्या पटींसाठी FizzBuzz, फक्त 3 च्या पटींसाठी Fizz, फक्त 5 च्या पटींसाठी Buzz आणि इतरांसाठी पूर्णांकाचे दशमान रूप वापरा.')
+    form:
       task: fizz-buzz-lowercase
       name: standard
       source:
@@ -509,6 +534,11 @@ profile:
         (line: '1 నుంచి {{limit}} వరకు రెండు చివరలతో సహా ప్రతి పూర్ణాంకాన్ని ఆరోహణ క్రమంలో తీసుకోండి.')
         (line: 'సంఖ్య 3 మరియు 5 రెండింటితో భాగించబడితే FizzBuzz, 3తో మాత్రమే భాగించబడితే Fizz, 5తో మాత్రమే భాగించబడితే Buzz, లేకపోతే సంఖ్యను దశాంశ రూపంలో రాయండి.')
         (line: 'ప్రతి ఫలితాన్ని ప్రామాణిక అవుట్‌పుట్‌లో వేరే పంక్తిలో రాయండి.')
+    form:
+      task: fizz-buzz-joined
+      name: standard
+      source:
+        (line: '1 నుంచి {{limit}} వరకు పూర్ణాంకాల ఫలితాలను ఆరోహణ క్రమంలో ఒకే స్ట్రింగ్‌గా తిరిగి ఇవ్వండి. ఫలితాలను ASCII కోడ్ {{separator}} గల అక్షరంతో వేరు చేయండి. 3, 5 రెండింటి గుణిజానికి FizzBuzz, కేవలం 3 గుణిజానికి Fizz, కేవలం 5 గుణిజానికి Buzz, మిగిలిన వాటికి పూర్ణాంక దశాంశ రూపాన్ని వాడండి.')
     form:
       task: fizz-buzz-lowercase
       name: standard
@@ -599,6 +629,11 @@ profile:
         (line: 'Her sayı için hem 3 hem 5 ile bölünüyorsa FizzBuzz, yalnızca 3 ile bölünüyorsa Fizz, yalnızca 5 ile bölünüyorsa Buzz, aksi halde sayıyı ondalık gösterimle yaz.')
         (line: 'Her sonucu standart çıktıda ayrı bir satıra yaz.')
     form:
+      task: fizz-buzz-joined
+      name: standard
+      source:
+        (line: '1 ile {{limit}} arasındaki tam sayıların sonuçlarını artan sırada tek bir dize olarak döndür ve sonuçları ASCII kodu {{separator}} olan karakterle ayır. Hem 3 hem 5 katları için FizzBuzz, yalnız 3 katları için Fizz, yalnız 5 katları için Buzz, diğer durumlarda sayının ondalık gösterimini kullan.')
+    form:
       task: fizz-buzz-lowercase
       name: standard
       source:
@@ -687,6 +722,11 @@ profile:
         (line: '1 முதல் {{limit}} வரை இரு எல்லைகளையும் சேர்த்து அனைத்து முழு எண்களையும் ஏறுவரிசையில் எடுத்துக்கொள்ளவும்.')
         (line: 'எண் 3 மற்றும் 5 இரண்டாலும் வகுபட்டால் FizzBuzz, 3 ஆல் மட்டும் வகுபட்டால் Fizz, 5 ஆல் மட்டும் வகுபட்டால் Buzz, இல்லையெனில் எண்ணைப் பதின்ம வடிவில் எழுதவும்.')
         (line: 'ஒவ்வொரு முடிவையும் நிலையான வெளியீட்டில் தனித்தனி வரியில் எழுதவும்.')
+    form:
+      task: fizz-buzz-joined
+      name: standard
+      source:
+        (line: '1 முதல் {{limit}} வரையிலான முழு எண்களின் முடிவுகளை ஏறுவரிசையில் ஒரே சரமாகத் திருப்பிக் கொடு. ASCII குறியீடு {{separator}} கொண்ட எழுத்தால் முடிவுகளைப் பிரி. 3 மற்றும் 5 இரண்டின் மடங்கிற்கு FizzBuzz, 3 இன் மடங்கிற்கு மட்டும் Fizz, 5 இன் மடங்கிற்கு மட்டும் Buzz, பிறவற்றிற்குப் பத்தடிமான முழு எண்ணைப் பயன்படுத்து.')
     form:
       task: fizz-buzz-lowercase
       name: standard
@@ -777,6 +817,11 @@ profile:
         (line: 'Với mỗi số, ghi FizzBuzz nếu chia hết cho cả 3 và 5, Fizz nếu chỉ chia hết cho 3, Buzz nếu chỉ chia hết cho 5, hoặc chính số đó ở dạng thập phân trong trường hợp còn lại.')
         (line: 'Ghi mỗi kết quả trên một dòng riêng ở đầu ra chuẩn.')
     form:
+      task: fizz-buzz-joined
+      name: standard
+      source:
+        (line: 'Trả về một chuỗi chứa kết quả của các số nguyên từ 1 đến {{limit}} theo thứ tự tăng dần, phân tách bằng ký tự có mã ASCII {{separator}}. Dùng FizzBuzz cho bội của cả 3 và 5, Fizz cho bội của riêng 3, Buzz cho bội của riêng 5, và biểu diễn thập phân của số nguyên trong các trường hợp còn lại.')
+    form:
       task: fizz-buzz-lowercase
       name: standard
       source:
@@ -865,6 +910,11 @@ profile:
         (line: '1부터 {{limit}}까지 양 끝을 포함한 모든 정수를 오름차순으로 처리한다.')
         (line: '3과 5 모두로 나누어떨어지면 FizzBuzz, 3으로만 나누어떨어지면 Fizz, 5로만 나누어떨어지면 Buzz, 그 외에는 정수를 십진수로 쓴다.')
         (line: '각 결과를 표준 출력에 한 줄씩 쓴다.')
+    form:
+      task: fizz-buzz-joined
+      name: standard
+      source:
+        (line: '1부터 {{limit}}까지의 정수를 오름차순으로 처리한다. 3과 5의 공배수는 FizzBuzz, 3의 배수이지만 5의 배수가 아니면 Fizz, 5의 배수이지만 3의 배수가 아니면 Buzz, 나머지는 정수의 십진 표기를 사용한다. 결과를 ASCII 코드가 {{separator}}인 문자로 구분한 하나의 문자열로 반환한다.')
     form:
       task: fizz-buzz-lowercase
       name: standard

@@ -39,9 +39,13 @@ const ackermannBoundaries = Array.from({ length: 4 }, (_, right) => ({
   left: 3,
   right,
 }));
+const joinedFizzBuzzBoundaries = [
+  { task: 'fizz-buzz-joined', limit: 1, separator: 32 },
+  { task: 'fizz-buzz-joined', limit: 1000, separator: 10 },
+];
 const boundaryEffects = {
-  rust: ackermannBoundaries,
-  javascript: ackermannBoundaries,
+  rust: [...ackermannBoundaries, ...joinedFizzBuzzBoundaries],
+  javascript: [...ackermannBoundaries, ...joinedFizzBuzzBoundaries],
   cobol: [
     { task: 'hello', message: '' },
     { task: 'hello', message: ` ${'Hello'.repeat(18)} !?  ` },

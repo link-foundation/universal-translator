@@ -1,3 +1,4 @@
+use links_notation::{LiNo, parse_lino_to_links};
 use universal_translator::{
     Adapter, Effect, Expression, Interpretation, Mode, Options, Translator, language_profiles,
     rank_interpretations, read_referent_input,
@@ -35,6 +36,9 @@ fn links_notation_intermediate_preserves_effect_and_whole_line_comments() {
     );
     assert!(Effect::read_links_notation("(hello: (message: Hi) (extra: 1))").is_err());
     assert!(Effect::read_links_notation("(fizz-buzz: (limit: 010))").is_err());
+    assert!(
+        Effect::read_links_notation("(fizz-buzz-joined: (limit: 100) (separator: 9))").is_err()
+    );
     assert!(
         translator
             .parse(
@@ -131,6 +135,10 @@ fn all_authored_forms_and_directed_pairs() {
         ..Options::default()
     };
     for effect in effects {
+        let effect_links = parse_lino_to_links(&effect.to_links_notation()).unwrap();
+        let [LiNo::Link { values, .. }] = effect_links.as_slice() else {
+            panic!("Expected one effect record");
+        };
         let admitted: Vec<_> = translator
             .profiles()
             .filter(|profile| profile.forms.iter().any(|form| form.task == effect.task()))
@@ -144,11 +152,17 @@ fn all_authored_forms_and_directed_pairs() {
             }
         );
         for source_profile in &admitted {
-            for form in source_profile
-                .forms
-                .iter()
-                .filter(|form| form.task == effect.task())
-            {
+            for form in source_profile.forms.iter().filter(|form| {
+                form.task == effect.task()
+                    && form.fixed.as_ref().is_none_or(|fields| {
+                        fields.iter().all(|(key, value)| {
+                            values.contains(&LiNo::new(
+                                Some(key.clone()),
+                                vec![LiNo::reference(value.clone())],
+                            ))
+                        })
+                    })
+            }) {
                 let mut expression = Expression::new(&source_profile.id, effect.clone()).unwrap();
                 expression.form = form.name.clone();
                 let source = translator.materialize(&expression).unwrap();

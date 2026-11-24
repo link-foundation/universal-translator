@@ -50,6 +50,11 @@ export function nativeArguments(effect) {
 }
 
 export function nativeProgram(source, language, effect, entry) {
+  if (effect.task === 'fizz-buzz-joined') {
+    return language === 'javascript'
+      ? `${source}\nprocess.stdout.write(JSON.stringify(fizzBuzz()));\n`
+      : `${source}\nfn main() {\n    print!("{:?}", fizz_buzz());\n}\n`;
+  }
   const callable = callableEffects.get(effect.task);
   if (!callable) {
     return source;
@@ -65,20 +70,38 @@ export function nativeProgram(source, language, effect, entry) {
   return `${source}\nfn main() {\n${body}\n}\n`;
 }
 
-function expectedFizzBuzz({ task, limit }) {
+function expectedFizzBuzz({ task, limit, separator }) {
   const lowercase =
     task === 'fizz-buzz-lowercase' || task === 'fizz-buzz-lowercase-blank-line';
-  const lines = Array.from({ length: limit }, (_, index) => {
+  const labels = Array.from({ length: limit }, (_, index) => {
     const number = index + 1;
     const fizz = number % 3 === 0 ? (lowercase ? 'fizz' : 'Fizz') : '';
     const buzz = number % 5 === 0 ? (lowercase ? 'buzz' : 'Buzz') : '';
-    const line = fizz + buzz || number;
-    return task === 'fizz-buzz-quoted' ? `"${line}"\n` : `${line}\n`;
-  }).join('');
+    return fizz + buzz || String(number);
+  });
+  if (task === 'fizz-buzz-joined') {
+    return JSON.stringify(labels.join(String.fromCharCode(separator)));
+  }
+  const lines = labels
+    .map((label) =>
+      task === 'fizz-buzz-quoted' ? `"${label}"\n` : `${label}\n`
+    )
+    .join('');
   return task === 'fizz-buzz-lowercase-blank-line' ? `${lines}\n` : lines;
 }
 
+const fizzBuzzTasks = new Set([
+  'fizz-buzz',
+  'fizz-buzz-lowercase',
+  'fizz-buzz-quoted',
+  'fizz-buzz-lowercase-blank-line',
+  'fizz-buzz-joined',
+]);
+
 export function expectedOutput(effect) {
+  if (fizzBuzzTasks.has(effect.task)) {
+    return expectedFizzBuzz(effect);
+  }
   switch (effect.task) {
     case 'empty-program':
       return '';
@@ -115,11 +138,6 @@ export function expectedOutput(effect) {
       }
       return `${left}\n`;
     }
-    case 'fizz-buzz':
-    case 'fizz-buzz-lowercase':
-    case 'fizz-buzz-quoted':
-    case 'fizz-buzz-lowercase-blank-line':
-      return expectedFizzBuzz(effect);
     default:
       throw new Error(`No stdout expectation for ${effect.task}`);
   }

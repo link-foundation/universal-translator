@@ -34,6 +34,7 @@ const expectedProfiles = {
   'fizz-buzz-lowercase': 23,
   'fizz-buzz-quoted': 23,
   'fizz-buzz-lowercase-blank-line': 23,
+  'fizz-buzz-joined': 23,
   'empty-program': 23,
 };
 
@@ -147,6 +148,9 @@ describe('translation through meta-language', () => {
     expect(() => readEffects('(fizz-buzz: (limit: 010))')).toThrow(
       'decimal integer'
     );
+    expect(() =>
+      readEffects('(fizz-buzz-joined: (limit: 100) (separator: 9))')
+    ).toThrow('Invalid fizz-buzz-joined');
     expect(
       translator.parse(`${intermediate}${writeEffect(hello)}`, 'meta')
         .interpretation
@@ -155,14 +159,17 @@ describe('translation through meta-language', () => {
 
   for (const effect of effects) {
     it(`round-trips every ${effect.task} form and all directed pairs`, () => {
-      const languages = translator.listLanguages();
-      const admitted = languages.filter(({ forms }) =>
+      const admitted = languageProfiles().filter(({ forms }) =>
         forms.some(({ task }) => task === effect.task)
       );
       expect(admitted.length).toBe(expectedProfiles[effect.task]);
       for (const sourceLanguage of admitted) {
         for (const form of sourceLanguage.forms.filter(
-          ({ task }) => task === effect.task
+          ({ task, fixed }) =>
+            task === effect.task &&
+            Object.entries(fixed ?? {}).every(
+              ([field, value]) => effect[field] === value
+            )
         )) {
           const source = translator.materialize(
             translator.expression(sourceLanguage.id, effect, {

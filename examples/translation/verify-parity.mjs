@@ -19,9 +19,16 @@ const languages = translator.listLanguages();
 const rust = (args, input) =>
   execFileSync(binary, args, { encoding: 'utf8', input });
 let checked = 0;
-for (const { id, forms } of languages) {
-  for (const { task, name } of forms) {
-    const effect = effects.find(({ task: candidate }) => candidate === task);
+for (const { id, forms } of languageProfiles()) {
+  for (const { task, name, fixed } of forms) {
+    const effect = effects.find(
+      (candidate) =>
+        candidate.task === task &&
+        Object.entries(fixed ?? {}).every(
+          ([field, value]) => candidate[field] === value
+        )
+    );
+    assert.ok(effect, `No effect fixture for ${id} ${task}/${name}`);
     const input = translator.materialize(
       translator.expression('javascript', effect)
     );

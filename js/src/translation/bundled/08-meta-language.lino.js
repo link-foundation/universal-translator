@@ -46,4 +46,7 @@ export default `profile:
     form:
       task: fizz-buzz-lowercase-blank-line
       name: standard
+    form:
+      task: fizz-buzz-joined
+      name: standard
 `;
