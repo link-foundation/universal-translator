@@ -641,6 +641,21 @@ impl Parser {
 
     fn return_statement(&mut self) -> Parsed {
         self.position += 1;
+        // R leaves a function without a value by calling `return(invisible())`
+        // (or `return()`, which prints NULL at the top level).
+        let bare = [&["(", "invisible", "(", ")", ")"][..], &["(", ")"][..]]
+            .into_iter()
+            .find(|tokens| {
+                tokens
+                    .iter()
+                    .enumerate()
+                    .all(|(at, value)| self.value(at) == *value)
+            });
+        if let Some(tokens) = bare {
+            self.position += tokens.len();
+            self.end_statement()?;
+            return Ok(Node::new("Return"));
+        }
         let value = if self.is_statement_end() {
             None
         } else {

@@ -10,8 +10,9 @@ use std::sync::Arc;
 
 use super::common_library::{recognize_common_library, spell_common_library};
 use super::languages::{ImmutableParameters, IntegerDivision, Syntax, language_syntax};
+use super::lifting::counting_loops;
 use super::meta::{Node, binary, block, rewrite, rewrite_opt, text, walk};
-use super::names::{name_words, neutral_name, rename_declared, spell_name};
+use super::names::{avoid_reserved, name_words, neutral_name, rename_declared, spell_name};
 use super::{Mode, Rule, Settings};
 
 fn rule(name: &str, apply: impl Fn(Node, &Settings) -> Node + Send + Sync + 'static) -> Rule {
@@ -39,6 +40,9 @@ pub fn understanding_rules() -> Vec<Rule> {
         }),
         rule("declareOnFirstAssignment", |program, _| {
             declare_on_first_assignment(program)
+        }),
+        rule("raiseCountingLoops", |program, _| {
+            raise_counting_loops(program)
         }),
         rule("inferMutability", |program, _| infer_mutability(program)),
         rule("dropSourceDetails", |program, _| {
@@ -68,6 +72,20 @@ pub fn context_rules() -> Vec<Rule> {
 // ---------------------------------------------------------------------------
 // Understanding layer
 // ---------------------------------------------------------------------------
+
+/// `i = a; while (i < b) { ...; i += 1 }` is the counting loop `for i in a..b`
+/// written at a lower level, as languages without a counting loop over a
+/// computed range (R, for example) spell it. Raising it lets every language
+/// write its own counting loop again.
+pub fn raise_counting_loops(program: Node) -> Node {
+    rewrite(program, |mut current| {
+        if current.is("Block") {
+            let statements = counting_loops(current.node_list("statements"));
+            current.set("statements", statements);
+        }
+        current
+    })
+}
 
 fn flatten_classes(items: Vec<Node>) -> Vec<Node> {
     items
@@ -1007,6 +1025,9 @@ pub fn spell_names(program: Node, settings: &Settings) -> Node {
         return program;
     };
     rename_declared(program, |identifier, role| {
-        spell_name(identifier, syntax.naming_convention(role))
+        avoid_reserved(
+            spell_name(identifier, syntax.naming_convention(role)),
+            syntax.id,
+        )
     })
 }

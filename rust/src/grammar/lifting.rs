@@ -290,13 +290,18 @@ impl BlockLifting {
 struct FunctionLifting<'a> {
     item: &'a Procedure,
     functions: &'a HashMap<String, bool>,
+    boolean_functions: &'a HashSet<String>,
     names: Vec<String>,
     labels: HashMap<String, usize>,
     booleans: RefCell<HashSet<String>>,
 }
 
 impl<'a> FunctionLifting<'a> {
-    fn new(item: &'a Procedure, functions: &'a HashMap<String, bool>) -> Self {
+    fn new(
+        item: &'a Procedure,
+        functions: &'a HashMap<String, bool>,
+        boolean_functions: &'a HashSet<String>,
+    ) -> Self {
         let labels = item
             .code
             .iter()
@@ -309,6 +314,7 @@ impl<'a> FunctionLifting<'a> {
         Self {
             item,
             functions,
+            boolean_functions,
             names: item
                 .slot_names
                 .iter()
@@ -386,16 +392,13 @@ impl<'a> FunctionLifting<'a> {
     }
 
     fn is_boolean(&self, expression: &Node) -> bool {
-        let operator = expression.str("operator").unwrap_or_default();
-        match expression.kind.as_str() {
-            "Name" => self
+        if expression.is("Name") {
+            return self
                 .booleans
                 .borrow()
-                .contains(expression.str("name").unwrap_or_default()),
-            "Unary" => operator == "not",
-            "Binary" => opposite(operator).is_some() || operator == "and" || operator == "or",
-            _ => false,
+                .contains(expression.str("name").unwrap_or_default());
         }
+        is_truth_value(expression, self.boolean_functions)
     }
 
     /// Read the whole condition that starts with the comparison at `index`
@@ -735,16 +738,33 @@ fn is_counting_loop(start: &Node, lifted: Option<&Node>, after: &[Node]) -> bool
     if !is_step(Some(last), variable) {
         return false;
     }
+    // A counting loop computes its bound once, so the body must not change it.
+    let mut bound_names: Vec<String> = Vec::new();
+    if let Some(bound) = lifted
+        .and_then(|lifted| lifted.node("condition"))
+        .and_then(|condition| condition.node("right"))
+    {
+        walk(bound, |node| {
+            if node.is("Name")
+                && let Some(identifier) = node.str("name")
+            {
+                bound_names.push(identifier.to_owned());
+            }
+        });
+    }
     let mut assigned_in_body = false;
     for statement in before {
         walk(statement, |node| {
-            assigned_in_body |= node.is("Assignment") && node.str("name") == Some(variable);
+            assigned_in_body |= node.is("Assignment")
+                && node.str("name").is_some_and(|assigned| {
+                    assigned == variable || bound_names.iter().any(|bound| bound == assigned)
+                });
         });
     }
     !assigned_in_body && !mentions(after, variable)
 }
 
-fn counting_loops(statements: Vec<Node>) -> Vec<Node> {
+pub(crate) fn counting_loops(statements: Vec<Node>) -> Vec<Node> {
     let mut result = Vec::new();
     let mut index = 0;
     while index < statements.len() {
@@ -781,28 +801,87 @@ fn counting_loops(statements: Vec<Node>) -> Vec<Node> {
 
 /// Lift a machine program read by [`super::machine_reader`] into a meta
 /// program before type inference.
+/// A comparison, a logical operation or a call to a function that returns
+/// one. Machine code keeps all of them as the integers 0 and 1.
+fn is_truth_value(expression: &Node, boolean_functions: &HashSet<String>) -> bool {
+    let operator = expression.str("operator").unwrap_or_default();
+    match expression.kind.as_str() {
+        "Boolean" => true,
+        "Unary" => operator == "not",
+        "Call" => boolean_functions.contains(expression.str("callee").unwrap_or_default()),
+        "Binary" => opposite(operator).is_some() || operator == "and" || operator == "or",
+        _ => false,
+    }
+}
+
+/// A function whose every returned value is a truth value returns a boolean.
+fn returns_truth_value(body: &Node, boolean_functions: &HashSet<String>) -> bool {
+    let mut values = 0;
+    let mut all = true;
+    walk(body, |node| {
+        if node.is("Return") {
+            values += 1;
+            all &= node
+                .node("value")
+                .is_some_and(|value| is_truth_value(value, boolean_functions));
+        }
+    });
+    values > 0 && all
+}
+
 pub fn lift_program(machine: &LoweredProgram) -> Result<Node> {
     let functions: HashMap<String, bool> = machine
         .functions
         .iter()
         .map(|item| (item.name.clone(), item.returns))
         .collect();
+    // Machine code returns booleans as integers. Which functions return truth
+    // values decides how their callers are read, so lifting repeats until
+    // that set no longer changes.
+    let mut boolean_functions: HashSet<String> = HashSet::new();
+    let lift_all = |boolean_functions: &HashSet<String>| -> Result<Vec<(Vec<Node>, Node)>> {
+        machine
+            .functions
+            .iter()
+            .map(|item| FunctionLifting::new(item, &functions, boolean_functions).lift())
+            .collect()
+    };
+    let mut lifted = lift_all(&boolean_functions)?;
+    for _ in 0..=machine.functions.len() {
+        let found: HashSet<String> = machine
+            .functions
+            .iter()
+            .zip(&lifted)
+            .filter(|(item, (_, body))| {
+                item.returns && returns_truth_value(body, &boolean_functions)
+            })
+            .map(|(item, _)| neutral_name(&item.name))
+            .collect();
+        if found == boolean_functions {
+            break;
+        }
+        boolean_functions = found;
+        lifted = lift_all(&boolean_functions)?;
+    }
     let mut lifted_functions = Vec::new();
-    for item in &machine.functions {
-        let (parameters, body) = FunctionLifting::new(item, &functions).lift()?;
+    for (item, (parameters, body)) in machine.functions.iter().zip(lifted) {
+        let return_type = if !item.returns {
+            "nothing"
+        } else if boolean_functions.contains(&neutral_name(&item.name)) {
+            "boolean"
+        } else {
+            "integer"
+        };
         lifted_functions.push(
             Node::new("Function")
                 .with("name", neutral_name(&item.name))
                 .with("parameters", parameters)
                 .with("body", body)
-                .with(
-                    "returnType",
-                    if item.returns { "integer" } else { "nothing" },
-                )
+                .with("returnType", return_type)
                 .with("comments", item.comments.clone()),
         );
     }
-    let (_, main) = FunctionLifting::new(&machine.main, &functions).lift()?;
+    let (_, main) = FunctionLifting::new(&machine.main, &functions, &boolean_functions).lift()?;
     Ok(Node::new("Program")
         .with("comments", machine.comments.clone())
         .with("imports", Value::List(Vec::new()))

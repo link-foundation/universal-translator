@@ -177,6 +177,9 @@ impl Emitter {
         if meta == "text" && self.id() == "cpp" {
             self.uses.insert("string");
         }
+        if meta == "boolean" && self.id() == "c" {
+            self.uses.insert("stdbool");
+        }
         let Some(types) = self.syntax.types else {
             return String::new();
         };
@@ -302,8 +305,16 @@ impl Emitter {
         // R's %% and %/% bind tighter than * and /, so their operands that are
         // themselves operations keep parentheses.
         let tight = self.id() == "r" && matches!(operator, "divide" | "remainder");
-        let left = self.expression_in(left_node, if tight { 7.0 } else { level })?;
-        let right = self.expression_in(right_node, if tight { 7.0 } else { level + 1.0 })?;
+        // `a && b || c` keeps its meaning without parentheses, but readers (and
+        // C compilers with -Wparentheses) expect them around the inner "and".
+        let inner = if operator == "or" {
+            precedence("and") + 1.0
+        } else {
+            level
+        };
+        let left = self.expression_in(left_node, if tight { 7.0 } else { inner })?;
+        let right =
+            self.expression_in(right_node, if tight { 7.0 } else { inner.max(level + 1.0) })?;
         let result = if operator == "divide" {
             if let Some(integer) = self.syntax.operators.integer_divide {
                 format!("{left} {integer} {right}")
@@ -629,9 +640,10 @@ impl Emitter {
     fn return_statement(&mut self, statement: &Node) -> Result<String> {
         let end = self.terminator();
         Ok(match statement.node("value") {
-            // R's return is a function.
+            // R's return is a function: a bare `return` would not leave.
             Some(value) if self.id() == "r" => format!("return({})", self.expression(value)?),
             Some(value) => format!("return {}{end}", self.expression(value)?),
+            None if self.id() == "r" => "return(invisible())".to_owned(),
             None => format!("return{end}"),
         })
     }
@@ -791,7 +803,13 @@ impl Emitter {
         let target = self.variable(identifier);
         let value = field(statement, "value")?;
         let compound = value.str("operator").and_then(compound_operator);
+        // Languages that spell integer division as a call or a wrapper, or with
+        // an operator of its own, would lose the truncation with `/=`.
+        let plain_division = value.str("operator") != Some("divide")
+            || (self.syntax.integer_division.is_none()
+                && self.syntax.operators.integer_divide.is_none());
         if let Some(compound) = compound
+            && plain_division
             && self.syntax.compound_assignment
             && value.is("Binary")
             && value
@@ -1142,6 +1160,7 @@ impl Emitter {
         }
         lines.extend(program.texts("libraryImports"));
         for (used, line) in [
+            ("stdbool", "#include <stdbool.h>"),
             ("stdio", "#include <stdio.h>"),
             ("iostream", "#include <iostream>"),
             ("string", "#include <string>"),

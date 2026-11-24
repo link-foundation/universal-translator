@@ -100,3 +100,51 @@ export function renameDeclared(program, rename) {
     })),
   };
 }
+
+// Words each language reserves. A declared name spelled as one of them gets a
+// trailing underscore, which `nameWords` drops again when reading it back.
+const reservedLists = {
+  javascript:
+    'break case catch class const continue debugger default delete do else export extends false finally for function if import in instanceof let new null return super switch this throw true try typeof var void while with yield await',
+  typescript:
+    'break case catch class const continue debugger default delete do else export extends false finally for function if import in instanceof let new null return super switch this throw true try typeof var void while with yield await enum',
+  python:
+    'and as assert async await break class continue def del elif else except false finally for from global if import in is lambda none nonlocal not or pass raise return true try while with yield print',
+  ruby: 'alias and begin break case class def defined do else elsif end ensure false for if in module next nil not or redo rescue retry return self super then true undef unless until when while yield',
+  lua: 'and break do else elseif end false for function goto if in local nil not or repeat return then true until while',
+  php: 'abstract and array as break callable case catch class clone const continue declare default do echo else elseif empty enddeclare endfor endforeach endif endswitch endwhile eval exit extends final finally fn for foreach function global goto if implements include instanceof insteadof interface isset list match namespace new or print private protected public readonly require return static switch throw trait try unset use var while xor yield',
+  c: 'auto break case char const continue default do double else enum extern float for goto if inline int long register restrict return short signed sizeof static struct switch typedef union unsigned void volatile while bool true false main',
+  cpp: 'and auto bool break case catch char class const continue default delete do double else enum explicit export extern false float for friend goto if inline int long mutable namespace new not or private protected public register return short signed sizeof static struct switch template this throw true try typedef typename union unsigned using virtual void volatile while xor main',
+  csharp:
+    'abstract as base bool break byte case catch char checked class const continue decimal default delegate do double else enum event explicit extern false finally fixed float for foreach goto if implicit in int interface internal is lock long namespace new null object operator out override params private protected public readonly ref return sbyte sealed short sizeof static string struct switch this throw true try typeof uint ulong unchecked unsafe ushort using virtual void volatile while',
+  java: 'abstract assert boolean break byte case catch char class const continue default do double else enum extends final finally float for goto if implements import instanceof int interface long native new package private protected public return short static super switch synchronized this throw throws transient try void volatile while true false null var',
+  go: 'break case chan const continue default defer else fallthrough for func go goto if import interface map package range return select struct switch type var true false nil main',
+  rust: 'as async await break const continue crate dyn else enum extern false fn for if impl in let loop match mod move mut pub ref return self static struct super trait true type unsafe use where while main',
+  kotlin:
+    'as break class continue do else false for fun if in interface is null object package return super this throw true try typealias typeof val var when while',
+  swift:
+    'associatedtype class deinit enum extension fileprivate func import init inout internal let open operator private protocol public rethrows static struct subscript typealias var break case continue default defer do else fallthrough for guard if in repeat return switch where while as catch false is nil super self throw throws true try',
+  perl: 'if elsif else unless while until for foreach last next redo return my our local sub package use no require and or not xor eq ne lt gt le ge cmp print',
+  dart: 'abstract as assert async await break case catch class const continue covariant default deferred do dynamic else enum export extends extension external factory false final finally for function get hide if implements import in interface is late library mixin new null on operator part required rethrow return set show static super switch sync this throw true try typedef var void while with yield main',
+  scala:
+    'abstract case catch class def do else extends false final finally for forsome if implicit import lazy match new null object override package private protected return sealed super this throw trait try true type val var while with yield',
+  julia:
+    'baremodule begin break catch const continue do else elseif end export false finally for function global if import let local macro module quote return struct true try using while',
+  r: 'if else repeat while function for next break true false null inf nan na in',
+  groovy:
+    'abstract as assert boolean break byte case catch char class const continue def default do double else enum extends false final finally float for goto if implements import in instanceof int interface long native new null package private protected public return short static super switch synchronized this threadsafe throw throws transient true try var void volatile while',
+};
+
+export const reservedWords = Object.fromEntries(
+  Object.entries(reservedLists).map(([language, words]) => [
+    language,
+    new Set(words.split(' ')),
+  ])
+);
+
+// A spelled name that does not collide with a reserved word of the language.
+export function avoidReserved(spelled, language) {
+  return reservedWords[language]?.has(spelled.toLowerCase())
+    ? `${spelled}_`
+    : spelled;
+}

@@ -12,13 +12,22 @@ use universal_translator::grammar::{
     Rule, Translator, language_ids, machine_target_ids, meaning_difference,
 };
 
-const TASKS: [&str; 5] = [
-    "factorial",
-    "fizz-buzz",
-    "greatest-common-divisor",
-    "hello-world",
-    "sum-of-squares",
-];
+/// Every task with goldens under `examples/programs/translated`.
+fn tasks() -> Vec<String> {
+    let folder = Path::new(env!("CARGO_MANIFEST_DIR")).join("examples/programs/translated");
+    let mut names: Vec<String> = fs::read_dir(folder)
+        .expect("the goldens folder")
+        .map(|entry| {
+            entry
+                .expect("a golden entry")
+                .file_name()
+                .to_string_lossy()
+                .into_owned()
+        })
+        .collect();
+    names.sort();
+    names
+}
 
 fn programs() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("examples/programs")
@@ -102,7 +111,8 @@ fn matches_every_golden_file_for_all_targets() {
         .collect();
     assert_eq!(targets.len(), 23);
     let mut mismatches = Vec::new();
-    for task in TASKS {
+    for task in tasks() {
+        let task = task.as_str();
         let meta = translator.to_meta(&source(task), "javascript").unwrap();
         for target in &targets {
             let written = translator
@@ -121,7 +131,8 @@ fn matches_every_golden_file_for_all_targets() {
 #[test]
 fn every_translation_returns_to_the_same_meta_program() {
     let translator = Translator::new();
-    for task in TASKS {
+    for task in tasks() {
+        let task = task.as_str();
         let meta = translator.to_meta(&source(task), "javascript").unwrap();
         for language in language_ids() {
             let target = translator

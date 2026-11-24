@@ -511,6 +511,20 @@ class Parser {
 
   returnStatement() {
     this.next();
+    // R leaves a function without a value by calling `return(invisible())`
+    // (or `return()`, which prints NULL at the top level).
+    const empty = ['(', ')'];
+    const invisible = ['(', 'invisible', '(', ')', ')'];
+    const bare = [invisible, empty].find((tokens) =>
+      tokens.every((value, offset) => this.peek(offset).value === value)
+    );
+    if (bare) {
+      for (let index = 0; index < bare.length; index += 1) {
+        this.next();
+      }
+      this.endStatement();
+      return node('Return', { value: undefined });
+    }
     const value = this.isStatementEnd() ? undefined : this.expression();
     this.endStatement();
     return node('Return', { value });

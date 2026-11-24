@@ -10,8 +10,15 @@ import {
   spellCommonLibrary,
 } from './common-library.js';
 import { block, node, rewrite, text } from './meta.js';
+import { countingLoops } from './lifting.js';
 import { languageSyntax, namingConvention } from './languages.js';
-import { nameWords, neutralName, renameDeclared, spellName } from './names.js';
+import {
+  avoidReserved,
+  nameWords,
+  neutralName,
+  renameDeclared,
+  spellName,
+} from './names.js';
 
 // ---------------------------------------------------------------------------
 // Understanding layer
@@ -546,6 +553,18 @@ export function neutralNames(program) {
   return renameDeclared(program, neutralName);
 }
 
+// `i = a; while (i < b) { ...; i += 1 }` is the counting loop `for i in a..b`
+// written at a lower level, as languages without a counting loop over a
+// computed range (R, for example) spell it. Raising it lets every language
+// write its own counting loop again.
+export function raiseCountingLoops(program) {
+  return rewrite(program, (current) =>
+    current.kind === 'Block'
+      ? { ...current, statements: countingLoops(current.statements) }
+      : current
+  );
+}
+
 export const understandingRules = [
   findEntryPoint,
   concatenationOperator,
@@ -555,6 +574,7 @@ export const understandingRules = [
   expandCompoundAssignment,
   dropParameterCopies,
   declareOnFirstAssignment,
+  raiseCountingLoops,
   inferMutability,
   dropSourceDetails,
   neutralNames,
@@ -719,7 +739,7 @@ export function copyReassignedParameters(program, { to }) {
 export function spellNames(program, { to }) {
   const syntax = languageSyntax(to);
   return renameDeclared(program, (identifier, role) =>
-    spellName(identifier, namingConvention(syntax, role))
+    avoidReserved(spellName(identifier, namingConvention(syntax, role)), to)
   );
 }
 

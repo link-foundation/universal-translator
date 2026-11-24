@@ -91,6 +91,9 @@ class Emitter {
     if (meta === 'text' && this.syntax.id === 'cpp') {
       this.uses.add('string');
     }
+    if (meta === 'boolean' && this.syntax.id === 'c') {
+      this.uses.add('stdbool');
+    }
     return types[meta] ?? types.integer;
   }
 
@@ -175,8 +178,14 @@ class Emitter {
     const tight =
       this.syntax.id === 'r' &&
       ['divide', 'remainder'].includes(expression.operator);
-    const left = this.expression(expression.left, tight ? 7 : level);
-    const right = this.expression(expression.right, tight ? 7 : level + 1);
+    // `a && b || c` keeps its meaning without parentheses, but readers (and
+    // C compilers with -Wparentheses) expect them around the inner "and".
+    const inner = expression.operator === 'or' ? precedence.and + 1 : level;
+    const left = this.expression(expression.left, tight ? 7 : inner);
+    const right = this.expression(
+      expression.right,
+      tight ? 7 : Math.max(inner, level + 1)
+    );
     let result;
     if (expression.operator === 'divide') {
       const integer = this.syntax.operators.integerDivide;
@@ -323,10 +332,10 @@ class Emitter {
 
   returnStatement({ value }) {
     const end = this.terminator();
+    // R's return is a function: a bare `return` would not leave.
     if (!value) {
-      return `return${end}`;
+      return this.syntax.id === 'r' ? 'return(invisible())' : `return${end}`;
     }
-    // R's return is a function.
     return this.syntax.id === 'r'
       ? `return(${this.expression(value)})`
       : `return ${this.expression(value)}${end}`;
@@ -407,8 +416,14 @@ class Emitter {
   assignment({ name: identifier, value }) {
     const target = this.variable(identifier);
     const compound = compoundOperators[value.operator];
+    // Languages that spell integer division as a call or a wrapper, or with
+    // an operator of its own, would lose the truncation with `/=`.
+    const plainDivision =
+      value.operator !== 'divide' ||
+      !(this.syntax.integerDivision || this.syntax.operators.integerDivide);
     if (
       compound &&
+      plainDivision &&
       this.syntax.compoundAssignment !== false &&
       value.kind === 'Binary' &&
       value.left.kind === 'Name' &&
@@ -649,6 +664,9 @@ class Emitter {
       lines.push("import 'dart:io';");
     }
     lines.push(...(program.libraryImports ?? []));
+    if (this.uses.has('stdbool')) {
+      lines.push('#include <stdbool.h>');
+    }
     if (this.uses.has('stdio')) {
       lines.push('#include <stdio.h>');
     }

@@ -293,6 +293,8 @@ const METHOD_TERMS: Terms = Terms {
     routine: "method",
 };
 
+const SCRIPT_DIVISION: Option<IntegerDivision> = Some(IntegerDivision::Wrapper("Math.trunc"));
+
 /// The JavaScript description; the others start from it and change fields.
 const JAVASCRIPT: Syntax = Syntax {
     id: "javascript",
@@ -318,7 +320,9 @@ const JAVASCRIPT: Syntax = Syntax {
     command_calls: false,
     body_after: None,
     operators: SCRIPT_OPERATORS,
-    integer_division: Some(IntegerDivision::Wrapper("Math.trunc")),
+    // Every other language starts from this description, so the JavaScript
+    // spelling of integer division is set on the JavaScript entries only.
+    integer_division: None,
     concatenate_call: None,
     words: None,
     else_if: None,
@@ -361,9 +365,13 @@ const C: Syntax = Syntax {
 
 /// Every language the grammar translator describes, in listing order.
 pub const LANGUAGES: [Syntax; 20] = [
-    JAVASCRIPT,
+    Syntax {
+        integer_division: SCRIPT_DIVISION,
+        ..JAVASCRIPT
+    },
     Syntax {
         id: "typescript",
+        integer_division: SCRIPT_DIVISION,
         label: "TypeScript",
         typed: Typed::Annotation,
         types: Some(Types {

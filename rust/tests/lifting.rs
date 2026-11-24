@@ -9,13 +9,22 @@ use universal_translator::grammar::lowering::Instruction;
 use universal_translator::grammar::machine_reader::{read_cil, read_jvm, read_nasm};
 use universal_translator::grammar::{Translator, machine_target_ids};
 
-const TASKS: [&str; 5] = [
-    "factorial",
-    "fizz-buzz",
-    "greatest-common-divisor",
-    "hello-world",
-    "sum-of-squares",
-];
+/// Every task with goldens under `examples/programs/translated`.
+fn tasks() -> Vec<String> {
+    let folder = Path::new(env!("CARGO_MANIFEST_DIR")).join("examples/programs/translated");
+    let mut names: Vec<String> = fs::read_dir(folder)
+        .expect("the goldens folder")
+        .map(|entry| {
+            entry
+                .expect("a golden entry")
+                .file_name()
+                .to_string_lossy()
+                .into_owned()
+        })
+        .collect();
+    names.sort();
+    names
+}
 
 fn extension(target: &str) -> &'static str {
     match target {
@@ -177,7 +186,8 @@ fn reports_code_it_does_not_recognize() {
 
 #[test]
 fn translates_between_assembly_cil_and_jvm_bytecode() {
-    for task in TASKS {
+    for task in tasks() {
+        let task = task.as_str();
         let original = read(programs().join(format!("{task}.js")));
         for from in machine_target_ids() {
             let source = golden(task, from);

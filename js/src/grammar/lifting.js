@@ -14,6 +14,7 @@
 // "and", for example). The condition is rebuilt from the last comparison
 // back to the first.
 
+import { walk } from './meta.js';
 import { neutralName } from './names.js';
 
 const opposite = {
@@ -196,9 +197,10 @@ class BlockLifting {
 }
 
 class FunctionLifting {
-  constructor(item, functions) {
+  constructor(item, functions, booleanFunctions = new Set()) {
     this.item = item;
     this.functions = functions;
+    this.booleanFunctions = booleanFunctions;
     this.code = item.code;
     this.names = item.slotNames.map(neutralName);
     this.labels = new Map();
@@ -264,14 +266,7 @@ class FunctionLifting {
     if (expression.kind === 'Name') {
       return this.booleans.has(expression.name);
     }
-    if (expression.kind === 'Unary') {
-      return expression.operator === 'not';
-    }
-    return (
-      expression.kind === 'Binary' &&
-      (Boolean(opposite[expression.operator]) ||
-        ['and', 'or'].includes(expression.operator))
-    );
+    return isTruthValue(expression, this.booleanFunctions);
   }
 
   // Read the whole condition that starts with the comparison at index (or
@@ -515,13 +510,25 @@ function isCountingLoop(start, loop, after) {
   ) {
     return false;
   }
-  const assignedInBody = JSON.stringify(
-    loop.body.statements.slice(0, -1)
-  ).includes(`"kind":"Assignment","name":${JSON.stringify(variable)}`);
-  return !assignedInBody && !mentions(after, variable);
+  const assigned = (identifier) =>
+    JSON.stringify(loop.body.statements.slice(0, -1)).includes(
+      `"kind":"Assignment","name":${JSON.stringify(identifier)}`
+    );
+  // A counting loop computes its bound once, so the body must not change it.
+  const boundNames = [];
+  walk(loop.condition.right, (current) => {
+    if (current.kind === 'Name') {
+      boundNames.push(current.name);
+    }
+  });
+  return (
+    !assigned(variable) &&
+    !boundNames.some(assigned) &&
+    !mentions(after, variable)
+  );
 }
 
-function countingLoops(statements) {
+export function countingLoops(statements) {
   const result = [];
   for (let index = 0; index < statements.length; index += 1) {
     const start = statements[index];
@@ -542,25 +549,93 @@ function countingLoops(statements) {
   return result;
 }
 
+// A comparison, a logical operation or a call to a function that returns
+// one. Machine code keeps all of them as the integers 0 and 1.
+function isTruthValue(expression, booleanFunctions) {
+  switch (expression.kind) {
+    case 'Boolean':
+      return true;
+    case 'Unary':
+      return expression.operator === 'not';
+    case 'Call':
+      return booleanFunctions.has(expression.callee);
+    case 'Binary':
+      return (
+        Boolean(opposite[expression.operator]) ||
+        ['and', 'or'].includes(expression.operator)
+      );
+    default:
+      return false;
+  }
+}
+
+// A function whose every returned value is a truth value returns a boolean.
+function returnsTruthValue(body, booleanFunctions) {
+  const values = [];
+  walk(body, (current) => {
+    if (current.kind === 'Return') {
+      values.push(current.value);
+    }
+  });
+  return (
+    values.length > 0 &&
+    values.every((value) => value && isTruthValue(value, booleanFunctions))
+  );
+}
+
 // Lift a machine program read by machine-reader.js into a meta program
 // before type inference.
 export function liftProgram(machine) {
   const functions = new Map(
     machine.functions.map((item) => [item.name, item.returns])
   );
-  const liftFunction = (item) => new FunctionLifting(item, functions).lift();
+  // Machine code returns booleans as integers. Which functions return truth
+  // values decides how their callers are read, so lifting repeats until
+  // that set no longer changes.
+  let booleanFunctions = new Set();
+  const liftAll = () =>
+    machine.functions.map((item) =>
+      new FunctionLifting(item, functions, booleanFunctions).lift()
+    );
+  let lifted = liftAll();
+  for (let round = 0; round <= machine.functions.length; round += 1) {
+    const found = new Set(
+      machine.functions
+        .filter(
+          (item, index) =>
+            item.returns &&
+            returnsTruthValue(lifted[index].body, booleanFunctions)
+        )
+        .map((item) => neutralName(item.name))
+    );
+    if (
+      [...found].every((item) => booleanFunctions.has(item)) &&
+      found.size === booleanFunctions.size
+    ) {
+      break;
+    }
+    booleanFunctions = found;
+    lifted = liftAll();
+  }
+  const returnType = (item) => {
+    if (!item.returns) {
+      return 'nothing';
+    }
+    return booleanFunctions.has(neutralName(item.name)) ? 'boolean' : 'integer';
+  };
   return {
     kind: 'Program',
     comments: machine.comments,
     imports: [],
-    functions: machine.functions.map((item) => ({
+    functions: machine.functions.map((item, index) => ({
       kind: 'Function',
       name: neutralName(item.name),
-      ...liftFunction(item),
-      returnType: item.returns ? 'integer' : 'nothing',
+      ...lifted[index],
+      returnType: returnType(item),
       comments: item.comments,
     })),
-    main: liftFunction(machine.main).body,
+    main: new FunctionLifting(machine.main, functions, booleanFunctions).lift()
+      .body,
     mainComments: machine.main.comments,
   };
 }
