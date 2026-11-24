@@ -38,6 +38,9 @@ export default `profile:
       task: fizz-buzz
       name: standard
     form:
+      task: fizz-buzz-function
+      name: standard
+    form:
       task: fizz-buzz-lowercase
       name: standard
     form:

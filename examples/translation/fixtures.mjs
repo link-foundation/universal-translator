@@ -50,6 +50,12 @@ export function nativeArguments(effect) {
 }
 
 export function nativeProgram(source, language, effect, entry) {
+  if (effect.task === 'fizz-buzz-function') {
+    if (language === 'javascript') {
+      return `${source}\nprocess.stdout.write('call\\n');\nif (${entry ?? 'fizzBuzz'}() !== undefined) throw new Error('Unexpected return value');\n`;
+    }
+    return `${source}\nfn main() {\n    println!("call");\n    let () = ${entry ?? 'fizz_buzz'}();\n}\n`;
+  }
   if (effect.task === 'fizz-buzz-joined') {
     return language === 'javascript'
       ? `${source}\nprocess.stdout.write(JSON.stringify(fizzBuzz()));\n`
@@ -87,11 +93,15 @@ function expectedFizzBuzz({ task, limit, separator }) {
       task === 'fizz-buzz-quoted' ? `"${label}"\n` : `${label}\n`
     )
     .join('');
+  if (task === 'fizz-buzz-function') {
+    return `call\n${lines}`;
+  }
   return task === 'fizz-buzz-lowercase-blank-line' ? `${lines}\n` : lines;
 }
 
 const fizzBuzzTasks = new Set([
   'fizz-buzz',
+  'fizz-buzz-function',
   'fizz-buzz-lowercase',
   'fizz-buzz-quoted',
   'fizz-buzz-lowercase-blank-line',

@@ -567,6 +567,34 @@ profile:
         (line: '    }')
         (line: })
     form:
+      task: fizz-buzz-function
+      name: standard
+      output: fizz_buzz
+      source:
+        (line: 'fn fizz_buzz() {')
+        (line: '    for number in 1..={{limit}} {')
+        (line: '        match (number % 3, number % 5) {')
+        (line: '            (0, 0) => println!("FizzBuzz"),')
+        (line: '            (0, _) => println!("Fizz"),')
+        (line: '            (_, 0) => println!("Buzz"),')
+        (line: '            _ => println!("{number}"),')
+        (line: '        }')
+        (line: '    }')
+        (line: })
+    form:
+      task: fizz-buzz-function
+      name: common
+      output: fizz_buzz
+      requires: common_library
+      source:
+        (line: 'mod common_library;')
+        (line: ~1{})
+        (line: 'fn fizz_buzz() {')
+        (line: '    for line in common_library::fizz_buzz_lines({{limit}}) {')
+        (line: '        common_library::print_line(&line);')
+        (line: '    }')
+        (line: })
+    form:
       task: fizz-buzz-joined
       name: standard
       output: fizz_buzz

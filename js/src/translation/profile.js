@@ -55,6 +55,7 @@ const taskFields = {
       Number.isInteger(value) && value >= 0 && value <= 2147483647,
   },
   'fizz-buzz': { limit },
+  'fizz-buzz-function': { limit },
   'fizz-buzz-lowercase': { limit },
   'fizz-buzz-quoted': { limit },
   'fizz-buzz-lowercase-blank-line': { limit },

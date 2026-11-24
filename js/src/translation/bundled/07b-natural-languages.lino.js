@@ -65,6 +65,14 @@ export default `profile:
         (line: 'Untuk tiap bilangan, tulis FizzBuzz jika habis dibagi 3 dan 5, Fizz jika habis dibagi 3 saja, Buzz jika habis dibagi 5 saja, atau bilangan dalam bentuk desimal jika tidak keduanya.')
         (line: 'Tulis setiap hasil pada baris tersendiri di keluaran standar.')
     form:
+      task: fizz-buzz-function
+      name: standard
+      source:
+        (line: 'Definisikan fungsi tanpa argumen atau nilai balik. Tulis baris berikut hanya saat fungsi dipanggil.')
+        (line: 'Telusuri setiap bilangan bulat dari 1 sampai {{limit}}, termasuk keduanya, dalam urutan menaik.')
+        (line: 'Untuk tiap bilangan, tulis FizzBuzz jika habis dibagi 3 dan 5, Fizz jika habis dibagi 3 saja, Buzz jika habis dibagi 5 saja, atau bilangan dalam bentuk desimal jika tidak keduanya.')
+        (line: 'Tulis setiap hasil pada baris tersendiri di keluaran standar.')
+    form:
       task: fizz-buzz-joined
       name: standard
       source:
@@ -155,6 +163,14 @@ profile:
       task: fizz-buzz
       name: standard
       source:
+        (line: 'Durchlaufe die ganzen Zahlen von 1 bis einschließlich {{limit}} in aufsteigender Reihenfolge.')
+        (line: 'Schreibe für jede Zahl FizzBuzz, wenn sie durch 3 und 5 teilbar ist, Fizz bei Teilbarkeit nur durch 3, Buzz bei Teilbarkeit nur durch 5, sonst die Zahl in Dezimalschreibweise.')
+        (line: 'Schreibe jedes Ergebnis in eine eigene Zeile der Standardausgabe.')
+    form:
+      task: fizz-buzz-function
+      name: standard
+      source:
+        (line: 'Definieren Sie eine Funktion ohne Argumente und Rückgabewert. Geben Sie die folgenden Zeilen nur beim Aufruf der Funktion aus.')
         (line: 'Durchlaufe die ganzen Zahlen von 1 bis einschließlich {{limit}} in aufsteigender Reihenfolge.')
         (line: 'Schreibe für jede Zahl FizzBuzz, wenn sie durch 3 und 5 teilbar ist, Fizz bei Teilbarkeit nur durch 3, Buzz bei Teilbarkeit nur durch 5, sonst die Zahl in Dezimalschreibweise.')
         (line: 'Schreibe jedes Ergebnis in eine eigene Zeile der Standardausgabe.')
@@ -253,6 +269,14 @@ profile:
         (line: '3 と 5 の両方で割り切れる場合は FizzBuzz、3 だけで割り切れる場合は Fizz、5 だけで割り切れる場合は Buzz、それ以外は整数を十進数で出力する。')
         (line: 各結果を標準出力に一行ずつ書き込む。)
     form:
+      task: fizz-buzz-function
+      name: standard
+      source:
+        (line: '引数も戻り値もない関数を定義する。関数が呼び出されたときにだけ、次の行を出力する。')
+        (line: '1 から {{limit}} までのすべての整数を昇順に処理する。')
+        (line: '3 と 5 の両方で割り切れる場合は FizzBuzz、3 だけで割り切れる場合は Fizz、5 だけで割り切れる場合は Buzz、それ以外は整数を十進数で出力する。')
+        (line: 各結果を標準出力に一行ずつ書き込む。)
+    form:
       task: fizz-buzz-joined
       name: standard
       source:
@@ -343,6 +367,14 @@ profile:
       task: fizz-buzz
       name: standard
       source:
+        (line: 'Pitia kila namba kamili kuanzia 1 hadi {{limit}}, pamoja na namba za mipaka, kwa mpangilio wa kupanda.')
+        (line: 'Andika FizzBuzz ikiwa namba inagawanyika kwa 3 na 5, Fizz ikiwa inagawanyika kwa 3 pekee, Buzz ikiwa inagawanyika kwa 5 pekee, au namba kwa mfumo wa desimali vinginevyo.')
+        (line: 'Andika kila jibu kwenye mstari wake katika pato la kawaida.')
+    form:
+      task: fizz-buzz-function
+      name: standard
+      source:
+        (line: 'Fafanua kitendakazi kisichopokea hoja wala kurudisha thamani. Andika mistari ifuatayo tu kitendakazi kinapoitwa.')
         (line: 'Pitia kila namba kamili kuanzia 1 hadi {{limit}}, pamoja na namba za mipaka, kwa mpangilio wa kupanda.')
         (line: 'Andika FizzBuzz ikiwa namba inagawanyika kwa 3 na 5, Fizz ikiwa inagawanyika kwa 3 pekee, Buzz ikiwa inagawanyika kwa 5 pekee, au namba kwa mfumo wa desimali vinginevyo.')
         (line: 'Andika kila jibu kwenye mstari wake katika pato la kawaida.')
@@ -441,6 +473,14 @@ profile:
         (line: 'संख्येला 3 आणि 5 या दोन्हींनी निःशेष भाग जात असेल तर FizzBuzz, फक्त 3 ने तर Fizz, फक्त 5 ने तर Buzz, अन्यथा दशमान पद्धतीने ती संख्या लिहा.')
         (line: 'प्रत्येक निकाल प्रमाणित आउटपुटवर स्वतंत्र ओळीत लिहा.')
     form:
+      task: fizz-buzz-function
+      name: standard
+      source:
+        (line: 'कोणतेही युक्तिवाद न घेणारे आणि मूल्य न परत करणारे फलन परिभाषित करा. पुढील ओळी फक्त फलनाला बोलावल्यावर लिहा.')
+        (line: '1 ते {{limit}} हे दोन्ही टोकांसह सर्व पूर्णांक चढत्या क्रमाने घ्या.')
+        (line: 'संख्येला 3 आणि 5 या दोन्हींनी निःशेष भाग जात असेल तर FizzBuzz, फक्त 3 ने तर Fizz, फक्त 5 ने तर Buzz, अन्यथा दशमान पद्धतीने ती संख्या लिहा.')
+        (line: 'प्रत्येक निकाल प्रमाणित आउटपुटवर स्वतंत्र ओळीत लिहा.')
+    form:
       task: fizz-buzz-joined
       name: standard
       source:
@@ -531,6 +571,14 @@ profile:
       task: fizz-buzz
       name: standard
       source:
+        (line: '1 నుంచి {{limit}} వరకు రెండు చివరలతో సహా ప్రతి పూర్ణాంకాన్ని ఆరోహణ క్రమంలో తీసుకోండి.')
+        (line: 'సంఖ్య 3 మరియు 5 రెండింటితో భాగించబడితే FizzBuzz, 3తో మాత్రమే భాగించబడితే Fizz, 5తో మాత్రమే భాగించబడితే Buzz, లేకపోతే సంఖ్యను దశాంశ రూపంలో రాయండి.')
+        (line: 'ప్రతి ఫలితాన్ని ప్రామాణిక అవుట్‌పుట్‌లో వేరే పంక్తిలో రాయండి.')
+    form:
+      task: fizz-buzz-function
+      name: standard
+      source:
+        (line: 'ఆర్గ్యుమెంట్లు తీసుకోని, విలువను తిరిగి ఇవ్వని ఫంక్షన్‌ను నిర్వచించండి. ఫంక్షన్‌ను పిలిచినప్పుడు మాత్రమే కింది పంక్తులను రాయండి.')
         (line: '1 నుంచి {{limit}} వరకు రెండు చివరలతో సహా ప్రతి పూర్ణాంకాన్ని ఆరోహణ క్రమంలో తీసుకోండి.')
         (line: 'సంఖ్య 3 మరియు 5 రెండింటితో భాగించబడితే FizzBuzz, 3తో మాత్రమే భాగించబడితే Fizz, 5తో మాత్రమే భాగించబడితే Buzz, లేకపోతే సంఖ్యను దశాంశ రూపంలో రాయండి.')
         (line: 'ప్రతి ఫలితాన్ని ప్రామాణిక అవుట్‌పుట్‌లో వేరే పంక్తిలో రాయండి.')
@@ -629,6 +677,14 @@ profile:
         (line: 'Her sayı için hem 3 hem 5 ile bölünüyorsa FizzBuzz, yalnızca 3 ile bölünüyorsa Fizz, yalnızca 5 ile bölünüyorsa Buzz, aksi halde sayıyı ondalık gösterimle yaz.')
         (line: 'Her sonucu standart çıktıda ayrı bir satıra yaz.')
     form:
+      task: fizz-buzz-function
+      name: standard
+      source:
+        (line: 'Bağımsız değişken almayan ve değer döndürmeyen bir işlev tanımlayın. Aşağıdaki satırları yalnızca işlev çağrıldığında yazın.')
+        (line: '1 ile {{limit}} arasındaki bütün tam sayıları, uçlar dâhil, artan sırada işle.')
+        (line: 'Her sayı için hem 3 hem 5 ile bölünüyorsa FizzBuzz, yalnızca 3 ile bölünüyorsa Fizz, yalnızca 5 ile bölünüyorsa Buzz, aksi halde sayıyı ondalık gösterimle yaz.')
+        (line: 'Her sonucu standart çıktıda ayrı bir satıra yaz.')
+    form:
       task: fizz-buzz-joined
       name: standard
       source:
@@ -719,6 +775,14 @@ profile:
       task: fizz-buzz
       name: standard
       source:
+        (line: '1 முதல் {{limit}} வரை இரு எல்லைகளையும் சேர்த்து அனைத்து முழு எண்களையும் ஏறுவரிசையில் எடுத்துக்கொள்ளவும்.')
+        (line: 'எண் 3 மற்றும் 5 இரண்டாலும் வகுபட்டால் FizzBuzz, 3 ஆல் மட்டும் வகுபட்டால் Fizz, 5 ஆல் மட்டும் வகுபட்டால் Buzz, இல்லையெனில் எண்ணைப் பதின்ம வடிவில் எழுதவும்.')
+        (line: 'ஒவ்வொரு முடிவையும் நிலையான வெளியீட்டில் தனித்தனி வரியில் எழுதவும்.')
+    form:
+      task: fizz-buzz-function
+      name: standard
+      source:
+        (line: 'உள்ளீட்டு அளவுருக்களும் திருப்பும் மதிப்பும் இல்லாத ஒரு செயல்பாட்டை வரையறுக்கவும். அதை அழைக்கும்போது மட்டும் பின்வரும் வரிகளை எழுதவும்.')
         (line: '1 முதல் {{limit}} வரை இரு எல்லைகளையும் சேர்த்து அனைத்து முழு எண்களையும் ஏறுவரிசையில் எடுத்துக்கொள்ளவும்.')
         (line: 'எண் 3 மற்றும் 5 இரண்டாலும் வகுபட்டால் FizzBuzz, 3 ஆல் மட்டும் வகுபட்டால் Fizz, 5 ஆல் மட்டும் வகுபட்டால் Buzz, இல்லையெனில் எண்ணைப் பதின்ம வடிவில் எழுதவும்.')
         (line: 'ஒவ்வொரு முடிவையும் நிலையான வெளியீட்டில் தனித்தனி வரியில் எழுதவும்.')
@@ -817,6 +881,14 @@ profile:
         (line: 'Với mỗi số, ghi FizzBuzz nếu chia hết cho cả 3 và 5, Fizz nếu chỉ chia hết cho 3, Buzz nếu chỉ chia hết cho 5, hoặc chính số đó ở dạng thập phân trong trường hợp còn lại.')
         (line: 'Ghi mỗi kết quả trên một dòng riêng ở đầu ra chuẩn.')
     form:
+      task: fizz-buzz-function
+      name: standard
+      source:
+        (line: 'Định nghĩa một hàm không nhận đối số và không trả về giá trị. Chỉ ghi các dòng sau khi hàm được gọi.')
+        (line: 'Duyệt lần lượt các số nguyên từ 1 đến {{limit}}, kể cả hai đầu, theo thứ tự tăng dần.')
+        (line: 'Với mỗi số, ghi FizzBuzz nếu chia hết cho cả 3 và 5, Fizz nếu chỉ chia hết cho 3, Buzz nếu chỉ chia hết cho 5, hoặc chính số đó ở dạng thập phân trong trường hợp còn lại.')
+        (line: 'Ghi mỗi kết quả trên một dòng riêng ở đầu ra chuẩn.')
+    form:
       task: fizz-buzz-joined
       name: standard
       source:
@@ -907,6 +979,14 @@ profile:
       task: fizz-buzz
       name: standard
       source:
+        (line: '1부터 {{limit}}까지 양 끝을 포함한 모든 정수를 오름차순으로 처리한다.')
+        (line: '3과 5 모두로 나누어떨어지면 FizzBuzz, 3으로만 나누어떨어지면 Fizz, 5로만 나누어떨어지면 Buzz, 그 외에는 정수를 십진수로 쓴다.')
+        (line: '각 결과를 표준 출력에 한 줄씩 쓴다.')
+    form:
+      task: fizz-buzz-function
+      name: standard
+      source:
+        (line: '인수와 반환값이 없는 함수를 정의한다. 함수를 호출할 때만 다음 줄을 출력한다.')
         (line: '1부터 {{limit}}까지 양 끝을 포함한 모든 정수를 오름차순으로 처리한다.')
         (line: '3과 5 모두로 나누어떨어지면 FizzBuzz, 3으로만 나누어떨어지면 Fizz, 5로만 나누어떨어지면 Buzz, 그 외에는 정수를 십진수로 쓴다.')
         (line: '각 결과를 표준 출력에 한 줄씩 쓴다.')

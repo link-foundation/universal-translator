@@ -65,6 +65,14 @@ export default `profile:
         (line: 'For each integer, write FizzBuzz if it is divisible by both 3 and 5, Fizz if it is divisible only by 3, Buzz if it is divisible only by 5, or the integer in decimal otherwise.')
         (line: 'Write each result on its own line of standard output.')
     form:
+      task: fizz-buzz-function
+      name: standard
+      source:
+        (line: 'Define a function with no arguments or return value. Write the following lines only when the function is called.')
+        (line: 'Visit each integer from 1 through {{limit}}, in ascending order.')
+        (line: 'For each integer, write FizzBuzz if it is divisible by both 3 and 5, Fizz if it is divisible only by 3, Buzz if it is divisible only by 5, or the integer in decimal otherwise.')
+        (line: 'Write each result on its own line of standard output.')
+    form:
       task: fizz-buzz-joined
       name: standard
       source:
@@ -155,6 +163,14 @@ profile:
       task: fizz-buzz
       name: standard
       source:
+        (line: '按升序遍历从 1 到 {{limit}} 的每个整数，包括两端。')
+        (line: '对每个整数，若能同时被 3 和 5 整除则输出 FizzBuzz；若只能被 3 整除则输出 Fizz；若只能被 5 整除则输出 Buzz；否则输出该整数的十进制表示。')
+        (line: 将每个结果各占一行写入标准输出。)
+    form:
+      task: fizz-buzz-function
+      name: standard
+      source:
+        (line: '定义一个无参数、无返回值的函数。仅在调用该函数时输出以下各行。')
         (line: '按升序遍历从 1 到 {{limit}} 的每个整数，包括两端。')
         (line: '对每个整数，若能同时被 3 和 5 整除则输出 FizzBuzz；若只能被 3 整除则输出 Fizz；若只能被 5 整除则输出 Buzz；否则输出该整数的十进制表示。')
         (line: 将每个结果各占一行写入标准输出。)
@@ -253,6 +269,14 @@ profile:
         (line: 'यदि संख्या 3 और 5 दोनों से विभाज्य है तो FizzBuzz, केवल 3 से तो Fizz, केवल 5 से तो Buzz, अन्यथा संख्या को दशमलव में लिखें।')
         (line: 'हर परिणाम को मानक आउटपुट पर अलग पंक्ति में लिखें।')
     form:
+      task: fizz-buzz-function
+      name: standard
+      source:
+        (line: 'बिना किसी तर्क और वापसी मान वाला फलन परिभाषित करें। निम्न पंक्तियाँ केवल फलन को बुलाने पर लिखें।')
+        (line: '1 से {{limit}} तक, दोनों सिरों समेत, सभी पूर्णांक बढ़ते क्रम में लें।')
+        (line: 'यदि संख्या 3 और 5 दोनों से विभाज्य है तो FizzBuzz, केवल 3 से तो Fizz, केवल 5 से तो Buzz, अन्यथा संख्या को दशमलव में लिखें।')
+        (line: 'हर परिणाम को मानक आउटपुट पर अलग पंक्ति में लिखें।')
+    form:
       task: fizz-buzz-joined
       name: standard
       source:
@@ -343,6 +367,14 @@ profile:
       task: fizz-buzz
       name: standard
       source:
+        (line: 'Recorre en orden ascendente los enteros de 1 a {{limit}}, ambos inclusive.')
+        (line: 'Para cada entero, escribe FizzBuzz si es divisible por 3 y 5, Fizz si solo es divisible por 3, Buzz si solo es divisible por 5 o el entero en decimal en los demás casos.')
+        (line: 'Escribe cada resultado en una línea de la salida estándar.')
+    form:
+      task: fizz-buzz-function
+      name: standard
+      source:
+        (line: 'Define una función sin argumentos ni valor de retorno. Escribe las líneas siguientes solo cuando se llame a la función.')
         (line: 'Recorre en orden ascendente los enteros de 1 a {{limit}}, ambos inclusive.')
         (line: 'Para cada entero, escribe FizzBuzz si es divisible por 3 y 5, Fizz si solo es divisible por 3, Buzz si solo es divisible por 5 o el entero en decimal en los demás casos.')
         (line: 'Escribe cada resultado en una línea de la salida estándar.')
@@ -441,6 +473,14 @@ profile:
         (line: 'Pour chaque entier, écris FizzBuzz s’il est divisible par 3 et par 5, Fizz s’il est divisible par 3 seulement, Buzz s’il est divisible par 5 seulement, ou l’entier en décimal sinon.')
         (line: 'Écris chaque résultat sur une ligne de la sortie standard.')
     form:
+      task: fizz-buzz-function
+      name: standard
+      source:
+        (line: 'Définissez une fonction sans argument ni valeur de retour. Écrivez les lignes suivantes uniquement lors de son appel.')
+        (line: 'Parcours les entiers de 1 à {{limit}} inclus, dans l’ordre croissant.')
+        (line: 'Pour chaque entier, écris FizzBuzz s’il est divisible par 3 et par 5, Fizz s’il est divisible par 3 seulement, Buzz s’il est divisible par 5 seulement, ou l’entier en décimal sinon.')
+        (line: 'Écris chaque résultat sur une ligne de la sortie standard.')
+    form:
       task: fizz-buzz-joined
       name: standard
       source:
@@ -531,6 +571,14 @@ profile:
       task: fizz-buzz
       name: standard
       source:
+        (line: 'مرّ بالأعداد الصحيحة من 1 إلى {{limit}} شاملًا الطرفين وبترتيب تصاعدي.')
+        (line: 'لكل عدد، اكتب FizzBuzz إن قبل القسمة على 3 و5 معًا، وFizz إن قبل القسمة على 3 فقط، وBuzz إن قبل القسمة على 5 فقط، وإلا فاكتب العدد بالنظام العشري.')
+        (line: 'اكتب كل نتيجة في سطر مستقل على المخرج القياسي.')
+    form:
+      task: fizz-buzz-function
+      name: standard
+      source:
+        (line: 'عرّف دالة بلا وسائط أو قيمة مُعادة. اكتب الأسطر التالية عند استدعاء الدالة فقط.')
         (line: 'مرّ بالأعداد الصحيحة من 1 إلى {{limit}} شاملًا الطرفين وبترتيب تصاعدي.')
         (line: 'لكل عدد، اكتب FizzBuzz إن قبل القسمة على 3 و5 معًا، وFizz إن قبل القسمة على 3 فقط، وBuzz إن قبل القسمة على 5 فقط، وإلا فاكتب العدد بالنظام العشري.')
         (line: 'اكتب كل نتيجة في سطر مستقل على المخرج القياسي.')
@@ -629,6 +677,14 @@ profile:
         (line: 'সংখ্যাটি 3 ও 5 উভয়টি দিয়ে বিভাজ্য হলে FizzBuzz, শুধু 3 দিয়ে হলে Fizz, শুধু 5 দিয়ে হলে Buzz, অন্যথায় দশমিক সংখ্যাটি লিখুন।')
         (line: 'প্রতিটি ফল মানক আউটপুটে আলাদা লাইনে লিখুন।')
     form:
+      task: fizz-buzz-function
+      name: standard
+      source:
+        (line: 'কোনো আর্গুমেন্ট বা ফেরত মান ছাড়া একটি ফাংশন সংজ্ঞায়িত করুন। শুধু ফাংশনটি ডাকা হলে পরের লাইনগুলি লিখুন।')
+        (line: '1 থেকে {{limit}} পর্যন্ত উভয় প্রান্তসহ প্রতিটি পূর্ণসংখ্যা ঊর্ধ্বক্রমে নিন।')
+        (line: 'সংখ্যাটি 3 ও 5 উভয়টি দিয়ে বিভাজ্য হলে FizzBuzz, শুধু 3 দিয়ে হলে Fizz, শুধু 5 দিয়ে হলে Buzz, অন্যথায় দশমিক সংখ্যাটি লিখুন।')
+        (line: 'প্রতিটি ফল মানক আউটপুটে আলাদা লাইনে লিখুন।')
+    form:
       task: fizz-buzz-joined
       name: standard
       source:
@@ -719,6 +775,14 @@ profile:
       task: fizz-buzz
       name: standard
       source:
+        (line: 'Percorra em ordem crescente todos os inteiros de 1 a {{limit}}, inclusive.')
+        (line: 'Para cada inteiro, escreva FizzBuzz se for divisível por 3 e 5, Fizz se for divisível apenas por 3, Buzz se for divisível apenas por 5 ou o inteiro em decimal nos demais casos.')
+        (line: 'Escreva cada resultado em sua própria linha na saída padrão.')
+    form:
+      task: fizz-buzz-function
+      name: standard
+      source:
+        (line: 'Defina uma função sem argumentos nem valor de retorno. Escreva as linhas abaixo apenas quando a função for chamada.')
         (line: 'Percorra em ordem crescente todos os inteiros de 1 a {{limit}}, inclusive.')
         (line: 'Para cada inteiro, escreva FizzBuzz se for divisível por 3 e 5, Fizz se for divisível apenas por 3, Buzz se for divisível apenas por 5 ou o inteiro em decimal nos demais casos.')
         (line: 'Escreva cada resultado em sua própria linha na saída padrão.')
@@ -817,6 +881,14 @@ profile:
         (line: 'Для каждого числа выведите FizzBuzz, если оно делится на 3 и 5, Fizz, если делится только на 3, Buzz, если делится только на 5, иначе выведите число в десятичной записи.')
         (line: 'Выведите каждый результат в отдельной строке стандартного потока вывода.')
     form:
+      task: fizz-buzz-function
+      name: standard
+      source:
+        (line: 'Определите функцию без аргументов и возвращаемого значения. Выводите следующие строки только при вызове функции.')
+        (line: 'Переберите по возрастанию все целые числа от 1 до {{limit}} включительно.')
+        (line: 'Для каждого числа выведите FizzBuzz, если оно делится на 3 и 5, Fizz, если делится только на 3, Buzz, если делится только на 5, иначе выведите число в десятичной записи.')
+        (line: 'Выведите каждый результат в отдельной строке стандартного потока вывода.')
+    form:
       task: fizz-buzz-joined
       name: standard
       source:
@@ -907,6 +979,14 @@ profile:
       task: fizz-buzz
       name: standard
       source:
+        (line: '1 سے {{limit}} تک ہر صحیح عدد کو بڑھتی ترتیب میں لیں، دونوں سروں سمیت۔')
+        (line: 'جو عدد 3 اور 5 دونوں سے تقسیم ہو اس کے لیے FizzBuzz، صرف 3 سے ہو تو Fizz، صرف 5 سے ہو تو Buzz، ورنہ اعشاری صورت میں خود عدد لکھیں۔')
+        (line: 'ہر نتیجہ معیاری خروج پر ایک الگ سطر میں لکھیں۔')
+    form:
+      task: fizz-buzz-function
+      name: standard
+      source:
+        (line: 'ایک ایسا فنکشن بنائیں جس کے کوئی دلائل یا واپسی قدر نہ ہو۔ درج ذیل سطریں صرف فنکشن کو بلانے پر لکھیں۔')
         (line: '1 سے {{limit}} تک ہر صحیح عدد کو بڑھتی ترتیب میں لیں، دونوں سروں سمیت۔')
         (line: 'جو عدد 3 اور 5 دونوں سے تقسیم ہو اس کے لیے FizzBuzz، صرف 3 سے ہو تو Fizz، صرف 5 سے ہو تو Buzz، ورنہ اعشاری صورت میں خود عدد لکھیں۔')
         (line: 'ہر نتیجہ معیاری خروج پر ایک الگ سطر میں لکھیں۔')

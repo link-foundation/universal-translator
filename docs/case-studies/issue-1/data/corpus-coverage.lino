@@ -57,6 +57,7 @@ rosetta-code:
     (variant: ackermann-value ackermann-function)
     (variant: write-text hello)
     (variant: gcd-function greatest-common-divisor)
+    (variant: fizz-buzz-function fizz-buzz)
     (variant: fizz-buzz-lowercase fizz-buzz)
     (variant: fizz-buzz-quoted fizz-buzz)
     (variant: fizz-buzz-lowercase-blank-line fizz-buzz)
@@ -92,6 +93,7 @@ rosetta-code:
     (program: Rust/greatest-common-divisor-2.rs rust rosetta-iterative gcd-function 2147483647)
     (program: Rust/greatest-common-divisor-3.rs rust rosetta-recursive gcd-function 2147483647)
   fizz-buzz-source-files:
+    (program: JavaScript/fizzbuzz-1.js javascript rosetta-function 100 fizz-buzz-function)
     (program: JavaScript/fizzbuzz-2.js javascript rosetta-lookup 100)
     (program: JavaScript/fizzbuzz-3.js javascript rosetta-assignment 100)
     (program: JavaScript/fizzbuzz-4.js javascript rosetta-concise 100)

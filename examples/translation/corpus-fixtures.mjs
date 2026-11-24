@@ -144,7 +144,11 @@ function executePinnedPrograms(programs, effect, path) {
           `${label} ${result.signal ?? result.stderr}`
         );
         stdout += result.stdout;
-        if (['empty-program', 'fizz-buzz-joined'].includes(effect.task)) {
+        if (
+          ['empty-program', 'fizz-buzz-function', 'fizz-buzz-joined'].includes(
+            effect.task
+          )
+        ) {
           assert.equal(result.stderr, '', `${label} stderr`);
         }
       }

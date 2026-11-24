@@ -25,6 +25,7 @@ const expectedProfiles = {
   hello: 76,
   'greatest-common-divisor': 72,
   'fizz-buzz': 72,
+  'fizz-buzz-function': 23,
   'write-text': 23,
   'gcd-function': 23,
   'ackermann-function': 23,

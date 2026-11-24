@@ -377,6 +377,47 @@ export default `profile:
         (line: '    printLine(line);')
         (line: })
     form:
+      task: fizz-buzz-function
+      name: standard
+      output: fizzBuzz
+      source:
+        (line: 'function fizzBuzz() {')
+        (line: '    for (let number = 1; number <= {{limit}}; number += 1) {')
+        (line: '        const fizz = number % 3 === 0 ? "Fizz" : "";')
+        (line: '        const buzz = number % 5 === 0 ? "Buzz" : "";')
+        (line: '        console.log(fizz + buzz || number);')
+        (line: '    }')
+        (line: })
+    form:
+      task: fizz-buzz-function
+      name: common
+      output: fizzBuzz
+      requires: './common-library.mjs'
+      source:
+        (line: "import { fizzBuzzLines, printLine } from './common-library.mjs';")
+        (line: ~1{})
+        (line: 'function fizzBuzz() {')
+        (line: '    for (const line of fizzBuzzLines({{limit}})) {')
+        (line: '        printLine(line);')
+        (line: '    }')
+        (line: })
+    form:
+      task: fizz-buzz-function
+      name: rosetta-function
+      output: fizzBuzz
+      fixed:
+        limit: 100
+      source:
+        (line: 'var fizzBuzz = function () {')
+        (line: '  var i, output;')
+        (line: '  for (i = 1; i < 101; i += 1) {')
+        (line: "    output = '';")
+        (line: "    if (!(i % 3)) { output += 'Fizz'; }")
+        (line: "    if (!(i % 5)) { output += 'Buzz'; }")
+        (line: '    console.log(output || i);//empty string is false, so we short-circuit')
+        (line: '  }')
+        (line: '};')
+    form:
       task: fizz-buzz-joined
       name: standard
       output: fizzBuzz

@@ -11,6 +11,7 @@ export type Effect =
   | { task: 'gcd-function'; max: 2147483647 }
   | { task: 'greatest-common-divisor'; left: number; right: number }
   | { task: 'fizz-buzz'; limit: number }
+  | { task: 'fizz-buzz-function'; limit: number }
   | { task: 'fizz-buzz-lowercase'; limit: number }
   | { task: 'fizz-buzz-quoted'; limit: number }
   | { task: 'fizz-buzz-joined'; limit: number; separator: 10 | 32 }

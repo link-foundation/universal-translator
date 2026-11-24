@@ -8,6 +8,9 @@ greatest-common-divisor:
 fizz-buzz:
   limit: 100
 
+fizz-buzz-function:
+  limit: 100
+
 write-text:
   message: 'Hello world!'
 

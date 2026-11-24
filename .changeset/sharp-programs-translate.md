@@ -12,6 +12,8 @@ Recognize all seven pinned JavaScript and Rust Rosetta Code Ackermann listings. 
 
 Translate FizzBuzz variants that write lowercase results, quote each result, or add a final blank line. The common library forms and all 20 natural-language profiles preserve the exact output layout.
 
+Translate FizzBuzz functions that print only when called or return a string joined by spaces or newlines. The native checks compare the original JavaScript listings with Rust and verify the callable and common-library forms.
+
 Translate an empty program between JavaScript, Rust, Links Notation, and all 20 natural-language profiles. Verify the original Rust specimen and the generated JavaScript program for a successful exit and empty output streams.
 
 Expose Meta Language grammar CST encoding and decoding in the Rust CLI and a JavaScript codec for the matching Meta Language 1.0 engine. Preserve grammar nodes, parser provenance, and UTF-8 source bytes in the exchanged Links Notation network.

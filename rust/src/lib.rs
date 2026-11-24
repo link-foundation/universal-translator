@@ -33,6 +33,7 @@ pub enum Effect {
     GcdFunction { max: u32 },
     GreatestCommonDivisor { left: u32, right: u32 },
     FizzBuzz { limit: u32 },
+    FizzBuzzFunction { limit: u32 },
     FizzBuzzLowercase { limit: u32 },
     FizzBuzzQuoted { limit: u32 },
     FizzBuzzLowercaseBlankLine { limit: u32 },
@@ -52,6 +53,7 @@ impl Effect {
             Self::GcdFunction { .. } => "gcd-function",
             Self::GreatestCommonDivisor { .. } => "greatest-common-divisor",
             Self::FizzBuzz { .. } => "fizz-buzz",
+            Self::FizzBuzzFunction { .. } => "fizz-buzz-function",
             Self::FizzBuzzLowercase { .. } => "fizz-buzz-lowercase",
             Self::FizzBuzzQuoted { .. } => "fizz-buzz-quoted",
             Self::FizzBuzzLowercaseBlankLine { .. } => "fizz-buzz-lowercase-blank-line",
@@ -74,6 +76,7 @@ impl Effect {
                 vec![("left", left.to_string()), ("right", right.to_string())]
             }
             Self::FizzBuzz { limit }
+            | Self::FizzBuzzFunction { limit }
             | Self::FizzBuzzLowercase { limit }
             | Self::FizzBuzzQuoted { limit }
             | Self::FizzBuzzLowercaseBlankLine { limit } => vec![("limit", limit.to_string())],
@@ -126,6 +129,9 @@ impl Effect {
                 right: integer("right")?,
             },
             "fizz-buzz" if fields.len() == 1 => Self::FizzBuzz {
+                limit: integer("limit")?,
+            },
+            "fizz-buzz-function" if fields.len() == 1 => Self::FizzBuzzFunction {
                 limit: integer("limit")?,
             },
             "fizz-buzz-lowercase" if fields.len() == 1 => Self::FizzBuzzLowercase {
@@ -200,6 +206,7 @@ impl Effect {
             Self::AckermannValue { left, right } => *left == 3 && *right <= 4,
             Self::EmptyProgram { status } => *status == 0,
             Self::FizzBuzz { limit }
+            | Self::FizzBuzzFunction { limit }
             | Self::FizzBuzzLowercase { limit }
             | Self::FizzBuzzQuoted { limit }
             | Self::FizzBuzzLowercaseBlankLine { limit } => (1..=1000).contains(limit),
