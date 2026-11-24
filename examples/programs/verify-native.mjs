@@ -233,6 +233,9 @@ const runners = {
         ...objcFlags,
         '-x',
         'objective-c',
+        // GCC compiles Objective-C as C89 unless told otherwise, which
+        // rejects declarations in for-loop headers.
+        '-std=gnu11',
         '-Wall',
         '-Werror',
         '-o',
