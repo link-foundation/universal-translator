@@ -3,8 +3,9 @@
 Translate programs between languages through a typed meta language, with
 matching JavaScript and Rust implementations. The translator is built from
 grammar and rule tables, not from per-program templates. It reads JavaScript,
-TypeScript, Python, Ruby, Lua, PHP, C, C++, C#, Java, Go, Rust, Kotlin and
-Swift, and writes any of them. It can also lower a program to x86-64 assembly
+TypeScript, Python, Ruby, Lua, PHP, C, C++, C#, Java, Go, Rust, Kotlin,
+Swift, Perl, Dart, Scala, Julia, R and Groovy (20 languages), and writes any
+of them. It can also lower a program to x86-64 assembly
 (NASM), CIL (ILAsm) or JVM bytecode (Jasmin).
 
 ## Translate a program

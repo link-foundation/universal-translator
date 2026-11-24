@@ -72,7 +72,10 @@ languages (Scratch), product-bound dialects (ABAP, PL/SQL) and markup or
 query languages (HTML, SQL) have no standard-output program to compare, so
 they are not on the list.
 
-`node bin/universal-translator.js languages` lists the supported languages.
+The 20 languages are JavaScript, TypeScript, Python, Ruby, Lua, PHP, C, C++,
+C#, Java, Go, Rust, Kotlin, Swift, Perl, Dart, Scala, Julia, R and Groovy,
+plus the machine targets NASM, CIL and JVM bytecode.
+`node bin/universal-translator.js languages` lists them.
 Assembly (NASM x86-64), CIL (ILAsm) and JVM bytecode (Jasmin) are machine
 targets, and they can be both translated from and translated to.
 
