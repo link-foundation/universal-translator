@@ -66,6 +66,7 @@ export const commonLibraryAccess = {
   nim: { imports: () => ['import common_library'] },
   d: { imports: () => ['import common_library;'] },
   pascal: { imports: () => ['uses CommonLibrary;'] },
+  fortran: { imports: () => ['use common_library'] },
 };
 
 const call = (operation, argument) =>

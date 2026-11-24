@@ -59,6 +59,7 @@ export const libraryFiles = {
   nim: 'common_library.nim',
   d: 'common_library.d',
   pascal: 'CommonLibrary.pas',
+  fortran: 'common_library.f90',
 };
 const libraryFolder = join(folder, '..', '..', 'common-library');
 
@@ -87,6 +88,7 @@ export const extensions = {
   nim: '.nim',
   d: '.d',
   pascal: '.pas',
+  fortran: '.f90',
   nasm: '.asm',
   cil: '.il',
   jvm: '.j',
@@ -288,6 +290,26 @@ const runners = {
       run('fpc', ['-v0', '-Sew', `-o${file}.out`, file], {
         cwd: dirname(file),
       }),
+      run(`${file}.out`, [])
+    ),
+  },
+  // The common library module is compiled before the program that uses it.
+  fortran: {
+    tool: 'gfortran',
+    run: (file, library) => (
+      run(
+        'gfortran',
+        [
+          '-std=f2018',
+          '-Wall',
+          '-Werror',
+          '-o',
+          `${file}.out`,
+          ...library,
+          file,
+        ],
+        { cwd: dirname(file) }
+      ),
       run(`${file}.out`, [])
     ),
   },

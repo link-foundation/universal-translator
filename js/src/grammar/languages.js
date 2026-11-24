@@ -556,6 +556,41 @@ export const languages = {
     },
     terms: { call: 'procedure call', routine: 'procedure' },
   },
+  fortran: {
+    naming: 'snake',
+    label: 'Fortran',
+    // Statements, procedures and the program layout are in
+    // dialects/fortran.js.
+    blocks: 'keywords',
+    caseInsensitive: true,
+    lineComment: '!',
+    quotes: ["'"],
+    doubledQuotes: true,
+    declarations: [],
+    // Integer literals passed to integer(8) arguments carry the kind 8.
+    longSuffix: '_8',
+    symbols: ['.and.', '.or.', '.not.', '.true.', '.false.', '/='],
+    compoundAssignment: false,
+    operators: {
+      and: '.and.',
+      or: '.or.',
+      not: '.not.',
+      notEqual: '/=',
+      integerDivide: '/',
+    },
+    words: { true: '.true.', false: '.false.' },
+    // print and write list their items one after another.
+    printCalls: { line: ['print'], text: ['write'], adjacent: true },
+    entryPoint: 'top-level',
+    typed: 'annotation',
+    types: {
+      integer: 'integer(8)',
+      text: 'character',
+      boolean: 'logical',
+      nothing: '',
+    },
+    terms: { call: 'subroutine call', routine: 'procedure' },
+  },
 };
 
 // How a language spells a declared name with the given role.
