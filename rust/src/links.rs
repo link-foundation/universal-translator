@@ -60,13 +60,3 @@ pub(crate) fn reference(values: &[Link]) -> Result<String, String> {
 pub(crate) fn value(fields: &Fields, name: &str) -> Result<String, String> {
     reference(elements(fields, name)?)
 }
-
-pub(crate) fn record(id: &str, fields: Vec<(&str, String)>) -> Link {
-    LiNo::new(
-        Some(id.into()),
-        fields
-            .into_iter()
-            .map(|(key, value)| LiNo::new(Some(key.into()), vec![LiNo::reference(value)]))
-            .collect(),
-    )
-}

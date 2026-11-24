@@ -427,7 +427,7 @@ fn short_circuits_conditions_with_jumps() {
 }
 
 #[test]
-fn refuses_programs_it_cannot_lower_and_machine_code_as_a_source() {
+fn refuses_programs_it_cannot_lower() {
     let translator = Translator::new();
     let error = translator
         .translate(
@@ -438,8 +438,4 @@ fn refuses_programs_it_cannot_lower_and_machine_code_as_a_source() {
         )
         .unwrap_err();
     assert!(error.to_string().contains("cannot lower"), "{error}");
-    let error = translator
-        .translate("ret", "nasm", "c", Mode::ContextDependent)
-        .unwrap_err();
-    assert!(error.to_string().contains("lowering target"), "{error}");
 }

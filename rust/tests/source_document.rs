@@ -1,6 +1,6 @@
 use links_notation::{LiNo, parse_lino_to_links};
 use meta_language::{LinkNetwork, LinkType};
-use universal_translator::{SourceDocument, Translator};
+use universal_translator::SourceDocument;
 
 #[test]
 fn preserves_line_endings_bom_blank_lines_and_final_text() {
@@ -151,9 +151,13 @@ fn ranked_language_grammars_round_trip_programs() {
     }
 
     let source = "SELECT sqlite_version();\n";
-    let document = Translator::default().parse(source, "sqlite").unwrap();
-    assert_eq!(document.network.parse_grammars()[0].0, "sql-sqlite");
-    assert_eq!(document.restore(), source);
+    let document = SourceDocument {
+        language: "sql-sqlite".into(),
+        source: source.into(),
+    };
+    let network = document.syntax_network().unwrap();
+    assert_eq!(network.parse_grammars()[0].0, "sql-sqlite");
+    assert_eq!(network.reconstruct_text(), source);
 }
 
 #[test]

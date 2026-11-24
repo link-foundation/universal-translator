@@ -1,6 +1,6 @@
 use crate::links;
 use links_notation::{LiNo, ParserConfig, parse_lino_to_links_with_config};
-use meta_language::{LinkId, LinkNetwork, LinkType, ParseConfiguration, grammar_provenance};
+use meta_language::{LinkNetwork, LinkType, ParseConfiguration, grammar_provenance};
 
 /// A lossless, language-labeled representation of source text.
 #[derive(Debug, PartialEq, Eq)]
@@ -93,17 +93,6 @@ pub(crate) fn parse_syntax(source: &str, language: &str) -> Result<LinkNetwork, 
         return Err(format!("{language} grammar did not preserve source bytes"));
     }
     Ok(network)
-}
-
-pub(crate) fn syntax_root(network: &LinkNetwork, language: &str) -> Option<LinkId> {
-    network
-        .links()
-        .find(|link| {
-            let metadata = link.metadata();
-            metadata.link_type() == Some(LinkType::Document)
-                && metadata.language() == Some(language)
-        })
-        .map(meta_language::Link::id)
 }
 
 fn syntax_language(network: &LinkNetwork) -> Result<String, String> {
