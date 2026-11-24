@@ -9,7 +9,8 @@
 //   separator  the language's list separator (or an ASCII comma)
 //   slot       "{name}", only inside templates
 
-const letter = /[\p{L}\p{M}\p{N}]/u;
+// Zero-width (non-)joiners belong to words, as in Persian "می\u200cشود".
+const letter = /[\p{L}\p{M}\p{N}\u200c\u200d]/u;
 const digit = /[0-9]/;
 const openings = new Set(['(', '（']);
 const closings = new Set([')', '）']);
