@@ -17,8 +17,9 @@
 
 pub mod common_library;
 pub mod emitter;
+mod interpolation;
 pub mod languages;
-pub mod lexer;
+mod lexer;
 pub mod lifting;
 pub mod lowering;
 pub mod machine;

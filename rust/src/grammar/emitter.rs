@@ -5,8 +5,8 @@
 use std::collections::HashSet;
 
 use super::GrammarError;
-use super::languages::{Blocks, EntryPoint, Syntax, language_syntax};
-use super::meta::{Node, add, format_number, number, text};
+use super::languages::{Blocks, EntryPoint, IntegerDivision, Syntax, language_syntax};
+use super::meta::{Node, add, block, format_number, number, text};
 
 /// Binding strength of a meta operator; unknown operators have none, which
 /// compares as never tighter or looser (NaN).
@@ -56,6 +56,53 @@ enum Format {
     None,
     Percent,
     Braces,
+    /// Scala's `s"..."` writes a literal `$` as `$$`.
+    Dollar,
+}
+
+/// Languages that embed expressions in a double-quoted literal between two
+/// delimiters: the prefix that marks such a literal, the delimiters and the
+/// escaping of literal text.
+fn embedding(id: &str) -> Option<(&'static str, &'static str, &'static str, Format)> {
+    Some(match id {
+        "python" => ("f", "{", "}", Format::Braces),
+        "csharp" => ("$", "{", "}", Format::Braces),
+        "ruby" => ("", "#{", "}", Format::None),
+        "kotlin" | "dart" | "groovy" => ("", "${", "}", Format::None),
+        "scala" => ("s", "${", "}", Format::Dollar),
+        "julia" => ("", "$(", ")", Format::None),
+        "swift" => ("", "\\(", ")", Format::None),
+        _ => return None,
+    })
+}
+
+/// Adjacent literal parts joined into one.
+fn merge_texts(parts: &[Node]) -> Vec<Node> {
+    let mut merged: Vec<Node> = Vec::new();
+    for part in parts {
+        if part.is("Text")
+            && let Some(last) = merged.last_mut()
+            && last.is("Text")
+        {
+            let joined = format!(
+                "{}{}",
+                last.str("value").unwrap_or_default(),
+                part.str("value").unwrap_or_default()
+            );
+            *last = text(joined);
+            continue;
+        }
+        merged.push(part.clone());
+    }
+    merged
+}
+
+/// Whether a counting range is two numbers counting up.
+fn is_literal_range(start: &Node, end: &Node) -> bool {
+    match (start.number("value"), end.number("value")) {
+        (Some(first), Some(last)) => start.is("Number") && end.is("Number") && first < last,
+        _ => false,
+    }
 }
 
 type Result<T> = std::result::Result<T, GrammarError>;
@@ -101,7 +148,16 @@ impl Emitter {
     fn terminator(&self) -> &'static str {
         if matches!(
             self.id(),
-            "python" | "ruby" | "lua" | "go" | "kotlin" | "swift"
+            "python"
+                | "ruby"
+                | "lua"
+                | "go"
+                | "kotlin"
+                | "swift"
+                | "scala"
+                | "julia"
+                | "r"
+                | "groovy"
         ) {
             ""
         } else {
@@ -140,8 +196,9 @@ impl Emitter {
             .replace('\n', "\\n")
             .replace('\t', "\\t")
             .replace('\r', "\\r");
-        if matches!(self.id(), "php" | "kotlin") {
-            result = result.replace('$', "\\$");
+        // Characters that would start an embedded variable, such as $ in PHP.
+        for sigil in self.syntax.escape_sigils {
+            result = result.replace(sigil, &format!("\\{sigil}"));
         }
         if self.id() == "ruby" {
             result = result.replace("#{", "\\#{");
@@ -149,6 +206,7 @@ impl Emitter {
         match format {
             Format::Percent => result.replace('%', "%%"),
             Format::Braces => result.replace('{', "{{").replace('}', "}}"),
+            Format::Dollar => result.replace('$', "$$"),
             Format::None => result,
         }
     }
@@ -190,7 +248,13 @@ impl Emitter {
         match expression.kind.as_str() {
             "Number" => {
                 let value = expression.number("value").unwrap_or(0.0);
-                let shown = format_number(value);
+                // R needs a suffix to keep integers integral: 1L.
+                let suffix = if value.fract() == 0.0 {
+                    self.syntax.number_suffix.unwrap_or_default()
+                } else {
+                    ""
+                };
+                let shown = format!("{}{suffix}", format_number(value));
                 Ok(if value < 0.0 && parent > 6.0 {
                     format!("({shown})")
                 } else {
@@ -235,23 +299,32 @@ impl Emitter {
         let level = precedence(operator);
         let left_node = field(expression, "left")?;
         let right_node = field(expression, "right")?;
-        let left = self.expression_in(left_node, level)?;
-        let right = self.expression_in(right_node, level + 1.0)?;
+        // R's %% and %/% bind tighter than * and /, so their operands that are
+        // themselves operations keep parentheses.
+        let tight = self.id() == "r" && matches!(operator, "divide" | "remainder");
+        let left = self.expression_in(left_node, if tight { 7.0 } else { level })?;
+        let right = self.expression_in(right_node, if tight { 7.0 } else { level + 1.0 })?;
         let result = if operator == "divide" {
             if let Some(integer) = self.syntax.operators.integer_divide {
                 format!("{left} {integer} {right}")
-            } else if matches!(self.id(), "javascript" | "typescript") {
-                return Ok(format!(
-                    "Math.trunc({} / {})",
-                    self.expression(left_node)?,
-                    self.expression(right_node)?
-                ));
-            } else if self.id() == "php" {
-                return Ok(format!(
-                    "intdiv({}, {})",
-                    self.expression(left_node)?,
-                    self.expression(right_node)?
-                ));
+            } else if let Some(spelling) = self.syntax.integer_division {
+                return Ok(match spelling {
+                    IntegerDivision::Wrapper(wrapper) => format!(
+                        "{wrapper}({} / {})",
+                        self.expression(left_node)?,
+                        self.expression(right_node)?
+                    ),
+                    IntegerDivision::Call(call) => format!(
+                        "{call}({}, {})",
+                        self.expression(left_node)?,
+                        self.expression(right_node)?
+                    ),
+                    IntegerDivision::Method(method) => format!(
+                        "{}.{method}({})",
+                        self.expression_in(left_node, 8.0)?,
+                        self.expression(right_node)?
+                    ),
+                });
             } else {
                 format!("{left} / {right}")
             }
@@ -308,6 +381,12 @@ impl Emitter {
 
     /// Text built from literal and computed parts, outside of output calls.
     fn interpolation(&mut self, parts: &[Node]) -> Result<String> {
+        if let Some((prefix, open, close, format)) = embedding(self.id()) {
+            return Ok(format!(
+                "{prefix}{}",
+                self.render(parts, open, close, format)?
+            ));
+        }
         match self.id() {
             "javascript" | "typescript" => {
                 let mut out = String::from("`");
@@ -328,19 +407,16 @@ impl Emitter {
                 out.push('`');
                 Ok(out)
             }
-            "python" => Ok(format!(
-                "f{}",
-                self.render(parts, "{", "}", Format::Braces)?
-            )),
-            "csharp" => Ok(format!(
-                "${}",
-                self.render(parts, "{", "}", Format::Braces)?
-            )),
-            "ruby" => self.render(parts, "#{", "}", Format::None),
-            "kotlin" => self.render(parts, "${", "}", Format::None),
-            // PHP interpolates only variables, so computed parts are concatenated.
-            "php" => self.joined(parts, " . "),
-            "swift" => self.render(parts, "\\(", ")", Format::None),
+            "r" => {
+                let pieces = parts
+                    .iter()
+                    .map(|part| self.expression(part))
+                    .collect::<Result<Vec<_>>>()?;
+                Ok(format!("paste0({})", pieces.join(", ")))
+            }
+            // PHP and Perl interpolate only variables, so computed parts are
+            // concatenated.
+            "php" | "perl" => self.joined(parts, " . "),
             "rust" => Ok(format!(
                 "format!({})",
                 self.format_arguments(parts, Format::Braces)?
@@ -504,7 +580,26 @@ impl Emitter {
                 pick("println", "print"),
                 self.expression(value)?
             ),
-            "kotlin" => format!("{}({})", pick("println", "print"), self.expression(value)?),
+            "kotlin" | "scala" | "groovy" | "julia" => {
+                format!("{}({})", pick("println", "print"), self.expression(value)?)
+            }
+            "perl" => format!("print {};", self.interpolation_or_text(&line_parts)?),
+            "dart" => {
+                let single = self.expression(value)?;
+                if newline {
+                    format!("print({single});")
+                } else {
+                    self.uses.insert("dart:io");
+                    format!("stdout.write({single});")
+                }
+            }
+            "r" => {
+                let pieces = merge_texts(&line_parts)
+                    .iter()
+                    .map(|part| self.expression(part))
+                    .collect::<Result<Vec<_>>>()?;
+                format!("cat({}, sep = \"\")", pieces.join(", "))
+            }
             "swift" => {
                 let single = self.expression(value)?;
                 if newline {
@@ -523,27 +618,22 @@ impl Emitter {
     }
 
     fn interpolation_or_text(&mut self, parts: &[Node]) -> Result<String> {
-        let mut merged: Vec<Node> = Vec::new();
-        for part in parts {
-            if part.is("Text")
-                && let Some(last) = merged.last_mut()
-                && last.is("Text")
-            {
-                let joined = format!(
-                    "{}{}",
-                    last.str("value").unwrap_or_default(),
-                    part.str("value").unwrap_or_default()
-                );
-                *last = text(joined);
-                continue;
-            }
-            merged.push(part.clone());
-        }
+        let merged = merge_texts(parts);
         if merged.len() == 1 && merged[0].is("Text") {
             Ok(self.quote(merged[0].str("value").unwrap_or_default()))
         } else {
             self.interpolation(&merged)
         }
+    }
+
+    fn return_statement(&mut self, statement: &Node) -> Result<String> {
+        let end = self.terminator();
+        Ok(match statement.node("value") {
+            // R's return is a function.
+            Some(value) if self.id() == "r" => format!("return({})", self.expression(value)?),
+            Some(value) => format!("return {}{end}", self.expression(value)?),
+            None => format!("return{end}"),
+        })
     }
 
     fn comment(&mut self, text: &str) {
@@ -559,7 +649,18 @@ impl Emitter {
         Ok(
             if matches!(
                 self.id(),
-                "c" | "cpp" | "csharp" | "java" | "javascript" | "typescript" | "kotlin" | "php"
+                "c" | "cpp"
+                    | "csharp"
+                    | "java"
+                    | "javascript"
+                    | "typescript"
+                    | "kotlin"
+                    | "php"
+                    | "perl"
+                    | "dart"
+                    | "scala"
+                    | "r"
+                    | "groovy"
             ) {
                 format!("({value})")
             } else {
@@ -610,10 +711,7 @@ impl Emitter {
                 self.line(&line);
             }
             "Return" => {
-                let line = match statement.node("value") {
-                    Some(value) => format!("return {}{end}", self.expression(value)?),
-                    None => format!("return{end}"),
-                };
+                let line = self.return_statement(statement)?;
                 self.line(&line);
             }
             "Declaration" => {
@@ -666,7 +764,23 @@ impl Emitter {
                 self.terminator()
             ),
             "swift" => format!("{} {name} = {initial}", if mutable { "var" } else { "let" }),
-            _ => format!("{} {name} = {initial};", self.type_name(kind)),
+            "julia" => format!("{name} = {initial}"),
+            "perl" => format!("my {} = {initial};", self.variable(name)),
+            "dart" => format!(
+                "{} {name} = {initial};",
+                if mutable { "var" } else { "final" }
+            ),
+            "scala" => format!(
+                "{} {name}: {} = {initial}",
+                if mutable { "var" } else { "val" },
+                self.type_name(kind)
+            ),
+            "r" => format!("{name} <- {initial}"),
+            _ => format!(
+                "{} {name} = {initial}{}",
+                self.type_name(kind),
+                self.terminator()
+            ),
         })
     }
 
@@ -678,7 +792,7 @@ impl Emitter {
         let value = field(statement, "value")?;
         let compound = value.str("operator").and_then(compound_operator);
         if let Some(compound) = compound
-            && self.id() != "lua"
+            && self.syntax.compound_assignment
             && value.is("Binary")
             && value
                 .node("left")
@@ -688,7 +802,8 @@ impl Emitter {
             return Ok(format!("{target} {compound} {right}{}", self.terminator()));
         }
         Ok(format!(
-            "{target} = {}{}",
+            "{target} {} {}{}",
+            self.syntax.assignment.unwrap_or("="),
             self.expression(value)?,
             self.terminator()
         ))
@@ -726,7 +841,10 @@ impl Emitter {
     fn else_if_header(&mut self, expression: &Node) -> Result<String> {
         let condition = self.condition(expression)?;
         Ok(if self.syntax.blocks == Blocks::Braces {
-            format!("}} else if {condition} {{")
+            format!(
+                "}} {} {condition} {{",
+                self.syntax.braced_else_if.unwrap_or("else if")
+            )
         } else if self.id() == "python" {
             format!("elif {condition}:")
         } else if self.id() == "lua" {
@@ -753,7 +871,11 @@ impl Emitter {
         let identifier = statement.str("variable").unwrap_or_default();
         let start = field(statement, "start")?;
         let end = field(statement, "end")?;
+        if self.id() == "r" && !is_literal_range(start, end) {
+            return self.counting_while(statement);
+        }
         let from = self.expression(start)?;
+        let last = self.expression_in(&add(end.clone(), number(-1.0)), 5.0)?;
         let to = self.expression_in(end, 5.0)?;
         let target = self.variable(identifier);
         let c_style = |keyword: &str| {
@@ -780,12 +902,61 @@ impl Emitter {
             "rust" => format!("for {identifier} in {from}..{to}"),
             "kotlin" => format!("for ({identifier} in {from} until {to})"),
             "swift" => format!("for {identifier} in {from}..<{to}"),
+            "perl" => format!("for my {target} ({from} .. {last})"),
+            "dart" => {
+                format!("for (var {identifier} = {from}; {identifier} < {to}; {identifier}++)")
+            }
+            // A Long start makes the range Long, so a Long end fits.
+            "scala" => {
+                let first = if start.is("Number") {
+                    format!("{from}{}", self.syntax.long_suffix.unwrap_or_default())
+                } else {
+                    from
+                };
+                format!("for ({identifier} <- {first} until {to})")
+            }
+            "julia" => format!("for {identifier} in {from}:{last}"),
+            "r" => format!("for ({identifier} in {from}:{last})"),
+            "groovy" => format!("for ({identifier} in {from}..<{to})"),
             _ => "undefined".to_owned(),
         };
         self.open_block(&header);
         self.body(field(statement, "body")?)?;
         self.close_block();
         Ok(())
+    }
+
+    /// R's a:b counts down when b < a, so a range that may be empty becomes
+    /// a while loop.
+    fn counting_while(&mut self, statement: &Node) -> Result<()> {
+        let identifier = statement.str("variable").unwrap_or_default();
+        let start = field(statement, "start")?.clone();
+        let end = field(statement, "end")?.clone();
+        let counter = Node::new("Name").with("name", identifier);
+        self.statement(
+            &Node::new("Declaration")
+                .with("name", identifier)
+                .with("value", start)
+                .with("mutable", true),
+        )?;
+        let mut statements = field(statement, "body")?.node_list("statements");
+        statements.push(
+            Node::new("Assignment")
+                .with("name", identifier)
+                .with("operator", "=")
+                .with("value", add(counter.clone(), number(1.0))),
+        );
+        self.while_statement(
+            &Node::new("While")
+                .with(
+                    "condition",
+                    Node::new("Binary")
+                        .with("operator", "less")
+                        .with("left", counter)
+                        .with("right", end),
+                )
+                .with("body", block(statements)),
+        )
     }
 
     // ---- functions and program ----
@@ -850,6 +1021,13 @@ impl Emitter {
                 let list = typed(self, &|id, kind| format!("_ {id}: {kind}"));
                 format!("func {name}({list}){}", after(self, " -> "))
             }
+            "perl" => format!("sub {name}"),
+            "scala" => format!(
+                "def {name}({}): {returns} =",
+                typed(self, &|id, kind| format!("{id}: {kind}"))
+            ),
+            "julia" => format!("function {name}({names})"),
+            "r" => format!("{name} <- function({names})"),
             "csharp" | "java" => format!(
                 "static {returns} {name}({})",
                 typed(self, &|id, kind| format!("{kind} {id}"))
@@ -867,6 +1045,15 @@ impl Emitter {
         }
         let signature = self.signature(item);
         self.open_block(&signature);
+        // Perl receives its arguments in @_.
+        let parameters = item.nodes("parameters");
+        if self.syntax.unpacked_parameters && !parameters.is_empty() {
+            let names = parameters
+                .iter()
+                .map(|parameter| self.variable(parameter.str("name").unwrap_or_default()))
+                .collect::<Vec<_>>();
+            self.line(&format!("my ({}) = @_;", names.join(", ")));
+        }
         self.body(field(item, "body")?)?;
         self.close_block();
         Ok(())
@@ -881,6 +1068,9 @@ impl Emitter {
             "kotlin" => Some("fun main()"),
             "csharp" => Some("static void Main()"),
             "java" => Some("public static void main(String[] args)"),
+            "dart" => Some("void main()"),
+            "scala" => Some("def main(args: Array[String]): Unit ="),
+            "julia" => Some("function main()"),
             _ => None,
         }
     }
@@ -888,11 +1078,12 @@ impl Emitter {
     fn program(mut self, program: &Node) -> Result<String> {
         let inside_class = self.syntax.entry_point == EntryPoint::ClassMethod;
         if inside_class {
-            self.open_block(if self.id() == "csharp" {
+            let container = self.syntax.container.unwrap_or(if self.id() == "csharp" {
                 "class Program"
             } else {
                 "class Main"
             });
+            self.open_block(container);
         }
         for item in program.nodes("functions") {
             self.function_definition(item)?;
@@ -906,6 +1097,11 @@ impl Emitter {
             self.open_block(header);
             self.body(main)?;
             self.close_block();
+            // Julia calls its main function itself.
+            if let Some(call) = self.syntax.call_main {
+                self.line("");
+                self.line(call);
+            }
         } else {
             self.body(main)?;
         }
@@ -939,6 +1135,10 @@ impl Emitter {
         if self.id() == "go" {
             lines.push("package main".into());
             lines.push(String::new());
+        }
+        lines.extend(self.syntax.prelude.iter().map(|line| (*line).to_owned()));
+        if self.uses.contains("dart:io") {
+            lines.push("import 'dart:io';".into());
         }
         lines.extend(program.texts("libraryImports"));
         for (used, line) in [

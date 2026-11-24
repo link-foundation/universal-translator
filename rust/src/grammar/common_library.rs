@@ -23,7 +23,7 @@ pub const COMMON_LIBRARY_OPERATIONS: [&str; 4] =
     ["print-line", "write-text", "write-integer", "end-line"];
 
 /// The languages with a common library implementation, in listing order.
-pub const COMMON_LIBRARY_LANGUAGES: [&str; 14] = [
+pub const COMMON_LIBRARY_LANGUAGES: [&str; 20] = [
     "javascript",
     "typescript",
     "python",
@@ -38,6 +38,12 @@ pub const COMMON_LIBRARY_LANGUAGES: [&str; 14] = [
     "rust",
     "kotlin",
     "swift",
+    "perl",
+    "dart",
+    "scala",
+    "julia",
+    "r",
+    "groovy",
 ];
 
 /// The lines that make the library available in a language, given the
@@ -53,6 +59,10 @@ pub fn library_imports(language: &str, names: &[String]) -> Vec<String> {
         "php" => vec!["require_once 'common_library.php';".into()],
         "c" => vec!["#include \"common_library.h\"".into()],
         "cpp" => vec!["#include \"common_library.hpp\"".into()],
+        "perl" => vec!["require \"./common_library.pl\";".into()],
+        "dart" => vec!["import 'common_library.dart';".into()],
+        "julia" => vec!["include(\"common_library.jl\")".into()],
+        "r" => vec!["source(\"common_library.R\")".into()],
         "rust" => vec![
             "mod common_library;".into(),
             format!("use common_library::{{{names}}};"),
@@ -65,7 +75,7 @@ pub fn library_imports(language: &str, names: &[String]) -> Vec<String> {
 pub fn library_prefix(language: &str) -> &'static str {
     match language {
         "lua" => "common_library.",
-        "csharp" | "java" => "CommonLibrary.",
+        "csharp" | "java" | "scala" | "groovy" => "CommonLibrary.",
         _ => "",
     }
 }
@@ -150,11 +160,16 @@ fn is_library_import(line: &str) -> bool {
         .any(|spelling| lower.contains(spelling))
 }
 
-/// Lua loads the library into a variable: `local common_library = require(...)`.
+/// Some languages load the library with a call: Lua's
+/// `local common_library = require(...)`, Julia's `include(...)` and R's
+/// `source(...)`.
 fn is_library_load(statement: &Node) -> bool {
-    statement.node("value").is_some_and(|value| {
+    let call = statement
+        .node("value")
+        .or_else(|| statement.node("expression"));
+    call.is_some_and(|value| {
         value.is("Call")
-            && value.str("callee") == Some("require")
+            && matches!(value.str("callee"), Some("require" | "include" | "source"))
             && is_library_import(
                 value
                     .nodes("arguments")
