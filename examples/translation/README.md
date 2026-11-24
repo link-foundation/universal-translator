@@ -1,373 +1,94 @@
 # Program translation examples
 
-Run these commands from the repository root after `npm ci`.
+The programs in [`../programs`](../programs) are the main examples. Each
+JavaScript program there has been translated into every supported target
+under [`../programs/translated`](../programs/translated). The JavaScript and
+Rust tests both compare their output with those files.
+
+## Translate from the command line
 
 ```sh
-node bin/universal-translator.js translate c csharp examples/translation/hello.c
-node bin/universal-translator.js translate c csharp examples/translation/hello.c --mode literal
-node bin/universal-translator.js translate c csharp examples/translation/hello.c --form common
-node bin/universal-translator.js roundtrip c examples/translation/hello.c
+node bin/universal-translator.js translate javascript python examples/programs/factorial.js
+node bin/universal-translator.js translate ruby go examples/programs/hand-written/fizz-buzz.rb
+node bin/universal-translator.js translate javascript java examples/programs/hello-world.js --mode literal
+node bin/universal-translator.js translate javascript cil examples/programs/sum-of-squares.js
+node bin/universal-translator.js meta python examples/programs/hand-written/greatest-common-divisor.py
 ```
 
-The default C# output matches `hello.cs`. The C program uses `stdio.h` and
-`printf`. The default C# form uses a class with a static `Main` method and
-`System.Console.WriteLine`. The `common` form routes both programs through a
-small wrapper implemented in each language. The target program prints the
-same line, including the punctuation from the source.
+The `meta` command prints the typed meta program as JSON. It is the same
+structure that the rule layers receive. `languages` lists every identifier and
+its display name. The machine targets `nasm`, `cil` and `jvm` can be
+translated into but not from.
 
-## Translate through a Links Notation document
-
-```sh
-node bin/universal-translator.js translate c meta examples/translation/hello.c --mode same-effect > /tmp/hello.lino
-cargo run --locked -- translate meta es /tmp/hello.lino --mode same-effect > /tmp/hello.es.txt
-node bin/universal-translator.js translate es rust /tmp/hello.es.txt --mode same-effect
-```
-
-The intermediate document contains `(hello: (message: 'Hello, World!'))`.
-It is editable and accepted by both CLIs. `readEffects` and `writeEffect`
-in JavaScript and `Effect::read_links_notation` and `Effect::to_links_notation`
-in Rust expose the same format. Whole-line Links Notation comments before
-and after the effect survive `literal` translation when the destination can
-safely express them. `same-effect` omits comments.
-
-Natural-language profiles recognize the precise wordings checked into the
-[profile catalog](../../data/07-natural-languages.lino).
-The parameter values remain translatable even when the description is in a
-non-Latin script. The profiles preserve the printed string and the output
-tokens `Fizz`, `Buzz`, and `FizzBuzz` across all languages.
-
-The library exposes the two stages of translation.
+## Translate from JavaScript
 
 ```js
-import { createTranslator } from '@link-foundation/universal-translator';
+import {
+  createTranslator,
+  translate,
+} from '@link-foundation/universal-translator';
 
-const translator = createTranslator();
-const document = translator.parse('print("Hello, World!")\n', 'python');
-const expression = translator.transform(document, 'rust', {
-  mode: 'same-effect',
+translate('console.log("Hi");', 'javascript', 'python');
+
+// A layer is a list of rules. Each rule takes the meta program and the
+// settings { from, to, mode } and returns a meta program.
+const traceRule = (program, { to }) => {
+  console.error(`translating ${program.functions.length} functions to ${to}`);
+  return program;
+};
+const translator = createTranslator({
+  layers: [[traceRule]],
+  trace: (stage, tree) => console.error(stage, tree.kind),
 });
-const program = translator.materialize(expression);
+translator.translate(source, 'javascript', 'rust', { mode: 'same-effect' });
 ```
 
-In JavaScript, pass `profiles`, `decorateAdapter`, `layers`, and `verify` to
-`createTranslator` to customize the implementation. In Rust, use
-`Translator::with_profiles`, `decorate_adapter`, `add_layer`, and
-`set_verifier`. The first rule in the first layer runs first. Rules can
-select a form or rewrite comment text even when both languages are the same.
+Layers run in order after the meaning rules and before the context rules, so
+each one is a meta→meta transformation. You can also replace the default rule
+lists (`understanding`, `meaning`, `context`) or any stage (`parse`, `infer`,
+`emit`, `emitMachineCode`). To decorate a rule, wrap it in a function that
+calls it. `toMeta` and `fromMeta` expose the two halves of the pipeline.
 
-Source spans use UTF-8 byte ranges and byte columns in both implementations.
+[`custom-layer.mjs`](custom-layer.mjs) runs this example.
 
-## Preserve an original source file
+## Change comments without changing the code
 
 ```sh
-node bin/universal-translator.js encode-source C examples/translation/hello.c > /tmp/hello-source.lino
-cargo run --locked -- decode-source /tmp/hello-source.lino | cmp examples/translation/hello.c -
+node examples/translation/comment-glossary.mjs examples/translation/hello-ru.cs
 ```
 
-The indented source document stores the language label and a single quoted
-source value. Blank lines, whitespace and line endings inside the quoted
-value are preserved verbatim. Both runtimes can also read older documents
-that store one link per source line.
+`commentGlossary(phrases)` is a rule that replaces phrases in every comment.
+The example reads the phrases from
+[`data/translation/comment-glossary.lino`](../../data/translation/comment-glossary.lino)
+and translates C# to C#, so only the Russian comments become English. A
+project or organization can keep its own glossary and rules in the same way.
 
-## Exchange a grammar tree
+## Check translations with native toolchains
 
 ```sh
-cargo run --locked -- encode-cst C examples/translation/hello.c > /tmp/hello-cst.lino
-cargo run --locked -- decode-cst /tmp/hello-cst.lino | cmp examples/translation/hello.c -
+node examples/programs/write-translations.mjs --check
+node examples/programs/verify-native.mjs              # skips missing tools
+node examples/programs/verify-native.mjs nasm cil jvm # only these targets
+node examples/programs/verify-native.mjs --require-all
 ```
 
-The CST retains grammar nodes, parser provenance, UTF-8 byte spans and source
-tokens. `SourceDocument::syntax_network()` exposes the Meta Language network in
-Rust and `SourceDocument::from_syntax_notation()` restores its source. Languages
-without a grammar can use the `encode-source` and `decode-source` commands.
+`verify-native.mjs` builds and runs every translated and hand-written program
+and compares its output with the JavaScript original. It uses `nasm` and `gcc`
+for assembly, `ILASM` (an ilasm path) and `dotnet` for CIL, and `jasmin` or
+`JASMIN_CLASSPATH` with `java` for JVM bytecode. Set `LUA` to pick the Lua
+interpreter.
 
-JavaScript accepts the `LinkNetwork` class from Meta Language 1.0 through
-`createSourceSyntaxCodec(LinkNetwork)`. The codec's `write(language, source)`
-and `read(notation)` exchange serialized networks with Rust. The package's
-locked npm Meta Language dependency is 0.46.0. For the 1.0 codec, use Node.js 22
-or later and build the JavaScript subtree of the matching upstream tag.
-[Matching npm release](https://github.com/link-foundation/meta-language/pull/251)
+## Rank natural-language referents
 
-```sh
-CARGO_BUILD_JOBS=1 CARGO_PROFILE_DEV_DEBUG=0 cargo build --locked --bin universal-translator
-bash experiments/verify-syntax-exchange.sh
-```
+`node examples/translation/dependent-meanings.mjs` ranks the possible
+meanings of an ambiguous sentence. The data is in
+[`data/translation/referents.lino`](../../data/translation/referents.lino) and
+the result is checked against `relative-meta-logic`.
 
-## Compile a checked JavaScript or Rust program
+## Exchange source documents
 
-```sh
-workspace=$(mktemp -d)
-printf '%s\n' 'const answer = 6 * 7;' 'console.log(answer);' |
-  target/debug/universal-translator encode-cst javascript > "$workspace/program.lino"
-target/debug/universal-translator translate-program cst rust "$workspace/program.lino" > "$workspace/main.rs"
-rustc --edition=2021 "$workspace/main.rs" -o "$workspace/main"
-"$workspace/main"
-```
-
-Use `translate-program javascript rust` with raw source, or reverse the
-language arguments for Rust to JavaScript. The compiler checks source syntax
-and constructs a typed program in Meta Language's portable core. It emits
-native code and parses the target with its grammar before returning the source.
-Invalid syntax and unsupported constructs produce an error. The checked
-compiler currently covers a subset of each language and observes printed lines
-on non-aborting executions. Source comments are retained in the CST.
-
-Rust exposes `translate_program(&SourceDocument, target)`. JavaScript exposes
-`createProgramTranslator(grammarEngine).translate({ language, source }, target)`.
-Set `UNIVERSAL_TRANSLATOR_META_LANGUAGE` to the installed engine's `src/index.js`
-to run the corresponding JavaScript CLI commands. For example, use the same
-engine revision as the exchange test.
-
-```sh
-engine=$(mktemp -d)
-revision=a79782093cae3b33606483ac9f3e1d05faf36de0
-curl -fsSL "https://codeload.github.com/link-foundation/meta-language/tar.gz/$revision" |
-  tar -xz --strip-components=2 -C "$engine" --wildcards \
-    '*/js/package.json' '*/js/package-lock.json' '*/js/src'
-npm ci --omit=dev --ignore-scripts --prefix "$engine"
-UNIVERSAL_TRANSLATOR_META_LANGUAGE="$engine/src/index.js" \
-  node bin/universal-translator.js translate-program cst rust "$workspace/program.lino"
-```
-
-For JavaScript and Rust programs without an authored effect, `translate` also
-uses the compiler in `same-effect` mode when no custom rule layers, verifier,
-or form are selected. The JavaScript library requires a configured
-`grammarEngine` for this behavior.
-
-## JavaScript and Rust shared-library forms
-
-Both implementations ship wrappers for writing a line or writing exact text
-to standard output. In `common` forms, GCD, FizzBuzz, and Ackermann are
-computed in the emitted program. Forms that only return a value use the
-standard implementation. The `common` forms use relative imports. Place
-`js/src/common-library.mjs` alongside generated JavaScript and
-`rust/src/common_library.rs` alongside generated Rust. Native forms are the
-default and use the language's own control flow and output operations.
-
-```sh
-workspace=$(mktemp -d)
-node bin/universal-translator.js translate c javascript examples/translation/hello.c \
-  --mode same-effect > "$workspace/main.mjs"
-node bin/universal-translator.js translate javascript meta "$workspace/main.mjs" \
-  --mode same-effect > "$workspace/hello.lino"
-cargo run --locked -- translate meta rust "$workspace/hello.lino" \
-  --mode same-effect --form common > "$workspace/main.rs"
-cp rust/src/common_library.rs "$workspace/"
-rustc --edition=2021 "$workspace/main.rs" -o "$workspace/hello"
-"$workspace/hello"
-cargo run --locked -- translate rust meta "$workspace/main.rs" \
-  --mode same-effect > "$workspace/return.lino"
-node bin/universal-translator.js translate meta javascript "$workspace/return.lino" \
-  --mode same-effect | cmp "$workspace/main.mjs" -
-```
-
-## Task contracts
-
-| Task                    | Inputs in the authored source                                                                      | Standard output                                                               |
-| ----------------------- | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Hello World             | A greeting of up to 96 UTF-8 bytes using letters, marks, numbers, spaces, and selected punctuation | The original text and a newline                                               |
-| Greatest Common Divisor | Two nonnegative signed 32-bit integers                                                             | Their greatest common divisor as a line of decimal text, with `gcd(0, 0) = 0` |
-| FizzBuzz                | A limit from 1 to 1,000                                                                            | The sequence defined by divisibility by 3 and 5, one item per line            |
-| Empty Program           | No input                                                                                           | Empty output streams and exit status 0                                        |
-
-All 20 plain-language profiles and the C, C++, C#, Go, Java, JavaScript,
-Python, and Rust profiles can represent the 78 greetings preserved from the
-Hello World Collection. The executable profiles use UTF-8 source and output.
-The single-quote forms decline messages with an apostrophe. The other
-variable-greeting executable profiles use the portable ASCII subset.
-
-NASM x86-64 Linux, GNU AArch64 Linux, LLVM IR, CIL ILAsm, and JVM Jasmin
-accept the fixed greeting `Hello, World!`. Their profiles contain assembly
-or instruction listings. NASM also has GCD and FizzBuzz forms. The native
-runner assembles these, including the zero and maximum GCD inputs and the
-maximum FizzBuzz limit, and compares their standard output with the oracle.
-
-## Verification
-
-```sh
-node --test js/tests/translation.test.js js/tests/source-document.test.js
-cargo test --locked --test translation
-cargo build --locked --bin universal-translator
-node examples/translation/verify-parity.mjs
-node examples/translation/dependent-meanings.mjs
-node examples/translation/verify-native.mjs
-node examples/translation/report-coverage.mjs
-```
-
-The native harness can also run the published Hello World Collection console
-snippets admitted by the profiles. It checks the page SHA-256 against the
-corpus manifest before extracting or running any snippet. It compares both
-the original and the emitted JavaScript or Rust program with the expected
-output. Pass profile IDs to select the tools installed locally.
-
-```sh
-curl --fail --location http://helloworldcollection.de/ --output hello-world-collection.html
-node examples/translation/verify-native.mjs --require-all \
-  --hello-world=hello-world-collection.html javascript rust
-```
-
-To verify the complete pinned Rosetta Code archive, run the same source
-round-trip check used in CI. The drivers stream the archive and compare
-restored bytes in both implementations. They also validate the expected
-effects and Meta Language output of selected original programs. For the
-selected JavaScript and Rust files they execute both the original and the
-translated program and compare stdout with the task oracle.
-For callable GCD they invoke each function with signed integer inputs and
-compare the returned values. The imported Rust GCD uses the pinned `num`
-dependency in a dedicated fixture with a Cargo lockfile. For FizzBuzz they
-preserve lowercase labels, quotes around each result, and the final blank line
-where the original uses one. Two JavaScript listings return a single string
-with spaces or newlines between results. The native harness compares each
-unchanged listing's value with the translated Rust function and the oracle.
-It checks for extra output and trailing separators. The first JavaScript
-listing defines a function that prints only when called, which the harness
-verifies in both languages. The verifier also compares
-the legacy Rust FizzBuzz listing's exact 413 output bytes with the translated JavaScript
-and the task oracle. On x86-64 Linux the archive driver downloads a
-checksum-pinned Rust nightly from 2015-10-15 into a temporary directory.
-Set `ROSETTA_LEGACY_RUSTC` to the extracted `rustc` executable to reuse it.
-The native count on other platforms excludes this listing when that compiler
-is unavailable.
-For Empty Program they verify exit status 0 and both output streams.
-Hello World Newbie has two console specimens and a JavaScript browser alert.
-The alert check compiles the translated Rust source to WebAssembly and uses
-the [browser import](browser-wasm.mjs) to decode the message and open
-the dialog. Playwright intercepts and dismisses the actual alert in Google
-Chrome. Both programs must produce one alert with the original greeting.
-The JavaScript `document.write` listing and its Rust WebAssembly translation
-both write the exact greeting to the browser document. The standalone
-`print` listing runs in the QuickJS shell with the original source intact,
-and its Rust translation must produce the same stdout bytes. The archive
-driver downloads checksum-pinned QuickJS on x86-64 Linux. On other systems,
-set `ROSETTA_QUICKJS` to the full path of a compatible QuickJS executable.
-The original `WScript.Echo` listing runs under Wine CScript. The verifier
-compares its output with the Rust translation byte for byte, including the CR
-and LF terminator. On Ubuntu, install `wine64` and set `ROSETTA_WINE` to
-`/usr/lib/wine/wine64` to include this listing in the corpus check.
-The Ubuntu runner provides Chrome. For a local replay, install Chrome and
-run `rustup target add wasm32-unknown-unknown` before running the driver.
-[Published JavaScript listings](https://rosettagit.org/tasks/hello-world-text/#javascript) ·
-[QuickJS binary releases](https://bellard.org/quickjs/binary_releases/)
-
-```sh
-archive=$(mktemp)
-curl --fail --location \
-  https://codeload.github.com/acmeism/RosettaCodeData/tar.gz/1d475861d7141ef2fafff293d9339f56e4b0f5db \
-  --output "$archive"
-python3 examples/translation/verify-corpus.py "$archive"
-rm "$archive"
-```
-
-Add `--require-full-native` to require native execution and translation
-evidence for every archived JavaScript and Rust example. The coverage report
-prints counts for both source languages before the check exits. When PR #5
-is ready for review, its **Full native Rosetta Code coverage** job requires
-the same complete counts from that run's successful translation job.
-
-To verify the three calls from the Rust GCD Tests section in context, pass
-the pinned signed recursive implementation and the listing with its output
-transcript. The probe runs the original call statements with the Rust
-implementation and calls the translated JavaScript on the same arguments.
-
-```sh
-root=/path/to/pinned/RosettaCodeData/Task/Greatest-common-divisor/Rust
-node experiments/rosetta-gcd-tests.mjs \
-  "$root/greatest-common-divisor-3.rs" \
-  "$root/greatest-common-divisor-5.rs"
-```
-
-To round-trip all 591 text listings from the Hello World Collection, pass
-the pinned HTML page. The remaining 12 programs are provided as images.
-
-```sh
-python3 examples/translation/verify-corpus.py --hello-world /path/to/hello-world-collection.html
-```
-
-Pass both inputs to verify that the archives round-trip in the same execution
-and that the Rosetta Code native coverage uses only Rosetta Code files.
-
-```sh
-bash experiments/verify-syntax-exchange.sh --corpus /path/to/rosetta-code.tar.gz \
-  --hello-world /path/to/hello-world-collection.html
-```
-
-This command prepares the pinned JavaScript grammar engine, checks CST
-exchange and compilation in both directions, and enables the eight additional
-checked-program specimens during replay. The native verifier executes each
-archived original and the outputs of both translator implementations. It
-compares exit status, standard output, and standard error against the fixture
-contract.
-[Pinned paths and output contracts](../../data/translation/portable-programs.lino)
-
-To check the original console programs and all 78 localized greetings,
-download the two snapshots linked in the case study and run the coverage
-report with the files and Rust CLI.
-
-```sh
-node examples/translation/report-coverage.mjs \
-  /path/to/popular-tasks /path/to/hello-world-collection.html \
-  ./target/debug/universal-translator
-```
-
-To check the Rosetta Code task directories and the sample counts for the
-eight modeled tasks, also pass a directory containing the pinned Git Trees
-responses. This mode downloads the selected pinned files recorded in
-`corpus-coverage.lino` from GitHub. It checks their blob hashes, exact round
-trips, and effects in both runtimes. The Ackermann checks cover callable inputs,
-command-line inputs, the standalone decimal result, and the compact JSON
-array printed by the pinned JavaScript listing.
-The FizzBuzz replay covers all eight JavaScript and four Rust listings. For
-the JavaScript generator listing, it compares the 100 lowercase output lines
-and final newline with the translated Rust program.
-For A+B, the verifier feeds both the original and translated programs seven
-stdin lines. These include positive and negative values, both endpoints, and
-repeated spaces. The signed forms produce fixed decimal sums. The pinned
-JavaScript variant using `process.openStdin()` and its translations emit
-`usage: <number> <number>` when either input has an explicit sign. The HTML
-listing and the emitted Rust WebAssembly open the same two Chrome prompts
-with empty defaults. Six inputs check the prompt order, exact entered text,
-and sum displayed in the DOM. The Windows Script Host listing uses
-`WScript.StdIn`. Ubuntu 24.04's Wine 9.0 returns `E_NOTIMPL` from that getter,
-and the unchanged Windows script produced empty output in the local probe.
-[Wine source](https://github.com/wine-mirror/wine/blob/3e119694dc2c4d5b0773cbc38afb49ff031225bb/programs/wscript/host.c#L420-L423)
-
-```sh
-rosetta_trees=$(mktemp -d)
-rosetta_api=repos/acmeism/RosettaCodeData/git/trees
-gh api "$rosetta_api/c6cbdf28628322ccbfddc21556c061a9dc4a56b1" \
-  > "$rosetta_trees/tasks.json"
-gh api "$rosetta_api/9e55da45ac46c3aba4f34d449f865c001289e529?recursive=1" \
-  > "$rosetta_trees/Hello-world-Text.json"
-gh api "$rosetta_api/751622a645e6f7c20c15145b45eed8d57b9811db?recursive=1" \
-  > "$rosetta_trees/Greatest-common-divisor.json"
-gh api "$rosetta_api/f0d6e89cef62f34a13bb64cd149459c97b9d9c7d?recursive=1" \
-  > "$rosetta_trees/FizzBuzz.json"
-gh api "$rosetta_api/301be355b23d72e65bdea09ec463057b370502c8?recursive=1" \
-  > "$rosetta_trees/Empty-program.json"
-gh api "$rosetta_api/723cbc36ff1dac44417f312a4a594a6cffa2aadb?recursive=1" \
-  > "$rosetta_trees/Ackermann-function.json"
-gh api "$rosetta_api/aec40331f71266270b317cabf5b13618c110380a?recursive=1" \
-  > "$rosetta_trees/Hello-world-Newbie.json"
-gh api "$rosetta_api/b40dd4bbab9ecf8e83dba4da84ecc01ba945c90e?recursive=1" \
-  > "$rosetta_trees/Hello-world-Graphical.json"
-gh api "$rosetta_api/e446b0d3607fb0eb63df03c4c097f58884dd2786?recursive=1" \
-  > "$rosetta_trees/A+B.json"
-node examples/translation/report-coverage.mjs \
-  /path/to/popular-tasks /path/to/hello-world-collection.html \
-  ./target/debug/universal-translator "$rosetta_trees"
-```
-
-The native runner uses a temporary directory per program. It accepts profile
-IDs or `--group=baseline` and `--group=extended` to focus a run. Both Ubuntu
-CI jobs use `--require-all` so missing tools fail the job. The separately
-evaluated referent example uses
-synthetic observations to show how a narrower description and exact reverse
-translation affect rankings.
-
-Edit profile data in `data` and shared verification fixtures in
-`data/translation`. Node.js, Bun and Deno load the profiles directly from
-`data`. Rust embeds those files at build time. Run
-`node scripts/bundle-translation-profiles.mjs` after editing profiles to
-refresh the copy used by browser bundlers.
-The [corpus coverage report](../../docs/case-studies/issue-1/README.md#coverage)
-records which tasks and ranked languages the catalog supports.
+`encode-source <language>` and `decode-source` turn source into a lossless
+Links Notation document and back. `encode-cst` and `decode-cst` do the same
+for Meta Language grammar trees. `experiments/verify-syntax-exchange.sh`
+checks that the JavaScript and Rust command lines produce the same documents
+for `hello.c` and `hello.cs`.

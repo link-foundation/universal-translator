@@ -515,21 +515,41 @@ export function adaptComments(program, { from, to, mode }) {
   if (mode === 'literal' || from === to) {
     return program;
   }
-  const adapt = (value) => adaptCommentText(value, from, to);
+  return mapComments(program, (value) => adaptCommentText(value, from, to));
+}
+
+// Apply a change to the text of every comment in the program.
+export function mapComments(program, change) {
   const adapted = rewrite(program, (current) =>
     current.kind === 'Comment'
-      ? { ...current, text: adapt(current.text) }
+      ? { ...current, text: change(current.text) }
       : current
   );
   return {
     ...adapted,
-    comments: adapted.comments.map(adapt),
-    mainComments: (adapted.mainComments ?? []).map(adapt),
+    comments: (adapted.comments ?? []).map(change),
+    mainComments: (adapted.mainComments ?? []).map(change),
     functions: adapted.functions.map((item) => ({
       ...item,
-      comments: (item.comments ?? []).map(adapt),
+      comments: (item.comments ?? []).map(change),
     })),
   };
+}
+
+// A rule that replaces glossary phrases in comments, longest phrase first.
+// Use it as a layer to change comment language without changing the code,
+// for example from Russian to English.
+export function commentGlossary(phrases) {
+  const ordered = [...phrases].sort(
+    (left, right) => right.source.length - left.source.length
+  );
+  return (program) =>
+    mapComments(program, (text) =>
+      ordered.reduce(
+        (current, { source, target }) => current.split(source).join(target),
+        text
+      )
+    );
 }
 
 // Rust, Kotlin and Swift parameters cannot be reassigned. When a function

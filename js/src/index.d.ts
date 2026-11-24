@@ -40,6 +40,17 @@ export * from './grammar/languages.js';
 export declare const machineTargetIds: string[];
 export declare const machineTargets: Record<string, Record<string, unknown>>;
 export declare function lowerProgram(program: unknown): unknown;
+import type { Rule } from './grammar/translator.js';
+export declare const understandingRules: Rule[];
+export declare const meaningRules: Rule[];
+export declare const contextRules: Rule[];
+export declare function mapComments<T>(
+  program: T,
+  change: (text: string) => string
+): T;
+export declare function commentGlossary(
+  phrases: { source: string; target: string }[]
+): Rule;
 export * from './translation/source-document.js';
 export * from './translation/program.js';
 export * as commonLibrary from './common-library.mjs';

@@ -1,61 +1,53 @@
 # @link-foundation/universal-translator
 
-Translate small programs through a shared Meta Language with JavaScript or
-Rust. The catalog expresses Hello World, Greatest Common Divisor, and
-FizzBuzz in 50 programming languages and in precise plain language across
-20 human languages. Five textual instruction profiles support the Hello
-World fixture, and NASM x86-64 also implements GCD and FizzBuzz. JavaScript,
-Rust, and the 20 plain-language profiles also support Empty Program and the
-Ackermann function on integer inputs from 0 through 3 and 0 through 4, with
-separate forms for returning a value, printing a decimal result, reading
-command-line arguments, and printing a JSON array.
+Translate programs between languages through a typed meta language, with
+matching JavaScript and Rust implementations. The translator is built from
+grammar and rule tables, not from per-program templates. It reads JavaScript,
+TypeScript, Python, Ruby, Lua, PHP, C, C++, C#, Java, Go, Rust, Kotlin and
+Swift, and writes any of them. It can also lower a program to x86-64 assembly
+(NASM), CIL (ILAsm) or JVM bytecode (Jasmin).
 
 ## Translate a program
 
 ```sh
 npm ci
-node bin/universal-translator.js translate c csharp examples/translation/hello.c
-node bin/universal-translator.js roundtrip c examples/translation/hello.c
-cargo run --locked -- translate c csharp examples/translation/hello.c --mode same-effect
-node bin/universal-translator.js translate c meta examples/translation/hello.c --mode same-effect |
-  node bin/universal-translator.js translate meta ja --mode same-effect
+node bin/universal-translator.js translate javascript python examples/programs/factorial.js
+node bin/universal-translator.js translate python rust - < program.py
+node bin/universal-translator.js translate javascript nasm examples/programs/fizz-buzz.js
+node bin/universal-translator.js meta go examples/programs/hand-written/sum-of-squares.go
+node bin/universal-translator.js languages
+cargo run --locked -- translate-grammar javascript kotlin examples/programs/factorial.js
 ```
 
-Both CLIs accept a file or standard input. Run `languages` to list the target
-identifiers. The JavaScript package supports Node.js 20 and later, Bun,
-and Deno. Build the Rust CLI with a current stable Rust toolchain.
+Both CLIs read a file, or standard input when you omit the file or pass `-`.
+The JavaScript package supports Node.js 20 and later, Bun and Deno.
 
-- `context-dependent` is the default and adapts known language and call terminology in comments.
-- `literal` keeps comment text and uses comment delimiters from the destination.
-- `same-effect` keeps the task and its parameters and emits the canonical target form unless you select a different form.
+Each translation runs these stages:
 
-Use `--form` to pick a supported style or a shared library wrapper. JavaScript
-and Rust share standard-output primitives. The emitted programs implement
-GCD, FizzBuzz, and bounded Ackermann directly and can use those primitives
-to write their results. The programmatic APIs let callers replace or decorate
-adapters and add ordered rule layers for project-specific transformations.
+1. A lexer and a table-driven parser read the source language.
+2. Understanding rules turn the syntax tree into a meta program.
+3. Type inference gives every value a type.
+4. Meaning rules and any configured meta→meta layers rewrite the program.
+5. Context rules adapt it to the target language.
+6. An emitter writes the target syntax. For the machine targets, the program
+   is first lowered to a stack machine.
 
-`roundtrip` restores the original UTF-8 source, including whitespace, comments,
-and line endings. The profile-based translator handles recognized program
-forms and authored natural-language descriptions. A `meta` document expresses
-one task and its inputs in Links Notation. Both implementations read, transform,
-and emit that same intermediate form. The supported effects describe
-return values, successful empty programs, or exact standard output, including
-newline and quoting behavior.
+Pick a mode with `--mode`:
 
-Use `encode-source <language>` and `decode-source` to exchange a lossless
-Links Notation source document between the two CLIs. Both implementations
-verify this round trip for all 143,457 source files across the 1,758 tasks and
-883 language directories in the pinned Rosetta Code archive. The task
-contracts define the current scope for executable translations.
+- `context-dependent` (the default) adapts names, comments and terms such as
+  "function" or "method" to the target language.
+- `literal` keeps names and comment text as written.
+- `same-effect` keeps only what the program does and may restructure it.
 
-The CLIs provide `encode-cst <language>` and `decode-cst` for Meta Language
-grammar trees with byte spans, source tokens, and parser provenance.
-`translate-program <from|cst> <to>` checks and compiles a supported JavaScript
-or Rust program into the other language, including programs outside the
-authored effect catalog. `translate --mode same-effect` can also use this path.
-The JavaScript CLI grammar commands need the Meta Language 1.0 engine.
-[Grammar and checked translation examples](examples/translation/README.md#exchange-a-grammar-tree)
+`createTranslator({ layers })` takes rule layers that can be replaced or
+decorated. The common library only hides differences between standard
+libraries, such as printing.
+
+Every program in `examples/programs` has been translated into every target
+in `examples/programs/translated`. These shared files are what the JavaScript
+and Rust tests check against. `node examples/programs/verify-native.mjs`
+compiles and runs each translation with its native toolchain, and CI runs it
+with `--require-all`.
 
 See the [runnable examples](examples/translation/README.md) and the
 [issue 1 case study](docs/case-studies/issue-1/README.md).
@@ -121,7 +113,7 @@ node bin/universal-translator.js add 2 3
 ├── .changeset/           # Changeset configuration
 ├── .github/workflows/    # GitHub Actions CI/CD
 ├── .husky/               # Git hooks (pre-commit)
-├── data/                 # Shared Links Notation profiles
+├── data/                 # Shared Links Notation data
 ├── examples/             # Usage examples
 │   └── universal-app/    # React + GitHub Pages + Electron + Capacitor app
 ├── js/

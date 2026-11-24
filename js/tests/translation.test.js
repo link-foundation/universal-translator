@@ -5,6 +5,7 @@ import {
   referentInput,
 } from '../../examples/translation/fixtures.mjs';
 import { runCli } from '../../bin/universal-translator.js';
+import { translateComments } from '../../examples/translation/comment-glossary.mjs';
 import {
   commonLibrary,
   createTranslator,
@@ -48,6 +49,16 @@ describe('public translation API', () => {
     expect(
       translate(cSource, 'c', 'csharp', { mode: 'same-effect' })
     ).not.toContain('/*');
+  });
+});
+
+describe('same-language layers', () => {
+  it('translates Russian comments to English and keeps the code', () => {
+    const output = translateComments(fixture('hello-ru.cs'));
+    expect(output).toContain('/* Hello World in C# */');
+    expect(output).toContain('/* Print a line by method call */');
+    expect(output).toContain('System.Console.WriteLine("Hello, World!");');
+    expect(/[а-яё]/i.test(output)).toBe(false);
   });
 });
 
