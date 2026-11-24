@@ -85,6 +85,24 @@ describe('command line', () => {
     expect(failed.errors).toContain('cobol');
     expect(cli(['translate', 'c', 'go', '-', '--mode'], '').status).toBe(1);
   });
+
+  it('traces every pipeline stage with --trace', () => {
+    const result = cli(
+      ['translate', 'python', 'ruby', '-', '--trace'],
+      'print(1)\n'
+    );
+    expect(result.output).toBe('puts 1\n');
+    const stages = result.errors
+      .split('\n')
+      .map((line) => line.match(/^\[(\w+)\] \{/)?.[1]);
+    expect(stages).toEqual([
+      'parsed',
+      'understood',
+      'typed',
+      'transformed',
+      'adapted',
+    ]);
+  });
 });
 
 describe('dependent referents', () => {
