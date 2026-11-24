@@ -68,6 +68,7 @@ export const commonLibraryAccess = {
   pascal: { imports: () => ['uses CommonLibrary;'] },
   fortran: { imports: () => ['use common_library'] },
   ada: { imports: () => ['Common_Library'] },
+  vb: { prefix: 'CommonLibrary.' },
 };
 
 const call = (operation, argument) =>

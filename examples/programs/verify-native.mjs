@@ -62,6 +62,7 @@ export const libraryFiles = {
   fortran: 'common_library.f90',
   // A package specification and its body.
   ada: ['common_library.ads', 'common_library.adb'],
+  vb: 'CommonLibrary.vb',
 };
 const libraryFolder = join(folder, '..', '..', 'common-library');
 
@@ -92,6 +93,7 @@ export const extensions = {
   pascal: '.pas',
   fortran: '.f90',
   ada: '.adb',
+  vb: '.vb',
   nasm: '.asm',
   cil: '.il',
   jvm: '.j',
@@ -131,6 +133,26 @@ function available(command) {
 
 const dotnetFramework = () =>
   `net${run('dotnet', ['--version']).split('.')[0]}.0`;
+
+// A .NET project around one C# or Visual Basic file and the library.
+function dotnet(file, library) {
+  const project = join(dirname(file), 'project');
+  const extension = extname(file);
+  mkdirSync(project, { recursive: true });
+  const framework = dotnetFramework();
+  writeFileSync(
+    join(project, `Program${extension}proj`),
+    `<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>${framework}</TargetFramework><ImplicitUsings>disable</ImplicitUsings></PropertyGroup></Project>`
+  );
+  writeFileSync(
+    join(project, `Program${extension}`),
+    readFileSync(file, 'utf8')
+  );
+  for (const path of library) {
+    copyFileSync(path, join(project, basename(path)));
+  }
+  return run('dotnet', ['run', '--project', project]);
+}
 
 // How to run a single source file in each language.
 const runners = {
@@ -329,23 +351,8 @@ const runners = {
       run(`${file}.out`, [])
     ),
   },
-  csharp: {
-    tool: 'dotnet',
-    run: (file, library) => {
-      const project = join(dirname(file), 'project');
-      mkdirSync(project, { recursive: true });
-      const framework = dotnetFramework();
-      writeFileSync(
-        join(project, 'Program.csproj'),
-        `<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>${framework}</TargetFramework><ImplicitUsings>disable</ImplicitUsings></PropertyGroup></Project>`
-      );
-      writeFileSync(join(project, 'Program.cs'), readFileSync(file, 'utf8'));
-      for (const path of library) {
-        copyFileSync(path, join(project, basename(path)));
-      }
-      return run('dotnet', ['run', '--project', project]);
-    },
-  },
+  csharp: { tool: 'dotnet', run: (file, library) => dotnet(file, library) },
+  vb: { tool: 'dotnet', run: (file, library) => dotnet(file, library) },
   nasm: {
     tool: 'nasm',
     run: (file) => (

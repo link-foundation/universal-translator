@@ -627,6 +627,33 @@ export const languages = {
     },
     terms: { call: 'procedure call', routine: 'subprogram' },
   },
+  vb: {
+    naming: { function: 'pascal', variable: 'camel' },
+    label: 'Visual Basic .NET',
+    // Statements, procedures and the module layout are in dialects/vb.js.
+    blocks: 'keywords',
+    caseInsensitive: true,
+    lineComment: "'",
+    quotes: ['"'],
+    doubledQuotes: true,
+    interpolation: [{ quote: '"', prefix: '$', style: 'braces' }],
+    declarations: [],
+    symbols: ['<>'],
+    operators: {
+      and: 'AndAlso',
+      or: 'OrElse',
+      not: 'Not',
+      equal: '=',
+      notEqual: '<>',
+      remainder: 'Mod',
+      integerDivide: '\\',
+    },
+    words: { true: 'True', false: 'False' },
+    entryPoint: 'top-level',
+    typed: 'annotation',
+    types: { integer: 'Long', text: 'String', boolean: 'Boolean', nothing: '' },
+    terms: { call: 'procedure call', routine: 'procedure' },
+  },
 };
 
 // How a language spells a declared name with the given role.
