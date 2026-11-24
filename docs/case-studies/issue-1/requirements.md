@@ -35,6 +35,26 @@ layers.
 | Case study with collected data                                                        | `docs/case-studies/issue-1`                                                                                                                                                                                                                       | The `data/` snapshots decode back to the original JSON                                                                                                                                     |
 | Tracing and logging                                                                   | The `trace` option of `createTranslator` reports every stage. The CLI has `--trace`                                                                                                                                                               | Tests check the order of the traced stages                                                                                                                                                 |
 
+## Natural languages (PR 5 review of November 24)
+
+The [latest review](https://github.com/link-foundation/universal-translator/pull/5)
+asked for these things. `requirements.lino` in this folder lists them as data,
+and `scripts/check-requirements.mjs` checks each one in CI.
+
+| Requirement                                                                                                   | Where it is implemented                                                                                            | How it is verified                                                                                                        |
+| ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| At least 30 programming languages                                                                             | `js/src/grammar/languages.js`                                                                                      | `check-requirements.mjs` counts them; every task is translated into each one and run natively in CI                       |
+| Hello world and every example task in every language                                                          | `examples/programs/translated`                                                                                     | Goldens checked by both test suites; `verify-native.mjs --require-all`                                                    |
+| At least 30 natural languages, starting with controlled English and Russian                                   | `data/natural/<id>.lino`, read by `js/src/natural/catalog.js`                                                      | `js/tests/natural.test.js` lists the 30 most spoken languages and requires each                                           |
+| Start with the semantic primes (NSM)                                                                          | `data/natural/semantic-primes.lino`; Minimal English, French and Polish may only use prime exponents and molecules | 65 primes are required; `checkDescription` rejects template words outside the primes                                      |
+| ASD-STE100, ACE, Gellish, SBVR, plain language, E-Prime, Basic English, Special English, Globish, cnl-default | One profile per standard in `data/natural`, with its rules                                                         | `checkText` checks every text against its rules; negative tests show violations are caught                                |
+| Parse the natural language version of every algorithm                                                         | `js/src/natural/reader.js`                                                                                         | Every text in `examples/programs/natural` reads back to the same meta program                                             |
+| Natural language → meta → any formal language                                                                 | `toMeta` reads words; `translate(text, 'russian', 'rust')`                                                         | Texts are translated to every programming language and compared by meaning                                                |
+| Any formal language → natural language                                                                        | `fromMeta` writes words, including from assembly, CIL and JVM                                                      | `examples/programs/write-natural.mjs --check` in CI                                                                       |
+| Both implementations                                                                                          | `js/src/natural` and `rust/src/natural`                                                                            | `rust/tests/natural.rs` produces the same texts byte for byte                                                             |
+| All Rosetta Code algorithm types                                                                              | `rosetta-coverage.lino` lists each algorithm type as covered (with its tasks) or blocked (with the reason)         | Reported as **blocked**: arrays, floating point, string manipulation and compound values are not in the meta language yet |
+| CI does not pass while a requirement is open                                                                  | `scripts/check-requirements.mjs`, run by the `translation` job                                                     | `js/tests/requirements.test.js`                                                                                           |
+
 ## Assumptions
 
 - Hello World Collection and Rosetta Code are the source of the tasks. The
@@ -46,6 +66,20 @@ layers.
   in original we craft them perfectly").
 - Machine targets work with 64-bit integers and printed text. Other values
   are rejected with a clear error instead of being translated incorrectly.
+- "65 Sanaa" in the review is read as the 65 semantic primes of Natural
+  Semantic Metalanguage, which Minimal English, Minimal French and Minimal
+  Polish are built on.
+- "The 30 most popular natural languages" are chosen from the most spoken
+  languages by total speakers (Ethnologue). Varieties of Arabic and Chinese
+  count once, and spoken-only varieties such as Nigerian Pidgin are left
+  out. Polish (for Minimal Polish), Dutch (for Gellish) and Ukrainian are
+  included in place of some languages with fewer standard written
+  resources. The `speakers` field of each description records its
+  estimate.
+- Each controlled language is "just enough" to describe the example
+  algorithms: one sentence form per meta statement and one phrase per
+  operator. Text literals are data and stay untranslated; program names are
+  translated word by word through a small lexicon.
 - Proving equivalence and translating standard libraries are listed in the
   issue as future work. Here equivalence is checked by running the programs
   natively and by comparing meta programs (`sameMeaning`).

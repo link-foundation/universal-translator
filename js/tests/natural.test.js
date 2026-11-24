@@ -186,6 +186,20 @@ describe('rule checks catch violations', () => {
     );
   });
 
+  it('requires the Gellish relation phrases', async () => {
+    const { checkDescription: check } = await import('../src/natural/rules.js');
+    const gellish = naturalLanguage('english-gellish');
+    const saved = gellish.templates;
+    gellish.templates = { ...saved, assign: ['{name} becomes {value}'] };
+    try {
+      expect(check('english-gellish').join()).toContain(
+        'relation "has as new value"'
+      );
+    } finally {
+      gellish.templates = saved;
+    }
+  });
+
   it('rejects sentences outside the grammar', () => {
     expect(() => readNatural('Dance with the moon.', 'english')).toThrow();
   });

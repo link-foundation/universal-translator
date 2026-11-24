@@ -51,6 +51,62 @@ and Rust tests check against. `node examples/programs/verify-native.mjs`
 compiles and runs each translation with its native toolchain, and CI runs it
 with `--require-all`.
 
+## Translate to and from controlled natural languages
+
+Controlled versions of 30 natural languages are languages like any other.
+They are English, Chinese, Hindi, Spanish, French, Arabic, Bengali,
+Portuguese, Russian, Urdu, Indonesian, German, Japanese, Marathi, Telugu,
+Turkish, Tamil, Vietnamese, Korean, Italian, Persian, Swahili, Tagalog,
+Thai, Polish, Ukrainian, Hausa, Gujarati, Punjabi and Dutch. Each one is
+described as data in `data/natural/<id>.lino`: one sentence template for
+every meta statement, one phrase for every operator, and a small lexicon
+for program names. The writer and the reader use the same tables, so every
+sentence the writer produces is one the reader accepts.
+
+```sh
+node bin/universal-translator.js translate javascript russian examples/programs/fizz-buzz.js
+node bin/universal-translator.js translate english rust examples/programs/natural/factorial/factorial.english.txt
+node bin/universal-translator.js translate nasm minimal-english examples/programs/translated/factorial/factorial.asm
+node bin/universal-translator.js check-words english-e-prime examples/programs/natural/leap-year/leap-year.english-e-prime.txt
+```
+
+```text
+Для каждого число от 1 до 100 повторять это:
+  Если число по модулю 15 равно 0, сделать это:
+    Написать «FizzBuzz» и закончить строку.
+```
+
+Profiles extend a language and add the rules of a controlled language
+standard. `checkText` and `check-words` enforce those rules:
+
+| Profile                   | Standard                                     | Rules that are checked                                |
+| ------------------------- | -------------------------------------------- | ----------------------------------------------------- |
+| `english` (`cnl-default`) | Balanced intersection of the standards below | One-to-one single-word lexicon; every text reads back |
+| `english-asd-ste100`      | ASD-STE100 Simplified Technical English      | At most 20 words, imperative starts, word list        |
+| `english-ace`             | Attempto Controlled English                  | Sentences start with ACE's determiners and keywords   |
+| `english-gellish`         | Gellish Formal English                       | Templates use each listed Gellish relation phrase     |
+| `dutch-gellish`           | Gellish Formeel Nederlands                   | Templates use each listed Gellish relation phrase     |
+| `english-sbvr`            | SBVR Structured English                      | Sentences start with SBVR keywords                    |
+| `english-plain-language`  | Plain language (ISO 24495-1)                 | At most 25 words, 20 on average; no "shall"           |
+| `english-e-prime`         | E-Prime                                      | No form of "to be"                                    |
+| `english-basic-english`   | Basic English (Ogden's 850 words)            | At most 25 words; template words from Ogden's list    |
+| `english-special-english` | VOA Special English / Learning English       | Template words from its word list, short sentences    |
+| `english-globish`         | Globish                                      | At most 20 words; template words from Globish list    |
+| `minimal-english`         | Minimal English (NSM)                        | Template words are semantic primes or molecules       |
+| `minimal-french`          | Minimal French (NSM)                         | Template words are semantic primes or molecules       |
+| `minimal-polish`          | Minimal Polish (NSM)                         | Template words are semantic primes or molecules       |
+
+The 65 semantic primes of Natural Semantic Metalanguage are listed in
+`data/natural/semantic-primes.lino` with their English, French, Polish,
+Russian and Spanish exponents. Every example program is written in every
+language and profile in `examples/programs/natural`. The tests read each
+text back to the same meaning, check it against the rules of its standard
+and translate it to every programming language.
+
+`node scripts/check-requirements.mjs` checks every requirement of issue 1
+against `docs/case-studies/issue-1/requirements.lino`, and CI fails while any
+of them is neither done nor reported as blocked.
+
 See the [runnable examples](examples/translation/README.md) and the
 [issue 1 case study](docs/case-studies/issue-1/README.md).
 

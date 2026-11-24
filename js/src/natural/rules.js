@@ -16,6 +16,8 @@
 //   extra-words             further words templates may use (grammatical
 //                           words and the molecules a minimal language
 //                           allows, or the technical words a profile adds)
+//   relations               relation phrases (Gellish) that templates must
+//                           express facts with; each must appear in one
 //
 // Notes ("Note: ...") copy comments of the program and quoted texts are the
 // program's own data, so neither is checked.
@@ -115,6 +117,12 @@ export function checkDescription(id) {
       if (!allowed.has(word)) {
         problems.push(`template word "${word}" is outside the vocabulary`);
       }
+    }
+  }
+  const texts = Object.values(language.templates).flat().map(fold);
+  for (const relation of language.rules.relations ?? []) {
+    if (!texts.some((text) => text.includes(fold(relation)))) {
+      problems.push(`no template uses the relation "${relation}"`);
     }
   }
   const forbidden = new Set(wordsOf(language.rules['forbidden-words']));

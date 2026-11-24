@@ -58,3 +58,13 @@ CI now checks what the translator actually does:
 
 PR 5 is marked ready only after every requirement in the
 [inventory](requirements.md) has an implementation and a passing check.
+
+## Requirements gate
+
+The review of November 24 asked for CI that does not let the work stop
+until everything is done. `docs/case-studies/issue-1/requirements.lino`
+lists every requirement with its evidence and an automated check, and
+`node scripts/check-requirements.mjs` runs in the `translation` job. A
+requirement passes only when its evidence exists and its check passes, or
+when it is marked `blocked` with a reason. Blocked items are printed in the
+job log and in the PR description; `--strict` makes them fail too.
