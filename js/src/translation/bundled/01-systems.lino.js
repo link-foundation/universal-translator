@@ -307,6 +307,62 @@ profile:
         (line: '    common_library::print_line(&sum.to_string());')
         (line: })
     form:
+      task: integer-sum-or-usage
+      name: standard
+      requires: 'std::io'
+      fixed:
+        limit: 1000
+      source:
+        (line: 'use std::io;')
+        (line: ~1{})
+        (line: 'fn unsigned_decimal(text: &str) -> Option<u32> {')
+        (line: '    if text.bytes().all(|byte| byte.is_ascii_digit()) {')
+        (line: '        text.parse().ok()')
+        (line: '    } else {')
+        (line: '        None')
+        (line: '    }')
+        (line: })
+        (line: ~1{})
+        (line: 'fn main() {')
+        (line: '    let mut input = String::new();')
+        (line: '    io::stdin().read_line(&mut input).expect("read input");')
+        (line: '    let mut numbers = input.split_whitespace().map(unsigned_decimal);')
+        (line: '    match (numbers.next().flatten(), numbers.next().flatten()) {')
+        (line: '        (Some(left), Some(right)) => println!("{}", left + right),')
+        (line: '        _ => println!("usage: <number> <number>"),')
+        (line: '    }')
+        (line: })
+    form:
+      task: integer-sum-or-usage
+      name: common
+      requires: common_library 'std::io'
+      output: 'common_library::print_line'
+      fixed:
+        limit: 1000
+      source:
+        (line: 'mod common_library;')
+        (line: ~1{})
+        (line: 'use std::io;')
+        (line: ~1{})
+        (line: 'fn unsigned_decimal(text: &str) -> Option<u32> {')
+        (line: '    if text.bytes().all(|byte| byte.is_ascii_digit()) {')
+        (line: '        text.parse().ok()')
+        (line: '    } else {')
+        (line: '        None')
+        (line: '    }')
+        (line: })
+        (line: ~1{})
+        (line: 'fn main() {')
+        (line: '    let mut input = String::new();')
+        (line: '    io::stdin().read_line(&mut input).expect("read input");')
+        (line: '    let mut numbers = input.split_whitespace().map(unsigned_decimal);')
+        (line: '    let output = match (numbers.next().flatten(), numbers.next().flatten()) {')
+        (line: '        (Some(left), Some(right)) => (left + right).to_string(),')
+        (line: '        _ => "usage: <number> <number>".into(),')
+        (line: '    };')
+        (line: '    common_library::print_line(&output);')
+        (line: })
+    form:
       task: hello
       name: standard
       source:

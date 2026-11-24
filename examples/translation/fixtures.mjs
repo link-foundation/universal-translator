@@ -46,10 +46,11 @@ const callableEffects = new Map([
 const integerSumCases = [
   ['2 2\n', '4\n'],
   ['3   2\n', '5\n'],
-  ['-1000 -1000\n', '-2000\n'],
+  ['-1000 -1000\n', '-2000\n', 'usage: <number> <number>\n'],
   ['1000 1000\n', '2000\n'],
-  ['-1000 1000\n', '0\n'],
-  ['  +17  -9  \n', '8\n'],
+  ['-1000 1000\n', '0\n', 'usage: <number> <number>\n'],
+  ['  +17  -9  \n', '8\n', 'usage: <number> <number>\n'],
+  ['17  +9\n', '26\n', 'usage: <number> <number>\n'],
 ];
 
 export function nativeInvocations(effect) {
@@ -59,11 +60,12 @@ export function nativeInvocations(effect) {
       stdout: `${result}\n`,
     }));
   }
-  if (effect?.task === 'integer-sum') {
-    return integerSumCases.map(([input, stdout]) => ({
+  if (['integer-sum', 'integer-sum-or-usage'].includes(effect?.task)) {
+    const showUsage = effect.task === 'integer-sum-or-usage';
+    return integerSumCases.map(([input, sum, usage = sum]) => ({
       args: [],
       input,
-      stdout,
+      stdout: showUsage ? usage : sum,
     }));
   }
   return [{ args: [] }];
@@ -136,7 +138,10 @@ export function expectedOutput(effect) {
     case 'empty-program':
       return '';
     case 'integer-sum':
-      return integerSumCases.map(([, sum]) => sum).join('');
+    case 'integer-sum-or-usage':
+      return nativeInvocations(effect)
+        .map(({ stdout }) => stdout)
+        .join('');
     case 'hello':
       return `${effect.message}\n`;
     case 'write-text':

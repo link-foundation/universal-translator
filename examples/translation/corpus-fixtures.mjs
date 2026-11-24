@@ -40,9 +40,12 @@ function decodeEffect(task, parameters) {
     case 'empty-program':
       assert.deepEqual(parameters, ['0']);
       return { task, status: 0 };
-    case 'integer-sum':
-      assert.deepEqual(parameters, ['1000']);
-      return { task, limit: 1000 };
+    case 'integer-sum': {
+      const [limit, variant = task] = parameters;
+      assert.equal(limit, '1000');
+      assert.ok([task, 'integer-sum-or-usage'].includes(variant));
+      return { task: variant, limit: 1000 };
+    }
     case 'hello':
       assert.ok(
         parameters.length === 1 ||
@@ -141,6 +144,7 @@ function runInvocations(command, args, options, effect, label, requires) {
       'fizz-buzz-function',
       'fizz-buzz-joined',
       'integer-sum',
+      'integer-sum-or-usage',
     ].includes(effect.task);
   const output = nativeInvocations(effect).map(
     ({ args: extra, input, stdout }) => {

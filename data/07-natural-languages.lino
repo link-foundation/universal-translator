@@ -44,6 +44,11 @@ profile:
       source:
         (line: 'Read one line from standard input with two decimal integers between −{{limit}} and {{limit}} inclusive, separated by one or more spaces. Write their decimal sum and a newline to standard output.')
     form:
+      task: integer-sum-or-usage
+      name: standard
+      source:
+        (line: 'Read two space-separated decimal integers of magnitude at most {{limit}} from standard input. If either has a sign, print “usage: <number> <number>”. Otherwise print their decimal sum. End the output with a newline.')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -165,6 +170,11 @@ profile:
       name: standard
       source:
         (line: '从标准输入读取一行，其中有两个以一个或多个空格分隔、范围为 −{{limit}} 到 {{limit}}（含端点）的十进制整数。将两数的十进制和及换行符写入标准输出。')
+    form:
+      task: integer-sum-or-usage
+      name: standard
+      source:
+        (line: '从标准输入读取两个用空格分隔、绝对值不超过 {{limit}} 的十进制整数。若任一整数带有正负号，则输出“usage: <number> <number>”；否则输出它们的十进制和。输出以换行符结束。')
     form:
       task: ackermann-cli
       name: standard
@@ -288,6 +298,11 @@ profile:
       source:
         (line: 'मानक इनपुट से एक पंक्ति पढ़ें जिसमें एक या अधिक रिक्त स्थानों से अलग किए गए −{{limit}} से {{limit}} तक के दो दशमलव पूर्णांक हों। उनका दशमलव योग और नई पंक्ति मानक आउटपुट पर लिखें।')
     form:
+      task: integer-sum-or-usage
+      name: standard
+      source:
+        (line: 'मानक इनपुट से रिक्त स्थान द्वारा अलग किए गए दो दशमलव पूर्णांक पढ़ें, जिनका निरपेक्ष मान अधिकतम {{limit}} हो। यदि किसी के आगे धन या ऋण चिह्न है तो “usage: <number> <number>” छापें, अन्यथा उनका दशमलव योग छापें। अंत में नई पंक्ति दें।')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -409,6 +424,11 @@ profile:
       name: standard
       source:
         (line: 'Lee una línea de la entrada estándar con dos enteros decimales entre −{{limit}} y {{limit}}, ambos incluidos, separados por uno o más espacios. Escribe su suma decimal y un salto de línea en la salida estándar.')
+    form:
+      task: integer-sum-or-usage
+      name: standard
+      source:
+        (line: 'Lee de la entrada estándar dos enteros decimales separados por espacios, de valor absoluto no superior a {{limit}}. Si alguno lleva signo, imprime «usage: <number> <number>». En caso contrario, imprime su suma en decimal. Termina con un salto de línea.')
     form:
       task: ackermann-cli
       name: standard
@@ -532,6 +552,11 @@ profile:
       source:
         (line: 'Lis sur l’entrée standard une ligne contenant deux entiers décimaux de −{{limit}} à {{limit}} inclus, séparés par un ou plusieurs espaces. Écris leur somme décimale suivie d’un saut de ligne sur la sortie standard.')
     form:
+      task: integer-sum-or-usage
+      name: standard
+      source:
+        (line: 'Lis sur l’entrée standard deux entiers décimaux séparés par des espaces, de valeur absolue au plus {{limit}}. Si l’un porte un signe, affiche « usage: <number> <number> ». Sinon, affiche leur somme en décimal. Termine par un saut de ligne.')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -653,6 +678,11 @@ profile:
       name: standard
       source:
         (line: 'اقرأ من المدخل القياسي سطرًا فيه عددان صحيحان عشريان بين −{{limit}} و{{limit}} شاملًا الطرفين، يفصل بينهما فراغ واحد أو أكثر. اكتب مجموعهما العشري ثم محرف سطر جديد إلى المخرج القياسي.')
+    form:
+      task: integer-sum-or-usage
+      name: standard
+      source:
+        (line: 'اقرأ من الدخل القياسي عددين صحيحين عشريين تفصل بينهما مسافات، ولا تتجاوز القيمة المطلقة لأي منهما {{limit}}. إذا سبق أحدهما رمز زائد أو ناقص، فاطبع «usage: <number> <number>»، وإلا فاطبع مجموعهما بالعشري. اختم بسطر جديد.')
     form:
       task: ackermann-cli
       name: standard
@@ -776,6 +806,11 @@ profile:
       source:
         (line: 'স্ট্যান্ডার্ড ইনপুট থেকে একটি লাইন পড়ুন, যাতে −{{limit}} থেকে {{limit}} পর্যন্ত দুটি দশমিক পূর্ণসংখ্যা এক বা একাধিক স্পেস দিয়ে আলাদা থাকে। তাদের দশমিক যোগফল এবং একটি নতুন লাইন স্ট্যান্ডার্ড আউটপুটে লিখুন।')
     form:
+      task: integer-sum-or-usage
+      name: standard
+      source:
+        (line: 'স্ট্যান্ডার্ড ইনপুট থেকে ফাঁক দিয়ে আলাদা করা দুটি দশমিক পূর্ণসংখ্যা পড়ুন, যাদের পরম মান সর্বোচ্চ {{limit}}। কোনোটির আগে যোগ বা বিয়োগ চিহ্ন থাকলে “usage: <number> <number>” মুদ্রণ করুন, নইলে তাদের দশমিক যোগফল মুদ্রণ করুন। শেষে একটি নতুন লাইন দিন।')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -897,6 +932,11 @@ profile:
       name: standard
       source:
         (line: 'Leia da entrada padrão uma linha com dois inteiros decimais de −{{limit}} a {{limit}}, inclusive, separados por um ou mais espaços. Escreva a soma decimal e uma quebra de linha na saída padrão.')
+    form:
+      task: integer-sum-or-usage
+      name: standard
+      source:
+        (line: 'Leia da entrada padrão dois inteiros decimais separados por espaços, com valor absoluto de até {{limit}}. Se algum tiver sinal, imprima «usage: <number> <number>». Caso contrário, imprima a soma em decimal. Termine com uma quebra de linha.')
     form:
       task: ackermann-cli
       name: standard
@@ -1020,6 +1060,11 @@ profile:
       source:
         (line: 'Прочитайте из стандартного ввода строку с двумя десятичными целыми числами от −{{limit}} до {{limit}} включительно, разделёнными одним или несколькими пробелами. Запишите десятичную сумму и перевод строки в стандартный вывод.')
     form:
+      task: integer-sum-or-usage
+      name: standard
+      source:
+        (line: 'Прочитай из стандартного ввода два разделённых пробелами десятичных целых числа с модулем не более {{limit}}. Если у одного есть знак, выведи «usage: <number> <number>», иначе выведи их десятичную сумму. Заверши вывод переводом строки.')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -1141,6 +1186,11 @@ profile:
       name: standard
       source:
         (line: 'معیاری ان پٹ سے ایک سطر پڑھیں جس میں −{{limit}} سے {{limit}} تک کے دو اعشاری صحیح اعداد ہوں اور ان کے درمیان ایک یا زیادہ خالی جگہیں ہوں۔ ان کا اعشاری مجموعہ اور نئی سطر معیاری آؤٹ پٹ پر لکھیں۔')
+    form:
+      task: integer-sum-or-usage
+      name: standard
+      source:
+        (line: 'معیاری اِن پٹ سے خالی جگہوں سے جدا دو اعشاری صحیح اعداد پڑھیں جن کی مطلق قدر زیادہ سے زیادہ {{limit}} ہو۔ اگر کسی پر جمع یا تفریق کی علامت ہو تو “usage: <number> <number>” چھاپیں، ورنہ ان کا اعشاری مجموعہ چھاپیں۔ آخر میں نئی سطر لکھیں۔')
     form:
       task: ackermann-cli
       name: standard

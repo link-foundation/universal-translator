@@ -41,6 +41,7 @@ const expectedProfiles = {
   'fizz-buzz-joined': 23,
   'empty-program': 23,
   'integer-sum': 23,
+  'integer-sum-or-usage': 23,
 };
 
 describe('translation through meta-language', () => {

@@ -45,6 +45,11 @@ export default `profile:
       source:
         (line: 'Baca satu baris dari masukan standar yang berisi dua bilangan bulat desimal dari −{{limit}} sampai {{limit}}, dipisahkan satu spasi atau lebih. Tulis jumlah desimalnya dan baris baru ke keluaran standar.')
     form:
+      task: integer-sum-or-usage
+      name: standard
+      source:
+        (line: 'Baca dua bilangan bulat desimal yang dipisahkan spasi dari masukan standar, dengan nilai mutlak paling besar {{limit}}. Jika salah satunya bertanda, cetak “usage: <number> <number>”. Jika tidak, cetak jumlahnya dalam desimal. Akhiri dengan baris baru.')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -166,6 +171,11 @@ profile:
       name: standard
       source:
         (line: 'Lies eine Zeile mit zwei dezimalen Ganzzahlen von −{{limit}} bis einschließlich {{limit}}, getrennt durch ein oder mehrere Leerzeichen, von der Standardeingabe. Schreibe die dezimale Summe mit einem Zeilenumbruch in die Standardausgabe.')
+    form:
+      task: integer-sum-or-usage
+      name: standard
+      source:
+        (line: 'Lies zwei durch Leerzeichen getrennte dezimale Ganzzahlen mit einem Betrag von höchstens {{limit}} aus der Standardeingabe. Hat eine Zahl ein Vorzeichen, gib „usage: <number> <number>“ aus. Andernfalls gib die Dezimalsumme aus. Beende die Ausgabe mit einem Zeilenumbruch.')
     form:
       task: ackermann-cli
       name: standard
@@ -289,6 +299,11 @@ profile:
       source:
         (line: '標準入力から、1 個以上の空白で区切られた −{{limit}} 以上 {{limit}} 以下の十進整数 2 個を含む 1 行を読み込む。十進数で表した和と改行を標準出力に書き込む。')
     form:
+      task: integer-sum-or-usage
+      name: standard
+      source:
+        (line: '標準入力から、空白で区切られた絶対値 {{limit}} 以下の十進整数を二つ読み取る。どちらかに符号が付いていれば「usage: <number> <number>」を出力し、それ以外は十進数で和を出力する。末尾に改行を付ける。')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -410,6 +425,11 @@ profile:
       name: standard
       source:
         (line: 'Soma mstari mmoja kutoka ingizo la kawaida wenye namba mbili kamili za desimali kati ya −{{limit}} na {{limit}} pamoja na mipaka hiyo, zikitenganishwa kwa nafasi moja au zaidi. Andika jumla yao ya desimali na mstari mpya kwenye towe la kawaida.')
+    form:
+      task: integer-sum-or-usage
+      name: standard
+      source:
+        (line: 'Soma kutoka ingizo la kawaida namba kamili mbili za desimali zilizotenganishwa kwa nafasi, kila moja ikiwa na thamani kamili isiyozidi {{limit}}. Ikiwa mojawapo ina alama ya kuongeza au kupunguza, chapisha “usage: <number> <number>”. Vinginevyo chapisha jumla yao ya desimali. Malizia kwa mstari mpya.')
     form:
       task: ackermann-cli
       name: standard
@@ -533,6 +553,11 @@ profile:
       source:
         (line: 'प्रमाणित इनपुटमधून −{{limit}} ते {{limit}} या मर्यादेतील दोन दशमान पूर्णांक असलेली एक ओळ वाचा. त्यांना एक किंवा अधिक रिक्त जागांनी वेगळे केलेले आहे. त्यांची दशमान बेरीज आणि नवीन ओळ प्रमाणित आउटपुटवर लिहा.')
     form:
+      task: integer-sum-or-usage
+      name: standard
+      source:
+        (line: 'मानक इनपुटमधून रिकाम्या जागांनी वेगळ्या केलेल्या दोन दशमान पूर्णांकांचे वाचन करा, ज्यांचे निरपेक्ष मूल्य जास्तीत जास्त {{limit}} आहे. कोणत्याही संख्येआधी धन किंवा ऋण चिन्ह असल्यास “usage: <number> <number>” छापा, अन्यथा दशमान बेरीज छापा. शेवटी नवीन ओळ द्या.')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -654,6 +679,11 @@ profile:
       name: standard
       source:
         (line: 'ప్రామాణిక ఇన్‌పుట్ నుంచి −{{limit}} నుంచి {{limit}} వరకు ఉన్న రెండు దశాంశ పూర్ణాంకాలను ఒక పంక్తిలో చదవండి. వాటి మధ్య ఒకటి లేదా ఎక్కువ ఖాళీలు ఉంటాయి. వాటి దశాంశ మొత్తాన్ని, ఆపై కొత్త పంక్తిని ప్రామాణిక అవుట్‌పుట్‌కు రాయండి.')
+    form:
+      task: integer-sum-or-usage
+      name: standard
+      source:
+        (line: 'ప్రామాణిక ఇన్‌పుట్‌ నుంచి ఖాళీలతో విడదీసిన రెండు దశాంశ పూర్ణాంకాలను చదవండి. వాటి పరమ విలువ {{limit}} మించదు. దేనికైనా ధన లేదా ఋణ సంకేతం ఉంటే “usage: <number> <number>” ముద్రించండి. లేకపోతే వాటి దశాంశ మొత్తాన్ని ముద్రించండి. చివరలో కొత్త పంక్తిని రాయండి.')
     form:
       task: ackermann-cli
       name: standard
@@ -777,6 +807,11 @@ profile:
       source:
         (line: 'Standart girdiden tek satırda −{{limit}} ile {{limit}} arasında, sınırlar dahil, bir veya daha çok boşlukla ayrılmış iki ondalık tam sayı oku. Ondalık toplamı ve bir satır sonunu standart çıktıya yaz.')
     form:
+      task: integer-sum-or-usage
+      name: standard
+      source:
+        (line: 'Standart girdiden boşluklarla ayrılan, mutlak değeri en çok {{limit}} olan iki ondalık tam sayı oku. Birinde işaret varsa “usage: <number> <number>” yaz, yoksa ondalık toplamlarını yaz. Çıktıyı satır sonuyla bitir.')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -898,6 +933,11 @@ profile:
       name: standard
       source:
         (line: 'நிலையான உள்ளீட்டிலிருந்து ஒரு வரியைப் படி. அதில் −{{limit}} முதல் {{limit}} வரையிலான இரண்டு பதின்ம முழு எண்கள் ஒன்று அல்லது அதற்கு மேற்பட்ட இடைவெளிகளால் பிரிக்கப்பட்டிருக்கும். அவற்றின் பதின்மக் கூட்டுத்தொகையையும் புதிய வரியையும் நிலையான வெளியீட்டில் எழுது.')
+    form:
+      task: integer-sum-or-usage
+      name: standard
+      source:
+        (line: 'நிலையான உள்ளீட்டிலிருந்து இடைவெளிகளால் பிரிக்கப்பட்ட, தனி மதிப்பு அதிகபட்சம் {{limit}} கொண்ட இரண்டு பதின்ம முழு எண்களைப் படிக்கவும். ஒன்றில் கூட்டல் அல்லது கழித்தல் குறி இருந்தால் “usage: <number> <number>” என்பதை அச்சிடவும். இல்லையெனில் அவற்றின் பதின்மக் கூட்டுத்தொகையை அச்சிடவும். முடிவில் புதிய வரியைச் சேர்க்கவும்.')
     form:
       task: ackermann-cli
       name: standard
@@ -1021,6 +1061,11 @@ profile:
       source:
         (line: 'Đọc một dòng từ đầu vào chuẩn chứa hai số nguyên thập phân từ −{{limit}} đến {{limit}}, kể cả hai đầu mút, cách nhau bằng một hoặc nhiều dấu cách. Ghi tổng thập phân và một ký tự xuống dòng vào đầu ra chuẩn.')
     form:
+      task: integer-sum-or-usage
+      name: standard
+      source:
+        (line: 'Đọc từ đầu vào chuẩn hai số nguyên thập phân cách nhau bằng dấu cách, có giá trị tuyệt đối không quá {{limit}}. Nếu số nào có dấu cộng hoặc trừ, in “usage: <number> <number>”. Nếu không, in tổng ở dạng thập phân. Kết thúc bằng một ký tự xuống dòng.')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -1142,6 +1187,11 @@ profile:
       name: standard
       source:
         (line: '표준 입력에서 −{{limit}} 이상 {{limit}} 이하인 두 십진 정수가 한 개 이상의 공백으로 구분된 한 줄을 읽는다. 두 수의 십진수 합과 줄바꿈을 표준 출력에 쓴다.')
+    form:
+      task: integer-sum-or-usage
+      name: standard
+      source:
+        (line: '표준 입력에서 공백으로 구분되며 절댓값이 {{limit}} 이하인 십진 정수 두 개를 읽는다. 하나라도 부호가 붙어 있으면 “usage: <number> <number>”를 출력하고, 그 외에는 두 수의 합을 십진수로 출력한다. 끝에 줄바꿈을 붙인다.')
     form:
       task: ackermann-cli
       name: standard

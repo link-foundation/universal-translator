@@ -62,6 +62,7 @@ rosetta-code:
     (variant: browser-alert hello)
     (variant: browser-write hello)
     (variant: write-crlf hello)
+    (variant: integer-sum-or-usage integer-sum)
     (variant: gcd-function greatest-common-divisor)
     (variant: fizz-buzz-function fizz-buzz)
     (variant: fizz-buzz-lowercase fizz-buzz)
@@ -71,6 +72,7 @@ rosetta-code:
   empty-program-source-files:
     (program: Rust/empty-program.rs rust rosetta 0)
   integer-sum-source-files:
+    (program: JavaScript/a+b-2.js javascript rosetta-open-stdin 1000 integer-sum-or-usage)
     (program: JavaScript/a+b-3.js javascript rosetta-stream 1000)
     (program: Rust/a+b-1.rs rust rosetta-loop 1000)
     (program: Rust/a+b-2.rs rust rosetta-iterator 1000)

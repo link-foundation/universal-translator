@@ -95,6 +95,9 @@ their stdout, results of calling the GCD functions over signed and zero
 inputs, and all 20 return values in the bounded Ackermann domain. It checks
 the standalone decimal result, all 20 canonical decimal command-line input
 pairs, and the compact JSON array `[4,5,9,61]`, including trailing newlines.
+The A+B checks feed signed decimal pairs as well as input with repeated
+spaces. The JavaScript `process.openStdin()` original and its translations
+preserve the usage message on either explicitly signed operand.
 Two JavaScript FizzBuzz listings return strings separated by spaces or newlines.
 The original expressions and the translated Rust functions return 412 bytes
 with no trailing separator and produce no additional output. Both common
@@ -118,8 +121,8 @@ each program in Google Chrome. All 20 plain-language profiles distinguish the
 alert from console output.
 [Pinned browser listing](https://github.com/acmeism/RosettaCodeData/blob/1d475861d7141ef2fafff293d9339f56e4b0f5db/Task/Hello-world-Newbie/JavaScript/hello-world-newbie-2.js)
 
-Native verification covers sixteen JavaScript examples out of 1,985 and
-thirteen Rust examples out of 1,481 on x86-64 Linux. The remaining source
+Native verification covers 22 JavaScript examples out of 1,985 and
+15 Rust examples out of 1,481 on x86-64 Linux. The remaining source
 variants still need effect verification.
 
 The fifth pinned Rust GCD listing comes from the published Tests section.
@@ -159,7 +162,7 @@ Collection page, in that order, to verify their checksums and reported counts
 and check the selected original programs. Pass the compiled Rust CLI as the
 third argument to compare exact round trips and Meta Language output in both
 runtimes. A fourth argument accepts the pinned Git Trees responses to verify
-the source counts and 50 original Rosetta Code programs.
+the source counts and 51 original Rosetta Code programs.
 [Reproduction commands](../../../examples/translation/README.md#verification)
 
 The portable program translator in Meta Language 1.0.0 reported semantic

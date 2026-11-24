@@ -253,12 +253,14 @@ responses. This mode downloads the selected pinned files recorded in
 trips, and effects in both runtimes. The Ackermann checks cover callable inputs,
 command-line inputs, the standalone decimal result, and the compact JSON
 array printed by the pinned JavaScript listing.
-For A+B, the verifier feeds both the original and translated programs six
+For A+B, the verifier feeds both the original and translated programs seven
 stdin lines. These include positive and negative values, both endpoints, and
-repeated spaces. It compares stdout with fixed decimal sums. The pinned
-JavaScript variant using `process.openStdin()` prints a usage line on negative
-operands. The two other JavaScript variants use browser prompts and Windows
-Script Host input. These three listings still need their own effect checks.
+repeated spaces. The signed forms produce fixed decimal sums. The pinned
+JavaScript variant using `process.openStdin()` and its translations emit
+`usage: <number> <number>` when either input has an explicit sign. The two
+other JavaScript listings use browser prompts and Windows Script Host input.
+Ubuntu 24.04's Wine 9.0 returns `E_NOTIMPL` from `WScript.StdIn`, so the
+unchanged Windows script produced empty output in the local native probe.
 
 ```sh
 rosetta_trees=$(mktemp -d)

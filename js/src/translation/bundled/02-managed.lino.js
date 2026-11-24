@@ -80,6 +80,51 @@ export default `profile:
         (line: '    printLine(left + right);')
         (line: '});')
     form:
+      task: integer-sum-or-usage
+      name: standard
+      requires: process.stdin console
+      fixed:
+        limit: 1000
+      source:
+        (line: 'process.stdin.setEncoding("utf8");')
+        (line: 'let input = "";')
+        (line: 'process.stdin.on("data", (part) => { input += part; });')
+        (line: 'process.stdin.on("end", () => {')
+        (line: '    const numbers = input.match(/^\\s*(\\d+)\\s+(\\d+)\\s*/);')
+        (line: '    console.log(numbers ? Number(numbers[1]) + Number(numbers[2]) : "usage: <number> <number>");')
+        (line: '});')
+    form:
+      task: integer-sum-or-usage
+      name: rosetta-open-stdin
+      requires: process.stdin console
+      fixed:
+        limit: 1000
+      source:
+        (line: 'process.openStdin().on (')
+        (line: "    'data',")
+        (line: '    function (line) {')
+        (line: '        var xs = String(line).match(/^\\s*(\\d+)\\s+(\\d+)\\s*/)')
+        (line: '        console.log (')
+        (line: "            xs ? Number(xs[1]) + Number(xs[2]) : 'usage: <number> <number>'")
+        (line: '        )')
+        (line: '        process.exit()')
+        (line: '    }')
+        (line: ')')
+    form:
+      task: integer-sum-or-usage
+      name: common
+      requires: './common-library.mjs' 'node:fs'
+      output: printLine
+      fixed:
+        limit: 1000
+      source:
+        (line: "import { readFileSync } from 'node:fs';")
+        (line: "import { printLine } from './common-library.mjs';")
+        (line: ~1{})
+        (line: 'const input = readFileSync(0, "utf8");')
+        (line: 'const numbers = input.match(/^\\s*(\\d+)\\s+(\\d+)\\s*/);')
+        (line: 'printLine(numbers ? Number(numbers[1]) + Number(numbers[2]) : "usage: <number> <number>");')
+    form:
       task: hello
       name: standard
       requires: console

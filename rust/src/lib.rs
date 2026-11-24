@@ -30,6 +30,7 @@ pub enum Effect {
     WriteCrlf { message: String },
     EmptyProgram { status: u32 },
     IntegerSum { limit: u32 },
+    IntegerSumOrUsage { limit: u32 },
     AckermannFunction { left: u32, right: u32 },
     AckermannCli { left: u32, right: u32 },
     AckermannJson { left: u32, right: u32 },
@@ -54,6 +55,7 @@ impl Effect {
             Self::WriteCrlf { .. } => "write-crlf",
             Self::EmptyProgram { .. } => "empty-program",
             Self::IntegerSum { .. } => "integer-sum",
+            Self::IntegerSumOrUsage { .. } => "integer-sum-or-usage",
             Self::AckermannFunction { .. } => "ackermann-function",
             Self::AckermannCli { .. } => "ackermann-cli",
             Self::AckermannJson { .. } => "ackermann-json",
@@ -80,7 +82,9 @@ impl Effect {
             }
             Self::GcdFunction { max } => vec![("max", max.to_string())],
             Self::EmptyProgram { status } => vec![("status", status.to_string())],
-            Self::IntegerSum { limit } => vec![("limit", limit.to_string())],
+            Self::IntegerSum { limit } | Self::IntegerSumOrUsage { limit } => {
+                vec![("limit", limit.to_string())]
+            }
             Self::GreatestCommonDivisor { left, right }
             | Self::AckermannFunction { left, right }
             | Self::AckermannCli { left, right }
@@ -128,6 +132,9 @@ impl Effect {
                 status: integer("status")?,
             },
             "integer-sum" if fields.len() == 1 => Self::IntegerSum {
+                limit: integer("limit")?,
+            },
+            "integer-sum-or-usage" if fields.len() == 1 => Self::IntegerSumOrUsage {
                 limit: integer("limit")?,
             },
             "gcd-function" if fields.len() == 1 => Self::GcdFunction {
@@ -234,7 +241,7 @@ impl Effect {
             Self::AckermannJson { left, right } => *left == 3 && *right == 3,
             Self::AckermannValue { left, right } => *left == 3 && *right <= 4,
             Self::EmptyProgram { status } => *status == 0,
-            Self::IntegerSum { limit } => *limit == 1000,
+            Self::IntegerSum { limit } | Self::IntegerSumOrUsage { limit } => *limit == 1000,
             Self::FizzBuzz { limit }
             | Self::FizzBuzzFunction { limit }
             | Self::FizzBuzzLowercase { limit }
