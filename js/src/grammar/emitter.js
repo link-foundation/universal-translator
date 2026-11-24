@@ -2,7 +2,7 @@
 // language-specific spelling comes from languages.js or from the small
 // tables below; the structure of the output follows the meta tree.
 
-import { add, block, name, node, number } from './meta.js';
+import { add, block, laterCalls, name, node, number } from './meta.js';
 import { languageSyntax } from './languages.js';
 
 const precedence = {
@@ -586,6 +586,10 @@ class Emitter {
     });
   }
 
+  forwardDeclaration(item) {
+    return `${this.signature(item)};`;
+  }
+
   functionDefinition(item) {
     for (const text of item.comments ?? []) {
       this.comment(text);
@@ -623,6 +627,17 @@ class Emitter {
         this.syntax.container ??
           (this.id === 'csharp' ? 'class Program' : 'class Main')
       );
+    }
+    // C, Pascal and Ada read from top to bottom, so a function called
+    // before its definition is announced by a prototype.
+    if (this.syntax.forwardDeclarations) {
+      const announced = laterCalls(program.functions);
+      for (const item of announced) {
+        this.line(this.forwardDeclaration(item));
+      }
+      if (announced.length) {
+        this.line();
+      }
     }
     for (const item of program.functions) {
       this.functionDefinition(item);

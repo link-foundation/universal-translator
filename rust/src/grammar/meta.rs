@@ -361,6 +361,31 @@ where
     visit_node(tree, &mut visit);
 }
 
+/// The functions that an earlier function calls before their own definition,
+/// which languages such as C must announce with a prototype.
+pub fn later_calls(functions: &[Node]) -> Vec<Node> {
+    let mut defined = std::collections::HashSet::new();
+    let mut announced = std::collections::HashSet::new();
+    for item in functions {
+        defined.insert(item.str("name").unwrap_or_default().to_owned());
+        if let Some(body) = item.node("body") {
+            walk(body, |current| {
+                if current.is("Call") {
+                    let callee = current.str("callee").unwrap_or_default();
+                    if !defined.contains(callee) {
+                        announced.insert(callee.to_owned());
+                    }
+                }
+            });
+        }
+    }
+    functions
+        .iter()
+        .filter(|item| announced.contains(item.str("name").unwrap_or_default()))
+        .cloned()
+        .collect()
+}
+
 /// Fields that do not change behaviour: types that an untyped language cannot
 /// express, comments, imports and mutability.
 const IGNORED_KEYS: [&str; 6] = [

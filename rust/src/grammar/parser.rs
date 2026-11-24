@@ -335,6 +335,14 @@ impl Parser {
         if self.is_function_start() {
             return self.function_definition();
         }
+        if self.is_prototype() {
+            // `int male(int index);` only announces a function defined later.
+            while !self.is(";") {
+                self.next()?;
+            }
+            self.position += 1;
+            return Ok(Node::new("Statements").with("statements", Vec::<Node>::new()));
+        }
         self.statement()
     }
 
@@ -398,24 +406,40 @@ impl Parser {
 
     /// Prefix-typed languages: `[modifiers] [type] name ( ... ) {`
     fn is_prefix_function_start(&self) -> bool {
+        let offset = self.prefix_head_length();
+        offset > 0
+            && self.is_at("(", offset)
+            && self.kind(offset - 1) == TokenType::Name
+            && self.is_at("{", self.after_parentheses(offset))
+    }
+
+    /// A prototype such as `int male(int index);`: a type, a name, parameters
+    /// and a semicolon.
+    fn is_prototype(&self) -> bool {
+        let offset = self.prefix_head_length();
+        self.syntax.forward_declarations
+            && offset > 1
+            && self.is_at("(", offset)
+            && self.kind(offset - 1) == TokenType::Name
+            && self.is_at(";", self.after_parentheses(offset))
+    }
+
+    /// How many tokens of a type and a name come before `(`.
+    fn prefix_head_length(&self) -> usize {
         if CONTROL_WORDS.contains(&self.value(0)) {
-            return false;
+            return 0;
         }
-        let offset = (0..)
+        (0..)
             .take_while(|offset| {
                 self.kind(*offset) == TokenType::Name
                     || ["*", "::", "[", "]", "<", ">"].contains(&self.value(*offset))
             })
             .take(self.tokens.len())
-            .count();
-        offset > 0
-            && self.is_at("(", offset)
-            && self.kind(offset - 1) == TokenType::Name
-            && self.is_block_after_parentheses(offset)
+            .count()
     }
 
-    /// Whether the parentheses opening at `offset` are followed by a block.
-    fn is_block_after_parentheses(&self, offset: usize) -> bool {
+    /// The index after the parentheses opening at `offset` and any newlines.
+    fn after_parentheses(&self, offset: usize) -> usize {
         let mut depth = 0i64;
         let mut index = offset;
         while self.kind(index) != TokenType::End {
@@ -430,13 +454,13 @@ impl Parser {
             index += 1;
         }
         if self.kind(index) == TokenType::End {
-            return false;
+            return index;
         }
         let mut after = index + 1;
         while self.kind(after) == TokenType::Newline {
             after += 1;
         }
-        self.is_at("{", after)
+        after
     }
 
     fn function_definition(&mut self) -> Parsed {

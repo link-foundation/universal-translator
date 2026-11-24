@@ -152,6 +152,8 @@ export const languages = {
   c: {
     naming: 'snake',
     label: 'C',
+    // A function called before its definition needs a prototype.
+    forwardDeclarations: true,
     blocks: 'braces',
     lineComment: '//',
     blockComment: ['/*', '*/'],
@@ -167,6 +169,8 @@ export const languages = {
   cpp: {
     naming: 'snake',
     label: 'C++',
+    // A function called before its definition needs a prototype.
+    forwardDeclarations: true,
     blocks: 'braces',
     lineComment: '//',
     blockComment: ['/*', '*/'],
@@ -442,6 +446,8 @@ export const languages = {
     family: 'c',
     naming: 'camel',
     label: 'Objective-C',
+    // A function called before its definition needs a prototype.
+    forwardDeclarations: true,
     blocks: 'braces',
     lineComment: '//',
     blockComment: ['/*', '*/'],

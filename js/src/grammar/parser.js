@@ -194,6 +194,13 @@ class Parser {
     if (this.isFunctionStart()) {
       return this.functionDefinition();
     }
+    if (this.isPrototype()) {
+      // `int male(int index);` only announces a function defined later.
+      while (!this.accept(';')) {
+        this.next();
+      }
+      return node('Statements', { statements: [] });
+    }
     return this.statement();
   }
 
@@ -291,16 +298,7 @@ class Parser {
 
   // Prefix-typed languages: [modifiers] [type] name ( ... ) {
   isPrefixFunctionStart() {
-    if (controlWords.has(this.peek().value)) {
-      return false;
-    }
-    let offset = 0;
-    while (
-      this.peek(offset).type === 'name' ||
-      ['*', '::', '[', ']', '<', '>'].includes(this.peek(offset).value)
-    ) {
-      offset += 1;
-    }
+    const offset = this.prefixHeadLength();
     return (
       offset > 0 &&
       this.is('(', offset) &&
@@ -309,8 +307,43 @@ class Parser {
     );
   }
 
+  // The words and type symbols before a function's parameter list.
+  prefixHeadLength() {
+    if (controlWords.has(this.peek().value)) {
+      return 0;
+    }
+    let offset = 0;
+    while (
+      this.peek(offset).type === 'name' ||
+      ['*', '::', '[', ']', '<', '>'].includes(this.peek(offset).value)
+    ) {
+      offset += 1;
+    }
+    return offset;
+  }
+
+  // C's prototypes: type name ( ... ) ;
+  isPrototype() {
+    if (!this.syntax.forwardDeclarations) {
+      return false;
+    }
+    const offset = this.prefixHeadLength();
+    return (
+      offset > 1 &&
+      this.is('(', offset) &&
+      this.peek(offset - 1).type === 'name' &&
+      this.is(';', this.afterParentheses(offset))
+    );
+  }
+
   // Whether the parentheses opening at offset are followed by a { block.
   isBlockAfterParentheses(offset) {
+    return this.is('{', this.afterParentheses(offset));
+  }
+
+  // The offset of the first token after the parentheses opening at offset,
+  // past line ends.
+  afterParentheses(offset) {
     let depth = 0;
     let index = offset;
     for (; this.peek(index).type !== 'end'; index += 1) {
@@ -320,14 +353,11 @@ class Parser {
         break;
       }
     }
-    if (this.peek(index).type === 'end') {
-      return false;
-    }
     let after = index + 1;
     while (this.peek(after).type === 'newline') {
       after += 1;
     }
-    return this.is('{', after);
+    return after;
   }
 
   functionDefinition() {

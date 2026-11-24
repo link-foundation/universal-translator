@@ -6,7 +6,7 @@ use std::collections::HashSet;
 
 use super::GrammarError;
 use super::languages::{Blocks, EntryPoint, IntegerDivision, Syntax, language_syntax};
-use super::meta::{Node, add, block, format_number, number, text};
+use super::meta::{Node, add, block, format_number, later_calls, number, text};
 
 /// Binding strength of a meta operator; unknown operators have none, which
 /// compares as never tighter or looser (NaN).
@@ -1102,6 +1102,16 @@ impl Emitter {
                 "class Main"
             });
             self.open_block(container);
+        }
+        if self.syntax.forward_declarations {
+            let announced = later_calls(&program.node_list("functions"));
+            for item in &announced {
+                let prototype = format!("{};", self.signature(item));
+                self.line(&prototype);
+            }
+            if !announced.is_empty() {
+                self.line("");
+            }
         }
         for item in program.nodes("functions") {
             self.function_definition(item)?;
