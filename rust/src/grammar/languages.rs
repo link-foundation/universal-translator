@@ -318,7 +318,7 @@ const JAVASCRIPT: Syntax = Syntax {
     command_calls: false,
     body_after: None,
     operators: SCRIPT_OPERATORS,
-    integer_division: None,
+    integer_division: Some(IntegerDivision::Wrapper("Math.trunc")),
     concatenate_call: None,
     words: None,
     else_if: None,
@@ -435,6 +435,7 @@ pub const LANGUAGES: [Syntax; 20] = [
     Syntax {
         id: "php",
         label: "PHP",
+        integer_division: Some(IntegerDivision::Call("intdiv")),
         quotes: BOTH_QUOTES,
         interpolation: &[embeds('"', InterpolationStyle::Dollar)],
         escape_sigils: &["$"],

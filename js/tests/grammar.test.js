@@ -304,6 +304,19 @@ describe('grammar translator: library spellings and names', () => {
     ).toContain('7 // 2');
   });
 
+  it('writes integer division in JavaScript, TypeScript and PHP', () => {
+    const source = 'a = 7 // 2\nprint(a)\n';
+    for (const [target, spelling] of [
+      ['javascript', 'Math.trunc(7 / 2)'],
+      ['typescript', 'Math.trunc(7 / 2)'],
+      ['php', 'intdiv(7, 2)'],
+    ]) {
+      expect(translator.translate(source, 'python', target)).toContain(
+        spelling
+      );
+    }
+  });
+
   it('treats names inherited by JavaScript objects as ordinary names', () => {
     expect(
       translator.translate('toString("hi {}", 1);\n', 'rust', 'python')

@@ -24,6 +24,7 @@ export const languages = {
   javascript: {
     naming: 'camel',
     label: 'JavaScript',
+    integerDivision: { wrapper: 'Math.trunc' },
     blocks: 'braces',
     lineComment: '//',
     blockComment: ['/*', '*/'],
@@ -40,6 +41,7 @@ export const languages = {
   typescript: {
     naming: 'camel',
     label: 'TypeScript',
+    integerDivision: { wrapper: 'Math.trunc' },
     blocks: 'braces',
     lineComment: '//',
     blockComment: ['/*', '*/'],
@@ -124,6 +126,7 @@ export const languages = {
   php: {
     naming: 'camel',
     label: 'PHP',
+    integerDivision: { call: 'intdiv' },
     blocks: 'braces',
     lineComment: '//',
     blockComment: ['/*', '*/'],
