@@ -19,11 +19,13 @@ const typeWords = new Set([
   'int', 'long', 'short', 'char', 'void', 'bool', 'boolean', 'double', 'float',
   'string', 'String', 'var', 'auto', 'const', 'unsigned', 'signed', 'std',
 ]);
-const modifiers = new Set(['public', 'private', 'protected', 'static', 'internal', 'final', 'export', 'inline', 'async']);
+const modifiers = new Set(['public', 'private', 'protected', 'static', 'internal', 'final', 'export', 'inline', 'async', 'local']);
 
 export function parseProgram(source, syntax) {
   return new Parser(tokenize(source, syntax), syntax).program();
 }
+
+const controlWords = new Set(['if', 'else', 'while', 'for', 'switch', 'return', 'do', 'catch']);
 
 class Parser {
   constructor(tokens, syntax) {
@@ -145,7 +147,7 @@ class Parser {
     this.expect('{');
     const items = this.items(() => this.is('}'));
     this.expect('}');
-    return node('Class', { kind, name: title, items });
+    return node('Class', { form: kind, name: title, items });
   }
 
   isFunctionStart() {
@@ -157,6 +159,7 @@ class Parser {
       return this.is(this.syntax.functionKeyword, offset) && this.peek(offset + 1).type === 'name';
     }
     // Prefix-typed languages: [modifiers] [type] name ( ... ) {
+    if (controlWords.has(this.peek().value)) return false;
     let offset = 0;
     while (this.peek(offset).type === 'name' || ['*', '::', '[', ']', '<', '>'].includes(this.peek(offset).value)) {
       offset += 1;
@@ -204,6 +207,7 @@ class Parser {
       returnType = this.typeExpression();
     }
     const body = this.block();
+    this.closeKeywordBlock();
     return node('Function', { name: functionName, parameters, returnType, body });
   }
 
@@ -571,6 +575,12 @@ class Parser {
       const operator = Object.entries(binaryLevels[level]).find(([, surfaces]) => surfaces.includes(token.value) && (token.type === 'symbol' || token.type === 'name'));
       if (!operator) {
         // C++ stream output: std::cout << a << b
+        // PHP joins text with "."
+        if (level === 4 && token.type === 'symbol' && token.value === this.syntax.operators.concatenate) {
+          this.next();
+          left = node('Binary', { operator: 'concatenate', left, right: this.binary(level + 1) });
+          continue;
+        }
         if (level === 4 && token.value === '<<') {
           this.next();
           const right = this.binary(level + 1);
@@ -600,7 +610,7 @@ class Parser {
   postfix() {
     let expression = this.primary();
     while (true) {
-      if ((this.is('.') || this.is('::')) && this.peek(1).type === 'name') {
+      if (((this.is('.') && this.syntax.operators.concatenate !== '.') || this.is('::')) && this.peek(1).type === 'name') {
         const separator = this.next().value;
         expression = name(`${calleeName(expression)}${separator}${this.next().value}`);
         continue;
@@ -652,29 +662,85 @@ class Parser {
 
   textLiteral(token) {
     const style = token.quote === "'" && ['php', 'ruby'].includes(this.syntax.id) ? 'plain' : token.style;
-    const pattern = {
-      braces: /\{([^{}]+)\}/g,
-      'dollar-braces': /\$\{([^{}]+)\}/g,
-      'hash-braces': /#\{([^{}]+)\}/g,
-      dollar: /\$\{([^{}]+)\}|\{\$([^{}]+)\}|\$([A-Za-z_][A-Za-z0-9_]*)/g,
-      'backslash-parentheses': /\\\(([^()]+)\)/g,
-    }[style];
-    if (!pattern) {
+    if (style === 'plain' || !style) {
       return text(token.quote === "'" && this.syntax.id === 'php' ? token.value : decodeEscapes(token.value));
     }
     const parts = [];
-    let last = 0;
-    for (const match of token.value.matchAll(pattern)) {
-      if (match.index > last) parts.push(text(decodeEscapes(token.value.slice(last, match.index))));
-      const inner = match[1] ?? match[2] ?? match[3];
-      const innerSyntax = { ...this.syntax, variableSigil: '$' };
-      parts.push(new Parser(tokenize(inner, innerSyntax), innerSyntax).expression());
-      last = match.index + match[0].length;
+    for (const piece of splitInterpolation(token.value, style)) {
+      if (typeof piece === 'string') {
+        parts.push(text(decodeEscapes(piece)));
+      } else {
+        const innerSyntax = { ...this.syntax, variableSigil: '$' };
+        parts.push(new Parser(tokenize(piece.code, innerSyntax), innerSyntax).expression());
+      }
     }
-    if (last < token.value.length) parts.push(text(decodeEscapes(token.value.slice(last))));
     if (parts.length === 1 && parts[0].kind === 'Text') return parts[0];
     return node('Interpolation', { parts });
   }
+}
+
+// Where an embedded expression starts and which bracket closes it.
+const interpolationOpeners = {
+  braces: [['{', '}']],
+  'dollar-braces': [['${', '}']],
+  'hash-braces': [['#{', '}']],
+  dollar: [['${', '}'], ['{$', '}', '$']],
+  'backslash-parentheses': [['\\(', ')']],
+};
+
+// Split interpolated text into literal strings and { code } pieces. Nested
+// brackets inside the embedded expression are balanced, so "\(f(x))" works.
+function splitInterpolation(value, style) {
+  const pieces = [];
+  let literal = '';
+  let index = 0;
+  while (index < value.length) {
+    if (value[index] === '\\' && style !== 'backslash-parentheses') {
+      literal += value.slice(index, index + 2);
+      index += 2;
+      continue;
+    }
+    if (style === 'braces' && (value.startsWith('{{', index) || value.startsWith('}}', index))) {
+      literal += value[index];
+      index += 2;
+      continue;
+    }
+    const opener = interpolationOpeners[style].find(([open]) => value.startsWith(open, index));
+    const variable = style === 'dollar' && !opener && /^\$[A-Za-z_]\w*/.exec(value.slice(index));
+    if (variable) {
+      if (literal) pieces.push(literal);
+      literal = '';
+      pieces.push({ code: variable[0].slice(1) });
+      index += variable[0].length;
+      continue;
+    }
+    if (!opener) {
+      if (value[index] === '\\') {
+        literal += value.slice(index, index + 2);
+        index += 2;
+      } else {
+        literal += value[index];
+        index += 1;
+      }
+      continue;
+    }
+    const [open, close, keep = ''] = opener;
+    const inner = close === '}' ? '{' : '(';
+    let depth = 1;
+    let end = index + open.length;
+    while (end < value.length && depth > 0) {
+      if (value[end] === inner) depth += 1;
+      else if (value[end] === close) depth -= 1;
+      end += 1;
+    }
+    if (depth !== 0) throw new SyntaxError(`Unclosed "${open}" in text`, 0);
+    if (literal) pieces.push(literal);
+    literal = '';
+    pieces.push({ code: keep + value.slice(index + open.length, end - 1) });
+    index = end;
+  }
+  if (literal) pieces.push(literal);
+  return pieces;
 }
 
 function calleeName(expression) {

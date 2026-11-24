@@ -295,13 +295,15 @@ class Emitter {
     }
   }
 
-  assignment({ name: identifier, operator, value }) {
+  // The meta language only knows `x = value`; `x = x + 1` is written back
+  // as `x += 1` in every language that has compound assignment.
+  assignment({ name: identifier, value }) {
     const target = this.variable(identifier);
-    if (this.syntax.id === 'lua' && operator !== '=') {
-      const meta = { '+=': 'add', '-=': 'subtract', '*=': 'multiply', '/=': 'divide', '%=': 'remainder' }[operator];
-      return `${target} = ${this.expression({ kind: 'Binary', operator: meta, left: { kind: 'Name', name: identifier }, right: value })}`;
+    const compound = compoundOperators[value.operator];
+    if (compound && this.syntax.id !== 'lua' && value.kind === 'Binary' && value.left.kind === 'Name' && value.left.name === identifier) {
+      return `${target} ${compound} ${this.expression(value.right)}${this.terminator()}`;
     }
-    return `${target} ${operator} ${this.expression(value)}${this.terminator()}`;
+    return `${target} = ${this.expression(value)}${this.terminator()}`;
   }
 
   ifStatement(statement) {
@@ -460,6 +462,8 @@ class Emitter {
     return lines;
   }
 }
+
+const compoundOperators = { add: '+=', subtract: '-=', multiply: '*=', divide: '/=', remainder: '%=' };
 
 export function emitProgram(program, languageId) {
   return new Emitter(languageSyntax(languageId)).program(program);

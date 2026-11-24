@@ -1,5 +1,5 @@
 import { createGrammarTranslator } from '../js/src/grammar/translator.js';
-import { sameMeaning } from '../js/src/grammar/meta.js';
+import { meaningDifference } from '../js/src/grammar/meta.js';
 import { readFileSync, readdirSync } from 'node:fs';
 const t = createGrammarTranslator();
 const strip=(m)=>m;
@@ -11,7 +11,7 @@ for (const f of readdirSync('examples/programs').filter(f=>f.endsWith('.js'))) {
     try {
       const code = t.translate(src,'javascript',id);
       const back = t.toMeta(code,id);
-      if (!sameMeaning(meta, back)) { bad++; console.log('DIFF', f, id); console.log(JSON.stringify(meta.main).slice(0,400)); console.log(JSON.stringify(back.main).slice(0,400)); }
+      const d = meaningDifference(meta, back); if (d) { bad++; console.log("DIFF", f, id, d.slice(0,300)); }
       const again = t.translate(code,id,'javascript',{mode:'literal'});
     } catch(e){ bad++; console.log('ERR', f, id, e.message); }
   }

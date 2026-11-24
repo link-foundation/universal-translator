@@ -123,7 +123,8 @@ function partsToValue(parts) {
     }
   }
   if (merged.length === 0) return text('');
-  if (merged.length === 1 && merged[0].kind === 'Text') return merged[0];
+  // A format with a single placeholder prints just that value.
+  if (merged.length === 1) return merged[0];
   return node('Interpolation', { parts: merged });
 }
 
@@ -231,7 +232,53 @@ export function dropSourceDetails(program) {
   });
 }
 
-export const understandingRules = [findEntryPoint, recognizePrint, declareOnFirstAssignment, inferMutability, dropSourceDetails];
+const compoundMeanings = { '+=': 'add', '-=': 'subtract', '*=': 'multiply', '/=': 'divide', '%=': 'remainder' };
+
+// `x += v` means `x = x + v`; the meta language keeps only the plain form.
+export function expandCompoundAssignment(program) {
+  return rewrite(program, (current) => {
+    if (current.kind !== 'Assignment' || current.operator === '=') return current;
+    const operator = compoundMeanings[current.operator];
+    if (!operator) throw new Error(`Unknown assignment operator "${current.operator}"`);
+    return node('Assignment', { name: current.name, operator: '=', value: node('Binary', { operator, left: { kind: 'Name', name: current.name }, right: current.value }) });
+  });
+}
+
+// PHP's "." operator joins text: the same concept as an interpolation.
+export function concatenationOperator(program) {
+  return rewrite(program, (current) => {
+    if (current.kind !== 'Binary' || current.operator !== 'concatenate') return current;
+    return partsToValue([current.left, current.right].flatMap((part) => (part.kind === 'Interpolation' ? part.parts : [part])));
+  });
+}
+
+// `let mut first = first;` at the start of a Rust, Kotlin or Swift function
+// only exists because parameters are immutable there. It is a detail of the
+// source language (see copyReassignedParameters), not part of the meaning.
+export function dropParameterCopies(program) {
+  return {
+    ...program,
+    functions: program.functions.map((item) => {
+      const statements = [...item.body.statements];
+      const names = new Set(item.parameters.map((parameter) => parameter.name));
+      while (statements[0]?.kind === 'Declaration' && names.has(statements[0].name) && statements[0].value?.kind === 'Name' && statements[0].value.name === statements[0].name) {
+        statements.shift();
+      }
+      return { ...item, body: { ...item.body, statements } };
+    }),
+  };
+}
+
+export const understandingRules = [
+  findEntryPoint,
+  concatenationOperator,
+  recognizePrint,
+  expandCompoundAssignment,
+  dropParameterCopies,
+  declareOnFirstAssignment,
+  inferMutability,
+  dropSourceDetails,
+];
 
 // ---------------------------------------------------------------------------
 // Meaning layer (after type inference)

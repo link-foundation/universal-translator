@@ -6,7 +6,7 @@
 //
 //   node examples/programs/verify-native.mjs [language ...]
 
-import { execFileSync, spawnSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readdirSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, extname, join } from 'node:path';
@@ -54,7 +54,8 @@ const runners = {
     run: (file) => {
       const project = join(dirname(file), 'project');
       mkdirSync(project, { recursive: true });
-      writeFileSync(join(project, 'Program.csproj'), '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><ImplicitUsings>disable</ImplicitUsings></PropertyGroup></Project>');
+      const framework = `net${run('dotnet', ['--version']).split('.')[0]}.0`;
+      writeFileSync(join(project, 'Program.csproj'), `<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>${framework}</TargetFramework><ImplicitUsings>disable</ImplicitUsings></PropertyGroup></Project>`);
       writeFileSync(join(project, 'Program.cs'), readFileSync(file, 'utf8'));
       return run('dotnet', ['run', '--project', project]);
     },
@@ -94,6 +95,5 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       }
     }
   }
-  void execFileSync;
   process.exitCode = failures ? 1 : 0;
 }

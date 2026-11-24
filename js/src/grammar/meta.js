@@ -88,11 +88,29 @@ export function walk(tree, visit) {
 
 // Structural comparison that ignores source-only details such as types that
 // an untyped language cannot express and comment wording.
+const ignoredKeys = new Set(['type', 'returnType', 'comments', 'mainComments', 'imports', 'mutable']);
+
+// The meaning of a program, without details that do not change behaviour:
+// comments, imports, inferred types and mutability.
+export function essence(tree) {
+  const withoutComments = rewrite(tree, (current) => (current.kind === 'Comment' ? undefined : current));
+  return JSON.parse(JSON.stringify(withoutComments, (key, value) => (ignoredKeys.has(key) ? undefined : value)));
+}
+
+// The first path where two programs differ in meaning, or undefined.
+export function meaningDifference(left, right, path = '') {
+  const [a, b] = path ? [left, right] : [essence(left), essence(right)];
+  if (a === b) return undefined;
+  if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) {
+    return `${path || '/'}: ${JSON.stringify(a)} != ${JSON.stringify(b)}`;
+  }
+  for (const key of new Set([...Object.keys(a), ...Object.keys(b)])) {
+    const difference = meaningDifference(a[key], b[key], `${path}/${key}`);
+    if (difference) return difference;
+  }
+  return undefined;
+}
+
 export function sameMeaning(left, right) {
-  const strip = (tree) =>
-    JSON.stringify(tree, (key, value) =>
-      key === 'type' || key === 'returnType' || key === 'comments' || key === 'mutable' ? undefined : value
-    );
-  const withoutComments = (tree) => rewrite(tree, (current) => (current.kind === 'Comment' ? undefined : current));
-  return strip(withoutComments(left)) === strip(withoutComments(right));
+  return meaningDifference(left, right) === undefined;
 }

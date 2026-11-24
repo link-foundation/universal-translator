@@ -101,7 +101,7 @@ export const languages = {
     declarations: [],
     variableSigil: '$',
     functionKeyword: 'function',
-    operators: { ...braceOperators, equal: '===', notEqual: '!==' },
+    operators: { ...braceOperators, equal: '===', notEqual: '!==', concatenate: '.' },
     elseIf: 'elseif',
     print: { line: 'echo' },
     entryPoint: 'top-level',
