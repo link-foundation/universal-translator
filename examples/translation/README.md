@@ -297,7 +297,7 @@ checked-program specimens during replay. The native verifier executes each
 archived original and the outputs of both translator implementations. It
 compares exit status, standard output, and standard error against the fixture
 contract.
-[Pinned paths and output contracts](portable-programs.lino)
+[Pinned paths and output contracts](../../data/translation/portable-programs.lino)
 
 To check the original console programs and all 78 localized greetings,
 download the two snapshots linked in the case study and run the coverage
