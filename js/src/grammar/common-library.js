@@ -11,6 +11,7 @@
 import { languageSyntax, namingConvention } from './languages.js';
 import { nameWords, spellName } from './names.js';
 import { node, rewrite } from './meta.js';
+import { partsToValue } from './rules.js';
 
 // Neutral names of the operations, as the meta language stores names.
 export const commonLibraryOperations = [
@@ -102,12 +103,57 @@ export function useCommonLibrary(program) {
   return { ...replaced, libraries: ['common'] };
 }
 
+// The lines that make the library available are not part of the program.
+const isLibraryImport = (text) => /common[-_]?library/i.test(text);
+
+// Lua loads the library into a variable: `local common_library = require(...)`.
+const isLibraryLoad = (statement) =>
+  statement.value?.kind === 'Call' &&
+  statement.value.callee === 'require' &&
+  isLibraryImport(statement.value.arguments[0]?.value ?? '');
+
+// Consecutive prints that came from library calls are one print statement:
+// the writes up to and including the one that ends the line are joined.
+function mergeLibraryPrints(statements) {
+  const merged = [];
+  let pending = [];
+  const flush = (newline) => {
+    if (pending.length > 0 || newline) {
+      merged.push(
+        node('Print', {
+          value: partsToValue(pending.map((print) => print.value)),
+          newline,
+        })
+      );
+    }
+    pending = [];
+  };
+  for (const statement of statements) {
+    if (statement.kind !== 'Print' || !statement.fromLibrary) {
+      flush(false);
+      merged.push(statement);
+    } else if (statement.newline) {
+      pending.push(statement);
+      flush(true);
+    } else {
+      pending.push(statement);
+    }
+  }
+  flush(false);
+  return merged;
+}
+
 // Understanding rule: a call to a library operation, however the source
 // spells and qualifies it, is a print statement again.
 export function recognizeCommonLibrary(program) {
-  return rewrite(program, (current) => {
+  const ownFunctions = new Set(program.functions.map((item) => item.name));
+  const recognized = rewrite(program, (current) => {
     const expression = current.expression;
-    if (current.kind !== 'Evaluate' || expression?.kind !== 'Call') {
+    if (
+      current.kind !== 'Evaluate' ||
+      expression?.kind !== 'Call' ||
+      ownFunctions.has(expression.callee)
+    ) {
       return current;
     }
     const operation = nameWords(expression.callee.split(/\.|::/).at(-1)).join(
@@ -116,20 +162,35 @@ export function recognizeCommonLibrary(program) {
     const [argument] = expression.arguments;
     switch (operation) {
       case 'print-line':
-        return node('Print', { value: argument, newline: true });
+        return libraryPrint(argument, true);
       case 'write-text':
       case 'write-integer':
-        return node('Print', { value: argument, newline: false });
+        return libraryPrint(argument, false);
       case 'end-line':
-        return node('Print', {
-          value: node('Text', { value: '' }),
-          newline: true,
-        });
+        return libraryPrint(node('Text', { value: '' }), true);
       default:
         return current;
     }
   });
+  const merged = rewrite(recognized, (current) =>
+    current.kind === 'Block'
+      ? { ...current, statements: mergeLibraryPrints(current.statements) }
+      : current
+  );
+  return {
+    ...merged,
+    main: {
+      ...merged.main,
+      statements: merged.main.statements.filter(
+        (statement) => !isLibraryLoad(statement)
+      ),
+    },
+    imports: merged.imports.filter((text) => !isLibraryImport(text)),
+  };
 }
+
+const libraryPrint = (value, newline) =>
+  node('Print', { value, newline, fromLibrary: true });
 
 // Context rule: spell each library call for the target language and list
 // the lines that make the library available.

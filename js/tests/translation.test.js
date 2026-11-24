@@ -36,7 +36,12 @@ describe('public translation API', () => {
         .languages()
         .map(({ id }) => id)
     ).toEqual(grammarLanguageIds);
-    expect(Object.keys(commonLibrary)).toEqual(['printLine', 'writeText']);
+    expect(Object.keys(commonLibrary)).toEqual([
+      'endLine',
+      'printLine',
+      'writeInteger',
+      'writeText',
+    ]);
   });
 
   it('translates the issue C source in all three modes', () => {

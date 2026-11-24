@@ -36,7 +36,8 @@ function usage() {
     'Commands:',
     '  add       Add two numbers',
     '  multiply  Multiply two numbers',
-    '  translate <from> <to> [file|-] [--mode <mode>] [--trace]  Translate through the meta language',
+    '  translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library]  Translate through the meta language',
+    '            --common-library prints through common-library/ calls',
     '  translate-program <from|cst> <to> [file|-]  Translate a checked JavaScript or Rust program',
     '  meta <language> [file|-]  Print the typed meta program as JSON',
     '  encode-source <language> [file|-]  Write a Links Notation source document',
@@ -86,6 +87,8 @@ function translationArguments(args) {
     const argument = args[index];
     if (argument === '--trace') {
       options.trace = true;
+    } else if (argument === '--common-library') {
+      options.commonLibrary = true;
     } else if (argument === '--mode') {
       const key = argument.slice(2);
       const value = args[++index];
@@ -126,7 +129,12 @@ function runTranslation(command, args, read, write, stderr) {
   } else if (command === 'meta' && from && args.length <= 2) {
     write(`${JSON.stringify(translator.toMeta(read(to), from), null, 2)}\n`);
   } else if (command === 'translate' && from && to) {
-    write(translator.translate(read(file), from, to, { mode: options.mode }));
+    write(
+      translator.translate(read(file), from, to, {
+        mode: options.mode,
+        commonLibrary: options.commonLibrary,
+      })
+    );
   } else {
     throw new Error(usage());
   }

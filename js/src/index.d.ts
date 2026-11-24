@@ -61,4 +61,12 @@ export declare function commentGlossary(
 ): Rule;
 export * from './translation/source-document.js';
 export * from './translation/program.js';
+export declare const commonLibraryOperations: string[];
+export declare const commonLibraryAccess: Record<
+  string,
+  { imports?: (names: string[]) => string[]; prefix?: string }
+>;
+export declare function useCommonLibrary<T>(program: T): T;
+export declare const recognizeCommonLibrary: Rule;
+export declare const spellCommonLibrary: Rule;
 export * as commonLibrary from './common-library.mjs';

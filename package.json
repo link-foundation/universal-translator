@@ -10,6 +10,7 @@
   },
   "files": [
     "bin/",
+    "common-library/",
     "js/src/",
     "data/",
     "CHANGELOG.md",

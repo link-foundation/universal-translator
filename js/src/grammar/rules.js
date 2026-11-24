@@ -5,6 +5,10 @@
 // independent meta program; "meaning" rules run after type inference;
 // "context" rules adapt the program to its target (for example comments).
 
+import {
+  recognizeCommonLibrary,
+  spellCommonLibrary,
+} from './common-library.js';
 import { block, node, rewrite, text } from './meta.js';
 import { languageSyntax, namingConvention } from './languages.js';
 import { neutralName, renameDeclared, spellName } from './names.js';
@@ -178,7 +182,7 @@ function readFormat(format, values, style) {
   return parts;
 }
 
-function partsToValue(parts) {
+export function partsToValue(parts) {
   const merged = [];
   for (const part of parts) {
     if (part.kind === 'Text' && merged.at(-1)?.kind === 'Text') {
@@ -466,6 +470,7 @@ export const understandingRules = [
   findEntryPoint,
   concatenationOperator,
   integerDivisionCalls,
+  recognizeCommonLibrary,
   recognizePrint,
   expandCompoundAssignment,
   dropParameterCopies,
@@ -623,4 +628,5 @@ export const contextRules = [
   adaptComments,
   copyReassignedParameters,
   spellNames,
+  spellCommonLibrary,
 ];

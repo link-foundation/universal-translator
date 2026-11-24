@@ -20,6 +20,7 @@ import { emitProgram } from './emitter.js';
 import { emitMachine, machineTargetIds } from './machine.js';
 import { machineReaders } from './machine-reader.js';
 import { liftProgram } from './lifting.js';
+import { useCommonLibrary } from './common-library.js';
 
 const readMachine = (source, from) => machineReaders[from](source);
 
@@ -60,15 +61,24 @@ export function createGrammarTranslator({
     return typed;
   }
 
-  function fromMeta(meta, to, { from = to, mode = 'context-dependent' } = {}) {
+  function fromMeta(
+    meta,
+    to,
+    { from = to, mode = 'context-dependent', commonLibrary = false } = {}
+  ) {
     if (!modes.includes(mode)) {
       throw new Error(`Unsupported mode "${mode}"`);
+    }
+    if (commonLibrary && machineTargetIds.includes(to)) {
+      throw new Error(`Machine targets have no common library (${to})`);
     }
     languageSyntax(to);
     const settings = { from, to, mode };
     // Custom layers are meta -> meta transformations, so they see the target
     // independent program; context rules then adapt it to the target.
-    const transformed = layers.reduce(
+    // The common library route is one more meta layer, run last.
+    const allLayers = commonLibrary ? [...layers, [useCommonLibrary]] : layers;
+    const transformed = allLayers.reduce(
       (current, layer) => applyRules(current, layer, settings),
       meta
     );

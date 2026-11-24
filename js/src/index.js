@@ -33,6 +33,13 @@ export {
 } from './grammar/translator.js';
 export { grammarLanguageIds, languages } from './grammar/languages.js';
 export { machineTargetIds, machineTargets } from './grammar/machine.js';
+export {
+  commonLibraryAccess,
+  commonLibraryOperations,
+  recognizeCommonLibrary,
+  spellCommonLibrary,
+  useCommonLibrary,
+} from './grammar/common-library.js';
 export { lowerProgram } from './grammar/lowering.js';
 export { liftProgram } from './grammar/lifting.js';
 export {

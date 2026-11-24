@@ -2,6 +2,9 @@ export type TranslationMode = 'context-dependent' | 'literal' | 'same-effect';
 
 export interface TranslationOptions {
   mode?: TranslationMode;
+  /** Print through the operations of `common-library/` instead of the
+   * target's own output statements. */
+  commonLibrary?: boolean;
 }
 
 export type Rule = (tree: unknown, context: Record<string, unknown>) => unknown;

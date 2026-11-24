@@ -161,11 +161,7 @@ class Parser {
       this.next();
       return node('Import', { text: token.value });
     }
-    if (
-      ['import', 'using', 'package', 'use', 'require'].includes(token.value) &&
-      token.type === 'name' &&
-      !this.is('(', 1)
-    ) {
+    if (this.isImportStart(token)) {
       return this.importStatement();
     }
     if (this.isNamespaceOrClass()) {
@@ -175,6 +171,29 @@ class Parser {
       return this.functionDefinition();
     }
     return this.statement();
+  }
+
+  // Import lines: `import`, `using`, `package`, `use`, `require`,
+  // `require_once`, Rust `mod name;` and Python `from module import a`.
+  isImportStart(token) {
+    if (token.type !== 'name' || this.is('(', 1)) {
+      return false;
+    }
+    if (token.value === 'from') {
+      return this.peek(2).value === 'import';
+    }
+    if (token.value === 'mod') {
+      return this.peek(1).type === 'name' && this.is(';', 2);
+    }
+    return [
+      'import',
+      'using',
+      'package',
+      'use',
+      'require',
+      'require_once',
+      'require_relative',
+    ].includes(token.value);
   }
 
   importStatement() {

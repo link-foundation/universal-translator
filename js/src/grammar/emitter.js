@@ -558,14 +558,15 @@ class Emitter {
     if (program.comments.length) {
       this.line();
     }
-    return `${[...this.lines, ...this.prelude(), ...body].join('\n')}\n`;
+    return `${[...this.lines, ...this.prelude(program), ...body].join('\n')}\n`;
   }
 
-  prelude() {
+  prelude(program) {
     const lines = [];
     if (this.syntax.id === 'go') {
       lines.push('package main', '');
     }
+    lines.push(...(program.libraryImports ?? []));
     if (this.uses.has('stdio')) {
       lines.push('#include <stdio.h>');
     }

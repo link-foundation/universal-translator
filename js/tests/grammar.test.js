@@ -189,7 +189,11 @@ describe('grammar translator: replaceable rule layers', () => {
     expect(withoutComments.translate(hello, 'javascript', 'ruby')).toContain(
       '# Hello World in JavaScript'
     );
-    expect(calls).toEqual(['copyReassignedParameters', 'spellNames']);
+    expect(calls).toEqual([
+      'copyReassignedParameters',
+      'spellNames',
+      'spellCommonLibrary',
+    ]);
     expect(understandingRules.map((rule) => rule.name)).toContain(
       'recognizePrint'
     );
