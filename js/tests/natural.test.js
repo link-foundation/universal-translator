@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'test-anywhere';
 
 import { runCli } from '../../bin/universal-translator.js';
@@ -100,7 +100,10 @@ describe('controlled natural languages', () => {
 
 describe('every task in every natural language', () => {
   it('matches every file under examples/programs/natural', () => {
-    expect(texts.length).toBe(13 * naturalLanguageIds().length);
+    const tasks = readdirSync('examples/programs').filter((file) =>
+      file.endsWith('.js')
+    );
+    expect(texts.length).toBe(tasks.length * naturalLanguageIds().length);
     for (const { path, text } of texts) {
       expect(readFileSync(path, 'utf8')).toBe(text);
     }

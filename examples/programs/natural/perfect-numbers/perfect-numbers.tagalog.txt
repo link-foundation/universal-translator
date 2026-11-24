@@ -1,0 +1,16 @@
+Tala: Perfect numbers in JavaScript: numbers equal to the sum of their divisors
+
+Tukuyin ang ba-perpekto gamit ang numero:
+  Lumikha ng kabuuan na may halagang 1.
+  Lumikha ng panghati na may halagang 2.
+  Habang panghati beses panghati ay hindi hihigit sa numero, ulitin ito:
+    Kung numero modulo panghati ay katumbas ng 0, gawin ito:
+      Palitan ang kabuuan ng kabuuan dagdag panghati.
+      Kung panghati beses panghati ay hindi katumbas ng numero, gawin ito:
+        Palitan ang kabuuan ng kabuuan dagdag numero hinati sa panghati.
+    Palitan ang panghati ng panghati dagdag 1.
+  Ibalik ang numero ay mas mataas sa 1 at kabuuan ay katumbas ng numero.
+
+Para sa bawat numero mula 1 hanggang 10000, ulitin ito:
+  Kung ba-perpekto ng (numero), gawin ito:
+    Isulat ang numero at tapusin ang linya.

@@ -1,0 +1,14 @@
+Uwaga: Mutual recursion in JavaScript: the Hofstadter Female and Male sequences
+
+Zdefiniuj żeński używając indeks:
+  Jeśli indeks równa się 0, zrób to:
+    Zwróć 1.
+  Zwróć indeks minus męski dla (żeński dla (indeks minus 1)).
+
+Zdefiniuj męski używając indeks:
+  Jeśli indeks równa się 0, zrób to:
+    Zwróć 0.
+  Zwróć indeks minus żeński dla (męski dla (indeks minus 1)).
+
+Dla każdego indeks od 0 do 19 powtarzaj to:
+  Wypisz indeks a następnie „: ” a następnie żeński dla (indeks) a następnie „ ” a następnie męski dla (indeks) i zakończ wiersz.

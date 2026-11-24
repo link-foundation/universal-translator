@@ -1,0 +1,14 @@
+Tala: Mutual recursion in JavaScript: the Hofstadter Female and Male sequences
+
+Tukuyin ang babae gamit ang indeks:
+  Kung indeks ay katumbas ng 0, gawin ito:
+    Ibalik ang 1.
+  Ibalik ang indeks bawas lalaki ng (babae ng (indeks bawas 1)).
+
+Tukuyin ang lalaki gamit ang indeks:
+  Kung indeks ay katumbas ng 0, gawin ito:
+    Ibalik ang 0.
+  Ibalik ang indeks bawas babae ng (lalaki ng (indeks bawas 1)).
+
+Para sa bawat indeks mula 0 hanggang 19, ulitin ito:
+  Isulat ang indeks na sinusundan ng “: ” na sinusundan ng babae ng (indeks) na sinusundan ng “ ” na sinusundan ng lalaki ng (indeks) at tapusin ang linya.

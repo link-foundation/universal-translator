@@ -1,0 +1,14 @@
+Opmerking: Mutual recursion in JavaScript: the Hofstadter Female and Male sequences
+
+Vrouwelijk is gedefinieerd als een procedure met invoer index:
+  Als index is gelijk aan 0 dan wordt het volgende uitgevoerd:
+    De procedure heeft als resultaat 1.
+  De procedure heeft als resultaat index min mannelijk toegepast op (vrouwelijk toegepast op (index min 1)).
+
+Mannelijk is gedefinieerd als een procedure met invoer index:
+  Als index is gelijk aan 0 dan wordt het volgende uitgevoerd:
+    De procedure heeft als resultaat 0.
+  De procedure heeft als resultaat index min vrouwelijk toegepast op (mannelijk toegepast op (index min 1)).
+
+Voor elke index van 0 tot en met 19 wordt het volgende herhaald:
+  De uitvoer heeft als volgende regel index samengevoegd met “: ” samengevoegd met vrouwelijk toegepast op (index) samengevoegd met “ ” samengevoegd met mannelijk toegepast op (index).

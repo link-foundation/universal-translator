@@ -1,0 +1,14 @@
+Kumbuka: Mutual recursion in JavaScript: the Hofstadter Female and Male sequences
+
+Fafanua kike kwa fahirisi:
+  Ikiwa fahirisi ni sawa na 0, fanya hivi:
+    Rudisha 1.
+  Rudisha fahirisi toa kiume ya (kike ya (fahirisi toa 1)).
+
+Fafanua kiume kwa fahirisi:
+  Ikiwa fahirisi ni sawa na 0, fanya hivi:
+    Rudisha 0.
+  Rudisha fahirisi toa kike ya (kiume ya (fahirisi toa 1)).
+
+Kwa kila fahirisi kutoka 0 hadi 19, rudia hivi:
+  Andika fahirisi ikifuatiwa na “: ” ikifuatiwa na kike ya (fahirisi) ikifuatiwa na “ ” ikifuatiwa na kiume ya (fahirisi) na umalize mstari.

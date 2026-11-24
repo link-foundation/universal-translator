@@ -1,0 +1,14 @@
+Note: Mutual recursion in JavaScript: the Hofstadter Female and Male sequences
+
+Make female from index by these steps:
+  If index is 0, do this:
+    Give back 1.
+  Give back index minus male of (female of (index minus 1)).
+
+Make male from index by these steps:
+  If index is 0, do this:
+    Give back 0.
+  Give back index minus female of (male of (index minus 1)).
+
+For every index from 0 till 19, do this:
+  Say index then “: ” then female of (index) then “ ” then male of (index) and end the line.

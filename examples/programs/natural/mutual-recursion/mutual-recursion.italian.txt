@@ -1,0 +1,14 @@
+Nota: Mutual recursion in JavaScript: the Hofstadter Female and Male sequences
+
+Definisci femminile usando indice:
+  Se indice è uguale a 0, fai questo:
+    Restituisci 1.
+  Restituisci indice meno maschile di (femminile di (indice meno 1)).
+
+Definisci maschile usando indice:
+  Se indice è uguale a 0, fai questo:
+    Restituisci 0.
+  Restituisci indice meno femminile di (maschile di (indice meno 1)).
+
+Per ogni indice da 0 a 19, ripeti questo:
+  Scrivi indice seguito da «: » seguito da femminile di (indice) seguito da « » seguito da maschile di (indice) e termina la riga.

@@ -1,0 +1,14 @@
+Hinweis: Mutual recursion in JavaScript: the Hofstadter Female and Male sequences
+
+Definiere weiblich mit Index:
+  Wenn Index ist gleich 0, tue dies:
+    Gib 1 zurück.
+  Gib Index minus männlich von (weiblich von (Index minus 1)) zurück.
+
+Definiere männlich mit Index:
+  Wenn Index ist gleich 0, tue dies:
+    Gib 0 zurück.
+  Gib Index minus weiblich von (männlich von (Index minus 1)) zurück.
+
+Für jedes Index von 0 bis 19 wiederhole dies:
+  Schreibe Index gefolgt von „: “ gefolgt von weiblich von (Index) gefolgt von „ “ gefolgt von männlich von (Index) und beende die Zeile.

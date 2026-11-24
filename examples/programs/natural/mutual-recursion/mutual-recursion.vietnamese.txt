@@ -1,0 +1,14 @@
+Ghi chú: Mutual recursion in JavaScript: the Hofstadter Female and Male sequences
+
+Định nghĩa nữ với chỉ_số:
+  Nếu chỉ_số bằng 0, làm điều này:
+    Trả về 1.
+  Trả về chỉ_số trừ nam của (nữ của (chỉ_số trừ 1)).
+
+Định nghĩa nam với chỉ_số:
+  Nếu chỉ_số bằng 0, làm điều này:
+    Trả về 0.
+  Trả về chỉ_số trừ nữ của (nam của (chỉ_số trừ 1)).
+
+Với mỗi chỉ_số từ 0 đến 19, lặp lại điều này:
+  Viết chỉ_số nối với “: ” nối với nữ của (chỉ_số) nối với “ ” nối với nam của (chỉ_số) và xuống dòng.

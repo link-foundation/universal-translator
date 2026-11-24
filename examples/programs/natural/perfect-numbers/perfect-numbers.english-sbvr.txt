@@ -1,0 +1,16 @@
+Note: Perfect numbers in JavaScript: numbers equal to the sum of their divisors
+
+Rule is-perfect with number is defined as follows:
+  It is obligatory that sum is initially 1.
+  It is obligatory that divisor is initially 2.
+  As long as divisor times divisor is at most number the following applies repeatedly:
+    If number modulo divisor is equal to 0 then the following applies:
+      It is obligatory that sum becomes sum plus divisor.
+      If divisor times divisor is not equal to number then the following applies:
+        It is obligatory that sum becomes sum plus number divided by divisor.
+    It is obligatory that divisor becomes divisor plus 1.
+  It is obligatory that the result is number is greater than 1 and sum is equal to number.
+
+For each number from 1 to 10000 the following applies:
+  If is-perfect of (number) then the following applies:
+    It is obligatory that the output shows number as a line.

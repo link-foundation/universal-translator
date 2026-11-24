@@ -1,0 +1,16 @@
+Lura: Perfect numbers in JavaScript: numbers equal to the sum of their divisors
+
+Ayyana shin-cikakke da lamba:
+  Ƙirƙiri jimla mai ƙima 1.
+  Ƙirƙiri rabo mai ƙima 2.
+  Yayin da rabo sau rabo bai wuce lamba, maimaita wannan:
+    Idan lamba modulo rabo daidai yake da 0, yi wannan:
+      Canza jimla zuwa jimla ƙari rabo.
+      Idan rabo sau rabo bai yi daidai da lamba, yi wannan:
+        Canza jimla zuwa jimla ƙari lamba raba da rabo.
+    Canza rabo zuwa rabo ƙari 1.
+  Mayar da lamba ya wuce 1 kuma jimla daidai yake da lamba.
+
+Ga kowane lamba daga 1 zuwa 10000, maimaita wannan:
+  Idan shin-cikakke na (lamba), yi wannan:
+    Rubuta lamba kuma ka gama layi.

@@ -1,0 +1,16 @@
+Remarque : Perfect numbers in JavaScript: numbers equal to the sum of their divisors
+
+Définir est-parfait avec nombre:
+  Créer somme avec la valeur 1.
+  Créer diviseur avec la valeur 2.
+  Tant que diviseur fois diviseur est au plus nombre, répéter ceci:
+    Si nombre modulo diviseur est égal à 0, faire ceci:
+      Changer somme en somme plus diviseur.
+      Si diviseur fois diviseur est différent de nombre, faire ceci:
+        Changer somme en somme plus nombre divisé par diviseur.
+    Changer diviseur en diviseur plus 1.
+  Renvoyer nombre est supérieur à 1 et somme est égal à nombre.
+
+Pour chaque nombre de 1 à 10000, répéter ceci:
+  Si est-parfait de (nombre), faire ceci:
+    Écrire nombre et finir la ligne.

@@ -1,0 +1,16 @@
+Uwaga: Perfect numbers in JavaScript: numbers equal to the sum of their divisors
+
+Zdefiniuj czy-doskonała używając liczba:
+  Utwórz suma z wartością 1.
+  Utwórz dzielnik z wartością 2.
+  Dopóki dzielnik razy dzielnik nie przekracza liczba, powtarzaj to:
+    Jeśli liczba modulo dzielnik równa się 0, zrób to:
+      Zmień suma na suma plus dzielnik.
+      Jeśli dzielnik razy dzielnik nie równa się liczba, zrób to:
+        Zmień suma na suma plus liczba podzielone przez dzielnik.
+    Zmień dzielnik na dzielnik plus 1.
+  Zwróć liczba przekracza 1 i suma równa się liczba.
+
+Dla każdego liczba od 1 do 10000 powtarzaj to:
+  Jeśli czy-doskonała dla (liczba), zrób to:
+    Wypisz liczba i zakończ wiersz.
