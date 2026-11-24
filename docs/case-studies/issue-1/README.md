@@ -26,8 +26,7 @@ GitHub API use the formats those tools require.
 [PR 5 feedback](https://github.com/link-foundation/universal-translator/pull/5#issuecomment-7092772656)
 
 The [readiness investigation](readiness.md) tracks why the solver marked the
-previous draft ready, the corpus verification now used at that transition,
-and the requirements that still need implementation.
+previous drafts ready and how the approach changed.
 
 The [snapshot converter](../../../experiments/case-study-snapshot.mjs)
 reads a JSON file or standard input. Use `--decode` to export the
@@ -38,15 +37,6 @@ gh api repos/link-foundation/universal-translator/issues/1 |
   node experiments/case-study-snapshot.mjs > issue-1.lino
 node experiments/case-study-snapshot.mjs --decode issue-1.lino
 ```
-
-GitHub, RedMonk, and the Stack Overflow survey informed the original
-28-language roster. The follow-up does not name a ranking. This audit
-uses TIOBE's November 2026 table and records every ranked item and its
-matching profile, if one exists. TIOBE tracks MATLAB and GNU Octave,
-Caml and OCaml, as well as the broad Lisp and ML names separately from
-specific implementations. The audit retains those distinctions.
-[TIOBE Index](https://www.tiobe.com/tiobe-index/) ·
-[TIOBE search definitions](https://www.tiobe.com/tiobe-index/programminglanguages_definition/)
 
 ## Corpus observations for the dependent-meaning example
 
@@ -70,231 +60,128 @@ node experiments/white-person-corpus.mjs |
   diff -u docs/case-studies/issue-1/data/white-person-corpus.lino -
 ```
 
-## Coverage
+## Language selection
 
-The pinned Rosetta Code source tree contains 1,758 task directories. The
-published popularity file lists 1,753 tasks and a sum of 108,960 language
-counts. Five tasks appear only in the source tree. Directly counting source
-files within language directories gives 143,457 source files across 883
-language directories. The CI archive check runs all of them through Links
-Notation source documents and compares restored bytes in both runtimes.
-The archive includes 750 Hello World Text samples, 675 FizzBuzz samples,
-355 GCD samples, 285 Empty Program samples, 374 Ackermann samples, and 151
-Hello World Newbie samples. It also includes 293 Hello World Graphical
-samples and 439 A+B samples.
-The first three tasks have forms across the programming catalog. Empty
-Program, bounded Ackermann, the modeled browser effects, and signed A+B have
-JavaScript, Rust, Links Notation, and 20 plain-language forms. The remaining
-1,742 task definitions and most source variants still need adapters and
-verification. The report checks the selected programs against their pinned
-Git blob hashes, then checks exact round trips and their expected effects.
-The JavaScript and Rust originals also translate in both directions through
-their Meta Language effects.
-The archive check executes the original and translated programs and compares
-their stdout, results of calling the GCD functions over signed and zero
-inputs, and all 20 return values in the bounded Ackermann domain. It checks
-the standalone decimal result, all 20 canonical decimal command-line input
-pairs, and the compact JSON array `[4,5,9,61]`, including trailing newlines.
-The A+B checks feed signed decimal pairs as well as input with repeated
-spaces. The JavaScript `process.openStdin()` original and its translations
-preserve the usage message on either explicitly signed operand.
-The HTML A+B listing opens two prompts in Google Chrome. The emitted Rust
-WebAssembly imports prompt and DOM operations. The native check verifies the
-prompt order, exact messages and empty defaults, the entered text with
-original spacing, and the decimal sum for six cases.
-Two JavaScript FizzBuzz listings return strings separated by spaces or newlines.
-The original expressions and the translated Rust functions return 412 bytes
-with no trailing separator and produce no additional output. Both common
-library forms also preserve the returned string.
-The first JavaScript FizzBuzz listing declares a function. The harness
-checks that loading the original and the translated Rust program is silent,
-then calls the function and compares all 100 output lines. It also checks
-that the JavaScript function returns `undefined` and the Rust function
-returns unit.
-[Pinned callable listing](https://github.com/acmeism/RosettaCodeData/blob/1d475861d7141ef2fafff293d9339f56e4b0f5db/Task/FizzBuzz/JavaScript/fizzbuzz-1.js)
-The generator-based JavaScript listing prints 413 bytes with lowercase
-labels and one trailing newline. The verifier runs the unchanged original
-and its Rust translation, giving native evidence for all eight JavaScript
-and all four Rust FizzBuzz listings in the archive.
-[Pinned generator listing](https://github.com/acmeism/RosettaCodeData/blob/1d475861d7141ef2fafff293d9339f56e4b0f5db/Task/FizzBuzz/JavaScript/fizzbuzz-8.js)
-The fourth Rust FizzBuzz listing uses legacy inline assembly to write 413
-bytes to stdout. The verifier compiles it with the checksum-pinned Rust
-nightly from 2015-10-15 on x86-64 Linux and compares all 100 output lines
-with the translated JavaScript and an independent oracle.
-For Empty Program, it checks the exit status and both output streams. The
-Hello World Newbie console listings preserve each source's capitalization
-and punctuation. The third original opens a browser alert. The Rust form
-compiles to WebAssembly and imports the browser alert operation. The native
-check observes and dismisses exactly one alert with the same message for
-each program in Google Chrome. All 20 plain-language profiles distinguish the
-alert from console output.
-[Pinned browser listing](https://github.com/acmeism/RosettaCodeData/blob/1d475861d7141ef2fafff293d9339f56e4b0f5db/Task/Hello-world-Newbie/JavaScript/hello-world-newbie-2.js)
+The issue asks for the "top 20–30 most used programming languages". The
+selection follows the
+[TIOBE index](https://www.tiobe.com/tiobe-index/), the
+[Stack Overflow developer survey](https://survey.stackoverflow.co/) and
+[GitHub's Octoverse](https://octoverse.github.com/). It is limited to
+languages whose programs print text and can be run in CI on Ubuntu. Visual
+languages (Scratch), product-bound dialects (ABAP, PL/SQL) and markup or
+query languages (HTML, SQL) have no standard-output program to compare, so
+they are not on the list.
 
-Native verification covers 24 JavaScript examples out of 1,985 and
-15 Rust examples out of 1,481 on x86-64 Linux. The remaining source
-variants still need effect verification.
+`node bin/universal-translator.js languages` lists the supported languages.
+Assembly (NASM x86-64), CIL (ILAsm) and JVM bytecode (Jasmin) are machine
+targets, and they can be both translated from and translated to.
 
-The unchanged Windows Script Host A+B listing produced zero output under
-Ubuntu 24.04's Wine 9.0 even with its two decimal inputs supplied over stdin.
-Wine's `WScript.StdIn` getter returns `E_NOTIMPL`, including in the upstream
-implementation. The console greeting uses `WScript.Echo` and runs under the
-same host. [Wine source](https://github.com/wine-mirror/wine/blob/3e119694dc2c4d5b0773cbc38afb49ff031225bb/programs/wscript/host.c#L420-L423)
+## Architecture
 
-The fifth pinned Rust GCD listing comes from the published Tests section.
-It contains three calls and the expected output. Running the whole listing
-through `rustc` reports `expected item, found 3` on the first output line.
-The context probe keeps the three calls intact, supplies the pinned signed
-recursive implementation, and checks its output and the translated
-JavaScript against the published transcript. This verifies the calls in
-context. The mixed listing remains outside the verified native count.
-[Published Tests section](https://rosettagit.org/tasks/greatest-common-divisor/#tests-1) ·
-[Reproduction commands](../../../examples/translation/README.md#verification)
+The first drafts of PR 5 matched whole programs against templates
+("profiles"), and their common library contained the algorithms. The
+review rejected that as faked translation. The translator now follows the
+classic compiler structure: a grammar front end, a typed intermediate
+language, ordered rewrite rules and a back end. Every part is plain data
+or a plain function.
 
-The Hello World Collection homepage reports 603 programs and greetings in
-78 human languages. Both implementations round-trip its 591 text listings
-through Links Notation. Twelve programs are published as images.
-The report extracts 24 original console snippets from
-the pinned page and applies the same round-trip and greeting checks. It also
-verifies the text of all 78 localized greetings against the page. Both unit
-suites carry those greetings through Links Notation into all 20 plain-language
-descriptions and eight UTF-8 programming profiles. The native runner executes
-matching collection forms for each available toolchain and checks representative
-localized greetings in the eight UTF-8 profiles. The other collection source
-programs, including platform-specific forms, still need recognition and verification.
-[Pinned Rosetta Code inventory](https://github.com/acmeism/RosettaCodeData/blob/1d475861d7141ef2fafff293d9339f56e4b0f5db/popular-tasks) ·
-[Hello World Collection](http://helloworldcollection.de/)
-
-The catalog includes 50 programming profiles and 20 plain-language profiles
-for all three tasks. Of the ranked TIOBE 50, 33 have forms for all three
-tasks and three have a related dialect profile. Assembly has five
-instruction profiles for the fixed Hello World greeting. The NASM x86-64
-profile also implements GCD and FizzBuzz. Fourteen
-ranked items have no profile. The [Links Notation census](../../../data/translation/corpus-coverage.lino)
-lists each mapping. Run `node examples/translation/report-coverage.mjs`
-from the repository root to check the mapping against the current catalog.
-Pass local copies of the linked Rosetta Code inventory and the Hello World
-Collection page, in that order, to verify their checksums and reported counts
-and check the selected original programs. Pass the compiled Rust CLI as the
-third argument to compare exact round trips and Meta Language output in both
-runtimes. A fourth argument accepts the pinned Git Trees responses to verify
-the source counts and 53 original Rosetta Code programs.
-[Reproduction commands](../../../examples/translation/README.md#verification)
-
-The portable program translator in Meta Language 1.0.0 reported semantic
-translation candidates for 107 of the 1,985 JavaScript files and six of the
-1,481 Rust files. The probe skipped one JavaScript file and three Rust files
-above 24 KiB. It counts only results with a semantics record. The archive
-runner now includes native output checks for eight additional candidates.
-The selection exercises recursive control flow, array length and iteration,
-case-sensitive bindings, Unicode output, multiline interpolation, binomial
-coefficients, and integer squares. Other candidates require their own
-observations and invocation contracts before they count toward native coverage.
-[Meta Language portable translator](https://github.com/link-foundation/meta-language/blob/v1.0.0/rust/src/program_translation.rs#L133)
-[Pinned paths and output](../../../data/translation/portable-programs.lino)
-
-Both runtimes verify 27 representative grammar specimens, including
-SQLite and Transact-SQL. They check for parse errors and verify exact
-source restoration from the serialized network. The tagged JavaScript 1.0
-engine and the Rust CLI exchange CSTs in both directions for seven specimens,
-including UTF-8, CRLF, missing final newlines, and empty source. Catalog-wide
-grammar and concept coverage remain open. The JavaScript codec requires the
-tagged engine while the matching npm release is pending. The ordinary Rust
-parser and the configured JavaScript parser now use grammar networks for
-their registered programming languages and attach effect links to the parsed
-root. The checked compiler takes an exchanged CST and emits executable code
-for the supported JavaScript and Rust subset. The cross-runtime test executes
-both directions and checks that the compiler rejects unsupported input.
-[CST verification](../../../examples/translation/README.md#exchange-a-grammar-tree)
-
-Run the probe after preparing the pinned archive with the example commands.
-It reuses the locked dependency and bounds the parser process's memory and
-stack. It prints the candidate paths and per-language totals.
-
-```sh
-dependency=$(CARGO_BUILD_JOBS=1 CARGO_PROFILE_DEV_DEBUG=0 cargo build --locked \
-  --message-format=json | jq -r 'select(.reason == "compiler-artifact" and
-  .target.name == "meta_language") | .filenames[] | select(endswith(".rlib"))')
-work=$(mktemp -d)
-rustc --edition=2024 -L dependency=target/debug/deps \
-  --extern "meta_language=$dependency" experiments/rosetta-portable-core.rs \
-  -o "$work/rosetta-portable-core"
-python3 experiments/rosetta-portable-core.py /path/to/rosetta-code.tar.gz | \
-  (ulimit -v 900000 && ulimit -s 8192 && "$work/rosetta-portable-core")
-rm -r "$work"
+```text
+source text ──lexer + parser (grammar tables)──▶ source tree
+  ──understanding rules──▶ meta program ──type inference──▶ typed meta program
+  ──meaning rules──▶ ──custom layers──▶ ──context rules──▶ adapted meta program
+  ──emitter (grammar tables)──▶ target text
+  ──lowering ─▶ stack machine ─▶ NASM / CIL / Jasmin
+NASM / CIL / Jasmin ──machine reader──▶ stack machine ──lifting──▶ meta program
 ```
 
-The absent ranked entries include graphical formats and targets with
-non-console observations. Scratch and LabVIEW require project or diagram
-representations. Ladder Logic requires time and controller state. Solidity
-requires an EVM execution model and an observable event or return value.
-ABAP, SAS, PL/SQL, Transact-SQL, and other product-bound languages require
-dialect-specific output and execution verification. Executing the three
-current contracts in an unrelated dialect would not establish coverage of
-those targets.
+1. **Languages are data.** `js/src/grammar/languages.js` lists each
+   language's comment markers, quotes, block style, declaration keywords,
+   operators, print function, entry point, type names and naming
+   convention. The lexer, parser and emitter read these tables. A project
+   can describe a dialect the same way.
+2. **The meta language** (`meta.js`) has a small set of node kinds:
+   program, function, block, declaration, assignment, if, while, counting
+   loop, return, print, evaluate, call, binary, unary, interpolation, name,
+   number, text, boolean and comment. Type inference (`types.js`) assigns
+   `integer`, `text`, `boolean` or `nothing` to every expression.
+3. **Rules are functions from a meta program to a meta program.** Each of
+   the three ordered lists does one kind of work:
+   - Understanding rules turn source-specific forms into meaning. Examples:
+     `printf("...\n")` becomes a print, `Math.trunc(a / b)` becomes integer
+     division, and a C `main` becomes the entry point.
+   - Meaning rules move between abstraction levels inside the meta
+     language. For example, concatenation becomes interpolation.
+   - Context rules adapt the program to the target. They adapt comments,
+     copy parameters that are reassigned for languages where parameters
+     cannot change, and spell names by convention.
+     Callers can add more layers between the meaning and context rules,
+     replace any list or stage, or wrap a rule to decorate it.
+4. **Modes.** `context-dependent` (the default) adapts comments to the
+   target. It replaces language names and terms, so "function call" in C
+   becomes "method call" in C#. `literal` keeps comments word for word.
+   `same-effect` keeps only the observable behaviour.
+5. **Machine code is reached through a stack machine.** `lowering.js` turns
+   the typed meta program into stack instructions with named slots.
+   `machine.js` writes those as NASM, ILAsm or Jasmin, and keeps the
+   variable names (`%define %$name`, named locals, `.var` directives). The
+   reverse direction reads the instructions back (`machine-reader.js`).
+   Then `lifting.js` rebuilds expressions with a symbolic stack, and
+   rebuilds conditions, `if`/`else if`, `while`, counting loops and boolean
+   values from their jump patterns. So machine code translates to every
+   language, and assembly, CIL and JVM bytecode translate into each other.
+6. **The common library** (`js/src/common-library.mjs` and the Rust
+   equivalent) only smooths over standard-library differences, such as
+   printing with or without a newline. The translated programs keep their
+   own algorithms.
+7. **Natural language.** `referents.js` ranks the readings of an ambiguous
+   phrase. Each reading is a path in a type hierarchy (`person → white
+person → person with white skin`), with probability ranges from corpus
+   frequencies and context. Missing evidence is `[0, 1]`. Readings that
+   survive a round trip rank first. The ranking is checked against
+   [relative-meta-logic](https://github.com/link-foundation/relative-meta-logic).
 
-## Architecture and alternatives
+### Alternatives considered
 
-1. Use the released Meta Language packages in both runtimes to represent
-   source tokens, their byte coordinates, syntax and trivia grouping, and
-   relationships between an operation and its dependencies. Preserve a
-   separate portable effect node and link the source operation to it.
-   JavaScript uses release 0.46.0 and Rust uses 1.0.0 with default features
-   disabled. Those releases have compatible link operations. The PR that
-   develops broader parser and language support provides design context.
-   [Meta Language PR 228](https://github.com/link-foundation/meta-language/pull/228)
-2. Transform the effect and its context before formatting code. A target
-   expression links the selected form and its output operation to the
-   prerequisites and the portable effect. For C to C#, the binding changes
-   from `printf` and `stdio.h` to `System.Console.WriteLine` with the
-   `HelloWorld` class. Source parsing and target materialization are separate
-   operations, so the same source can produce multiple styles. Ordered rule
-   layers can be supplied by a project, repository, or organization. The
-   router PR uses parallel engines and explicit parity data, which informed
-   the shared profile catalog and executable parity check.
-   [Router PR 775](https://github.com/link-assistant/router/pull/775)
-3. Start with exact authored scaffolds. A general CST provider such as
-   Tree-sitter would cover more syntax and preserve error nodes, but would
-   still need name lookup, resolved imports, and an effect model. A lossless
-   semantic tree such as OpenRewrite's combines type attribution and
-   formatting data, which would help with project-scale rewrites. Evaluate
-   such adapters on accepted and rejected corpus fixtures before changing the
-   parser's guarantees. [Tree-sitter parsing](https://tree-sitter.github.io/tree-sitter/using-parsers/2-basic-parsing.html) ·
-   [OpenRewrite lossless semantic trees](https://docs.openrewrite.org/concepts-and-explanations/lossless-semantic-trees)
-4. Record ambiguities as explicit candidates. Prefix matching narrows the
-   candidate's type path. Source and target frequencies and contextual
-   confidence bound the ranking. The composition is the minimum of the three
-   dependencies. Missing evidence contributes `[0, 1]`. Rank exact reverse
-   candidates first and retain ties. Rust uses the Relative Meta Logic
-   minimum aggregator. The JavaScript example compares its ranker's result
-   with the engine's evaluation of the checked-in `.lino` expression.
-   The observations in the fixture are synthetic. The ranker accepts supplied
-   readings and corpus counts. A general grammar, corpus or referent resolver
-   would need separate acquisition and validation.
-   [Relative Meta Logic PR 184](https://github.com/link-foundation/relative-meta-logic/pull/184)
-5. Reparse an emitted program to compare its typed effect. Separately compile
-   or interpret emitted programs and compare standard output with a reference
-   independent of the catalog. Equivalence here concerns the admitted
-   standard-output contract under the stated inputs. General translation
-   validation also has to account for other effects, runtime behavior and
-   undefined behavior. LLVM's Alive2 work illustrates how that validation can
-   be bounded to a specific semantics and intermediate representation.
-   [LLVM Alive2 technical talk](https://llvm.org/devmtg/2025-04/slides/technical_talk/bhat_peephole.pdf)
+- **Tree-sitter grammars** cover more syntax and keep error nodes. However,
+  they need a native binding in both runtimes and still give no meaning or
+  types. The table-driven parser keeps the JavaScript and Rust ports small
+  and identical.
+  [Tree-sitter](https://tree-sitter.github.io/tree-sitter/)
+- **Lossless semantic trees** such as OpenRewrite's are a good fit for
+  rewrites in one language. Here the lossless source document
+  (`source-document.js`) covers CST survival separately.
+  [OpenRewrite](https://docs.openrewrite.org/concepts-and-explanations/lossless-semantic-trees)
+- **Decompilers** (Ghidra, ILSpy, Fernflower) lift arbitrary machine code
+  with control-flow graph analysis. The lifting here only recognizes the
+  patterns that lowering produces. It is enough for an exact round trip,
+  and it rejects other code with a clear error.
+  [ILSpy](https://github.com/icsharpcode/ILSpy) ·
+  [Fernflower](https://github.com/JetBrains/fernflower)
+- **Translation validation** in the style of
+  [Alive2](https://github.com/AliveToolkit/alive2) would prove that two
+  programs are equivalent. The issue lists proofs as future work. Here
+  equivalence is checked by running both programs natively and comparing
+  their output, and by comparing meta programs (`sameMeaning`).
 
-The shared profiles are data. The append-only source graph records syntax
-and the effect graph records only the operations used for translation. The
-runtime package declarations and lockfiles enumerate actual dependencies.
-The reviewed PRs and alternative tooling are design references. This follows
-the associative technology stack practice of making each dependency and its
-relationship to the system inspectable. [Associative technology stack](https://github.com/link-assistant/formal-ai/blob/main/docs/associative-tech-stack.md)
+The design takes the
+[associative technology stack](https://github.com/link-assistant/formal-ai/blob/main/docs/associative-tech-stack.md)
+principle of keeping every dependency inspectable. Rules, glossaries and
+referents are data files in Links Notation under `data/translation`.
 
 ## Validation
 
-Each implementation checks every authored form and directed translation with
-shared task parameters. The parity runner checks 310 forms, all 78 greetings, and all three
-modes across both command lines. It checks the explicit
-Links Notation intermediate in both directions. Two Ubuntu native jobs
-compare executable profiles to an independent stdout oracle. JavaScript
-runtime checks and the Rust job use locked dependency installs. Both the
-automatic and instant release gates wait for the language and native jobs.
-[Links Notation CI precedent](https://github.com/link-foundation/links-notation/tree/6f2be531c163d6359d8337d40014dc925e278089/.github/workflows) ·
-[Verification commands](../../../examples/translation/README.md#verification)
+- `npm test` runs the JavaScript tests, and `cargo test` runs the Rust
+  tests. Both compare their output with the golden translations in
+  `examples/programs/translated`. Every example program is translated into
+  every language and machine target.
+- `node examples/programs/write-translations.mjs --check` checks that the
+  goldens are current.
+- `node examples/programs/verify-native.mjs --require-all` compiles or
+  interprets every golden and hand-written program and compares its output
+  with the JavaScript original. The `native-translation` CI job installs
+  all the toolchains and runs it.
+- `js/tests/lifting.test.js` translates every machine golden into every
+  machine target and checks for byte-identical output. It also runs the
+  lifted JavaScript.
+- `experiments/verify-syntax-exchange.sh` checks that the JavaScript and
+  Rust command lines produce the same results.

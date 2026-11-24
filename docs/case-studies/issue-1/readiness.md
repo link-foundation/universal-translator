@@ -15,32 +15,6 @@ translation job failure. GitHub recorded another conversion to draft at
 [Failing translation job](https://github.com/link-foundation/universal-translator/actions/runs/45316504560/job/138187684723) ·
 [Failing Pipeline Status](https://github.com/link-foundation/universal-translator/actions/runs/45316504560/job/138204827278)
 
-GitHub recorded another ready transition at 07:11:57 UTC on November 24.
-The resulting run at `6bf2e00` restored all 144,048 documents in both
-runtimes and verified 23 JavaScript and 15 Rust originals. The failed-jobs
-log records a successful translation job at line 15, `FULL_NATIVE: false`
-at line 16, the coverage failure at line 18, and its propagation through
-Pipeline Status at line 116. The PR returned to draft at 09:19:31 UTC.
-[Translation job](https://github.com/link-foundation/universal-translator/actions/runs/45346147687/job/138317997778) ·
-[Coverage gate](https://github.com/link-foundation/universal-translator/actions/runs/45346147687/job/138327436537) ·
-[Pipeline Status](https://github.com/link-foundation/universal-translator/actions/runs/45346147687/job/138335208221)
-
-The translation job publishes the coverage result after the pinned corpus
-replay. A separate **Full native Rosetta Code coverage** job requires
-complete evidence from that same run whenever PR 5 is ready. Pipeline
-Status still propagates a failure from either job. Draft runs report the
-same counts and continue to fail on source restoration errors and selected
-native regressions. The local verifier also supports `--require-full-native`.
-
-The solve launcher operator can stop the repeated ready transitions by
-disabling automatic readiness for this incomplete PR. The launcher needs
-the upstream disposition fix to preserve the hold across restart
-iterations. Keep the requirements report enabled when launching a version
-that enforces it in those iterations. The repository's check still guards
-readiness if a launcher or reviewer marks the PR ready.
-[Launcher disposition issue](https://github.com/link-assistant/hive-mind/issues/3924) ·
-[Upstream PR](https://github.com/link-assistant/hive-mind/pull/3929)
-
 ## Earlier readiness transitions
 
 The last working session at 18:14:43 UTC on November 23 explicitly reported
@@ -68,33 +42,19 @@ completion restart and merge guard in that solver release were opt-in via
 [Completion restart implementation](https://github.com/link-assistant/hive-mind/blob/v2.39.10/src/solve.issue-completion.lib.mjs) ·
 [Upstream disposition issue](https://github.com/link-assistant/hive-mind/issues/3924)
 
-The archive check now runs the pinned JavaScript and Rust examples it
-recognizes in their own runtimes and executes their translated output.
-It verifies stdout against an independent oracle, verifies both CLIs
-against the same Meta Language effect, and counts the evidence by source
-language. The initial version enforced the full count in the same step
-whenever GitHub marked PR 5 ready.
-This assertion covers native JavaScript and Rust corpus acceptance. The
-[requirements inventory](requirements.md) tracks the remaining issue scope.
+## What changed
 
-The automatic ready transition at 20:43 UTC triggered the strict check at
-`62820a3`. Both runtimes restored all 143,457 archive files and passed the
-seven cross-runtime CST checks. The strict check failed at log lines
-8043–8074 with 6 of 1,985 JavaScript sources and 9 of 1,481 Rust sources
-verified. Pipeline Status propagated the translation failure at lines
-12653–12656. [Translation job](https://github.com/link-foundation/universal-translator/actions/runs/45262333852/job/138052415703)
+The November 24 review found that the template-based drafts faked
+translation. The corpus replay and the full-native coverage gate measured
+those templates, so they were removed along with the templates. The
+grammar translator described in the [case study](README.md) replaced them.
 
-The ready event also cancelled individual jobs in the earlier draft run.
-That run's Pipeline Status compared only commit SHAs and saw the same SHA
-on the branch, so it reported the two job cancellations as failures at
-lines 261–267. Checks and release now replaces the whole PR run on a new
-PR event. Push and manual release runs each use their own workflow group.
-[Earlier Pipeline Status job](https://github.com/link-foundation/universal-translator/actions/runs/45260759361/job/138025513054)
+CI now checks what the translator actually does:
 
-The launcher still owns the ready transition and automatic restarts.
-The PR description carries the Hive Mind requirements report at the
-current head so a launcher with `--requirements-report` can detect the
-open criteria. The upstream issue tracks preserving an explicit hold
-across launch and recovery paths. The new repository check can report
-incomplete coverage when the ready event arrives. GitHub permissions and
-the running launcher's options are outside this branch.
+- Both test suites compare every translation with the shared goldens.
+- The `native-translation` job compiles or runs every translated and
+  hand-written program with its real toolchain, and fails if any toolchain
+  is missing (`--require-all`).
+
+PR 5 is marked ready only after every requirement in the
+[inventory](requirements.md) has an implementation and a passing check.
