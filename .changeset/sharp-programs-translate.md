@@ -2,7 +2,7 @@
 '@link-foundation/universal-translator': minor
 ---
 
-Add a grammar- and rule-based program translator in JavaScript and Rust.
+Add a grammar- and rule-based translator between programming, machine and controlled natural languages in JavaScript and Rust.
 
 - Source is parsed with language descriptions kept as data, turned into a typed meta language, rewritten by ordered rule layers and emitted for the target language.
 - 20 languages: JavaScript, TypeScript, Python, Ruby, Lua, PHP, C, C++, C#, Java, Go, Rust, Kotlin, Swift, Perl, Dart, Scala, Julia, R and Groovy.
@@ -13,3 +13,7 @@ Add a grammar- and rule-based program translator in JavaScript and Rust.
 - Rosetta Code tasks (Fibonacci, Ackermann, Towers of Hanoi, leap year, digit sums, hailstone, 99 bottles, primality) are translated and run natively. Reserved words are renamed per language, C gets `stdbool.h`, `and` inside `or` is parenthesized, integer division is never folded into `/=`, R returns with `return(invisible())`, C-style loops that do not count upward become while loops, and functions that return 0/1 truth values (Perl, machine code) are read back as booleans.
 - The command line adds `translate`, `meta`, `languages` and `--trace`.
 - Ranking of natural-language referents and lossless Links Notation source documents are included.
+- Controlled versions of the 30 most spoken natural languages, described as data in `data/natural/*.lino`, are read and written like programming languages: words → meta → any programming or machine language, and back.
+- Profiles for ASD-STE100, Attempto Controlled English, Gellish (English and Dutch), SBVR Structured English, plain language (ISO 24495-1), E-Prime, Basic English, Special English, Globish and Minimal English, French and Polish built on the 65 semantic primes of Natural Semantic Metalanguage. `checkText` and the `check-words` command enforce each standard's rules.
+- Every example program is written in every natural language and profile under `examples/programs/natural`, and both implementations check those texts.
+- `scripts/check-requirements.mjs` fails CI while a requirement of issue 1 is neither done nor reported as blocked.
