@@ -5,6 +5,7 @@ import { fileURLToPath, pathToFileURL, URL } from 'node:url';
 
 import {
   add,
+  checkText,
   createProgramTranslator,
   createSourceSyntaxCodec,
   createTranslator,
@@ -21,7 +22,7 @@ const COMMANDS = {
 const GRAMMAR_ENGINE =
   'Set UNIVERSAL_TRANSLATOR_META_LANGUAGE to the Meta Language 1.0 module file';
 const GRAMMAR_COMMANDS = ['encode-cst', 'decode-cst', 'translate-program'];
-const TRANSLATION_COMMANDS = ['translate', 'meta', 'languages'];
+const TRANSLATION_COMMANDS = ['translate', 'meta', 'languages', 'check-words'];
 const SOURCE_COMMANDS = [
   'encode-source',
   'decode-source',
@@ -44,7 +45,12 @@ function usage() {
     '  decode-source [file|-]  Restore source from a Links Notation document',
     '  encode-cst <language> [file|-]  Parse source into a Meta Language CST',
     '  decode-cst [file|-]  Restore source from a Meta Language CST',
-    '  languages  List language identifiers',
+    '  languages  List language identifiers (programming, then controlled natural)',
+    '  check-words <natural> [file|-]  Check text against the rules of a controlled language',
+    '',
+    'A language may be a controlled natural language (english, russian,',
+    'english-asd-ste100, minimal-english, ...): translate reads and writes',
+    'its sentences like any programming language.',
     '',
     'Modes: context-dependent (default), literal, same-effect',
     'Omit the file or pass - to read standard input.',
@@ -108,6 +114,24 @@ function translationArguments(args) {
   return { file, options };
 }
 
+function languageList(translator) {
+  const lines = [
+    ...translator.languages().map(({ id, label }) => `${id}\t${label}`),
+    ...translator
+      .naturalLanguages()
+      .map(({ id, label }) => `${id}\t${label} (natural)`),
+  ];
+  return lines.map((line) => `${line}\n`).join('');
+}
+
+function checkWords(text, language) {
+  const problems = checkText(text, language);
+  if (problems.length) {
+    throw new Error(problems.join('\n'));
+  }
+  return `The text keeps the rules of ${language}\n`;
+}
+
 function runTranslation(command, args, read, write, stderr) {
   const [from, to, ...trailing] = args;
   const { file, options } =
@@ -120,12 +144,9 @@ function runTranslation(command, args, read, write, stderr) {
       : {}
   );
   if (command === 'languages' && args.length === 0) {
-    write(
-      translator
-        .languages()
-        .map(({ id, label }) => `${id}\t${label}\n`)
-        .join('')
-    );
+    write(languageList(translator));
+  } else if (command === 'check-words' && from && args.length <= 2) {
+    write(checkWords(read(to), from));
   } else if (command === 'meta' && from && args.length <= 2) {
     write(`${JSON.stringify(translator.toMeta(read(to), from), null, 2)}\n`);
   } else if (command === 'translate' && from && to) {

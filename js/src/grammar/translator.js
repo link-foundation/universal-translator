@@ -21,6 +21,13 @@ import { emitMachine, machineTargetIds } from './machine.js';
 import { machineReaders } from './machine-reader.js';
 import { liftProgram } from './lifting.js';
 import { useCommonLibrary } from './common-library.js';
+import {
+  isNaturalLanguage,
+  naturalLanguage,
+  naturalLanguageIds,
+} from '../natural/catalog.js';
+import { readNatural } from '../natural/reader.js';
+import { writeNatural } from '../natural/writer.js';
 
 const readMachine = (source, from) => machineReaders[from](source);
 
@@ -42,6 +49,15 @@ export function createGrammarTranslator({
   trace = () => {},
 } = {}) {
   function toMeta(source, from) {
+    if (isNaturalLanguage(from)) {
+      // A controlled natural language is read sentence by sentence straight
+      // into the meta language; it has no source details to understand.
+      const read = inferMutability(readNatural(source, from));
+      trace('read', read);
+      const typed = applyRules(infer(read), meaning, {});
+      trace('typed', typed);
+      return typed;
+    }
     const syntax = languageSyntax(from);
     if (syntax.machine) {
       // Machine code has no grammar to parse: read its instructions, lift
@@ -72,8 +88,16 @@ export function createGrammarTranslator({
     if (commonLibrary && machineTargetIds.includes(to)) {
       throw new Error(`Machine targets have no common library (${to})`);
     }
-    languageSyntax(to);
-    const settings = { from, to, mode };
+    const natural = isNaturalLanguage(to);
+    if (natural && commonLibrary) {
+      throw new Error(`Natural languages have no common library (${to})`);
+    }
+    if (!natural) {
+      languageSyntax(to);
+    }
+    // Words carry no syntax of their own, so a program read from words is
+    // adapted as if it had been written in the target language.
+    const settings = { from: isNaturalLanguage(from) ? to : from, to, mode };
     // Custom layers are meta -> meta transformations, so they see the target
     // independent program; context rules then adapt it to the target.
     // The common library route is one more meta layer, run last.
@@ -83,6 +107,9 @@ export function createGrammarTranslator({
       meta
     );
     trace('transformed', transformed);
+    if (natural) {
+      return writeNatural(transformed, to);
+    }
     const adapted = applyRules(transformed, context, settings);
     trace('adapted', adapted);
     return machineTargetIds.includes(to)
@@ -93,6 +120,11 @@ export function createGrammarTranslator({
   return {
     languages: () =>
       grammarLanguageIds.map((id) => ({ id, label: languageSyntax(id).label })),
+    naturalLanguages: () =>
+      naturalLanguageIds().map((id) => {
+        const { label, base } = naturalLanguage(id);
+        return { id, label, ...(base ? { base } : {}) };
+      }),
     toMeta,
     fromMeta,
     translate: (source, from, to, options = {}) =>

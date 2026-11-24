@@ -55,6 +55,18 @@ export {
   meaningRules,
   understandingRules,
 } from './grammar/rules.js';
+export {
+  isNaturalLanguage,
+  naturalLanguage,
+  naturalLanguageIds,
+} from './natural/catalog.js';
+export { readNatural } from './natural/reader.js';
+export { writeNatural } from './natural/writer.js';
+export {
+  checkDescription,
+  checkText,
+  semanticPrimes,
+} from './natural/rules.js';
 export { createProgramTranslator } from './translation/program.js';
 export { rankInterpretations } from './translation/referents.js';
 export * as commonLibrary from './common-library.mjs';

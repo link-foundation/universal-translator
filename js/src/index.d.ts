@@ -48,6 +48,26 @@ export declare const machineReaders: Record<
   string,
   (source: string) => unknown
 >;
+/** Whether `id` names a controlled natural language (or profile). */
+export declare function isNaturalLanguage(id: string): boolean;
+/** Ids of every controlled natural language and profile. */
+export declare function naturalLanguageIds(): string[];
+/** The compiled description of a controlled natural language. */
+export declare function naturalLanguage(id: string): Record<string, unknown>;
+/** Controlled natural language text -> meta program. */
+export declare function readNatural(text: string, id: string): unknown;
+/** Meta program -> controlled natural language text. */
+export declare function writeNatural(program: unknown, id: string): string;
+/** Problems with a language description (empty when it keeps its rules). */
+export declare function checkDescription(id: string): string[];
+/** Problems with a text written in the language (empty when it keeps its rules). */
+export declare function checkText(text: string, id: string): string[];
+/** The 65 semantic primes of Natural Semantic Metalanguage. */
+export declare function semanticPrimes(): {
+  prime: string;
+  category: string;
+  exponents: Record<string, string[]>;
+}[];
 import type { Rule } from './grammar/translator.js';
 export declare const understandingRules: Rule[];
 export declare const meaningRules: Rule[];

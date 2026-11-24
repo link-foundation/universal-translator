@@ -24,6 +24,8 @@ export interface GrammarTranslatorOptions {
 
 export interface GrammarTranslator {
   languages(): { id: string; label: string }[];
+  /** Controlled natural languages and profiles (base is the language a profile extends). */
+  naturalLanguages(): { id: string; label: string; base?: string }[];
   toMeta(source: string, from: string): unknown;
   fromMeta(
     meta: unknown,
