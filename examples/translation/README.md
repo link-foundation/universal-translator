@@ -291,7 +291,7 @@ bash experiments/verify-syntax-exchange.sh --corpus /path/to/rosetta-code.tar.gz
 ```
 
 This command prepares the pinned JavaScript grammar engine, checks CST
-exchange and compilation in both directions, and enables the four additional
+exchange and compilation in both directions, and enables the eight additional
 checked-program specimens during replay. The native verifier executes each
 archived original and the outputs of both translator implementations. It
 compares exit status, standard output, and standard error against the fixture

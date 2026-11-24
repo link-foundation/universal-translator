@@ -85,7 +85,7 @@ samples and 439 A+B samples.
 The first three tasks have forms across the programming catalog. Empty
 Program, bounded Ackermann, the modeled browser effects, and signed A+B have
 JavaScript, Rust, Links Notation, and 20 plain-language forms. The remaining
-1,746 task definitions and most source variants still need adapters and
+1,742 task definitions and most source variants still need adapters and
 verification. The report checks the selected programs against their pinned
 Git blob hashes, then checks exact round trips and their expected effects.
 The JavaScript and Rust originals also translate in both directions through
@@ -184,10 +184,11 @@ The portable program translator in Meta Language 1.0.0 reported semantic
 translation candidates for 107 of the 1,985 JavaScript files and six of the
 1,481 Rust files. The probe skipped one JavaScript file and three Rust files
 above 24 KiB. It counts only results with a semantics record. The archive
-runner now includes native output checks for four additional candidates.
-The selection exercises recursive control flow, array length, case-sensitive
-bindings, and Unicode output. Other candidates require their own observations
-and invocation contracts before they count toward native coverage.
+runner now includes native output checks for eight additional candidates.
+The selection exercises recursive control flow, array length and iteration,
+case-sensitive bindings, Unicode output, multiline interpolation, binomial
+coefficients, and integer squares. Other candidates require their own
+observations and invocation contracts before they count toward native coverage.
 [Meta Language portable translator](https://github.com/link-foundation/meta-language/blob/v1.0.0/rust/src/program_translation.rs#L133)
 [Pinned paths and output](../../../examples/translation/portable-programs.lino)
 
