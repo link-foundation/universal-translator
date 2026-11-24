@@ -144,3 +144,4 @@ reports/
 
 # Cargo build outputs
 /target/
+__pycache__/
