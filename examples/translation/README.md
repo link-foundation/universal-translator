@@ -247,7 +247,7 @@ node examples/translation/report-coverage.mjs \
 ```
 
 To check the Rosetta Code task directories and the sample counts for the
-six modeled tasks, also pass a directory containing the pinned Git Trees
+seven modeled tasks, also pass a directory containing the pinned Git Trees
 responses. This mode downloads the selected pinned files recorded in
 `corpus-coverage.lino` from GitHub. It checks their blob hashes, exact round
 trips, and effects in both runtimes. The Ackermann checks cover callable inputs,
@@ -271,6 +271,8 @@ gh api "$rosetta_api/723cbc36ff1dac44417f312a4a594a6cffa2aadb?recursive=1" \
   > "$rosetta_trees/Ackermann-function.json"
 gh api "$rosetta_api/aec40331f71266270b317cabf5b13618c110380a?recursive=1" \
   > "$rosetta_trees/Hello-world-Newbie.json"
+gh api "$rosetta_api/b40dd4bbab9ecf8e83dba4da84ecc01ba945c90e?recursive=1" \
+  > "$rosetta_trees/Hello-world-Graphical.json"
 node examples/translation/report-coverage.mjs \
   /path/to/popular-tasks /path/to/hello-world-collection.html \
   ./target/debug/universal-translator "$rosetta_trees"

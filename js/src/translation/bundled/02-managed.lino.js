@@ -15,6 +15,13 @@ export default `profile:
       source:
         (line: 'alert("{{message}}");')
     form:
+      task: browser-alert
+      name: rosetta-graphical
+      output: alert
+      requires: browser
+      source:
+        (line: ' alert("{{message}}");')
+    form:
       task: browser-write
       name: standard
       output: document.write
