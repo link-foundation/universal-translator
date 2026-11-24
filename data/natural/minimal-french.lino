@@ -1,0 +1,35 @@
+natural:
+  id: minimal-french
+  label: 'Minimal French (NSM semantic primes)'
+  extends: french
+  profile: minimal-english
+  source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  templates:
+    function: 'Voici comment quelqu’un fait {name} avec {parameters}'
+    function-without-parameters: 'Voici comment quelqu’un fait {name}'
+    declare: "Il y a {name}, c'est {value}"
+    assign: 'Après ceci, {name} est {value}'
+    print-line: 'Dire {value} sur une ligne'
+    print: 'Dire {value}'
+    return-value: 'La réponse est {value}'
+    return: 'Arrêter ici'
+    nothing: 'Ne rien faire'
+    evaluate: 'Faire {expression}'
+    if: 'Si {condition}, faire ceci'
+    else-if: 'Sinon, si {condition}, faire ceci'
+    else: 'Sinon, faire ceci'
+    while: 'Quand {condition}, faire ceci beaucoup de fois'
+    for: 'Pour tous les {variable} de {start} à {last}, faire ceci'
+    call-without-arguments: '{callee} ( )'
+    join: '{left} puis {right}'
+    not: 'pas {operand}'
+    negate: "l'opposé de {operand}"
+    equal: '{left} est le même que {right}'
+    not-equal: "{left} n'est pas le même que {right}"
+    less: '{left} est moins que {right}'
+    less-or-equal: "{left} n'est pas plus que {right}"
+    greater: '{left} est plus que {right}'
+    greater-or-equal: "{left} n'est pas moins que {right}"
+  rules:
+    primes: french
+    extra-words: voici comment avec c'est après est sur une ligne réponse la arrêter rien ne faire sinon de fois pour les à puis ou et l'opposé n'est le que plus moins fois divisé par modulo vrai faux

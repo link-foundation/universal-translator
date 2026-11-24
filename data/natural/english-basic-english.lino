@@ -1,0 +1,34 @@
+natural:
+  id: english-basic-english
+  label: 'English (Basic English)'
+  extends: english
+  profile: basic-english
+  source: 'https://en.wikipedia.org/wiki/Basic_English'
+  templates:
+    function: 'Make {name} from {parameters} by these steps'
+    function-without-parameters: 'Make {name} by these steps'
+    declare: 'Let {name} be {value}'
+    assign: 'Let {name} now be {value}'
+    print-line: 'Say {value} and end the line'
+    print: 'Say {value}'
+    return-value: 'Give back {value}'
+    nothing: 'Do no work'
+    evaluate: 'Do {expression}'
+    if: 'If {condition}, do this'
+    else-if: 'If not, but {condition}, do this'
+    else: 'If not, do this'
+    while: 'While {condition}, do this again and again'
+    for: 'For every {variable} from {start} till {last}, do this'
+    call-without-arguments: '{callee} ( )'
+    join: '{left} then {right}'
+    negate: 'the opposite of {operand}'
+    equal: '{left} is {right}'
+    not-equal: '{left} is not {right}'
+    less: '{left} is under {right}'
+    less-or-equal: '{left} is not over {right}'
+    greater: '{left} is over {right}'
+    greater-or-equal: '{left} is not under {right}'
+  rules:
+    max-sentence-words: 25
+    vocabulary: make from by these steps let be now say and end the line give back stop here do no work if not but this while again for every till of then or opposite is under over true false
+    extra-words: plus minus times divided modulo

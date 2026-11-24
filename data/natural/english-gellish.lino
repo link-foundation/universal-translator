@@ -1,0 +1,33 @@
+natural:
+  id: english-gellish
+  label: 'English (Gellish Formal English)'
+  extends: english
+  profile: gellish
+  source: 'https://en.wikipedia.org/wiki/Gellish'
+  templates:
+    function: '{name} is defined as a procedure with input {parameters}'
+    function-without-parameters: '{name} is defined as a procedure without input'
+    declare: '{name} is classified as a variable with initial value {value}'
+    assign: '{name} has as new value {value}'
+    print-line: 'the output has as next line {value}'
+    print: 'the output has as next part {value}'
+    return-value: 'the procedure has as result {value}'
+    return: 'the procedure is ended'
+    nothing: 'no action is performed'
+    evaluate: 'the action {expression} is performed'
+    if: 'if {condition} then the following is performed'
+    else-if: 'else if {condition} then the following is performed'
+    else: 'else the following is performed'
+    while: 'while {condition} the following is repeated'
+    for: 'for each {variable} from {start} to {last} the following is repeated'
+    call: '{callee} applied to ({arguments})'
+    call-without-arguments: '{callee} applied to nothing'
+    join: '{left} concatenated with {right}'
+    equal: '{left} is equal to {right}'
+    not-equal: '{left} is not equal to {right}'
+    less: '{left} is less than {right}'
+    less-or-equal: '{left} is at most {right}'
+    greater: '{left} is greater than {right}'
+    greater-or-equal: '{left} is at least {right}'
+  rules:
+    relations: 'is defined as' 'is classified as' 'has as new value' 'has as next line' 'has as next part' 'has as result' 'applied to' 'concatenated with' 'is equal to'

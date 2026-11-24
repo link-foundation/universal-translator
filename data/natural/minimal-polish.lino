@@ -1,0 +1,36 @@
+natural:
+  id: minimal-polish
+  label: 'Minimal Polish (NSM semantic primes)'
+  extends: polish
+  profile: minimal-english
+  source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  true: prawda
+  false: nieprawda
+  templates:
+    function: 'Tak ktoś robi {name} z {parameters}'
+    function-without-parameters: 'Tak ktoś robi {name}'
+    declare: 'Jest {name}, to jest {value}'
+    assign: 'Po tym {name} jest {value}'
+    print-line: 'Powiedzieć {value} w jednej linii'
+    print: 'Powiedzieć {value}'
+    return-value: 'Odpowiedzią jest {value}'
+    return: 'Przestać tutaj'
+    nothing: 'Nic nie robić'
+    evaluate: 'Zrobić {expression}'
+    if: 'Jeżeli {condition}, zrobić to'
+    else-if: 'Jeżeli nie, jeżeli {condition}, zrobić to'
+    else: 'Jeżeli nie, zrobić to'
+    while: 'Kiedy {condition}, robić to wiele razy'
+    for: 'Dla wszystkich {variable} od {start} do {last}, zrobić to'
+    call-without-arguments: '{callee} ( )'
+    join: '{left} potem {right}'
+    negate: 'przeciwieństwo {operand}'
+    equal: '{left} jest tym samym co {right}'
+    not-equal: '{left} nie jest tym samym co {right}'
+    less: '{left} jest mniej niż {right}'
+    less-or-equal: '{left} nie jest więcej niż {right}'
+    greater: '{left} jest więcej niż {right}'
+    greater-or-equal: '{left} nie jest mniej niż {right}'
+  rules:
+    primes: polish
+    extra-words: tak z w jednej linii odpowiedzią przestać nic zrobić robić wiele razy dla od do potem lub i przeciwieństwo tym samym co niż mniej plus minus podzielone przez modulo prawda nieprawda

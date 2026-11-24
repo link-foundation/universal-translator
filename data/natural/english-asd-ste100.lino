@@ -1,0 +1,33 @@
+natural:
+  id: english-asd-ste100
+  label: 'English (ASD-STE100 Simplified Technical English)'
+  extends: english
+  profile: asd-ste100
+  source: 'https://www.asd-ste100.org/'
+  templates:
+    function: 'Procedure {name} with {parameters}'
+    function-without-parameters: 'Procedure {name}'
+    declare: 'Set {name} to {value}'
+    assign: 'Change {name} to {value}'
+    print-line: 'Write line {value}'
+    print: 'Write {value}'
+    return-value: 'Return {value}'
+    return: 'Stop'
+    nothing: 'Do nothing'
+    evaluate: 'Do {expression}'
+    if: 'If {condition}, do these steps'
+    else-if: 'If not, and if {condition}, do these steps'
+    else: 'If not, do these steps'
+    while: 'While {condition}, do these steps again'
+    for: 'For each {variable} from {start} to {last}, do these steps'
+    join: '{left} then {right}'
+    equal: '{left} equals {right}'
+    not-equal: '{left} is not {right}'
+    less: '{left} is less than {right}'
+    less-or-equal: '{left} is not more than {right}'
+    greater: '{left} is more than {right}'
+    greater-or-equal: '{left} is not less than {right}'
+  rules:
+    max-sentence-words: 20
+    sentence-starts: procedure set change write return stop do if while for
+    vocabulary: procedure with set to change write line return stop do nothing if not and these steps while again for each from then of or the negative equals is less than more plus minus times divided by modulo true false

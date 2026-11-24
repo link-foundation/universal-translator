@@ -1,0 +1,27 @@
+natural:
+  id: dutch-gellish
+  label: 'Dutch (Gellish Formeel Nederlands)'
+  extends: dutch
+  profile: gellish
+  source: 'https://en.wikipedia.org/wiki/Gellish'
+  templates:
+    function: '{name} is gedefinieerd als een procedure met invoer {parameters}'
+    function-without-parameters: '{name} is gedefinieerd als een procedure zonder invoer'
+    declare: '{name} is geclassificeerd als een variabele met beginwaarde {value}'
+    assign: '{name} heeft als nieuwe waarde {value}'
+    print-line: 'de uitvoer heeft als volgende regel {value}'
+    print: 'de uitvoer heeft als volgend deel {value}'
+    return-value: 'de procedure heeft als resultaat {value}'
+    return: 'de procedure is beëindigd'
+    nothing: 'er wordt geen actie uitgevoerd'
+    evaluate: 'de actie {expression} wordt uitgevoerd'
+    if: 'als {condition} dan wordt het volgende uitgevoerd'
+    else-if: 'anders als {condition} dan wordt het volgende uitgevoerd'
+    else: 'anders wordt het volgende uitgevoerd'
+    while: 'zolang {condition} wordt het volgende herhaald'
+    for: 'voor elke {variable} van {start} tot en met {last} wordt het volgende herhaald'
+    call: '{callee} toegepast op ({arguments})'
+    call-without-arguments: '{callee} toegepast op niets'
+    join: '{left} samengevoegd met {right}'
+  rules:
+    relations: 'is gedefinieerd als' 'is geclassificeerd als' 'heeft als nieuwe waarde' 'heeft als volgende regel' 'heeft als volgend deel' 'heeft als resultaat' 'toegepast op' 'samengevoegd met' 'is gelijk aan'

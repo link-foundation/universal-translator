@@ -1,0 +1,32 @@
+natural:
+  id: english-special-english
+  label: 'English (VOA Special English / Learning English)'
+  extends: english
+  profile: special-english
+  source: 'https://learningenglish.voanews.com/'
+  templates:
+    function: 'Here is how to find {name} from {parameters}'
+    function-without-parameters: 'Here is how to find {name}'
+    declare: 'Start {name} at {value}'
+    assign: 'Change {name} to {value}'
+    print-line: 'Show {value} on a line'
+    print: 'Show {value}'
+    return-value: 'Return {value}'
+    return: 'Stop'
+    evaluate: 'Do {expression}'
+    if: 'If {condition}, do this'
+    else-if: 'If not, but {condition}, do this'
+    else: 'If not, do this'
+    while: 'While {condition}, do this again'
+    for: 'For each {variable} from {start} to {last}, do this'
+    join: '{left} then {right}'
+    negate: 'the opposite of {operand}'
+    not-equal: '{left} is not {right}'
+    less: '{left} is less than {right}'
+    less-or-equal: '{left} is not more than {right}'
+    greater: '{left} is more than {right}'
+    greater-or-equal: '{left} is not less than {right}'
+  rules:
+    max-sentence-words: 20
+    vocabulary: here is how to find from start at change show on a line return stop do nothing if not but this while again for each then of or and the opposite equals less than more true false
+    extra-words: plus minus times divided by modulo

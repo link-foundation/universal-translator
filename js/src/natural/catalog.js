@@ -64,6 +64,7 @@ const scalarFields = [
   'false',
   'note',
   'speakers',
+  'source',
 ];
 
 const plain = (values) => values.map(({ id }) => id);

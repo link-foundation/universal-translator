@@ -1,0 +1,10 @@
+natural:
+  id: english-e-prime
+  label: 'English (E-Prime)'
+  extends: english
+  profile: e-prime
+  source: 'https://en.wikipedia.org/wiki/E-Prime'
+  words:
+    is: check
+  rules:
+    forbidden-words: be is am are was were been being isn't aren't wasn't weren't i'm you're he's she's it's we're they're
