@@ -499,7 +499,7 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Install native tools
-        timeout-minutes: 2
+        timeout-minutes: 4
         run: |
           # Use Ubuntu's primary archives to avoid stalled runner mirrors.
           apt_sources="$RUNNER_TEMP/native-tools.list"
@@ -512,7 +512,7 @@ jobs:
             -o "Dir::Etc::sourcelist=$apt_sources" -o 'Dir::Etc::sourceparts=-'
             -o Acquire::Retries=2 -o Acquire::https::Timeout=20
           )
-          packages=(lua5.4 nasm php-cli ruby jasmin-sable perl r-base-core)
+          packages=(lua5.4 nasm php-cli ruby jasmin-sable perl r-base-core gobjc gdc nim)
           sudo apt-get "${apt_options[@]}" update --error-on=any
           sudo apt-get "${apt_options[@]}" install --yes --no-install-recommends "${packages[@]}"
           # ILAsm ships as a NuGet package for each runtime identifier.
