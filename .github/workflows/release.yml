@@ -499,7 +499,7 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Install native tools
-        timeout-minutes: 5
+        timeout-minutes: 2
         run: |
           # Use Ubuntu's primary archives to avoid stalled runner mirrors.
           apt_sources="$RUNNER_TEMP/native-tools.list"
@@ -524,7 +524,7 @@ jobs:
           echo "ILASM=$RUNNER_TEMP/ilasm/runtimes/linux-x64/native/ilasm" >> "$GITHUB_ENV"
 
       - name: Install Dart, Julia, Scala and Groovy
-        timeout-minutes: 5
+        timeout-minutes: 3
         run: |
           # Pinned official archives, checked against their SHA-256 sums.
           # Noble's scala (2.11) and groovy (2.4) predate the runner's JDK.
@@ -555,19 +555,19 @@ jobs:
           } >> "$GITHUB_PATH"
 
       - name: Run every translation with its native toolchain
-        timeout-minutes: 14
+        timeout-minutes: 5
         env:
           LUA: lua5.4
         run: |
-          bash scripts/run-with-budget-warning.sh 540 "Native translations" \
+          bash scripts/run-with-budget-warning.sh 200 "Native translations" \
             node examples/programs/verify-native.mjs --require-all
 
       - name: Run every common library translation with its native toolchain
-        timeout-minutes: 8
+        timeout-minutes: 4
         env:
           LUA: lua5.4
         run: |
-          bash scripts/run-with-budget-warning.sh 300 "Common library translations" \
+          bash scripts/run-with-budget-warning.sh 150 "Common library translations" \
             node examples/programs/verify-native.mjs --require-all --common-library
 
   # === DOCKER IMAGE BUILD CHECK (pull requests) ===

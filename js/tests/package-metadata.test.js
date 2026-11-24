@@ -115,6 +115,7 @@ describe('publishable package metadata', () => {
   it('publishes only the package runtime surface', () => {
     expect(packageJson.files).toEqual([
       'bin/',
+      'common-library/',
       'js/src/',
       'data/',
       'CHANGELOG.md',

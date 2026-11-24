@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'test-anywhere';
 import { spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { createGrammarTranslator } from '../src/grammar/translator.js';
@@ -20,13 +21,19 @@ const extensions = { nasm: '.asm', cil: '.il', jvm: '.j' };
 const golden = (task, extension) =>
   readFileSync(join(folder, 'translated', task, `${task}${extension}`), 'utf8');
 
-// Run JavaScript source and return what it prints.
+// Run JavaScript source with the current runtime and return what it prints.
+// The source is written to a file, because only Node reads modules from
+// standard input.
 const run = (source) => {
-  const result = spawnSync(process.execPath, ['--input-type=module'], {
-    input: source,
+  const folder = mkdtempSync(join(tmpdir(), 'lifting-'));
+  const file = join(folder, 'program.mjs');
+  writeFileSync(file, source);
+  const args = globalThis.Deno ? ['run', '-A', file] : [file];
+  const result = spawnSync(process.execPath, args, {
     encoding: 'utf8',
     timeout: 10000,
   });
+  rmSync(folder, { recursive: true, force: true });
   expect(result.stderr).toBe('');
   return result.stdout;
 };
