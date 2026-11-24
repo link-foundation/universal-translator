@@ -442,8 +442,13 @@ impl Translator {
 
     pub fn parse(&self, source: &str, language: &str) -> Result<Document, String> {
         let (profile, adapter) = self.language(language)?;
+        let grammar_id = if language == "sqlite" {
+            "sql-sqlite"
+        } else {
+            language
+        };
         let grammar = (profile.kind == "programming")
-            .then(|| [language, profile.label.as_str()])
+            .then(|| [grammar_id, profile.label.as_str()])
             .into_iter()
             .flatten()
             .find(|name| !grammar_provenance(name).is_empty());

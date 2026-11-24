@@ -9,6 +9,11 @@ import {
   writeSourceDocument,
 } from '../js/src/index.js';
 import { verifyPortableOutput } from '../examples/translation/portable-programs.mjs';
+import {
+  linkFields,
+  parseLinks,
+  references,
+} from '../js/src/translation/links.js';
 
 const [modulePath, executable = 'target/debug/universal-translator'] =
   process.argv.slice(2);
@@ -84,7 +89,25 @@ console.log(
   `Both implementations encoded and restored ${samples.length} grammar CST specimens`
 );
 
+const rankedPrograms = new URL(
+  '../examples/translation/ranked-grammar-programs.lino',
+  import.meta.url
+);
+const ranked = linkFields(parseLinks(readFileSync(rankedPrograms, 'utf8')));
+assert.equal(ranked.size, 27);
+for (const [language, lines] of ranked) {
+  const source = `${references(lines).join('\n')}\n`;
+  const tree = codec.parse(language, source);
+  assert.ok(tree.verifyFullMatch().isClean(), language);
+  assert.deepEqual(codec.read(tree.toLino()), { language, source });
+}
+console.log(
+  `The tagged JavaScript engine round-tripped ${ranked.size} ranked grammar specimens`
+);
+
 const translator = createTranslator({ grammarEngine });
+const sqlite = translator.parse('SELECT sqlite_version();\n', 'sqlite');
+assert.equal(sqlite.network.parseGrammars()[0].language, 'sql-sqlite');
 const document = translator.parse(hello('c'), 'c');
 assert.deepEqual(document.interpretation.requires, ['stdio.h']);
 const realizes = document.network

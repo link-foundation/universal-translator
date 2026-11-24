@@ -191,10 +191,10 @@ and invocation contracts before they count toward native coverage.
 [Meta Language portable translator](https://github.com/link-foundation/meta-language/blob/v1.0.0/rust/src/program_translation.rs#L133)
 [Pinned paths and output](../../../examples/translation/portable-programs.lino)
 
-The Rust CST round-trip test exercises 25 ranked languages against small
-representative programs. It checks grammar structure and exact source
-restoration from the serialized network. The tagged JavaScript 1.0 engine
-and the Rust CLI exchange CSTs in both directions for seven specimens,
+Both runtimes verify 27 representative grammar specimens, including
+SQLite and Transact-SQL. They check for parse errors and verify exact
+source restoration from the serialized network. The tagged JavaScript 1.0
+engine and the Rust CLI exchange CSTs in both directions for seven specimens,
 including UTF-8, CRLF, missing final newlines, and empty source. Catalog-wide
 grammar and concept coverage remain open. The JavaScript codec requires the
 tagged engine while the matching npm release is pending. The ordinary Rust

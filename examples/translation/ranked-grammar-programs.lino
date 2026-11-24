@@ -1,0 +1,60 @@
+Python:
+  "print('Hello')"
+C:
+  'int main(void) { return 0; }'
+Java:
+  'class Hello { public static void main(String[] args) {} }'
+'C++':
+  'int main() { return 0; }'
+'C#':
+  'class Hello { static void Main() {} }'
+JavaScript:
+  "console.log('Hello');"
+R:
+  "print('Hello')"
+sql-ansi:
+  'SELECT 1;'
+sql-sqlite:
+  'SELECT sqlite_version();'
+sql-server:
+  'SELECT TOP (1) name FROM sys.objects;'
+'Visual Basic':
+  'Module Main'
+  '    Sub Hello()'
+  '    End Sub'
+  'End Module'
+Go:
+  'package main'
+  'func main() {}'
+Rust:
+  'fn main() {}'
+PHP:
+  "<?php echo 'Hello';"
+Perl:
+  "print 'Hello';"
+MATLAB:
+  "disp('Hello');"
+Swift:
+  'print("Hello")'
+'Delphi/Object Pascal':
+  'program Hello;'
+  'begin'
+  'end.'
+Dart:
+  'void main() {}'
+Ruby:
+  "puts 'Hello'"
+Lua:
+  "print('Hello')"
+Kotlin:
+  'fun main() {}'
+OCaml:
+  'let () = print_endline "Hello"'
+Scala:
+  'object Hello { def main(args: Array[String]): Unit = () }'
+Haskell:
+  'main = putStrLn "Hello"'
+TypeScript:
+  "const greeting: string = 'Hello';"
+Solidity:
+  'contract Hello {}'

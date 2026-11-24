@@ -1,5 +1,6 @@
+use links_notation::{LiNo, parse_lino_to_links};
 use meta_language::{LinkNetwork, LinkType};
-use universal_translator::SourceDocument;
+use universal_translator::{SourceDocument, Translator};
 
 #[test]
 fn preserves_line_endings_bom_blank_lines_and_final_text() {
@@ -78,46 +79,29 @@ fn grammar_network_preserves_structure_and_source() {
 
 #[test]
 fn ranked_language_grammars_round_trip_programs() {
-    for (language, source) in [
-        ("Python", "print('Hello')\n"),
-        ("C", include_str!("../../examples/translation/hello.c")),
-        (
-            "Java",
-            "class Hello { public static void main(String[] args) {} }\n",
-        ),
-        ("C++", "int main() { return 0; }\n"),
-        ("C#", include_str!("../../examples/translation/hello.cs")),
-        ("JavaScript", "console.log('Hello');\n"),
-        ("R", "print('Hello')\n"),
-        ("sql-ansi", "SELECT 1;\n"),
-        (
-            "Visual Basic",
-            "Module Main\n    Sub Hello()\n    End Sub\nEnd Module\n",
-        ),
-        ("Go", "package main\nfunc main() {}\n"),
-        ("Rust", "fn main() {}\n"),
-        ("PHP", "<?php echo 'Hello';\n"),
-        ("Perl", "print 'Hello';\n"),
-        ("MATLAB", "disp('Hello');\n"),
-        ("Swift", "print(\"Hello\")\n"),
-        ("Delphi/Object Pascal", "program Hello;\nbegin\nend.\n"),
-        ("Dart", "void main() {}\n"),
-        ("Ruby", "puts 'Hello'\n"),
-        ("Lua", "print('Hello')\n"),
-        ("Kotlin", "fun main() {}\n"),
-        ("OCaml", "let () = print_endline \"Hello\"\n"),
-        (
-            "Scala",
-            "object Hello { def main(args: Array[String]): Unit = () }\n",
-        ),
-        ("Haskell", "main = putStrLn \"Hello\"\n"),
-        ("TypeScript", "const greeting: string = 'Hello';\n"),
-        ("Solidity", "contract Hello {}\n"),
-    ] {
-        let document = SourceDocument {
-            language: language.into(),
-            source: source.into(),
+    let programs = parse_lino_to_links(include_str!(
+        "../../examples/translation/ranked-grammar-programs.lino"
+    ))
+    .unwrap();
+    assert_eq!(programs.len(), 27);
+    for program in programs {
+        let LiNo::Link {
+            id: Some(language),
+            values,
+        } = program
+        else {
+            panic!("Expected a ranked language with source lines");
         };
+        let mut source = String::new();
+        for line in values {
+            let LiNo::Ref(line) = line else {
+                panic!("Expected a source line for {language}");
+            };
+            source.push_str(&line);
+            source.push('\n');
+        }
+        let document = SourceDocument { language, source };
+        let language = &document.language;
         let network = document
             .syntax_network()
             .unwrap_or_else(|error| panic!("{language}: {error}"));
@@ -133,6 +117,11 @@ fn ranked_language_grammars_round_trip_programs() {
             document
         );
     }
+
+    let source = "SELECT sqlite_version();\n";
+    let document = Translator::default().parse(source, "sqlite").unwrap();
+    assert_eq!(document.network.parse_grammars()[0].0, "sql-sqlite");
+    assert_eq!(document.restore(), source);
 }
 
 #[test]

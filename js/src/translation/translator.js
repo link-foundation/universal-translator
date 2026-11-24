@@ -33,10 +33,11 @@ function parseDocument(source, { adapter, profile }, grammarEngine, syntax) {
     throw new Error('Source must be Unicode text');
   }
   const language = profile.id;
+  const grammarId = language === 'sqlite' ? 'sql-sqlite' : language;
   const grammar =
     grammarEngine &&
     (profile.kind ?? 'programming') === 'programming' &&
-    [language, profile.label].find(
+    [grammarId, profile.label].find(
       (name) => grammarEngine.grammarProvenance(name).length
     );
   if (grammar) {
