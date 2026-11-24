@@ -99,6 +99,23 @@ export function walk(tree, visit) {
   });
 }
 
+// The functions that an earlier function calls before their definition.
+// Languages that compile from top to bottom (C, Pascal, Ada) announce them
+// with a prototype or forward declaration.
+export function laterCalls(functions) {
+  const defined = new Set();
+  const announced = new Set();
+  for (const item of functions) {
+    defined.add(item.name);
+    walk(item.body, (current) => {
+      if (current.kind === 'Call' && !defined.has(current.callee)) {
+        announced.add(current.callee);
+      }
+    });
+  }
+  return functions.filter((item) => announced.has(item.name));
+}
+
 // Structural comparison that ignores source-only details such as types that
 // an untyped language cannot express and comment wording.
 const ignoredKeys = new Set([

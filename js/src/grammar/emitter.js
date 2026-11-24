@@ -2,8 +2,9 @@
 // language-specific spelling comes from languages.js or from the small
 // tables below; the structure of the output follows the meta tree.
 
-import { add, block, name, node, number } from './meta.js';
+import { add, block, laterCalls, name, node, number } from './meta.js';
 import { languageSyntax } from './languages.js';
+import { dialects } from './dialects/index.js';
 
 const precedence = {
   or: 1,
@@ -586,11 +587,34 @@ class Emitter {
     });
   }
 
+  // `int male(int index);` in C, `proc male(index: int): int` in Nim and
+  // `local male` in Lua.
+  forwardDeclaration(item) {
+    switch (this.syntax.forwardDeclarations) {
+      case 'local':
+        return `local ${item.name}`;
+      case 'heading':
+        return this.signature(item).replace(/\s*=$/, '');
+      default:
+        return `${this.signature(item)};`;
+    }
+  }
+
+  // Lua defines a function it declared ahead without "local", which would
+  // declare a second variable.
+  definitionHeading(item) {
+    const heading = this.signature(item);
+    return this.syntax.forwardDeclarations === 'local' &&
+      this.announced?.has(item.name)
+      ? heading.replace(/^local /, '')
+      : heading;
+  }
+
   functionDefinition(item) {
     for (const text of item.comments ?? []) {
       this.comment(text);
     }
-    this.openBlock(this.signature(item));
+    this.openBlock(this.definitionHeading(item));
     // Perl receives its arguments in @_.
     if (this.syntax.parameters === 'unpacked' && item.parameters.length) {
       const names = item.parameters.map(({ name: id }) => this.variable(id));
@@ -623,6 +647,18 @@ class Emitter {
         this.syntax.container ??
           (this.id === 'csharp' ? 'class Program' : 'class Main')
       );
+    }
+    // C, Pascal and Ada read from top to bottom, so a function called
+    // before its definition is announced by a prototype.
+    if (this.syntax.forwardDeclarations) {
+      const announced = laterCalls(program.functions);
+      this.announced = new Set(announced.map((item) => item.name));
+      for (const item of announced) {
+        this.line(this.forwardDeclaration(item));
+      }
+      if (announced.length) {
+        this.line();
+      }
     }
     for (const item of program.functions) {
       this.functionDefinition(item);
@@ -754,7 +790,22 @@ const compoundOperators = {
 };
 
 export function emitProgram(program, languageId) {
-  return new Emitter(languageSyntax(languageId)).program(program);
+  const LanguageEmitter = emitterFor(languageId);
+  return new LanguageEmitter(languageSyntax(languageId)).program(program);
+}
+
+// Languages with a program layout of their own (Fortran, Pascal, Ada,
+// Visual Basic, Bash) extend the shared emitter in dialects/.
+const dialectEmitters = new Map();
+function emitterFor(languageId) {
+  const extend = dialects[languageId]?.emitter;
+  if (!extend) {
+    return Emitter;
+  }
+  if (!dialectEmitters.has(languageId)) {
+    dialectEmitters.set(languageId, extend(Emitter));
+  }
+  return dialectEmitters.get(languageId);
 }
 
 // How each language writes a value to standard output. C, Go and Rust use

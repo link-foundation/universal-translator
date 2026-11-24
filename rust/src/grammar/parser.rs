@@ -9,7 +9,7 @@ use regex::Regex;
 
 use super::GrammarError;
 use super::interpolation::{Piece, split_interpolation};
-use super::languages::{Blocks, Syntax, Typed};
+use super::languages::{Blocks, ForwardDeclarations, Syntax, Typed};
 use super::lexer::{InterpolationStyle, Token, TokenType, decode_escapes, tokenize};
 use super::meta::{Node, add, binary, block, name, number, text};
 
@@ -332,6 +332,12 @@ impl Parser {
         if self.is_namespace_or_class() {
             return self.class_definition();
         }
+        let announcement = self.announcement_length();
+        if announcement > 0 {
+            // `int male(int index);` only announces a function defined later.
+            self.position += announcement;
+            return Ok(Node::new("Statements").with("statements", Vec::<Node>::new()));
+        }
         if self.is_function_start() {
             return self.function_definition();
         }
@@ -398,24 +404,58 @@ impl Parser {
 
     /// Prefix-typed languages: `[modifiers] [type] name ( ... ) {`
     fn is_prefix_function_start(&self) -> bool {
-        if CONTROL_WORDS.contains(&self.value(0)) {
-            return false;
+        let offset = self.prefix_head_length();
+        offset > 0
+            && self.is_at("(", offset)
+            && self.kind(offset - 1) == TokenType::Name
+            && self.is_at("{", self.after_parentheses(offset))
+    }
+
+    /// The number of tokens that announce a function defined later, or 0:
+    /// `int male(int index);` or `local male` followed by `function male`.
+    fn announcement_length(&self) -> usize {
+        match self.syntax.forward_declarations {
+            ForwardDeclarations::None => 0,
+            ForwardDeclarations::Prototype => {
+                let offset = self.prefix_head_length();
+                let after = self.after_parentheses(offset);
+                let prototype = offset > 1
+                    && self.is_at("(", offset)
+                    && self.kind(offset - 1) == TokenType::Name
+                    && self.is_at(";", after);
+                if prototype { after + 1 } else { 0 }
+            }
+            ForwardDeclarations::Local => {
+                let announced = self.value(1);
+                let alone = self.is("local")
+                    && self.kind(1) == TokenType::Name
+                    && matches!(self.kind(2), TokenType::Newline | TokenType::End);
+                let keyword = self.syntax.function_keyword.unwrap_or("function");
+                let defined = self
+                    .tokens
+                    .windows(2)
+                    .any(|pair| pair[0].value == keyword && pair[1].value == announced);
+                if alone && defined { 2 } else { 0 }
+            }
         }
-        let offset = (0..)
+    }
+
+    /// How many tokens of a type and a name come before `(`.
+    fn prefix_head_length(&self) -> usize {
+        if CONTROL_WORDS.contains(&self.value(0)) {
+            return 0;
+        }
+        (0..)
             .take_while(|offset| {
                 self.kind(*offset) == TokenType::Name
                     || ["*", "::", "[", "]", "<", ">"].contains(&self.value(*offset))
             })
             .take(self.tokens.len())
-            .count();
-        offset > 0
-            && self.is_at("(", offset)
-            && self.kind(offset - 1) == TokenType::Name
-            && self.is_block_after_parentheses(offset)
+            .count()
     }
 
-    /// Whether the parentheses opening at `offset` are followed by a block.
-    fn is_block_after_parentheses(&self, offset: usize) -> bool {
+    /// The index after the parentheses opening at `offset` and any newlines.
+    fn after_parentheses(&self, offset: usize) -> usize {
         let mut depth = 0i64;
         let mut index = offset;
         while self.kind(index) != TokenType::End {
@@ -430,13 +470,13 @@ impl Parser {
             index += 1;
         }
         if self.kind(index) == TokenType::End {
-            return false;
+            return index;
         }
         let mut after = index + 1;
         while self.kind(after) == TokenType::Newline {
             after += 1;
         }
-        self.is_at("{", after)
+        after
     }
 
     fn function_definition(&mut self) -> Parsed {

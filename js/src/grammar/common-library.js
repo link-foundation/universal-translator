@@ -65,6 +65,7 @@ export const commonLibraryAccess = {
   objc: { imports: () => ['#import "CommonLibrary.h"'] },
   nim: { imports: () => ['import common_library'] },
   d: { imports: () => ['import common_library;'] },
+  pascal: { imports: () => ['uses CommonLibrary;'] },
 };
 
 const call = (operation, argument) =>

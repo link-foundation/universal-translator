@@ -109,6 +109,9 @@ export const languages = {
     quotes: ['"', "'"],
     declarations: ['local'],
     functionKeyword: 'function',
+    // A local function called before its definition is declared first
+    // (`local male`) and then defined without "local".
+    forwardDeclarations: 'local',
     operators: {
       and: 'and',
       or: 'or',
@@ -152,6 +155,8 @@ export const languages = {
   c: {
     naming: 'snake',
     label: 'C',
+    // A function called before its definition needs a prototype.
+    forwardDeclarations: 'prototype',
     blocks: 'braces',
     lineComment: '//',
     blockComment: ['/*', '*/'],
@@ -167,6 +172,8 @@ export const languages = {
   cpp: {
     naming: 'snake',
     label: 'C++',
+    // A function called before its definition needs a prototype.
+    forwardDeclarations: 'prototype',
     blocks: 'braces',
     lineComment: '//',
     blockComment: ['/*', '*/'],
@@ -442,6 +449,8 @@ export const languages = {
     family: 'c',
     naming: 'camel',
     label: 'Objective-C',
+    // A function called before its definition needs a prototype.
+    forwardDeclarations: 'prototype',
     blocks: 'braces',
     lineComment: '//',
     blockComment: ['/*', '*/'],
@@ -463,6 +472,8 @@ export const languages = {
     blocks: 'indentation',
     // A procedure body follows "=", other blocks follow ":".
     bodyAfter: '=',
+    // A procedure called before its definition needs its heading first.
+    forwardDeclarations: 'heading',
     emptyStatement: 'discard',
     lineComment: '#',
     blockComment: ['#[', ']#'],
@@ -505,6 +516,45 @@ export const languages = {
     typed: 'prefix',
     types: { ...integerTypes, integer: 'long' },
     terms: { call: 'function call', routine: 'function' },
+  },
+  pascal: {
+    naming: 'pascal',
+    label: 'Pascal',
+    // Statements, routines and the program layout are in dialects/pascal.js.
+    blocks: 'keywords',
+    caseInsensitive: true,
+    // A routine called before its definition needs a `forward;` heading.
+    forwardDeclarations: 'heading',
+    lineComment: '//',
+    blockComment: ['{', '}'],
+    quotes: ["'"],
+    doubledQuotes: true,
+    declarations: [],
+    symbols: ['<>'],
+    assignment: ':=',
+    compoundAssignment: false,
+    operators: {
+      and: 'and',
+      or: 'or',
+      not: 'not',
+      equal: '=',
+      notEqual: '<>',
+      remainder: 'mod',
+      integerDivide: 'div',
+    },
+    words: { true: 'True', false: 'False' },
+    // WriteLn and Write print their arguments one after another.
+    printCalls: { line: ['WriteLn'], text: ['Write'], adjacent: true },
+    prelude: ['program Main;'],
+    entryPoint: 'top-level',
+    typed: 'annotation',
+    types: {
+      integer: 'Int64',
+      text: 'String',
+      boolean: 'Boolean',
+      nothing: '',
+    },
+    terms: { call: 'procedure call', routine: 'procedure' },
   },
 };
 

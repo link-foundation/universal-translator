@@ -58,6 +58,7 @@ export const libraryFiles = {
   objc: 'CommonLibrary.h',
   nim: 'common_library.nim',
   d: 'common_library.d',
+  pascal: 'CommonLibrary.pas',
 };
 const libraryFolder = join(folder, '..', '..', 'common-library');
 
@@ -85,6 +86,7 @@ export const extensions = {
   objc: '.m',
   nim: '.nim',
   d: '.d',
+  pascal: '.pas',
   nasm: '.asm',
   cil: '.il',
   jvm: '.j',
@@ -279,6 +281,16 @@ const runners = {
       run(`${file}.out`, [])
     ),
   },
+  // Free Pascal finds the CommonLibrary unit beside the program.
+  pascal: {
+    tool: 'fpc',
+    run: (file) => (
+      run('fpc', ['-v0', '-Sew', `-o${file}.out`, file], {
+        cwd: dirname(file),
+      }),
+      run(`${file}.out`, [])
+    ),
+  },
   csharp: {
     tool: 'dotnet',
     run: (file, library) => {
@@ -438,7 +450,7 @@ if (
           })
         );
         // Header and module libraries are found by the compiler itself.
-        const sources = ['c', 'cpp', 'objc', 'rust'].includes(target)
+        const sources = ['c', 'cpp', 'objc', 'rust', 'pascal'].includes(target)
           ? []
           : library;
         const actual = runner.run(output, sources);

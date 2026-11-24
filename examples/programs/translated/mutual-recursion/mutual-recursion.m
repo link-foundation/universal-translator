@@ -2,6 +2,8 @@
 
 #import <stdio.h>
 
+int male(int index);
+
 int female(int index) {
     if (index == 0) {
         return 1;

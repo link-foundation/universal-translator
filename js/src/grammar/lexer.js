@@ -78,11 +78,20 @@ export class SyntaxError extends Error {
   }
 }
 
-function readQuoted(source, start, quote, line) {
+// Text between quotes. Most languages escape with a backslash; Pascal, Ada,
+// Fortran and Visual Basic write a quote inside text as two quotes instead,
+// and keep backslashes as they are.
+function readQuoted(source, start, quote, line, doubled = false) {
   let index = start + 1;
   let raw = '';
-  while (index < source.length && source[index] !== quote) {
-    if (source[index] === '\\') {
+  while (index < source.length) {
+    if (source[index] === quote) {
+      if (!doubled || source[index + 1] !== quote) {
+        break;
+      }
+      raw += quote;
+      index += 2;
+    } else if (source[index] === '\\' && !doubled) {
       raw += source.slice(index, index + 2);
       index += 2;
     } else {
@@ -277,9 +286,17 @@ class Lexer {
     }
     const start = prefixed ? this.index + prefixed.length : this.index;
     const quote = this.source[start];
-    const { raw, end } = readQuoted(this.source, start, quote, this.line);
+    const doubled = Boolean(this.syntax.doubledQuotes);
+    const { raw, end } = readQuoted(
+      this.source,
+      start,
+      quote,
+      this.line,
+      doubled
+    );
     const style = interpolationStyle(this.syntax, quote, prefixed);
-    this.push('text', raw, { quote, style });
+    // Doubled quotes are already read, so the text has no escapes left.
+    this.push('text', raw, { quote, style, decoded: doubled });
     this.line += raw.split('\n').length - 1;
     this.index = end;
     return true;
@@ -301,8 +318,13 @@ class Lexer {
   }
 
   // Names, including Rust macro names such as println! (but not "x != y").
+  // Where "!" starts a comment (Fortran), it never ends a name.
   name() {
-    const name = /^[A-Za-z_][A-Za-z0-9_]*!?/.exec(this.rest());
+    const pattern =
+      this.syntax.lineComment === '!'
+        ? /^[A-Za-z_][A-Za-z0-9_]*/
+        : /^[A-Za-z_][A-Za-z0-9_]*!?/;
+    const name = pattern.exec(this.rest());
     if (!name) {
       return false;
     }
