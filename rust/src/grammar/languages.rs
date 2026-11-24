@@ -44,6 +44,17 @@ pub enum Typed {
     Suffix,
 }
 
+/// How a language announces a function that is called before its definition.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ForwardDeclarations {
+    /// Functions may be called before their definition.
+    None,
+    /// `int male(int index);`
+    Prototype,
+    /// `local male`, with the definition written without `local`.
+    Local,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum EntryPoint {
     TopLevel,
@@ -206,9 +217,8 @@ pub struct Syntax {
     pub terms: Terms,
     /// Whether this is a lowering target written from stack machine code.
     pub machine: bool,
-    /// Whether a function must be declared before a call to it, so a call to a
-    /// function defined later needs a prototype such as `int male(int index);`.
-    pub forward_declarations: bool,
+    /// How a function called before its definition is announced.
+    pub forward_declarations: ForwardDeclarations,
 }
 
 impl Syntax {
@@ -344,7 +354,7 @@ const JAVASCRIPT: Syntax = Syntax {
     return_arrow: None,
     terms: FUNCTION_TERMS,
     machine: false,
-    forward_declarations: false,
+    forward_declarations: ForwardDeclarations::None,
 };
 
 /// The C description, the base of the other prefix-typed languages.
@@ -365,7 +375,7 @@ const C: Syntax = Syntax {
         ..INTEGER_TYPES
     }),
     // A call to a function defined later needs a prototype.
-    forward_declarations: true,
+    forward_declarations: ForwardDeclarations::Prototype,
     ..JAVASCRIPT
 };
 
@@ -444,6 +454,8 @@ pub const LANGUAGES: [Syntax; 20] = [
         },
         else_if: Some("elseif"),
         print_line: "print",
+        // A local function called before its definition is declared first.
+        forward_declarations: ForwardDeclarations::Local,
         ..JAVASCRIPT
     },
     Syntax {
@@ -493,7 +505,7 @@ pub const LANGUAGES: [Syntax; 20] = [
         main_name: Some("Main"),
         types: Some(INTEGER_TYPES),
         terms: METHOD_TERMS,
-        forward_declarations: false,
+        forward_declarations: ForwardDeclarations::None,
         ..C
     },
     Syntax {
@@ -510,7 +522,7 @@ pub const LANGUAGES: [Syntax; 20] = [
             ..INTEGER_TYPES
         }),
         terms: METHOD_TERMS,
-        forward_declarations: false,
+        forward_declarations: ForwardDeclarations::None,
         ..C
     },
     Syntax {
@@ -525,7 +537,7 @@ pub const LANGUAGES: [Syntax; 20] = [
             nothing: "",
             ..INTEGER_TYPES
         }),
-        forward_declarations: false,
+        forward_declarations: ForwardDeclarations::None,
         ..C
     },
     Syntax {
@@ -547,7 +559,7 @@ pub const LANGUAGES: [Syntax; 20] = [
             call: "macro call",
             routine: "function",
         },
-        forward_declarations: false,
+        forward_declarations: ForwardDeclarations::None,
         ..C
     },
     Syntax {
@@ -569,7 +581,7 @@ pub const LANGUAGES: [Syntax; 20] = [
             nothing: "Unit",
         }),
         return_arrow: Some(":"),
-        forward_declarations: false,
+        forward_declarations: ForwardDeclarations::None,
         ..C
     },
     Syntax {
@@ -590,7 +602,7 @@ pub const LANGUAGES: [Syntax; 20] = [
             nothing: "Void",
         }),
         return_arrow: Some("->"),
-        forward_declarations: false,
+        forward_declarations: ForwardDeclarations::None,
         ..C
     },
     Syntax {
@@ -782,7 +794,7 @@ pub const MACHINE_TARGETS: [Syntax; 3] = [
             routine: "procedure",
         },
         machine: true,
-        forward_declarations: false,
+        forward_declarations: ForwardDeclarations::None,
         ..C
     },
     Syntax {
@@ -795,7 +807,7 @@ pub const MACHINE_TARGETS: [Syntax; 3] = [
         line_comment: "//",
         terms: METHOD_TERMS,
         machine: true,
-        forward_declarations: false,
+        forward_declarations: ForwardDeclarations::None,
         ..C
     },
     Syntax {
@@ -805,7 +817,7 @@ pub const MACHINE_TARGETS: [Syntax; 3] = [
         line_comment: ";",
         terms: METHOD_TERMS,
         machine: true,
-        forward_declarations: false,
+        forward_declarations: ForwardDeclarations::None,
         ..C
     },
 ];

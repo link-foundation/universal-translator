@@ -1,5 +1,7 @@
 -- Mutual recursion in Lua: the Hofstadter Female and Male sequences
 
+local male
+
 local function female(index)
     if index == 0 then
         return 1
@@ -7,7 +9,7 @@ local function female(index)
     return index - male(female(index - 1))
 end
 
-local function male(index)
+function male(index)
     if index == 0 then
         return 0
     end

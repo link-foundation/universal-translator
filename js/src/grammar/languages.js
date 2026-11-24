@@ -109,6 +109,9 @@ export const languages = {
     quotes: ['"', "'"],
     declarations: ['local'],
     functionKeyword: 'function',
+    // A local function called before its definition is declared first
+    // (`local male`) and then defined without "local".
+    forwardDeclarations: 'local',
     operators: {
       and: 'and',
       or: 'or',
@@ -153,7 +156,7 @@ export const languages = {
     naming: 'snake',
     label: 'C',
     // A function called before its definition needs a prototype.
-    forwardDeclarations: true,
+    forwardDeclarations: 'prototype',
     blocks: 'braces',
     lineComment: '//',
     blockComment: ['/*', '*/'],
@@ -170,7 +173,7 @@ export const languages = {
     naming: 'snake',
     label: 'C++',
     // A function called before its definition needs a prototype.
-    forwardDeclarations: true,
+    forwardDeclarations: 'prototype',
     blocks: 'braces',
     lineComment: '//',
     blockComment: ['/*', '*/'],
@@ -447,7 +450,7 @@ export const languages = {
     naming: 'camel',
     label: 'Objective-C',
     // A function called before its definition needs a prototype.
-    forwardDeclarations: true,
+    forwardDeclarations: 'prototype',
     blocks: 'braces',
     lineComment: '//',
     blockComment: ['/*', '*/'],
@@ -469,6 +472,8 @@ export const languages = {
     blocks: 'indentation',
     // A procedure body follows "=", other blocks follow ":".
     bodyAfter: '=',
+    // A procedure called before its definition needs its heading first.
+    forwardDeclarations: 'heading',
     emptyStatement: 'discard',
     lineComment: '#',
     blockComment: ['#[', ']#'],
@@ -518,7 +523,8 @@ export const languages = {
     // Statements, routines and the program layout are in dialects/pascal.js.
     blocks: 'keywords',
     caseInsensitive: true,
-    forwardDeclarations: true,
+    // A routine called before its definition needs a `forward;` heading.
+    forwardDeclarations: 'heading',
     lineComment: '//',
     blockComment: ['{', '}'],
     quotes: ["'"],

@@ -587,15 +587,34 @@ class Emitter {
     });
   }
 
+  // `int male(int index);` in C, `proc male(index: int): int` in Nim and
+  // `local male` in Lua.
   forwardDeclaration(item) {
-    return `${this.signature(item)};`;
+    switch (this.syntax.forwardDeclarations) {
+      case 'local':
+        return `local ${item.name}`;
+      case 'heading':
+        return this.signature(item).replace(/\s*=$/, '');
+      default:
+        return `${this.signature(item)};`;
+    }
+  }
+
+  // Lua defines a function it declared ahead without "local", which would
+  // declare a second variable.
+  definitionHeading(item) {
+    const heading = this.signature(item);
+    return this.syntax.forwardDeclarations === 'local' &&
+      this.announced?.has(item.name)
+      ? heading.replace(/^local /, '')
+      : heading;
   }
 
   functionDefinition(item) {
     for (const text of item.comments ?? []) {
       this.comment(text);
     }
-    this.openBlock(this.signature(item));
+    this.openBlock(this.definitionHeading(item));
     // Perl receives its arguments in @_.
     if (this.syntax.parameters === 'unpacked' && item.parameters.length) {
       const names = item.parameters.map(({ name: id }) => this.variable(id));
@@ -633,6 +652,7 @@ class Emitter {
     // before its definition is announced by a prototype.
     if (this.syntax.forwardDeclarations) {
       const announced = laterCalls(program.functions);
+      this.announced = new Set(announced.map((item) => item.name));
       for (const item of announced) {
         this.line(this.forwardDeclaration(item));
       }

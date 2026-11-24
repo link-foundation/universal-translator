@@ -1,5 +1,7 @@
 # Mutual recursion in Nim: the Hofstadter Female and Male sequences
 
+proc male(index: int): int
+
 proc female(index: int): int =
     if index == 0:
         return 1

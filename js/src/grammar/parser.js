@@ -211,15 +211,14 @@ class Parser {
     if (this.isNamespaceOrClass()) {
       return this.classDefinition();
     }
+    const announcement = this.announcementLength();
+    if (announcement) {
+      // `int male(int index);` only announces a function defined later.
+      this.position += announcement;
+      return node('Statements', { statements: [] });
+    }
     if (this.isFunctionStart()) {
       return this.functionDefinition();
-    }
-    if (this.isPrototype()) {
-      // `int male(int index);` only announces a function defined later.
-      while (!this.accept(';')) {
-        this.next();
-      }
-      return node('Statements', { statements: [] });
     }
     return this.statement();
   }
@@ -342,18 +341,60 @@ class Parser {
     return offset;
   }
 
-  // C's prototypes: type name ( ... ) ;
-  isPrototype() {
-    if (!this.syntax.forwardDeclarations) {
-      return false;
+  // The number of tokens that announce a function defined later, or 0:
+  // `int male(int index);` (prototype), `proc male(index: int): int`
+  // (heading) or `local male` followed later by `function male` (local).
+  announcementLength() {
+    switch (this.syntax.forwardDeclarations) {
+      case 'prototype':
+        return this.prototypeLength();
+      case 'heading':
+        return this.headingLength();
+      case 'local':
+        return this.localAnnouncementLength();
+      default:
+        return 0;
     }
+  }
+
+  prototypeLength() {
     const offset = this.prefixHeadLength();
-    return (
-      offset > 1 &&
-      this.is('(', offset) &&
-      this.peek(offset - 1).type === 'name' &&
-      this.is(';', this.afterParentheses(offset))
+    const end = offset > 1 && this.closingParenthesis(offset);
+    return end && this.peek(offset - 1).type === 'name' && this.is(';', end + 1)
+      ? end + 2
+      : 0;
+  }
+
+  // A function heading whose line ends before the body marker.
+  headingLength() {
+    if (!this.isKeywordFunctionStart()) {
+      return 0;
+    }
+    let index = 0;
+    while (!['newline', 'end'].includes(this.peek(index).type)) {
+      if (this.is(this.syntax.bodyAfter, index)) {
+        return 0;
+      }
+      index += 1;
+    }
+    return index;
+  }
+
+  localAnnouncementLength() {
+    const announced = this.peek(1);
+    if (
+      !this.is('local') ||
+      announced.type !== 'name' ||
+      !['newline', 'end'].includes(this.peek(2).type)
+    ) {
+      return 0;
+    }
+    const defined = this.tokens.some(
+      (token, index) =>
+        token.value === this.syntax.functionKeyword &&
+        this.tokens[index + 1]?.value === announced.value
     );
+    return defined ? 2 : 0;
   }
 
   // Whether the parentheses opening at offset are followed by a { block.
@@ -364,20 +405,27 @@ class Parser {
   // The offset of the first token after the parentheses opening at offset,
   // past line ends.
   afterParentheses(offset) {
-    let depth = 0;
-    let index = offset;
-    for (; this.peek(index).type !== 'end'; index += 1) {
-      const { value } = this.peek(index);
-      depth += value === '(' ? 1 : value === ')' ? -1 : 0;
-      if (depth === 0) {
-        break;
-      }
-    }
-    let after = index + 1;
+    let after = (this.closingParenthesis(offset) ?? offset) + 1;
     while (this.peek(after).type === 'newline') {
       after += 1;
     }
     return after;
+  }
+
+  // The offset of the ")" closing the parentheses opening at offset.
+  closingParenthesis(offset) {
+    if (!this.is('(', offset)) {
+      return undefined;
+    }
+    let depth = 0;
+    for (let index = offset; this.peek(index).type !== 'end'; index += 1) {
+      const { value } = this.peek(index);
+      depth += value === '(' ? 1 : value === ')' ? -1 : 0;
+      if (depth === 0) {
+        return index;
+      }
+    }
+    return undefined;
   }
 
   functionDefinition() {

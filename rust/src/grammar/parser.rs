@@ -9,7 +9,7 @@ use regex::Regex;
 
 use super::GrammarError;
 use super::interpolation::{Piece, split_interpolation};
-use super::languages::{Blocks, Syntax, Typed};
+use super::languages::{Blocks, ForwardDeclarations, Syntax, Typed};
 use super::lexer::{InterpolationStyle, Token, TokenType, decode_escapes, tokenize};
 use super::meta::{Node, add, binary, block, name, number, text};
 
@@ -332,16 +332,14 @@ impl Parser {
         if self.is_namespace_or_class() {
             return self.class_definition();
         }
+        let announcement = self.announcement_length();
+        if announcement > 0 {
+            // `int male(int index);` only announces a function defined later.
+            self.position += announcement;
+            return Ok(Node::new("Statements").with("statements", Vec::<Node>::new()));
+        }
         if self.is_function_start() {
             return self.function_definition();
-        }
-        if self.is_prototype() {
-            // `int male(int index);` only announces a function defined later.
-            while !self.is(";") {
-                self.next()?;
-            }
-            self.position += 1;
-            return Ok(Node::new("Statements").with("statements", Vec::<Node>::new()));
         }
         self.statement()
     }
@@ -413,15 +411,33 @@ impl Parser {
             && self.is_at("{", self.after_parentheses(offset))
     }
 
-    /// A prototype such as `int male(int index);`: a type, a name, parameters
-    /// and a semicolon.
-    fn is_prototype(&self) -> bool {
-        let offset = self.prefix_head_length();
-        self.syntax.forward_declarations
-            && offset > 1
-            && self.is_at("(", offset)
-            && self.kind(offset - 1) == TokenType::Name
-            && self.is_at(";", self.after_parentheses(offset))
+    /// The number of tokens that announce a function defined later, or 0:
+    /// `int male(int index);` or `local male` followed by `function male`.
+    fn announcement_length(&self) -> usize {
+        match self.syntax.forward_declarations {
+            ForwardDeclarations::None => 0,
+            ForwardDeclarations::Prototype => {
+                let offset = self.prefix_head_length();
+                let after = self.after_parentheses(offset);
+                let prototype = offset > 1
+                    && self.is_at("(", offset)
+                    && self.kind(offset - 1) == TokenType::Name
+                    && self.is_at(";", after);
+                if prototype { after + 1 } else { 0 }
+            }
+            ForwardDeclarations::Local => {
+                let announced = self.value(1);
+                let alone = self.is("local")
+                    && self.kind(1) == TokenType::Name
+                    && matches!(self.kind(2), TokenType::Newline | TokenType::End);
+                let keyword = self.syntax.function_keyword.unwrap_or("function");
+                let defined = self
+                    .tokens
+                    .windows(2)
+                    .any(|pair| pair[0].value == keyword && pair[1].value == announced);
+                if alone && defined { 2 } else { 0 }
+            }
+        }
     }
 
     /// How many tokens of a type and a name come before `(`.

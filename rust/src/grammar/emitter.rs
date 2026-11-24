@@ -5,7 +5,9 @@
 use std::collections::HashSet;
 
 use super::GrammarError;
-use super::languages::{Blocks, EntryPoint, IntegerDivision, Syntax, language_syntax};
+use super::languages::{
+    Blocks, EntryPoint, ForwardDeclarations, IntegerDivision, Syntax, language_syntax,
+};
 use super::meta::{Node, add, block, format_number, later_calls, number, text};
 
 /// Binding strength of a meta operator; unknown operators have none, which
@@ -113,6 +115,8 @@ struct Emitter {
     lines: Vec<String>,
     depth: usize,
     uses: HashSet<&'static str>,
+    /// Functions announced before the definitions, as Lua's `local male`.
+    announced: HashSet<String>,
 }
 
 fn field<'a>(node: &'a Node, key: &str) -> Result<&'a Node> {
@@ -129,6 +133,7 @@ impl Emitter {
             lines: Vec::new(),
             depth: 0,
             uses: HashSet::new(),
+            announced: HashSet::new(),
         }
     }
 
@@ -1061,7 +1066,16 @@ impl Emitter {
         for text in item.texts("comments") {
             self.comment(&text);
         }
-        let signature = self.signature(item);
+        let mut signature = self.signature(item);
+        // Lua defines a function it declared ahead without `local`, which
+        // would declare a second variable.
+        if self.syntax.forward_declarations == ForwardDeclarations::Local
+            && self
+                .announced
+                .contains(item.str("name").unwrap_or_default())
+        {
+            signature = signature.trim_start_matches("local ").to_owned();
+        }
         self.open_block(&signature);
         // Perl receives its arguments in @_.
         let parameters = item.nodes("parameters");
@@ -1103,11 +1117,16 @@ impl Emitter {
             });
             self.open_block(container);
         }
-        if self.syntax.forward_declarations {
+        if self.syntax.forward_declarations != ForwardDeclarations::None {
             let announced = later_calls(&program.node_list("functions"));
             for item in &announced {
-                let prototype = format!("{};", self.signature(item));
-                self.line(&prototype);
+                let name = item.str("name").unwrap_or_default().to_owned();
+                let announcement = match self.syntax.forward_declarations {
+                    ForwardDeclarations::Local => format!("local {name}"),
+                    _ => format!("{};", self.signature(item)),
+                };
+                self.line(&announcement);
+                self.announced.insert(name);
             }
             if !announced.is_empty() {
                 self.line("");
