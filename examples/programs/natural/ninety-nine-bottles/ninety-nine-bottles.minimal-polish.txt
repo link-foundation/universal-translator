@@ -1,0 +1,7 @@
+Uwaga: 99 bottles of beer in JavaScript
+
+Jest butelki, to jest 99.
+Kiedy butelki jest więcej niż 0, robić to wiele razy:
+  Powiedzieć butelki potem „ bottles of beer on the wall, ” potem butelki potem „ bottles of beer.” w jednej linii.
+  Powiedzieć „Take one down and pass it around, ” potem butelki minus 1 potem „ bottles of beer on the wall.” w jednej linii.
+  Po tym butelki jest butelki minus 1.

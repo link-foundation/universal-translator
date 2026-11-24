@@ -1,0 +1,13 @@
+Catatan: Fibonacci sequence in JavaScript, computed iteratively
+
+Definisikan fibonacci dengan hitungan:
+  Buat sebelumnya dengan nilai 0.
+  Buat sekarang dengan nilai 1.
+  Untuk setiap langkah dari 0 sampai hitungan dikurangi 1, ulangi ini:
+    Buat berikutnya dengan nilai sebelumnya ditambah sekarang.
+    Ubah sebelumnya menjadi sekarang.
+    Ubah sekarang menjadi berikutnya.
+  Kembalikan sebelumnya.
+
+Untuk setiap indeks dari 0 sampai 20, ulangi ini:
+  Tulis “fibonacci(” diikuti indeks diikuti “) = ” diikuti fibonacci dari (indeks) dan akhiri baris.

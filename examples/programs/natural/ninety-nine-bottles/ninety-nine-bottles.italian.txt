@@ -1,0 +1,7 @@
+Nota: 99 bottles of beer in JavaScript
+
+Crea bottiglie con valore 99.
+Finché bottiglie è maggiore di 0, ripeti questo:
+  Scrivi bottiglie seguito da « bottles of beer on the wall, » seguito da bottiglie seguito da « bottles of beer.» e termina la riga.
+  Scrivi «Take one down and pass it around, » seguito da bottiglie meno 1 seguito da « bottles of beer on the wall.» e termina la riga.
+  Cambia bottiglie in bottiglie meno 1.

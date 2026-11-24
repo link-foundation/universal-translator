@@ -1,0 +1,13 @@
+Uwaga: Sum of squares in JavaScript
+
+Tak ktoś robi suma-z-kwadraty z limit:
+  Jest razem, to jest 0.
+  Jest liczba, to jest 1.
+  Kiedy liczba nie jest więcej niż limit, robić to wiele razy:
+    Po tym razem jest razem plus liczba razy liczba.
+    Po tym liczba jest liczba plus 1.
+  Odpowiedzią jest razem.
+
+Jest limit, to jest 10.
+Powiedzieć „Sum of squares from 1 to ” potem limit potem „:” w jednej linii.
+Powiedzieć suma-z-kwadraty dla (limit) w jednej linii.

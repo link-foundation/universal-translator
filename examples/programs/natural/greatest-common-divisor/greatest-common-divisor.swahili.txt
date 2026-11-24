@@ -1,0 +1,10 @@
+Kumbuka: Greatest common divisor in JavaScript, using the Euclidean algorithm
+
+Fafanua kubwa-pamoja-kigawanyo kwa kwanza na pili:
+  Wakati pili si sawa na 0, rudia hivi:
+    Unda baki yenye thamani kwanza modulo pili.
+    Badilisha kwanza kuwa pili.
+    Badilisha pili kuwa baki.
+  Rudisha kwanza.
+
+Andika “The greatest common divisor of 1071 and 462 is ” ikifuatiwa na kubwa-pamoja-kigawanyo ya (1071, 462) na umalize mstari.

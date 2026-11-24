@@ -1,0 +1,13 @@
+Note: Sum of squares in JavaScript
+
+Here is how to find sum-of-squares from limit:
+  Start total at 0.
+  Start number at 1.
+  While number is not more than limit, do this again:
+    Change total to total plus number times number.
+    Change number to number plus 1.
+  Return total.
+
+Start limit at 10.
+Show “Sum of squares from 1 to ” then limit then “:” on a line.
+Show sum-of-squares of (limit) on a line.

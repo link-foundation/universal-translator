@@ -1,0 +1,10 @@
+Uwaga: Greatest common divisor in JavaScript, using the Euclidean algorithm
+
+Tak ktoś robi największy-wspólny-dzielnik z pierwszy i drugi:
+  Kiedy drugi nie jest tym samym co 0, robić to wiele razy:
+    Jest reszta, to jest pierwszy modulo drugi.
+    Po tym pierwszy jest drugi.
+    Po tym drugi jest reszta.
+  Odpowiedzią jest pierwszy.
+
+Powiedzieć „The greatest common divisor of 1071 and 462 is ” potem największy-wspólny-dzielnik dla (1071, 462) w jednej linii.

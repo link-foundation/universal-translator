@@ -1,0 +1,9 @@
+Hinweis: Factorial in JavaScript, defined recursively
+
+Definiere Fakultät mit Zahl:
+  Wenn Zahl ist höchstens 1, tue dies:
+    Gib 1 zurück.
+  Gib Zahl mal Fakultät von (Zahl minus 1) zurück.
+
+Für jedes Zahl von 0 bis 10 wiederhole dies:
+  Schreibe Zahl gefolgt von „! = “ gefolgt von Fakultät von (Zahl) und beende die Zeile.

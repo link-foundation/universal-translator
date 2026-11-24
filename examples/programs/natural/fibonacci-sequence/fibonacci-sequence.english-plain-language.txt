@@ -1,0 +1,13 @@
+Note: Fibonacci sequence in JavaScript, computed iteratively
+
+Here is how to work out fibonacci from count:
+  Let previous start as 0.
+  Let current start as 1.
+  For each step from 0 to count minus 1, do this:
+    Let next start as previous plus current.
+    Set previous to current.
+    Set current to next.
+  The answer is previous.
+
+For each index from 0 to 20, do this:
+  Show “fibonacci(” then index then “) = ” then fibonacci of (index) on its own line.

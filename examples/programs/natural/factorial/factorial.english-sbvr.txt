@@ -1,0 +1,9 @@
+Note: Factorial in JavaScript, defined recursively
+
+Rule factorial with number is defined as follows:
+  If number is at most 1 then the following applies:
+    It is obligatory that the result is 1.
+  It is obligatory that the result is number times factorial of (number minus 1).
+
+For each number from 0 to 10 the following applies:
+  It is obligatory that the output shows number followed by “! = ” followed by factorial of (number) as a line.

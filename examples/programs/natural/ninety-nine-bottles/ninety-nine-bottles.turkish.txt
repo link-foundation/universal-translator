@@ -1,0 +1,7 @@
+Not: 99 bottles of beer in JavaScript
+
+Şişeler değişkenini 99 değeriyle oluştur.
+Şişeler 0 değerinden büyük olduğu sürece şunu tekrarla:
+  Şişeler ardından “ bottles of beer on the wall, ” ardından şişeler ardından “ bottles of beer.” yaz ve satırı bitir.
+  “Take one down and pass it around, ” ardından şişeler eksi 1 ardından “ bottles of beer on the wall.” yaz ve satırı bitir.
+  Şişeler değerini şişeler eksi 1 yap.

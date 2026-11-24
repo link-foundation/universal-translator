@@ -1,0 +1,14 @@
+Catatan: Hailstone sequence in JavaScript: count the steps to reach 1
+
+Definisikan hujanes-tahapan dengan bilangan:
+  Buat tahapan dengan nilai 0.
+  Selama bilangan tidak sama dengan 1, ulangi ini:
+    Jika bilangan modulo 2 sama dengan 0, lakukan ini:
+      Ubah bilangan menjadi bilangan dibagi 2.
+    Selain itu, lakukan ini:
+      Ubah bilangan menjadi 3 dikali bilangan ditambah 1.
+    Ubah tahapan menjadi tahapan ditambah 1.
+  Kembalikan tahapan.
+
+Untuk setiap bilangan dari 1 sampai 10, ulangi ini:
+  Tulis bilangan diikuti “ takes ” diikuti hujanes-tahapan dari (bilangan) diikuti “ steps” dan akhiri baris.

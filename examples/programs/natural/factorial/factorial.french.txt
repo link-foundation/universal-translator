@@ -1,0 +1,9 @@
+Remarque : Factorial in JavaScript, defined recursively
+
+Définir factorielle avec nombre:
+  Si nombre est au plus 1, faire ceci:
+    Renvoyer 1.
+  Renvoyer nombre fois factorielle de (nombre moins 1).
+
+Pour chaque nombre de 0 à 10, répéter ceci:
+  Écrire nombre suivi de «! = » suivi de factorielle de (nombre) et finir la ligne.

@@ -1,0 +1,10 @@
+Uwaga: Leap year in JavaScript
+
+Tak ktoś robi czy-przestępny-rok z rok:
+  Odpowiedzią jest rok modulo 4 jest tym samym co 0 i rok modulo 100 nie jest tym samym co 0 lub rok modulo 400 jest tym samym co 0.
+
+Dla wszystkich rok od 1896 do 1912, zrobić to:
+  Jeżeli czy-przestępny-rok dla (rok), zrobić to:
+    Powiedzieć rok potem „ is a leap year” w jednej linii.
+  Jeżeli nie, zrobić to:
+    Powiedzieć rok potem „ is not a leap year” w jednej linii.

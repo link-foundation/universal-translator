@@ -1,0 +1,10 @@
+Tala: Sum digits of an integer in JavaScript
+
+Tukuyin ang kabuuan-ng-digito gamit ang numero:
+  Lumikha ng lahat na may halagang 0.
+  Habang numero ay mas mataas sa 0, ulitin ito:
+    Palitan ang lahat ng lahat dagdag numero modulo 10.
+    Palitan ang numero ng numero hinati sa 10.
+  Ibalik ang lahat.
+
+Isulat ang “The digits of 1234567890 sum to ” na sinusundan ng kabuuan-ng-digito ng (1234567890) at tapusin ang linya.

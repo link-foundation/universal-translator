@@ -1,0 +1,14 @@
+Uwaga: Hailstone sequence in JavaScript: count the steps to reach 1
+
+Tak ktoś robi grad-kroki z liczba:
+  Jest kroki, to jest 0.
+  Kiedy liczba nie jest tym samym co 1, robić to wiele razy:
+    Jeżeli liczba modulo 2 jest tym samym co 0, zrobić to:
+      Po tym liczba jest liczba podzielone przez 2.
+    Jeżeli nie, zrobić to:
+      Po tym liczba jest 3 razy liczba plus 1.
+    Po tym kroki jest kroki plus 1.
+  Odpowiedzią jest kroki.
+
+Dla wszystkich liczba od 1 do 10, zrobić to:
+  Powiedzieć liczba potem „ takes ” potem grad-kroki dla (liczba) potem „ steps” w jednej linii.

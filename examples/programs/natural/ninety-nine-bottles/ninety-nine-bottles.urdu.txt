@@ -1,0 +1,7 @@
+نوٹ: 99 bottles of beer in JavaScript
+
+بوتلیں کو قدر 99 کے ساتھ بنائیں۔
+جب تک بوتلیں کی قدر 0 سے زیادہ ہے تب تک یہ دہرائیں:
+  بوتلیں کے بعد “ bottles of beer on the wall, ” کے بعد بوتلیں کے بعد “ bottles of beer.” لکھیں اور سطر ختم کریں۔
+  “Take one down and pass it around, ” کے بعد بوتلیں تفریق 1 کے بعد “ bottles of beer on the wall.” لکھیں اور سطر ختم کریں۔
+  بوتلیں کو بوتلیں تفریق 1 میں بدلیں۔

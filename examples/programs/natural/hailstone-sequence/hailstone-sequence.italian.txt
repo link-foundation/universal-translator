@@ -1,0 +1,14 @@
+Nota: Hailstone sequence in JavaScript: count the steps to reach 1
+
+Definisci grandine-passi usando numero:
+  Crea passi con valore 0.
+  Finché numero è diverso da 1, ripeti questo:
+    Se numero modulo 2 è uguale a 0, fai questo:
+      Cambia numero in numero diviso 2.
+    Altrimenti, fai questo:
+      Cambia numero in 3 per numero più 1.
+    Cambia passi in passi più 1.
+  Restituisci passi.
+
+Per ogni numero da 1 a 10, ripeti questo:
+  Scrivi numero seguito da « takes » seguito da grandine-passi di (numero) seguito da « steps» e termina la riga.

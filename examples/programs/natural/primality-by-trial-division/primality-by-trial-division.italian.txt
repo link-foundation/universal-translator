@@ -1,0 +1,15 @@
+Nota: Primality by trial division in JavaScript
+
+Definisci è-primo usando numero:
+  Se numero è minore di 2, fai questo:
+    Restituisci falso.
+  Crea divisore con valore 2.
+  Finché divisore per divisore è al massimo numero, ripeti questo:
+    Se numero modulo divisore è uguale a 0, fai questo:
+      Restituisci falso.
+    Cambia divisore in divisore più 1.
+  Restituisci vero.
+
+Per ogni numero da 1 a 50, ripeti questo:
+  Se è-primo di (numero), fai questo:
+    Scrivi numero e termina la riga.

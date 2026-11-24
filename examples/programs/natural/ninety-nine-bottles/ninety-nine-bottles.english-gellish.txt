@@ -1,0 +1,7 @@
+Note: 99 bottles of beer in JavaScript
+
+Bottles is classified as a variable with initial value 99.
+While bottles is greater than 0 the following is repeated:
+  The output has as next line bottles concatenated with “ bottles of beer on the wall, ” concatenated with bottles concatenated with “ bottles of beer.”.
+  The output has as next line “Take one down and pass it around, ” concatenated with bottles minus 1 concatenated with “ bottles of beer on the wall.”.
+  Bottles has as new value bottles minus 1.

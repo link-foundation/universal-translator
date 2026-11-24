@@ -1,0 +1,15 @@
+Opmerking: Primality by trial division in JavaScript
+
+Definieer is-priem met getal:
+  Als getal is kleiner dan 2, doe dit:
+    Geef onwaar terug.
+  Maak deler met waarde 2.
+  Zolang deler maal deler is hoogstens getal, herhaal dit:
+    Als getal modulo deler is gelijk aan 0, doe dit:
+      Geef onwaar terug.
+    Verander deler in deler plus 1.
+  Geef waar terug.
+
+Voor elke getal van 1 tot en met 50, herhaal dit:
+  Als is-priem van (getal), doe dit:
+    Schrijf getal en beëindig de regel.

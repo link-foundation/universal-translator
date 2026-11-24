@@ -1,0 +1,7 @@
+참고: 99 bottles of beer in JavaScript
+
+병 을 값 99 로 만든다.
+병 이 0 보다 큼 인 동안 다음을 반복한다:
+  병 뒤에 “ bottles of beer on the wall, ” 뒤에 병 뒤에 “ bottles of beer.” 을 쓰고 줄을 바꾼다.
+  “Take one down and pass it around, ” 뒤에 병 빼기 1 뒤에 “ bottles of beer on the wall.” 을 쓰고 줄을 바꾼다.
+  병 을 병 빼기 1 로 바꾼다.

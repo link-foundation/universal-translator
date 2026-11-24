@@ -1,0 +1,9 @@
+Note: Factorial in JavaScript, defined recursively
+
+The procedure factorial takes number:
+  If number is less than or equal to 1 then the program does the following:
+    The procedure returns 1.
+  The procedure returns number times factorial of (number minus 1).
+
+For every number from 0 to 10 the program does the following:
+  The program writes a line that contains number followed by “! = ” followed by factorial of (number).

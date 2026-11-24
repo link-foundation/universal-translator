@@ -1,0 +1,10 @@
+Note: Greatest common divisor in JavaScript, using the Euclidean algorithm
+
+The procedure greatest-common-divisor takes first and second:
+  While second is not equal to 0 the program repeats the following:
+    There is a variable remainder whose value is first modulo second.
+    The value of first becomes second.
+    The value of second becomes remainder.
+  The procedure returns first.
+
+The program writes a line that contains “The greatest common divisor of 1071 and 462 is ” followed by greatest-common-divisor of (1071, 462).

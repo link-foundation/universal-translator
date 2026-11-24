@@ -1,0 +1,10 @@
+Opmerking: Towers of Hanoi in JavaScript, solved recursively
+
+Verplaats-schijven is gedefinieerd als een procedure met invoer aantal, bron, doel en reserve:
+  Als aantal is gelijk aan 0 dan wordt het volgende uitgevoerd:
+    De procedure is beëindigd.
+  De actie verplaats-schijven toegepast op (aantal min 1, bron, reserve, doel) wordt uitgevoerd.
+  De uitvoer heeft als volgende regel “Move disk ” samengevoegd met aantal samengevoegd met “ from ” samengevoegd met bron samengevoegd met “ to ” samengevoegd met doel.
+  De actie verplaats-schijven toegepast op (aantal min 1, reserve, doel, bron) wordt uitgevoerd.
+
+De actie verplaats-schijven toegepast op (4, 1, 3, 2) wordt uitgevoerd.

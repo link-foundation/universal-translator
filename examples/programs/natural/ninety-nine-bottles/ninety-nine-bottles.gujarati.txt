@@ -1,0 +1,7 @@
+નોંધ: 99 bottles of beer in JavaScript
+
+બોટલો ને કિંમત 99 સાથે બનાવો.
+જ્યાં સુધી બોટલો નું મૂલ્ય 0 કરતાં વધુ છે ત્યાં સુધી આ ફરી કરો:
+  બોટલો પછી “ bottles of beer on the wall, ” પછી બોટલો પછી “ bottles of beer.” લખો અને લીટી પૂરી કરો.
+  “Take one down and pass it around, ” પછી બોટલો ઓછા 1 પછી “ bottles of beer on the wall.” લખો અને લીટી પૂરી કરો.
+  બોટલો ને બોટલો ઓછા 1 માં બદલો.

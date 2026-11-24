@@ -1,0 +1,10 @@
+Ghi chú: Sum digits of an integer in JavaScript
+
+Định nghĩa tổng-của-chữ_số với số_:
+  Tạo tổng_cộng với giá trị 0.
+  Trong khi số_ lớn hơn 0, lặp lại điều này:
+    Đổi tổng_cộng thành tổng_cộng cộng số_ chia lấy dư 10.
+    Đổi số_ thành số_ chia 10.
+  Trả về tổng_cộng.
+
+Viết “The digits of 1234567890 sum to ” nối với tổng-của-chữ_số của (1234567890) và xuống dòng.

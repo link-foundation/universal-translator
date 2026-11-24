@@ -1,0 +1,13 @@
+Lura: Fibonacci sequence in JavaScript, computed iteratively
+
+Ayyana fibonacci da ƙidaya:
+  Ƙirƙiri baya mai ƙima 0.
+  Ƙirƙiri yanzu mai ƙima 1.
+  Ga kowane mataki daga 0 zuwa ƙidaya ragi 1, maimaita wannan:
+    Ƙirƙiri gaba mai ƙima baya ƙari yanzu.
+    Canza baya zuwa yanzu.
+    Canza yanzu zuwa gaba.
+  Mayar da baya.
+
+Ga kowane fihirisa daga 0 zuwa 20, maimaita wannan:
+  Rubuta “fibonacci(” sannan fihirisa sannan “) = ” sannan fibonacci na (fihirisa) kuma ka gama layi.

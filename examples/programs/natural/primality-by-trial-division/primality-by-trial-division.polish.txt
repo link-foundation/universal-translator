@@ -1,0 +1,15 @@
+Uwaga: Primality by trial division in JavaScript
+
+Zdefiniuj czy-pierwsza używając liczba:
+  Jeśli liczba jest mniejsze od 2, zrób to:
+    Zwróć fałsz.
+  Utwórz dzielnik z wartością 2.
+  Dopóki dzielnik razy dzielnik nie przekracza liczba, powtarzaj to:
+    Jeśli liczba modulo dzielnik równa się 0, zrób to:
+      Zwróć fałsz.
+    Zmień dzielnik na dzielnik plus 1.
+  Zwróć prawda.
+
+Dla każdego liczba od 1 do 50 powtarzaj to:
+  Jeśli czy-pierwsza dla (liczba), zrób to:
+    Wypisz liczba i zakończ wiersz.

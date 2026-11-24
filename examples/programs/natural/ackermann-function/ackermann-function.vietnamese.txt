@@ -1,0 +1,12 @@
+Ghi chú: Ackermann function in JavaScript, defined recursively
+
+Định nghĩa ackermann với thứ_nhất và thứ_hai:
+  Nếu thứ_nhất bằng 0, làm điều này:
+    Trả về thứ_hai cộng 1.
+  Nếu thứ_hai bằng 0, làm điều này:
+    Trả về ackermann của (thứ_nhất trừ 1, 1).
+  Trả về ackermann của (thứ_nhất trừ 1, ackermann của (thứ_nhất, thứ_hai trừ 1)).
+
+Với mỗi thứ_nhất từ 0 đến 3, lặp lại điều này:
+  Với mỗi thứ_hai từ 0 đến 4, lặp lại điều này:
+    Viết “ackermann(” nối với thứ_nhất nối với “, ” nối với thứ_hai nối với “) = ” nối với ackermann của (thứ_nhất, thứ_hai) và xuống dòng.

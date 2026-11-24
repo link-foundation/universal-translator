@@ -1,0 +1,13 @@
+Remarque : Sum of squares in JavaScript
+
+Définir somme-de-carrés avec limite:
+  Créer total avec la valeur 0.
+  Créer nombre avec la valeur 1.
+  Tant que nombre est au plus limite, répéter ceci:
+    Changer total en total plus nombre fois nombre.
+    Changer nombre en nombre plus 1.
+  Renvoyer total.
+
+Créer limite avec la valeur 10.
+Écrire «Sum of squares from 1 to » suivi de limite suivi de «:» et finir la ligne.
+Écrire somme-de-carrés de (limite) et finir la ligne.

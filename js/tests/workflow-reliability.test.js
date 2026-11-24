@@ -540,6 +540,8 @@ describe('translation checks', () => {
     const workflow = readWorkflow('.github/workflows/release.yml');
     expectOrdered(getJobBlock(workflow, 'translation'), [
       'node examples/programs/write-translations.mjs --check',
+      'node scripts/build-natural-sources.mjs --check',
+      'node examples/programs/write-natural.mjs --check',
       'cargo test --locked',
       'bash experiments/verify-syntax-exchange.sh',
     ]);

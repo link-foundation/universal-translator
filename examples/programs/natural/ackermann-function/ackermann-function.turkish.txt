@@ -1,0 +1,12 @@
+Not: Ackermann function in JavaScript, defined recursively
+
+Ackermann işlevini birinci ve ikinci ile tanımla:
+  Eğer birinci ile 0 eşit ise şunu yap:
+    Ikinci artı 1 döndür.
+  Eğer ikinci ile 0 eşit ise şunu yap:
+    Ackermann (birinci eksi 1, 1) döndür.
+  Ackermann (birinci eksi 1, ackermann (birinci, ikinci eksi 1)) döndür.
+
+Her birinci için 0 ile 3 arasında şunu tekrarla:
+  Her ikinci için 0 ile 4 arasında şunu tekrarla:
+    “ackermann(” ardından birinci ardından “, ” ardından ikinci ardından “) = ” ardından ackermann (birinci, ikinci) yaz ve satırı bitir.

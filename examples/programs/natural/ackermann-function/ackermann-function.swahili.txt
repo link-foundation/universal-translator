@@ -1,0 +1,12 @@
+Kumbuka: Ackermann function in JavaScript, defined recursively
+
+Fafanua ackermann kwa kwanza na pili:
+  Ikiwa kwanza ni sawa na 0, fanya hivi:
+    Rudisha pili jumlisha 1.
+  Ikiwa pili ni sawa na 0, fanya hivi:
+    Rudisha ackermann ya (kwanza toa 1, 1).
+  Rudisha ackermann ya (kwanza toa 1, ackermann ya (kwanza, pili toa 1)).
+
+Kwa kila kwanza kutoka 0 hadi 3, rudia hivi:
+  Kwa kila pili kutoka 0 hadi 4, rudia hivi:
+    Andika “ackermann(” ikifuatiwa na kwanza ikifuatiwa na “, ” ikifuatiwa na pili ikifuatiwa na “) = ” ikifuatiwa na ackermann ya (kwanza, pili) na umalize mstari.

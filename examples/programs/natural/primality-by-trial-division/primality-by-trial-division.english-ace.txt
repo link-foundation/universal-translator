@@ -1,0 +1,15 @@
+Note: Primality by trial division in JavaScript
+
+The procedure is-prime takes number:
+  If number is less than 2 then the program does the following:
+    The procedure returns false.
+  There is a variable divisor whose value is 2.
+  While divisor times divisor is less than or equal to number the program repeats the following:
+    If number modulo divisor is equal to 0 then the program does the following:
+      The procedure returns false.
+    The value of divisor becomes divisor plus 1.
+  The procedure returns true.
+
+For every number from 1 to 50 the program does the following:
+  If is-prime of (number) then the program does the following:
+    The program writes a line that contains number.

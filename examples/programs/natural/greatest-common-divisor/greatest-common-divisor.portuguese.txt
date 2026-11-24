@@ -1,0 +1,10 @@
+Nota: Greatest common divisor in JavaScript, using the Euclidean algorithm
+
+Definir maior-comum-divisor usando primeiro e segundo:
+  Enquanto segundo é diferente de 0, repetir isto:
+    Criar resto com valor primeiro módulo segundo.
+    Mudar primeiro para segundo.
+    Mudar segundo para resto.
+  Devolver primeiro.
+
+Escrever “The greatest common divisor of 1071 and 462 is ” seguido de maior-comum-divisor de (1071, 462) e terminar a linha.

@@ -1,0 +1,7 @@
+ਨੋਟ: 99 bottles of beer in JavaScript
+
+ਬੋਤਲਾਂ ਨੂੰ ਮੁੱਲ 99 ਨਾਲ ਬਣਾਓ।
+ਜਦੋਂ ਤੱਕ ਬੋਤਲਾਂ ਦਾ ਮੁੱਲ 0 ਤੋਂ ਵੱਧ ਹੈ ਤਦ ਤੱਕ ਇਹ ਦੁਹਰਾਓ:
+  ਬੋਤਲਾਂ ਤੋਂ ਬਾਅਦ “ bottles of beer on the wall, ” ਤੋਂ ਬਾਅਦ ਬੋਤਲਾਂ ਤੋਂ ਬਾਅਦ “ bottles of beer.” ਲਿਖੋ ਅਤੇ ਸਤਰ ਖਤਮ ਕਰੋ।
+  “Take one down and pass it around, ” ਤੋਂ ਬਾਅਦ ਬੋਤਲਾਂ ਘਟਾਓ 1 ਤੋਂ ਬਾਅਦ “ bottles of beer on the wall.” ਲਿਖੋ ਅਤੇ ਸਤਰ ਖਤਮ ਕਰੋ।
+  ਬੋਤਲਾਂ ਨੂੰ ਬੋਤਲਾਂ ਘਟਾਓ 1 ਵਿੱਚ ਬਦਲੋ।

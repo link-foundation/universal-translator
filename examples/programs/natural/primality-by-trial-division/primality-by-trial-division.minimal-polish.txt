@@ -1,0 +1,15 @@
+Uwaga: Primality by trial division in JavaScript
+
+Tak ktoś robi czy-pierwsza z liczba:
+  Jeżeli liczba jest mniej niż 2, zrobić to:
+    Odpowiedzią jest nieprawda.
+  Jest dzielnik, to jest 2.
+  Kiedy dzielnik razy dzielnik nie jest więcej niż liczba, robić to wiele razy:
+    Jeżeli liczba modulo dzielnik jest tym samym co 0, zrobić to:
+      Odpowiedzią jest nieprawda.
+    Po tym dzielnik jest dzielnik plus 1.
+  Odpowiedzią jest prawda.
+
+Dla wszystkich liczba od 1 do 50, zrobić to:
+  Jeżeli czy-pierwsza dla (liczba), zrobić to:
+    Powiedzieć liczba w jednej linii.

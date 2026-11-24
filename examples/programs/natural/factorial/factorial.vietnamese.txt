@@ -1,0 +1,9 @@
+Ghi chú: Factorial in JavaScript, defined recursively
+
+Định nghĩa giai_thừa với số_:
+  Nếu số_ không lớn hơn 1, làm điều này:
+    Trả về 1.
+  Trả về số_ nhân giai_thừa của (số_ trừ 1).
+
+Với mỗi số_ từ 0 đến 10, lặp lại điều này:
+  Viết số_ nối với “! = ” nối với giai_thừa của (số_) và xuống dòng.

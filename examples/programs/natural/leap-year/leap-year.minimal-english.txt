@@ -1,0 +1,10 @@
+Note: Leap year in JavaScript
+
+This is how someone does is-leap-year with year:
+  The answer is year modulo 4 is the same as 0 and year modulo 100 is not the same as 0 or year modulo 400 is the same as 0.
+
+For all year from 1896 to 1912, do this:
+  If is-leap-year of (year), do this:
+    Say year then “ is a leap year” on one line.
+  If not, do this:
+    Say year then “ is not a leap year” on one line.

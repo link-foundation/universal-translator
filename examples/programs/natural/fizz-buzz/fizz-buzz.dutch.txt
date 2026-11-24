@@ -1,0 +1,11 @@
+Opmerking: FizzBuzz in JavaScript
+
+Voor elke getal van 1 tot en met 100, herhaal dit:
+  Als getal modulo 15 is gelijk aan 0, doe dit:
+    Schrijf “FizzBuzz” en beëindig de regel.
+  Anders, als getal modulo 3 is gelijk aan 0, doe dit:
+    Schrijf “Fizz” en beëindig de regel.
+  Anders, als getal modulo 5 is gelijk aan 0, doe dit:
+    Schrijf “Buzz” en beëindig de regel.
+  Anders, doe dit:
+    Schrijf getal en beëindig de regel.

@@ -1,0 +1,13 @@
+Uwaga: Sum of squares in JavaScript
+
+Zdefiniuj suma-z-kwadraty używając limit:
+  Utwórz razem z wartością 0.
+  Utwórz liczba z wartością 1.
+  Dopóki liczba nie przekracza limit, powtarzaj to:
+    Zmień razem na razem plus liczba razy liczba.
+    Zmień liczba na liczba plus 1.
+  Zwróć razem.
+
+Utwórz limit z wartością 10.
+Wypisz „Sum of squares from 1 to ” a następnie limit a następnie „:” i zakończ wiersz.
+Wypisz suma-z-kwadraty dla (limit) i zakończ wiersz.

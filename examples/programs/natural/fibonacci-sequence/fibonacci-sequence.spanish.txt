@@ -1,0 +1,13 @@
+Nota: Fibonacci sequence in JavaScript, computed iteratively
+
+Definir fibonacci usando cantidad:
+  Crear anterior con valor 0.
+  Crear actual con valor 1.
+  Para cada paso desde 0 hasta cantidad menos 1, repetir esto:
+    Crear siguiente con valor anterior más actual.
+    Cambiar anterior a actual.
+    Cambiar actual a siguiente.
+  Devolver anterior.
+
+Para cada índice desde 0 hasta 20, repetir esto:
+  Escribir «fibonacci(» seguido de índice seguido de «) = » seguido de fibonacci de (índice) y terminar la línea.

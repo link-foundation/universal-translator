@@ -1,0 +1,7 @@
+ملاحظة: 99 bottles of beer in JavaScript
+
+أنشئ زجاجات بالقيمة 99.
+طالما زجاجات أكبر من 0 فكرر هذا:
+  اكتب زجاجات يليه « bottles of beer on the wall, » يليه زجاجات يليه « bottles of beer.» ثم أنه السطر.
+  اكتب «Take one down and pass it around, » يليه زجاجات ناقص 1 يليه « bottles of beer on the wall.» ثم أنه السطر.
+  غيّر زجاجات إلى زجاجات ناقص 1.

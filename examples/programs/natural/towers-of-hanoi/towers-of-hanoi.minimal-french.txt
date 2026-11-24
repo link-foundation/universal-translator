@@ -1,0 +1,10 @@
+Remarque : Towers of Hanoi in JavaScript, solved recursively
+
+Voici comment quelqu’un fait déplacer-disques avec compte, source, cible et auxiliaire:
+  Si compte est le même que 0, faire ceci:
+    Arrêter ici.
+  Faire déplacer-disques de (compte moins 1, source, auxiliaire, cible).
+  Dire «Move disk » puis compte puis « from » puis source puis « to » puis cible sur une ligne.
+  Faire déplacer-disques de (compte moins 1, auxiliaire, cible, source).
+
+Faire déplacer-disques de (4, 1, 3, 2).

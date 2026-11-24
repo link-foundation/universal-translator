@@ -1,0 +1,10 @@
+Opmerking: Leap year in JavaScript
+
+Is-schrikkel-jaar is gedefinieerd als een procedure met invoer jaar:
+  De procedure heeft als resultaat jaar modulo 4 is gelijk aan 0 en jaar modulo 100 is ongelijk aan 0 of jaar modulo 400 is gelijk aan 0.
+
+Voor elke jaar van 1896 tot en met 1912 wordt het volgende herhaald:
+  Als is-schrikkel-jaar toegepast op (jaar) dan wordt het volgende uitgevoerd:
+    De uitvoer heeft als volgende regel jaar samengevoegd met “ is a leap year”.
+  Anders wordt het volgende uitgevoerd:
+    De uitvoer heeft als volgende regel jaar samengevoegd met “ is not a leap year”.

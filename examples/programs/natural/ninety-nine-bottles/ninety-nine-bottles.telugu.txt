@@ -1,0 +1,7 @@
+గమనిక: 99 bottles of beer in JavaScript
+
+సీసాలు ను విలువ 99 తో సృష్టించు.
+సీసాలు విలువ 0 కంటే ఎక్కువ ఉన్నంత వరకు ఇది పునరావృతం చేయి:
+  సీసాలు తర్వాత “ bottles of beer on the wall, ” తర్వాత సీసాలు తర్వాత “ bottles of beer.” రాసి పంక్తి ముగించు.
+  “Take one down and pass it around, ” తర్వాత సీసాలు తీసివేత 1 తర్వాత “ bottles of beer on the wall.” రాసి పంక్తి ముగించు.
+  సీసాలు ను సీసాలు తీసివేత 1 గా మార్చు.

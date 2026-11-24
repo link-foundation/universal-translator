@@ -1,0 +1,10 @@
+Lura: Leap year in JavaScript
+
+Ayyana shin-tsalle-shekara da shekara:
+  Mayar da shekara modulo 4 daidai yake da 0 kuma shekara modulo 100 bai yi daidai da 0 ko shekara modulo 400 daidai yake da 0.
+
+Ga kowane shekara daga 1896 zuwa 1912, maimaita wannan:
+  Idan shin-tsalle-shekara na (shekara), yi wannan:
+    Rubuta shekara sannan “ is a leap year” kuma ka gama layi.
+  In ba haka ba, yi wannan:
+    Rubuta shekara sannan “ is not a leap year” kuma ka gama layi.

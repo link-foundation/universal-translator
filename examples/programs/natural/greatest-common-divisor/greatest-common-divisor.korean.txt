@@ -1,0 +1,10 @@
+참고: Greatest common divisor in JavaScript, using the Euclidean algorithm
+
+최대-공통-약수 을 첫째 및 둘째 로 정의한다:
+  둘째 이 0 과 다름 인 동안 다음을 반복한다:
+    나머지 을 값 첫째 모듈로 둘째 로 만든다.
+    첫째 을 둘째 로 바꾼다.
+    둘째 을 나머지 로 바꾼다.
+  첫째 을 돌려준다.
+
+“The greatest common divisor of 1071 and 462 is ” 뒤에 최대-공통-약수 (1071, 462) 을 쓰고 줄을 바꾼다.

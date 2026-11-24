@@ -1,0 +1,9 @@
+Note: Factorial in JavaScript, defined recursively
+
+Make factorial from number by these steps:
+  If number is not over 1, do this:
+    Give back 1.
+  Give back number times factorial of (number minus 1).
+
+For every number from 0 till 10, do this:
+  Say number then “! = ” then factorial of (number) and end the line.

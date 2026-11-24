@@ -1,0 +1,10 @@
+Note: Towers of Hanoi in JavaScript, solved recursively
+
+Rule move-disks with count, source, target and spare is defined as follows:
+  If count is equal to 0 then the following applies:
+    It is obligatory that the rule ends.
+  It is obligatory that move-disks of (count minus 1, source, spare, target) is performed.
+  It is obligatory that the output shows “Move disk ” followed by count followed by “ from ” followed by source followed by “ to ” followed by target as a line.
+  It is obligatory that move-disks of (count minus 1, spare, target, source) is performed.
+
+It is obligatory that move-disks of (4, 1, 3, 2) is performed.

@@ -1,0 +1,7 @@
+Lura: 99 bottles of beer in JavaScript
+
+Ƙirƙiri kwalabe mai ƙima 99.
+Yayin da kwalabe ya wuce 0, maimaita wannan:
+  Rubuta kwalabe sannan “ bottles of beer on the wall, ” sannan kwalabe sannan “ bottles of beer.” kuma ka gama layi.
+  Rubuta “Take one down and pass it around, ” sannan kwalabe ragi 1 sannan “ bottles of beer on the wall.” kuma ka gama layi.
+  Canza kwalabe zuwa kwalabe ragi 1.

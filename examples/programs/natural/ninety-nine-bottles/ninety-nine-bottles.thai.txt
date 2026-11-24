@@ -1,0 +1,7 @@
+หมายเหตุ: 99 bottles of beer in JavaScript
+
+สร้าง ขวด ด้วย ค่า 99.
+ขณะที่ ขวด มากกว่า 0 ให้ ทำ ซ้ำ สิ่งนี้:
+  เขียน ขวด ต่อ ด้วย “ bottles of beer on the wall, ” ต่อ ด้วย ขวด ต่อ ด้วย “ bottles of beer.” แล้ว ขึ้น บรรทัด ใหม่.
+  เขียน “Take one down and pass it around, ” ต่อ ด้วย ขวด ลบ 1 ต่อ ด้วย “ bottles of beer on the wall.” แล้ว ขึ้น บรรทัด ใหม่.
+  เปลี่ยน ขวด เป็น ขวด ลบ 1.

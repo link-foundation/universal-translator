@@ -1,0 +1,13 @@
+Tala: Sum of squares in JavaScript
+
+Tukuyin ang kabuuan-ng-parisukat gamit ang hangganan:
+  Lumikha ng lahat na may halagang 0.
+  Lumikha ng numero na may halagang 1.
+  Habang numero ay hindi hihigit sa hangganan, ulitin ito:
+    Palitan ang lahat ng lahat dagdag numero beses numero.
+    Palitan ang numero ng numero dagdag 1.
+  Ibalik ang lahat.
+
+Lumikha ng hangganan na may halagang 10.
+Isulat ang “Sum of squares from 1 to ” na sinusundan ng hangganan na sinusundan ng “:” at tapusin ang linya.
+Isulat ang kabuuan-ng-parisukat ng (hangganan) at tapusin ang linya.

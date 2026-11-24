@@ -1,0 +1,10 @@
+Opmerking: Greatest common divisor in JavaScript, using the Euclidean algorithm
+
+Definieer grootste-gemeenschappelijk-deler met eerste en tweede:
+  Zolang tweede is ongelijk aan 0, herhaal dit:
+    Maak rest met waarde eerste modulo tweede.
+    Verander eerste in tweede.
+    Verander tweede in rest.
+  Geef eerste terug.
+
+Schrijf “The greatest common divisor of 1071 and 462 is ” gevolgd door grootste-gemeenschappelijk-deler van (1071, 462) en beëindig de regel.

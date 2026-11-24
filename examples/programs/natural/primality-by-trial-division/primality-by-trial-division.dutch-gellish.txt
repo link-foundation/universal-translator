@@ -1,0 +1,15 @@
+Opmerking: Primality by trial division in JavaScript
+
+Is-priem is gedefinieerd als een procedure met invoer getal:
+  Als getal is kleiner dan 2 dan wordt het volgende uitgevoerd:
+    De procedure heeft als resultaat onwaar.
+  Deler is geclassificeerd als een variabele met beginwaarde 2.
+  Zolang deler maal deler is hoogstens getal wordt het volgende herhaald:
+    Als getal modulo deler is gelijk aan 0 dan wordt het volgende uitgevoerd:
+      De procedure heeft als resultaat onwaar.
+    Deler heeft als nieuwe waarde deler plus 1.
+  De procedure heeft als resultaat waar.
+
+Voor elke getal van 1 tot en met 50 wordt het volgende herhaald:
+  Als is-priem toegepast op (getal) dan wordt het volgende uitgevoerd:
+    De uitvoer heeft als volgende regel getal.

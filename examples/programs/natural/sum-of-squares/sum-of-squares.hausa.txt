@@ -1,0 +1,13 @@
+Lura: Sum of squares in JavaScript
+
+Ayyana jimla-na-murabba'ai da iyaka:
+  Ƙirƙiri duka mai ƙima 0.
+  Ƙirƙiri lamba mai ƙima 1.
+  Yayin da lamba bai wuce iyaka, maimaita wannan:
+    Canza duka zuwa duka ƙari lamba sau lamba.
+    Canza lamba zuwa lamba ƙari 1.
+  Mayar da duka.
+
+Ƙirƙiri iyaka mai ƙima 10.
+Rubuta “Sum of squares from 1 to ” sannan iyaka sannan “:” kuma ka gama layi.
+Rubuta jimla-na-murabba'ai na (iyaka) kuma ka gama layi.

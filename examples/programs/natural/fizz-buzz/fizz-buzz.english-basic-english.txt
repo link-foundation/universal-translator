@@ -1,0 +1,11 @@
+Note: FizzBuzz in JavaScript
+
+For every number from 1 till 100, do this:
+  If number modulo 15 is 0, do this:
+    Say “FizzBuzz” and end the line.
+  If not, but number modulo 3 is 0, do this:
+    Say “Fizz” and end the line.
+  If not, but number modulo 5 is 0, do this:
+    Say “Buzz” and end the line.
+  If not, do this:
+    Say number and end the line.

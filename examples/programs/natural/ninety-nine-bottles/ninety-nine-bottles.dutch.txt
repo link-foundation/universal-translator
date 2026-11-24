@@ -1,0 +1,7 @@
+Opmerking: 99 bottles of beer in JavaScript
+
+Maak flessen met waarde 99.
+Zolang flessen is groter dan 0, herhaal dit:
+  Schrijf flessen gevolgd door “ bottles of beer on the wall, ” gevolgd door flessen gevolgd door “ bottles of beer.” en beëindig de regel.
+  Schrijf “Take one down and pass it around, ” gevolgd door flessen min 1 gevolgd door “ bottles of beer on the wall.” en beëindig de regel.
+  Verander flessen in flessen min 1.

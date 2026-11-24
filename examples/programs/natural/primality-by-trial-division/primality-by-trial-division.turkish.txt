@@ -1,0 +1,15 @@
+Not: Primality by trial division in JavaScript
+
+Mi-asal işlevini sayı ile tanımla:
+  Eğer sayı 2 değerinden küçük ise şunu yap:
+    Yanlış döndür.
+  Bölen değişkenini 2 değeriyle oluştur.
+  Bölen çarpı bölen en fazla sayı olduğu sürece şunu tekrarla:
+    Eğer sayı mod bölen ile 0 eşit ise şunu yap:
+      Yanlış döndür.
+    Bölen değerini bölen artı 1 yap.
+  Doğru döndür.
+
+Her sayı için 1 ile 50 arasında şunu tekrarla:
+  Eğer mi-asal (sayı) ise şunu yap:
+    Sayı yaz ve satırı bitir.

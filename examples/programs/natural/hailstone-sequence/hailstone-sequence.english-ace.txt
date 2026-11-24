@@ -1,0 +1,14 @@
+Note: Hailstone sequence in JavaScript: count the steps to reach 1
+
+The procedure hailstone-steps takes number:
+  There is a variable steps whose value is 0.
+  While number is not equal to 1 the program repeats the following:
+    If number modulo 2 is equal to 0 then the program does the following:
+      The value of number becomes number divided by 2.
+    Else the program does the following:
+      The value of number becomes 3 times number plus 1.
+    The value of steps becomes steps plus 1.
+  The procedure returns steps.
+
+For every number from 1 to 10 the program does the following:
+  The program writes a line that contains number followed by “ takes ” followed by hailstone-steps of (number) followed by “ steps”.

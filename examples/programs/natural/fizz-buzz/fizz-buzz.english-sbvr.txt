@@ -1,0 +1,11 @@
+Note: FizzBuzz in JavaScript
+
+For each number from 1 to 100 the following applies:
+  If number modulo 15 is equal to 0 then the following applies:
+    It is obligatory that the output shows “FizzBuzz” as a line.
+  Otherwise if number modulo 3 is equal to 0 then the following applies:
+    It is obligatory that the output shows “Fizz” as a line.
+  Otherwise if number modulo 5 is equal to 0 then the following applies:
+    It is obligatory that the output shows “Buzz” as a line.
+  Otherwise the following applies:
+    It is obligatory that the output shows number as a line.

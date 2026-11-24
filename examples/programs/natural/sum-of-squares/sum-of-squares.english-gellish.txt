@@ -1,0 +1,13 @@
+Note: Sum of squares in JavaScript
+
+Sum-of-squares is defined as a procedure with input limit:
+  Total is classified as a variable with initial value 0.
+  Number is classified as a variable with initial value 1.
+  While number is at most limit the following is repeated:
+    Total has as new value total plus number times number.
+    Number has as new value number plus 1.
+  The procedure has as result total.
+
+Limit is classified as a variable with initial value 10.
+The output has as next line “Sum of squares from 1 to ” concatenated with limit concatenated with “:”.
+The output has as next line sum-of-squares applied to (limit).

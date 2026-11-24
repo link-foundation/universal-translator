@@ -1,0 +1,13 @@
+Hinweis: Sum of squares in JavaScript
+
+Definiere Summe-von-Quadrate mit Grenze:
+  Erzeuge Gesamt mit dem Wert 0.
+  Erzeuge Zahl mit dem Wert 1.
+  Solange Zahl ist höchstens Grenze, wiederhole dies:
+    Ändere Gesamt auf Gesamt plus Zahl mal Zahl.
+    Ändere Zahl auf Zahl plus 1.
+  Gib Gesamt zurück.
+
+Erzeuge Grenze mit dem Wert 10.
+Schreibe „Sum of squares from 1 to “ gefolgt von Grenze gefolgt von „:“ und beende die Zeile.
+Schreibe Summe-von-Quadrate von (Grenze) und beende die Zeile.

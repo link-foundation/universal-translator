@@ -1,0 +1,9 @@
+Note: Factorial in JavaScript, defined recursively
+
+Factorial is defined as a procedure with input number:
+  If number is at most 1 then the following is performed:
+    The procedure has as result 1.
+  The procedure has as result number times factorial applied to (number minus 1).
+
+For each number from 0 to 10 the following is repeated:
+  The output has as next line number concatenated with “! = ” concatenated with factorial applied to (number).

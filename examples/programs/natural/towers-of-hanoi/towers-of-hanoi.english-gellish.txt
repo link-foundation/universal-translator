@@ -1,0 +1,10 @@
+Note: Towers of Hanoi in JavaScript, solved recursively
+
+Move-disks is defined as a procedure with input count, source, target and spare:
+  If count is equal to 0 then the following is performed:
+    The procedure is ended.
+  The action move-disks applied to (count minus 1, source, spare, target) is performed.
+  The output has as next line “Move disk ” concatenated with count concatenated with “ from ” concatenated with source concatenated with “ to ” concatenated with target.
+  The action move-disks applied to (count minus 1, spare, target, source) is performed.
+
+The action move-disks applied to (4, 1, 3, 2) is performed.

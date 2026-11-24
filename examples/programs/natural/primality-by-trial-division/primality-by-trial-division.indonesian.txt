@@ -1,0 +1,15 @@
+Catatan: Primality by trial division in JavaScript
+
+Definisikan apakah-prima dengan bilangan:
+  Jika bilangan kurang dari 2, lakukan ini:
+    Kembalikan salah.
+  Buat pembagi dengan nilai 2.
+  Selama pembagi dikali pembagi paling banyak bilangan, ulangi ini:
+    Jika bilangan modulo pembagi sama dengan 0, lakukan ini:
+      Kembalikan salah.
+    Ubah pembagi menjadi pembagi ditambah 1.
+  Kembalikan benar.
+
+Untuk setiap bilangan dari 1 sampai 50, ulangi ini:
+  Jika apakah-prima dari (bilangan), lakukan ini:
+    Tulis bilangan dan akhiri baris.

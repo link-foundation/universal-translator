@@ -1,0 +1,10 @@
+Lura: Sum digits of an integer in JavaScript
+
+Ayyana jimla-na-lambobi da lamba:
+  Ƙirƙiri duka mai ƙima 0.
+  Yayin da lamba ya wuce 0, maimaita wannan:
+    Canza duka zuwa duka ƙari lamba modulo 10.
+    Canza lamba zuwa lamba raba da 10.
+  Mayar da duka.
+
+Rubuta “The digits of 1234567890 sum to ” sannan jimla-na-lambobi na (1234567890) kuma ka gama layi.

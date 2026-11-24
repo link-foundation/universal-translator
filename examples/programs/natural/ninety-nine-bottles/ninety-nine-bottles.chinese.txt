@@ -1,0 +1,7 @@
+注：99 bottles of beer in JavaScript
+
+创建 瓶子 值 为 99。
+当 瓶子 大于 0 时 重复 这些：
+  输出 瓶子 接 “ bottles of beer on the wall, ” 接 瓶子 接 “ bottles of beer.” 并 换行。
+  输出 “Take one down and pass it around, ” 接 瓶子 减 1 接 “ bottles of beer on the wall.” 并 换行。
+  把 瓶子 改 为 瓶子 减 1。

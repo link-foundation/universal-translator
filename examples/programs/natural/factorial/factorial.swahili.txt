@@ -1,0 +1,9 @@
+Kumbuka: Factorial in JavaScript, defined recursively
+
+Fafanua faktoria kwa nambari:
+  Ikiwa nambari si zaidi ya 1, fanya hivi:
+    Rudisha 1.
+  Rudisha nambari mara faktoria ya (nambari toa 1).
+
+Kwa kila nambari kutoka 0 hadi 10, rudia hivi:
+  Andika nambari ikifuatiwa na “! = ” ikifuatiwa na faktoria ya (nambari) na umalize mstari.

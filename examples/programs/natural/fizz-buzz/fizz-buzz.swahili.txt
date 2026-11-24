@@ -1,0 +1,11 @@
+Kumbuka: FizzBuzz in JavaScript
+
+Kwa kila nambari kutoka 1 hadi 100, rudia hivi:
+  Ikiwa nambari modulo 15 ni sawa na 0, fanya hivi:
+    Andika “FizzBuzz” na umalize mstari.
+  Vinginevyo, ikiwa nambari modulo 3 ni sawa na 0, fanya hivi:
+    Andika “Fizz” na umalize mstari.
+  Vinginevyo, ikiwa nambari modulo 5 ni sawa na 0, fanya hivi:
+    Andika “Buzz” na umalize mstari.
+  Vinginevyo, fanya hivi:
+    Andika nambari na umalize mstari.

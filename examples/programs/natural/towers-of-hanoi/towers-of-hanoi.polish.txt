@@ -1,0 +1,10 @@
+Uwaga: Towers of Hanoi in JavaScript, solved recursively
+
+Zdefiniuj przenieś-krążki używając licznik, źródło, cel i pomocniczy:
+  Jeśli licznik równa się 0, zrób to:
+    Zatrzymaj się tutaj.
+  Wykonaj przenieś-krążki dla (licznik minus 1, źródło, pomocniczy, cel).
+  Wypisz „Move disk ” a następnie licznik a następnie „ from ” a następnie źródło a następnie „ to ” a następnie cel i zakończ wiersz.
+  Wykonaj przenieś-krążki dla (licznik minus 1, pomocniczy, cel, źródło).
+
+Wykonaj przenieś-krążki dla (4, 1, 3, 2).

@@ -1,0 +1,13 @@
+Note: Fibonacci sequence in JavaScript, computed iteratively
+
+The procedure fibonacci takes count:
+  There is a variable previous whose value is 0.
+  There is a variable current whose value is 1.
+  For every step from 0 to count minus 1 the program does the following:
+    There is a variable next whose value is previous plus current.
+    The value of previous becomes current.
+    The value of current becomes next.
+  The procedure returns previous.
+
+For every index from 0 to 20 the program does the following:
+  The program writes a line that contains “fibonacci(” followed by index followed by “) = ” followed by fibonacci of (index).

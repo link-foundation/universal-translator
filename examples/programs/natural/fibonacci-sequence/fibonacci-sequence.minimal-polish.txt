@@ -1,0 +1,13 @@
+Uwaga: Fibonacci sequence in JavaScript, computed iteratively
+
+Tak ktoś robi fibonacci z licznik:
+  Jest poprzedni, to jest 0.
+  Jest bieżący, to jest 1.
+  Dla wszystkich krok od 0 do licznik minus 1, zrobić to:
+    Jest następny, to jest poprzedni plus bieżący.
+    Po tym poprzedni jest bieżący.
+    Po tym bieżący jest następny.
+  Odpowiedzią jest poprzedni.
+
+Dla wszystkich indeks od 0 do 20, zrobić to:
+  Powiedzieć „fibonacci(” potem indeks potem „) = ” potem fibonacci dla (indeks) w jednej linii.

@@ -1,0 +1,10 @@
+Note: Towers of Hanoi in JavaScript, solved recursively
+
+The procedure move-disks takes count, source, target and spare:
+  If count is equal to 0 then the program does the following:
+    The procedure stops.
+  The program runs move-disks of (count minus 1, source, spare, target).
+  The program writes a line that contains “Move disk ” followed by count followed by “ from ” followed by source followed by “ to ” followed by target.
+  The program runs move-disks of (count minus 1, spare, target, source).
+
+The program runs move-disks of (4, 1, 3, 2).

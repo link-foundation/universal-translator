@@ -1,0 +1,9 @@
+Nota: Factorial in JavaScript, defined recursively
+
+Definisci fattoriale usando numero:
+  Se numero è al massimo 1, fai questo:
+    Restituisci 1.
+  Restituisci numero per fattoriale di (numero meno 1).
+
+Per ogni numero da 0 a 10, ripeti questo:
+  Scrivi numero seguito da «! = » seguito da fattoriale di (numero) e termina la riga.

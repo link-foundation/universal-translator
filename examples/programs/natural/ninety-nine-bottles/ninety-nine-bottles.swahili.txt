@@ -1,0 +1,7 @@
+Kumbuka: 99 bottles of beer in JavaScript
+
+Unda chupa yenye thamani 99.
+Wakati chupa ni zaidi ya 0, rudia hivi:
+  Andika chupa ikifuatiwa na “ bottles of beer on the wall, ” ikifuatiwa na chupa ikifuatiwa na “ bottles of beer.” na umalize mstari.
+  Andika “Take one down and pass it around, ” ikifuatiwa na chupa toa 1 ikifuatiwa na “ bottles of beer on the wall.” na umalize mstari.
+  Badilisha chupa kuwa chupa toa 1.

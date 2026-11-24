@@ -1,0 +1,13 @@
+Remarque : Sum of squares in JavaScript
+
+Voici comment quelqu’un fait somme-de-carrés avec limite:
+  Il y a total, c'est 0.
+  Il y a nombre, c'est 1.
+  Quand nombre n'est pas plus que limite, faire ceci beaucoup de fois:
+    Après ceci, total est total plus nombre fois nombre.
+    Après ceci, nombre est nombre plus 1.
+  La réponse est total.
+
+Il y a limite, c'est 10.
+Dire «Sum of squares from 1 to » puis limite puis «:» sur une ligne.
+Dire somme-de-carrés de (limite) sur une ligne.

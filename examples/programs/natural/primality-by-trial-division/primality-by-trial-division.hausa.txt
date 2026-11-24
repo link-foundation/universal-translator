@@ -1,0 +1,15 @@
+Lura: Primality by trial division in JavaScript
+
+Ayyana shin-tushe da lamba:
+  Idan lamba ya gaza 2, yi wannan:
+    Mayar da ƙarya.
+  Ƙirƙiri rabo mai ƙima 2.
+  Yayin da rabo sau rabo bai wuce lamba, maimaita wannan:
+    Idan lamba modulo rabo daidai yake da 0, yi wannan:
+      Mayar da ƙarya.
+    Canza rabo zuwa rabo ƙari 1.
+  Mayar da gaskiya.
+
+Ga kowane lamba daga 1 zuwa 50, maimaita wannan:
+  Idan shin-tushe na (lamba), yi wannan:
+    Rubuta lamba kuma ka gama layi.

@@ -1,0 +1,9 @@
+Nota: Factorial in JavaScript, defined recursively
+
+Definir fatorial usando número:
+  Se número é no máximo 1, fazer isto:
+    Devolver 1.
+  Devolver número vezes fatorial de (número menos 1).
+
+Para cada número de 0 até 10, repetir isto:
+  Escrever número seguido de “! = ” seguido de fatorial de (número) e terminar a linha.

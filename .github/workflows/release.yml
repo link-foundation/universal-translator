@@ -442,6 +442,11 @@ jobs:
       - name: Check the shared golden translations
         run: node examples/programs/write-translations.mjs --check
 
+      - name: Check the controlled natural language data and texts
+        run: |
+          node scripts/build-natural-sources.mjs --check
+          node examples/programs/write-natural.mjs --check
+
       - name: Check Rust formatting
         run: cargo fmt --check
 

@@ -1,0 +1,9 @@
+Uwaga: Factorial in JavaScript, defined recursively
+
+Tak ktoś robi silnia z liczba:
+  Jeżeli liczba nie jest więcej niż 1, zrobić to:
+    Odpowiedzią jest 1.
+  Odpowiedzią jest liczba razy silnia dla (liczba minus 1).
+
+Dla wszystkich liczba od 0 do 10, zrobić to:
+  Powiedzieć liczba potem „! = ” potem silnia dla (liczba) w jednej linii.

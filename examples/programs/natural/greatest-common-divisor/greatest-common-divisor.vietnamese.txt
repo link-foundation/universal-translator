@@ -1,0 +1,10 @@
+Ghi chú: Greatest common divisor in JavaScript, using the Euclidean algorithm
+
+Định nghĩa lớn_nhất-chung-ước với thứ_nhất và thứ_hai:
+  Trong khi thứ_hai khác 0, lặp lại điều này:
+    Tạo số_dư với giá trị thứ_nhất chia lấy dư thứ_hai.
+    Đổi thứ_nhất thành thứ_hai.
+    Đổi thứ_hai thành số_dư.
+  Trả về thứ_nhất.
+
+Viết “The greatest common divisor of 1071 and 462 is ” nối với lớn_nhất-chung-ước của (1071, 462) và xuống dòng.

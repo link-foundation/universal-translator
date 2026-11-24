@@ -1,0 +1,9 @@
+Lura: Factorial in JavaScript, defined recursively
+
+Ayyana fakitoriyal da lamba:
+  Idan lamba bai wuce 1, yi wannan:
+    Mayar da 1.
+  Mayar da lamba sau fakitoriyal na (lamba ragi 1).
+
+Ga kowane lamba daga 0 zuwa 10, maimaita wannan:
+  Rubuta lamba sannan “! = ” sannan fakitoriyal na (lamba) kuma ka gama layi.

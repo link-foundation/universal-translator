@@ -1,0 +1,11 @@
+Tala: FizzBuzz in JavaScript
+
+Para sa bawat numero mula 1 hanggang 100, ulitin ito:
+  Kung numero modulo 15 ay katumbas ng 0, gawin ito:
+    Isulat ang “FizzBuzz” at tapusin ang linya.
+  Kung hindi, kung numero modulo 3 ay katumbas ng 0, gawin ito:
+    Isulat ang “Fizz” at tapusin ang linya.
+  Kung hindi, kung numero modulo 5 ay katumbas ng 0, gawin ito:
+    Isulat ang “Buzz” at tapusin ang linya.
+  Kung hindi, gawin ito:
+    Isulat ang numero at tapusin ang linya.

@@ -1,0 +1,12 @@
+Note: Ackermann function in JavaScript, defined recursively
+
+Rule ackermann with first and second is defined as follows:
+  If first is equal to 0 then the following applies:
+    It is obligatory that the result is second plus 1.
+  If second is equal to 0 then the following applies:
+    It is obligatory that the result is ackermann of (first minus 1, 1).
+  It is obligatory that the result is ackermann of (first minus 1, ackermann of (first, second minus 1)).
+
+For each first from 0 to 3 the following applies:
+  For each second from 0 to 4 the following applies:
+    It is obligatory that the output shows “ackermann(” followed by first followed by “, ” followed by second followed by “) = ” followed by ackermann of (first, second) as a line.

@@ -1,0 +1,13 @@
+Ghi chú: Fibonacci sequence in JavaScript, computed iteratively
+
+Định nghĩa fibonacci với số_lượng:
+  Tạo trước_đó với giá trị 0.
+  Tạo hiện_tại với giá trị 1.
+  Với mỗi bước từ 0 đến số_lượng trừ 1, lặp lại điều này:
+    Tạo tiếp_theo với giá trị trước_đó cộng hiện_tại.
+    Đổi trước_đó thành hiện_tại.
+    Đổi hiện_tại thành tiếp_theo.
+  Trả về trước_đó.
+
+Với mỗi chỉ_số từ 0 đến 20, lặp lại điều này:
+  Viết “fibonacci(” nối với chỉ_số nối với “) = ” nối với fibonacci của (chỉ_số) và xuống dòng.

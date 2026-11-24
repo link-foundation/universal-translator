@@ -1,0 +1,9 @@
+Catatan: Factorial in JavaScript, defined recursively
+
+Definisikan faktorial dengan bilangan:
+  Jika bilangan paling banyak 1, lakukan ini:
+    Kembalikan 1.
+  Kembalikan bilangan dikali faktorial dari (bilangan dikurangi 1).
+
+Untuk setiap bilangan dari 0 sampai 10, ulangi ini:
+  Tulis bilangan diikuti “! = ” diikuti faktorial dari (bilangan) dan akhiri baris.

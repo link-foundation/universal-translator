@@ -1,0 +1,7 @@
+टीप: 99 bottles of beer in JavaScript
+
+बाटल्या हे मूल्य 99 सह तयार करा.
+जोपर्यंत बाटल्या चे मूल्य 0 पेक्षा जास्त आहे तोपर्यंत हे पुन्हा करा:
+  बाटल्या नंतर “ bottles of beer on the wall, ” नंतर बाटल्या नंतर “ bottles of beer.” लिहा आणि ओळ संपवा.
+  “Take one down and pass it around, ” नंतर बाटल्या वजा 1 नंतर “ bottles of beer on the wall.” लिहा आणि ओळ संपवा.
+  बाटल्या ला बाटल्या वजा 1 मध्ये बदला.

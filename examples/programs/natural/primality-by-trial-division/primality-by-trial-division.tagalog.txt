@@ -1,0 +1,15 @@
+Tala: Primality by trial division in JavaScript
+
+Tukuyin ang ba-primo gamit ang numero:
+  Kung numero ay mas mababa sa 2, gawin ito:
+    Ibalik ang mali.
+  Lumikha ng panghati na may halagang 2.
+  Habang panghati beses panghati ay hindi hihigit sa numero, ulitin ito:
+    Kung numero modulo panghati ay katumbas ng 0, gawin ito:
+      Ibalik ang mali.
+    Palitan ang panghati ng panghati dagdag 1.
+  Ibalik ang totoo.
+
+Para sa bawat numero mula 1 hanggang 50, ulitin ito:
+  Kung ba-primo ng (numero), gawin ito:
+    Isulat ang numero at tapusin ang linya.

@@ -1,0 +1,13 @@
+Catatan: Sum of squares in JavaScript
+
+Definisikan jumlah-dari-kuadrat dengan batas:
+  Buat total dengan nilai 0.
+  Buat bilangan dengan nilai 1.
+  Selama bilangan paling banyak batas, ulangi ini:
+    Ubah total menjadi total ditambah bilangan dikali bilangan.
+    Ubah bilangan menjadi bilangan ditambah 1.
+  Kembalikan total.
+
+Buat batas dengan nilai 10.
+Tulis “Sum of squares from 1 to ” diikuti batas diikuti “:” dan akhiri baris.
+Tulis jumlah-dari-kuadrat dari (batas) dan akhiri baris.

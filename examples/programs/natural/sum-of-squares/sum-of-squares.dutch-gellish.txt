@@ -1,0 +1,13 @@
+Opmerking: Sum of squares in JavaScript
+
+Som-van-kwadraten is gedefinieerd als een procedure met invoer limiet:
+  Totaal is geclassificeerd als een variabele met beginwaarde 0.
+  Getal is geclassificeerd als een variabele met beginwaarde 1.
+  Zolang getal is hoogstens limiet wordt het volgende herhaald:
+    Totaal heeft als nieuwe waarde totaal plus getal maal getal.
+    Getal heeft als nieuwe waarde getal plus 1.
+  De procedure heeft als resultaat totaal.
+
+Limiet is geclassificeerd als een variabele met beginwaarde 10.
+De uitvoer heeft als volgende regel “Sum of squares from 1 to ” samengevoegd met limiet samengevoegd met “:”.
+De uitvoer heeft als volgende regel som-van-kwadraten toegepast op (limiet).

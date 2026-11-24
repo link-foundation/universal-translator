@@ -1,0 +1,13 @@
+Not: Fibonacci sequence in JavaScript, computed iteratively
+
+Fibonacci işlevini sayaç ile tanımla:
+  Önceki değişkenini 0 değeriyle oluştur.
+  Mevcut değişkenini 1 değeriyle oluştur.
+  Her adım için 0 ile sayaç eksi 1 arasında şunu tekrarla:
+    Sonraki değişkenini önceki artı mevcut değeriyle oluştur.
+    Önceki değerini mevcut yap.
+    Mevcut değerini sonraki yap.
+  Önceki döndür.
+
+Her indeks için 0 ile 20 arasında şunu tekrarla:
+  “fibonacci(” ardından indeks ardından “) = ” ardından fibonacci (indeks) yaz ve satırı bitir.

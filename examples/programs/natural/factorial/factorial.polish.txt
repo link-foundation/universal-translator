@@ -1,0 +1,9 @@
+Uwaga: Factorial in JavaScript, defined recursively
+
+Zdefiniuj silnia używając liczba:
+  Jeśli liczba nie przekracza 1, zrób to:
+    Zwróć 1.
+  Zwróć liczba razy silnia dla (liczba minus 1).
+
+Dla każdego liczba od 0 do 10 powtarzaj to:
+  Wypisz liczba a następnie „! = ” a następnie silnia dla (liczba) i zakończ wiersz.

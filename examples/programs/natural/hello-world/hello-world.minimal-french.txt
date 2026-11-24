@@ -1,0 +1,4 @@
+Remarque : Hello World in JavaScript
+Remarque : print "Hello World!" into console followed by new line symbol by function call
+
+Dire «Hello World!» sur une ligne.

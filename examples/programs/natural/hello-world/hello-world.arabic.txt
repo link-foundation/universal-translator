@@ -1,0 +1,4 @@
+ملاحظة: Hello World in JavaScript
+ملاحظة: print "Hello World!" into console followed by new line symbol by function call
+
+اكتب «Hello World!» ثم أنه السطر.

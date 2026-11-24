@@ -1,0 +1,15 @@
+Note: Primality by trial division in JavaScript
+
+To get is-prime from number, do this:
+  If number is less than 2, do this:
+    Return false.
+  Let divisor be 2.
+  While divisor times divisor is not more than number, do this again:
+    If number modulo divisor equals 0, do this:
+      Return false.
+    Now let divisor be divisor plus 1.
+  Return true.
+
+For each number from 1 to 50, do this:
+  If is-prime of (number), do this:
+    Say number on a line.

@@ -1,0 +1,7 @@
+টীকা: 99 bottles of beer in JavaScript
+
+বোতল তৈরি করো মান 99 দিয়ে।
+যতক্ষণ বোতল এর মান 0 এর চেয়ে বেশি ততক্ষণ এটি পুনরাবৃত্তি করো:
+  বোতল এর পরে “ bottles of beer on the wall, ” এর পরে বোতল এর পরে “ bottles of beer.” লেখো এবং লাইন শেষ করো।
+  “Take one down and pass it around, ” এর পরে বোতল বিয়োগ 1 এর পরে “ bottles of beer on the wall.” লেখো এবং লাইন শেষ করো।
+  বোতল কে বোতল বিয়োগ 1 তে বদলাও।

@@ -1,0 +1,4 @@
+Kumbuka: Hello World in JavaScript
+Kumbuka: print "Hello World!" into console followed by new line symbol by function call
+
+Andika “Hello World!” na umalize mstari.

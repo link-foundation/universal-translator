@@ -1,0 +1,10 @@
+Ghi chú: Leap year in JavaScript
+
+Định nghĩa là-nhuận-năm với năm:
+  Trả về năm chia lấy dư 4 bằng 0 và năm chia lấy dư 100 khác 0 hoặc năm chia lấy dư 400 bằng 0.
+
+Với mỗi năm từ 1896 đến 1912, lặp lại điều này:
+  Nếu là-nhuận-năm của (năm), làm điều này:
+    Viết năm nối với “ is a leap year” và xuống dòng.
+  Ngược lại, làm điều này:
+    Viết năm nối với “ is not a leap year” và xuống dòng.

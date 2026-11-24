@@ -1,0 +1,11 @@
+Lura: FizzBuzz in JavaScript
+
+Ga kowane lamba daga 1 zuwa 100, maimaita wannan:
+  Idan lamba modulo 15 daidai yake da 0, yi wannan:
+    Rubuta “FizzBuzz” kuma ka gama layi.
+  In ba haka ba, idan lamba modulo 3 daidai yake da 0, yi wannan:
+    Rubuta “Fizz” kuma ka gama layi.
+  In ba haka ba, idan lamba modulo 5 daidai yake da 0, yi wannan:
+    Rubuta “Buzz” kuma ka gama layi.
+  In ba haka ba, yi wannan:
+    Rubuta lamba kuma ka gama layi.

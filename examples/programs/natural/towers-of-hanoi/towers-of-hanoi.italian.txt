@@ -1,0 +1,10 @@
+Nota: Towers of Hanoi in JavaScript, solved recursively
+
+Definisci sposta-dischi usando conteggio, sorgente, destinazione e ausiliario:
+  Se conteggio è uguale a 0, fai questo:
+    Fermati qui.
+  Esegui sposta-dischi di (conteggio meno 1, sorgente, ausiliario, destinazione).
+  Scrivi «Move disk » seguito da conteggio seguito da « from » seguito da sorgente seguito da « to » seguito da destinazione e termina la riga.
+  Esegui sposta-dischi di (conteggio meno 1, ausiliario, destinazione, sorgente).
+
+Esegui sposta-dischi di (4, 1, 3, 2).
