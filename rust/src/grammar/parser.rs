@@ -1,0 +1,1364 @@
+//! Recursive-descent parser driven by the language descriptions in
+//! `languages.rs`. It produces the meta tree described in `meta.rs`, keeping
+//! the surface concepts (calls, imports, classes) that later rule layers
+//! interpret. The parser never decides what a program means.
+
+use std::sync::OnceLock;
+
+use regex::Regex;
+
+use super::GrammarError;
+use super::languages::{Blocks, Syntax, Typed};
+use super::lexer::{InterpolationStyle, Token, TokenType, decode_escapes, tokenize};
+use super::meta::{Node, add, binary, block, name, number, text};
+
+/// Binary operators by precedence level, loosest first, with their spellings.
+const BINARY_LEVELS: [&[(&str, &[&str])]; 6] = [
+    &[("or", &["||", "or"])],
+    &[("and", &["&&", "and"])],
+    &[
+        ("equal", &["==", "==="]),
+        ("notEqual", &["!=", "!==", "~="]),
+    ],
+    &[
+        ("less", &["<"]),
+        ("lessOrEqual", &["<="]),
+        ("greater", &[">"]),
+        ("greaterOrEqual", &[">="]),
+    ],
+    &[("add", &["+", ".."]), ("subtract", &["-"])],
+    &[
+        ("multiply", &["*"]),
+        ("divide", &["/", "//"]),
+        ("remainder", &["%"]),
+    ],
+];
+
+/// The level of additive operators, where ranges and streams also live.
+const ADDITIVE: usize = 4;
+
+const TYPE_WORDS: [&str; 17] = [
+    "int", "long", "short", "char", "void", "bool", "boolean", "double", "float", "string",
+    "String", "var", "auto", "const", "unsigned", "signed", "std",
+];
+
+const MODIFIERS: [&str; 10] = [
+    "public",
+    "private",
+    "protected",
+    "static",
+    "internal",
+    "final",
+    "export",
+    "inline",
+    "async",
+    "local",
+];
+
+const CONTROL_WORDS: [&str; 8] = [
+    "if", "else", "while", "for", "switch", "return", "do", "catch",
+];
+
+const ASSIGNMENT_SYMBOLS: [&str; 8] = ["=", "+=", "-=", "*=", "/=", "%=", "++", "--"];
+
+/// `++` and `--` written as the compound assignment they stand for.
+fn step_operator(symbol: &str) -> Option<&'static str> {
+    match symbol {
+        "++" => Some("+="),
+        "--" => Some("-="),
+        _ => None,
+    }
+}
+
+type Parsed<T = Node> = Result<T, GrammarError>;
+
+/// Parse a whole source text into a `SourceProgram` tree.
+pub fn parse_program(source: &str, syntax: &Syntax) -> Parsed {
+    Parser::new(tokenize(source, syntax)?, syntax.clone()).program()
+}
+
+/// The `start` and exclusive `end` of a counting range.
+struct Range {
+    start: Node,
+    end: Node,
+}
+
+/// The step of a C-style loop update such as `i++` or `i += 1`.
+struct Update {
+    name: String,
+    step: Option<f64>,
+}
+
+struct Parser {
+    tokens: Vec<Token>,
+    position: usize,
+    syntax: Syntax,
+}
+
+impl Parser {
+    fn new(tokens: Vec<Token>, syntax: Syntax) -> Self {
+        Parser {
+            tokens,
+            position: 0,
+            syntax,
+        }
+    }
+
+    // ---- token helpers ----
+
+    fn peek(&self, offset: usize) -> &Token {
+        let last = self.tokens.len() - 1;
+        &self.tokens[(self.position + offset).min(last)]
+    }
+
+    fn current(&self) -> &Token {
+        self.peek(0)
+    }
+
+    fn kind(&self, offset: usize) -> TokenType {
+        self.peek(offset).kind
+    }
+
+    fn value(&self, offset: usize) -> &str {
+        &self.peek(offset).value
+    }
+
+    /// The current token; reading past the end is a syntax error.
+    fn next(&mut self) -> Parsed<Token> {
+        let token = self.current().clone();
+        if self.position >= self.tokens.len() {
+            return Err(GrammarError::syntax(
+                "Unexpected end of program",
+                token.line,
+            ));
+        }
+        self.position += 1;
+        Ok(token)
+    }
+
+    fn next_value(&mut self) -> Parsed<String> {
+        Ok(self.next()?.value)
+    }
+
+    /// Whether the token at `offset` is the symbol or word `value`.
+    fn is_at(&self, value: &str, offset: usize) -> bool {
+        let token = self.peek(offset);
+        matches!(token.kind, TokenType::Symbol | TokenType::Name) && token.value == value
+    }
+
+    fn is(&self, value: &str) -> bool {
+        self.is_at(value, 0)
+    }
+
+    fn accept(&mut self, value: &str) -> bool {
+        if self.is(value) {
+            self.position += 1;
+            return true;
+        }
+        false
+    }
+
+    fn expect(&mut self, value: &str) -> Parsed<()> {
+        if self.accept(value) {
+            return Ok(());
+        }
+        let token = self.current();
+        Err(GrammarError::syntax(
+            format!("Expected \"{value}\" but found \"{}\"", token.shown()),
+            token.line,
+        ))
+    }
+
+    fn expect_name(&mut self) -> Parsed<String> {
+        let token = self.next()?;
+        if token.kind != TokenType::Name {
+            return Err(GrammarError::syntax(
+                format!("Expected a name but found \"{}\"", token.value),
+                token.line,
+            ));
+        }
+        Ok(token.value)
+    }
+
+    fn skip_separators(&mut self) {
+        while self.kind(0) == TokenType::Newline || self.is(";") {
+            self.position += 1;
+        }
+    }
+
+    fn skip_newlines(&mut self) {
+        while self.kind(0) == TokenType::Newline {
+            self.position += 1;
+        }
+    }
+
+    fn end_statement(&mut self) -> Parsed<()> {
+        if self.accept(";") || self.kind(0) == TokenType::Newline {
+            self.skip_separators();
+            return Ok(());
+        }
+        if self.is("}")
+            || matches!(self.kind(0), TokenType::End | TokenType::Dedent)
+            || self.is("end")
+        {
+            return Ok(());
+        }
+        let token = self.current();
+        Err(GrammarError::syntax(
+            format!("Unexpected \"{}\" after statement", token.value),
+            token.line,
+        ))
+    }
+
+    /// The values of the tokens before the first of `stops`.
+    fn words_until(&mut self, stops: &[&str]) -> Parsed<Vec<String>> {
+        let mut words = Vec::new();
+        while !stops.iter().any(|stop| self.is(stop)) {
+            if self.kind(0) == TokenType::End {
+                let token = self.current();
+                return Err(GrammarError::syntax(
+                    format!("Expected \"{}\" but found \"end\"", stops[0]),
+                    token.line,
+                ));
+            }
+            words.push(self.next_value()?);
+        }
+        Ok(words)
+    }
+
+    fn is_modifier(&self, offset: usize) -> bool {
+        MODIFIERS.contains(&self.value(offset))
+    }
+
+    fn modifier_count(&self) -> usize {
+        (0..).take_while(|offset| self.is_modifier(*offset)).count()
+    }
+
+    fn skip_modifiers(&mut self) {
+        while self.is_modifier(0) {
+            self.position += 1;
+        }
+    }
+
+    // ---- program structure ----
+
+    fn program(&mut self) -> Parsed {
+        let items = self.items(|parser| parser.kind(0) == TokenType::End)?;
+        Ok(Node::new("SourceProgram")
+            .with("language", self.syntax.id)
+            .with("items", items))
+    }
+
+    fn items(&mut self, done: impl Fn(&Self) -> bool) -> Parsed<Vec<Node>> {
+        let mut items = Vec::new();
+        self.skip_separators();
+        while !done(self) {
+            items.push(self.item()?);
+            self.skip_separators();
+        }
+        Ok(items)
+    }
+
+    fn item(&mut self) -> Parsed {
+        let token = self.current().clone();
+        match token.kind {
+            TokenType::Comment => {
+                self.position += 1;
+                return Ok(Node::new("Comment").with("text", token.value));
+            }
+            TokenType::Directive => {
+                self.position += 1;
+                return Ok(Node::new("Import").with("text", token.value));
+            }
+            TokenType::Name
+                if ["import", "using", "package", "use", "require"]
+                    .contains(&token.value.as_str())
+                    && !self.is_at("(", 1) =>
+            {
+                return self.import_statement();
+            }
+            _ => {}
+        }
+        if self.is_namespace_or_class() {
+            return self.class_definition();
+        }
+        if self.is_function_start() {
+            return self.function_definition();
+        }
+        self.statement()
+    }
+
+    fn import_statement(&mut self) -> Parsed {
+        let mut parts = Vec::new();
+        let line = self.current().line;
+        while self.kind(0) != TokenType::Newline
+            && !self.is(";")
+            && self.kind(0) != TokenType::End
+            && self.current().line == line
+        {
+            let token = self.next()?;
+            parts.push(if token.kind == TokenType::Text {
+                format!("\"{}\"", token.value)
+            } else {
+                token.value
+            });
+        }
+        self.end_statement()?;
+        let joined = parts.join(" ").replace(" . ", ".").replace(" :: ", "::");
+        Ok(Node::new("Import").with("text", joined))
+    }
+
+    fn is_namespace_or_class(&self) -> bool {
+        let offset = self.modifier_count();
+        ["class", "namespace", "object"].contains(&self.value(offset))
+            && self.kind(offset) == TokenType::Name
+    }
+
+    fn class_definition(&mut self) -> Parsed {
+        self.skip_modifiers();
+        let form = self.next_value()?;
+        let title = self.expect_name()?;
+        self.skip_newlines();
+        self.expect("{")?;
+        let items = self.items(|parser| parser.is("}"))?;
+        self.expect("}")?;
+        Ok(Node::new("Class")
+            .with("form", form)
+            .with("name", title)
+            .with("items", items))
+    }
+
+    fn is_function_start(&self) -> bool {
+        match self.syntax.function_keyword {
+            Some(keyword) => self.is_keyword_function_start(keyword),
+            None => self.is_prefix_function_start(),
+        }
+    }
+
+    /// `[modifiers] function-keyword name`
+    fn is_keyword_function_start(&self, keyword: &str) -> bool {
+        let offset = self.modifier_count();
+        self.is_at(keyword, offset) && self.kind(offset + 1) == TokenType::Name
+    }
+
+    /// Prefix-typed languages: `[modifiers] [type] name ( ... ) {`
+    fn is_prefix_function_start(&self) -> bool {
+        if CONTROL_WORDS.contains(&self.value(0)) {
+            return false;
+        }
+        let offset = (0..)
+            .take_while(|offset| {
+                self.kind(*offset) == TokenType::Name
+                    || ["*", "::", "[", "]", "<", ">"].contains(&self.value(*offset))
+            })
+            .take(self.tokens.len())
+            .count();
+        offset > 0
+            && self.is_at("(", offset)
+            && self.kind(offset - 1) == TokenType::Name
+            && self.is_block_after_parentheses(offset)
+    }
+
+    /// Whether the parentheses opening at `offset` are followed by a block.
+    fn is_block_after_parentheses(&self, offset: usize) -> bool {
+        let mut depth = 0i64;
+        let mut index = offset;
+        while self.kind(index) != TokenType::End {
+            depth += match self.value(index) {
+                "(" => 1,
+                ")" => -1,
+                _ => 0,
+            };
+            if depth == 0 {
+                break;
+            }
+            index += 1;
+        }
+        if self.kind(index) == TokenType::End {
+            return false;
+        }
+        let mut after = index + 1;
+        while self.kind(after) == TokenType::Newline {
+            after += 1;
+        }
+        self.is_at("{", after)
+    }
+
+    fn function_definition(&mut self) -> Parsed {
+        self.skip_modifiers();
+        let mut return_type = None;
+        let function_name = if let Some(keyword) = self.syntax.function_keyword {
+            self.expect(keyword)?;
+            self.expect_name()?
+        } else {
+            let mut words = self.words_until(&["("])?;
+            let last = words.pop().unwrap_or_default();
+            if !words.is_empty() {
+                return_type = source_type(&words.join(" "));
+            }
+            last
+        };
+        let parameters = if self.kind(0) == TokenType::Newline && self.syntax.id == "ruby" {
+            Vec::new()
+        } else {
+            self.parameter_list()?
+        };
+        if self.accept("->")
+            || (self.syntax.return_arrow == Some(":") && self.accept(":"))
+            || (self.syntax.typed == Typed::Suffix && !self.is("{"))
+        {
+            return_type = self.type_expression()?;
+        }
+        let body = self.block()?;
+        self.close_keyword_block()?;
+        Ok(Node::new("Function")
+            .with("name", function_name)
+            .with("parameters", parameters)
+            .with_opt("returnType", return_type)
+            .with("body", body))
+    }
+
+    fn parameter_list(&mut self) -> Parsed<Vec<Node>> {
+        self.expect("(")?;
+        let mut parameters = Vec::new();
+        let mut pending_names = Vec::new();
+        let parameter = |name: String, kind: Option<String>| {
+            Node::new("Parameter")
+                .with("name", name)
+                .with_opt("type", kind)
+        };
+        while !self.is(")") {
+            match self.syntax.typed {
+                Typed::Prefix => {
+                    let mut words = self.words_until(&[",", ")"])?;
+                    let parameter_name = words.pop().unwrap_or_default();
+                    parameters.push(parameter(parameter_name, source_type(&words.join(" "))));
+                }
+                Typed::Suffix => {
+                    pending_names.push(self.expect_name()?);
+                    if !self.is(",") && !self.is(")") {
+                        let kind = self.type_expression()?;
+                        for pending in pending_names.drain(..) {
+                            parameters.push(parameter(pending, kind.clone()));
+                        }
+                    }
+                }
+                _ => {
+                    if self.syntax.id == "swift" && self.kind(1) == TokenType::Name {
+                        self.position += 1; // argument label such as "_"
+                    }
+                    let parameter_name = self.expect_name()?;
+                    let kind = if self.accept(":") {
+                        self.type_expression()?
+                    } else {
+                        None
+                    };
+                    parameters.push(parameter(parameter_name, kind));
+                }
+            }
+            if !self.accept(",") {
+                break;
+            }
+        }
+        self.expect(")")?;
+        Ok(parameters)
+    }
+
+    fn type_expression(&mut self) -> Parsed<Option<String>> {
+        let mut words = Vec::new();
+        let mut depth = 0i64;
+        loop {
+            let token = self.current();
+            match token.value.as_str() {
+                "<" => depth += 1,
+                ">" => depth -= 1,
+                _ => {}
+            }
+            let stops = token.kind == TokenType::Newline
+                || ["{", "=", ",", ")", ";"].contains(&token.value.as_str());
+            if (depth == 0 && stops) || token.kind == TokenType::End {
+                break;
+            }
+            words.push(self.next_value()?);
+        }
+        Ok(source_type(&words.join(" ")))
+    }
+
+    // ---- blocks ----
+
+    fn block(&mut self) -> Parsed {
+        match self.syntax.blocks {
+            Blocks::Braces => {
+                self.skip_newlines();
+                self.expect("{")?;
+                let statements = self.items(|parser| parser.is("}"))?;
+                self.expect("}")?;
+                Ok(block(statements))
+            }
+            Blocks::Indentation => {
+                self.expect(":")?;
+                while self.kind(0) == TokenType::Comment {
+                    self.position += 1;
+                }
+                if self.kind(0) != TokenType::Newline {
+                    return Err(GrammarError::syntax(
+                        "Expected a new line after \":\"",
+                        self.current().line,
+                    ));
+                }
+                self.skip_separators();
+                if self.next()?.kind != TokenType::Indent {
+                    return Err(GrammarError::syntax(
+                        "Expected an indented block",
+                        self.current().line,
+                    ));
+                }
+                let statements = self
+                    .items(|parser| matches!(parser.kind(0), TokenType::Dedent | TokenType::End))?;
+                self.position += 1;
+                Ok(block(statements))
+            }
+            Blocks::End => {
+                // Keyword-delimited blocks (Ruby, Lua) stop at end / else / elsif.
+                self.accept("then");
+                self.accept("do");
+                let statements = self.items(|parser| {
+                    ["end", "else", "elsif", "elseif"]
+                        .iter()
+                        .any(|word| parser.is(word))
+                })?;
+                Ok(block(statements))
+            }
+        }
+    }
+
+    fn close_keyword_block(&mut self) -> Parsed<()> {
+        if self.syntax.blocks == Blocks::End {
+            self.expect("end")?;
+        }
+        Ok(())
+    }
+
+    // ---- statements ----
+
+    fn statement(&mut self) -> Parsed {
+        let word = if self.kind(0) == TokenType::Name {
+            self.value(0).to_owned()
+        } else {
+            String::new()
+        };
+        match word.as_str() {
+            "if" => return self.if_statement(),
+            "while" => return self.while_statement(),
+            "for" => return self.for_statement(),
+            "return" => return self.return_statement(),
+            "echo" => return self.echo_statement(),
+            _ => {}
+        }
+        if self.syntax.id == "ruby" && self.is_range_each() {
+            return self.range_each();
+        }
+        if !word.is_empty() && self.syntax.declarations.contains(&word.as_str()) {
+            return self.declaration();
+        }
+        if self.syntax.typed == Typed::Prefix && self.is_typed_declaration() {
+            return self.typed_declaration();
+        }
+        self.simple_statement()
+    }
+
+    fn return_statement(&mut self) -> Parsed {
+        self.position += 1;
+        let value = if self.is_statement_end() {
+            None
+        } else {
+            Some(self.expression()?)
+        };
+        self.end_statement()?;
+        Ok(Node::new("Return").with_opt("value", value))
+    }
+
+    fn is_statement_end(&self) -> bool {
+        matches!(
+            self.kind(0),
+            TokenType::Newline | TokenType::End | TokenType::Dedent
+        ) || self.is(";")
+            || self.is("}")
+    }
+
+    fn is_typed_declaration(&self) -> bool {
+        let offset = (0..)
+            .take_while(|offset| {
+                self.kind(*offset) == TokenType::Name
+                    || ["*", "::", "[", "]"].contains(&self.value(*offset))
+            })
+            .take(self.tokens.len())
+            .count();
+        offset >= 2
+            && self.kind(offset - 1) == TokenType::Name
+            && (self.is_at("=", offset) || self.is_at(";", offset))
+            && (TYPE_WORDS.contains(&self.value(0)) || self.kind(1) == TokenType::Name)
+    }
+
+    fn typed_declaration(&mut self) -> Parsed {
+        let mut words = self.words_until(&["=", ";"])?;
+        let variable = words.pop().unwrap_or_default();
+        let kind = source_type(&words.join(" "));
+        let value = if self.accept("=") {
+            Some(self.expression()?)
+        } else {
+            None
+        };
+        self.end_statement()?;
+        Ok(Node::new("Declaration")
+            .with("name", variable)
+            .with_opt("type", kind)
+            .with_opt("value", value)
+            .with("mutable", !words.iter().any(|word| word == "const")))
+    }
+
+    fn declaration(&mut self) -> Parsed {
+        let keyword = self.next_value()?;
+        let mutable = if self.accept("mut") {
+            true
+        } else {
+            !["const", "val", "let"].contains(&keyword.as_str())
+                || self.syntax.id == "javascript"
+                || self.syntax.id == "typescript"
+        };
+        let variable = self.expect_name()?;
+        let mut kind = None;
+        if self.accept(":") || (self.syntax.typed == Typed::Suffix && !self.is("=")) {
+            kind = self.type_expression()?;
+        }
+        let value = if self.accept("=") {
+            Some(self.expression()?)
+        } else {
+            None
+        };
+        self.end_statement()?;
+        Ok(Node::new("Declaration")
+            .with("name", variable)
+            .with_opt("type", kind)
+            .with_opt("value", value)
+            .with("mutable", keyword != "const" && mutable))
+    }
+
+    fn simple_statement(&mut self) -> Parsed {
+        let starts_with_name = self.kind(0) == TokenType::Name;
+        if starts_with_name && self.is_at(":=", 1) {
+            return self.short_declaration();
+        }
+        if (self.is("++") || self.is("--")) && self.kind(1) == TokenType::Name {
+            return self.prefix_step();
+        }
+        if starts_with_name
+            && ASSIGNMENT_SYMBOLS
+                .iter()
+                .any(|symbol| self.is_at(symbol, 1))
+        {
+            return self.assignment();
+        }
+        if self.is_command_call() {
+            return self.command_call(None);
+        }
+        let expression = self.expression()?;
+        let terminated = self.is(";");
+        self.end_statement()?;
+        if self.syntax.id == "rust" && !terminated && self.is("}") {
+            return Ok(Node::new("Return")
+                .with("value", expression)
+                .with("implicit", true));
+        }
+        Ok(Node::new("Evaluate").with("expression", expression))
+    }
+
+    /// Go: `name := value`
+    fn short_declaration(&mut self) -> Parsed {
+        let variable = self.next_value()?;
+        self.position += 1;
+        let value = self.expression()?;
+        self.end_statement()?;
+        Ok(Node::new("Declaration")
+            .with("name", variable)
+            .with("value", value)
+            .with("mutable", true))
+    }
+
+    /// `++name` and `--name`
+    fn prefix_step(&mut self) -> Parsed {
+        let operator = step_operator(&self.next_value()?).unwrap_or("+=");
+        let variable = self.next_value()?;
+        self.end_statement()?;
+        Ok(assignment(variable, operator, number(1.0)))
+    }
+
+    /// `name = value`, `name += value`, `name++` ...
+    fn assignment(&mut self) -> Parsed {
+        let variable = self.next_value()?;
+        let written = self.next_value()?;
+        let (operator, value) = match step_operator(&written) {
+            Some(operator) => (operator.to_owned(), number(1.0)),
+            None => (written, self.expression()?),
+        };
+        self.end_statement()?;
+        Ok(assignment(variable, &operator, value))
+    }
+
+    /// Calls written without parentheses: `puts value`, `echo value`. The
+    /// callee is the current word unless given.
+    fn command_call(&mut self, callee: Option<&str>) -> Parsed {
+        let written = self.next_value()?;
+        let callee = callee.map_or(written, str::to_owned);
+        let mut values = vec![self.expression()?];
+        while self.accept(",") {
+            values.push(self.expression()?);
+        }
+        self.end_statement()?;
+        Ok(Node::new("Evaluate").with(
+            "expression",
+            Node::new("Call")
+                .with("callee", callee)
+                .with("arguments", values),
+        ))
+    }
+
+    /// Ruby allows calls without parentheses, such as `puts "Hello"`.
+    fn is_command_call(&self) -> bool {
+        if self.syntax.id != "ruby" || self.kind(0) != TokenType::Name {
+            return false;
+        }
+        let following = self.peek(1);
+        matches!(
+            following.kind,
+            TokenType::Text | TokenType::Number | TokenType::Name
+        ) && following.line == self.current().line
+            && !["do", "then", "if"].contains(&following.value.as_str())
+    }
+
+    fn echo_statement(&mut self) -> Parsed {
+        self.command_call(Some("echo"))
+    }
+
+    fn condition(&mut self) -> Parsed {
+        let value = self.expression()?;
+        if self.syntax.blocks == Blocks::End {
+            self.accept("then");
+            self.accept("do");
+        }
+        Ok(value)
+    }
+
+    fn if_statement(&mut self) -> Parsed {
+        self.position += 1;
+        let condition = self.condition()?;
+        let then = self.block()?;
+        let result = |otherwise: Option<Node>| {
+            Node::new("If")
+                .with("condition", condition.clone())
+                .with("then", then.clone())
+                .with_opt("otherwise", otherwise)
+        };
+        self.skip_blank_lines_before_else();
+        let else_if = if self.syntax.id == "python" {
+            Some("elif")
+        } else {
+            self.syntax.else_if
+        };
+        if else_if.is_some_and(|word| self.is(word)) {
+            return Ok(result(Some(self.if_statement()?)));
+        }
+        let mut otherwise = None;
+        if self.accept("else") {
+            if self.is("if") {
+                return Ok(result(Some(self.if_statement()?)));
+            }
+            otherwise = Some(self.block()?);
+        }
+        self.close_keyword_block()?;
+        Ok(result(otherwise))
+    }
+
+    fn skip_blank_lines_before_else(&mut self) {
+        let mut offset = 0;
+        while self.kind(offset) == TokenType::Newline {
+            offset += 1;
+        }
+        if ["else", "elif", "elsif", "elseif"]
+            .iter()
+            .any(|word| self.is_at(word, offset))
+        {
+            self.position += offset;
+        }
+    }
+
+    fn while_statement(&mut self) -> Parsed {
+        self.position += 1;
+        let condition = self.condition()?;
+        let body = self.block()?;
+        self.close_keyword_block()?;
+        Ok(Node::new("While")
+            .with("condition", condition)
+            .with("body", body))
+    }
+
+    fn for_statement(&mut self) -> Parsed {
+        self.position += 1;
+        let parenthesized = self.syntax.id != "go"
+            && self.is("(")
+            && (self.syntax.id == "kotlin" || self.syntax.blocks == Blocks::Braces);
+        if parenthesized {
+            self.expect("(")?;
+        }
+        // C family: for (init; condition; update)
+        if self.tokens_until_block().any(|token| token.value == ";") {
+            let initial = self.statement()?;
+            let condition = self.expression()?;
+            self.expect(";")?;
+            let update = self.for_update()?;
+            if parenthesized {
+                self.expect(")")?;
+            }
+            let body = self.block()?;
+            return counting_loop(initial, condition, update, body);
+        }
+        if self.syntax.id == "go" && !self.is_at("range", 1) && !self.is_at(":=", 1) {
+            let condition = self.expression()?;
+            let body = self.block()?;
+            return Ok(Node::new("While")
+                .with("condition", condition)
+                .with("body", body));
+        }
+        let variable = self.expect_name()?;
+        if self.syntax.id == "lua" {
+            self.expect("=")?;
+            let start = self.expression()?;
+            self.expect(",")?;
+            let last = self.expression()?;
+            let body = self.block()?;
+            self.close_keyword_block()?;
+            let range = Range {
+                start,
+                end: add(last, number(1.0)),
+            };
+            return Ok(counting_node(variable, range, body));
+        }
+        self.expect("in")?;
+        let range = self.range_expression()?;
+        if parenthesized {
+            self.expect(")")?;
+        }
+        let body = self.block()?;
+        self.close_keyword_block()?;
+        Ok(counting_node(variable, range, body))
+    }
+
+    /// Ruby: `(first..last).each do |variable| ... end`
+    fn is_range_each(&self) -> bool {
+        if !self.is("(") {
+            return false;
+        }
+        let mut depth = 0;
+        for offset in 0.. {
+            let token = self.peek(offset);
+            if matches!(token.kind, TokenType::End | TokenType::Newline) {
+                return false;
+            }
+            if token.value == "(" {
+                depth += 1;
+            }
+            if token.value == ")" {
+                depth -= 1;
+                if depth == 0 {
+                    return self.is_at(".", offset + 1) && self.is_at("each", offset + 2);
+                }
+            }
+        }
+        false
+    }
+
+    fn range_each(&mut self) -> Parsed {
+        self.expect("(")?;
+        let range = self.range_expression()?;
+        for word in [")", ".", "each", "do", "|"] {
+            self.expect(word)?;
+        }
+        let variable = self.expect_name()?;
+        self.expect("|")?;
+        let body = self.block()?;
+        self.close_keyword_block()?;
+        Ok(counting_node(variable, range, body))
+    }
+
+    fn tokens_until_block(&self) -> impl Iterator<Item = &Token> {
+        self.tokens[self.position.min(self.tokens.len() - 1)..]
+            .iter()
+            .take_while(|token| {
+                !matches!(token.kind, TokenType::End | TokenType::Newline) && token.value != "{"
+            })
+    }
+
+    fn for_update(&mut self) -> Parsed<Update> {
+        let variable = self.expect_name()?;
+        let operator = self.next_value()?;
+        match operator.as_str() {
+            "++" => Ok(Update {
+                name: variable,
+                step: Some(1.0),
+            }),
+            "+=" => {
+                let step = self.expression()?;
+                Ok(Update {
+                    name: variable,
+                    step: step.number("value"),
+                })
+            }
+            _ => Err(GrammarError::syntax(
+                "Only counting loops with increasing steps are supported",
+                self.current().line,
+            )),
+        }
+    }
+
+    fn range_expression(&mut self) -> Parsed<Range> {
+        if self.accept("range") {
+            self.expect("(")?;
+            let first = self.expression()?;
+            let second = if self.accept(",") {
+                Some(self.expression()?)
+            } else {
+                None
+            };
+            self.expect(")")?;
+            return Ok(match second {
+                Some(end) => Range { start: first, end },
+                None => Range {
+                    start: number(0.0),
+                    end: first,
+                },
+            });
+        }
+        let start = self.binary(ADDITIVE)?;
+        let operator = self.next_value()?;
+        let last = self.binary(ADDITIVE)?;
+        let inclusive = |last: Node| add(last, number(1.0));
+        let end = match operator.as_str() {
+            "until" | "..<" => last,
+            "..." if self.syntax.id == "ruby" => last,
+            ".." if self.syntax.id == "rust" => last,
+            "..." | ".." | "..=" => inclusive(last),
+            _ => {
+                return Err(GrammarError::syntax(
+                    format!("Unsupported range operator \"{operator}\""),
+                    self.current().line,
+                ));
+            }
+        };
+        Ok(Range { start, end })
+    }
+
+    // ---- expressions ----
+
+    fn expression(&mut self) -> Parsed {
+        self.binary(0)
+    }
+
+    /// The meta operator spelled by the current token at a precedence level.
+    fn binary_operator(&self, level: usize) -> Option<&'static str> {
+        let token = self.current();
+        if !matches!(token.kind, TokenType::Symbol | TokenType::Name) {
+            return None;
+        }
+        BINARY_LEVELS[level]
+            .iter()
+            .find(|(_, surfaces)| surfaces.contains(&token.value.as_str()))
+            .map(|(operator, _)| *operator)
+    }
+
+    fn binary(&mut self, level: usize) -> Parsed {
+        if level == BINARY_LEVELS.len() {
+            return self.unary();
+        }
+        let mut left = self.binary(level + 1)?;
+        loop {
+            let Some(operator) = self.binary_operator(level) else {
+                let token = self.current();
+                // PHP joins text with "."; C++ streams output with "<<".
+                let surface = if level != ADDITIVE {
+                    None
+                } else if token.kind == TokenType::Symbol
+                    && Some(token.value.as_str()) == self.syntax.operators.concatenate
+                {
+                    Some("concatenate")
+                } else if token.value == "<<" {
+                    Some("stream")
+                } else {
+                    None
+                };
+                let Some(operator) = surface else {
+                    return Ok(left);
+                };
+                self.position += 1;
+                let right = self.binary(level + 1)?;
+                left = binary(operator, left, right);
+                continue;
+            };
+            if self.value(0) == ".." && self.syntax.id != "lua" {
+                return Ok(left);
+            }
+            self.position += 1;
+            let right = self.binary(level + 1)?;
+            left = binary(operator, left, right);
+        }
+    }
+
+    fn unary(&mut self) -> Parsed {
+        if self.accept("-") {
+            let operand = self.unary()?;
+            if operand.is("Number") {
+                return Ok(number(-operand.number("value").unwrap_or(0.0)));
+            }
+            return Ok(Node::new("Unary")
+                .with("operator", "negate")
+                .with("operand", operand));
+        }
+        if self.accept("!") || self.accept("not") {
+            let operand = self.unary()?;
+            return Ok(Node::new("Unary")
+                .with("operator", "not")
+                .with("operand", operand));
+        }
+        self.postfix()
+    }
+
+    fn postfix(&mut self) -> Parsed {
+        let mut expression = self.primary()?;
+        loop {
+            let member =
+                (self.is(".") && self.syntax.operators.concatenate != Some(".")) || self.is("::");
+            if member && self.kind(1) == TokenType::Name {
+                let separator = self.next_value()?;
+                let member = self.next_value()?;
+                expression = name(format!("{}{separator}{member}", callee_name(&expression)?));
+                continue;
+            }
+            if self.accept("(") {
+                let mut values = Vec::new();
+                while !self.is(")") {
+                    if self.kind(0) == TokenType::Name && self.is_at("=", 1) {
+                        let label = self.next_value()?;
+                        self.position += 1;
+                        let value = self.expression()?;
+                        values.push(
+                            Node::new("NamedArgument")
+                                .with("name", label)
+                                .with("value", value),
+                        );
+                    } else {
+                        values.push(self.expression()?);
+                    }
+                    if !self.accept(",") {
+                        break;
+                    }
+                }
+                self.expect(")")?;
+                expression = Node::new("Call")
+                    .with("callee", callee_name(&expression)?)
+                    .with("arguments", values);
+                continue;
+            }
+            return Ok(expression);
+        }
+    }
+
+    fn primary(&mut self) -> Parsed {
+        let token = self.next()?;
+        match token.kind {
+            TokenType::Number => return Ok(number(token.value.parse().unwrap_or(0.0))),
+            TokenType::Text => return self.text_literal(&token),
+            TokenType::Name => {
+                return Ok(match token.value.as_str() {
+                    "true" | "True" => Node::new("Boolean").with("value", true),
+                    "false" | "False" => Node::new("Boolean").with("value", false),
+                    _ => name(token.value),
+                });
+            }
+            TokenType::Symbol if token.value == "(" => {
+                let inner = self.expression()?;
+                self.expect(")")?;
+                return Ok(inner);
+            }
+            _ => {}
+        }
+        Err(GrammarError::syntax(
+            format!("Unexpected \"{}\" in expression", token.shown()),
+            token.line,
+        ))
+    }
+
+    fn text_literal(&self, token: &Token) -> Parsed {
+        let single = token.quote == Some('\'');
+        let style = if single && ["php", "ruby"].contains(&self.syntax.id) {
+            InterpolationStyle::Plain
+        } else {
+            token.style
+        };
+        if style == InterpolationStyle::Plain {
+            return Ok(text(if single && self.syntax.id == "php" {
+                token.value.clone()
+            } else {
+                decode_escapes(&token.value)
+            }));
+        }
+        let mut parts = Vec::new();
+        for piece in split_interpolation(&token.value, style)? {
+            match piece {
+                Piece::Literal(literal) => parts.push(text(decode_escapes(&literal))),
+                Piece::Code(code) => {
+                    let inner = Syntax {
+                        variable_sigil: Some('$'),
+                        ..self.syntax.clone()
+                    };
+                    let tokens = tokenize(&code, &inner)?;
+                    parts.push(Parser::new(tokens, inner).expression()?);
+                }
+            }
+        }
+        if parts.len() == 1 && parts[0].is("Text") {
+            return Ok(parts.remove(0));
+        }
+        Ok(Node::new("Interpolation").with("parts", parts))
+    }
+}
+
+fn assignment(variable: String, operator: &str, value: Node) -> Node {
+    Node::new("Assignment")
+        .with("name", variable)
+        .with("operator", operator)
+        .with("value", value)
+}
+
+fn counting_node(variable: String, range: Range, body: Node) -> Node {
+    Node::new("CountingLoop")
+        .with("variable", variable)
+        .with("start", range.start)
+        .with("end", range.end)
+        .with("body", body)
+}
+
+/// A piece of interpolated text: literal text or embedded code.
+enum Piece {
+    Literal(String),
+    Code(String),
+}
+
+/// Where an embedded expression starts, which bracket closes it, and what
+/// the opener keeps of itself in the code.
+fn interpolation_openers(
+    style: InterpolationStyle,
+) -> &'static [(&'static str, char, &'static str)] {
+    match style {
+        InterpolationStyle::Braces => &[("{", '}', "")],
+        InterpolationStyle::DollarBraces => &[("${", '}', "")],
+        InterpolationStyle::HashBraces => &[("#{", '}', "")],
+        InterpolationStyle::Dollar => &[("${", '}', ""), ("{$", '}', "$")],
+        InterpolationStyle::BackslashParentheses => &[("\\(", ')', "")],
+        InterpolationStyle::Plain => &[],
+    }
+}
+
+fn starts_with_at(value: &[char], index: usize, prefix: &str) -> bool {
+    prefix
+        .chars()
+        .enumerate()
+        .all(|(offset, character)| value.get(index + offset) == Some(&character))
+}
+
+/// Split interpolated text into literal strings and code pieces. Nested
+/// brackets inside the embedded expression are balanced, so `"\(f(x))"`
+/// works.
+fn split_interpolation(value: &str, style: InterpolationStyle) -> Parsed<Vec<Piece>> {
+    let characters: Vec<char> = value.chars().collect();
+    let mut pieces = Vec::new();
+    let mut literal = String::new();
+    let mut index = 0;
+    while index < characters.len() {
+        if let Some((code, end)) = embedded_code(&characters, index, style)? {
+            if !literal.is_empty() {
+                pieces.push(Piece::Literal(std::mem::take(&mut literal)));
+            }
+            pieces.push(Piece::Code(code));
+            index = end;
+            continue;
+        }
+        let length = literal_length(&characters, index, style);
+        // A doubled brace stands for one brace.
+        if length == 2 && characters[index] != '\\' {
+            literal.push(characters[index]);
+        } else {
+            literal.extend(&characters[index..(index + length).min(characters.len())]);
+        }
+        index += length;
+    }
+    if !literal.is_empty() {
+        pieces.push(Piece::Literal(literal));
+    }
+    Ok(pieces)
+}
+
+/// How many characters of literal text start at `index`: an escape sequence
+/// or a doubled brace counts as two.
+fn literal_length(value: &[char], index: usize, style: InterpolationStyle) -> usize {
+    let backslash = value[index] == '\\';
+    if backslash && style != InterpolationStyle::BackslashParentheses {
+        return 2;
+    }
+    if style == InterpolationStyle::Braces
+        && (starts_with_at(value, index, "{{") || starts_with_at(value, index, "}}"))
+    {
+        return 2;
+    }
+    if backslash && !starts_with_at(value, index, "\\(") {
+        2
+    } else {
+        1
+    }
+}
+
+/// Code embedded in text at `index`, with the index just after it.
+fn embedded_code(
+    value: &[char],
+    index: usize,
+    style: InterpolationStyle,
+) -> Parsed<Option<(String, usize)>> {
+    if literal_length(value, index, style) == 2 {
+        return Ok(None);
+    }
+    let opener = interpolation_openers(style)
+        .iter()
+        .find(|(open, _, _)| starts_with_at(value, index, open));
+    let Some((open, close, keep)) = opener else {
+        if style == InterpolationStyle::Dollar
+            && value[index] == '$'
+            && value
+                .get(index + 1)
+                .is_some_and(|c| c.is_ascii_alphabetic() || *c == '_')
+        {
+            let length = value[index + 1..]
+                .iter()
+                .take_while(|c| c.is_ascii_alphanumeric() || **c == '_')
+                .count();
+            let code = value[index + 1..index + 1 + length].iter().collect();
+            return Ok(Some((code, index + 1 + length)));
+        }
+        return Ok(None);
+    };
+    let start = index + open.chars().count();
+    let end = closing_index(value, start, *close)?;
+    let code: String = value[start..end - 1].iter().collect();
+    Ok(Some((format!("{keep}{code}"), end)))
+}
+
+/// The index just after the bracket that closes one already opened.
+fn closing_index(value: &[char], start: usize, close: char) -> Parsed<usize> {
+    let inner = if close == '}' { '{' } else { '(' };
+    let mut depth = 1;
+    let mut end = start;
+    while end < value.len() && depth > 0 {
+        if value[end] == inner {
+            depth += 1;
+        } else if value[end] == close {
+            depth -= 1;
+        }
+        end += 1;
+    }
+    if depth != 0 {
+        return Err(GrammarError::syntax(
+            format!("Unclosed \"{inner}\" in text"),
+            0,
+        ));
+    }
+    Ok(end)
+}
+
+fn callee_name(expression: &Node) -> Parsed<String> {
+    match expression.str("name") {
+        Some(identifier) if expression.is("Name") => Ok(identifier.to_owned()),
+        _ => Err(GrammarError::syntax(
+            "Only named functions can be called",
+            0,
+        )),
+    }
+}
+
+fn counting_loop(initial: Node, condition: Node, update: Update, body: Node) -> Parsed {
+    let variable = initial.str("name").unwrap_or_default().to_owned();
+    let declares = initial.is("Declaration") || initial.is("Assignment");
+    let operator = condition.str("operator").unwrap_or_default();
+    let counts = declares
+        && condition.is("Binary")
+        && condition
+            .node("left")
+            .is_some_and(|left| left.is_name(&variable))
+        && update.name == variable
+        && update.step == Some(1.0);
+    if !counts || !["less", "lessOrEqual"].contains(&operator) {
+        return Err(GrammarError::syntax(
+            "Only counting loops of the form for (i = a; i < b; i++) are supported",
+            0,
+        ));
+    }
+    let right = condition
+        .node("right")
+        .cloned()
+        .unwrap_or_else(|| number(0.0));
+    let end = if operator == "less" {
+        right
+    } else {
+        add(right, number(1.0))
+    };
+    Ok(Node::new("CountingLoop")
+        .with("variable", variable)
+        .with_opt("start", initial.node("value").cloned())
+        .with("end", end)
+        .with("body", body))
+}
+
+/// Map a source type spelling to a meta type: integer, text, boolean,
+/// nothing, `source:<spelling>` for other types, or `None` when the source
+/// leaves the type to inference.
+pub fn source_type(spelling: &str) -> Option<String> {
+    static QUALIFIERS: OnceLock<Regex> = OnceLock::new();
+    let qualifiers = QUALIFIERS.get_or_init(|| {
+        Regex::new(r"\b(const|static|unsigned|signed|mut)\b").expect("valid pattern")
+    });
+    let stripped = qualifiers.replace_all(spelling, "");
+    let words = stripped.split_whitespace().collect::<Vec<_>>().join(" ");
+    let meta = match words.as_str() {
+        "int" | "long" | "short" | "i8" | "i16" | "i32" | "i64" | "isize" | "u8" | "u16"
+        | "u32" | "u64" | "usize" | "Int" | "Long" | "number" | "integer" => "integer",
+        "string" | "String" | "&'static str" => "text",
+        _ if is_spaced_variant(&words) => "text",
+        "bool" | "boolean" | "Bool" | "Boolean" => "boolean",
+        "void" | "()" | "Unit" | "Void" => "nothing",
+        "" | "var" | "auto" => return None,
+        _ => return Some(format!("source:{words}")),
+    };
+    Some(meta.to_owned())
+}
+
+/// Whether `words` spells `char *`, `std::string` or `&str` with at most one
+/// space at each place the type pattern allows one.
+fn is_spaced_variant(words: &str) -> bool {
+    [
+        "char*",
+        "char *",
+        "std::string",
+        "std ::string",
+        "std:: string",
+        "std :: string",
+        "&str",
+        "& str",
+    ]
+    .contains(&words)
+}

@@ -52,13 +52,13 @@ impl SourceDocument {
         if language.is_empty() {
             return Err("Expected a source language".into());
         }
-        if let [field] = lines {
-            if let Ok(source) = links::children(field, "source") {
-                return Ok(Self {
-                    language,
-                    source: links::reference(source)?,
-                });
-            }
+        if let [field] = lines
+            && let Ok(source) = links::children(field, "source")
+        {
+            return Ok(Self {
+                language,
+                source: links::reference(source)?,
+            });
         }
 
         // Earlier documents stored a separate reference for each source line.

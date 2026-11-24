@@ -291,10 +291,10 @@ impl CompiledForm {
             } else {
                 remainder.split_once(next)?
             };
-            if let Some(previous) = values.insert(field.clone(), value.to_owned()) {
-                if previous != value {
-                    return None;
-                }
+            if let Some(previous) = values.insert(field.clone(), value.to_owned())
+                && previous != value
+            {
+                return None;
             }
             remainder = after;
         }

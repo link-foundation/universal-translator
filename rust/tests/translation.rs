@@ -22,7 +22,7 @@ fn links_notation_intermediate_preserves_effect_and_whole_line_comments() {
     assert!(intermediate.contains(&effect.to_links_notation()));
     assert_eq!(
         Effect::read_links_notation(&intermediate).unwrap(),
-        [effect.clone()]
+        std::slice::from_ref(&effect)
     );
     let output = translator
         .translate(&intermediate, "meta", "csharp", &literal)
@@ -239,7 +239,7 @@ fn localized_greetings_survive_translation_to_and_from_supported_profiles() {
                 "meta",
                 "javascript",
                 &Options {
-                    form: Some("single-quotes".into()),
+                    form: Some("single-quotes"),
                     ..options
                 },
             )

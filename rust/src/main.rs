@@ -4,6 +4,7 @@ use universal_translator::{Mode, Options, SourceDocument, Translator, translate_
 
 const USAGE: &str = "Usage:
   universal-translator translate <from> <to> [file|-] [--mode <mode>] [--form <form>]
+  universal-translator translate-grammar <from> <to> [file|-] [--mode <mode>]
   universal-translator translate-program <from|cst> <to> [file|-]
   universal-translator roundtrip <language> [file|-]
   universal-translator encode-source <language> [file|-]
@@ -67,6 +68,29 @@ fn translate(
     translator.translate(&source(file)?, from, to, &options)
 }
 
+fn translate_grammar(from: &str, to: &str, arguments: &[&str]) -> Result<String, String> {
+    let mut file = None;
+    let mut mode = None;
+    let mut arguments = arguments.iter().copied();
+    while let Some(argument) = arguments.next() {
+        match argument {
+            "--mode" if mode.is_none() => {
+                mode = Some(
+                    arguments
+                        .next()
+                        .ok_or("Missing --mode value")?
+                        .parse::<Mode>()?,
+                );
+            }
+            part if (part == "-" || !part.starts_with('-')) && file.is_none() => file = Some(part),
+            _ => return Err(format!("Unexpected argument {argument}")),
+        }
+    }
+    universal_translator::grammar::Translator::new()
+        .translate(&source(file)?, from, to, mode.unwrap_or_default())
+        .map_err(|error| error.to_string())
+}
+
 fn run(arguments: &[String]) -> Result<String, String> {
     let arguments: Vec<&str> = arguments.iter().map(String::as_str).collect();
     match arguments.as_slice() {
@@ -105,6 +129,7 @@ fn run(arguments: &[String]) -> Result<String, String> {
         ["translate", from, to, trailing @ ..] => {
             translate(&Translator::default(), from, to, trailing)
         }
+        ["translate-grammar", from, to, trailing @ ..] => translate_grammar(from, to, trailing),
         ["translate-program", from, to, trailing @ ..] if trailing.len() <= 1 => {
             let input = source(trailing.first().copied())?;
             let document = if *from == "cst" {

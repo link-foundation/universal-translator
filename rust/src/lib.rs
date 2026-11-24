@@ -1,6 +1,7 @@
 //! Translate admitted program forms through a concrete source and an effect network.
 
 pub mod common_library;
+pub mod grammar;
 mod links;
 mod meta;
 mod network;
@@ -448,7 +449,7 @@ impl Translator {
             language
         };
         let grammar = (profile.kind == "programming")
-            .then(|| [grammar_id, profile.label.as_str()])
+            .then_some([grammar_id, profile.label.as_str()])
             .into_iter()
             .flatten()
             .find(|name| !grammar_provenance(name).is_empty());
