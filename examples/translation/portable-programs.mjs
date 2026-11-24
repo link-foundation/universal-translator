@@ -1,18 +1,19 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { URL } from 'node:url';
 import {
   linkFields,
   parseLinks,
   references,
 } from '../../js/src/translation/links.js';
+import { translationData } from './fixtures.mjs';
 
 export function readPortablePrograms() {
-  const file = new URL('portable-programs.lino', import.meta.url);
-  const programs = linkFields(parseLinks(readFileSync(file, 'utf8')));
+  const programs = linkFields(
+    parseLinks(translationData('portable-programs.lino'))
+  );
   return new Map(
     [...programs].map(([path, fields]) => [
       path,

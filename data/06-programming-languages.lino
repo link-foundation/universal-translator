@@ -10,41 +10,38 @@ profile:
       task: hello
       name: standard
       requires: escript
-      source:
-        (line: '#!/usr/bin/env escript')
-        (line: ~1{})
-        (line: 'main(_) ->')
-        (line: '    io:format("~s~n", ["{{message}}"]).')
+      source: '''#!/usr/bin/env escript
+
+main(_) ->
+    io:format("~s~n", ["{{message}}"]).'''
     form:
       task: greatest-common-divisor
       name: standard
       requires: escript
-      source:
-        (line: '#!/usr/bin/env escript')
-        (line: ~1{})
-        (line: 'greatest_common_divisor(Left, 0) -> Left;')
-        (line: 'greatest_common_divisor(Left, Right) ->')
-        (line: '    greatest_common_divisor(Right, Left rem Right).')
-        (line: ~1{})
-        (line: 'main(_) ->')
-        (line: '    io:format("~B~n", [greatest_common_divisor({{left}}, {{right}})]).')
+      source: '''#!/usr/bin/env escript
+
+greatest_common_divisor(Left, 0) -> Left;
+greatest_common_divisor(Left, Right) ->
+    greatest_common_divisor(Right, Left rem Right).
+
+main(_) ->
+    io:format("~B~n", [greatest_common_divisor({{left}}, {{right}})]).'''
     form:
       task: fizz-buzz
       name: standard
       requires: escript
-      source:
-        (line: '#!/usr/bin/env escript')
-        (line: ~1{})
-        (line: 'fizz_buzz(Number) when Number rem 15 =:= 0 -> "FizzBuzz";')
-        (line: 'fizz_buzz(Number) when Number rem 3 =:= 0 -> "Fizz";')
-        (line: 'fizz_buzz(Number) when Number rem 5 =:= 0 -> "Buzz";')
-        (line: 'fizz_buzz(Number) -> integer_to_list(Number).')
-        (line: ~1{})
-        (line: 'main(_) ->')
-        (line: '    lists:foreach(')
-        (line: '        fun(Number) -> io:format("~s~n", [fizz_buzz(Number)]) end,')
-        (line: '        lists:seq(1, {{limit}})')
-        (line: '    ).')
+      source: '''#!/usr/bin/env escript
+
+fizz_buzz(Number) when Number rem 15 =:= 0 -> "FizzBuzz";
+fizz_buzz(Number) when Number rem 3 =:= 0 -> "Fizz";
+fizz_buzz(Number) when Number rem 5 =:= 0 -> "Buzz";
+fizz_buzz(Number) -> integer_to_list(Number).
+
+main(_) ->
+    lists:foreach(
+        fun(Number) -> io:format("~s~n", [fizz_buzz(Number)]) end,
+        lists:seq(1, {{limit}})
+    ).'''
 
 profile:
   id: elixir
@@ -57,38 +54,35 @@ profile:
       task: hello
       name: standard
       requires: 'Elixir standard library'
-      source:
-        (line: 'IO.puts("{{message}}")')
+      source: 'IO.puts("{{message}}")'
     form:
       task: greatest-common-divisor
       name: standard
       requires: 'Elixir standard library'
-      source:
-        (line: 'defmodule Arithmetic do')
-        (line: '  def greatest_common_divisor(left, 0), do: left')
-        (line: ~1{})
-        (line: '  def greatest_common_divisor(left, right) do')
-        (line: '    greatest_common_divisor(right, rem(left, right))')
-        (line: '  end')
-        (line: end)
-        (line: ~1{})
-        (line: 'IO.puts(Arithmetic.greatest_common_divisor({{left}}, {{right}}))')
+      source: '''defmodule Arithmetic do
+  def greatest_common_divisor(left, 0), do: left
+
+  def greatest_common_divisor(left, right) do
+    greatest_common_divisor(right, rem(left, right))
+  end
+end
+
+IO.puts(Arithmetic.greatest_common_divisor({{left}}, {{right}}))'''
     form:
       task: fizz-buzz
       name: standard
       requires: 'Elixir standard library'
-      source:
-        (line: 'for number <- 1..{{limit}} do')
-        (line: '  result =')
-        (line: '    cond do')
-        (line: '      rem(number, 15) == 0 -> "FizzBuzz"')
-        (line: '      rem(number, 3) == 0 -> "Fizz"')
-        (line: '      rem(number, 5) == 0 -> "Buzz"')
-        (line: '      true -> number')
-        (line: '    end')
-        (line: ~1{})
-        (line: '  IO.puts(result)')
-        (line: end)
+      source: '''for number <- 1..{{limit}} do
+  result =
+    cond do
+      rem(number, 15) == 0 -> "FizzBuzz"
+      rem(number, 3) == 0 -> "Fizz"
+      rem(number, 5) == 0 -> "Buzz"
+      true -> number
+    end
+
+  IO.puts(result)
+end'''
 
 profile:
   id: fsharp
@@ -101,28 +95,25 @@ profile:
       task: hello
       name: standard
       requires: 'F# Interactive'
-      source:
-        (line: 'printfn "%s" "{{message}}"')
+      source: 'printfn "%s" "{{message}}"'
     form:
       task: greatest-common-divisor
       name: standard
       requires: 'F# Interactive'
-      source:
-        (line: 'let rec greatestCommonDivisor left right =')
-        (line: '    if right = 0 then left')
-        (line: '    else greatestCommonDivisor right (left % right)')
-        (line: ~1{})
-        (line: 'printfn "%d" (greatestCommonDivisor {{left}} {{right}})')
+      source: '''let rec greatestCommonDivisor left right =
+    if right = 0 then left
+    else greatestCommonDivisor right (left % right)
+
+printfn "%d" (greatestCommonDivisor {{left}} {{right}})'''
     form:
       task: fizz-buzz
       name: standard
       requires: 'F# Interactive'
-      source:
-        (line: 'for number in 1 .. {{limit}} do')
-        (line: '    if number % 15 = 0 then printfn "FizzBuzz"')
-        (line: '    elif number % 3 = 0 then printfn "Fizz"')
-        (line: '    elif number % 5 = 0 then printfn "Buzz"')
-        (line: '    else printfn "%d" number')
+      source: '''for number in 1 .. {{limit}} do
+    if number % 15 = 0 then printfn "FizzBuzz"
+    elif number % 3 = 0 then printfn "Fizz"
+    elif number % 5 = 0 then printfn "Buzz"
+    else printfn "%d" number'''
 
 profile:
   id: groovy
@@ -135,38 +126,34 @@ profile:
       task: hello
       name: standard
       requires: 'Groovy standard library'
-      source:
-        (line: "println '{{message}}'")
+      source: "println '{{message}}'"
     form:
       task: hello
       name: collection
       requires: 'Groovy standard library'
-      source:
-        (line: 'println "{{message}}"')
+      source: 'println "{{message}}"'
     form:
       task: greatest-common-divisor
       name: standard
       requires: 'Groovy standard library'
-      source:
-        (line: 'int left = {{left}}')
-        (line: 'int right = {{right}}')
-        (line: 'while (right != 0) {')
-        (line: '    int remainder = left % right')
-        (line: '    left = right')
-        (line: '    right = remainder')
-        (line: })
-        (line: 'println left')
+      source: '''int left = {{left}}
+int right = {{right}}
+while (right != 0) {
+    int remainder = left % right
+    left = right
+    right = remainder
+}
+println left'''
     form:
       task: fizz-buzz
       name: standard
       requires: 'Groovy standard library'
-      source:
-        (line: 'for (int number in 1..{{limit}}) {')
-        (line: "    if (number % 15 == 0) println 'FizzBuzz'")
-        (line: "    else if (number % 3 == 0) println 'Fizz'")
-        (line: "    else if (number % 5 == 0) println 'Buzz'")
-        (line: '    else println number')
-        (line: })
+      source: '''for (int number in 1..{{limit}}) {
+    if (number % 15 == 0) println 'FizzBuzz'
+    else if (number % 3 == 0) println 'Fizz'
+    else if (number % 5 == 0) println 'Buzz'
+    else println number
+}'''
 
 profile:
   id: raku
@@ -179,29 +166,26 @@ profile:
       task: hello
       name: standard
       requires: Rakudo
-      source:
-        (line: "say '{{message}}';")
+      source: "say '{{message}}';"
     form:
       task: greatest-common-divisor
       name: standard
       requires: Rakudo
-      source:
-        (line: 'my ($left, $right) = {{left}}, {{right}};')
-        (line: 'while $right != 0 {')
-        (line: '    ($left, $right) = $right, $left % $right;')
-        (line: })
-        (line: 'say $left;')
+      source: '''my ($left, $right) = {{left}}, {{right}};
+while $right != 0 {
+    ($left, $right) = $right, $left % $right;
+}
+say $left;'''
     form:
       task: fizz-buzz
       name: standard
       requires: Rakudo
-      source:
-        (line: 'for 1..{{limit}} -> $number {')
-        (line: "    if $number % 15 == 0 { say 'FizzBuzz'; }")
-        (line: "    elsif $number % 3 == 0 { say 'Fizz'; }")
-        (line: "    elsif $number % 5 == 0 { say 'Buzz'; }")
-        (line: '    else { say $number; }')
-        (line: })
+      source: '''for 1..{{limit}} -> $number {
+    if $number % 15 == 0 { say 'FizzBuzz'; }
+    elsif $number % 3 == 0 { say 'Fizz'; }
+    elsif $number % 5 == 0 { say 'Buzz'; }
+    else { say $number; }
+}'''
 
 profile:
   id: scheme
@@ -214,37 +198,34 @@ profile:
       task: hello
       name: standard
       requires: 'Scheme standard library'
-      source:
-        (line: '(display "{{message}}")')
-        (line: '(newline)')
+      source: '''(display "{{message}}")
+(newline)'''
     form:
       task: greatest-common-divisor
       name: standard
       requires: 'Scheme standard library'
-      source:
-        (line: '(define (greatest-common-divisor left right)')
-        (line: '  (if (= right 0)')
-        (line: '      left')
-        (line: '      (greatest-common-divisor right (modulo left right))))')
-        (line: ~1{})
-        (line: '(display (greatest-common-divisor {{left}} {{right}}))')
-        (line: '(newline)')
+      source: '''(define (greatest-common-divisor left right)
+  (if (= right 0)
+      left
+      (greatest-common-divisor right (modulo left right))))
+
+(display (greatest-common-divisor {{left}} {{right}}))
+(newline)'''
     form:
       task: fizz-buzz
       name: standard
       requires: 'Scheme standard library'
-      source:
-        (line: '(define (fizz-buzz number)')
-        (line: '  (cond')
-        (line: '    ((= (modulo number 15) 0) "FizzBuzz")')
-        (line: '    ((= (modulo number 3) 0) "Fizz")')
-        (line: '    ((= (modulo number 5) 0) "Buzz")')
-        (line: '    (else (number->string number))))')
-        (line: ~1{})
-        (line: '(do ((number 1 (+ number 1)))')
-        (line: '    ((> number {{limit}}))')
-        (line: '  (display (fizz-buzz number))')
-        (line: '  (newline))')
+      source: '''(define (fizz-buzz number)
+  (cond
+    ((= (modulo number 15) 0) "FizzBuzz")
+    ((= (modulo number 3) 0) "Fizz")
+    ((= (modulo number 5) 0) "Buzz")
+    (else (number->string number))))
+
+(do ((number 1 (+ number 1)))
+    ((> number {{limit}}))
+  (display (fizz-buzz number))
+  (newline))'''
 
 profile:
   id: nim
@@ -257,34 +238,31 @@ profile:
       task: hello
       name: standard
       requires: 'Nim standard library'
-      source:
-        (line: 'echo "{{message}}"')
+      source: 'echo "{{message}}"'
     form:
       task: greatest-common-divisor
       name: standard
       requires: 'Nim standard library'
-      source:
-        (line: 'var left = {{left}}')
-        (line: 'var right = {{right}}')
-        (line: 'while right != 0:')
-        (line: '  let remainder = left mod right')
-        (line: '  left = right')
-        (line: '  right = remainder')
-        (line: 'echo left')
+      source: '''var left = {{left}}
+var right = {{right}}
+while right != 0:
+  let remainder = left mod right
+  left = right
+  right = remainder
+echo left'''
     form:
       task: fizz-buzz
       name: standard
       requires: 'Nim standard library'
-      source:
-        (line: 'for number in 1 .. {{limit}}:')
-        (line: '  if number mod 15 == 0:')
-        (line: '    echo "FizzBuzz"')
-        (line: '  elif number mod 3 == 0:')
-        (line: '    echo "Fizz"')
-        (line: '  elif number mod 5 == 0:')
-        (line: '    echo "Buzz"')
-        (line: '  else:')
-        (line: '    echo number')
+      source: '''for number in 1 .. {{limit}}:
+  if number mod 15 == 0:
+    echo "FizzBuzz"
+  elif number mod 3 == 0:
+    echo "Fizz"
+  elif number mod 5 == 0:
+    echo "Buzz"
+  else:
+    echo number'''
 
 profile:
   id: haxe
@@ -297,44 +275,41 @@ profile:
       task: hello
       name: standard
       requires: 'Haxe interpreter'
-      source:
-        (line: 'class Main {')
-        (line: '    static function main() {')
-        (line: '        Sys.println("{{message}}");')
-        (line: '    }')
-        (line: })
+      source: '''class Main {
+    static function main() {
+        Sys.println("{{message}}");
+    }
+}'''
     form:
       task: greatest-common-divisor
       name: standard
       requires: 'Haxe interpreter'
-      source:
-        (line: 'class Main {')
-        (line: '    static function main() {')
-        (line: '        var left = {{left}};')
-        (line: '        var right = {{right}};')
-        (line: '        while (right != 0) {')
-        (line: '            var remainder = left % right;')
-        (line: '            left = right;')
-        (line: '            right = remainder;')
-        (line: '        }')
-        (line: '        Sys.println(left);')
-        (line: '    }')
-        (line: })
+      source: '''class Main {
+    static function main() {
+        var left = {{left}};
+        var right = {{right}};
+        while (right != 0) {
+            var remainder = left % right;
+            left = right;
+            right = remainder;
+        }
+        Sys.println(left);
+    }
+}'''
     form:
       task: fizz-buzz
       name: standard
       requires: 'Haxe interpreter'
-      source:
-        (line: 'class Main {')
-        (line: '    static function main() {')
-        (line: '        for (number in 1...({{limit}} + 1)) {')
-        (line: '            if (number % 15 == 0) Sys.println("FizzBuzz");')
-        (line: '            else if (number % 3 == 0) Sys.println("Fizz");')
-        (line: '            else if (number % 5 == 0) Sys.println("Buzz");')
-        (line: '            else Sys.println(number);')
-        (line: '        }')
-        (line: '    }')
-        (line: })
+      source: '''class Main {
+    static function main() {
+        for (number in 1...({{limit}} + 1)) {
+            if (number % 15 == 0) Sys.println("FizzBuzz");
+            else if (number % 3 == 0) Sys.println("Fizz");
+            else if (number % 5 == 0) Sys.println("Buzz");
+            else Sys.println(number);
+        }
+    }
+}'''
 
 profile:
   id: crystal
@@ -347,35 +322,32 @@ profile:
       task: hello
       name: standard
       requires: 'Crystal standard library'
-      source:
-        (line: 'puts "{{message}}"')
+      source: 'puts "{{message}}"'
     form:
       task: greatest-common-divisor
       name: standard
       requires: 'Crystal standard library'
-      source:
-        (line: 'left = {{left}}')
-        (line: 'right = {{right}}')
-        (line: 'while right != 0')
-        (line: '  left, right = right, left % right')
-        (line: end)
-        (line: 'puts left')
+      source: '''left = {{left}}
+right = {{right}}
+while right != 0
+  left, right = right, left % right
+end
+puts left'''
     form:
       task: fizz-buzz
       name: standard
       requires: 'Crystal standard library'
-      source:
-        (line: '(1..{{limit}}).each do |number|')
-        (line: '  if number % 15 == 0')
-        (line: '    puts "FizzBuzz"')
-        (line: '  elsif number % 3 == 0')
-        (line: '    puts "Fizz"')
-        (line: '  elsif number % 5 == 0')
-        (line: '    puts "Buzz"')
-        (line: '  else')
-        (line: '    puts number')
-        (line: '  end')
-        (line: end)
+      source: '''(1..{{limit}}).each do |number|
+  if number % 15 == 0
+    puts "FizzBuzz"
+  elsif number % 3 == 0
+    puts "Fizz"
+  elsif number % 5 == 0
+    puts "Buzz"
+  else
+    puts number
+  end
+end'''
 
 profile:
   id: racket
@@ -389,45 +361,41 @@ profile:
       task: hello
       name: standard
       requires: racket/base
-      source:
-        (line: '#lang racket/base')
-        (line: ~1{})
-        (line: '(displayln "{{message}}")')
+      source: '''#lang racket/base
+
+(displayln "{{message}}")'''
     form:
       task: greatest-common-divisor
       name: standard
       requires: racket/base
-      source:
-        (line: '#lang racket/base')
-        (line: ~1{})
-        (line: '(define (greatest-common-divisor left right)')
-        (line: '  (if (zero? right)')
-        (line: '      left')
-        (line: '      (greatest-common-divisor right (remainder left right))))')
-        (line: ~1{})
-        (line: '(displayln (greatest-common-divisor {{left}} {{right}}))')
+      source: '''#lang racket/base
+
+(define (greatest-common-divisor left right)
+  (if (zero? right)
+      left
+      (greatest-common-divisor right (remainder left right))))
+
+(displayln (greatest-common-divisor {{left}} {{right}}))'''
     form:
       task: greatest-common-divisor
       name: rosetta
       requires: racket
-      source:
-        (line: '#lang racket')
-        (line: ~1{})
-        (line: '(gcd {{left}} {{right}})')
+      source: '''#lang racket
+
+(gcd {{left}} {{right}})'''
     form:
       task: fizz-buzz
       name: standard
       requires: racket/base
-      source:
-        (line: '#lang racket/base')
-        (line: ~1{})
-        (line: '(for ([number (in-inclusive-range 1 {{limit}})])')
-        (line: '  (displayln')
-        (line: '   (cond')
-        (line: '     [(zero? (remainder number 15)) "FizzBuzz"]')
-        (line: '     [(zero? (remainder number 3)) "Fizz"]')
-        (line: '     [(zero? (remainder number 5)) "Buzz"]')
-        (line: '     [else number])))')
+      source: '''#lang racket/base
+
+(for ([number (in-inclusive-range 1 {{limit}})])
+  (displayln
+   (cond
+     [(zero? (remainder number 15)) "FizzBuzz"]
+     [(zero? (remainder number 3)) "Fizz"]
+     [(zero? (remainder number 5)) "Buzz"]
+     [else number])))'''
 
 profile:
   id: fish
@@ -440,34 +408,31 @@ profile:
       task: hello
       name: standard
       requires: 'fish shell and seq'
-      source:
-        (line: "printf '%s\n' '{{message}}'")
+      source: "printf '%s\n' '{{message}}'"
     form:
       task: greatest-common-divisor
       name: standard
       requires: 'fish shell and seq'
-      source:
-        (line: 'set left {{left}}')
-        (line: 'set right {{right}}')
-        (line: 'while test "$right" -ne 0')
-        (line: '    set remainder (math "$left % $right")')
-        (line: '    set left "$right"')
-        (line: '    set right "$remainder"')
-        (line: end)
-        (line: `printf '%d\n' "$left"`)
+      source: '''set left {{left}}
+set right {{right}}
+while test "$right" -ne 0
+    set remainder (math "$left % $right")
+    set left "$right"
+    set right "$remainder"
+end
+printf '%d\n' "$left"'''
     form:
       task: fizz-buzz
       name: standard
       requires: 'fish shell and seq'
-      source:
-        (line: 'for number in (seq 1 {{limit}})')
-        (line: '    if test (math "$number % 15") -eq 0')
-        (line: "        printf '%s\n' FizzBuzz")
-        (line: '    else if test (math "$number % 3") -eq 0')
-        (line: "        printf '%s\n' Fizz")
-        (line: '    else if test (math "$number % 5") -eq 0')
-        (line: "        printf '%s\n' Buzz")
-        (line: '    else')
-        (line: `        printf '%d\n' "$number"`)
-        (line: '    end')
-        (line: end)
+      source: '''for number in (seq 1 {{limit}})
+    if test (math "$number % 15") -eq 0
+        printf '%s\n' FizzBuzz
+    else if test (math "$number % 3") -eq 0
+        printf '%s\n' Fizz
+    else if test (math "$number % 5") -eq 0
+        printf '%s\n' Buzz
+    else
+        printf '%d\n' "$number"
+    end
+end'''

@@ -127,8 +127,7 @@ fn source_links_comments_and_default_mode() {
 fn all_authored_forms_and_directed_pairs() {
     let translator = Translator::default();
     let effects: Vec<Effect> =
-        Effect::read_links_notation(include_str!("../../examples/translation/effects.lino"))
-            .unwrap();
+        Effect::read_links_notation(include_str!("../../data/translation/effects.lino")).unwrap();
     assert_eq!(translator.profiles().count(), 76);
     for (kind, count) in [
         ("programming", 50),
@@ -200,7 +199,7 @@ fn all_authored_forms_and_directed_pairs() {
 fn localized_greetings_survive_translation_to_and_from_supported_profiles() {
     let translator = Translator::default();
     let effects = Effect::read_links_notation(include_str!(
-        "../../examples/translation/localized-greetings.lino"
+        "../../data/translation/localized-greetings.lino"
     ))
     .unwrap();
     assert_eq!(effects.len(), 78);
@@ -375,10 +374,8 @@ fn layers_and_decorators() {
 
 #[test]
 fn dependent_referents_keep_uncertainty() {
-    let (source, candidates) = read_referent_input(include_str!(
-        "../../examples/translation/referent-input.lino"
-    ))
-    .unwrap();
+    let (source, candidates) =
+        read_referent_input(include_str!("../../data/translation/referent-input.lino")).unwrap();
     let ranking = rank_interpretations(&source, &candidates, &[]).unwrap();
     assert_eq!(ranking.preferred[0].candidate.id, "white-skin");
     let scores: Vec<_> = ranking

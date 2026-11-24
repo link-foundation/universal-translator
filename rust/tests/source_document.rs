@@ -18,6 +18,38 @@ fn preserves_line_endings_bom_blank_lines_and_final_text() {
 }
 
 #[test]
+fn writes_one_quoted_source_value_in_an_indented_document() {
+    let source = "# comment\n\n  'single', \"double\", `backtick`\r\n";
+    let document = SourceDocument {
+        language: "Rust".into(),
+        source: source.into(),
+    };
+    let notation = document.to_links_notation().unwrap();
+    assert_eq!(
+        notation,
+        format!("source-document:\n  language: 'Rust'\n  source: '''{source}'''")
+    );
+    assert_eq!(
+        SourceDocument::from_links_notation(&notation).unwrap(),
+        document
+    );
+    assert_eq!(
+        SourceDocument::from_links_notation("source-document:\n  language: Rust\n  source: ''")
+            .unwrap()
+            .source,
+        ""
+    );
+    assert_eq!(
+        SourceDocument::from_links_notation(
+            "(source-document: (language: Rust) (line: ~1{610a}) (line: b))"
+        )
+        .unwrap()
+        .source,
+        "a\nb"
+    );
+}
+
+#[test]
 fn rejects_malformed_records_and_line_boundaries() {
     for notation in [
         "",
@@ -80,7 +112,7 @@ fn grammar_network_preserves_structure_and_source() {
 #[test]
 fn ranked_language_grammars_round_trip_programs() {
     let programs = parse_lino_to_links(include_str!(
-        "../../examples/translation/ranked-grammar-programs.lino"
+        "../../data/translation/ranked-grammar-programs.lino"
     ))
     .unwrap();
     assert_eq!(programs.len(), 27);

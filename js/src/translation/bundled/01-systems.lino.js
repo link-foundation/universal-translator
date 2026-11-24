@@ -11,97 +11,91 @@ export default `profile:
       task: hello
       name: standard
       requires: stdio.h
-      source:
-        (line: '#include <stdio.h>')
-        (line: ~1{})
-        (line: 'int main(void)')
-        (line: {)
-        (line: '    printf("{{message}}\\n");')
-        (line: '    return 0;')
-        (line: })
+      source: '''#include <stdio.h>
+
+int main(void)
+{
+    printf("{{message}}\\n");
+    return 0;
+}'''
     form:
       task: hello
       name: classic
       requires: stdio.h
-      source:
-        (line: '#include <stdio.h>')
-        (line: ~1{})
-        (line: 'main()')
-        (line: {)
-        (line: '    printf("{{message}}\\n");')
-        (line: })
+      source: '''#include <stdio.h>
+
+main()
+{
+    printf("{{message}}\\n");
+}'''
     form:
       task: hello
       name: common
       requires: stdio.h print_line
       output: print_line
-      source:
-        (line: '#include <stdio.h>')
-        (line: ~1{})
-        (line: 'static void print_line(const char *message)')
-        (line: {)
-        (line: '    puts(message);')
-        (line: })
-        (line: ~1{})
-        (line: 'int main(void)')
-        (line: {)
-        (line: '    print_line("{{message}}");')
-        (line: '    return 0;')
-        (line: })
+      source: '''#include <stdio.h>
+
+static void print_line(const char *message)
+{
+    puts(message);
+}
+
+int main(void)
+{
+    print_line("{{message}}");
+    return 0;
+}'''
     form:
       task: hello
       name: collection
       requires: stdio.h stdlib.h
       output: puts
-      source:
-        (line: '#include <stdio.h>')
-        (line: '#include <stdlib.h>')
-        (line: ~1{})
-        (line: 'int main(void)')
-        (line: {)
-        (line: '  puts("{{message}}");')
-        (line: '  return EXIT_SUCCESS;')
-        (line: })
+      source: '''#include <stdio.h>
+#include <stdlib.h>
+
+int main(void)
+{
+  puts("{{message}}");
+  return EXIT_SUCCESS;
+}'''
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: '#include <stdio.h>')
-        (line: ~1{})
-        (line: 'int main(void)')
-        (line: {)
-        (line: '    int left = {{left}};')
-        (line: '    int right = {{right}};')
-        (line: '    while (right != 0) {')
-        (line: '        int remainder = left % right;')
-        (line: '        left = right;')
-        (line: '        right = remainder;')
-        (line: '    }')
-        (line: '    printf("%d\\n", left);')
-        (line: '    return 0;')
-        (line: })
+      source: '''#include <stdio.h>
+
+int main(void)
+{
+    int left = {{left}};
+    int right = {{right}};
+    while (right != 0) {
+        int remainder = left % right;
+        left = right;
+        right = remainder;
+    }
+    printf("%d\\n", left);
+    return 0;
+}'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: '#include <stdio.h>')
-        (line: ~1{})
-        (line: 'int main(void)')
-        (line: {)
-        (line: '    const int limit = {{limit}};')
-        (line: '    for (int number = 1; number <= limit; number++) {')
-        (line: '        if (number % 15 == 0) {')
-        (line: '            puts("FizzBuzz");')
-        (line: '        } else if (number % 3 == 0) {')
-        (line: '            puts("Fizz");')
-        (line: '        } else if (number % 5 == 0) {')
-        (line: '            puts("Buzz");')
-        (line: '        } else {')
-        (line: '            printf("%d\\n", number);')
-        (line: '        }')
-        (line: '    }')
-        (line: '    return 0;')
-        (line: })
+      source: '''#include <stdio.h>
+
+int main(void)
+{
+    const int limit = {{limit}};
+    for (int number = 1; number <= limit; number++) {
+        if (number % 15 == 0) {
+            puts("FizzBuzz");
+        } else if (number % 3 == 0) {
+            puts("Fizz");
+        } else if (number % 5 == 0) {
+            puts("Buzz");
+        } else {
+            printf("%d\\n", number);
+        }
+    }
+    return 0;
+}'''
 
 profile:
   id: cpp
@@ -115,62 +109,58 @@ profile:
       task: hello
       name: standard
       requires: iostream
-      source:
-        (line: '#include <iostream>')
-        (line: ~1{})
-        (line: 'int main()')
-        (line: {)
-        (line: \`    std::cout << "{{message}}" << '\\n';\`)
-        (line: })
+      source: '''#include <iostream>
+
+int main()
+{
+    std::cout << "{{message}}" << '\\n';
+}'''
     form:
       task: hello
       name: collection
       requires: iostream
-      source:
-        (line: '#include <iostream>')
-        (line: ~1{})
-        (line: 'int main()')
-        (line: {)
-        (line: '    std::cout << "{{message}}" << std::endl;')
-        (line: })
+      source: '''#include <iostream>
+
+int main()
+{
+    std::cout << "{{message}}" << std::endl;
+}'''
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: '#include <iostream>')
-        (line: ~1{})
-        (line: 'int main()')
-        (line: {)
-        (line: '    int left = {{left}};')
-        (line: '    int right = {{right}};')
-        (line: '    while (right != 0) {')
-        (line: '        const int remainder = left % right;')
-        (line: '        left = right;')
-        (line: '        right = remainder;')
-        (line: '    }')
-        (line: "    std::cout << left << '\\n';")
-        (line: })
+      source: '''#include <iostream>
+
+int main()
+{
+    int left = {{left}};
+    int right = {{right}};
+    while (right != 0) {
+        const int remainder = left % right;
+        left = right;
+        right = remainder;
+    }
+    std::cout << left << '\\n';
+}'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: '#include <iostream>')
-        (line: ~1{})
-        (line: 'int main()')
-        (line: {)
-        (line: '    const int limit = {{limit}};')
-        (line: '    for (int number = 1; number <= limit; ++number) {')
-        (line: '        if (number % 15 == 0) {')
-        (line: '            std::cout << "FizzBuzz\\n";')
-        (line: '        } else if (number % 3 == 0) {')
-        (line: '            std::cout << "Fizz\\n";')
-        (line: '        } else if (number % 5 == 0) {')
-        (line: '            std::cout << "Buzz\\n";')
-        (line: '        } else {')
-        (line: "            std::cout << number << '\\n';")
-        (line: '        }')
-        (line: '    }')
-        (line: })
+      source: '''#include <iostream>
+
+int main()
+{
+    const int limit = {{limit}};
+    for (int number = 1; number <= limit; ++number) {
+        if (number % 15 == 0) {
+            std::cout << "FizzBuzz\\n";
+        } else if (number % 3 == 0) {
+            std::cout << "Fizz\\n";
+        } else if (number % 5 == 0) {
+            std::cout << "Buzz\\n";
+        } else {
+            std::cout << number << '\\n';
+        }
+    }
+}'''
 
 profile:
   id: rust
@@ -185,33 +175,31 @@ profile:
       name: standard
       output: browser.alert_utf8
       requires: wasm32-unknown-unknown browser
-      source:
-        (line: '#[link(wasm_import_module = "browser")]')
-        (line: 'extern "C" {')
-        (line: '    fn alert_utf8(pointer: *const u8, length: usize);')
-        (line: })
-        (line: ~1{})
-        (line: '#[no_mangle]')
-        (line: 'pub extern "C" fn show_alert() {')
-        (line: '    let message = "{{message}}";')
-        (line: '    unsafe { alert_utf8(message.as_ptr(), message.len()) };')
-        (line: })
+      source: '''#[link(wasm_import_module = "browser")]
+extern "C" {
+    fn alert_utf8(pointer: *const u8, length: usize);
+}
+
+#[no_mangle]
+pub extern "C" fn show_alert() {
+    let message = "{{message}}";
+    unsafe { alert_utf8(message.as_ptr(), message.len()) };
+}'''
     form:
       task: browser-write
       name: standard
       output: browser.write_document_utf8
       requires: wasm32-unknown-unknown browser
-      source:
-        (line: '#[link(wasm_import_module = "browser")]')
-        (line: 'extern "C" {')
-        (line: '    fn write_document_utf8(pointer: *const u8, length: usize);')
-        (line: })
-        (line: ~1{})
-        (line: '#[no_mangle]')
-        (line: 'pub extern "C" fn write_document() {')
-        (line: '    let message = "{{message}}";')
-        (line: '    unsafe { write_document_utf8(message.as_ptr(), message.len()) };')
-        (line: })
+      source: '''#[link(wasm_import_module = "browser")]
+extern "C" {
+    fn write_document_utf8(pointer: *const u8, length: usize);
+}
+
+#[no_mangle]
+pub extern "C" fn write_document() {
+    let message = "{{message}}";
+    unsafe { write_document_utf8(message.as_ptr(), message.len()) };
+}'''
     form:
       task: browser-integer-sum
       name: standard
@@ -219,34 +207,33 @@ profile:
       output: browser.set_text_utf8
       fixed:
         limit: 1000
-      source:
-        (line: '#[link(wasm_import_module = "browser")]')
-        (line: 'extern "C" {')
-        (line: '    fn prompt_utf8(message: *const u8, length: usize) -> usize;')
-        (line: '    fn read_prompt_utf8(buffer: *mut u8, length: usize);')
-        (line: '    fn set_text_utf8(id: *const u8, id_length: usize, text: *const u8, text_length: usize);')
-        (line: })
-        (line: ~1{})
-        (line: 'fn prompt_number(message: &str) -> String {')
-        (line: '    let length = unsafe { prompt_utf8(message.as_ptr(), message.len()) };')
-        (line: '    let mut buffer = vec![0; length];')
-        (line: '    unsafe { read_prompt_utf8(buffer.as_mut_ptr(), buffer.len()) };')
-        (line: '    String::from_utf8(buffer).expect("prompt result is UTF-8")')
-        (line: })
-        (line: ~1{})
-        (line: 'fn set_text(id: &str, text: &str) {')
-        (line: '    unsafe { set_text_utf8(id.as_ptr(), id.len(), text.as_ptr(), text.len()) };')
-        (line: })
-        (line: ~1{})
-        (line: '#[no_mangle]')
-        (line: 'pub extern "C" fn prompt_sum() {')
-        (line: '    let left = prompt_number("enter A number");')
-        (line: '    let right = prompt_number("enter B number");')
-        (line: '    let sum = left.trim().parse::<i32>().expect("expected an integer")')
-        (line: '        + right.trim().parse::<i32>().expect("expected an integer");')
-        (line: '    set_text("input", &format!("{left} {right}"));')
-        (line: '    set_text("output", &sum.to_string());')
-        (line: })
+      source: '''#[link(wasm_import_module = "browser")]
+extern "C" {
+    fn prompt_utf8(message: *const u8, length: usize) -> usize;
+    fn read_prompt_utf8(buffer: *mut u8, length: usize);
+    fn set_text_utf8(id: *const u8, id_length: usize, text: *const u8, text_length: usize);
+}
+
+fn prompt_number(message: &str) -> String {
+    let length = unsafe { prompt_utf8(message.as_ptr(), message.len()) };
+    let mut buffer = vec![0; length];
+    unsafe { read_prompt_utf8(buffer.as_mut_ptr(), buffer.len()) };
+    String::from_utf8(buffer).expect("prompt result is UTF-8")
+}
+
+fn set_text(id: &str, text: &str) {
+    unsafe { set_text_utf8(id.as_ptr(), id.len(), text.as_ptr(), text.len()) };
+}
+
+#[no_mangle]
+pub extern "C" fn prompt_sum() {
+    let left = prompt_number("enter A number");
+    let right = prompt_number("enter B number");
+    let sum = left.trim().parse::<i32>().expect("expected an integer")
+        + right.trim().parse::<i32>().expect("expected an integer");
+    set_text("input", &format!("{left} {right}"));
+    set_text("output", &sum.to_string());
+}'''
     form:
       task: empty-program
       name: standard
@@ -254,8 +241,7 @@ profile:
       output: exit
       fixed:
         status: 0
-      source:
-        (line: 'fn main() {}')
+      source: 'fn main() {}'
     form:
       task: empty-program
       name: rosetta
@@ -263,63 +249,59 @@ profile:
       output: exit
       fixed:
         status: 0
-      source:
-        (line: 'fn main(){}')
+      source: 'fn main(){}'
     form:
       task: integer-sum
       name: standard
       requires: 'std::io'
       fixed:
         limit: 1000
-      source:
-        (line: 'use std::io;')
-        (line: ~1{})
-        (line: 'fn main() {')
-        (line: '    let mut input = String::new();')
-        (line: '    io::stdin().read_line(&mut input).expect("read input");')
-        (line: '    let sum: i32 = input')
-        (line: '        .split_whitespace()')
-        (line: '        .map(|value| value.parse::<i32>().expect("expected an integer"))')
-        (line: '        .sum();')
-        (line: '    println!("{sum}");')
-        (line: })
+      source: '''use std::io;
+
+fn main() {
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).expect("read input");
+    let sum: i32 = input
+        .split_whitespace()
+        .map(|value| value.parse::<i32>().expect("expected an integer"))
+        .sum();
+    println!("{sum}");
+}'''
     form:
       task: integer-sum
       name: rosetta-loop
       requires: 'std::io'
       fixed:
         limit: 1000
-      source:
-        (line: 'use std::io;')
-        (line: ~1{})
-        (line: 'fn main() {')
-        (line: '    let mut line = String::new();')
-        (line: '    io::stdin().read_line(&mut line).expect("reading stdin");')
-        (line: ~1{})
-        (line: '    let mut i: i64 = 0;')
-        (line: '    for word in line.split_whitespace() {')
-        (line: '        i += word.parse::<i64>().expect("trying to interpret your input as numbers");')
-        (line: '    }')
-        (line: '    println!("{}", i);')
-        (line: })
+      source: '''use std::io;
+
+fn main() {
+    let mut line = String::new();
+    io::stdin().read_line(&mut line).expect("reading stdin");
+
+    let mut i: i64 = 0;
+    for word in line.split_whitespace() {
+        i += word.parse::<i64>().expect("trying to interpret your input as numbers");
+    }
+    println!("{}", i);
+}'''
     form:
       task: integer-sum
       name: rosetta-iterator
       requires: 'std::io'
       fixed:
         limit: 1000
-      source:
-        (line: 'use std::io;')
-        (line: ~1{})
-        (line: 'fn main() {')
-        (line: '    let mut line = String::new();')
-        (line: '    io::stdin().read_line(&mut line).expect("reading stdin");')
-        (line: ~1{})
-        (line: '    let sum: i64 = line.split_whitespace()')
-        (line: '                       .map(|x| x.parse::<i64>().expect("Not an integer"))')
-        (line: '                       .sum();')
-        (line: '    println!("{}", sum);')
-        (line: })
+      source: '''use std::io;
+
+fn main() {
+    let mut line = String::new();
+    io::stdin().read_line(&mut line).expect("reading stdin");
+
+    let sum: i64 = line.split_whitespace()
+                       .map(|x| x.parse::<i64>().expect("Not an integer"))
+                       .sum();
+    println!("{}", sum);
+}'''
     form:
       task: integer-sum
       name: common
@@ -327,46 +309,44 @@ profile:
       output: 'common_library::print_line'
       fixed:
         limit: 1000
-      source:
-        (line: 'mod common_library;')
-        (line: ~1{})
-        (line: 'use std::io;')
-        (line: ~1{})
-        (line: 'fn main() {')
-        (line: '    let mut input = String::new();')
-        (line: '    io::stdin().read_line(&mut input).expect("read input");')
-        (line: '    let sum: i32 = input')
-        (line: '        .split_whitespace()')
-        (line: '        .map(|value| value.parse::<i32>().expect("expected an integer"))')
-        (line: '        .sum();')
-        (line: '    common_library::print_line(&sum.to_string());')
-        (line: })
+      source: '''mod common_library;
+
+use std::io;
+
+fn main() {
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).expect("read input");
+    let sum: i32 = input
+        .split_whitespace()
+        .map(|value| value.parse::<i32>().expect("expected an integer"))
+        .sum();
+    common_library::print_line(&sum.to_string());
+}'''
     form:
       task: integer-sum-or-usage
       name: standard
       requires: 'std::io'
       fixed:
         limit: 1000
-      source:
-        (line: 'use std::io;')
-        (line: ~1{})
-        (line: 'fn unsigned_decimal(text: &str) -> Option<u32> {')
-        (line: '    if text.bytes().all(|byte| byte.is_ascii_digit()) {')
-        (line: '        text.parse().ok()')
-        (line: '    } else {')
-        (line: '        None')
-        (line: '    }')
-        (line: })
-        (line: ~1{})
-        (line: 'fn main() {')
-        (line: '    let mut input = String::new();')
-        (line: '    io::stdin().read_line(&mut input).expect("read input");')
-        (line: '    let mut numbers = input.split_whitespace().map(unsigned_decimal);')
-        (line: '    match (numbers.next().flatten(), numbers.next().flatten()) {')
-        (line: '        (Some(left), Some(right)) => println!("{}", left + right),')
-        (line: '        _ => println!("usage: <number> <number>"),')
-        (line: '    }')
-        (line: })
+      source: '''use std::io;
+
+fn unsigned_decimal(text: &str) -> Option<u32> {
+    if text.bytes().all(|byte| byte.is_ascii_digit()) {
+        text.parse().ok()
+    } else {
+        None
+    }
+}
+
+fn main() {
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).expect("read input");
+    let mut numbers = input.split_whitespace().map(unsigned_decimal);
+    match (numbers.next().flatten(), numbers.next().flatten()) {
+        (Some(left), Some(right)) => println!("{}", left + right),
+        _ => println!("usage: <number> <number>"),
+    }
+}'''
     form:
       task: integer-sum-or-usage
       name: common
@@ -374,254 +354,236 @@ profile:
       output: 'common_library::print_line'
       fixed:
         limit: 1000
-      source:
-        (line: 'mod common_library;')
-        (line: ~1{})
-        (line: 'use std::io;')
-        (line: ~1{})
-        (line: 'fn unsigned_decimal(text: &str) -> Option<u32> {')
-        (line: '    if text.bytes().all(|byte| byte.is_ascii_digit()) {')
-        (line: '        text.parse().ok()')
-        (line: '    } else {')
-        (line: '        None')
-        (line: '    }')
-        (line: })
-        (line: ~1{})
-        (line: 'fn main() {')
-        (line: '    let mut input = String::new();')
-        (line: '    io::stdin().read_line(&mut input).expect("read input");')
-        (line: '    let mut numbers = input.split_whitespace().map(unsigned_decimal);')
-        (line: '    let output = match (numbers.next().flatten(), numbers.next().flatten()) {')
-        (line: '        (Some(left), Some(right)) => (left + right).to_string(),')
-        (line: '        _ => "usage: <number> <number>".into(),')
-        (line: '    };')
-        (line: '    common_library::print_line(&output);')
-        (line: })
+      source: '''mod common_library;
+
+use std::io;
+
+fn unsigned_decimal(text: &str) -> Option<u32> {
+    if text.bytes().all(|byte| byte.is_ascii_digit()) {
+        text.parse().ok()
+    } else {
+        None
+    }
+}
+
+fn main() {
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).expect("read input");
+    let mut numbers = input.split_whitespace().map(unsigned_decimal);
+    let output = match (numbers.next().flatten(), numbers.next().flatten()) {
+        (Some(left), Some(right)) => (left + right).to_string(),
+        _ => "usage: <number> <number>".into(),
+    };
+    common_library::print_line(&output);
+}'''
     form:
       task: hello
       name: standard
-      source:
-        (line: 'fn main() {')
-        (line: '    println!("{{message}}");')
-        (line: })
+      source: '''fn main() {
+    println!("{{message}}");
+}'''
     form:
       task: hello
       name: rosetta
-      source:
-        (line: 'fn main() {')
-        (line: '   println!("{{message}}");')
-        (line: })
+      source: '''fn main() {
+   println!("{{message}}");
+}'''
     form:
       task: hello
       name: common
       requires: common_library
       output: 'common_library::print_line'
-      source:
-        (line: 'mod common_library;')
-        (line: ~1{})
-        (line: 'fn main() {')
-        (line: '    common_library::print_line("{{message}}");')
-        (line: })
+      source: '''mod common_library;
+
+fn main() {
+    common_library::print_line("{{message}}");
+}'''
     form:
       task: write-text
       name: standard
       output: print!
-      source:
-        (line: 'fn main() {')
-        (line: '    print!("{{message}}");')
-        (line: })
+      source: '''fn main() {
+    print!("{{message}}");
+}'''
     form:
       task: write-text
       name: rosetta
       output: print!
-      source:
-        (line: 'fn main() {')
-        (line: '   print!("{{message}}");')
-        (line: })
+      source: '''fn main() {
+   print!("{{message}}");
+}'''
     form:
       task: write-text
       name: common
       requires: common_library
       output: 'common_library::write_text'
-      source:
-        (line: 'mod common_library;')
-        (line: ~1{})
-        (line: 'fn main() {')
-        (line: '    common_library::write_text("{{message}}");')
-        (line: })
+      source: '''mod common_library;
+
+fn main() {
+    common_library::write_text("{{message}}");
+}'''
     form:
       task: write-crlf
       name: standard
       output: print!
-      source:
-        (line: 'fn main() {')
-        (line: '    print!("{}\\r\\n", "{{message}}");')
-        (line: })
+      source: '''fn main() {
+    print!("{}\\r\\n", "{{message}}");
+}'''
     form:
       task: write-crlf
       name: common
       requires: common_library
       output: 'common_library::write_text'
-      source:
-        (line: 'mod common_library;')
-        (line: ~1{})
-        (line: 'fn main() {')
-        (line: '    common_library::write_text("{{message}}\\r\\n");')
-        (line: })
+      source: '''mod common_library;
+
+fn main() {
+    common_library::write_text("{{message}}\\r\\n");
+}'''
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: 'fn main() {')
-        (line: '    let mut left = {{left}};')
-        (line: '    let mut right = {{right}};')
-        (line: '    while right != 0 {')
-        (line: '        (left, right) = (right, left % right);')
-        (line: '    }')
-        (line: '    println!("{left}");')
-        (line: })
+      source: '''fn main() {
+    let mut left = {{left}};
+    let mut right = {{right}};
+    while right != 0 {
+        (left, right) = (right, left % right);
+    }
+    println!("{left}");
+}'''
     form:
       task: greatest-common-divisor
       name: common
       requires: common_library
       output: 'common_library::print_line'
-      source:
-        (line: 'mod common_library;')
-        (line: ~1{})
-        (line: 'fn main() {')
-        (line: '    let mut left = {{left}};')
-        (line: '    let mut right = {{right}};')
-        (line: '    while right != 0 {')
-        (line: '        (left, right) = (right, left % right);')
-        (line: '    }')
-        (line: '    common_library::print_line(&left.to_string());')
-        (line: })
+      source: '''mod common_library;
+
+fn main() {
+    let mut left = {{left}};
+    let mut right = {{right}};
+    while right != 0 {
+        (left, right) = (right, left % right);
+    }
+    common_library::print_line(&left.to_string());
+}'''
     form:
       task: ackermann-cli
       name: standard
       requires: 'std::env::args' println!
-      source:
-        (line: 'fn ackermann(first: u64, second: u64) -> u64 {')
-        (line: '    match (first, second) {')
-        (line: '        (0, n) => n + 1,')
-        (line: '        (m, 0) => ackermann(m - 1, 1),')
-        (line: '        (m, n) => ackermann(m - 1, ackermann(m, n - 1)),')
-        (line: '    }')
-        (line: })
-        (line: ~1{})
-        (line: 'fn main() {')
-        (line: '    let mut arguments = std::env::args().skip(1);')
-        (line: '    let (Some(first), Some(second)) = (arguments.next(), arguments.next()) else {')
-        (line: '        return;')
-        (line: '    };')
-        (line: '    let (Ok(first), Ok(second)) = (first.parse::<u64>(), second.parse::<u64>()) else {')
-        (line: '        return;')
-        (line: '    };')
-        (line: '    if first <= {{left}} && second <= {{right}} {')
-        (line: '        println!("{}", ackermann(first, second));')
-        (line: '    }')
-        (line: })
+      source: '''fn ackermann(first: u64, second: u64) -> u64 {
+    match (first, second) {
+        (0, n) => n + 1,
+        (m, 0) => ackermann(m - 1, 1),
+        (m, n) => ackermann(m - 1, ackermann(m, n - 1)),
+    }
+}
+
+fn main() {
+    let mut arguments = std::env::args().skip(1);
+    let (Some(first), Some(second)) = (arguments.next(), arguments.next()) else {
+        return;
+    };
+    let (Ok(first), Ok(second)) = (first.parse::<u64>(), second.parse::<u64>()) else {
+        return;
+    };
+    if first <= {{left}} && second <= {{right}} {
+        println!("{}", ackermann(first, second));
+    }
+}'''
     form:
       task: ackermann-cli
       name: common
       requires: common_library 'std::env::args'
       output: 'common_library::print_line'
-      source:
-        (line: 'mod common_library;')
-        (line: ~1{})
-        (line: 'fn ackermann(first: u64, second: u64) -> u64 {')
-        (line: '    match (first, second) {')
-        (line: '        (0, n) => n + 1,')
-        (line: '        (m, 0) => ackermann(m - 1, 1),')
-        (line: '        (m, n) => ackermann(m - 1, ackermann(m, n - 1)),')
-        (line: '    }')
-        (line: })
-        (line: ~1{})
-        (line: 'fn main() {')
-        (line: '    let mut arguments = std::env::args().skip(1);')
-        (line: '    let (Some(first), Some(second)) = (arguments.next(), arguments.next()) else {')
-        (line: '        return;')
-        (line: '    };')
-        (line: '    let (Ok(first), Ok(second)) = (first.parse::<u64>(), second.parse::<u64>()) else {')
-        (line: '        return;')
-        (line: '    };')
-        (line: '    if first <= {{left}} && second <= {{right}} {')
-        (line: '        common_library::print_line(&ackermann(first, second).to_string());')
-        (line: '    }')
-        (line: })
+      source: '''mod common_library;
+
+fn ackermann(first: u64, second: u64) -> u64 {
+    match (first, second) {
+        (0, n) => n + 1,
+        (m, 0) => ackermann(m - 1, 1),
+        (m, n) => ackermann(m - 1, ackermann(m, n - 1)),
+    }
+}
+
+fn main() {
+    let mut arguments = std::env::args().skip(1);
+    let (Some(first), Some(second)) = (arguments.next(), arguments.next()) else {
+        return;
+    };
+    let (Ok(first), Ok(second)) = (first.parse::<u64>(), second.parse::<u64>()) else {
+        return;
+    };
+    if first <= {{left}} && second <= {{right}} {
+        common_library::print_line(&ackermann(first, second).to_string());
+    }
+}'''
     form:
       task: ackermann-json
       name: standard
-      source:
-        (line: 'fn main() {')
-        (line: '    let last = {{left}};')
-        (line: '    let second = {{right}};')
-        (line: '    let values = [second + 1, second + 2, 2 * second + 3, (1_u64 << (second + 3)) - 3];')
-        (line: '    let results: Vec<_> = values[..=last].iter()')
-        (line: '        .map(ToString::to_string)')
-        (line: '        .collect();')
-        (line: '    println!("[{}]", results.join(","));')
-        (line: })
+      source: '''fn main() {
+    let last = {{left}};
+    let second = {{right}};
+    let values = [second + 1, second + 2, 2 * second + 3, (1_u64 << (second + 3)) - 3];
+    let results: Vec<_> = values[..=last].iter()
+        .map(ToString::to_string)
+        .collect();
+    println!("[{}]", results.join(","));
+}'''
     form:
       task: ackermann-json
       name: common
       requires: common_library
       output: 'common_library::print_line'
-      source:
-        (line: 'mod common_library;')
-        (line: ~1{})
-        (line: 'fn main() {')
-        (line: '    let last = {{left}};')
-        (line: '    let second = {{right}};')
-        (line: '    let values = [second + 1, second + 2, 2 * second + 3, (1_u64 << (second + 3)) - 3];')
-        (line: '    let results: Vec<_> = values[..=last].iter()')
-        (line: '        .map(ToString::to_string)')
-        (line: '        .collect();')
-        (line: '    common_library::print_line(&format!("[{}]", results.join(",")));')
-        (line: })
+      source: '''mod common_library;
+
+fn main() {
+    let last = {{left}};
+    let second = {{right}};
+    let values = [second + 1, second + 2, 2 * second + 3, (1_u64 << (second + 3)) - 3];
+    let results: Vec<_> = values[..=last].iter()
+        .map(ToString::to_string)
+        .collect();
+    common_library::print_line(&format!("[{}]", results.join(",")));
+}'''
     form:
       task: ackermann-value
       name: standard
-      source:
-        (line: 'fn main() {')
-        (line: '    let first = {{left}};')
-        (line: '    let second = {{right}};')
-        (line: '    println!("{}", (1_u64 << (second + first)) - first);')
-        (line: })
+      source: '''fn main() {
+    let first = {{left}};
+    let second = {{right}};
+    println!("{}", (1_u64 << (second + first)) - first);
+}'''
     form:
       task: ackermann-value
       name: rosetta
       fixed:
         left: 3
         right: 4
-      source:
-        (line: 'fn ack(m: isize, n: isize) -> isize {')
-        (line: '    if m == 0 {')
-        (line: '        n + 1')
-        (line: '    } else if n == 0 {')
-        (line: '        ack(m - 1, 1)')
-        (line: '    } else {')
-        (line: '        ack(m - 1, ack(m, n - 1))')
-        (line: '    }')
-        (line: })
-        (line: ~1{})
-        (line: 'fn main() {')
-        (line: '    let a = ack(3, 4);')
-        (line: '    println!("{}", a); // 125')
-        (line: })
+      source: '''fn ack(m: isize, n: isize) -> isize {
+    if m == 0 {
+        n + 1
+    } else if n == 0 {
+        ack(m - 1, 1)
+    } else {
+        ack(m - 1, ack(m, n - 1))
+    }
+}
+
+fn main() {
+    let a = ack(3, 4);
+    println!("{}", a); // 125
+}'''
     form:
       task: ackermann-value
       name: common
       requires: common_library
       output: 'common_library::print_line'
-      source:
-        (line: 'mod common_library;')
-        (line: ~1{})
-        (line: 'fn main() {')
-        (line: '    let first = {{left}};')
-        (line: '    let second = {{right}};')
-        (line: '    common_library::print_line(&((1_u64 << (second + first)) - first).to_string());')
-        (line: })
+      source: '''mod common_library;
+
+fn main() {
+    let first = {{left}};
+    let second = {{right}};
+    common_library::print_line(&((1_u64 << (second + first)) - first).to_string());
+}'''
     form:
       task: ackermann-function
       name: standard
@@ -629,14 +591,13 @@ profile:
         left: 3
         right: 4
       output: ackermann
-      source:
-        (line: 'fn ackermann(first: u64, second: u64) -> u64 {')
-        (line: '    match (first, second) {')
-        (line: '        (0, n) => n + 1,')
-        (line: '        (m, 0) => ackermann(m - 1, 1),')
-        (line: '        (m, n) => ackermann(m - 1, ackermann(m, n - 1)),')
-        (line: '    }')
-        (line: })
+      source: '''fn ackermann(first: u64, second: u64) -> u64 {
+    match (first, second) {
+        (0, n) => n + 1,
+        (m, 0) => ackermann(m - 1, 1),
+        (m, n) => ackermann(m - 1, ackermann(m, n - 1)),
+    }
+}'''
     form:
       task: ackermann-function
       name: rosetta-recursive
@@ -644,56 +605,52 @@ profile:
         left: 3
         right: 4
       output: ack
-      source:
-        (line: 'fn ack(m: u64, n: u64) -> u64 {')
-        (line: '	match (m, n) {')
-        (line: '		(0, n) => n + 1,')
-        (line: '		(m, 0) => ack(m - 1, 1),')
-        (line: '		(m, n) => ack(m - 1, ack(m, n - 1)),')
-        (line: '	}')
-        (line: })
+      source: '''fn ack(m: u64, n: u64) -> u64 {
+	match (m, n) {
+		(0, n) => n + 1,
+		(m, 0) => ack(m - 1, 1),
+		(m, n) => ack(m - 1, ack(m, n - 1)),
+	}
+}'''
     form:
       task: gcd-function
       name: standard
       fixed:
         max: 2147483647
       output: gcd
-      source:
-        (line: 'fn gcd(mut left: i32, mut right: i32) -> i32 {')
-        (line: '    while right != 0 {')
-        (line: '        (left, right) = (right, left % right);')
-        (line: '    }')
-        (line: '    left.abs()')
-        (line: })
+      source: '''fn gcd(mut left: i32, mut right: i32) -> i32 {
+    while right != 0 {
+        (left, right) = (right, left % right);
+    }
+    left.abs()
+}'''
     form:
       task: gcd-function
       name: rosetta-iterative
       fixed:
         max: 2147483647
       output: gcd
-      source:
-        (line: 'fn gcd(mut m: i32, mut n: i32) -> i32 {')
-        (line: '   while m != 0 {')
-        (line: '       let old_m = m;')
-        (line: '       m = n % m;')
-        (line: '       n = old_m;')
-        (line: '   }')
-        (line: '   n.abs()')
-        (line: })
+      source: '''fn gcd(mut m: i32, mut n: i32) -> i32 {
+   while m != 0 {
+       let old_m = m;
+       m = n % m;
+       n = old_m;
+   }
+   n.abs()
+}'''
     form:
       task: gcd-function
       name: rosetta-recursive
       fixed:
         max: 2147483647
       output: gcd
-      source:
-        (line: 'fn gcd(m: i32, n: i32) -> i32 {')
-        (line: '   if m == 0 {')
-        (line: '      n.abs()')
-        (line: '   } else {')
-        (line: '      gcd(n % m, m)')
-        (line: '   }')
-        (line: })
+      source: '''fn gcd(m: i32, n: i32) -> i32 {
+   if m == 0 {
+      n.abs()
+   } else {
+      gcd(n % m, m)
+   }
+}'''
     form:
       task: gcd-function
       name: rosetta-num
@@ -701,24 +658,22 @@ profile:
         max: 2147483647
       output: gcd
       requires: num
-      source:
-        (line: 'extern crate num;')
-        (line: 'use num::integer::gcd;')
+      source: '''extern crate num;
+use num::integer::gcd;'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: 'fn main() {')
-        (line: '    let limit = {{limit}};')
-        (line: '    for number in 1..=limit {')
-        (line: '        match (number % 3 == 0, number % 5 == 0) {')
-        (line: '            (true, true) => println!("FizzBuzz"),')
-        (line: '            (true, false) => println!("Fizz"),')
-        (line: '            (false, true) => println!("Buzz"),')
-        (line: '            (false, false) => println!("{number}"),')
-        (line: '        }')
-        (line: '    }')
-        (line: })
+      source: '''fn main() {
+    let limit = {{limit}};
+    for number in 1..=limit {
+        match (number % 3 == 0, number % 5 == 0) {
+            (true, true) => println!("FizzBuzz"),
+            (true, false) => println!("Fizz"),
+            (false, true) => println!("Buzz"),
+            (false, false) => println!("{number}"),
+        }
+    }
+}'''
     form:
       task: fizz-buzz
       name: rosetta-legacy
@@ -726,264 +681,250 @@ profile:
         limit: 100
       output: syscall
       requires: rustc-1.5.0-nightly
-      source:
-        (line: '#![no_std]')
-        (line: '#![feature(asm, lang_items, libc, no_std, start)]')
-        (line: ~1{})
-        (line: 'extern crate libc;')
-        (line: ~1{})
-        (line: 'const LEN: usize = 413;')
-        (line: 'static OUT: [u8; LEN] = *b"\\')
-        (line: '    1\\n2\\nFizz\\n4\\nBuzz\\nFizz\\n7\\n8\\nFizz\\nBuzz\\n11\\nFizz\\n13\\n14\\nFizzBuzz\\n\\')
-        (line: '    16\\n17\\nFizz\\n19\\nBuzz\\nFizz\\n22\\n23\\nFizz\\nBuzz\\n26\\nFizz\\n28\\n29\\nFizzBuzz\\n\\')
-        (line: '    31\\n32\\nFizz\\n34\\nBuzz\\nFizz\\n37\\n38\\nFizz\\nBuzz\\n41\\nFizz\\n43\\n44\\nFizzBuzz\\n\\')
-        (line: '    46\\n47\\nFizz\\n49\\nBuzz\\nFizz\\n52\\n53\\nFizz\\nBuzz\\n56\\nFizz\\n58\\n59\\nFizzBuzz\\n\\')
-        (line: '    61\\n62\\nFizz\\n64\\nBuzz\\nFizz\\n67\\n68\\nFizz\\nBuzz\\n71\\nFizz\\n73\\n74\\nFizzBuzz\\n\\')
-        (line: '    76\\n77\\nFizz\\n79\\nBuzz\\nFizz\\n82\\n83\\nFizz\\nBuzz\\n86\\nFizz\\n88\\n89\\nFizzBuzz\\n\\')
-        (line: '    91\\n92\\nFizz\\n94\\nBuzz\\nFizz\\n97\\n98\\nFizz\\nBuzz\\n";')
-        (line: ~1{})
-        (line: '#[start]')
-        (line: 'fn start(_argc: isize, _argv: *const *const u8) -> isize {')
-        (line: '    unsafe {')
-        (line: '        asm!(')
-        (line: '            "')
-        (line: '            mov $$1, %rax')
-        (line: '            mov $$1, %rdi')
-        (line: '            mov $0, %rsi')
-        (line: '            mov $1, %rdx')
-        (line: '            syscall')
-        (line: '            "')
-        (line: '            :')
-        (line: '            : "r" (&OUT[0]) "r" (LEN)')
-        (line: '            : "rax", "rdi", "rsi", "rdx"')
-        (line: '            :')
-        (line: '        );')
-        (line: '    }')
-        (line: '    0')
-        (line: })
-        (line: ~1{})
-        (line: '#[lang = "eh_personality"] extern fn eh_personality() {}')
-        (line: '#[lang = "panic_fmt"] extern fn panic_fmt() {}')
+      source: '''#![no_std]
+#![feature(asm, lang_items, libc, no_std, start)]
+
+extern crate libc;
+
+const LEN: usize = 413;
+static OUT: [u8; LEN] = *b"\\
+    1\\n2\\nFizz\\n4\\nBuzz\\nFizz\\n7\\n8\\nFizz\\nBuzz\\n11\\nFizz\\n13\\n14\\nFizzBuzz\\n\\
+    16\\n17\\nFizz\\n19\\nBuzz\\nFizz\\n22\\n23\\nFizz\\nBuzz\\n26\\nFizz\\n28\\n29\\nFizzBuzz\\n\\
+    31\\n32\\nFizz\\n34\\nBuzz\\nFizz\\n37\\n38\\nFizz\\nBuzz\\n41\\nFizz\\n43\\n44\\nFizzBuzz\\n\\
+    46\\n47\\nFizz\\n49\\nBuzz\\nFizz\\n52\\n53\\nFizz\\nBuzz\\n56\\nFizz\\n58\\n59\\nFizzBuzz\\n\\
+    61\\n62\\nFizz\\n64\\nBuzz\\nFizz\\n67\\n68\\nFizz\\nBuzz\\n71\\nFizz\\n73\\n74\\nFizzBuzz\\n\\
+    76\\n77\\nFizz\\n79\\nBuzz\\nFizz\\n82\\n83\\nFizz\\nBuzz\\n86\\nFizz\\n88\\n89\\nFizzBuzz\\n\\
+    91\\n92\\nFizz\\n94\\nBuzz\\nFizz\\n97\\n98\\nFizz\\nBuzz\\n";
+
+#[start]
+fn start(_argc: isize, _argv: *const *const u8) -> isize {
+    unsafe {
+        asm!(
+            "
+            mov $$1, %rax
+            mov $$1, %rdi
+            mov $0, %rsi
+            mov $1, %rdx
+            syscall
+            "
+            :
+            : "r" (&OUT[0]) "r" (LEN)
+            : "rax", "rdi", "rsi", "rdx"
+            :
+        );
+    }
+    0
+}
+
+#[lang = "eh_personality"] extern fn eh_personality() {}
+#[lang = "panic_fmt"] extern fn panic_fmt() {}'''
     form:
       task: fizz-buzz
       name: common
       requires: common_library
       output: 'common_library::print_line'
-      source:
-        (line: 'mod common_library;')
-        (line: ~1{})
-        (line: 'fn main() {')
-        (line: '    let limit = {{limit}};')
-        (line: '    for number in 1..=limit {')
-        (line: '        match (number % 3 == 0, number % 5 == 0) {')
-        (line: '            (true, true) => common_library::print_line("FizzBuzz"),')
-        (line: '            (true, false) => common_library::print_line("Fizz"),')
-        (line: '            (false, true) => common_library::print_line("Buzz"),')
-        (line: '            (false, false) => common_library::print_line(&number.to_string()),')
-        (line: '        }')
-        (line: '    }')
-        (line: })
+      source: '''mod common_library;
+
+fn main() {
+    let limit = {{limit}};
+    for number in 1..=limit {
+        match (number % 3 == 0, number % 5 == 0) {
+            (true, true) => common_library::print_line("FizzBuzz"),
+            (true, false) => common_library::print_line("Fizz"),
+            (false, true) => common_library::print_line("Buzz"),
+            (false, false) => common_library::print_line(&number.to_string()),
+        }
+    }
+}'''
     form:
       task: fizz-buzz-function
       name: standard
       output: fizz_buzz
-      source:
-        (line: 'fn fizz_buzz() {')
-        (line: '    for number in 1..={{limit}} {')
-        (line: '        match (number % 3, number % 5) {')
-        (line: '            (0, 0) => println!("FizzBuzz"),')
-        (line: '            (0, _) => println!("Fizz"),')
-        (line: '            (_, 0) => println!("Buzz"),')
-        (line: '            _ => println!("{number}"),')
-        (line: '        }')
-        (line: '    }')
-        (line: })
+      source: '''fn fizz_buzz() {
+    for number in 1..={{limit}} {
+        match (number % 3, number % 5) {
+            (0, 0) => println!("FizzBuzz"),
+            (0, _) => println!("Fizz"),
+            (_, 0) => println!("Buzz"),
+            _ => println!("{number}"),
+        }
+    }
+}'''
     form:
       task: fizz-buzz-function
       name: common
       output: fizz_buzz
       requires: common_library
-      source:
-        (line: 'mod common_library;')
-        (line: ~1{})
-        (line: 'fn fizz_buzz() {')
-        (line: '    for number in 1..={{limit}} {')
-        (line: '        match (number % 3, number % 5) {')
-        (line: '            (0, 0) => common_library::print_line("FizzBuzz"),')
-        (line: '            (0, _) => common_library::print_line("Fizz"),')
-        (line: '            (_, 0) => common_library::print_line("Buzz"),')
-        (line: '            _ => common_library::print_line(&number.to_string()),')
-        (line: '        }')
-        (line: '    }')
-        (line: })
+      source: '''mod common_library;
+
+fn fizz_buzz() {
+    for number in 1..={{limit}} {
+        match (number % 3, number % 5) {
+            (0, 0) => common_library::print_line("FizzBuzz"),
+            (0, _) => common_library::print_line("Fizz"),
+            (_, 0) => common_library::print_line("Buzz"),
+            _ => common_library::print_line(&number.to_string()),
+        }
+    }
+}'''
     form:
       task: fizz-buzz-joined
       name: standard
       output: fizz_buzz
-      source:
-        (line: 'fn fizz_buzz() -> String {')
-        (line: '    (1..={{limit}})')
-        (line: '        .map(|number| match (number % 3, number % 5) {')
-        (line: '            (0, 0) => "FizzBuzz".into(),')
-        (line: '            (0, _) => "Fizz".into(),')
-        (line: '            (_, 0) => "Buzz".into(),')
-        (line: '            _ => number.to_string(),')
-        (line: '        })')
-        (line: '        .collect::<Vec<_>>()')
-        (line: '        .join(&char::from({{separator}}u8).to_string())')
-        (line: })
+      source: '''fn fizz_buzz() -> String {
+    (1..={{limit}})
+        .map(|number| match (number % 3, number % 5) {
+            (0, 0) => "FizzBuzz".into(),
+            (0, _) => "Fizz".into(),
+            (_, 0) => "Buzz".into(),
+            _ => number.to_string(),
+        })
+        .collect::<Vec<_>>()
+        .join(&char::from({{separator}}u8).to_string())
+}'''
     form:
       task: fizz-buzz-lowercase
       name: standard
-      source:
-        (line: 'fn main() {')
-        (line: '    for number in 1..={{limit}} {')
-        (line: '        match (number % 3, number % 5) {')
-        (line: '            (0, 0) => println!("{}", "fizzbuzz"),')
-        (line: '            (0, _) => println!("{}", "fizz"),')
-        (line: '            (_, 0) => println!("{}", "buzz"),')
-        (line: '            _ => println!("{}", number),')
-        (line: '        }')
-        (line: '    }')
-        (line: })
+      source: '''fn main() {
+    for number in 1..={{limit}} {
+        match (number % 3, number % 5) {
+            (0, 0) => println!("{}", "fizzbuzz"),
+            (0, _) => println!("{}", "fizz"),
+            (_, 0) => println!("{}", "buzz"),
+            _ => println!("{}", number),
+        }
+    }
+}'''
     form:
       task: fizz-buzz-lowercase
       name: rosetta
-      source:
-        (line: 'fn main() {')
-        (line: '    for i in 1..={{limit}} {')
-        (line: '        match (i % 3, i % 5) {')
-        (line: '            (0, 0) => println!("fizzbuzz"),')
-        (line: '            (0, _) => println!("fizz"),')
-        (line: '            (_, 0) => println!("buzz"),')
-        (line: '            (_, _) => println!("{}", i),')
-        (line: '        }')
-        (line: '    }')
-        (line: })
+      source: '''fn main() {
+    for i in 1..={{limit}} {
+        match (i % 3, i % 5) {
+            (0, 0) => println!("fizzbuzz"),
+            (0, _) => println!("fizz"),
+            (_, 0) => println!("buzz"),
+            (_, _) => println!("{}", i),
+        }
+    }
+}'''
     form:
       task: fizz-buzz-lowercase
       name: common
       requires: common_library
       output: 'common_library::print_line'
-      source:
-        (line: 'mod common_library;')
-        (line: ~1{})
-        (line: 'fn main() {')
-        (line: '    for number in 1..={{limit}} {')
-        (line: '        match (number % 3, number % 5) {')
-        (line: '            (0, 0) => common_library::print_line("fizzbuzz"),')
-        (line: '            (0, _) => common_library::print_line("fizz"),')
-        (line: '            (_, 0) => common_library::print_line("buzz"),')
-        (line: '            _ => common_library::print_line(&number.to_string()),')
-        (line: '        }')
-        (line: '    }')
-        (line: })
+      source: '''mod common_library;
+
+fn main() {
+    for number in 1..={{limit}} {
+        match (number % 3, number % 5) {
+            (0, 0) => common_library::print_line("fizzbuzz"),
+            (0, _) => common_library::print_line("fizz"),
+            (_, 0) => common_library::print_line("buzz"),
+            _ => common_library::print_line(&number.to_string()),
+        }
+    }
+}'''
     form:
       task: fizz-buzz-quoted
       name: standard
-      source:
-        (line: 'fn main() {')
-        (line: '    for number in 1..={{limit}} {')
-        (line: '        match (number % 3, number % 5) {')
-        (line: '            (0, 0) => println!("{:?}", "FizzBuzz"),')
-        (line: '            (0, _) => println!("{:?}", "Fizz"),')
-        (line: '            (_, 0) => println!("{:?}", "Buzz"),')
-        (line: '            _ => println!("{:?}", number.to_string()),')
-        (line: '        }')
-        (line: '    }')
-        (line: })
+      source: '''fn main() {
+    for number in 1..={{limit}} {
+        match (number % 3, number % 5) {
+            (0, 0) => println!("{:?}", "FizzBuzz"),
+            (0, _) => println!("{:?}", "Fizz"),
+            (_, 0) => println!("{:?}", "Buzz"),
+            _ => println!("{:?}", number.to_string()),
+        }
+    }
+}'''
     form:
       task: fizz-buzz-quoted
       name: rosetta
       requires: 'std::borrow::Cow'
-      source:
-        (line: 'use std::borrow::Cow;')
-        (line: ~1{})
-        (line: 'fn main() {')
-        (line: '    (1..={{limit}})')
-        (line: '        .map(|n| match (n % 3, n % 5) {')
-        (line: '            (0, 0) => "FizzBuzz".into(),')
-        (line: '            (0, _) => "Fizz".into(),')
-        (line: '            (_, 0) => "Buzz".into(),')
-        (line: '            _ => Cow::from(n.to_string()),')
-        (line: '        })')
-        (line: '        .for_each(|n| println!("{:?}", n));')
-        (line: })
+      source: '''use std::borrow::Cow;
+
+fn main() {
+    (1..={{limit}})
+        .map(|n| match (n % 3, n % 5) {
+            (0, 0) => "FizzBuzz".into(),
+            (0, _) => "Fizz".into(),
+            (_, 0) => "Buzz".into(),
+            _ => Cow::from(n.to_string()),
+        })
+        .for_each(|n| println!("{:?}", n));
+}'''
     form:
       task: fizz-buzz-quoted
       name: common
       requires: common_library
       output: 'common_library::print_line'
-      source:
-        (line: 'mod common_library;')
-        (line: ~1{})
-        (line: 'fn main() {')
-        (line: '    for number in 1..={{limit}} {')
-        (line: '        match (number % 3, number % 5) {')
-        (line: '            (0, 0) => common_library::print_line("\\"FizzBuzz\\""),')
-        (line: '            (0, _) => common_library::print_line("\\"Fizz\\""),')
-        (line: '            (_, 0) => common_library::print_line("\\"Buzz\\""),')
-        (line: '            _ => common_library::print_line(&format!("\\"{number}\\"")),')
-        (line: '        }')
-        (line: '    }')
-        (line: })
+      source: '''mod common_library;
+
+fn main() {
+    for number in 1..={{limit}} {
+        match (number % 3, number % 5) {
+            (0, 0) => common_library::print_line("\\"FizzBuzz\\""),
+            (0, _) => common_library::print_line("\\"Fizz\\""),
+            (_, 0) => common_library::print_line("\\"Buzz\\""),
+            _ => common_library::print_line(&format!("\\"{number}\\"")),
+        }
+    }
+}'''
     form:
       task: fizz-buzz-lowercase-blank-line
       name: standard
-      source:
-        (line: 'fn main() {')
-        (line: '    for number in 1..={{limit}} {')
-        (line: '        match (number % 3, number % 5) {')
-        (line: '            (0, 0) => println!("{}", "fizzbuzz"),')
-        (line: '            (0, _) => println!("{}", "fizz"),')
-        (line: '            (_, 0) => println!("{}", "buzz"),')
-        (line: '            _ => println!("{}", number),')
-        (line: '        }')
-        (line: '    }')
-        (line: '    println!();')
-        (line: })
+      source: '''fn main() {
+    for number in 1..={{limit}} {
+        match (number % 3, number % 5) {
+            (0, 0) => println!("{}", "fizzbuzz"),
+            (0, _) => println!("{}", "fizz"),
+            (_, 0) => println!("{}", "buzz"),
+            _ => println!("{}", number),
+        }
+    }
+    println!();
+}'''
     form:
       task: fizz-buzz-lowercase-blank-line
       name: rosetta
       requires: 'std::fmt::Write'
-      source:
-        (line: 'use std::fmt::Write;')
-        (line: ~1{})
-        (line: 'fn fizzbuzz() -> String {')
-        (line: '    (1..={{limit}}).fold(String::new(), |mut output, x| {')
-        (line: '        let fizz = if x % 3 == 0 { "fizz" } else { "" };')
-        (line: '        let buzz = if x % 5 == 0 { "buzz" } else { "" };')
-        (line: '        if fizz.len() + buzz.len() != 0 {')
-        (line: '            output + fizz + buzz + "\\n"')
-        (line: '        } else {')
-        (line: '            write!(&mut output, "{}", x).unwrap();')
-        (line: '            output + "\\n"')
-        (line: '        }')
-        (line: '    })')
-        (line: })
-        (line: ~1{})
-        (line: 'fn main() {')
-        (line: '    println!("{}", fizzbuzz());')
-        (line: })
+      source: '''use std::fmt::Write;
+
+fn fizzbuzz() -> String {
+    (1..={{limit}}).fold(String::new(), |mut output, x| {
+        let fizz = if x % 3 == 0 { "fizz" } else { "" };
+        let buzz = if x % 5 == 0 { "buzz" } else { "" };
+        if fizz.len() + buzz.len() != 0 {
+            output + fizz + buzz + "\\n"
+        } else {
+            write!(&mut output, "{}", x).unwrap();
+            output + "\\n"
+        }
+    })
+}
+
+fn main() {
+    println!("{}", fizzbuzz());
+}'''
     form:
       task: fizz-buzz-lowercase-blank-line
       name: common
       requires: common_library
       output: 'common_library::print_line'
-      source:
-        (line: 'mod common_library;')
-        (line: ~1{})
-        (line: 'fn main() {')
-        (line: '    for number in 1..={{limit}} {')
-        (line: '        match (number % 3, number % 5) {')
-        (line: '            (0, 0) => common_library::print_line("fizzbuzz"),')
-        (line: '            (0, _) => common_library::print_line("fizz"),')
-        (line: '            (_, 0) => common_library::print_line("buzz"),')
-        (line: '            _ => common_library::print_line(&number.to_string()),')
-        (line: '        }')
-        (line: '    }')
-        (line: '    common_library::print_line("");')
-        (line: })
+      source: '''mod common_library;
+
+fn main() {
+    for number in 1..={{limit}} {
+        match (number % 3, number % 5) {
+            (0, 0) => common_library::print_line("fizzbuzz"),
+            (0, _) => common_library::print_line("fizz"),
+            (_, 0) => common_library::print_line("buzz"),
+            _ => common_library::print_line(&number.to_string()),
+        }
+    }
+    common_library::print_line("");
+}'''
 
 profile:
   id: go
@@ -997,63 +938,59 @@ profile:
       task: hello
       name: standard
       requires: fmt
-      source:
-        (line: 'package main')
-        (line: ~1{})
-        (line: 'import "fmt"')
-        (line: ~1{})
-        (line: 'func main() {')
-        (line: '    fmt.Println("{{message}}")')
-        (line: })
+      source: '''package main
+
+import "fmt"
+
+func main() {
+    fmt.Println("{{message}}")
+}'''
     form:
       task: hello
       name: collection
       requires: fmt
       output: fmt.Printf
-      source:
-        (line: 'package main')
-        (line: 'import "fmt"')
-        (line: 'func main() {')
-        (line: ' fmt.Printf("{{message}}\\n")')
-        (line: })
+      source: '''package main
+import "fmt"
+func main() {
+ fmt.Printf("{{message}}\\n")
+}'''
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: 'package main')
-        (line: ~1{})
-        (line: 'import "fmt"')
-        (line: ~1{})
-        (line: 'func main() {')
-        (line: '    left, right := {{left}}, {{right}}')
-        (line: '    for right != 0 {')
-        (line: '        left, right = right, left % right')
-        (line: '    }')
-        (line: '    fmt.Println(left)')
-        (line: })
+      source: '''package main
+
+import "fmt"
+
+func main() {
+    left, right := {{left}}, {{right}}
+    for right != 0 {
+        left, right = right, left % right
+    }
+    fmt.Println(left)
+}'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: 'package main')
-        (line: ~1{})
-        (line: 'import "fmt"')
-        (line: ~1{})
-        (line: 'func main() {')
-        (line: '    limit := {{limit}}')
-        (line: '    for number := 1; number <= limit; number++ {')
-        (line: '        switch {')
-        (line: '        case number%15 == 0:')
-        (line: '            fmt.Println("FizzBuzz")')
-        (line: '        case number%3 == 0:')
-        (line: '            fmt.Println("Fizz")')
-        (line: '        case number%5 == 0:')
-        (line: '            fmt.Println("Buzz")')
-        (line: '        default:')
-        (line: '            fmt.Println(number)')
-        (line: '        }')
-        (line: '    }')
-        (line: })
+      source: '''package main
+
+import "fmt"
+
+func main() {
+    limit := {{limit}}
+    for number := 1; number <= limit; number++ {
+        switch {
+        case number%15 == 0:
+            fmt.Println("FizzBuzz")
+        case number%3 == 0:
+            fmt.Println("Fizz")
+        case number%5 == 0:
+            fmt.Println("Buzz")
+        default:
+            fmt.Println(number)
+        }
+    }
+}'''
 
 profile:
   id: swift
@@ -1065,27 +1002,24 @@ profile:
     form:
       task: hello
       name: standard
-      source:
-        (line: 'print("{{message}}")')
+      source: 'print("{{message}}")'
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: 'var left = {{left}}')
-        (line: 'var right = {{right}}')
-        (line: 'while right != 0 {')
-        (line: '    (left, right) = (right, left % right)')
-        (line: })
-        (line: 'print(left)')
+      source: '''var left = {{left}}
+var right = {{right}}
+while right != 0 {
+    (left, right) = (right, left % right)
+}
+print(left)'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: 'let limit = {{limit}}')
-        (line: 'for number in 1...limit {')
-        (line: '    let label = (number % 3 == 0 ? "Fizz" : "") + (number % 5 == 0 ? "Buzz" : "")')
-        (line: '    print(label.isEmpty ? String(number) : label)')
-        (line: })
+      source: '''let limit = {{limit}}
+for number in 1...limit {
+    let label = (number % 3 == 0 ? "Fizz" : "") + (number % 5 == 0 ? "Buzz" : "")
+    print(label.isEmpty ? String(number) : label)
+}'''
 
 profile:
   id: fortran
@@ -1097,47 +1031,44 @@ profile:
     form:
       task: hello
       name: standard
-      source:
-        (line: 'program hello')
-        (line: '    implicit none')
-        (line: \`    write (*, '(A)') "{{message}}"\`)
-        (line: 'end program hello')
+      source: '''program hello
+    implicit none
+    write (*, '(A)') "{{message}}"
+end program hello'''
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: 'program greatest_common_divisor')
-        (line: '    implicit none')
-        (line: '    integer :: left, right, remainder')
-        (line: '    left = {{left}}')
-        (line: '    right = {{right}}')
-        (line: '    do while (right /= 0)')
-        (line: '        remainder = mod(left, right)')
-        (line: '        left = right')
-        (line: '        right = remainder')
-        (line: '    end do')
-        (line: "    write (*, '(I0)') left")
-        (line: 'end program greatest_common_divisor')
+      source: '''program greatest_common_divisor
+    implicit none
+    integer :: left, right, remainder
+    left = {{left}}
+    right = {{right}}
+    do while (right /= 0)
+        remainder = mod(left, right)
+        left = right
+        right = remainder
+    end do
+    write (*, '(I0)') left
+end program greatest_common_divisor'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: 'program fizz_buzz')
-        (line: '    implicit none')
-        (line: '    integer :: number, limit')
-        (line: '    limit = {{limit}}')
-        (line: '    do number = 1, limit')
-        (line: '        if (mod(number, 15) == 0) then')
-        (line: \`            write (*, '(A)') "FizzBuzz"\`)
-        (line: '        else if (mod(number, 3) == 0) then')
-        (line: \`            write (*, '(A)') "Fizz"\`)
-        (line: '        else if (mod(number, 5) == 0) then')
-        (line: \`            write (*, '(A)') "Buzz"\`)
-        (line: '        else')
-        (line: "            write (*, '(I0)') number")
-        (line: '        end if')
-        (line: '    end do')
-        (line: 'end program fizz_buzz')
+      source: '''program fizz_buzz
+    implicit none
+    integer :: number, limit
+    limit = {{limit}}
+    do number = 1, limit
+        if (mod(number, 15) == 0) then
+            write (*, '(A)') "FizzBuzz"
+        else if (mod(number, 3) == 0) then
+            write (*, '(A)') "Fizz"
+        else if (mod(number, 5) == 0) then
+            write (*, '(A)') "Buzz"
+        else
+            write (*, '(I0)') number
+        end if
+    end do
+end program fizz_buzz'''
 
 profile:
   id: pascal
@@ -1149,48 +1080,45 @@ profile:
     form:
       task: hello
       name: standard
-      source:
-        (line: 'program Hello;')
-        (line: begin)
-        (line: "    WriteLn('{{message}}');")
-        (line: end.)
+      source: '''program Hello;
+begin
+    WriteLn('{{message}}');
+end.'''
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: 'program GreatestCommonDivisor;')
-        (line: var)
-        (line: '    left, right, remainder: LongInt;')
-        (line: begin)
-        (line: '    left := {{left}};')
-        (line: '    right := {{right}};')
-        (line: '    while right <> 0 do')
-        (line: '    begin')
-        (line: '        remainder := left mod right;')
-        (line: '        left := right;')
-        (line: '        right := remainder;')
-        (line: '    end;')
-        (line: '    WriteLn(left);')
-        (line: end.)
+      source: '''program GreatestCommonDivisor;
+var
+    left, right, remainder: LongInt;
+begin
+    left := {{left}};
+    right := {{right}};
+    while right <> 0 do
+    begin
+        remainder := left mod right;
+        left := right;
+        right := remainder;
+    end;
+    WriteLn(left);
+end.'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: 'program FizzBuzz;')
-        (line: var)
-        (line: '    number, limit: LongInt;')
-        (line: begin)
-        (line: '    limit := {{limit}};')
-        (line: '    for number := 1 to limit do')
-        (line: '        if number mod 15 = 0 then')
-        (line: "            WriteLn('FizzBuzz')")
-        (line: '        else if number mod 3 = 0 then')
-        (line: "            WriteLn('Fizz')")
-        (line: '        else if number mod 5 = 0 then')
-        (line: "            WriteLn('Buzz')")
-        (line: '        else')
-        (line: '            WriteLn(number);')
-        (line: end.)
+      source: '''program FizzBuzz;
+var
+    number, limit: LongInt;
+begin
+    limit := {{limit}};
+    for number := 1 to limit do
+        if number mod 15 = 0 then
+            WriteLn('FizzBuzz')
+        else if number mod 3 = 0 then
+            WriteLn('Fizz')
+        else if number mod 5 = 0 then
+            WriteLn('Buzz')
+        else
+            WriteLn(number);
+end.'''
 
 profile:
   id: objective-c
@@ -1203,61 +1131,58 @@ profile:
       task: hello
       name: standard
       requires: Foundation stdio.h
-      source:
-        (line: '#import <Foundation/Foundation.h>')
-        (line: '#include <stdio.h>')
-        (line: ~1{})
-        (line: 'int main(void)')
-        (line: {)
-        (line: '    NSAutoreleasePool *pool = [NSAutoreleasePool new];')
-        (line: '    NSString *message = @"{{message}}";')
-        (line: '    puts([message UTF8String]);')
-        (line: '    [pool drain];')
-        (line: '    return 0;')
-        (line: })
+      source: '''#import <Foundation/Foundation.h>
+#include <stdio.h>
+
+int main(void)
+{
+    NSAutoreleasePool *pool = [NSAutoreleasePool new];
+    NSString *message = @"{{message}}";
+    puts([message UTF8String]);
+    [pool drain];
+    return 0;
+}'''
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: '#import <Foundation/Foundation.h>')
-        (line: '#include <stdio.h>')
-        (line: ~1{})
-        (line: 'int main(void)')
-        (line: {)
-        (line: '    NSAutoreleasePool *pool = [NSAutoreleasePool new];')
-        (line: '    int left = {{left}};')
-        (line: '    int right = {{right}};')
-        (line: '    while (right != 0) {')
-        (line: '        int remainder = left % right;')
-        (line: '        left = right;')
-        (line: '        right = remainder;')
-        (line: '    }')
-        (line: '    NSString *result = [NSString stringWithFormat:@"%d", left];')
-        (line: '    puts([result UTF8String]);')
-        (line: '    [pool drain];')
-        (line: '    return 0;')
-        (line: })
+      source: '''#import <Foundation/Foundation.h>
+#include <stdio.h>
+
+int main(void)
+{
+    NSAutoreleasePool *pool = [NSAutoreleasePool new];
+    int left = {{left}};
+    int right = {{right}};
+    while (right != 0) {
+        int remainder = left % right;
+        left = right;
+        right = remainder;
+    }
+    NSString *result = [NSString stringWithFormat:@"%d", left];
+    puts([result UTF8String]);
+    [pool drain];
+    return 0;
+}'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: '#import <Foundation/Foundation.h>')
-        (line: '#include <stdio.h>')
-        (line: ~1{})
-        (line: 'int main(void)')
-        (line: {)
-        (line: '    NSAutoreleasePool *pool = [NSAutoreleasePool new];')
-        (line: '    const int limit = {{limit}};')
-        (line: '    for (int number = 1; number <= limit; number++) {')
-        (line: '        NSString *fizz = number % 3 == 0 ? @"Fizz" : @"";')
-        (line: '        NSString *buzz = number % 5 == 0 ? @"Buzz" : @"";')
-        (line: '        NSString *label = [fizz stringByAppendingString:buzz];')
-        (line: '        if ([label length] == 0) {')
-        (line: '            label = [NSString stringWithFormat:@"%d", number];')
-        (line: '        }')
-        (line: '        puts([label UTF8String]);')
-        (line: '    }')
-        (line: '    [pool drain];')
-        (line: '    return 0;')
-        (line: })
+      source: '''#import <Foundation/Foundation.h>
+#include <stdio.h>
+
+int main(void)
+{
+    NSAutoreleasePool *pool = [NSAutoreleasePool new];
+    const int limit = {{limit}};
+    for (int number = 1; number <= limit; number++) {
+        NSString *fizz = number % 3 == 0 ? @"Fizz" : @"";
+        NSString *buzz = number % 5 == 0 ? @"Buzz" : @"";
+        NSString *label = [fizz stringByAppendingString:buzz];
+        if ([label length] == 0) {
+            label = [NSString stringWithFormat:@"%d", number];
+        }
+        puts([label UTF8String]);
+    }
+    [pool drain];
+    return 0;
+}'''
 `;

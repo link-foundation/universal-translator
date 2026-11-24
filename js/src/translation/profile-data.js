@@ -1,4 +1,4 @@
-import registries from './bundled/index.js';
+import registries from '#translation-profiles';
 import {
   linkFields,
   namedLinks,
@@ -37,7 +37,9 @@ function form(values, kind) {
     source:
       kind === 'meta-language'
         ? []
-        : namedLinks(listElements(fields.get('source')), 'line').map(reference),
+        : references(listElements(fields.get('source'))).flatMap((source) =>
+            source.split('\n')
+          ),
     fixed: fields.has('fixed') ? effectFields(fields.get('fixed')) : undefined,
     requires: fields.has('requires')
       ? references(listElements(fields.get('requires')))

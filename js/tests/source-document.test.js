@@ -15,6 +15,29 @@ describe('Links Notation source documents', () => {
     }
   });
 
+  it('writes an indented document with one quoted source value', () => {
+    const source = '# comment\n\n  \'single\', "double", `backtick`\r\n';
+    const notation = writeSourceDocument('Rust', source);
+    expect(notation).toBe(
+      `source-document:\n  language: 'Rust'\n  source: '''${source}'''`
+    );
+    expect(readSourceDocument(notation)).toEqual({ language: 'Rust', source });
+    expect(
+      readSourceDocument("source-document:\n  language: Rust\n  source: ''")
+    ).toEqual({
+      language: 'Rust',
+      source: '',
+    });
+    expect(
+      readSourceDocument(
+        '(source-document: (language: Rust) (line: ~1{610a}) (line: b))'
+      )
+    ).toEqual({
+      language: 'Rust',
+      source: 'a\nb',
+    });
+  });
+
   it('rejects malformed records and line boundaries', () => {
     const valid = writeSourceDocument('Rust', 'abc');
     for (const notation of [

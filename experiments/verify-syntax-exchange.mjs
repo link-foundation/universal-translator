@@ -90,7 +90,7 @@ console.log(
 );
 
 const rankedPrograms = new URL(
-  '../examples/translation/ranked-grammar-programs.lino',
+  '../data/translation/ranked-grammar-programs.lino',
   import.meta.url
 );
 const ranked = linkFields(parseLinks(readFileSync(rankedPrograms, 'utf8')));

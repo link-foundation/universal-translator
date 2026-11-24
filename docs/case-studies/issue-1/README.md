@@ -169,7 +169,7 @@ for all three tasks. Of the ranked TIOBE 50, 33 have forms for all three
 tasks and three have a related dialect profile. Assembly has five
 instruction profiles for the fixed Hello World greeting. The NASM x86-64
 profile also implements GCD and FizzBuzz. Fourteen
-ranked items have no profile. The [Links Notation census](data/corpus-coverage.lino)
+ranked items have no profile. The [Links Notation census](../../../data/translation/corpus-coverage.lino)
 lists each mapping. Run `node examples/translation/report-coverage.mjs`
 from the repository root to check the mapping against the current catalog.
 Pass local copies of the linked Rosetta Code inventory and the Hello World
@@ -190,7 +190,7 @@ case-sensitive bindings, Unicode output, multiline interpolation, binomial
 coefficients, and integer squares. Other candidates require their own
 observations and invocation contracts before they count toward native coverage.
 [Meta Language portable translator](https://github.com/link-foundation/meta-language/blob/v1.0.0/rust/src/program_translation.rs#L133)
-[Pinned paths and output](../../../examples/translation/portable-programs.lino)
+[Pinned paths and output](../../../data/translation/portable-programs.lino)
 
 Both runtimes verify 27 representative grammar specimens, including
 SQLite and Transact-SQL. They check for parse errors and verify exact

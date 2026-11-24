@@ -23,6 +23,7 @@ import {
   fixture as readFixture,
   nativeInvocations,
   nativeProgram,
+  translationData,
 } from './fixtures.mjs';
 
 const legacyRust = 'rustc-1.5.0-nightly';
@@ -30,11 +31,7 @@ const quickJs = 'quickjs';
 const cscript = 'cscript';
 
 export function readCorpusCoverage() {
-  const snapshot = new URL(
-    '../../docs/case-studies/issue-1/data/corpus-coverage.lino',
-    import.meta.url
-  );
-  return linkFields(parseLinks(readFileSync(snapshot, 'utf8')));
+  return linkFields(parseLinks(translationData('corpus-coverage.lino')));
 }
 
 export function helloWorldConsolePrograms(collection) {

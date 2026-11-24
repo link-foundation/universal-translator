@@ -12,124 +12,103 @@ export default `profile:
       name: standard
       fixed:
         status: 0
-      source:
-        (line: 'Exit with status 0 without writing to standard output or standard error.')
+      source: 'Exit with status 0 without writing to standard output or standard error.'
     form:
       task: hello
       name: standard
-      source:
-        (line: 'Write the text “{{message}}” to standard output, then write a newline.')
+      source: 'Write the text “{{message}}” to standard output, then write a newline.'
     form:
       task: browser-alert
       name: standard
-      source:
-        (line: 'Open a browser alert containing the text “{{message}}” and wait for the user to dismiss it.')
+      source: 'Open a browser alert containing the text “{{message}}” and wait for the user to dismiss it.'
     form:
       task: browser-write
       name: standard
-      source:
-        (line: 'Write the HTML string “{{message}}” to the browser document with document.write, without adding a newline.')
+      source: 'Write the HTML string “{{message}}” to the browser document with document.write, without adding a newline.'
     form:
       task: write-text
       name: standard
-      source:
-        (line: 'Write the text “{{message}}” to standard output without adding a newline.')
+      source: 'Write the text “{{message}}” to standard output without adding a newline.'
     form:
       task: write-crlf
       name: standard
-      source:
-        (line: 'Write the text “{{message}}” to standard output, then write a carriage return (CR) followed by a line feed (LF).')
+      source: 'Write the text “{{message}}” to standard output, then write a carriage return (CR) followed by a line feed (LF).'
     form:
       task: integer-sum
       name: standard
-      source:
-        (line: 'Read one line from standard input with two decimal integers between −{{limit}} and {{limit}} inclusive, separated by one or more spaces. Write their decimal sum and a newline to standard output.')
+      source: 'Read one line from standard input with two decimal integers between −{{limit}} and {{limit}} inclusive, separated by one or more spaces. Write their decimal sum and a newline to standard output.'
     form:
       task: integer-sum-or-usage
       name: standard
-      source:
-        (line: 'Read two space-separated decimal integers of magnitude at most {{limit}} from standard input. If either has a sign, print “usage: <number> <number>”. Otherwise print their decimal sum. End the output with a newline.')
+      source: 'Read two space-separated decimal integers of magnitude at most {{limit}} from standard input. If either has a sign, print “usage: <number> <number>”. Otherwise print their decimal sum. End the output with a newline.'
     form:
       task: browser-integer-sum
       name: standard
-      source:
-        (line: 'Open two browser prompts in order with the text “enter A number” and “enter B number”, each initially empty. Read a decimal integer of magnitude at most {{limit}} from each. Set the text of input to the exact responses separated by one space. Set the text of output to their decimal sum.')
+      source: 'Open two browser prompts in order with the text “enter A number” and “enter B number”, each initially empty. Read a decimal integer of magnitude at most {{limit}} from each. Set the text of input to the exact responses separated by one space. Set the text of output to their decimal sum.'
     form:
       task: ackermann-cli
       name: standard
-      source:
-        (line: 'Read two integer command-line arguments m and n with 0 ≤ m ≤ {{left}} and 0 ≤ n ≤ {{right}}. For m equal to 0, 1, 2, or 3, compute respectively n+1, n+2, 2n+3, or 2^(n+3)−3. Print the result in decimal followed by a newline.')
+      source: 'Read two integer command-line arguments m and n with 0 ≤ m ≤ {{left}} and 0 ≤ n ≤ {{right}}. For m equal to 0, 1, 2, or 3, compute respectively n+1, n+2, 2n+3, or 2^(n+3)−3. Print the result in decimal followed by a newline.'
     form:
       task: ackermann-json
       name: standard
-      source:
-        (line: 'For each m from 0 through {{left}}, compute A(m,n) with n={{right}}. A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. Write the results in order as a JSON array of numbers without spaces, followed by a newline.')
+      source: 'For each m from 0 through {{left}}, compute A(m,n) with n={{right}}. A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. Write the results in order as a JSON array of numbers without spaces, followed by a newline.'
     form:
       task: ackermann-value
       name: standard
-      source:
-        (line: 'Write the Ackermann value A({{left}},{{right}}) in decimal to standard output, followed by a newline.')
+      source: 'Write the Ackermann value A({{left}},{{right}}) in decimal to standard output, followed by a newline.'
     form:
       task: ackermann-function
       name: standard
-      source:
-        (line: 'Return the Ackermann value A(m,n) for integer inputs 0 ≤ m ≤ {{left}} and 0 ≤ n ≤ {{right}}. Define A(0,n)=n+1, A(m,0)=A(m−1,1) for m>0, and A(m,n)=A(m−1,A(m,n−1)) when both are positive.')
+      source: 'Return the Ackermann value A(m,n) for integer inputs 0 ≤ m ≤ {{left}} and 0 ≤ n ≤ {{right}}. Define A(0,n)=n+1, A(m,0)=A(m−1,1) for m>0, and A(m,n)=A(m−1,A(m,n−1)) when both are positive.'
     form:
       task: gcd-function
       name: standard
-      source:
-        (line: 'Accept two integers between −{{max}} and {{max}}, inclusive, and take their absolute values.')
-        (line: 'While the second value is positive, replace the pair with the second value and the remainder of the first divided by the second. Return the first value.')
+      source: '''Accept two integers between −{{max}} and {{max}}, inclusive, and take their absolute values.
+While the second value is positive, replace the pair with the second value and the remainder of the first divided by the second. Return the first value.'''
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: 'Set left to {{left}} and right to {{right}}.')
-        (line: 'While right is nonzero, replace left and right together with right and the remainder of left divided by right.')
-        (line: 'Write left in decimal to standard output, followed by a newline.')
+      source: '''Set left to {{left}} and right to {{right}}.
+While right is nonzero, replace left and right together with right and the remainder of left divided by right.
+Write left in decimal to standard output, followed by a newline.'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: 'Visit each integer from 1 through {{limit}}, in ascending order.')
-        (line: 'For each integer, write FizzBuzz if it is divisible by both 3 and 5, Fizz if it is divisible only by 3, Buzz if it is divisible only by 5, or the integer in decimal otherwise.')
-        (line: 'Write each result on its own line of standard output.')
+      source: '''Visit each integer from 1 through {{limit}}, in ascending order.
+For each integer, write FizzBuzz if it is divisible by both 3 and 5, Fizz if it is divisible only by 3, Buzz if it is divisible only by 5, or the integer in decimal otherwise.
+Write each result on its own line of standard output.'''
     form:
       task: fizz-buzz-function
       name: standard
-      source:
-        (line: 'Define a function with no arguments or return value. Write the following lines only when the function is called.')
-        (line: 'Visit each integer from 1 through {{limit}}, in ascending order.')
-        (line: 'For each integer, write FizzBuzz if it is divisible by both 3 and 5, Fizz if it is divisible only by 3, Buzz if it is divisible only by 5, or the integer in decimal otherwise.')
-        (line: 'Write each result on its own line of standard output.')
+      source: '''Define a function with no arguments or return value. Write the following lines only when the function is called.
+Visit each integer from 1 through {{limit}}, in ascending order.
+For each integer, write FizzBuzz if it is divisible by both 3 and 5, Fizz if it is divisible only by 3, Buzz if it is divisible only by 5, or the integer in decimal otherwise.
+Write each result on its own line of standard output.'''
     form:
       task: fizz-buzz-joined
       name: standard
-      source:
-        (line: 'Return one string containing the results for integers 1 through {{limit}} in ascending order, separated by ASCII character number {{separator}}. Use FizzBuzz for multiples of both 3 and 5, Fizz for multiples of 3 only, Buzz for multiples of 5 only, and the decimal integer otherwise.')
+      source: 'Return one string containing the results for integers 1 through {{limit}} in ascending order, separated by ASCII character number {{separator}}. Use FizzBuzz for multiples of both 3 and 5, Fizz for multiples of 3 only, Buzz for multiples of 5 only, and the decimal integer otherwise.'
     form:
       task: fizz-buzz-lowercase
       name: standard
-      source:
-        (line: 'Visit each integer from 1 through {{limit}}, in ascending order.')
-        (line: 'For each integer, write fizzbuzz if it is divisible by both 3 and 5, fizz if it is divisible only by 3, buzz if it is divisible only by 5, or the integer in decimal otherwise.')
-        (line: 'Write each result on its own line of standard output.')
+      source: '''Visit each integer from 1 through {{limit}}, in ascending order.
+For each integer, write fizzbuzz if it is divisible by both 3 and 5, fizz if it is divisible only by 3, buzz if it is divisible only by 5, or the integer in decimal otherwise.
+Write each result on its own line of standard output.'''
     form:
       task: fizz-buzz-quoted
       name: standard
-      source:
-        (line: 'Visit each integer from 1 through {{limit}}, in ascending order.')
-        (line: 'For each integer, write FizzBuzz if it is divisible by both 3 and 5, Fizz if it is divisible only by 3, Buzz if it is divisible only by 5, or the integer in decimal otherwise.')
-        (line: 'Write each result on its own line of standard output.')
-        (line: 'Enclose each result in ASCII double quotes before writing it.')
+      source: '''Visit each integer from 1 through {{limit}}, in ascending order.
+For each integer, write FizzBuzz if it is divisible by both 3 and 5, Fizz if it is divisible only by 3, Buzz if it is divisible only by 5, or the integer in decimal otherwise.
+Write each result on its own line of standard output.
+Enclose each result in ASCII double quotes before writing it.'''
     form:
       task: fizz-buzz-lowercase-blank-line
       name: standard
-      source:
-        (line: 'Visit each integer from 1 through {{limit}}, in ascending order.')
-        (line: 'For each integer, write fizzbuzz if it is divisible by both 3 and 5, fizz if it is divisible only by 3, buzz if it is divisible only by 5, or the integer in decimal otherwise.')
-        (line: 'Write each result on its own line of standard output.')
-        (line: 'Write one additional newline after the last result.')
+      source: '''Visit each integer from 1 through {{limit}}, in ascending order.
+For each integer, write fizzbuzz if it is divisible by both 3 and 5, fizz if it is divisible only by 3, buzz if it is divisible only by 5, or the integer in decimal otherwise.
+Write each result on its own line of standard output.
+Write one additional newline after the last result.'''
 
 profile:
   id: zh
@@ -144,124 +123,103 @@ profile:
       name: standard
       fixed:
         status: 0
-      source:
-        (line: '以状态码 0 退出，标准输出和标准错误均保持为空。')
+      source: '以状态码 0 退出，标准输出和标准错误均保持为空。'
     form:
       task: hello
       name: standard
-      source:
-        (line: 向标准输出写入文本“{{message}}”，然后换行。)
+      source: '向标准输出写入文本“{{message}}”，然后换行。'
     form:
       task: browser-alert
       name: standard
-      source:
-        (line: '打开显示文本“{{message}}”的浏览器警告对话框，并等待用户关闭它。')
+      source: '打开显示文本“{{message}}”的浏览器警告对话框，并等待用户关闭它。'
     form:
       task: browser-write
       name: standard
-      source:
-        (line: '使用 document.write 将 HTML 字符串“{{message}}”写入浏览器文档，不添加换行符。')
+      source: '使用 document.write 将 HTML 字符串“{{message}}”写入浏览器文档，不添加换行符。'
     form:
       task: write-text
       name: standard
-      source:
-        (line: '向标准输出写入文本“{{message}}”，不追加换行符。')
+      source: '向标准输出写入文本“{{message}}”，不追加换行符。'
     form:
       task: write-crlf
       name: standard
-      source:
-        (line: '将文本“{{message}}”写入标准输出，然后依次写入回车符（CR）和换行符（LF）。')
+      source: '将文本“{{message}}”写入标准输出，然后依次写入回车符（CR）和换行符（LF）。'
     form:
       task: integer-sum
       name: standard
-      source:
-        (line: '从标准输入读取一行，其中有两个以一个或多个空格分隔、范围为 −{{limit}} 到 {{limit}}（含端点）的十进制整数。将两数的十进制和及换行符写入标准输出。')
+      source: '从标准输入读取一行，其中有两个以一个或多个空格分隔、范围为 −{{limit}} 到 {{limit}}（含端点）的十进制整数。将两数的十进制和及换行符写入标准输出。'
     form:
       task: integer-sum-or-usage
       name: standard
-      source:
-        (line: '从标准输入读取两个用空格分隔、绝对值不超过 {{limit}} 的十进制整数。若任一整数带有正负号，则输出“usage: <number> <number>”；否则输出它们的十进制和。输出以换行符结束。')
+      source: '从标准输入读取两个用空格分隔、绝对值不超过 {{limit}} 的十进制整数。若任一整数带有正负号，则输出“usage: <number> <number>”；否则输出它们的十进制和。输出以换行符结束。'
     form:
       task: browser-integer-sum
       name: standard
-      source:
-        (line: '依次在浏览器中显示“enter A number”和“enter B number”两个提示框，默认值均为空。分别读取一个绝对值不超过 {{limit}} 的十进制整数。把两个原始回答以一个空格连接后写入 input 元素的文本，把它们的十进制和写入 output 元素的文本。')
+      source: '依次在浏览器中显示“enter A number”和“enter B number”两个提示框，默认值均为空。分别读取一个绝对值不超过 {{limit}} 的十进制整数。把两个原始回答以一个空格连接后写入 input 元素的文本，把它们的十进制和写入 output 元素的文本。'
     form:
       task: ackermann-cli
       name: standard
-      source:
-        (line: '读取命令行中的两个整数实参 m 和 n，满足 0 ≤ m ≤ {{left}} 且 0 ≤ n ≤ {{right}}。当 m 分别为 0、1、2、3 时，计算 n+1、n+2、2n+3、2^(n+3)−3。以十进制打印结果并换行。')
+      source: '读取命令行中的两个整数实参 m 和 n，满足 0 ≤ m ≤ {{left}} 且 0 ≤ n ≤ {{right}}。当 m 分别为 0、1、2、3 时，计算 n+1、n+2、2n+3、2^(n+3)−3。以十进制打印结果并换行。'
     form:
       task: ackermann-json
       name: standard
-      source:
-        (line: '令 n={{right}}，对从 0 到 {{left}} 的每个整数 m 计算 A(m,n)。 A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. 把结果按顺序写为无空格的 JSON 数字数组，最后换行。')
+      source: '令 n={{right}}，对从 0 到 {{left}} 的每个整数 m 计算 A(m,n)。 A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. 把结果按顺序写为无空格的 JSON 数字数组，最后换行。'
     form:
       task: ackermann-value
       name: standard
-      source:
-        (line: '将阿克曼函数值 A({{left}},{{right}}) 以十进制写入标准输出，然后换行。')
+      source: '将阿克曼函数值 A({{left}},{{right}}) 以十进制写入标准输出，然后换行。'
     form:
       task: ackermann-function
       name: standard
-      source:
-        (line: '对于整数输入 0 ≤ m ≤ {{left}} 和 0 ≤ n ≤ {{right}}，返回阿克曼函数 A(m,n) 的值。定义 A(0,n)=n+1；若 m>0，则 A(m,0)=A(m−1,1)；若两者均为正数，则 A(m,n)=A(m−1,A(m,n−1))。')
+      source: '对于整数输入 0 ≤ m ≤ {{left}} 和 0 ≤ n ≤ {{right}}，返回阿克曼函数 A(m,n) 的值。定义 A(0,n)=n+1；若 m>0，则 A(m,0)=A(m−1,1)；若两者均为正数，则 A(m,n)=A(m−1,A(m,n−1))。'
     form:
       task: gcd-function
       name: standard
-      source:
-        (line: '接收两个从 −{{max}} 到 {{max}} 的整数，包括两端，并取各自的绝对值。')
-        (line: '当第二个值为正数时，用第二个值和第一个值除以第二个值所得的余数同时替换这两个值。返回第一个值。')
+      source: '''接收两个从 −{{max}} 到 {{max}} 的整数，包括两端，并取各自的绝对值。
+当第二个值为正数时，用第二个值和第一个值除以第二个值所得的余数同时替换这两个值。返回第一个值。'''
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: '将左值设为 {{left}}，右值设为 {{right}}。')
-        (line: 只要右值不为零，就同时将左值和右值分别替换为原来的右值及原来左值除以原来右值所得的余数。)
-        (line: 向标准输出写入十进制的左值，然后换行。)
+      source: '''将左值设为 {{left}}，右值设为 {{right}}。
+只要右值不为零，就同时将左值和右值分别替换为原来的右值及原来左值除以原来右值所得的余数。
+向标准输出写入十进制的左值，然后换行。'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: '按升序遍历从 1 到 {{limit}} 的每个整数，包括两端。')
-        (line: '对每个整数，若能同时被 3 和 5 整除则输出 FizzBuzz；若只能被 3 整除则输出 Fizz；若只能被 5 整除则输出 Buzz；否则输出该整数的十进制表示。')
-        (line: 将每个结果各占一行写入标准输出。)
+      source: '''按升序遍历从 1 到 {{limit}} 的每个整数，包括两端。
+对每个整数，若能同时被 3 和 5 整除则输出 FizzBuzz；若只能被 3 整除则输出 Fizz；若只能被 5 整除则输出 Buzz；否则输出该整数的十进制表示。
+将每个结果各占一行写入标准输出。'''
     form:
       task: fizz-buzz-function
       name: standard
-      source:
-        (line: '定义一个无参数、无返回值的函数。仅在调用该函数时输出以下各行。')
-        (line: '按升序遍历从 1 到 {{limit}} 的每个整数，包括两端。')
-        (line: '对每个整数，若能同时被 3 和 5 整除则输出 FizzBuzz；若只能被 3 整除则输出 Fizz；若只能被 5 整除则输出 Buzz；否则输出该整数的十进制表示。')
-        (line: 将每个结果各占一行写入标准输出。)
+      source: '''定义一个无参数、无返回值的函数。仅在调用该函数时输出以下各行。
+按升序遍历从 1 到 {{limit}} 的每个整数，包括两端。
+对每个整数，若能同时被 3 和 5 整除则输出 FizzBuzz；若只能被 3 整除则输出 Fizz；若只能被 5 整除则输出 Buzz；否则输出该整数的十进制表示。
+将每个结果各占一行写入标准输出。'''
     form:
       task: fizz-buzz-joined
       name: standard
-      source:
-        (line: '按升序处理从 1 到 {{limit}} 的整数。能同时被 3 和 5 整除的用 FizzBuzz，仅能被 3 整除的用 Fizz，仅能被 5 整除的用 Buzz，其余用十进制整数。用编号为 {{separator}} 的 ASCII 字符连接各项，返回一个字符串。')
+      source: '按升序处理从 1 到 {{limit}} 的整数。能同时被 3 和 5 整除的用 FizzBuzz，仅能被 3 整除的用 Fizz，仅能被 5 整除的用 Buzz，其余用十进制整数。用编号为 {{separator}} 的 ASCII 字符连接各项，返回一个字符串。'
     form:
       task: fizz-buzz-lowercase
       name: standard
-      source:
-        (line: '按升序遍历从 1 到 {{limit}} 的每个整数，包括两端。')
-        (line: '对每个整数，若能同时被 3 和 5 整除则输出 fizzbuzz；若只能被 3 整除则输出 fizz；若只能被 5 整除则输出 buzz；否则输出该整数的十进制表示。')
-        (line: 将每个结果各占一行写入标准输出。)
+      source: '''按升序遍历从 1 到 {{limit}} 的每个整数，包括两端。
+对每个整数，若能同时被 3 和 5 整除则输出 fizzbuzz；若只能被 3 整除则输出 fizz；若只能被 5 整除则输出 buzz；否则输出该整数的十进制表示。
+将每个结果各占一行写入标准输出。'''
     form:
       task: fizz-buzz-quoted
       name: standard
-      source:
-        (line: '按升序遍历从 1 到 {{limit}} 的每个整数，包括两端。')
-        (line: '对每个整数，若能同时被 3 和 5 整除则输出 FizzBuzz；若只能被 3 整除则输出 Fizz；若只能被 5 整除则输出 Buzz；否则输出该整数的十进制表示。')
-        (line: 将每个结果各占一行写入标准输出。)
-        (line: '写入前用 ASCII 双引号括住每个结果。')
+      source: '''按升序遍历从 1 到 {{limit}} 的每个整数，包括两端。
+对每个整数，若能同时被 3 和 5 整除则输出 FizzBuzz；若只能被 3 整除则输出 Fizz；若只能被 5 整除则输出 Buzz；否则输出该整数的十进制表示。
+将每个结果各占一行写入标准输出。
+写入前用 ASCII 双引号括住每个结果。'''
     form:
       task: fizz-buzz-lowercase-blank-line
       name: standard
-      source:
-        (line: '按升序遍历从 1 到 {{limit}} 的每个整数，包括两端。')
-        (line: '对每个整数，若能同时被 3 和 5 整除则输出 fizzbuzz；若只能被 3 整除则输出 fizz；若只能被 5 整除则输出 buzz；否则输出该整数的十进制表示。')
-        (line: 将每个结果各占一行写入标准输出。)
-        (line: 在最后一个结果之后再写一个换行符。)
+      source: '''按升序遍历从 1 到 {{limit}} 的每个整数，包括两端。
+对每个整数，若能同时被 3 和 5 整除则输出 fizzbuzz；若只能被 3 整除则输出 fizz；若只能被 5 整除则输出 buzz；否则输出该整数的十进制表示。
+将每个结果各占一行写入标准输出。
+在最后一个结果之后再写一个换行符。'''
 
 profile:
   id: hi
@@ -276,124 +234,103 @@ profile:
       name: standard
       fixed:
         status: 0
-      source:
-        (line: 'मानक आउटपुट और मानक त्रुटि में कुछ लिखे बिना स्थिति कोड 0 के साथ समाप्त करें।')
+      source: 'मानक आउटपुट और मानक त्रुटि में कुछ लिखे बिना स्थिति कोड 0 के साथ समाप्त करें।'
     form:
       task: hello
       name: standard
-      source:
-        (line: 'मानक आउटपुट पर “{{message}}” लिखें, फिर एक नई पंक्ति लिखें।')
+      source: 'मानक आउटपुट पर “{{message}}” लिखें, फिर एक नई पंक्ति लिखें।'
     form:
       task: browser-alert
       name: standard
-      source:
-        (line: 'ब्राउज़र में “{{message}}” लिखा चेतावनी संवाद खोलें और उपयोगकर्ता के उसे बंद करने तक प्रतीक्षा करें।')
+      source: 'ब्राउज़र में “{{message}}” लिखा चेतावनी संवाद खोलें और उपयोगकर्ता के उसे बंद करने तक प्रतीक्षा करें।'
     form:
       task: browser-write
       name: standard
-      source:
-        (line: 'document.write से HTML स्ट्रिंग “{{message}}” को ब्राउज़र दस्तावेज़ में लिखें और नई पंक्ति न जोड़ें।')
+      source: 'document.write से HTML स्ट्रिंग “{{message}}” को ब्राउज़र दस्तावेज़ में लिखें और नई पंक्ति न जोड़ें।'
     form:
       task: write-text
       name: standard
-      source:
-        (line: 'मानक आउटपुट पर “{{message}}” लिखें और उसके बाद नई पंक्ति न जोड़ें।')
+      source: 'मानक आउटपुट पर “{{message}}” लिखें और उसके बाद नई पंक्ति न जोड़ें।'
     form:
       task: write-crlf
       name: standard
-      source:
-        (line: 'मानक आउटपुट पर पाठ “{{message}}” लिखें, फिर कैरिज रिटर्न (CR) और उसके बाद लाइन फ़ीड (LF) लिखें।')
+      source: 'मानक आउटपुट पर पाठ “{{message}}” लिखें, फिर कैरिज रिटर्न (CR) और उसके बाद लाइन फ़ीड (LF) लिखें।'
     form:
       task: integer-sum
       name: standard
-      source:
-        (line: 'मानक इनपुट से एक पंक्ति पढ़ें जिसमें एक या अधिक रिक्त स्थानों से अलग किए गए −{{limit}} से {{limit}} तक के दो दशमलव पूर्णांक हों। उनका दशमलव योग और नई पंक्ति मानक आउटपुट पर लिखें।')
+      source: 'मानक इनपुट से एक पंक्ति पढ़ें जिसमें एक या अधिक रिक्त स्थानों से अलग किए गए −{{limit}} से {{limit}} तक के दो दशमलव पूर्णांक हों। उनका दशमलव योग और नई पंक्ति मानक आउटपुट पर लिखें।'
     form:
       task: integer-sum-or-usage
       name: standard
-      source:
-        (line: 'मानक इनपुट से रिक्त स्थान द्वारा अलग किए गए दो दशमलव पूर्णांक पढ़ें, जिनका निरपेक्ष मान अधिकतम {{limit}} हो। यदि किसी के आगे धन या ऋण चिह्न है तो “usage: <number> <number>” छापें, अन्यथा उनका दशमलव योग छापें। अंत में नई पंक्ति दें।')
+      source: 'मानक इनपुट से रिक्त स्थान द्वारा अलग किए गए दो दशमलव पूर्णांक पढ़ें, जिनका निरपेक्ष मान अधिकतम {{limit}} हो। यदि किसी के आगे धन या ऋण चिह्न है तो “usage: <number> <number>” छापें, अन्यथा उनका दशमलव योग छापें। अंत में नई पंक्ति दें।'
     form:
       task: browser-integer-sum
       name: standard
-      source:
-        (line: 'ब्राउज़र में क्रम से “enter A number” और “enter B number” के दो प्रॉम्प्ट दिखाएँ, दोनों का आरंभिक मान खाली हो। हर प्रॉम्प्ट से अधिकतम {{limit}} के निरपेक्ष मान वाला दशमलव पूर्णांक पढ़ें। input के पाठ में दोनों मूल उत्तरों को एक रिक्त स्थान से जोड़कर लिखें। output के पाठ में उनका दशमलव योग लिखें।')
+      source: 'ब्राउज़र में क्रम से “enter A number” और “enter B number” के दो प्रॉम्प्ट दिखाएँ, दोनों का आरंभिक मान खाली हो। हर प्रॉम्प्ट से अधिकतम {{limit}} के निरपेक्ष मान वाला दशमलव पूर्णांक पढ़ें। input के पाठ में दोनों मूल उत्तरों को एक रिक्त स्थान से जोड़कर लिखें। output के पाठ में उनका दशमलव योग लिखें।'
     form:
       task: ackermann-cli
       name: standard
-      source:
-        (line: 'कमांड लाइन से दो पूर्णांक m और n पढ़ें जिनके लिए 0 ≤ m ≤ {{left}} और 0 ≤ n ≤ {{right}} हों। m के 0, 1, 2 और 3 के लिए क्रमशः n+1, n+2, 2n+3 और 2^(n+3)−3 निकालें। दशमलव परिणाम और एक नई पंक्ति लिखें।')
+      source: 'कमांड लाइन से दो पूर्णांक m और n पढ़ें जिनके लिए 0 ≤ m ≤ {{left}} और 0 ≤ n ≤ {{right}} हों। m के 0, 1, 2 और 3 के लिए क्रमशः n+1, n+2, 2n+3 और 2^(n+3)−3 निकालें। दशमलव परिणाम और एक नई पंक्ति लिखें।'
     form:
       task: ackermann-json
       name: standard
-      source:
-        (line: 'n={{right}} रखकर 0 से {{left}} तक प्रत्येक m के लिए A(m,n) निकालें। A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. परिणाम क्रम से बिना रिक्त स्थान वाले संख्यात्मक JSON सरणी में लिखें और नई पंक्ति जोड़ें।')
+      source: 'n={{right}} रखकर 0 से {{left}} तक प्रत्येक m के लिए A(m,n) निकालें। A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. परिणाम क्रम से बिना रिक्त स्थान वाले संख्यात्मक JSON सरणी में लिखें और नई पंक्ति जोड़ें।'
     form:
       task: ackermann-value
       name: standard
-      source:
-        (line: 'एकरमान फलन का मान A({{left}},{{right}}) दशमलव में मानक आउटपुट पर लिखें और नई पंक्ति जोड़ें।')
+      source: 'एकरमान फलन का मान A({{left}},{{right}}) दशमलव में मानक आउटपुट पर लिखें और नई पंक्ति जोड़ें।'
     form:
       task: ackermann-function
       name: standard
-      source:
-        (line: 'पूर्णांक इनपुट 0 ≤ m ≤ {{left}} और 0 ≤ n ≤ {{right}} के लिए एकरमान फलन A(m,n) का मान लौटाएँ। A(0,n)=n+1 रखें। m>0 पर A(m,0)=A(m−1,1) और दोनों धनात्मक होने पर A(m,n)=A(m−1,A(m,n−1)) रखें।')
+      source: 'पूर्णांक इनपुट 0 ≤ m ≤ {{left}} और 0 ≤ n ≤ {{right}} के लिए एकरमान फलन A(m,n) का मान लौटाएँ। A(0,n)=n+1 रखें। m>0 पर A(m,0)=A(m−1,1) और दोनों धनात्मक होने पर A(m,n)=A(m−1,A(m,n−1)) रखें।'
     form:
       task: gcd-function
       name: standard
-      source:
-        (line: '−{{max}} से {{max}} तक के दो पूर्णांक लें, दोनों सीमाएँ शामिल हैं, और उनके निरपेक्ष मान लें।')
-        (line: 'जब तक दूसरा मान धनात्मक है, दोनों मानों को क्रमशः दूसरे मान और प्रथम मान को दूसरे से भाग देने पर बचे शेषफल से बदलें। पहला मान लौटाएँ।')
+      source: '''−{{max}} से {{max}} तक के दो पूर्णांक लें, दोनों सीमाएँ शामिल हैं, और उनके निरपेक्ष मान लें।
+जब तक दूसरा मान धनात्मक है, दोनों मानों को क्रमशः दूसरे मान और प्रथम मान को दूसरे से भाग देने पर बचे शेषफल से बदलें। पहला मान लौटाएँ।'''
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: 'बायाँ मान {{left}} और दायाँ मान {{right}} रखें।')
-        (line: 'जब तक दायाँ मान शून्य न हो, दोनों मानों को एक साथ बदलें: नया बायाँ मान पुराना दायाँ मान है और नया दायाँ मान पुराने बाएँ को पुराने दाएँ से भाग देने पर बचा शेषफल है।')
-        (line: 'मानक आउटपुट पर बायाँ मान दशमलव में लिखें, फिर नई पंक्ति लिखें।')
+      source: '''बायाँ मान {{left}} और दायाँ मान {{right}} रखें।
+जब तक दायाँ मान शून्य न हो, दोनों मानों को एक साथ बदलें: नया बायाँ मान पुराना दायाँ मान है और नया दायाँ मान पुराने बाएँ को पुराने दाएँ से भाग देने पर बचा शेषफल है।
+मानक आउटपुट पर बायाँ मान दशमलव में लिखें, फिर नई पंक्ति लिखें।'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: '1 से {{limit}} तक, दोनों सिरों समेत, सभी पूर्णांक बढ़ते क्रम में लें।')
-        (line: 'यदि संख्या 3 और 5 दोनों से विभाज्य है तो FizzBuzz, केवल 3 से तो Fizz, केवल 5 से तो Buzz, अन्यथा संख्या को दशमलव में लिखें।')
-        (line: 'हर परिणाम को मानक आउटपुट पर अलग पंक्ति में लिखें।')
+      source: '''1 से {{limit}} तक, दोनों सिरों समेत, सभी पूर्णांक बढ़ते क्रम में लें।
+यदि संख्या 3 और 5 दोनों से विभाज्य है तो FizzBuzz, केवल 3 से तो Fizz, केवल 5 से तो Buzz, अन्यथा संख्या को दशमलव में लिखें।
+हर परिणाम को मानक आउटपुट पर अलग पंक्ति में लिखें।'''
     form:
       task: fizz-buzz-function
       name: standard
-      source:
-        (line: 'बिना किसी तर्क और वापसी मान वाला फलन परिभाषित करें। निम्न पंक्तियाँ केवल फलन को बुलाने पर लिखें।')
-        (line: '1 से {{limit}} तक, दोनों सिरों समेत, सभी पूर्णांक बढ़ते क्रम में लें।')
-        (line: 'यदि संख्या 3 और 5 दोनों से विभाज्य है तो FizzBuzz, केवल 3 से तो Fizz, केवल 5 से तो Buzz, अन्यथा संख्या को दशमलव में लिखें।')
-        (line: 'हर परिणाम को मानक आउटपुट पर अलग पंक्ति में लिखें।')
+      source: '''बिना किसी तर्क और वापसी मान वाला फलन परिभाषित करें। निम्न पंक्तियाँ केवल फलन को बुलाने पर लिखें।
+1 से {{limit}} तक, दोनों सिरों समेत, सभी पूर्णांक बढ़ते क्रम में लें।
+यदि संख्या 3 और 5 दोनों से विभाज्य है तो FizzBuzz, केवल 3 से तो Fizz, केवल 5 से तो Buzz, अन्यथा संख्या को दशमलव में लिखें।
+हर परिणाम को मानक आउटपुट पर अलग पंक्ति में लिखें।'''
     form:
       task: fizz-buzz-joined
       name: standard
-      source:
-        (line: '1 से {{limit}} तक के पूर्णांकों के परिणाम बढ़ते क्रम में एक स्ट्रिंग में लौटाएँ और उन्हें ASCII कोड {{separator}} वाले वर्ण से अलग करें। 3 और 5 दोनों के गुणज के लिए FizzBuzz, केवल 3 के गुणज के लिए Fizz, केवल 5 के गुणज के लिए Buzz, और अन्यथा दशमलव पूर्णांक का उपयोग करें।')
+      source: '1 से {{limit}} तक के पूर्णांकों के परिणाम बढ़ते क्रम में एक स्ट्रिंग में लौटाएँ और उन्हें ASCII कोड {{separator}} वाले वर्ण से अलग करें। 3 और 5 दोनों के गुणज के लिए FizzBuzz, केवल 3 के गुणज के लिए Fizz, केवल 5 के गुणज के लिए Buzz, और अन्यथा दशमलव पूर्णांक का उपयोग करें।'
     form:
       task: fizz-buzz-lowercase
       name: standard
-      source:
-        (line: '1 से {{limit}} तक, दोनों सिरों समेत, सभी पूर्णांक बढ़ते क्रम में लें।')
-        (line: 'यदि संख्या 3 और 5 दोनों से विभाज्य है तो fizzbuzz, केवल 3 से तो fizz, केवल 5 से तो buzz, अन्यथा संख्या को दशमलव में लिखें।')
-        (line: 'हर परिणाम को मानक आउटपुट पर अलग पंक्ति में लिखें।')
+      source: '''1 से {{limit}} तक, दोनों सिरों समेत, सभी पूर्णांक बढ़ते क्रम में लें।
+यदि संख्या 3 और 5 दोनों से विभाज्य है तो fizzbuzz, केवल 3 से तो fizz, केवल 5 से तो buzz, अन्यथा संख्या को दशमलव में लिखें।
+हर परिणाम को मानक आउटपुट पर अलग पंक्ति में लिखें।'''
     form:
       task: fizz-buzz-quoted
       name: standard
-      source:
-        (line: '1 से {{limit}} तक, दोनों सिरों समेत, सभी पूर्णांक बढ़ते क्रम में लें।')
-        (line: 'यदि संख्या 3 और 5 दोनों से विभाज्य है तो FizzBuzz, केवल 3 से तो Fizz, केवल 5 से तो Buzz, अन्यथा संख्या को दशमलव में लिखें।')
-        (line: 'हर परिणाम को मानक आउटपुट पर अलग पंक्ति में लिखें।')
-        (line: 'हर परिणाम को ASCII के दोहरे उद्धरण चिह्नों में रखकर लिखें।')
+      source: '''1 से {{limit}} तक, दोनों सिरों समेत, सभी पूर्णांक बढ़ते क्रम में लें।
+यदि संख्या 3 और 5 दोनों से विभाज्य है तो FizzBuzz, केवल 3 से तो Fizz, केवल 5 से तो Buzz, अन्यथा संख्या को दशमलव में लिखें।
+हर परिणाम को मानक आउटपुट पर अलग पंक्ति में लिखें।
+हर परिणाम को ASCII के दोहरे उद्धरण चिह्नों में रखकर लिखें।'''
     form:
       task: fizz-buzz-lowercase-blank-line
       name: standard
-      source:
-        (line: '1 से {{limit}} तक, दोनों सिरों समेत, सभी पूर्णांक बढ़ते क्रम में लें।')
-        (line: 'यदि संख्या 3 और 5 दोनों से विभाज्य है तो fizzbuzz, केवल 3 से तो fizz, केवल 5 से तो buzz, अन्यथा संख्या को दशमलव में लिखें।')
-        (line: 'हर परिणाम को मानक आउटपुट पर अलग पंक्ति में लिखें।')
-        (line: 'अंतिम परिणाम के बाद एक और नई पंक्ति लिखें।')
+      source: '''1 से {{limit}} तक, दोनों सिरों समेत, सभी पूर्णांक बढ़ते क्रम में लें।
+यदि संख्या 3 और 5 दोनों से विभाज्य है तो fizzbuzz, केवल 3 से तो fizz, केवल 5 से तो buzz, अन्यथा संख्या को दशमलव में लिखें।
+हर परिणाम को मानक आउटपुट पर अलग पंक्ति में लिखें।
+अंतिम परिणाम के बाद एक और नई पंक्ति लिखें।'''
 
 profile:
   id: es
@@ -408,124 +345,103 @@ profile:
       name: standard
       fixed:
         status: 0
-      source:
-        (line: 'Termine con código 0 sin escribir en la salida estándar ni en la salida de error estándar.')
+      source: 'Termine con código 0 sin escribir en la salida estándar ni en la salida de error estándar.'
     form:
       task: hello
       name: standard
-      source:
-        (line: 'Escribe el texto «{{message}}» en la salida estándar y luego escribe un salto de línea.')
+      source: 'Escribe el texto «{{message}}» en la salida estándar y luego escribe un salto de línea.'
     form:
       task: browser-alert
       name: standard
-      source:
-        (line: 'Abre en el navegador un cuadro de alerta con el texto «{{message}}» y espera a que el usuario lo cierre.')
+      source: 'Abre en el navegador un cuadro de alerta con el texto «{{message}}» y espera a que el usuario lo cierre.'
     form:
       task: browser-write
       name: standard
-      source:
-        (line: 'Escribe la cadena HTML “{{message}}” en el documento del navegador con document.write sin agregar un salto de línea.')
+      source: 'Escribe la cadena HTML “{{message}}” en el documento del navegador con document.write sin agregar un salto de línea.'
     form:
       task: write-text
       name: standard
-      source:
-        (line: 'Escribe el texto «{{message}}» en la salida estándar sin añadir un salto de línea.')
+      source: 'Escribe el texto «{{message}}» en la salida estándar sin añadir un salto de línea.'
     form:
       task: write-crlf
       name: standard
-      source:
-        (line: 'Escribe el texto «{{message}}» en la salida estándar y después escribe un retorno de carro (CR) seguido de un salto de línea (LF).')
+      source: 'Escribe el texto «{{message}}» en la salida estándar y después escribe un retorno de carro (CR) seguido de un salto de línea (LF).'
     form:
       task: integer-sum
       name: standard
-      source:
-        (line: 'Lee una línea de la entrada estándar con dos enteros decimales entre −{{limit}} y {{limit}}, ambos incluidos, separados por uno o más espacios. Escribe su suma decimal y un salto de línea en la salida estándar.')
+      source: 'Lee una línea de la entrada estándar con dos enteros decimales entre −{{limit}} y {{limit}}, ambos incluidos, separados por uno o más espacios. Escribe su suma decimal y un salto de línea en la salida estándar.'
     form:
       task: integer-sum-or-usage
       name: standard
-      source:
-        (line: 'Lee de la entrada estándar dos enteros decimales separados por espacios, de valor absoluto no superior a {{limit}}. Si alguno lleva signo, imprime «usage: <number> <number>». En caso contrario, imprime su suma en decimal. Termina con un salto de línea.')
+      source: 'Lee de la entrada estándar dos enteros decimales separados por espacios, de valor absoluto no superior a {{limit}}. Si alguno lleva signo, imprime «usage: <number> <number>». En caso contrario, imprime su suma en decimal. Termina con un salto de línea.'
     form:
       task: browser-integer-sum
       name: standard
-      source:
-        (line: 'Abre en el navegador las preguntas “enter A number” y “enter B number” en ese orden, ambas con valor inicial vacío. Lee en cada una un entero decimal de valor absoluto no superior a {{limit}}. Pon en el texto de input las respuestas originales separadas por un espacio y en el texto de output su suma en decimal.')
+      source: 'Abre en el navegador las preguntas “enter A number” y “enter B number” en ese orden, ambas con valor inicial vacío. Lee en cada una un entero decimal de valor absoluto no superior a {{limit}}. Pon en el texto de input las respuestas originales separadas por un espacio y en el texto de output su suma en decimal.'
     form:
       task: ackermann-cli
       name: standard
-      source:
-        (line: 'Lee dos argumentos enteros m y n de la línea de comandos con 0 ≤ m ≤ {{left}} y 0 ≤ n ≤ {{right}}. Para m igual a 0, 1, 2 o 3, calcula respectivamente n+1, n+2, 2n+3 o 2^(n+3)−3. Imprime el resultado en decimal seguido de un salto de línea.')
+      source: 'Lee dos argumentos enteros m y n de la línea de comandos con 0 ≤ m ≤ {{left}} y 0 ≤ n ≤ {{right}}. Para m igual a 0, 1, 2 o 3, calcula respectivamente n+1, n+2, 2n+3 o 2^(n+3)−3. Imprime el resultado en decimal seguido de un salto de línea.'
     form:
       task: ackermann-json
       name: standard
-      source:
-        (line: 'Para cada m entre 0 y {{left}}, ambos incluidos, calcula A(m,n) con n={{right}}. A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. Escribe los resultados en orden como un arreglo JSON numérico sin espacios, seguido de un salto de línea.')
+      source: 'Para cada m entre 0 y {{left}}, ambos incluidos, calcula A(m,n) con n={{right}}. A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. Escribe los resultados en orden como un arreglo JSON numérico sin espacios, seguido de un salto de línea.'
     form:
       task: ackermann-value
       name: standard
-      source:
-        (line: 'Escribe el valor de Ackermann A({{left}},{{right}}) en decimal en la salida estándar, seguido de un salto de línea.')
+      source: 'Escribe el valor de Ackermann A({{left}},{{right}}) en decimal en la salida estándar, seguido de un salto de línea.'
     form:
       task: ackermann-function
       name: standard
-      source:
-        (line: 'Devuelve el valor de Ackermann A(m,n) para los enteros 0 ≤ m ≤ {{left}} y 0 ≤ n ≤ {{right}}. Define A(0,n)=n+1, A(m,0)=A(m−1,1) si m>0 y A(m,n)=A(m−1,A(m,n−1)) si ambos son positivos.')
+      source: 'Devuelve el valor de Ackermann A(m,n) para los enteros 0 ≤ m ≤ {{left}} y 0 ≤ n ≤ {{right}}. Define A(0,n)=n+1, A(m,0)=A(m−1,1) si m>0 y A(m,n)=A(m−1,A(m,n−1)) si ambos son positivos.'
     form:
       task: gcd-function
       name: standard
-      source:
-        (line: 'Recibe dos enteros entre −{{max}} y {{max}}, ambos inclusive, y toma sus valores absolutos.')
-        (line: 'Mientras el segundo valor sea positivo, sustituye el par por el segundo valor y el resto de dividir el primero entre el segundo. Devuelve el primer valor.')
+      source: '''Recibe dos enteros entre −{{max}} y {{max}}, ambos inclusive, y toma sus valores absolutos.
+Mientras el segundo valor sea positivo, sustituye el par por el segundo valor y el resto de dividir el primero entre el segundo. Devuelve el primer valor.'''
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: 'Asigna {{left}} al valor izquierdo y {{right}} al derecho.')
-        (line: 'Mientras el valor derecho no sea cero, sustituye ambos valores a la vez por el valor derecho y el resto de dividir el valor izquierdo entre el derecho, respectivamente.')
-        (line: 'Escribe el valor izquierdo en decimal en la salida estándar, seguido de un salto de línea.')
+      source: '''Asigna {{left}} al valor izquierdo y {{right}} al derecho.
+Mientras el valor derecho no sea cero, sustituye ambos valores a la vez por el valor derecho y el resto de dividir el valor izquierdo entre el derecho, respectivamente.
+Escribe el valor izquierdo en decimal en la salida estándar, seguido de un salto de línea.'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: 'Recorre en orden ascendente los enteros de 1 a {{limit}}, ambos inclusive.')
-        (line: 'Para cada entero, escribe FizzBuzz si es divisible por 3 y 5, Fizz si solo es divisible por 3, Buzz si solo es divisible por 5 o el entero en decimal en los demás casos.')
-        (line: 'Escribe cada resultado en una línea de la salida estándar.')
+      source: '''Recorre en orden ascendente los enteros de 1 a {{limit}}, ambos inclusive.
+Para cada entero, escribe FizzBuzz si es divisible por 3 y 5, Fizz si solo es divisible por 3, Buzz si solo es divisible por 5 o el entero en decimal en los demás casos.
+Escribe cada resultado en una línea de la salida estándar.'''
     form:
       task: fizz-buzz-function
       name: standard
-      source:
-        (line: 'Define una función sin argumentos ni valor de retorno. Escribe las líneas siguientes solo cuando se llame a la función.')
-        (line: 'Recorre en orden ascendente los enteros de 1 a {{limit}}, ambos inclusive.')
-        (line: 'Para cada entero, escribe FizzBuzz si es divisible por 3 y 5, Fizz si solo es divisible por 3, Buzz si solo es divisible por 5 o el entero en decimal en los demás casos.')
-        (line: 'Escribe cada resultado en una línea de la salida estándar.')
+      source: '''Define una función sin argumentos ni valor de retorno. Escribe las líneas siguientes solo cuando se llame a la función.
+Recorre en orden ascendente los enteros de 1 a {{limit}}, ambos inclusive.
+Para cada entero, escribe FizzBuzz si es divisible por 3 y 5, Fizz si solo es divisible por 3, Buzz si solo es divisible por 5 o el entero en decimal en los demás casos.
+Escribe cada resultado en una línea de la salida estándar.'''
     form:
       task: fizz-buzz-joined
       name: standard
-      source:
-        (line: 'Devuelve una cadena con los resultados de los enteros del 1 al {{limit}} en orden ascendente, separados por el carácter ASCII de código {{separator}}. Usa FizzBuzz para los múltiplos de 3 y 5, Fizz para los múltiplos solo de 3, Buzz para los múltiplos solo de 5 y el entero en decimal en los demás casos.')
+      source: 'Devuelve una cadena con los resultados de los enteros del 1 al {{limit}} en orden ascendente, separados por el carácter ASCII de código {{separator}}. Usa FizzBuzz para los múltiplos de 3 y 5, Fizz para los múltiplos solo de 3, Buzz para los múltiplos solo de 5 y el entero en decimal en los demás casos.'
     form:
       task: fizz-buzz-lowercase
       name: standard
-      source:
-        (line: 'Recorre en orden ascendente los enteros de 1 a {{limit}}, ambos inclusive.')
-        (line: 'Para cada entero, escribe fizzbuzz si es divisible por 3 y 5, fizz si solo es divisible por 3, buzz si solo es divisible por 5 o el entero en decimal en los demás casos.')
-        (line: 'Escribe cada resultado en una línea de la salida estándar.')
+      source: '''Recorre en orden ascendente los enteros de 1 a {{limit}}, ambos inclusive.
+Para cada entero, escribe fizzbuzz si es divisible por 3 y 5, fizz si solo es divisible por 3, buzz si solo es divisible por 5 o el entero en decimal en los demás casos.
+Escribe cada resultado en una línea de la salida estándar.'''
     form:
       task: fizz-buzz-quoted
       name: standard
-      source:
-        (line: 'Recorre en orden ascendente los enteros de 1 a {{limit}}, ambos inclusive.')
-        (line: 'Para cada entero, escribe FizzBuzz si es divisible por 3 y 5, Fizz si solo es divisible por 3, Buzz si solo es divisible por 5 o el entero en decimal en los demás casos.')
-        (line: 'Escribe cada resultado en una línea de la salida estándar.')
-        (line: 'Encierra cada resultado entre comillas dobles ASCII antes de escribirlo.')
+      source: '''Recorre en orden ascendente los enteros de 1 a {{limit}}, ambos inclusive.
+Para cada entero, escribe FizzBuzz si es divisible por 3 y 5, Fizz si solo es divisible por 3, Buzz si solo es divisible por 5 o el entero en decimal en los demás casos.
+Escribe cada resultado en una línea de la salida estándar.
+Encierra cada resultado entre comillas dobles ASCII antes de escribirlo.'''
     form:
       task: fizz-buzz-lowercase-blank-line
       name: standard
-      source:
-        (line: 'Recorre en orden ascendente los enteros de 1 a {{limit}}, ambos inclusive.')
-        (line: 'Para cada entero, escribe fizzbuzz si es divisible por 3 y 5, fizz si solo es divisible por 3, buzz si solo es divisible por 5 o el entero en decimal en los demás casos.')
-        (line: 'Escribe cada resultado en una línea de la salida estándar.')
-        (line: 'Escribe un salto de línea adicional después del último resultado.')
+      source: '''Recorre en orden ascendente los enteros de 1 a {{limit}}, ambos inclusive.
+Para cada entero, escribe fizzbuzz si es divisible por 3 y 5, fizz si solo es divisible por 3, buzz si solo es divisible por 5 o el entero en decimal en los demás casos.
+Escribe cada resultado en una línea de la salida estándar.
+Escribe un salto de línea adicional después del último resultado.'''
 
 profile:
   id: fr
@@ -540,124 +456,103 @@ profile:
       name: standard
       fixed:
         status: 0
-      source:
-        (line: 'Terminez avec le code 0 en laissant la sortie standard et la sortie d’erreur standard vides.')
+      source: 'Terminez avec le code 0 en laissant la sortie standard et la sortie d’erreur standard vides.'
     form:
       task: hello
       name: standard
-      source:
-        (line: 'Écris le texte « {{message}} » sur la sortie standard, puis un saut de ligne.')
+      source: 'Écris le texte « {{message}} » sur la sortie standard, puis un saut de ligne.'
     form:
       task: browser-alert
       name: standard
-      source:
-        (line: 'Ouvrez dans le navigateur une boîte d’alerte contenant le texte « {{message}} » et attendez que la personne la ferme.')
+      source: 'Ouvrez dans le navigateur une boîte d’alerte contenant le texte « {{message}} » et attendez que la personne la ferme.'
     form:
       task: browser-write
       name: standard
-      source:
-        (line: 'Écris la chaîne HTML « {{message}} » dans le document du navigateur avec document.write sans ajouter de saut de ligne.')
+      source: 'Écris la chaîne HTML « {{message}} » dans le document du navigateur avec document.write sans ajouter de saut de ligne.'
     form:
       task: write-text
       name: standard
-      source:
-        (line: 'Écris le texte « {{message}} » sur la sortie standard sans ajouter de saut de ligne.')
+      source: 'Écris le texte « {{message}} » sur la sortie standard sans ajouter de saut de ligne.'
     form:
       task: write-crlf
       name: standard
-      source:
-        (line: 'Écris le texte « {{message}} » sur la sortie standard, puis écris un retour chariot (CR) suivi d’un saut de ligne (LF).')
+      source: 'Écris le texte « {{message}} » sur la sortie standard, puis écris un retour chariot (CR) suivi d’un saut de ligne (LF).'
     form:
       task: integer-sum
       name: standard
-      source:
-        (line: 'Lis sur l’entrée standard une ligne contenant deux entiers décimaux de −{{limit}} à {{limit}} inclus, séparés par un ou plusieurs espaces. Écris leur somme décimale suivie d’un saut de ligne sur la sortie standard.')
+      source: 'Lis sur l’entrée standard une ligne contenant deux entiers décimaux de −{{limit}} à {{limit}} inclus, séparés par un ou plusieurs espaces. Écris leur somme décimale suivie d’un saut de ligne sur la sortie standard.'
     form:
       task: integer-sum-or-usage
       name: standard
-      source:
-        (line: 'Lis sur l’entrée standard deux entiers décimaux séparés par des espaces, de valeur absolue au plus {{limit}}. Si l’un porte un signe, affiche « usage: <number> <number> ». Sinon, affiche leur somme en décimal. Termine par un saut de ligne.')
+      source: 'Lis sur l’entrée standard deux entiers décimaux séparés par des espaces, de valeur absolue au plus {{limit}}. Si l’un porte un signe, affiche « usage: <number> <number> ». Sinon, affiche leur somme en décimal. Termine par un saut de ligne.'
     form:
       task: browser-integer-sum
       name: standard
-      source:
-        (line: 'Ouvre successivement dans le navigateur les invites « enter A number » et « enter B number », avec une réponse initiale vide. Lis dans chacune un entier décimal de valeur absolue au plus {{limit}}. Écris les réponses exactes séparées par une espace dans le texte de input et leur somme décimale dans celui de output.')
+      source: 'Ouvre successivement dans le navigateur les invites « enter A number » et « enter B number », avec une réponse initiale vide. Lis dans chacune un entier décimal de valeur absolue au plus {{limit}}. Écris les réponses exactes séparées par une espace dans le texte de input et leur somme décimale dans celui de output.'
     form:
       task: ackermann-cli
       name: standard
-      source:
-        (line: 'Lis deux arguments entiers m et n sur la ligne de commande, avec 0 ≤ m ≤ {{left}} et 0 ≤ n ≤ {{right}}. Pour m égal à 0, 1, 2 ou 3, calcule respectivement n+1, n+2, 2n+3 ou 2^(n+3)−3. Écris le résultat décimal suivi d’un saut de ligne.')
+      source: 'Lis deux arguments entiers m et n sur la ligne de commande, avec 0 ≤ m ≤ {{left}} et 0 ≤ n ≤ {{right}}. Pour m égal à 0, 1, 2 ou 3, calcule respectivement n+1, n+2, 2n+3 ou 2^(n+3)−3. Écris le résultat décimal suivi d’un saut de ligne.'
     form:
       task: ackermann-json
       name: standard
-      source:
-        (line: 'Pour m de 0 à {{left}} inclus, calcule A(m,n) avec n={{right}}. A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. Écris les résultats dans l’ordre sous forme de tableau JSON de nombres sans espaces, suivi d’un saut de ligne.')
+      source: 'Pour m de 0 à {{left}} inclus, calcule A(m,n) avec n={{right}}. A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. Écris les résultats dans l’ordre sous forme de tableau JSON de nombres sans espaces, suivi d’un saut de ligne.'
     form:
       task: ackermann-value
       name: standard
-      source:
-        (line: 'Écrire la valeur d’Ackermann A({{left}},{{right}}) en décimal sur la sortie standard, suivie d’un saut de ligne.')
+      source: 'Écrire la valeur d’Ackermann A({{left}},{{right}}) en décimal sur la sortie standard, suivie d’un saut de ligne.'
     form:
       task: ackermann-function
       name: standard
-      source:
-        (line: 'Renvoyer la valeur de la fonction d’Ackermann A(m,n) pour les entiers 0 ≤ m ≤ {{left}} et 0 ≤ n ≤ {{right}}. Poser A(0,n)=n+1, A(m,0)=A(m−1,1) si m>0 et A(m,n)=A(m−1,A(m,n−1)) si les deux sont positifs.')
+      source: 'Renvoyer la valeur de la fonction d’Ackermann A(m,n) pour les entiers 0 ≤ m ≤ {{left}} et 0 ≤ n ≤ {{right}}. Poser A(0,n)=n+1, A(m,0)=A(m−1,1) si m>0 et A(m,n)=A(m−1,A(m,n−1)) si les deux sont positifs.'
     form:
       task: gcd-function
       name: standard
-      source:
-        (line: 'Reçois deux entiers compris entre −{{max}} et {{max}}, bornes incluses, et prends leurs valeurs absolues.')
-        (line: 'Tant que la deuxième valeur est positive, remplace la paire par la deuxième valeur et le reste de la division de la première par la deuxième. Renvoie la première valeur.')
+      source: '''Reçois deux entiers compris entre −{{max}} et {{max}}, bornes incluses, et prends leurs valeurs absolues.
+Tant que la deuxième valeur est positive, remplace la paire par la deuxième valeur et le reste de la division de la première par la deuxième. Renvoie la première valeur.'''
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: 'Affecte {{left}} à la valeur de gauche et {{right}} à celle de droite.')
-        (line: 'Tant que la valeur de droite est différente de zéro, remplace simultanément les deux valeurs par la valeur de droite et le reste de la division de la valeur de gauche par celle de droite, respectivement.')
-        (line: 'Écris la valeur de gauche en décimal sur la sortie standard, suivie d’un saut de ligne.')
+      source: '''Affecte {{left}} à la valeur de gauche et {{right}} à celle de droite.
+Tant que la valeur de droite est différente de zéro, remplace simultanément les deux valeurs par la valeur de droite et le reste de la division de la valeur de gauche par celle de droite, respectivement.
+Écris la valeur de gauche en décimal sur la sortie standard, suivie d’un saut de ligne.'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: 'Parcours les entiers de 1 à {{limit}} inclus, dans l’ordre croissant.')
-        (line: 'Pour chaque entier, écris FizzBuzz s’il est divisible par 3 et par 5, Fizz s’il est divisible par 3 seulement, Buzz s’il est divisible par 5 seulement, ou l’entier en décimal sinon.')
-        (line: 'Écris chaque résultat sur une ligne de la sortie standard.')
+      source: '''Parcours les entiers de 1 à {{limit}} inclus, dans l’ordre croissant.
+Pour chaque entier, écris FizzBuzz s’il est divisible par 3 et par 5, Fizz s’il est divisible par 3 seulement, Buzz s’il est divisible par 5 seulement, ou l’entier en décimal sinon.
+Écris chaque résultat sur une ligne de la sortie standard.'''
     form:
       task: fizz-buzz-function
       name: standard
-      source:
-        (line: 'Définissez une fonction sans argument ni valeur de retour. Écrivez les lignes suivantes uniquement lors de son appel.')
-        (line: 'Parcours les entiers de 1 à {{limit}} inclus, dans l’ordre croissant.')
-        (line: 'Pour chaque entier, écris FizzBuzz s’il est divisible par 3 et par 5, Fizz s’il est divisible par 3 seulement, Buzz s’il est divisible par 5 seulement, ou l’entier en décimal sinon.')
-        (line: 'Écris chaque résultat sur une ligne de la sortie standard.')
+      source: '''Définissez une fonction sans argument ni valeur de retour. Écrivez les lignes suivantes uniquement lors de son appel.
+Parcours les entiers de 1 à {{limit}} inclus, dans l’ordre croissant.
+Pour chaque entier, écris FizzBuzz s’il est divisible par 3 et par 5, Fizz s’il est divisible par 3 seulement, Buzz s’il est divisible par 5 seulement, ou l’entier en décimal sinon.
+Écris chaque résultat sur une ligne de la sortie standard.'''
     form:
       task: fizz-buzz-joined
       name: standard
-      source:
-        (line: 'Renvoie une chaîne contenant, dans l’ordre croissant, les résultats pour les entiers de 1 à {{limit}}, séparés par le caractère ASCII de code {{separator}}. Utilise FizzBuzz pour les multiples de 3 et de 5, Fizz pour les seuls multiples de 3, Buzz pour les seuls multiples de 5 et la représentation décimale de l’entier dans les autres cas.')
+      source: 'Renvoie une chaîne contenant, dans l’ordre croissant, les résultats pour les entiers de 1 à {{limit}}, séparés par le caractère ASCII de code {{separator}}. Utilise FizzBuzz pour les multiples de 3 et de 5, Fizz pour les seuls multiples de 3, Buzz pour les seuls multiples de 5 et la représentation décimale de l’entier dans les autres cas.'
     form:
       task: fizz-buzz-lowercase
       name: standard
-      source:
-        (line: 'Parcours les entiers de 1 à {{limit}} inclus, dans l’ordre croissant.')
-        (line: 'Pour chaque entier, écris fizzbuzz s’il est divisible par 3 et par 5, fizz s’il est divisible par 3 seulement, buzz s’il est divisible par 5 seulement, ou l’entier en décimal sinon.')
-        (line: 'Écris chaque résultat sur une ligne de la sortie standard.')
+      source: '''Parcours les entiers de 1 à {{limit}} inclus, dans l’ordre croissant.
+Pour chaque entier, écris fizzbuzz s’il est divisible par 3 et par 5, fizz s’il est divisible par 3 seulement, buzz s’il est divisible par 5 seulement, ou l’entier en décimal sinon.
+Écris chaque résultat sur une ligne de la sortie standard.'''
     form:
       task: fizz-buzz-quoted
       name: standard
-      source:
-        (line: 'Parcours les entiers de 1 à {{limit}} inclus, dans l’ordre croissant.')
-        (line: 'Pour chaque entier, écris FizzBuzz s’il est divisible par 3 et par 5, Fizz s’il est divisible par 3 seulement, Buzz s’il est divisible par 5 seulement, ou l’entier en décimal sinon.')
-        (line: 'Écris chaque résultat sur une ligne de la sortie standard.')
-        (line: 'Entoure chaque résultat de guillemets droits doubles ASCII avant de l’écrire.')
+      source: '''Parcours les entiers de 1 à {{limit}} inclus, dans l’ordre croissant.
+Pour chaque entier, écris FizzBuzz s’il est divisible par 3 et par 5, Fizz s’il est divisible par 3 seulement, Buzz s’il est divisible par 5 seulement, ou l’entier en décimal sinon.
+Écris chaque résultat sur une ligne de la sortie standard.
+Entoure chaque résultat de guillemets droits doubles ASCII avant de l’écrire.'''
     form:
       task: fizz-buzz-lowercase-blank-line
       name: standard
-      source:
-        (line: 'Parcours les entiers de 1 à {{limit}} inclus, dans l’ordre croissant.')
-        (line: 'Pour chaque entier, écris fizzbuzz s’il est divisible par 3 et par 5, fizz s’il est divisible par 3 seulement, buzz s’il est divisible par 5 seulement, ou l’entier en décimal sinon.')
-        (line: 'Écris chaque résultat sur une ligne de la sortie standard.')
-        (line: 'Écris un saut de ligne supplémentaire après le dernier résultat.')
+      source: '''Parcours les entiers de 1 à {{limit}} inclus, dans l’ordre croissant.
+Pour chaque entier, écris fizzbuzz s’il est divisible par 3 et par 5, fizz s’il est divisible par 3 seulement, buzz s’il est divisible par 5 seulement, ou l’entier en décimal sinon.
+Écris chaque résultat sur une ligne de la sortie standard.
+Écris un saut de ligne supplémentaire après le dernier résultat.'''
 
 profile:
   id: ar
@@ -672,124 +567,103 @@ profile:
       name: standard
       fixed:
         status: 0
-      source:
-        (line: 'أنه البرنامج بالحالة 0 من دون الكتابة إلى المخرجات القياسية أو مخرجات الخطأ القياسية.')
+      source: 'أنه البرنامج بالحالة 0 من دون الكتابة إلى المخرجات القياسية أو مخرجات الخطأ القياسية.'
     form:
       task: hello
       name: standard
-      source:
-        (line: 'اكتب النص «{{message}}» على المخرج القياسي، ثم اكتب محرف سطر جديد.')
+      source: 'اكتب النص «{{message}}» على المخرج القياسي، ثم اكتب محرف سطر جديد.'
     form:
       task: browser-alert
       name: standard
-      source:
-        (line: 'افتح مربع تنبيه في المتصفح يحتوي على النص «{{message}}» وانتظر حتى يغلقه المستخدم.')
+      source: 'افتح مربع تنبيه في المتصفح يحتوي على النص «{{message}}» وانتظر حتى يغلقه المستخدم.'
     form:
       task: browser-write
       name: standard
-      source:
-        (line: 'اكتب سلسلة HTML «{{message}}» في مستند المتصفح باستخدام document.write دون إضافة سطر جديد.')
+      source: 'اكتب سلسلة HTML «{{message}}» في مستند المتصفح باستخدام document.write دون إضافة سطر جديد.'
     form:
       task: write-text
       name: standard
-      source:
-        (line: 'اكتب النص «{{message}}» على المخرج القياسي من دون إضافة محرف سطر جديد.')
+      source: 'اكتب النص «{{message}}» على المخرج القياسي من دون إضافة محرف سطر جديد.'
     form:
       task: write-crlf
       name: standard
-      source:
-        (line: 'اكتب النص «{{message}}» إلى المخرج القياسي، ثم اكتب محرف إرجاع العربة (CR) يليه محرف تغذية السطر (LF).')
+      source: 'اكتب النص «{{message}}» إلى المخرج القياسي، ثم اكتب محرف إرجاع العربة (CR) يليه محرف تغذية السطر (LF).'
     form:
       task: integer-sum
       name: standard
-      source:
-        (line: 'اقرأ من المدخل القياسي سطرًا فيه عددان صحيحان عشريان بين −{{limit}} و{{limit}} شاملًا الطرفين، يفصل بينهما فراغ واحد أو أكثر. اكتب مجموعهما العشري ثم محرف سطر جديد إلى المخرج القياسي.')
+      source: 'اقرأ من المدخل القياسي سطرًا فيه عددان صحيحان عشريان بين −{{limit}} و{{limit}} شاملًا الطرفين، يفصل بينهما فراغ واحد أو أكثر. اكتب مجموعهما العشري ثم محرف سطر جديد إلى المخرج القياسي.'
     form:
       task: integer-sum-or-usage
       name: standard
-      source:
-        (line: 'اقرأ من الدخل القياسي عددين صحيحين عشريين تفصل بينهما مسافات، ولا تتجاوز القيمة المطلقة لأي منهما {{limit}}. إذا سبق أحدهما رمز زائد أو ناقص، فاطبع «usage: <number> <number>»، وإلا فاطبع مجموعهما بالعشري. اختم بسطر جديد.')
+      source: 'اقرأ من الدخل القياسي عددين صحيحين عشريين تفصل بينهما مسافات، ولا تتجاوز القيمة المطلقة لأي منهما {{limit}}. إذا سبق أحدهما رمز زائد أو ناقص، فاطبع «usage: <number> <number>»، وإلا فاطبع مجموعهما بالعشري. اختم بسطر جديد.'
     form:
       task: browser-integer-sum
       name: standard
-      source:
-        (line: 'اعرض في المتصفح بالترتيب نافذتي الإدخال «enter A number» و«enter B number»، وكلتاهما فارغة في البداية. اقرأ من كل منهما عدداً صحيحاً عشرياً لا تتجاوز قيمته المطلقة {{limit}}. اجعل نص input الردين الأصليين مفصولين بمسافة، واجعل نص output مجموعهما العشري.')
+      source: 'اعرض في المتصفح بالترتيب نافذتي الإدخال «enter A number» و«enter B number»، وكلتاهما فارغة في البداية. اقرأ من كل منهما عدداً صحيحاً عشرياً لا تتجاوز قيمته المطلقة {{limit}}. اجعل نص input الردين الأصليين مفصولين بمسافة، واجعل نص output مجموعهما العشري.'
     form:
       task: ackermann-cli
       name: standard
-      source:
-        (line: 'اقرأ وسيطين صحيحين m و n من سطر الأوامر بحيث 0 ≤ m ≤ {{left}} و 0 ≤ n ≤ {{right}}. للقيم 0 و 1 و 2 و 3 للمتغير m احسب على الترتيب n+1 و n+2 و 2n+3 و 2^(n+3)−3. اطبع الناتج بالنظام العشري ثم انتقل إلى سطر جديد.')
+      source: 'اقرأ وسيطين صحيحين m و n من سطر الأوامر بحيث 0 ≤ m ≤ {{left}} و 0 ≤ n ≤ {{right}}. للقيم 0 و 1 و 2 و 3 للمتغير m احسب على الترتيب n+1 و n+2 و 2n+3 و 2^(n+3)−3. اطبع الناتج بالنظام العشري ثم انتقل إلى سطر جديد.'
     form:
       task: ackermann-json
       name: standard
-      source:
-        (line: 'لكل m من 0 إلى {{left}} مع تضمين الحدين احسب A(m,n) حيث n={{right}}. A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. اكتب النتائج بالترتيب في مصفوفة JSON رقمية بلا مسافات وأتبعها بسطر جديد.')
+      source: 'لكل m من 0 إلى {{left}} مع تضمين الحدين احسب A(m,n) حيث n={{right}}. A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. اكتب النتائج بالترتيب في مصفوفة JSON رقمية بلا مسافات وأتبعها بسطر جديد.'
     form:
       task: ackermann-value
       name: standard
-      source:
-        (line: 'اكتب قيمة أكرمان A({{left}},{{right}}) بالصيغة العشرية على المخرج القياسي، ثم أضف سطرًا جديدًا.')
+      source: 'اكتب قيمة أكرمان A({{left}},{{right}}) بالصيغة العشرية على المخرج القياسي، ثم أضف سطرًا جديدًا.'
     form:
       task: ackermann-function
       name: standard
-      source:
-        (line: 'أعد قيمة دالة أكرمان A(m,n) للمدخلين الصحيحين 0 ≤ m ≤ {{left}} و0 ≤ n ≤ {{right}}. عرّف A(0,n)=n+1، وA(m,0)=A(m−1,1) عندما m>0، وA(m,n)=A(m−1,A(m,n−1)) عندما يكون كلاهما موجبًا.')
+      source: 'أعد قيمة دالة أكرمان A(m,n) للمدخلين الصحيحين 0 ≤ m ≤ {{left}} و0 ≤ n ≤ {{right}}. عرّف A(0,n)=n+1، وA(m,0)=A(m−1,1) عندما m>0، وA(m,n)=A(m−1,A(m,n−1)) عندما يكون كلاهما موجبًا.'
     form:
       task: gcd-function
       name: standard
-      source:
-        (line: 'اقبل عددين صحيحين من −{{max}} إلى {{max}} شاملًا الحدين، وخذ القيمة المطلقة لكل منهما.')
-        (line: 'ما دامت القيمة الثانية موجبة، استبدل الزوج بالقيمة الثانية وباقي قسمة القيمة الأولى عليها. أعد القيمة الأولى.')
+      source: '''اقبل عددين صحيحين من −{{max}} إلى {{max}} شاملًا الحدين، وخذ القيمة المطلقة لكل منهما.
+ما دامت القيمة الثانية موجبة، استبدل الزوج بالقيمة الثانية وباقي قسمة القيمة الأولى عليها. أعد القيمة الأولى.'''
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: 'اجعل القيمة اليسرى {{left}} واليمنى {{right}}.')
-        (line: 'ما دامت القيمة اليمنى غير صفرية، بدّل القيمتين معًا: اليسرى الجديدة هي اليمنى القديمة، واليمنى الجديدة هي باقي قسمة اليسرى القديمة على اليمنى القديمة.')
-        (line: 'اكتب القيمة اليسرى بالنظام العشري على المخرج القياسي ثم انتقل إلى سطر جديد.')
+      source: '''اجعل القيمة اليسرى {{left}} واليمنى {{right}}.
+ما دامت القيمة اليمنى غير صفرية، بدّل القيمتين معًا: اليسرى الجديدة هي اليمنى القديمة، واليمنى الجديدة هي باقي قسمة اليسرى القديمة على اليمنى القديمة.
+اكتب القيمة اليسرى بالنظام العشري على المخرج القياسي ثم انتقل إلى سطر جديد.'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: 'مرّ بالأعداد الصحيحة من 1 إلى {{limit}} شاملًا الطرفين وبترتيب تصاعدي.')
-        (line: 'لكل عدد، اكتب FizzBuzz إن قبل القسمة على 3 و5 معًا، وFizz إن قبل القسمة على 3 فقط، وBuzz إن قبل القسمة على 5 فقط، وإلا فاكتب العدد بالنظام العشري.')
-        (line: 'اكتب كل نتيجة في سطر مستقل على المخرج القياسي.')
+      source: '''مرّ بالأعداد الصحيحة من 1 إلى {{limit}} شاملًا الطرفين وبترتيب تصاعدي.
+لكل عدد، اكتب FizzBuzz إن قبل القسمة على 3 و5 معًا، وFizz إن قبل القسمة على 3 فقط، وBuzz إن قبل القسمة على 5 فقط، وإلا فاكتب العدد بالنظام العشري.
+اكتب كل نتيجة في سطر مستقل على المخرج القياسي.'''
     form:
       task: fizz-buzz-function
       name: standard
-      source:
-        (line: 'عرّف دالة بلا وسائط أو قيمة مُعادة. اكتب الأسطر التالية عند استدعاء الدالة فقط.')
-        (line: 'مرّ بالأعداد الصحيحة من 1 إلى {{limit}} شاملًا الطرفين وبترتيب تصاعدي.')
-        (line: 'لكل عدد، اكتب FizzBuzz إن قبل القسمة على 3 و5 معًا، وFizz إن قبل القسمة على 3 فقط، وBuzz إن قبل القسمة على 5 فقط، وإلا فاكتب العدد بالنظام العشري.')
-        (line: 'اكتب كل نتيجة في سطر مستقل على المخرج القياسي.')
+      source: '''عرّف دالة بلا وسائط أو قيمة مُعادة. اكتب الأسطر التالية عند استدعاء الدالة فقط.
+مرّ بالأعداد الصحيحة من 1 إلى {{limit}} شاملًا الطرفين وبترتيب تصاعدي.
+لكل عدد، اكتب FizzBuzz إن قبل القسمة على 3 و5 معًا، وFizz إن قبل القسمة على 3 فقط، وBuzz إن قبل القسمة على 5 فقط، وإلا فاكتب العدد بالنظام العشري.
+اكتب كل نتيجة في سطر مستقل على المخرج القياسي.'''
     form:
       task: fizz-buzz-joined
       name: standard
-      source:
-        (line: 'أعد سلسلة واحدة تضم نتائج الأعداد الصحيحة من 1 إلى {{limit}} بالترتيب التصاعدي، وافصل بينها بمحرف ASCII ذي الرمز {{separator}}. استخدم FizzBuzz لمضاعفات 3 و5 معًا، وFizz لمضاعفات 3 فقط، وBuzz لمضاعفات 5 فقط، والتمثيل العشري للعدد في غير ذلك.')
+      source: 'أعد سلسلة واحدة تضم نتائج الأعداد الصحيحة من 1 إلى {{limit}} بالترتيب التصاعدي، وافصل بينها بمحرف ASCII ذي الرمز {{separator}}. استخدم FizzBuzz لمضاعفات 3 و5 معًا، وFizz لمضاعفات 3 فقط، وBuzz لمضاعفات 5 فقط، والتمثيل العشري للعدد في غير ذلك.'
     form:
       task: fizz-buzz-lowercase
       name: standard
-      source:
-        (line: 'مرّ بالأعداد الصحيحة من 1 إلى {{limit}} شاملًا الطرفين وبترتيب تصاعدي.')
-        (line: 'لكل عدد، اكتب fizzbuzz إن قبل القسمة على 3 و5 معًا، وfizz إن قبل القسمة على 3 فقط، وbuzz إن قبل القسمة على 5 فقط، وإلا فاكتب العدد بالنظام العشري.')
-        (line: 'اكتب كل نتيجة في سطر مستقل على المخرج القياسي.')
+      source: '''مرّ بالأعداد الصحيحة من 1 إلى {{limit}} شاملًا الطرفين وبترتيب تصاعدي.
+لكل عدد، اكتب fizzbuzz إن قبل القسمة على 3 و5 معًا، وfizz إن قبل القسمة على 3 فقط، وbuzz إن قبل القسمة على 5 فقط، وإلا فاكتب العدد بالنظام العشري.
+اكتب كل نتيجة في سطر مستقل على المخرج القياسي.'''
     form:
       task: fizz-buzz-quoted
       name: standard
-      source:
-        (line: 'مرّ بالأعداد الصحيحة من 1 إلى {{limit}} شاملًا الطرفين وبترتيب تصاعدي.')
-        (line: 'لكل عدد، اكتب FizzBuzz إن قبل القسمة على 3 و5 معًا، وFizz إن قبل القسمة على 3 فقط، وBuzz إن قبل القسمة على 5 فقط، وإلا فاكتب العدد بالنظام العشري.')
-        (line: 'اكتب كل نتيجة في سطر مستقل على المخرج القياسي.')
-        (line: 'ضع كل نتيجة بين علامتي اقتباس مزدوجتين من ASCII قبل كتابتها.')
+      source: '''مرّ بالأعداد الصحيحة من 1 إلى {{limit}} شاملًا الطرفين وبترتيب تصاعدي.
+لكل عدد، اكتب FizzBuzz إن قبل القسمة على 3 و5 معًا، وFizz إن قبل القسمة على 3 فقط، وBuzz إن قبل القسمة على 5 فقط، وإلا فاكتب العدد بالنظام العشري.
+اكتب كل نتيجة في سطر مستقل على المخرج القياسي.
+ضع كل نتيجة بين علامتي اقتباس مزدوجتين من ASCII قبل كتابتها.'''
     form:
       task: fizz-buzz-lowercase-blank-line
       name: standard
-      source:
-        (line: 'مرّ بالأعداد الصحيحة من 1 إلى {{limit}} شاملًا الطرفين وبترتيب تصاعدي.')
-        (line: 'لكل عدد، اكتب fizzbuzz إن قبل القسمة على 3 و5 معًا، وfizz إن قبل القسمة على 3 فقط، وbuzz إن قبل القسمة على 5 فقط، وإلا فاكتب العدد بالنظام العشري.')
-        (line: 'اكتب كل نتيجة في سطر مستقل على المخرج القياسي.')
-        (line: 'اكتب محرف سطر جديد إضافيًا بعد النتيجة الأخيرة.')
+      source: '''مرّ بالأعداد الصحيحة من 1 إلى {{limit}} شاملًا الطرفين وبترتيب تصاعدي.
+لكل عدد، اكتب fizzbuzz إن قبل القسمة على 3 و5 معًا، وfizz إن قبل القسمة على 3 فقط، وbuzz إن قبل القسمة على 5 فقط، وإلا فاكتب العدد بالنظام العشري.
+اكتب كل نتيجة في سطر مستقل على المخرج القياسي.
+اكتب محرف سطر جديد إضافيًا بعد النتيجة الأخيرة.'''
 
 profile:
   id: bn
@@ -804,124 +678,103 @@ profile:
       name: standard
       fixed:
         status: 0
-      source:
-        (line: 'মানক আউটপুট বা মানক ত্রুটি প্রবাহে কিছু না লিখে স্ট্যাটাস কোড 0 দিয়ে প্রস্থান করুন।')
+      source: 'মানক আউটপুট বা মানক ত্রুটি প্রবাহে কিছু না লিখে স্ট্যাটাস কোড 0 দিয়ে প্রস্থান করুন।'
     form:
       task: hello
       name: standard
-      source:
-        (line: 'মানক আউটপুটে “{{message}}” লেখাটি লিখুন, তারপর একটি নতুন লাইন লিখুন।')
+      source: 'মানক আউটপুটে “{{message}}” লেখাটি লিখুন, তারপর একটি নতুন লাইন লিখুন।'
     form:
       task: browser-alert
       name: standard
-      source:
-        (line: 'ব্রাউজারে “{{message}}” লেখা একটি সতর্কতা সংলাপ খুলুন এবং ব্যবহারকারী সেটি বন্ধ করা পর্যন্ত অপেক্ষা করুন।')
+      source: 'ব্রাউজারে “{{message}}” লেখা একটি সতর্কতা সংলাপ খুলুন এবং ব্যবহারকারী সেটি বন্ধ করা পর্যন্ত অপেক্ষা করুন।'
     form:
       task: browser-write
       name: standard
-      source:
-        (line: 'document.write দিয়ে HTML স্ট্রিং “{{message}}” ব্রাউজারের নথিতে লিখুন, কোনো নতুন লাইন যোগ করবেন না।')
+      source: 'document.write দিয়ে HTML স্ট্রিং “{{message}}” ব্রাউজারের নথিতে লিখুন, কোনো নতুন লাইন যোগ করবেন না।'
     form:
       task: write-text
       name: standard
-      source:
-        (line: 'মানক আউটপুটে “{{message}}” লেখাটি লিখুন এবং শেষে নতুন লাইন যোগ করবেন না।')
+      source: 'মানক আউটপুটে “{{message}}” লেখাটি লিখুন এবং শেষে নতুন লাইন যোগ করবেন না।'
     form:
       task: write-crlf
       name: standard
-      source:
-        (line: 'স্ট্যান্ডার্ড আউটপুটে “{{message}}” পাঠ্যটি লিখুন, তারপর একটি ক্যারেজ রিটার্ন (CR) এবং তার পরে একটি লাইন ফিড (LF) লিখুন।')
+      source: 'স্ট্যান্ডার্ড আউটপুটে “{{message}}” পাঠ্যটি লিখুন, তারপর একটি ক্যারেজ রিটার্ন (CR) এবং তার পরে একটি লাইন ফিড (LF) লিখুন।'
     form:
       task: integer-sum
       name: standard
-      source:
-        (line: 'স্ট্যান্ডার্ড ইনপুট থেকে একটি লাইন পড়ুন, যাতে −{{limit}} থেকে {{limit}} পর্যন্ত দুটি দশমিক পূর্ণসংখ্যা এক বা একাধিক স্পেস দিয়ে আলাদা থাকে। তাদের দশমিক যোগফল এবং একটি নতুন লাইন স্ট্যান্ডার্ড আউটপুটে লিখুন।')
+      source: 'স্ট্যান্ডার্ড ইনপুট থেকে একটি লাইন পড়ুন, যাতে −{{limit}} থেকে {{limit}} পর্যন্ত দুটি দশমিক পূর্ণসংখ্যা এক বা একাধিক স্পেস দিয়ে আলাদা থাকে। তাদের দশমিক যোগফল এবং একটি নতুন লাইন স্ট্যান্ডার্ড আউটপুটে লিখুন।'
     form:
       task: integer-sum-or-usage
       name: standard
-      source:
-        (line: 'স্ট্যান্ডার্ড ইনপুট থেকে ফাঁক দিয়ে আলাদা করা দুটি দশমিক পূর্ণসংখ্যা পড়ুন, যাদের পরম মান সর্বোচ্চ {{limit}}। কোনোটির আগে যোগ বা বিয়োগ চিহ্ন থাকলে “usage: <number> <number>” মুদ্রণ করুন, নইলে তাদের দশমিক যোগফল মুদ্রণ করুন। শেষে একটি নতুন লাইন দিন।')
+      source: 'স্ট্যান্ডার্ড ইনপুট থেকে ফাঁক দিয়ে আলাদা করা দুটি দশমিক পূর্ণসংখ্যা পড়ুন, যাদের পরম মান সর্বোচ্চ {{limit}}। কোনোটির আগে যোগ বা বিয়োগ চিহ্ন থাকলে “usage: <number> <number>” মুদ্রণ করুন, নইলে তাদের দশমিক যোগফল মুদ্রণ করুন। শেষে একটি নতুন লাইন দিন।'
     form:
       task: browser-integer-sum
       name: standard
-      source:
-        (line: 'ব্রাউজারে ক্রমে “enter A number” ও “enter B number” প্রম্পট খুলুন, দুটির প্রাথমিক মানই খালি। প্রতিটি থেকে সর্বোচ্চ {{limit}} পরম মানের একটি দশমিক পূর্ণসংখ্যা পড়ুন। input-এর লেখায় মূল উত্তর দুটি একটি ফাঁক দিয়ে বসান। output-এর লেখায় তাদের দশমিক যোগফল বসান।')
+      source: 'ব্রাউজারে ক্রমে “enter A number” ও “enter B number” প্রম্পট খুলুন, দুটির প্রাথমিক মানই খালি। প্রতিটি থেকে সর্বোচ্চ {{limit}} পরম মানের একটি দশমিক পূর্ণসংখ্যা পড়ুন। input-এর লেখায় মূল উত্তর দুটি একটি ফাঁক দিয়ে বসান। output-এর লেখায় তাদের দশমিক যোগফল বসান।'
     form:
       task: ackermann-cli
       name: standard
-      source:
-        (line: 'কমান্ড লাইন থেকে m ও n পূর্ণসংখ্যা পড়ুন, যেখানে 0 ≤ m ≤ {{left}} এবং 0 ≤ n ≤ {{right}}। m এর মান 0, 1, 2 ও 3 হলে যথাক্রমে n+1, n+2, 2n+3 ও 2^(n+3)−3 গণনা করুন। ফল দশমিক আকারে লিখে নতুন লাইন দিন।')
+      source: 'কমান্ড লাইন থেকে m ও n পূর্ণসংখ্যা পড়ুন, যেখানে 0 ≤ m ≤ {{left}} এবং 0 ≤ n ≤ {{right}}। m এর মান 0, 1, 2 ও 3 হলে যথাক্রমে n+1, n+2, 2n+3 ও 2^(n+3)−3 গণনা করুন। ফল দশমিক আকারে লিখে নতুন লাইন দিন।'
     form:
       task: ackermann-json
       name: standard
-      source:
-        (line: 'n={{right}} রেখে 0 থেকে {{left}} পর্যন্ত প্রতিটি m এর জন্য A(m,n) গণনা করুন। A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. ফলগুলি ক্রমানুসারে ফাঁক ছাড়া সংখ্যার JSON অ্যারেতে লিখে নতুন লাইন দিন।')
+      source: 'n={{right}} রেখে 0 থেকে {{left}} পর্যন্ত প্রতিটি m এর জন্য A(m,n) গণনা করুন। A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. ফলগুলি ক্রমানুসারে ফাঁক ছাড়া সংখ্যার JSON অ্যারেতে লিখে নতুন লাইন দিন।'
     form:
       task: ackermann-value
       name: standard
-      source:
-        (line: 'আকারম্যানের মান A({{left}},{{right}}) দশমিক আকারে মানক আউটপুটে লিখুন এবং শেষে একটি নতুন লাইন দিন।')
+      source: 'আকারম্যানের মান A({{left}},{{right}}) দশমিক আকারে মানক আউটপুটে লিখুন এবং শেষে একটি নতুন লাইন দিন।'
     form:
       task: ackermann-function
       name: standard
-      source:
-        (line: 'পূর্ণসংখ্যা ইনপুট 0 ≤ m ≤ {{left}} এবং 0 ≤ n ≤ {{right}} হলে আকারম্যান ফাংশন A(m,n) এর মান ফেরত দিন। A(0,n)=n+1, m>0 হলে A(m,0)=A(m−1,1), এবং উভয়ই ধনাত্মক হলে A(m,n)=A(m−1,A(m,n−1))।')
+      source: 'পূর্ণসংখ্যা ইনপুট 0 ≤ m ≤ {{left}} এবং 0 ≤ n ≤ {{right}} হলে আকারম্যান ফাংশন A(m,n) এর মান ফেরত দিন। A(0,n)=n+1, m>0 হলে A(m,0)=A(m−1,1), এবং উভয়ই ধনাত্মক হলে A(m,n)=A(m−1,A(m,n−1))।'
     form:
       task: gcd-function
       name: standard
-      source:
-        (line: '−{{max}} থেকে {{max}} পর্যন্ত সীমার উভয় প্রান্তসহ দুটি পূর্ণসংখ্যা নিন এবং তাদের পরম মান নিন।')
-        (line: 'দ্বিতীয় মান ধনাত্মক থাকলে জোড়াটিকে দ্বিতীয় মান এবং প্রথম মানকে দ্বিতীয় মান দিয়ে ভাগ করার ভাগশেষ দিয়ে বদলান। প্রথম মান ফেরত দিন।')
+      source: '''−{{max}} থেকে {{max}} পর্যন্ত সীমার উভয় প্রান্তসহ দুটি পূর্ণসংখ্যা নিন এবং তাদের পরম মান নিন।
+দ্বিতীয় মান ধনাত্মক থাকলে জোড়াটিকে দ্বিতীয় মান এবং প্রথম মানকে দ্বিতীয় মান দিয়ে ভাগ করার ভাগশেষ দিয়ে বদলান। প্রথম মান ফেরত দিন।'''
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: 'বামের মান {{left}} এবং ডানের মান {{right}} নির্ধারণ করুন।')
-        (line: 'ডানের মান শূন্য না হওয়া পর্যন্ত দুটি মান একসঙ্গে বদলান: নতুন বাম হবে পুরোনো ডান, আর নতুন ডান হবে পুরোনো বামকে পুরোনো ডান দিয়ে ভাগ করার অবশিষ্ট।')
-        (line: 'মানক আউটপুটে বামের মান দশমিক সংখ্যায় লিখুন, তারপর নতুন লাইন লিখুন।')
+      source: '''বামের মান {{left}} এবং ডানের মান {{right}} নির্ধারণ করুন।
+ডানের মান শূন্য না হওয়া পর্যন্ত দুটি মান একসঙ্গে বদলান: নতুন বাম হবে পুরোনো ডান, আর নতুন ডান হবে পুরোনো বামকে পুরোনো ডান দিয়ে ভাগ করার অবশিষ্ট।
+মানক আউটপুটে বামের মান দশমিক সংখ্যায় লিখুন, তারপর নতুন লাইন লিখুন।'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: '1 থেকে {{limit}} পর্যন্ত উভয় প্রান্তসহ প্রতিটি পূর্ণসংখ্যা ঊর্ধ্বক্রমে নিন।')
-        (line: 'সংখ্যাটি 3 ও 5 উভয়টি দিয়ে বিভাজ্য হলে FizzBuzz, শুধু 3 দিয়ে হলে Fizz, শুধু 5 দিয়ে হলে Buzz, অন্যথায় দশমিক সংখ্যাটি লিখুন।')
-        (line: 'প্রতিটি ফল মানক আউটপুটে আলাদা লাইনে লিখুন।')
+      source: '''1 থেকে {{limit}} পর্যন্ত উভয় প্রান্তসহ প্রতিটি পূর্ণসংখ্যা ঊর্ধ্বক্রমে নিন।
+সংখ্যাটি 3 ও 5 উভয়টি দিয়ে বিভাজ্য হলে FizzBuzz, শুধু 3 দিয়ে হলে Fizz, শুধু 5 দিয়ে হলে Buzz, অন্যথায় দশমিক সংখ্যাটি লিখুন।
+প্রতিটি ফল মানক আউটপুটে আলাদা লাইনে লিখুন।'''
     form:
       task: fizz-buzz-function
       name: standard
-      source:
-        (line: 'কোনো আর্গুমেন্ট বা ফেরত মান ছাড়া একটি ফাংশন সংজ্ঞায়িত করুন। শুধু ফাংশনটি ডাকা হলে পরের লাইনগুলি লিখুন।')
-        (line: '1 থেকে {{limit}} পর্যন্ত উভয় প্রান্তসহ প্রতিটি পূর্ণসংখ্যা ঊর্ধ্বক্রমে নিন।')
-        (line: 'সংখ্যাটি 3 ও 5 উভয়টি দিয়ে বিভাজ্য হলে FizzBuzz, শুধু 3 দিয়ে হলে Fizz, শুধু 5 দিয়ে হলে Buzz, অন্যথায় দশমিক সংখ্যাটি লিখুন।')
-        (line: 'প্রতিটি ফল মানক আউটপুটে আলাদা লাইনে লিখুন।')
+      source: '''কোনো আর্গুমেন্ট বা ফেরত মান ছাড়া একটি ফাংশন সংজ্ঞায়িত করুন। শুধু ফাংশনটি ডাকা হলে পরের লাইনগুলি লিখুন।
+1 থেকে {{limit}} পর্যন্ত উভয় প্রান্তসহ প্রতিটি পূর্ণসংখ্যা ঊর্ধ্বক্রমে নিন।
+সংখ্যাটি 3 ও 5 উভয়টি দিয়ে বিভাজ্য হলে FizzBuzz, শুধু 3 দিয়ে হলে Fizz, শুধু 5 দিয়ে হলে Buzz, অন্যথায় দশমিক সংখ্যাটি লিখুন।
+প্রতিটি ফল মানক আউটপুটে আলাদা লাইনে লিখুন।'''
     form:
       task: fizz-buzz-joined
       name: standard
-      source:
-        (line: '1 থেকে {{limit}} পর্যন্ত পূর্ণসংখ্যার ফল ঊর্ধ্বক্রমে একটি স্ট্রিং হিসেবে ফেরত দাও এবং ASCII কোড {{separator}}-এর অক্ষর দিয়ে ফলগুলি আলাদা করো। 3 ও 5 উভয়ের গুণিতকের জন্য FizzBuzz, শুধু 3-এর গুণিতকের জন্য Fizz, শুধু 5-এর গুণিতকের জন্য Buzz এবং অন্যথায় দশমিক পূর্ণসংখ্যা ব্যবহার করো।')
+      source: '1 থেকে {{limit}} পর্যন্ত পূর্ণসংখ্যার ফল ঊর্ধ্বক্রমে একটি স্ট্রিং হিসেবে ফেরত দাও এবং ASCII কোড {{separator}}-এর অক্ষর দিয়ে ফলগুলি আলাদা করো। 3 ও 5 উভয়ের গুণিতকের জন্য FizzBuzz, শুধু 3-এর গুণিতকের জন্য Fizz, শুধু 5-এর গুণিতকের জন্য Buzz এবং অন্যথায় দশমিক পূর্ণসংখ্যা ব্যবহার করো।'
     form:
       task: fizz-buzz-lowercase
       name: standard
-      source:
-        (line: '1 থেকে {{limit}} পর্যন্ত উভয় প্রান্তসহ প্রতিটি পূর্ণসংখ্যা ঊর্ধ্বক্রমে নিন।')
-        (line: 'সংখ্যাটি 3 ও 5 উভয়টি দিয়ে বিভাজ্য হলে fizzbuzz, শুধু 3 দিয়ে হলে fizz, শুধু 5 দিয়ে হলে buzz, অন্যথায় দশমিক সংখ্যাটি লিখুন।')
-        (line: 'প্রতিটি ফল মানক আউটপুটে আলাদা লাইনে লিখুন।')
+      source: '''1 থেকে {{limit}} পর্যন্ত উভয় প্রান্তসহ প্রতিটি পূর্ণসংখ্যা ঊর্ধ্বক্রমে নিন।
+সংখ্যাটি 3 ও 5 উভয়টি দিয়ে বিভাজ্য হলে fizzbuzz, শুধু 3 দিয়ে হলে fizz, শুধু 5 দিয়ে হলে buzz, অন্যথায় দশমিক সংখ্যাটি লিখুন।
+প্রতিটি ফল মানক আউটপুটে আলাদা লাইনে লিখুন।'''
     form:
       task: fizz-buzz-quoted
       name: standard
-      source:
-        (line: '1 থেকে {{limit}} পর্যন্ত উভয় প্রান্তসহ প্রতিটি পূর্ণসংখ্যা ঊর্ধ্বক্রমে নিন।')
-        (line: 'সংখ্যাটি 3 ও 5 উভয়টি দিয়ে বিভাজ্য হলে FizzBuzz, শুধু 3 দিয়ে হলে Fizz, শুধু 5 দিয়ে হলে Buzz, অন্যথায় দশমিক সংখ্যাটি লিখুন।')
-        (line: 'প্রতিটি ফল মানক আউটপুটে আলাদা লাইনে লিখুন।')
-        (line: 'লেখার আগে প্রতিটি ফল ASCII দ্বৈত উদ্ধৃতি চিহ্নের মধ্যে রাখুন।')
+      source: '''1 থেকে {{limit}} পর্যন্ত উভয় প্রান্তসহ প্রতিটি পূর্ণসংখ্যা ঊর্ধ্বক্রমে নিন।
+সংখ্যাটি 3 ও 5 উভয়টি দিয়ে বিভাজ্য হলে FizzBuzz, শুধু 3 দিয়ে হলে Fizz, শুধু 5 দিয়ে হলে Buzz, অন্যথায় দশমিক সংখ্যাটি লিখুন।
+প্রতিটি ফল মানক আউটপুটে আলাদা লাইনে লিখুন।
+লেখার আগে প্রতিটি ফল ASCII দ্বৈত উদ্ধৃতি চিহ্নের মধ্যে রাখুন।'''
     form:
       task: fizz-buzz-lowercase-blank-line
       name: standard
-      source:
-        (line: '1 থেকে {{limit}} পর্যন্ত উভয় প্রান্তসহ প্রতিটি পূর্ণসংখ্যা ঊর্ধ্বক্রমে নিন।')
-        (line: 'সংখ্যাটি 3 ও 5 উভয়টি দিয়ে বিভাজ্য হলে fizzbuzz, শুধু 3 দিয়ে হলে fizz, শুধু 5 দিয়ে হলে buzz, অন্যথায় দশমিক সংখ্যাটি লিখুন।')
-        (line: 'প্রতিটি ফল মানক আউটপুটে আলাদা লাইনে লিখুন।')
-        (line: 'শেষ ফলের পরে আরও একটি নতুন লাইন লিখুন।')
+      source: '''1 থেকে {{limit}} পর্যন্ত উভয় প্রান্তসহ প্রতিটি পূর্ণসংখ্যা ঊর্ধ্বক্রমে নিন।
+সংখ্যাটি 3 ও 5 উভয়টি দিয়ে বিভাজ্য হলে fizzbuzz, শুধু 3 দিয়ে হলে fizz, শুধু 5 দিয়ে হলে buzz, অন্যথায় দশমিক সংখ্যাটি লিখুন।
+প্রতিটি ফল মানক আউটপুটে আলাদা লাইনে লিখুন।
+শেষ ফলের পরে আরও একটি নতুন লাইন লিখুন।'''
 
 profile:
   id: pt
@@ -936,124 +789,103 @@ profile:
       name: standard
       fixed:
         status: 0
-      source:
-        (line: 'Termine com o código 0 sem escrever na saída padrão nem na saída de erro padrão.')
+      source: 'Termine com o código 0 sem escrever na saída padrão nem na saída de erro padrão.'
     form:
       task: hello
       name: standard
-      source:
-        (line: 'Escreva o texto «{{message}}» na saída padrão, seguido de uma quebra de linha.')
+      source: 'Escreva o texto «{{message}}» na saída padrão, seguido de uma quebra de linha.'
     form:
       task: browser-alert
       name: standard
-      source:
-        (line: 'Abra uma caixa de alerta no navegador com o texto «{{message}}» e aguarde até que o utilizador a feche.')
+      source: 'Abra uma caixa de alerta no navegador com o texto «{{message}}» e aguarde até que o utilizador a feche.'
     form:
       task: browser-write
       name: standard
-      source:
-        (line: 'Escreva a cadeia HTML “{{message}}” no documento do navegador com document.write, sem acrescentar uma quebra de linha.')
+      source: 'Escreva a cadeia HTML “{{message}}” no documento do navegador com document.write, sem acrescentar uma quebra de linha.'
     form:
       task: write-text
       name: standard
-      source:
-        (line: 'Escreva o texto «{{message}}» na saída padrão sem acrescentar uma quebra de linha.')
+      source: 'Escreva o texto «{{message}}» na saída padrão sem acrescentar uma quebra de linha.'
     form:
       task: write-crlf
       name: standard
-      source:
-        (line: 'Escreva o texto “{{message}}” na saída padrão e depois escreva um retorno de carro (CR) seguido de uma quebra de linha (LF).')
+      source: 'Escreva o texto “{{message}}” na saída padrão e depois escreva um retorno de carro (CR) seguido de uma quebra de linha (LF).'
     form:
       task: integer-sum
       name: standard
-      source:
-        (line: 'Leia da entrada padrão uma linha com dois inteiros decimais de −{{limit}} a {{limit}}, inclusive, separados por um ou mais espaços. Escreva a soma decimal e uma quebra de linha na saída padrão.')
+      source: 'Leia da entrada padrão uma linha com dois inteiros decimais de −{{limit}} a {{limit}}, inclusive, separados por um ou mais espaços. Escreva a soma decimal e uma quebra de linha na saída padrão.'
     form:
       task: integer-sum-or-usage
       name: standard
-      source:
-        (line: 'Leia da entrada padrão dois inteiros decimais separados por espaços, com valor absoluto de até {{limit}}. Se algum tiver sinal, imprima «usage: <number> <number>». Caso contrário, imprima a soma em decimal. Termine com uma quebra de linha.')
+      source: 'Leia da entrada padrão dois inteiros decimais separados por espaços, com valor absoluto de até {{limit}}. Se algum tiver sinal, imprima «usage: <number> <number>». Caso contrário, imprima a soma em decimal. Termine com uma quebra de linha.'
     form:
       task: browser-integer-sum
       name: standard
-      source:
-        (line: 'Abra no navegador as perguntas “enter A number” e “enter B number” nessa ordem, ambas inicialmente vazias. Leia em cada uma um inteiro decimal com valor absoluto de até {{limit}}. Ponha as respostas exatas separadas por um espaço no texto de input e a soma decimal no texto de output.')
+      source: 'Abra no navegador as perguntas “enter A number” e “enter B number” nessa ordem, ambas inicialmente vazias. Leia em cada uma um inteiro decimal com valor absoluto de até {{limit}}. Ponha as respostas exatas separadas por um espaço no texto de input e a soma decimal no texto de output.'
     form:
       task: ackermann-cli
       name: standard
-      source:
-        (line: 'Leia dois argumentos inteiros m e n da linha de comando, com 0 ≤ m ≤ {{left}} e 0 ≤ n ≤ {{right}}. Para m igual a 0, 1, 2 ou 3, calcule respectivamente n+1, n+2, 2n+3 ou 2^(n+3)−3. Imprima o resultado em decimal seguido de uma quebra de linha.')
+      source: 'Leia dois argumentos inteiros m e n da linha de comando, com 0 ≤ m ≤ {{left}} e 0 ≤ n ≤ {{right}}. Para m igual a 0, 1, 2 ou 3, calcule respectivamente n+1, n+2, 2n+3 ou 2^(n+3)−3. Imprima o resultado em decimal seguido de uma quebra de linha.'
     form:
       task: ackermann-json
       name: standard
-      source:
-        (line: 'Para cada m de 0 a {{left}}, inclusive, calcule A(m,n) com n={{right}}. A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. Escreva os resultados em ordem como uma matriz JSON de números sem espaços, seguida de uma quebra de linha.')
+      source: 'Para cada m de 0 a {{left}}, inclusive, calcule A(m,n) com n={{right}}. A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. Escreva os resultados em ordem como uma matriz JSON de números sem espaços, seguida de uma quebra de linha.'
     form:
       task: ackermann-value
       name: standard
-      source:
-        (line: 'Escreva o valor de Ackermann A({{left}},{{right}}) em decimal na saída padrão e acrescente uma quebra de linha.')
+      source: 'Escreva o valor de Ackermann A({{left}},{{right}}) em decimal na saída padrão e acrescente uma quebra de linha.'
     form:
       task: ackermann-function
       name: standard
-      source:
-        (line: 'Retorne o valor de Ackermann A(m,n) para os inteiros 0 ≤ m ≤ {{left}} e 0 ≤ n ≤ {{right}}. Defina A(0,n)=n+1, A(m,0)=A(m−1,1) se m>0 e A(m,n)=A(m−1,A(m,n−1)) se ambos forem positivos.')
+      source: 'Retorne o valor de Ackermann A(m,n) para os inteiros 0 ≤ m ≤ {{left}} e 0 ≤ n ≤ {{right}}. Defina A(0,n)=n+1, A(m,0)=A(m−1,1) se m>0 e A(m,n)=A(m−1,A(m,n−1)) se ambos forem positivos.'
     form:
       task: gcd-function
       name: standard
-      source:
-        (line: 'Receba dois números inteiros entre −{{max}} e {{max}}, inclusive, e tome seus valores absolutos.')
-        (line: 'Enquanto o segundo valor for positivo, substitua o par pelo segundo valor e pelo resto da divisão do primeiro pelo segundo. Retorne o primeiro valor.')
+      source: '''Receba dois números inteiros entre −{{max}} e {{max}}, inclusive, e tome seus valores absolutos.
+Enquanto o segundo valor for positivo, substitua o par pelo segundo valor e pelo resto da divisão do primeiro pelo segundo. Retorne o primeiro valor.'''
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: 'Atribua {{left}} ao valor esquerdo e {{right}} ao direito.')
-        (line: 'Enquanto o valor direito for diferente de zero, substitua os dois valores simultaneamente pelo valor direito e pelo resto da divisão do valor esquerdo pelo direito, respectivamente.')
-        (line: 'Escreva o valor esquerdo em decimal na saída padrão, seguido de uma quebra de linha.')
+      source: '''Atribua {{left}} ao valor esquerdo e {{right}} ao direito.
+Enquanto o valor direito for diferente de zero, substitua os dois valores simultaneamente pelo valor direito e pelo resto da divisão do valor esquerdo pelo direito, respectivamente.
+Escreva o valor esquerdo em decimal na saída padrão, seguido de uma quebra de linha.'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: 'Percorra em ordem crescente todos os inteiros de 1 a {{limit}}, inclusive.')
-        (line: 'Para cada inteiro, escreva FizzBuzz se for divisível por 3 e 5, Fizz se for divisível apenas por 3, Buzz se for divisível apenas por 5 ou o inteiro em decimal nos demais casos.')
-        (line: 'Escreva cada resultado em sua própria linha na saída padrão.')
+      source: '''Percorra em ordem crescente todos os inteiros de 1 a {{limit}}, inclusive.
+Para cada inteiro, escreva FizzBuzz se for divisível por 3 e 5, Fizz se for divisível apenas por 3, Buzz se for divisível apenas por 5 ou o inteiro em decimal nos demais casos.
+Escreva cada resultado em sua própria linha na saída padrão.'''
     form:
       task: fizz-buzz-function
       name: standard
-      source:
-        (line: 'Defina uma função sem argumentos nem valor de retorno. Escreva as linhas abaixo apenas quando a função for chamada.')
-        (line: 'Percorra em ordem crescente todos os inteiros de 1 a {{limit}}, inclusive.')
-        (line: 'Para cada inteiro, escreva FizzBuzz se for divisível por 3 e 5, Fizz se for divisível apenas por 3, Buzz se for divisível apenas por 5 ou o inteiro em decimal nos demais casos.')
-        (line: 'Escreva cada resultado em sua própria linha na saída padrão.')
+      source: '''Defina uma função sem argumentos nem valor de retorno. Escreva as linhas abaixo apenas quando a função for chamada.
+Percorra em ordem crescente todos os inteiros de 1 a {{limit}}, inclusive.
+Para cada inteiro, escreva FizzBuzz se for divisível por 3 e 5, Fizz se for divisível apenas por 3, Buzz se for divisível apenas por 5 ou o inteiro em decimal nos demais casos.
+Escreva cada resultado em sua própria linha na saída padrão.'''
     form:
       task: fizz-buzz-joined
       name: standard
-      source:
-        (line: 'Retorne uma cadeia com os resultados dos inteiros de 1 a {{limit}} em ordem crescente, separados pelo caractere ASCII de código {{separator}}. Use FizzBuzz para múltiplos de 3 e 5, Fizz para múltiplos apenas de 3, Buzz para múltiplos apenas de 5 e o inteiro em decimal nos demais casos.')
+      source: 'Retorne uma cadeia com os resultados dos inteiros de 1 a {{limit}} em ordem crescente, separados pelo caractere ASCII de código {{separator}}. Use FizzBuzz para múltiplos de 3 e 5, Fizz para múltiplos apenas de 3, Buzz para múltiplos apenas de 5 e o inteiro em decimal nos demais casos.'
     form:
       task: fizz-buzz-lowercase
       name: standard
-      source:
-        (line: 'Percorra em ordem crescente todos os inteiros de 1 a {{limit}}, inclusive.')
-        (line: 'Para cada inteiro, escreva fizzbuzz se for divisível por 3 e 5, fizz se for divisível apenas por 3, buzz se for divisível apenas por 5 ou o inteiro em decimal nos demais casos.')
-        (line: 'Escreva cada resultado em sua própria linha na saída padrão.')
+      source: '''Percorra em ordem crescente todos os inteiros de 1 a {{limit}}, inclusive.
+Para cada inteiro, escreva fizzbuzz se for divisível por 3 e 5, fizz se for divisível apenas por 3, buzz se for divisível apenas por 5 ou o inteiro em decimal nos demais casos.
+Escreva cada resultado em sua própria linha na saída padrão.'''
     form:
       task: fizz-buzz-quoted
       name: standard
-      source:
-        (line: 'Percorra em ordem crescente todos os inteiros de 1 a {{limit}}, inclusive.')
-        (line: 'Para cada inteiro, escreva FizzBuzz se for divisível por 3 e 5, Fizz se for divisível apenas por 3, Buzz se for divisível apenas por 5 ou o inteiro em decimal nos demais casos.')
-        (line: 'Escreva cada resultado em sua própria linha na saída padrão.')
-        (line: 'Coloque cada resultado entre aspas duplas ASCII antes de escrevê-lo.')
+      source: '''Percorra em ordem crescente todos os inteiros de 1 a {{limit}}, inclusive.
+Para cada inteiro, escreva FizzBuzz se for divisível por 3 e 5, Fizz se for divisível apenas por 3, Buzz se for divisível apenas por 5 ou o inteiro em decimal nos demais casos.
+Escreva cada resultado em sua própria linha na saída padrão.
+Coloque cada resultado entre aspas duplas ASCII antes de escrevê-lo.'''
     form:
       task: fizz-buzz-lowercase-blank-line
       name: standard
-      source:
-        (line: 'Percorra em ordem crescente todos os inteiros de 1 a {{limit}}, inclusive.')
-        (line: 'Para cada inteiro, escreva fizzbuzz se for divisível por 3 e 5, fizz se for divisível apenas por 3, buzz se for divisível apenas por 5 ou o inteiro em decimal nos demais casos.')
-        (line: 'Escreva cada resultado em sua própria linha na saída padrão.')
-        (line: 'Escreva mais uma quebra de linha após o último resultado.')
+      source: '''Percorra em ordem crescente todos os inteiros de 1 a {{limit}}, inclusive.
+Para cada inteiro, escreva fizzbuzz se for divisível por 3 e 5, fizz se for divisível apenas por 3, buzz se for divisível apenas por 5 ou o inteiro em decimal nos demais casos.
+Escreva cada resultado em sua própria linha na saída padrão.
+Escreva mais uma quebra de linha após o último resultado.'''
 
 profile:
   id: ru
@@ -1068,124 +900,103 @@ profile:
       name: standard
       fixed:
         status: 0
-      source:
-        (line: 'Завершите программу с кодом 0, оставив стандартный вывод и стандартный поток ошибок пустыми.')
+      source: 'Завершите программу с кодом 0, оставив стандартный вывод и стандартный поток ошибок пустыми.'
     form:
       task: hello
       name: standard
-      source:
-        (line: 'Выведите текст «{{message}}» в стандартный поток вывода, затем переведите строку.')
+      source: 'Выведите текст «{{message}}» в стандартный поток вывода, затем переведите строку.'
     form:
       task: browser-alert
       name: standard
-      source:
-        (line: 'Откройте в браузере диалог оповещения с текстом «{{message}}» и дождитесь, пока пользователь его закроет.')
+      source: 'Откройте в браузере диалог оповещения с текстом «{{message}}» и дождитесь, пока пользователь его закроет.'
     form:
       task: browser-write
       name: standard
-      source:
-        (line: 'Запишите строку HTML «{{message}}» в документ браузера через document.write без добавления перевода строки.')
+      source: 'Запишите строку HTML «{{message}}» в документ браузера через document.write без добавления перевода строки.'
     form:
       task: write-text
       name: standard
-      source:
-        (line: 'Выведите текст «{{message}}» в стандартный поток вывода без перевода строки.')
+      source: 'Выведите текст «{{message}}» в стандартный поток вывода без перевода строки.'
     form:
       task: write-crlf
       name: standard
-      source:
-        (line: 'Запишите текст «{{message}}» в стандартный вывод, затем запишите символ возврата каретки (CR) и символ перевода строки (LF).')
+      source: 'Запишите текст «{{message}}» в стандартный вывод, затем запишите символ возврата каретки (CR) и символ перевода строки (LF).'
     form:
       task: integer-sum
       name: standard
-      source:
-        (line: 'Прочитайте из стандартного ввода строку с двумя десятичными целыми числами от −{{limit}} до {{limit}} включительно, разделёнными одним или несколькими пробелами. Запишите десятичную сумму и перевод строки в стандартный вывод.')
+      source: 'Прочитайте из стандартного ввода строку с двумя десятичными целыми числами от −{{limit}} до {{limit}} включительно, разделёнными одним или несколькими пробелами. Запишите десятичную сумму и перевод строки в стандартный вывод.'
     form:
       task: integer-sum-or-usage
       name: standard
-      source:
-        (line: 'Прочитай из стандартного ввода два разделённых пробелами десятичных целых числа с модулем не более {{limit}}. Если у одного есть знак, выведи «usage: <number> <number>», иначе выведи их десятичную сумму. Заверши вывод переводом строки.')
+      source: 'Прочитай из стандартного ввода два разделённых пробелами десятичных целых числа с модулем не более {{limit}}. Если у одного есть знак, выведи «usage: <number> <number>», иначе выведи их десятичную сумму. Заверши вывод переводом строки.'
     form:
       task: browser-integer-sum
       name: standard
-      source:
-        (line: 'Открой в браузере по порядку запросы «enter A number» и «enter B number», оба с пустым начальным значением. Прочитай из каждого десятичное целое число с модулем не больше {{limit}}. Запиши точные ответы через один пробел в текст элемента input, а их десятичную сумму в текст элемента output.')
+      source: 'Открой в браузере по порядку запросы «enter A number» и «enter B number», оба с пустым начальным значением. Прочитай из каждого десятичное целое число с модулем не больше {{limit}}. Запиши точные ответы через один пробел в текст элемента input, а их десятичную сумму в текст элемента output.'
     form:
       task: ackermann-cli
       name: standard
-      source:
-        (line: 'Прочитайте два целых аргумента m и n из командной строки, где 0 ≤ m ≤ {{left}} и 0 ≤ n ≤ {{right}}. При m, равном 0, 1, 2 или 3, вычислите соответственно n+1, n+2, 2n+3 или 2^(n+3)−3. Выведите десятичный результат и перевод строки.')
+      source: 'Прочитайте два целых аргумента m и n из командной строки, где 0 ≤ m ≤ {{left}} и 0 ≤ n ≤ {{right}}. При m, равном 0, 1, 2 или 3, вычислите соответственно n+1, n+2, 2n+3 или 2^(n+3)−3. Выведите десятичный результат и перевод строки.'
     form:
       task: ackermann-json
       name: standard
-      source:
-        (line: 'Для каждого m от 0 до {{left}} включительно вычислите A(m,n) при n={{right}}. A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. Выведите результаты по порядку в виде числового массива JSON без пробелов, затем переведите строку.')
+      source: 'Для каждого m от 0 до {{left}} включительно вычислите A(m,n) при n={{right}}. A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. Выведите результаты по порядку в виде числового массива JSON без пробелов, затем переведите строку.'
     form:
       task: ackermann-value
       name: standard
-      source:
-        (line: 'Выведите значение функции Аккермана A({{left}},{{right}}) в десятичном виде в стандартный поток вывода, затем переведите строку.')
+      source: 'Выведите значение функции Аккермана A({{left}},{{right}}) в десятичном виде в стандартный поток вывода, затем переведите строку.'
     form:
       task: ackermann-function
       name: standard
-      source:
-        (line: 'Верните значение функции Аккермана A(m,n) для целых чисел 0 ≤ m ≤ {{left}} и 0 ≤ n ≤ {{right}}. Положите A(0,n)=n+1, A(m,0)=A(m−1,1) при m>0 и A(m,n)=A(m−1,A(m,n−1)), когда оба числа положительны.')
+      source: 'Верните значение функции Аккермана A(m,n) для целых чисел 0 ≤ m ≤ {{left}} и 0 ≤ n ≤ {{right}}. Положите A(0,n)=n+1, A(m,0)=A(m−1,1) при m>0 и A(m,n)=A(m−1,A(m,n−1)), когда оба числа положительны.'
     form:
       task: gcd-function
       name: standard
-      source:
-        (line: 'Примите два целых числа от −{{max}} до {{max}} включительно и возьмите их абсолютные значения.')
-        (line: 'Пока второе значение положительно, заменяйте пару вторым значением и остатком от деления первого на второе. Верните первое значение.')
+      source: '''Примите два целых числа от −{{max}} до {{max}} включительно и возьмите их абсолютные значения.
+Пока второе значение положительно, заменяйте пару вторым значением и остатком от деления первого на второе. Верните первое значение.'''
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: 'Присвойте левому значению {{left}}, а правому — {{right}}.')
-        (line: 'Пока правое значение не равно нулю, одновременно заменяйте левое значение прежним правым, а правое — остатком от деления прежнего левого на прежнее правое.')
-        (line: 'Выведите левое значение в десятичной записи в стандартный поток вывода и переведите строку.')
+      source: '''Присвойте левому значению {{left}}, а правому — {{right}}.
+Пока правое значение не равно нулю, одновременно заменяйте левое значение прежним правым, а правое — остатком от деления прежнего левого на прежнее правое.
+Выведите левое значение в десятичной записи в стандартный поток вывода и переведите строку.'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: 'Переберите по возрастанию все целые числа от 1 до {{limit}} включительно.')
-        (line: 'Для каждого числа выведите FizzBuzz, если оно делится на 3 и 5, Fizz, если делится только на 3, Buzz, если делится только на 5, иначе выведите число в десятичной записи.')
-        (line: 'Выведите каждый результат в отдельной строке стандартного потока вывода.')
+      source: '''Переберите по возрастанию все целые числа от 1 до {{limit}} включительно.
+Для каждого числа выведите FizzBuzz, если оно делится на 3 и 5, Fizz, если делится только на 3, Buzz, если делится только на 5, иначе выведите число в десятичной записи.
+Выведите каждый результат в отдельной строке стандартного потока вывода.'''
     form:
       task: fizz-buzz-function
       name: standard
-      source:
-        (line: 'Определите функцию без аргументов и возвращаемого значения. Выводите следующие строки только при вызове функции.')
-        (line: 'Переберите по возрастанию все целые числа от 1 до {{limit}} включительно.')
-        (line: 'Для каждого числа выведите FizzBuzz, если оно делится на 3 и 5, Fizz, если делится только на 3, Buzz, если делится только на 5, иначе выведите число в десятичной записи.')
-        (line: 'Выведите каждый результат в отдельной строке стандартного потока вывода.')
+      source: '''Определите функцию без аргументов и возвращаемого значения. Выводите следующие строки только при вызове функции.
+Переберите по возрастанию все целые числа от 1 до {{limit}} включительно.
+Для каждого числа выведите FizzBuzz, если оно делится на 3 и 5, Fizz, если делится только на 3, Buzz, если делится только на 5, иначе выведите число в десятичной записи.
+Выведите каждый результат в отдельной строке стандартного потока вывода.'''
     form:
       task: fizz-buzz-joined
       name: standard
-      source:
-        (line: 'Верни одну строку с результатами для целых чисел от 1 до {{limit}} в порядке возрастания, разделёнными символом ASCII с кодом {{separator}}. Используй FizzBuzz для чисел, кратных 3 и 5, Fizz для кратных только 3, Buzz для кратных только 5, иначе используй десятичную запись числа.')
+      source: 'Верни одну строку с результатами для целых чисел от 1 до {{limit}} в порядке возрастания, разделёнными символом ASCII с кодом {{separator}}. Используй FizzBuzz для чисел, кратных 3 и 5, Fizz для кратных только 3, Buzz для кратных только 5, иначе используй десятичную запись числа.'
     form:
       task: fizz-buzz-lowercase
       name: standard
-      source:
-        (line: 'Переберите по возрастанию все целые числа от 1 до {{limit}} включительно.')
-        (line: 'Для каждого числа выведите fizzbuzz, если оно делится на 3 и 5, fizz, если делится только на 3, buzz, если делится только на 5, иначе выведите число в десятичной записи.')
-        (line: 'Выведите каждый результат в отдельной строке стандартного потока вывода.')
+      source: '''Переберите по возрастанию все целые числа от 1 до {{limit}} включительно.
+Для каждого числа выведите fizzbuzz, если оно делится на 3 и 5, fizz, если делится только на 3, buzz, если делится только на 5, иначе выведите число в десятичной записи.
+Выведите каждый результат в отдельной строке стандартного потока вывода.'''
     form:
       task: fizz-buzz-quoted
       name: standard
-      source:
-        (line: 'Переберите по возрастанию все целые числа от 1 до {{limit}} включительно.')
-        (line: 'Для каждого числа выведите FizzBuzz, если оно делится на 3 и 5, Fizz, если делится только на 3, Buzz, если делится только на 5, иначе выведите число в десятичной записи.')
-        (line: 'Выведите каждый результат в отдельной строке стандартного потока вывода.')
-        (line: 'Перед записью заключите каждый результат в двойные кавычки ASCII.')
+      source: '''Переберите по возрастанию все целые числа от 1 до {{limit}} включительно.
+Для каждого числа выведите FizzBuzz, если оно делится на 3 и 5, Fizz, если делится только на 3, Buzz, если делится только на 5, иначе выведите число в десятичной записи.
+Выведите каждый результат в отдельной строке стандартного потока вывода.
+Перед записью заключите каждый результат в двойные кавычки ASCII.'''
     form:
       task: fizz-buzz-lowercase-blank-line
       name: standard
-      source:
-        (line: 'Переберите по возрастанию все целые числа от 1 до {{limit}} включительно.')
-        (line: 'Для каждого числа выведите fizzbuzz, если оно делится на 3 и 5, fizz, если делится только на 3, buzz, если делится только на 5, иначе выведите число в десятичной записи.')
-        (line: 'Выведите каждый результат в отдельной строке стандартного потока вывода.')
-        (line: 'После последнего результата выведите дополнительный перевод строки.')
+      source: '''Переберите по возрастанию все целые числа от 1 до {{limit}} включительно.
+Для каждого числа выведите fizzbuzz, если оно делится на 3 и 5, fizz, если делится только на 3, buzz, если делится только на 5, иначе выведите число в десятичной записи.
+Выведите каждый результат в отдельной строке стандартного потока вывода.
+После последнего результата выведите дополнительный перевод строки.'''
 
 profile:
   id: ur
@@ -1200,122 +1011,101 @@ profile:
       name: standard
       fixed:
         status: 0
-      source:
-        (line: 'معیاری آؤٹ پٹ اور معیاری خرابی کے دھارے میں کچھ لکھے بغیر کوڈ 0 کے ساتھ پروگرام ختم کریں۔')
+      source: 'معیاری آؤٹ پٹ اور معیاری خرابی کے دھارے میں کچھ لکھے بغیر کوڈ 0 کے ساتھ پروگرام ختم کریں۔'
     form:
       task: hello
       name: standard
-      source:
-        (line: 'متن «{{message}}» معیاری خروج پر لکھیں، پھر سطر بدلیں۔')
+      source: 'متن «{{message}}» معیاری خروج پر لکھیں، پھر سطر بدلیں۔'
     form:
       task: browser-alert
       name: standard
-      source:
-        (line: 'براؤزر میں «{{message}}» کے متن والا انتباہی مکالمہ کھولیں اور صارف کے اسے بند کرنے تک انتظار کریں۔')
+      source: 'براؤزر میں «{{message}}» کے متن والا انتباہی مکالمہ کھولیں اور صارف کے اسے بند کرنے تک انتظار کریں۔'
     form:
       task: browser-write
       name: standard
-      source:
-        (line: 'HTML سٹرنگ «{{message}}» کو document.write کے ذریعے براؤزر کی دستاویز میں لکھیں اور سطر نو شامل نہ کریں۔')
+      source: 'HTML سٹرنگ «{{message}}» کو document.write کے ذریعے براؤزر کی دستاویز میں لکھیں اور سطر نو شامل نہ کریں۔'
     form:
       task: write-text
       name: standard
-      source:
-        (line: 'متن «{{message}}» معیاری خروج پر لکھیں اور آخر میں سطر تبدیل نہ کریں۔')
+      source: 'متن «{{message}}» معیاری خروج پر لکھیں اور آخر میں سطر تبدیل نہ کریں۔'
     form:
       task: write-crlf
       name: standard
-      source:
-        (line: 'متن «{{message}}» معیاری آؤٹ پٹ پر لکھیں، پھر کیرج ریٹرن (CR) اور اس کے بعد لائن فیڈ (LF) لکھیں۔')
+      source: 'متن «{{message}}» معیاری آؤٹ پٹ پر لکھیں، پھر کیرج ریٹرن (CR) اور اس کے بعد لائن فیڈ (LF) لکھیں۔'
     form:
       task: integer-sum
       name: standard
-      source:
-        (line: 'معیاری ان پٹ سے ایک سطر پڑھیں جس میں −{{limit}} سے {{limit}} تک کے دو اعشاری صحیح اعداد ہوں اور ان کے درمیان ایک یا زیادہ خالی جگہیں ہوں۔ ان کا اعشاری مجموعہ اور نئی سطر معیاری آؤٹ پٹ پر لکھیں۔')
+      source: 'معیاری ان پٹ سے ایک سطر پڑھیں جس میں −{{limit}} سے {{limit}} تک کے دو اعشاری صحیح اعداد ہوں اور ان کے درمیان ایک یا زیادہ خالی جگہیں ہوں۔ ان کا اعشاری مجموعہ اور نئی سطر معیاری آؤٹ پٹ پر لکھیں۔'
     form:
       task: integer-sum-or-usage
       name: standard
-      source:
-        (line: 'معیاری اِن پٹ سے خالی جگہوں سے جدا دو اعشاری صحیح اعداد پڑھیں جن کی مطلق قدر زیادہ سے زیادہ {{limit}} ہو۔ اگر کسی پر جمع یا تفریق کی علامت ہو تو “usage: <number> <number>” چھاپیں، ورنہ ان کا اعشاری مجموعہ چھاپیں۔ آخر میں نئی سطر لکھیں۔')
+      source: 'معیاری اِن پٹ سے خالی جگہوں سے جدا دو اعشاری صحیح اعداد پڑھیں جن کی مطلق قدر زیادہ سے زیادہ {{limit}} ہو۔ اگر کسی پر جمع یا تفریق کی علامت ہو تو “usage: <number> <number>” چھاپیں، ورنہ ان کا اعشاری مجموعہ چھاپیں۔ آخر میں نئی سطر لکھیں۔'
     form:
       task: browser-integer-sum
       name: standard
-      source:
-        (line: 'براؤزر میں ترتیب سے “enter A number” اور “enter B number” کے دو خالی ابتدائی قدر والے مکالمے کھولیں۔ ہر ایک سے زیادہ سے زیادہ {{limit}} کی مطلق قدر والا اعشاری صحیح عدد پڑھیں۔ input کے متن میں دونوں اصل جواب ایک خالی جگہ سے جدا کرکے لکھیں۔ output کے متن میں ان کا اعشاری مجموعہ لکھیں۔')
+      source: 'براؤزر میں ترتیب سے “enter A number” اور “enter B number” کے دو خالی ابتدائی قدر والے مکالمے کھولیں۔ ہر ایک سے زیادہ سے زیادہ {{limit}} کی مطلق قدر والا اعشاری صحیح عدد پڑھیں۔ input کے متن میں دونوں اصل جواب ایک خالی جگہ سے جدا کرکے لکھیں۔ output کے متن میں ان کا اعشاری مجموعہ لکھیں۔'
     form:
       task: ackermann-cli
       name: standard
-      source:
-        (line: 'کمانڈ لائن سے دو صحیح عدد m اور n پڑھیں، جہاں 0 ≤ m ≤ {{left}} اور 0 ≤ n ≤ {{right}} ہو۔ m کی قدروں 0، 1، 2 اور 3 کے لیے بالترتیب n+1، n+2، 2n+3 اور 2^(n+3)−3 نکالیں۔ نتیجہ اعشاری صورت میں لکھیں اور نئی سطر شامل کریں۔')
+      source: 'کمانڈ لائن سے دو صحیح عدد m اور n پڑھیں، جہاں 0 ≤ m ≤ {{left}} اور 0 ≤ n ≤ {{right}} ہو۔ m کی قدروں 0، 1، 2 اور 3 کے لیے بالترتیب n+1، n+2، 2n+3 اور 2^(n+3)−3 نکالیں۔ نتیجہ اعشاری صورت میں لکھیں اور نئی سطر شامل کریں۔'
     form:
       task: ackermann-json
       name: standard
-      source:
-        (line: 'n={{right}} رکھ کر، m کی 0 سے {{left}} تک ہر قدر کے لیے A(m,n) نکالیں۔ A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. نتائج کو ترتیب وار بغیر خالی جگہ کے اعداد کی JSON صف میں لکھیں اور نئی سطر شامل کریں۔')
+      source: 'n={{right}} رکھ کر، m کی 0 سے {{left}} تک ہر قدر کے لیے A(m,n) نکالیں۔ A(0,n)=n+1, A(1,n)=n+2, A(2,n)=2n+3, A(3,n)=2^(n+3)−3. نتائج کو ترتیب وار بغیر خالی جگہ کے اعداد کی JSON صف میں لکھیں اور نئی سطر شامل کریں۔'
     form:
       task: ackermann-value
       name: standard
-      source:
-        (line: 'ایکرمین تفاعل کی قدر A({{left}},{{right}}) معیاری آؤٹ پٹ پر عشری صورت میں لکھیں اور نئی سطر شامل کریں۔')
+      source: 'ایکرمین تفاعل کی قدر A({{left}},{{right}}) معیاری آؤٹ پٹ پر عشری صورت میں لکھیں اور نئی سطر شامل کریں۔'
     form:
       task: ackermann-function
       name: standard
-      source:
-        (line: 'صحیح عددی مدخلات 0 ≤ m ≤ {{left}} اور 0 ≤ n ≤ {{right}} کے لیے ایکرمین تفاعل A(m,n) کی قدر واپس کریں۔ A(0,n)=n+1 مقرر کریں، m>0 پر A(m,0)=A(m−1,1) اور دونوں کے مثبت ہونے پر A(m,n)=A(m−1,A(m,n−1)) رکھیں۔')
+      source: 'صحیح عددی مدخلات 0 ≤ m ≤ {{left}} اور 0 ≤ n ≤ {{right}} کے لیے ایکرمین تفاعل A(m,n) کی قدر واپس کریں۔ A(0,n)=n+1 مقرر کریں، m>0 پر A(m,0)=A(m−1,1) اور دونوں کے مثبت ہونے پر A(m,n)=A(m−1,A(m,n−1)) رکھیں۔'
     form:
       task: gcd-function
       name: standard
-      source:
-        (line: '−{{max}} سے {{max}} تک دو صحیح اعداد لیں، دونوں حدیں شامل ہیں، اور ان کی مطلق قدریں لیں۔')
-        (line: 'جب تک دوسری قدر مثبت ہو، جوڑے کو دوسری قدر اور پہلی قدر کو دوسری پر تقسیم کرنے کے باقی سے بدلیں۔ پہلی قدر واپس کریں۔')
+      source: '''−{{max}} سے {{max}} تک دو صحیح اعداد لیں، دونوں حدیں شامل ہیں، اور ان کی مطلق قدریں لیں۔
+جب تک دوسری قدر مثبت ہو، جوڑے کو دوسری قدر اور پہلی قدر کو دوسری پر تقسیم کرنے کے باقی سے بدلیں۔ پہلی قدر واپس کریں۔'''
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: 'بائیں قدر کو {{left}} اور دائیں قدر کو {{right}} مقرر کریں۔')
-        (line: 'جب تک دائیں قدر صفر نہ ہو، دونوں قدریں بیک وقت بدلیں: نئی بائیں قدر پرانی دائیں قدر ہے اور نئی دائیں قدر پرانی بائیں کو پرانی دائیں پر تقسیم کرنے کا باقی ہے۔')
-        (line: 'بائیں قدر کو اعشاری صورت میں معیاری خروج پر لکھیں اور پھر سطر بدلیں۔')
+      source: '''بائیں قدر کو {{left}} اور دائیں قدر کو {{right}} مقرر کریں۔
+جب تک دائیں قدر صفر نہ ہو، دونوں قدریں بیک وقت بدلیں: نئی بائیں قدر پرانی دائیں قدر ہے اور نئی دائیں قدر پرانی بائیں کو پرانی دائیں پر تقسیم کرنے کا باقی ہے۔
+بائیں قدر کو اعشاری صورت میں معیاری خروج پر لکھیں اور پھر سطر بدلیں۔'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: '1 سے {{limit}} تک ہر صحیح عدد کو بڑھتی ترتیب میں لیں، دونوں سروں سمیت۔')
-        (line: 'جو عدد 3 اور 5 دونوں سے تقسیم ہو اس کے لیے FizzBuzz، صرف 3 سے ہو تو Fizz، صرف 5 سے ہو تو Buzz، ورنہ اعشاری صورت میں خود عدد لکھیں۔')
-        (line: 'ہر نتیجہ معیاری خروج پر ایک الگ سطر میں لکھیں۔')
+      source: '''1 سے {{limit}} تک ہر صحیح عدد کو بڑھتی ترتیب میں لیں، دونوں سروں سمیت۔
+جو عدد 3 اور 5 دونوں سے تقسیم ہو اس کے لیے FizzBuzz، صرف 3 سے ہو تو Fizz، صرف 5 سے ہو تو Buzz، ورنہ اعشاری صورت میں خود عدد لکھیں۔
+ہر نتیجہ معیاری خروج پر ایک الگ سطر میں لکھیں۔'''
     form:
       task: fizz-buzz-function
       name: standard
-      source:
-        (line: 'ایک ایسا فنکشن بنائیں جس کے کوئی دلائل یا واپسی قدر نہ ہو۔ درج ذیل سطریں صرف فنکشن کو بلانے پر لکھیں۔')
-        (line: '1 سے {{limit}} تک ہر صحیح عدد کو بڑھتی ترتیب میں لیں، دونوں سروں سمیت۔')
-        (line: 'جو عدد 3 اور 5 دونوں سے تقسیم ہو اس کے لیے FizzBuzz، صرف 3 سے ہو تو Fizz، صرف 5 سے ہو تو Buzz، ورنہ اعشاری صورت میں خود عدد لکھیں۔')
-        (line: 'ہر نتیجہ معیاری خروج پر ایک الگ سطر میں لکھیں۔')
+      source: '''ایک ایسا فنکشن بنائیں جس کے کوئی دلائل یا واپسی قدر نہ ہو۔ درج ذیل سطریں صرف فنکشن کو بلانے پر لکھیں۔
+1 سے {{limit}} تک ہر صحیح عدد کو بڑھتی ترتیب میں لیں، دونوں سروں سمیت۔
+جو عدد 3 اور 5 دونوں سے تقسیم ہو اس کے لیے FizzBuzz، صرف 3 سے ہو تو Fizz، صرف 5 سے ہو تو Buzz، ورنہ اعشاری صورت میں خود عدد لکھیں۔
+ہر نتیجہ معیاری خروج پر ایک الگ سطر میں لکھیں۔'''
     form:
       task: fizz-buzz-joined
       name: standard
-      source:
-        (line: '1 سے {{limit}} تک کے صحیح اعداد کے نتائج بڑھتی ہوئی ترتیب میں ایک سٹرنگ کی صورت میں واپس کرو اور ان کے درمیان ASCII کوڈ {{separator}} والا حرف رکھو۔ 3 اور 5 دونوں کے مضرب کے لیے FizzBuzz، صرف 3 کے مضرب کے لیے Fizz، صرف 5 کے مضرب کے لیے Buzz، اور باقی کے لیے عدد کی اعشاری صورت استعمال کرو۔')
+      source: '1 سے {{limit}} تک کے صحیح اعداد کے نتائج بڑھتی ہوئی ترتیب میں ایک سٹرنگ کی صورت میں واپس کرو اور ان کے درمیان ASCII کوڈ {{separator}} والا حرف رکھو۔ 3 اور 5 دونوں کے مضرب کے لیے FizzBuzz، صرف 3 کے مضرب کے لیے Fizz، صرف 5 کے مضرب کے لیے Buzz، اور باقی کے لیے عدد کی اعشاری صورت استعمال کرو۔'
     form:
       task: fizz-buzz-lowercase
       name: standard
-      source:
-        (line: '1 سے {{limit}} تک ہر صحیح عدد کو بڑھتی ترتیب میں لیں، دونوں سروں سمیت۔')
-        (line: 'جو عدد 3 اور 5 دونوں سے تقسیم ہو اس کے لیے fizzbuzz، صرف 3 سے ہو تو fizz، صرف 5 سے ہو تو buzz، ورنہ اعشاری صورت میں خود عدد لکھیں۔')
-        (line: 'ہر نتیجہ معیاری خروج پر ایک الگ سطر میں لکھیں۔')
+      source: '''1 سے {{limit}} تک ہر صحیح عدد کو بڑھتی ترتیب میں لیں، دونوں سروں سمیت۔
+جو عدد 3 اور 5 دونوں سے تقسیم ہو اس کے لیے fizzbuzz، صرف 3 سے ہو تو fizz، صرف 5 سے ہو تو buzz، ورنہ اعشاری صورت میں خود عدد لکھیں۔
+ہر نتیجہ معیاری خروج پر ایک الگ سطر میں لکھیں۔'''
     form:
       task: fizz-buzz-quoted
       name: standard
-      source:
-        (line: '1 سے {{limit}} تک ہر صحیح عدد کو بڑھتی ترتیب میں لیں، دونوں سروں سمیت۔')
-        (line: 'جو عدد 3 اور 5 دونوں سے تقسیم ہو اس کے لیے FizzBuzz، صرف 3 سے ہو تو Fizz، صرف 5 سے ہو تو Buzz، ورنہ اعشاری صورت میں خود عدد لکھیں۔')
-        (line: 'ہر نتیجہ معیاری خروج پر ایک الگ سطر میں لکھیں۔')
-        (line: 'لکھنے سے پہلے ہر نتیجے کو ASCII کے دہرے واوین میں رکھیں۔')
+      source: '''1 سے {{limit}} تک ہر صحیح عدد کو بڑھتی ترتیب میں لیں، دونوں سروں سمیت۔
+جو عدد 3 اور 5 دونوں سے تقسیم ہو اس کے لیے FizzBuzz، صرف 3 سے ہو تو Fizz، صرف 5 سے ہو تو Buzz، ورنہ اعشاری صورت میں خود عدد لکھیں۔
+ہر نتیجہ معیاری خروج پر ایک الگ سطر میں لکھیں۔
+لکھنے سے پہلے ہر نتیجے کو ASCII کے دہرے واوین میں رکھیں۔'''
     form:
       task: fizz-buzz-lowercase-blank-line
       name: standard
-      source:
-        (line: '1 سے {{limit}} تک ہر صحیح عدد کو بڑھتی ترتیب میں لیں، دونوں سروں سمیت۔')
-        (line: 'جو عدد 3 اور 5 دونوں سے تقسیم ہو اس کے لیے fizzbuzz، صرف 3 سے ہو تو fizz، صرف 5 سے ہو تو buzz، ورنہ اعشاری صورت میں خود عدد لکھیں۔')
-        (line: 'ہر نتیجہ معیاری خروج پر ایک الگ سطر میں لکھیں۔')
-        (line: 'آخری نتیجے کے بعد ایک مزید سطر بدلنے کا حرف لکھیں۔')
+      source: '''1 سے {{limit}} تک ہر صحیح عدد کو بڑھتی ترتیب میں لیں، دونوں سروں سمیت۔
+جو عدد 3 اور 5 دونوں سے تقسیم ہو اس کے لیے fizzbuzz، صرف 3 سے ہو تو fizz، صرف 5 سے ہو تو buzz، ورنہ اعشاری صورت میں خود عدد لکھیں۔
+ہر نتیجہ معیاری خروج پر ایک الگ سطر میں لکھیں۔
+آخری نتیجے کے بعد ایک مزید سطر بدلنے کا حرف لکھیں۔'''
 `;

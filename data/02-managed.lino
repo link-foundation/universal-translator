@@ -11,22 +11,19 @@ profile:
       name: standard
       output: alert
       requires: browser
-      source:
-        (line: 'alert("{{message}}");')
+      source: 'alert("{{message}}");'
     form:
       task: browser-alert
       name: rosetta-graphical
       output: alert
       requires: browser
-      source:
-        (line: ' alert("{{message}}");')
+      source: ' alert("{{message}}");'
     form:
       task: browser-write
       name: standard
       output: document.write
       requires: browser
-      source:
-        (line: 'document.write("{{message}}");')
+      source: 'document.write("{{message}}");'
     form:
       task: browser-integer-sum
       name: standard
@@ -34,17 +31,16 @@ profile:
       output: textContent
       fixed:
         limit: 1000
-      source:
-        (line: '<!doctype html>')
-        (line: '<meta charset="utf-8">')
-        (line: '<div id="input"></div>')
-        (line: '<div id="output"></div>')
-        (line: '<script>')
-        (line: '  const left = window.prompt("enter A number", "");')
-        (line: '  const right = window.prompt("enter B number", "");')
-        (line: '  document.getElementById("input").textContent = `${left} ${right}`;')
-        (line: '  document.getElementById("output").textContent = Number(left) + Number(right);')
-        (line: '</script>')
+      source: '''<!doctype html>
+<meta charset="utf-8">
+<div id="input"></div>
+<div id="output"></div>
+<script>
+  const left = window.prompt("enter A number", "");
+  const right = window.prompt("enter B number", "");
+  document.getElementById("input").textContent = `${left} ${right}`;
+  document.getElementById("output").textContent = Number(left) + Number(right);
+</script>'''
     form:
       task: browser-integer-sum
       name: rosetta-html
@@ -52,21 +48,20 @@ profile:
       output: innerHTML
       fixed:
         limit: 1000
-      source:
-        (line: '<html>')
-        (line: '<body>')
-        (line: "<div id='input'></div>")
-        (line: "<div id='output'></div>")
-        (line: "<script type='text/javascript'>")
-        (line: "var a = window.prompt('enter A number', '');")
-        (line: "var b = window.prompt('enter B number', '');")
-        (line: "document.getElementById('input').innerHTML = a + ' ' + b;")
-        (line: ~1{})
-        (line: 'var sum = Number(a) + Number(b);')
-        (line: "document.getElementById('output').innerHTML = sum;")
-        (line: '</script>')
-        (line: '</body>')
-        (line: '</html>')
+      source: '''<html>
+<body>
+<div id='input'></div>
+<div id='output'></div>
+<script type='text/javascript'>
+var a = window.prompt('enter A number', '');
+var b = window.prompt('enter B number', '');
+document.getElementById('input').innerHTML = a + ' ' + b;
+
+var sum = Number(a) + Number(b);
+document.getElementById('output').innerHTML = sum;
+</script>
+</body>
+</html>'''
     form:
       task: empty-program
       name: standard
@@ -81,26 +76,24 @@ profile:
       requires: process.stdin console
       fixed:
         limit: 1000
-      source:
-        (line: 'process.stdin.setEncoding("utf8");')
-        (line: 'let input = "";')
-        (line: 'process.stdin.on("data", (part) => { input += part; });')
-        (line: 'process.stdin.on("end", () => {')
-        (line: '    const [left, right] = input.trim().split(/ +/).map(Number);')
-        (line: '    console.log(left + right);')
-        (line: '});')
+      source: '''process.stdin.setEncoding("utf8");
+let input = "";
+process.stdin.on("data", (part) => { input += part; });
+process.stdin.on("end", () => {
+    const [left, right] = input.trim().split(/ +/).map(Number);
+    console.log(left + right);
+});'''
     form:
       task: integer-sum
       name: rosetta-stream
       requires: process.stdin console
       fixed:
         limit: 1000
-      source:
-        (line: 'process.stdin.on("data", buffer => {')
-        (line: '  console.log(')
-        (line: '    (buffer + "").trim().split(" ").map(Number).reduce((a, v) => a + v, 0)')
-        (line: '  );')
-        (line: '});')
+      source: '''process.stdin.on("data", buffer => {
+  console.log(
+    (buffer + "").trim().split(" ").map(Number).reduce((a, v) => a + v, 0)
+  );
+});'''
     form:
       task: integer-sum
       name: common
@@ -108,47 +101,44 @@ profile:
       output: printLine
       fixed:
         limit: 1000
-      source:
-        (line: "import { printLine } from './common-library.mjs';")
-        (line: ~1{})
-        (line: 'process.stdin.setEncoding("utf8");')
-        (line: 'let input = "";')
-        (line: 'process.stdin.on("data", (part) => { input += part; });')
-        (line: 'process.stdin.on("end", () => {')
-        (line: '    const [left, right] = input.trim().split(/ +/).map(Number);')
-        (line: '    printLine(left + right);')
-        (line: '});')
+      source: '''import { printLine } from './common-library.mjs';
+
+process.stdin.setEncoding("utf8");
+let input = "";
+process.stdin.on("data", (part) => { input += part; });
+process.stdin.on("end", () => {
+    const [left, right] = input.trim().split(/ +/).map(Number);
+    printLine(left + right);
+});'''
     form:
       task: integer-sum-or-usage
       name: standard
       requires: process.stdin console
       fixed:
         limit: 1000
-      source:
-        (line: 'process.stdin.setEncoding("utf8");')
-        (line: 'let input = "";')
-        (line: 'process.stdin.on("data", (part) => { input += part; });')
-        (line: 'process.stdin.on("end", () => {')
-        (line: '    const numbers = input.match(/^\s*(\d+)\s+(\d+)\s*/);')
-        (line: '    console.log(numbers ? Number(numbers[1]) + Number(numbers[2]) : "usage: <number> <number>");')
-        (line: '});')
+      source: '''process.stdin.setEncoding("utf8");
+let input = "";
+process.stdin.on("data", (part) => { input += part; });
+process.stdin.on("end", () => {
+    const numbers = input.match(/^\s*(\d+)\s+(\d+)\s*/);
+    console.log(numbers ? Number(numbers[1]) + Number(numbers[2]) : "usage: <number> <number>");
+});'''
     form:
       task: integer-sum-or-usage
       name: rosetta-open-stdin
       requires: process.stdin console
       fixed:
         limit: 1000
-      source:
-        (line: 'process.openStdin().on (')
-        (line: "    'data',")
-        (line: '    function (line) {')
-        (line: '        var xs = String(line).match(/^\s*(\d+)\s+(\d+)\s*/)')
-        (line: '        console.log (')
-        (line: "            xs ? Number(xs[1]) + Number(xs[2]) : 'usage: <number> <number>'")
-        (line: '        )')
-        (line: '        process.exit()')
-        (line: '    }')
-        (line: ')')
+      source: '''process.openStdin().on (
+    'data',
+    function (line) {
+        var xs = String(line).match(/^\s*(\d+)\s+(\d+)\s*/)
+        console.log (
+            xs ? Number(xs[1]) + Number(xs[2]) : 'usage: <number> <number>'
+        )
+        process.exit()
+    }
+)'''
     form:
       task: integer-sum-or-usage
       name: common
@@ -156,70 +146,61 @@ profile:
       output: printLine
       fixed:
         limit: 1000
-      source:
-        (line: "import { readFileSync } from 'node:fs';")
-        (line: "import { printLine } from './common-library.mjs';")
-        (line: ~1{})
-        (line: 'const input = readFileSync(0, "utf8");')
-        (line: 'const numbers = input.match(/^\s*(\d+)\s+(\d+)\s*/);')
-        (line: 'printLine(numbers ? Number(numbers[1]) + Number(numbers[2]) : "usage: <number> <number>");')
+      source: '''import { readFileSync } from 'node:fs';
+import { printLine } from './common-library.mjs';
+
+const input = readFileSync(0, "utf8");
+const numbers = input.match(/^\s*(\d+)\s+(\d+)\s*/);
+printLine(numbers ? Number(numbers[1]) + Number(numbers[2]) : "usage: <number> <number>");'''
     form:
       task: hello
       name: standard
       requires: console
-      source:
-        (line: 'console.log("{{message}}");')
+      source: 'console.log("{{message}}");'
     form:
       task: hello
       name: single-quotes
       requires: console
-      source:
-        (line: "console.log('{{message}}');")
+      source: "console.log('{{message}}');"
     form:
       task: hello
       name: rosetta
       requires: console
-      source:
-        (line: 'console.log("{{message}}")')
+      source: 'console.log("{{message}}")'
     form:
       task: hello
       name: shell-print
       output: print
       requires: quickjs
-      source:
-        (line: "print('{{message}}');")
+      source: "print('{{message}}');"
     form:
       task: hello
       name: common
       requires: './common-library.mjs'
       output: printLine
-      source:
-        (line: "import { printLine } from './common-library.mjs';")
-        (line: ~1{})
-        (line: 'printLine("{{message}}");')
+      source: '''import { printLine } from './common-library.mjs';
+
+printLine("{{message}}");'''
     form:
       task: write-text
       name: standard
       requires: process.stdout
       output: process.stdout.write
-      source:
-        (line: 'process.stdout.write("{{message}}");')
+      source: 'process.stdout.write("{{message}}");'
     form:
       task: write-text
       name: common
       requires: './common-library.mjs'
       output: writeText
-      source:
-        (line: "import { writeText } from './common-library.mjs';")
-        (line: ~1{})
-        (line: 'writeText("{{message}}");')
+      source: '''import { writeText } from './common-library.mjs';
+
+writeText("{{message}}");'''
     form:
       task: write-crlf
       name: standard
       requires: process.stdout
       output: process.stdout.write
-      source:
-        (line: 'process.stdout.write("{{message}}\r\n");')
+      source: 'process.stdout.write("{{message}}\r\n");'
     form:
       task: write-crlf
       name: wscript
@@ -227,60 +208,55 @@ profile:
       requires: cscript
       fixed:
         message: 'Hello world!'
-      source:
-        (line: 'WScript.Echo("Hello world!");')
+      source: 'WScript.Echo("Hello world!");'
     form:
       task: write-crlf
       name: common
       requires: './common-library.mjs'
       output: writeText
-      source:
-        (line: "import { writeText } from './common-library.mjs';")
-        (line: ~1{})
-        (line: 'writeText("{{message}}\r\n");')
+      source: '''import { writeText } from './common-library.mjs';
+
+writeText("{{message}}\r\n");'''
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: 'let left = {{left}};')
-        (line: 'let right = {{right}};')
-        (line: 'while (right !== 0) {')
-        (line: '    const remainder = left % right;')
-        (line: '    left = right;')
-        (line: '    right = remainder;')
-        (line: })
-        (line: 'console.log(left);')
+      source: '''let left = {{left}};
+let right = {{right}};
+while (right !== 0) {
+    const remainder = left % right;
+    left = right;
+    right = remainder;
+}
+console.log(left);'''
     form:
       task: greatest-common-divisor
       name: common
       requires: './common-library.mjs'
       output: printLine
-      source:
-        (line: "import { printLine } from './common-library.mjs';")
-        (line: ~1{})
-        (line: 'let left = {{left}};')
-        (line: 'let right = {{right}};')
-        (line: 'while (right !== 0) {')
-        (line: '    const remainder = left % right;')
-        (line: '    left = right;')
-        (line: '    right = remainder;')
-        (line: })
-        (line: 'printLine(String(left));')
+      source: '''import { printLine } from './common-library.mjs';
+
+let left = {{left}};
+let right = {{right}};
+while (right !== 0) {
+    const remainder = left % right;
+    left = right;
+    right = remainder;
+}
+printLine(String(left));'''
     form:
       task: ackermann-cli
       name: standard
       requires: process.argv console
-      source:
-        (line: 'function ackermann(first, second) {')
-        (line: '    if (first === 0) return second + 1;')
-        (line: '    if (second === 0) return ackermann(first - 1, 1);')
-        (line: '    return ackermann(first - 1, ackermann(first, second - 1));')
-        (line: })
-        (line: ~1{})
-        (line: 'const [first, second] = process.argv.slice(2).map((value) => Number.parseInt(value, 10));')
-        (line: 'if (first >= 0 && first <= {{left}} && second >= 0 && second <= {{right}}) {')
-        (line: '    console.log(ackermann(first, second));')
-        (line: })
+      source: '''function ackermann(first, second) {
+    if (first === 0) return second + 1;
+    if (second === 0) return ackermann(first - 1, 1);
+    return ackermann(first - 1, ackermann(first, second - 1));
+}
+
+const [first, second] = process.argv.slice(2).map((value) => Number.parseInt(value, 10));
+if (first >= 0 && first <= {{left}} && second >= 0 && second <= {{right}}) {
+    console.log(ackermann(first, second));
+}'''
     form:
       task: ackermann-cli
       name: rosetta
@@ -288,125 +264,118 @@ profile:
         left: 3
         right: 4
       requires: process.argv console
-      source:
-        (line: '#!/usr/bin/env nodejs')
-        (line: 'function ack(M, N){')
-        (line: '	const next = new Float64Array(M + 1);')
-        (line: '	const goal = new Float64Array(M + 1).fill(1, 0, M);')
-        (line: '	const n = N + 1;')
-        (line: ~1{})
-        (line: '	goal[M] = -1;')
-        (line: ~1{})
-        (line: '	let v;')
-        (line: '	do {')
-        (line: '		v = next[0] + 1;')
-        (line: '		let m = 0;')
-        (line: '		while (next[m] === goal[m]) {')
-        (line: '			goal[m] = v;')
-        (line: '			next[m++]++;')
-        (line: '		}')
-        (line: '		next[m]++;')
-        (line: '	} while (next[M] !== n);')
-        (line: '	return v;')
-        (line: })
-        (line: 'var args = process.argv;')
-        (line: 'console.log(ack(parseInt(args[2]), parseInt(args[3])));')
+      source: '''#!/usr/bin/env nodejs
+function ack(M, N){
+	const next = new Float64Array(M + 1);
+	const goal = new Float64Array(M + 1).fill(1, 0, M);
+	const n = N + 1;
+
+	goal[M] = -1;
+
+	let v;
+	do {
+		v = next[0] + 1;
+		let m = 0;
+		while (next[m] === goal[m]) {
+			goal[m] = v;
+			next[m++]++;
+		}
+		next[m]++;
+	} while (next[M] !== n);
+	return v;
+}
+var args = process.argv;
+console.log(ack(parseInt(args[2]), parseInt(args[3])));'''
     form:
       task: ackermann-cli
       name: common
       requires: './common-library.mjs' process.argv
       output: printLine
-      source:
-        (line: "import { printLine } from './common-library.mjs';")
-        (line: ~1{})
-        (line: 'function ackermann(first, second) {')
-        (line: '    if (first === 0) return second + 1;')
-        (line: '    if (second === 0) return ackermann(first - 1, 1);')
-        (line: '    return ackermann(first - 1, ackermann(first, second - 1));')
-        (line: })
-        (line: ~1{})
-        (line: 'const [first, second] = process.argv.slice(2).map((value) => Number.parseInt(value, 10));')
-        (line: 'if (first >= 0 && first <= {{left}} && second >= 0 && second <= {{right}}) {')
-        (line: '    printLine(String(ackermann(first, second)));')
-        (line: })
+      source: '''import { printLine } from './common-library.mjs';
+
+function ackermann(first, second) {
+    if (first === 0) return second + 1;
+    if (second === 0) return ackermann(first - 1, 1);
+    return ackermann(first - 1, ackermann(first, second - 1));
+}
+
+const [first, second] = process.argv.slice(2).map((value) => Number.parseInt(value, 10));
+if (first >= 0 && first <= {{left}} && second >= 0 && second <= {{right}}) {
+    printLine(String(ackermann(first, second)));
+}'''
     form:
       task: ackermann-json
       name: standard
-      source:
-        (line: 'const last = {{left}};')
-        (line: 'const second = {{right}};')
-        (line: 'const values = [second + 1, second + 2, 2 * second + 3, 2 ** (second + 3) - 3];')
-        (line: 'const results = values.slice(0, last + 1);')
-        (line: 'console.log(JSON.stringify(results));')
+      source: '''const last = {{left}};
+const second = {{right}};
+const values = [second + 1, second + 2, 2 * second + 3, 2 ** (second + 3) - 3];
+const results = values.slice(0, last + 1);
+console.log(JSON.stringify(results));'''
     form:
       task: ackermann-json
       name: rosetta
       fixed:
         left: 3
         right: 3
-      source:
-        (line: '(() => {')
-        (line: "    'use strict';")
-        (line: ~1{})
-        (line: '    const ackermann = m => n => {')
-        (line: '        const go = (m, n) =>')
-        (line: '            0 === m ? (')
-        (line: '                succ(n)')
-        (line: '            ) : go(pred(m), 0 === n ? (')
-        (line: '                1')
-        (line: '            ) : go(m, pred(n)));')
-        (line: '        return go(m, n);')
-        (line: '    };')
-        (line: ~1{})
-        (line: '    const main = () => console.log(JSON.stringify(')
-        (line: '        [0, 1, 2, 3].map(')
-        (line: '            flip(ackermann)(3)')
-        (line: '        )')
-        (line: '    ));')
-        (line: ~1{})
-        (line: ~1{})
-        (line: ~1{})
-        (line: '    const flip = f =>')
-        (line: '        x => y => f(y)(x);')
-        (line: ~1{})
-        (line: '    const pred = x => x - 1;')
-        (line: ~1{})
-        (line: '    const succ = x => 1 + x;')
-        (line: ~1{})
-        (line: ~1{})
-        (line: '    return main();')
-        (line: '})();')
+      source: '''(() => {
+    'use strict';
+
+    const ackermann = m => n => {
+        const go = (m, n) =>
+            0 === m ? (
+                succ(n)
+            ) : go(pred(m), 0 === n ? (
+                1
+            ) : go(m, pred(n)));
+        return go(m, n);
+    };
+
+    const main = () => console.log(JSON.stringify(
+        [0, 1, 2, 3].map(
+            flip(ackermann)(3)
+        )
+    ));
+
+
+
+    const flip = f =>
+        x => y => f(y)(x);
+
+    const pred = x => x - 1;
+
+    const succ = x => 1 + x;
+
+
+    return main();
+})();'''
     form:
       task: ackermann-json
       name: common
       requires: './common-library.mjs'
       output: printLine
-      source:
-        (line: "import { printLine } from './common-library.mjs';")
-        (line: ~1{})
-        (line: 'const last = {{left}};')
-        (line: 'const second = {{right}};')
-        (line: 'const values = [second + 1, second + 2, 2 * second + 3, 2 ** (second + 3) - 3];')
-        (line: 'const results = values.slice(0, last + 1);')
-        (line: 'printLine(JSON.stringify(results));')
+      source: '''import { printLine } from './common-library.mjs';
+
+const last = {{left}};
+const second = {{right}};
+const values = [second + 1, second + 2, 2 * second + 3, 2 ** (second + 3) - 3];
+const results = values.slice(0, last + 1);
+printLine(JSON.stringify(results));'''
     form:
       task: ackermann-value
       name: standard
-      source:
-        (line: 'const first = {{left}};')
-        (line: 'const second = {{right}};')
-        (line: 'console.log(2 ** (second + first) - first);')
+      source: '''const first = {{left}};
+const second = {{right}};
+console.log(2 ** (second + first) - first);'''
     form:
       task: ackermann-value
       name: common
       requires: './common-library.mjs'
       output: printLine
-      source:
-        (line: "import { printLine } from './common-library.mjs';")
-        (line: ~1{})
-        (line: 'const first = {{left}};')
-        (line: 'const second = {{right}};')
-        (line: 'printLine(String(2 ** (second + first) - first));')
+      source: '''import { printLine } from './common-library.mjs';
+
+const first = {{left}};
+const second = {{right}};
+printLine(String(2 ** (second + first) - first));'''
     form:
       task: ackermann-function
       name: standard
@@ -414,12 +383,11 @@ profile:
         left: 3
         right: 4
       output: ackermann
-      source:
-        (line: 'function ackermann(first, second) {')
-        (line: '    if (first === 0) return second + 1;')
-        (line: '    if (second === 0) return ackermann(first - 1, 1);')
-        (line: '    return ackermann(first - 1, ackermann(first, second - 1));')
-        (line: })
+      source: '''function ackermann(first, second) {
+    if (first === 0) return second + 1;
+    if (second === 0) return ackermann(first - 1, 1);
+    return ackermann(first - 1, ackermann(first, second - 1));
+}'''
     form:
       task: ackermann-function
       name: rosetta-recursive
@@ -427,10 +395,9 @@ profile:
         left: 3
         right: 4
       output: ack
-      source:
-        (line: 'function ack(m, n) {')
-        (line: ' return m === 0 ? n + 1 : ack(m - 1, n === 0  ? 1 : ack(m, n - 1));')
-        (line: })
+      source: '''function ack(m, n) {
+ return m === 0 ? n + 1 : ack(m - 1, n === 0  ? 1 : ack(m, n - 1));
+}'''
     form:
       task: ackermann-function
       name: rosetta-iterative
@@ -438,13 +405,12 @@ profile:
         left: 3
         right: 4
       output: ack
-      source:
-        (line: 'function ack(M,N) {')
-        (line: '  for (; M > 0; M--) {')
-        (line: '    N = N === 0 ? 1 : ack(M,N-1);')
-        (line: '  }')
-        (line: '  return N+1;')
-        (line: })
+      source: '''function ack(M,N) {
+  for (; M > 0; M--) {
+    N = N === 0 ? 1 : ack(M,N-1);
+  }
+  return N+1;
+}'''
     form:
       task: ackermann-function
       name: rosetta-stack
@@ -452,164 +418,151 @@ profile:
         left: 3
         right: 4
       output: stackermann
-      source:
-        (line: 'function stackermann(M, N) {')
-        (line: '  const stack = [];')
-        (line: '  for (;;) {')
-        (line: '    if (M === 0) {')
-        (line: '      N++;')
-        (line: '      if (stack.length === 0) return N;')
-        (line: '      const r = stack[stack.length-1];')
-        (line: '      if (r[1] === 1) stack.length--;')
-        (line: '      else r[1]--;')
-        (line: '      M = r[0];')
-        (line: '    } else if (N === 0) {')
-        (line: '      M--;')
-        (line: '      N = 1;')
-        (line: '    } else {')
-        (line: '      M--')
-        (line: '      stack.push([M, N]);')
-        (line: '      N = 1;')
-        (line: '    }')
-        (line: '  }')
-        (line: })
+      source: '''function stackermann(M, N) {
+  const stack = [];
+  for (;;) {
+    if (M === 0) {
+      N++;
+      if (stack.length === 0) return N;
+      const r = stack[stack.length-1];
+      if (r[1] === 1) stack.length--;
+      else r[1]--;
+      M = r[0];
+    } else if (N === 0) {
+      M--;
+      N = 1;
+    } else {
+      M--
+      stack.push([M, N]);
+      N = 1;
+    }
+  }
+}'''
     form:
       task: gcd-function
       name: standard
       fixed:
         max: 2147483647
       output: gcd
-      source:
-        (line: 'function gcd(left, right) {')
-        (line: '    while (right !== 0) {')
-        (line: '        [left, right] = [right, left % right];')
-        (line: '    }')
-        (line: '    return Math.abs(left);')
-        (line: })
+      source: '''function gcd(left, right) {
+    while (right !== 0) {
+        [left, right] = [right, left % right];
+    }
+    return Math.abs(left);
+}'''
     form:
       task: gcd-function
       name: rosetta-recursive
       fixed:
         max: 2147483647
       output: gcd_rec
-      source:
-        (line: 'function gcd_rec(a, b) {')
-        (line: '  return b ? gcd_rec(b, a % b) : Math.abs(a);')
-        (line: })
+      source: '''function gcd_rec(a, b) {
+  return b ? gcd_rec(b, a % b) : Math.abs(a);
+}'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: 'const limit = {{limit}};')
-        (line: 'for (let number = 1; number <= limit; number += 1) {')
-        (line: '    const label = (number % 3 === 0 ? "Fizz" : "") + (number % 5 === 0 ? "Buzz" : "");')
-        (line: '    console.log(label || number);')
-        (line: })
+      source: '''const limit = {{limit}};
+for (let number = 1; number <= limit; number += 1) {
+    const label = (number % 3 === 0 ? "Fizz" : "") + (number % 5 === 0 ? "Buzz" : "");
+    console.log(label || number);
+}'''
     form:
       task: fizz-buzz
       name: rosetta
-      source:
-        (line: "const factors = [[3, 'Fizz'], [5, 'Buzz']]")
-        (line: "const fizzBuzz = num => factors.map(([factor,text]) => (num % factor)?'':text).join('') || num")
-        (line: 'const range1 = x => [...Array(x+1).keys()].slice(1)')
-        (line: 'const outputs = range1({{limit}}).map(fizzBuzz)')
-        (line: ~1{})
-        (line: "console.log(outputs.join('\n'))")
+      source: '''const factors = [[3, 'Fizz'], [5, 'Buzz']]
+const fizzBuzz = num => factors.map(([factor,text]) => (num % factor)?'':text).join('') || num
+const range1 = x => [...Array(x+1).keys()].slice(1)
+const outputs = range1({{limit}}).map(fizzBuzz)
+
+console.log(outputs.join('\n'))'''
     form:
       task: fizz-buzz
       name: rosetta-lookup
-      source:
-        (line: 'for (var i = 1; i <= {{limit}}; i++) {')
-        (line: '  console.log({')
-        (line: "    truefalse: 'Fizz',")
-        (line: "    falsetrue: 'Buzz',")
-        (line: "    truetrue: 'FizzBuzz'")
-        (line: "  }[(i%3==0) + '' + (i%5==0)] || i)")
-        (line: })
+      source: '''for (var i = 1; i <= {{limit}}; i++) {
+  console.log({
+    truefalse: 'Fizz',
+    falsetrue: 'Buzz',
+    truetrue: 'FizzBuzz'
+  }[(i%3==0) + '' + (i%5==0)] || i)
+}'''
     form:
       task: fizz-buzz
       name: rosetta-assignment
       fixed:
         limit: 100
-      source:
-        (line: "for(i=1;i<101;i++)console.log((x=(i%3?'':'Fizz')+(i%5?'':'Buzz'))?x:i);")
+      source: "for(i=1;i<101;i++)console.log((x=(i%3?'':'Fizz')+(i%5?'':'Buzz'))?x:i);"
     form:
       task: fizz-buzz
       name: rosetta-concise
       fixed:
         limit: 100
-      source:
-        (line: "for(i=1;i<101;i++)console.log((i%3?'':'Fizz')+(i%5?'':'Buzz')||i)")
+      source: "for(i=1;i<101;i++)console.log((i%3?'':'Fizz')+(i%5?'':'Buzz')||i)"
     form:
       task: fizz-buzz
       name: common
       requires: './common-library.mjs'
       output: printLine
-      source:
-        (line: "import { printLine } from './common-library.mjs';")
-        (line: ~1{})
-        (line: 'const limit = {{limit}};')
-        (line: 'for (let number = 1; number <= limit; number += 1) {')
-        (line: '    const label = (number % 3 === 0 ? "Fizz" : "") + (number % 5 === 0 ? "Buzz" : "");')
-        (line: '    printLine(String(label || number));')
-        (line: })
+      source: '''import { printLine } from './common-library.mjs';
+
+const limit = {{limit}};
+for (let number = 1; number <= limit; number += 1) {
+    const label = (number % 3 === 0 ? "Fizz" : "") + (number % 5 === 0 ? "Buzz" : "");
+    printLine(String(label || number));
+}'''
     form:
       task: fizz-buzz-function
       name: standard
       output: fizzBuzz
-      source:
-        (line: 'function fizzBuzz() {')
-        (line: '    for (let number = 1; number <= {{limit}}; number += 1) {')
-        (line: '        const fizz = number % 3 === 0 ? "Fizz" : "";')
-        (line: '        const buzz = number % 5 === 0 ? "Buzz" : "";')
-        (line: '        console.log(fizz + buzz || number);')
-        (line: '    }')
-        (line: })
+      source: '''function fizzBuzz() {
+    for (let number = 1; number <= {{limit}}; number += 1) {
+        const fizz = number % 3 === 0 ? "Fizz" : "";
+        const buzz = number % 5 === 0 ? "Buzz" : "";
+        console.log(fizz + buzz || number);
+    }
+}'''
     form:
       task: fizz-buzz-function
       name: common
       output: fizzBuzz
       requires: './common-library.mjs'
-      source:
-        (line: "import { printLine } from './common-library.mjs';")
-        (line: ~1{})
-        (line: 'function fizzBuzz() {')
-        (line: '    for (let number = 1; number <= {{limit}}; number += 1) {')
-        (line: '        const fizz = number % 3 === 0 ? "Fizz" : "";')
-        (line: '        const buzz = number % 5 === 0 ? "Buzz" : "";')
-        (line: '        printLine(String(fizz + buzz || number));')
-        (line: '    }')
-        (line: })
+      source: '''import { printLine } from './common-library.mjs';
+
+function fizzBuzz() {
+    for (let number = 1; number <= {{limit}}; number += 1) {
+        const fizz = number % 3 === 0 ? "Fizz" : "";
+        const buzz = number % 5 === 0 ? "Buzz" : "";
+        printLine(String(fizz + buzz || number));
+    }
+}'''
     form:
       task: fizz-buzz-function
       name: rosetta-function
       output: fizzBuzz
       fixed:
         limit: 100
-      source:
-        (line: 'var fizzBuzz = function () {')
-        (line: '  var i, output;')
-        (line: '  for (i = 1; i < 101; i += 1) {')
-        (line: "    output = '';")
-        (line: "    if (!(i % 3)) { output += 'Fizz'; }")
-        (line: "    if (!(i % 5)) { output += 'Buzz'; }")
-        (line: '    console.log(output || i);//empty string is false, so we short-circuit')
-        (line: '  }')
-        (line: '};')
+      source: '''var fizzBuzz = function () {
+  var i, output;
+  for (i = 1; i < 101; i += 1) {
+    output = '';
+    if (!(i % 3)) { output += 'Fizz'; }
+    if (!(i % 5)) { output += 'Buzz'; }
+    console.log(output || i);//empty string is false, so we short-circuit
+  }
+};'''
     form:
       task: fizz-buzz-joined
       name: standard
       output: fizzBuzz
-      source:
-        (line: 'function fizzBuzz() {')
-        (line: '    const labels = Array.from({ length: {{limit}} }, (_, index) => {')
-        (line: '        const number = index + 1;')
-        (line: '        const fizz = number % 3 === 0 ? "Fizz" : "";')
-        (line: '        const buzz = number % 5 === 0 ? "Buzz" : "";')
-        (line: '        return fizz + buzz || String(number);')
-        (line: '    });')
-        (line: '    return labels.join(String.fromCharCode({{separator}}));')
-        (line: })
+      source: '''function fizzBuzz() {
+    const labels = Array.from({ length: {{limit}} }, (_, index) => {
+        const number = index + 1;
+        const fizz = number % 3 === 0 ? "Fizz" : "";
+        const buzz = number % 5 === 0 ? "Buzz" : "";
+        return fizz + buzz || String(number);
+    });
+    return labels.join(String.fromCharCode({{separator}}));
+}'''
     form:
       task: fizz-buzz-joined
       name: rosetta-space
@@ -617,18 +570,17 @@ profile:
         limit: 100
         separator: 32
       output: join
-      source:
-        (line: '(function rng(i) {')
-        (line: '    return i ? rng(i - 1).concat(i) : []')
-        (line: '})(100).map(')
-        (line: '    function (n) {')
-        (line: '        return n % 3 ? (')
-        (line: '            n % 5 ? n : "Buzz"')
-        (line: '        ) : (')
-        (line: '            n % 5 ? "Fizz" : "FizzBuzz"')
-        (line: '        )')
-        (line: '    }')
-        (line: ").join(' ')")
+      source: '''(function rng(i) {
+    return i ? rng(i - 1).concat(i) : []
+})(100).map(
+    function (n) {
+        return n % 3 ? (
+            n % 5 ? n : "Buzz"
+        ) : (
+            n % 5 ? "Fizz" : "FizzBuzz"
+        )
+    }
+).join(' ')'''
     form:
       task: fizz-buzz-joined
       name: rosetta-lines
@@ -636,251 +588,243 @@ profile:
         limit: 100
         separator: 10
       output: unlines
-      source:
-        (line: '(() => {')
-        (line: ~1{})
-        (line: ~1{})
-        (line: '    const fizzBuzz = n =>')
-        (line: '        caseOf(n, [')
-        (line: '            [x => x % 15 === 0, "FizzBuzz"],')
-        (line: '            [x => x % 3 === 0, "Fizz"],')
-        (line: '            [x => x % 5 === 0, "Buzz"]')
-        (line: '        ], n.toString());')
-        (line: ~1{})
-        (line: ~1{})
-        (line: '    const caseOf = (e, pvs, otherwise) =>')
-        (line: '        pvs.reduce((a, [p, v]) =>')
-        (line: '            a !== otherwise ? a : (p(e) ? v : a), otherwise);')
-        (line: ~1{})
-        (line: '    const enumFromTo = (m, n) =>')
-        (line: '        Array.from({')
-        (line: '            length: Math.floor(n - m) + 1')
-        (line: '        }, (_, i) => m + i);')
-        (line: ~1{})
-        (line: '    const map = (f, xs) => xs.map(f);')
-        (line: ~1{})
-        (line: "    const unlines = xs => xs.join('\n');")
-        (line: ~1{})
-        (line: '    return unlines(')
-        (line: '        map(fizzBuzz, enumFromTo(1, 100))')
-        (line: '    );')
-        (line: '})();')
+      source: '''(() => {
+
+
+    const fizzBuzz = n =>
+        caseOf(n, [
+            [x => x % 15 === 0, "FizzBuzz"],
+            [x => x % 3 === 0, "Fizz"],
+            [x => x % 5 === 0, "Buzz"]
+        ], n.toString());
+
+
+    const caseOf = (e, pvs, otherwise) =>
+        pvs.reduce((a, [p, v]) =>
+            a !== otherwise ? a : (p(e) ? v : a), otherwise);
+
+    const enumFromTo = (m, n) =>
+        Array.from({
+            length: Math.floor(n - m) + 1
+        }, (_, i) => m + i);
+
+    const map = (f, xs) => xs.map(f);
+
+    const unlines = xs => xs.join('\n');
+
+    return unlines(
+        map(fizzBuzz, enumFromTo(1, 100))
+    );
+})();'''
     form:
       task: fizz-buzz-lowercase
       name: standard
-      source:
-        (line: 'for (let number = 1; number <= {{limit}}; number += 1) {')
-        (line: '    const label = (number % 3 === 0 ? "fizz" : "") + (number % 5 === 0 ? "buzz" : "");')
-        (line: '    console.log(label || number);')
-        (line: })
+      source: '''for (let number = 1; number <= {{limit}}; number += 1) {
+    const label = (number % 3 === 0 ? "fizz" : "") + (number % 5 === 0 ? "buzz" : "");
+    console.log(label || number);
+}'''
     form:
       task: fizz-buzz-lowercase
       name: common
       requires: './common-library.mjs'
       output: printLine
-      source:
-        (line: "import { printLine } from './common-library.mjs';")
-        (line: ~1{})
-        (line: 'for (let number = 1; number <= {{limit}}; number += 1) {')
-        (line: '    const label = (number % 3 === 0 ? "fizz" : "") + (number % 5 === 0 ? "buzz" : "");')
-        (line: '    printLine(String(label || number));')
-        (line: })
+      source: '''import { printLine } from './common-library.mjs';
+
+for (let number = 1; number <= {{limit}}; number += 1) {
+    const label = (number % 3 === 0 ? "fizz" : "") + (number % 5 === 0 ? "buzz" : "");
+    printLine(String(label || number));
+}'''
     form:
       task: fizz-buzz-lowercase
       name: rosetta-generator
       fixed:
         limit: 100
-      source:
-        (line: '(() => {')
-        (line: "    'use strict';")
-        (line: ~1{})
-        (line: '    const main = () => {')
-        (line: ~1{})
-        (line: ~1{})
-        (line: '        const fizzBuzz = () => {')
-        (line: '            const fb = n => k => cycle(')
-        (line: "                replicate(n - 1)('').concat(k)")
-        (line: '            );')
-        (line: '            return zipWith(')
-        (line: '                liftA2(flip)(bool)(isNull)')
-        (line: '            )(')
-        (line: "                zipWith(append)(fb(3)('fizz'))(fb(5)('buzz'))")
-        (line: '            )(fmap(str)(enumFrom(1)));')
-        (line: '        };')
-        (line: ~1{})
-        (line: '        console.log(')
-        (line: '            unlines(')
-        (line: '                take(100)(')
-        (line: '                    fizzBuzz()')
-        (line: '                )')
-        (line: '            )')
-        (line: '        );')
-        (line: '    };')
-        (line: ~1{})
-        (line: ~1{})
-        (line: '    const Just = x => ({')
-        (line: "        type: 'Maybe',")
-        (line: '        Nothing: false,')
-        (line: '        Just: x')
-        (line: '    });')
-        (line: ~1{})
-        (line: '    const Nothing = () => ({')
-        (line: "        type: 'Maybe',")
-        (line: '        Nothing: true,')
-        (line: '    });')
-        (line: ~1{})
-        (line: '    const Tuple = a => b => ({')
-        (line: "        type: 'Tuple',")
-        (line: "        '0': a,")
-        (line: "        '1': b,")
-        (line: '        length: 2')
-        (line: '    });')
-        (line: ~1{})
-        (line: '    const append = xs => ys => xs.concat(ys);')
-        (line: ~1{})
-        (line: '    const bool = f => t => p =>')
-        (line: '        p ? t : f;')
-        (line: ~1{})
-        (line: '    function* cycle(xs) {')
-        (line: '        const lng = xs.length;')
-        (line: '        let i = 0;')
-        (line: '        while (true) {')
-        (line: '            yield(xs[i])')
-        (line: '            i = (1 + i) % lng;')
-        (line: '        }')
-        (line: '    }')
-        (line: ~1{})
-        (line: '    function* enumFrom(x) {')
-        (line: '        let v = x;')
-        (line: '        while (true) {')
-        (line: '            yield v;')
-        (line: '            v = 1 + v;')
-        (line: '        }')
-        (line: '    }')
-        (line: ~1{})
-        (line: '    const flip = f =>')
-        (line: '        x => y => f(y)(x);')
-        (line: ~1{})
-        (line: '    const fmap = f =>')
-        (line: '        function*(gen) {')
-        (line: '            let v = take(1)(gen);')
-        (line: '            while (0 < v.length) {')
-        (line: '                yield(f(v[0]))')
-        (line: '                v = take(1)(gen)')
-        (line: '            }')
-        (line: '        };')
-        (line: ~1{})
-        (line: '    const fst = tpl => tpl[0];')
-        (line: ~1{})
-        (line: '    const isNull = xs =>')
-        (line: '        1 > xs.length;')
-        (line: ~1{})
-        (line: ~1{})
-        (line: '    const length = xs =>')
-        (line: "        (Array.isArray(xs) || 'string' === typeof xs) ? (")
-        (line: '            xs.length')
-        (line: '        ) : Infinity;')
-        (line: ~1{})
-        (line: '    const liftA2 = op => f => g =>')
-        (line: '        x => op(f(x))(g(x));')
-        (line: ~1{})
-        (line: '    const replicate = n => x =>')
-        (line: '        Array.from({')
-        (line: '            length: n')
-        (line: '        }, () => x);')
-        (line: ~1{})
-        (line: '    const snd = tpl => tpl[1];')
-        (line: ~1{})
-        (line: '    const str = x => x.toString();')
-        (line: ~1{})
-        (line: '    const take = n => xs =>')
-        (line: "        'GeneratorFunction' !== xs.constructor.constructor.name ? (")
-        (line: '            xs.slice(0, n)')
-        (line: '        ) : [].concat.apply([], Array.from({')
-        (line: '            length: n')
-        (line: '        }, () => {')
-        (line: '            const x = xs.next();')
-        (line: '            return x.done ? [] : [x.value];')
-        (line: '        }));')
-        (line: ~1{})
-        (line: ~1{})
-        (line: '    const uncons = xs => {')
-        (line: '        const lng = length(xs);')
-        (line: '        return (0 < lng) ? (')
-        (line: '            lng < Infinity ? (')
-        (line: '                Just(Tuple(xs[0])(xs.slice(1))) // Finite list')
-        (line: '            ) : (() => {')
-        (line: '                const nxt = take(1)(xs);')
-        (line: '                return 0 < nxt.length ? (')
-        (line: '                    Just(Tuple(nxt[0])(xs))')
-        (line: '                ) : Nothing();')
-        (line: '            })() // Lazy generator')
-        (line: '        ) : Nothing();')
-        (line: '    };')
-        (line: ~1{})
-        (line: "    const unlines = xs => xs.join('\n');")
-        (line: ~1{})
-        (line: '    const zipWith = f => ga => gb => {')
-        (line: '        function* go(ma, mb) {')
-        (line: '            let')
-        (line: '                a = ma,')
-        (line: '                b = mb;')
-        (line: '            while (!a.Nothing && !b.Nothing) {')
-        (line: '                let')
-        (line: '                    ta = a.Just,')
-        (line: '                    tb = b.Just')
-        (line: '                yield(f(fst(ta))(fst(tb)));')
-        (line: '                a = uncons(snd(ta));')
-        (line: '                b = uncons(snd(tb));')
-        (line: '            }')
-        (line: '        }')
-        (line: '        return go(uncons(ga), uncons(gb));')
-        (line: '    };')
-        (line: ~1{})
-        (line: '    return main();')
-        (line: '})();')
+      source: '''(() => {
+    'use strict';
+
+    const main = () => {
+
+
+        const fizzBuzz = () => {
+            const fb = n => k => cycle(
+                replicate(n - 1)('').concat(k)
+            );
+            return zipWith(
+                liftA2(flip)(bool)(isNull)
+            )(
+                zipWith(append)(fb(3)('fizz'))(fb(5)('buzz'))
+            )(fmap(str)(enumFrom(1)));
+        };
+
+        console.log(
+            unlines(
+                take(100)(
+                    fizzBuzz()
+                )
+            )
+        );
+    };
+
+
+    const Just = x => ({
+        type: 'Maybe',
+        Nothing: false,
+        Just: x
+    });
+
+    const Nothing = () => ({
+        type: 'Maybe',
+        Nothing: true,
+    });
+
+    const Tuple = a => b => ({
+        type: 'Tuple',
+        '0': a,
+        '1': b,
+        length: 2
+    });
+
+    const append = xs => ys => xs.concat(ys);
+
+    const bool = f => t => p =>
+        p ? t : f;
+
+    function* cycle(xs) {
+        const lng = xs.length;
+        let i = 0;
+        while (true) {
+            yield(xs[i])
+            i = (1 + i) % lng;
+        }
+    }
+
+    function* enumFrom(x) {
+        let v = x;
+        while (true) {
+            yield v;
+            v = 1 + v;
+        }
+    }
+
+    const flip = f =>
+        x => y => f(y)(x);
+
+    const fmap = f =>
+        function*(gen) {
+            let v = take(1)(gen);
+            while (0 < v.length) {
+                yield(f(v[0]))
+                v = take(1)(gen)
+            }
+        };
+
+    const fst = tpl => tpl[0];
+
+    const isNull = xs =>
+        1 > xs.length;
+
+
+    const length = xs =>
+        (Array.isArray(xs) || 'string' === typeof xs) ? (
+            xs.length
+        ) : Infinity;
+
+    const liftA2 = op => f => g =>
+        x => op(f(x))(g(x));
+
+    const replicate = n => x =>
+        Array.from({
+            length: n
+        }, () => x);
+
+    const snd = tpl => tpl[1];
+
+    const str = x => x.toString();
+
+    const take = n => xs =>
+        'GeneratorFunction' !== xs.constructor.constructor.name ? (
+            xs.slice(0, n)
+        ) : [].concat.apply([], Array.from({
+            length: n
+        }, () => {
+            const x = xs.next();
+            return x.done ? [] : [x.value];
+        }));
+
+
+    const uncons = xs => {
+        const lng = length(xs);
+        return (0 < lng) ? (
+            lng < Infinity ? (
+                Just(Tuple(xs[0])(xs.slice(1))) // Finite list
+            ) : (() => {
+                const nxt = take(1)(xs);
+                return 0 < nxt.length ? (
+                    Just(Tuple(nxt[0])(xs))
+                ) : Nothing();
+            })() // Lazy generator
+        ) : Nothing();
+    };
+
+    const unlines = xs => xs.join('\n');
+
+    const zipWith = f => ga => gb => {
+        function* go(ma, mb) {
+            let
+                a = ma,
+                b = mb;
+            while (!a.Nothing && !b.Nothing) {
+                let
+                    ta = a.Just,
+                    tb = b.Just
+                yield(f(fst(ta))(fst(tb)));
+                a = uncons(snd(ta));
+                b = uncons(snd(tb));
+            }
+        }
+        return go(uncons(ga), uncons(gb));
+    };
+
+    return main();
+})();'''
     form:
       task: fizz-buzz-quoted
       name: standard
-      source:
-        (line: 'for (let number = 1; number <= {{limit}}; number += 1) {')
-        (line: '    const label = (number % 3 === 0 ? "Fizz" : "") + (number % 5 === 0 ? "Buzz" : "");')
-        (line: '    console.log(JSON.stringify(String(label || number)));')
-        (line: })
+      source: '''for (let number = 1; number <= {{limit}}; number += 1) {
+    const label = (number % 3 === 0 ? "Fizz" : "") + (number % 5 === 0 ? "Buzz" : "");
+    console.log(JSON.stringify(String(label || number)));
+}'''
     form:
       task: fizz-buzz-quoted
       name: common
       requires: './common-library.mjs'
       output: printLine
-      source:
-        (line: "import { printLine } from './common-library.mjs';")
-        (line: ~1{})
-        (line: 'for (let number = 1; number <= {{limit}}; number += 1) {')
-        (line: '    const label = (number % 3 === 0 ? "Fizz" : "") + (number % 5 === 0 ? "Buzz" : "");')
-        (line: '    printLine(JSON.stringify(String(label || number)));')
-        (line: })
+      source: '''import { printLine } from './common-library.mjs';
+
+for (let number = 1; number <= {{limit}}; number += 1) {
+    const label = (number % 3 === 0 ? "Fizz" : "") + (number % 5 === 0 ? "Buzz" : "");
+    printLine(JSON.stringify(String(label || number)));
+}'''
     form:
       task: fizz-buzz-lowercase-blank-line
       name: standard
-      source:
-        (line: 'for (let number = 1; number <= {{limit}}; number += 1) {')
-        (line: '    const label = (number % 3 === 0 ? "fizz" : "") + (number % 5 === 0 ? "buzz" : "");')
-        (line: '    console.log(label || number);')
-        (line: })
-        (line: 'console.log();')
+      source: '''for (let number = 1; number <= {{limit}}; number += 1) {
+    const label = (number % 3 === 0 ? "fizz" : "") + (number % 5 === 0 ? "buzz" : "");
+    console.log(label || number);
+}
+console.log();'''
     form:
       task: fizz-buzz-lowercase-blank-line
       name: common
       requires: './common-library.mjs'
       output: printLine
-      source:
-        (line: "import { printLine } from './common-library.mjs';")
-        (line: ~1{})
-        (line: 'for (let number = 1; number <= {{limit}}; number += 1) {')
-        (line: '    const label = (number % 3 === 0 ? "fizz" : "") + (number % 5 === 0 ? "buzz" : "");')
-        (line: '    printLine(String(label || number));')
-        (line: })
-        (line: 'printLine("");')
+      source: '''import { printLine } from './common-library.mjs';
+
+for (let number = 1; number <= {{limit}}; number += 1) {
+    const label = (number % 3 === 0 ? "fizz" : "") + (number % 5 === 0 ? "buzz" : "");
+    printLine(String(label || number));
+}
+printLine("");'''
 
 profile:
   id: typescript
@@ -893,30 +837,27 @@ profile:
       task: hello
       name: standard
       requires: console
-      source:
-        (line: 'const message: string = "{{message}}";')
-        (line: 'console.log(message);')
+      source: '''const message: string = "{{message}}";
+console.log(message);'''
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: 'let left: number = {{left}};')
-        (line: 'let right: number = {{right}};')
-        (line: 'while (right !== 0) {')
-        (line: '    const remainder = left % right;')
-        (line: '    left = right;')
-        (line: '    right = remainder;')
-        (line: })
-        (line: 'console.log(left);')
+      source: '''let left: number = {{left}};
+let right: number = {{right}};
+while (right !== 0) {
+    const remainder = left % right;
+    left = right;
+    right = remainder;
+}
+console.log(left);'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: 'const limit: number = {{limit}};')
-        (line: 'for (let number = 1; number <= limit; number += 1) {')
-        (line: '    const label = (number % 3 === 0 ? "Fizz" : "") + (number % 5 === 0 ? "Buzz" : "");')
-        (line: '    console.log(label || number);')
-        (line: })
+      source: '''const limit: number = {{limit}};
+for (let number = 1; number <= limit; number += 1) {
+    const label = (number % 3 === 0 ? "Fizz" : "") + (number % 5 === 0 ? "Buzz" : "");
+    console.log(label || number);
+}'''
 
 profile:
   id: java
@@ -930,51 +871,47 @@ profile:
       task: hello
       name: standard
       requires: Main System.out
-      source:
-        (line: 'class Main {')
-        (line: '    public static void main(String[] arguments) {')
-        (line: '        System.out.println("{{message}}");')
-        (line: '    }')
-        (line: })
+      source: '''class Main {
+    public static void main(String[] arguments) {
+        System.out.println("{{message}}");
+    }
+}'''
     form:
       task: hello
       name: collection
       requires: HelloWorld System.out
-      source:
-        (line: 'class HelloWorld {')
-        (line: '  static public void main( String args[] ) {')
-        (line: '    System.out.println( "{{message}}" );')
-        (line: '  }')
-        (line: })
+      source: '''class HelloWorld {
+  static public void main( String args[] ) {
+    System.out.println( "{{message}}" );
+  }
+}'''
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: 'class Main {')
-        (line: '    public static void main(String[] arguments) {')
-        (line: '        int left = {{left}};')
-        (line: '        int right = {{right}};')
-        (line: '        while (right != 0) {')
-        (line: '            int remainder = left % right;')
-        (line: '            left = right;')
-        (line: '            right = remainder;')
-        (line: '        }')
-        (line: '        System.out.println(left);')
-        (line: '    }')
-        (line: })
+      source: '''class Main {
+    public static void main(String[] arguments) {
+        int left = {{left}};
+        int right = {{right}};
+        while (right != 0) {
+            int remainder = left % right;
+            left = right;
+            right = remainder;
+        }
+        System.out.println(left);
+    }
+}'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: 'class Main {')
-        (line: '    public static void main(String[] arguments) {')
-        (line: '        int limit = {{limit}};')
-        (line: '        for (int number = 1; number <= limit; number++) {')
-        (line: '            String label = (number % 3 == 0 ? "Fizz" : "") + (number % 5 == 0 ? "Buzz" : "");')
-        (line: '            System.out.println(label.isEmpty() ? Integer.toString(number) : label);')
-        (line: '        }')
-        (line: '    }')
-        (line: })
+      source: '''class Main {
+    public static void main(String[] arguments) {
+        int limit = {{limit}};
+        for (int number = 1; number <= limit; number++) {
+            String label = (number % 3 == 0 ? "Fizz" : "") + (number % 5 == 0 ? "Buzz" : "");
+            System.out.println(label.isEmpty() ? Integer.toString(number) : label);
+        }
+    }
+}'''
 
 profile:
   id: csharp
@@ -988,59 +925,54 @@ profile:
       task: hello
       name: standard
       requires: HelloWorld System.Console
-      source:
-        (line: 'class HelloWorld')
-        (line: {)
-        (line: '    static void Main()')
-        (line: '    {')
-        (line: '        System.Console.WriteLine("{{message}}");')
-        (line: '    }')
-        (line: })
+      source: '''class HelloWorld
+{
+    static void Main()
+    {
+        System.Console.WriteLine("{{message}}");
+    }
+}'''
     form:
       task: hello
       name: top-level
       requires: System.Console
-      source:
-        (line: 'System.Console.WriteLine("{{message}}");')
+      source: 'System.Console.WriteLine("{{message}}");'
     form:
       task: hello
       name: common
       requires: HelloWorld System.Console PrintLine
       output: PrintLine
-      source:
-        (line: 'class HelloWorld')
-        (line: {)
-        (line: '    static void PrintLine(string message)')
-        (line: '    {')
-        (line: '        System.Console.WriteLine(message);')
-        (line: '    }')
-        (line: ~1{})
-        (line: '    static void Main()')
-        (line: '    {')
-        (line: '        PrintLine("{{message}}");')
-        (line: '    }')
-        (line: })
+      source: '''class HelloWorld
+{
+    static void PrintLine(string message)
+    {
+        System.Console.WriteLine(message);
+    }
+
+    static void Main()
+    {
+        PrintLine("{{message}}");
+    }
+}'''
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: 'int left = {{left}};')
-        (line: 'int right = {{right}};')
-        (line: 'while (right != 0)')
-        (line: {)
-        (line: '    (left, right) = (right, left % right);')
-        (line: })
-        (line: 'System.Console.WriteLine(left);')
+      source: '''int left = {{left}};
+int right = {{right}};
+while (right != 0)
+{
+    (left, right) = (right, left % right);
+}
+System.Console.WriteLine(left);'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: 'int limit = {{limit}};')
-        (line: 'for (int number = 1; number <= limit; number++)')
-        (line: {)
-        (line: '    string label = (number % 3 == 0 ? "Fizz" : "") + (number % 5 == 0 ? "Buzz" : "");')
-        (line: '    System.Console.WriteLine(label.Length == 0 ? number.ToString() : label);')
-        (line: })
+      source: '''int limit = {{limit}};
+for (int number = 1; number <= limit; number++)
+{
+    string label = (number % 3 == 0 ? "Fizz" : "") + (number % 5 == 0 ? "Buzz" : "");
+    System.Console.WriteLine(label.Length == 0 ? number.ToString() : label);
+}'''
 
 profile:
   id: kotlin
@@ -1052,42 +984,38 @@ profile:
     form:
       task: hello
       name: standard
-      source:
-        (line: 'fun main() {')
-        (line: '    println("{{message}}")')
-        (line: })
+      source: '''fun main() {
+    println("{{message}}")
+}'''
     form:
       task: hello
       name: collection
-      source:
-        (line: 'fun main(args : Array<String>) {')
-        (line: '    println("{{message}}")')
-        (line: })
+      source: '''fun main(args : Array<String>) {
+    println("{{message}}")
+}'''
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: 'fun main() {')
-        (line: '    var left = {{left}}')
-        (line: '    var right = {{right}}')
-        (line: '    while (right != 0) {')
-        (line: '        val remainder = left % right')
-        (line: '        left = right')
-        (line: '        right = remainder')
-        (line: '    }')
-        (line: '    println(left)')
-        (line: })
+      source: '''fun main() {
+    var left = {{left}}
+    var right = {{right}}
+    while (right != 0) {
+        val remainder = left % right
+        left = right
+        right = remainder
+    }
+    println(left)
+}'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: 'fun main() {')
-        (line: '    val limit = {{limit}}')
-        (line: '    for (number in 1..limit) {')
-        (line: '        val label = (if (number % 3 == 0) "Fizz" else "") + (if (number % 5 == 0) "Buzz" else "")')
-        (line: '        println(label.ifEmpty { number.toString() })')
-        (line: '    }')
-        (line: })
+      source: '''fun main() {
+    val limit = {{limit}}
+    for (number in 1..limit) {
+        val label = (if (number % 3 == 0) "Fizz" else "") + (if (number % 5 == 0) "Buzz" else "")
+        println(label.ifEmpty { number.toString() })
+    }
+}'''
 
 profile:
   id: vbnet
@@ -1100,41 +1028,38 @@ profile:
       task: hello
       name: standard
       requires: HelloWorld System.Console
-      source:
-        (line: 'Module HelloWorld')
-        (line: '    Sub Main()')
-        (line: '        System.Console.WriteLine("{{message}}")')
-        (line: '    End Sub')
-        (line: 'End Module')
+      source: '''Module HelloWorld
+    Sub Main()
+        System.Console.WriteLine("{{message}}")
+    End Sub
+End Module'''
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: 'Module GreatestCommonDivisor')
-        (line: '    Sub Main()')
-        (line: '        Dim left As Integer = {{left}}')
-        (line: '        Dim right As Integer = {{right}}')
-        (line: '        While right <> 0')
-        (line: '            Dim remainder As Integer = left Mod right')
-        (line: '            left = right')
-        (line: '            right = remainder')
-        (line: '        End While')
-        (line: '        System.Console.WriteLine(left)')
-        (line: '    End Sub')
-        (line: 'End Module')
+      source: '''Module GreatestCommonDivisor
+    Sub Main()
+        Dim left As Integer = {{left}}
+        Dim right As Integer = {{right}}
+        While right <> 0
+            Dim remainder As Integer = left Mod right
+            left = right
+            right = remainder
+        End While
+        System.Console.WriteLine(left)
+    End Sub
+End Module'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: 'Module FizzBuzz')
-        (line: '    Sub Main()')
-        (line: '        Dim limit As Integer = {{limit}}')
-        (line: '        For number As Integer = 1 To limit')
-        (line: '            Dim label As String = If(number Mod 3 = 0, "Fizz", "") & If(number Mod 5 = 0, "Buzz", "")')
-        (line: '            System.Console.WriteLine(If(label = "", number.ToString(), label))')
-        (line: '        Next')
-        (line: '    End Sub')
-        (line: 'End Module')
+      source: '''Module FizzBuzz
+    Sub Main()
+        Dim limit As Integer = {{limit}}
+        For number As Integer = 1 To limit
+            Dim label As String = If(number Mod 3 = 0, "Fizz", "") & If(number Mod 5 = 0, "Buzz", "")
+            System.Console.WriteLine(If(label = "", number.ToString(), label))
+        Next
+    End Sub
+End Module'''
 
 profile:
   id: ocaml
@@ -1146,36 +1071,32 @@ profile:
     form:
       task: hello
       name: standard
-      source:
-        (line: 'let () = print_endline "{{message}}"')
+      source: 'let () = print_endline "{{message}}"'
     form:
       task: hello
       name: collection
       output: print_string
-      source:
-        (line: 'print_string "{{message}}\n";;')
+      source: 'print_string "{{message}}\n";;'
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: 'let rec greatest_common_divisor left right =')
-        (line: '    if right = 0 then left else greatest_common_divisor right (left mod right)')
-        (line: ~1{})
-        (line: 'let () =')
-        (line: '    let left = {{left}} in')
-        (line: '    let right = {{right}} in')
-        (line: '    print_endline (string_of_int (greatest_common_divisor left right))')
+      source: '''let rec greatest_common_divisor left right =
+    if right = 0 then left else greatest_common_divisor right (left mod right)
+
+let () =
+    let left = {{left}} in
+    let right = {{right}} in
+    print_endline (string_of_int (greatest_common_divisor left right))'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: 'let () =')
-        (line: '    let limit = {{limit}} in')
-        (line: '    for number = 1 to limit do')
-        (line: '        let label = (if number mod 3 = 0 then "Fizz" else "") ^')
-        (line: '                    (if number mod 5 = 0 then "Buzz" else "") in')
-        (line: '        print_endline (if label = "" then string_of_int number else label)')
-        (line: '    done')
+      source: '''let () =
+    let limit = {{limit}} in
+    for number = 1 to limit do
+        let label = (if number mod 3 = 0 then "Fizz" else "") ^
+                    (if number mod 5 = 0 then "Buzz" else "") in
+        print_endline (if label = "" then string_of_int number else label)
+    done'''
   commentEnd: '*)'
 
 profile:
@@ -1189,50 +1110,46 @@ profile:
       task: hello
       name: standard
       requires: Main
-      source:
-        (line: 'object Main {')
-        (line: '    def main(arguments: Array[String]): Unit = {')
-        (line: '        println("{{message}}")')
-        (line: '    }')
-        (line: })
+      source: '''object Main {
+    def main(arguments: Array[String]): Unit = {
+        println("{{message}}")
+    }
+}'''
     form:
       task: hello
       name: collection
       requires: HelloWorld scala.App
-      source:
-        (line: 'object HelloWorld extends App {')
-        (line: '  println("{{message}}")')
-        (line: })
+      source: '''object HelloWorld extends App {
+  println("{{message}}")
+}'''
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: 'object Main {')
-        (line: '    def main(arguments: Array[String]): Unit = {')
-        (line: '        var left = {{left}}')
-        (line: '        var right = {{right}}')
-        (line: '        while (right != 0) {')
-        (line: '            val remainder = left % right')
-        (line: '            left = right')
-        (line: '            right = remainder')
-        (line: '        }')
-        (line: '        println(left)')
-        (line: '    }')
-        (line: })
+      source: '''object Main {
+    def main(arguments: Array[String]): Unit = {
+        var left = {{left}}
+        var right = {{right}}
+        while (right != 0) {
+            val remainder = left % right
+            left = right
+            right = remainder
+        }
+        println(left)
+    }
+}'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: 'object Main {')
-        (line: '    def main(arguments: Array[String]): Unit = {')
-        (line: '        val limit = {{limit}}')
-        (line: '        for (number <- 1 to limit) {')
-        (line: '            val label = (if (number % 3 == 0) "Fizz" else "") +')
-        (line: '                        (if (number % 5 == 0) "Buzz" else "")')
-        (line: '            println(if (label.isEmpty) number.toString else label)')
-        (line: '        }')
-        (line: '    }')
-        (line: })
+      source: '''object Main {
+    def main(arguments: Array[String]): Unit = {
+        val limit = {{limit}}
+        for (number <- 1 to limit) {
+            val label = (if (number % 3 == 0) "Fizz" else "") +
+                        (if (number % 5 == 0) "Buzz" else "")
+            println(if (label.isEmpty) number.toString else label)
+        }
+    }
+}'''
 
 profile:
   id: dart
@@ -1244,39 +1161,35 @@ profile:
     form:
       task: hello
       name: standard
-      source:
-        (line: 'void main() {')
-        (line: '    print("{{message}}");')
-        (line: })
+      source: '''void main() {
+    print("{{message}}");
+}'''
     form:
       task: hello
       name: collection
-      source:
-        (line: 'main() {')
-        (line: "   print('{{message}}');")
-        (line: })
+      source: '''main() {
+   print('{{message}}');
+}'''
     form:
       task: greatest-common-divisor
       name: standard
-      source:
-        (line: 'void main() {')
-        (line: '    var left = {{left}};')
-        (line: '    var right = {{right}};')
-        (line: '    while (right != 0) {')
-        (line: '        final remainder = left % right;')
-        (line: '        left = right;')
-        (line: '        right = remainder;')
-        (line: '    }')
-        (line: '    print(left);')
-        (line: })
+      source: '''void main() {
+    var left = {{left}};
+    var right = {{right}};
+    while (right != 0) {
+        final remainder = left % right;
+        left = right;
+        right = remainder;
+    }
+    print(left);
+}'''
     form:
       task: fizz-buzz
       name: standard
-      source:
-        (line: 'void main() {')
-        (line: '    const limit = {{limit}};')
-        (line: '    for (var number = 1; number <= limit; number++) {')
-        (line: '        final label = (number % 3 == 0 ? "Fizz" : "") + (number % 5 == 0 ? "Buzz" : "");')
-        (line: '        print(label.isEmpty ? number.toString() : label);')
-        (line: '    }')
-        (line: })
+      source: '''void main() {
+    const limit = {{limit}};
+    for (var number = 1; number <= limit; number++) {
+        final label = (number % 3 == 0 ? "Fizz" : "") + (number % 5 == 0 ? "Buzz" : "");
+        print(label.isEmpty ? number.toString() : label);
+    }
+}'''

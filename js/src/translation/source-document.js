@@ -1,4 +1,3 @@
-import { Link, formatBinaryDocument } from 'links-notation';
 import { LinkType } from 'meta-language';
 import { namedLinks, parseLinks, reference } from './links.js';
 
@@ -10,18 +9,35 @@ function isUnicodeText(value) {
   return typeof value === 'string' && !/\p{Surrogate}/u.test(value);
 }
 
+function quoteReference(text) {
+  let delimiter;
+  for (const quote of ["'", '"', '`']) {
+    if (text.startsWith(quote)) {
+      continue;
+    }
+    let longest = 0;
+    let run = 0;
+    for (const character of text) {
+      run = character === quote ? run + 1 : 0;
+      longest = Math.max(longest, run);
+    }
+    // Odd delimiter lengths cannot be confused with an empty reference.
+    const length = longest + 1 + (longest % 2);
+    if (!delimiter || length < delimiter.length) {
+      delimiter = quote.repeat(length);
+    }
+    if (length === 1) {
+      break;
+    }
+  }
+  return delimiter + text + delimiter;
+}
+
 export function writeSourceDocument(language, source) {
   if (!language || !isUnicodeText(language) || !isUnicodeText(source)) {
     throw new Error('Expected a language name and Unicode source text');
   }
-  return formatBinaryDocument([
-    new Link('source-document', [
-      new Link('language', [new Link(language)]),
-      ...splitSourceLines(source).map(
-        (line) => new Link('line', [new Link(line)])
-      ),
-    ]),
-  ]);
+  return `source-document:\n  language: ${quoteReference(language)}\n  source: ${quoteReference(source)}`;
 }
 
 export function readSourceDocument(notation) {
@@ -37,6 +53,11 @@ export function readSourceDocument(notation) {
   if (id !== 'language' || !language) {
     throw new Error('Expected a source language');
   }
+  if (body.length === 1 && body[0].id === 'source') {
+    return { language, source: reference(body[0].values) };
+  }
+
+  // Earlier documents stored a separate reference for each source line.
   const lines = namedLinks(body, 'line').map(reference);
   for (const [index, line] of lines.entries()) {
     const newline = line.indexOf('\n');

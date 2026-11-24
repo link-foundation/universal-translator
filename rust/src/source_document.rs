@@ -2,7 +2,7 @@ use crate::links;
 use links_notation::{LiNo, ParserConfig, parse_lino_to_links_with_config};
 use meta_language::{LinkId, LinkNetwork, LinkType, ParseConfiguration, grammar_provenance};
 
-/// A lossless, language-labeled representation of source lines.
+/// A lossless, language-labeled representation of source text.
 #[derive(Debug, PartialEq, Eq)]
 pub struct SourceDocument {
     pub language: String,
@@ -26,21 +26,16 @@ impl SourceDocument {
         })
     }
 
-    /// Writes each source line, including its ending, as an ordered Links Notation link.
+    /// Writes the source verbatim as a quoted Links Notation reference.
     pub fn to_links_notation(&self) -> Result<String, String> {
         if self.language.is_empty() {
             return Err("Expected a source language".into());
         }
-        let mut fields = vec![line_field("language", &self.language)];
-        fields.extend(
-            self.source
-                .split_inclusive('\n')
-                .map(|line| line_field("line", line)),
-        );
-        Ok(links_notation::binary::format_document(&[LiNo::new(
-            Some("source-document".into()),
-            fields,
-        )]))
+        Ok(format!(
+            "source-document:\n  language: {}\n  source: {}",
+            quote_reference(&self.language),
+            quote_reference(&self.source)
+        ))
     }
 
     /// Reads exactly one document and restores its source.
@@ -57,6 +52,16 @@ impl SourceDocument {
         if language.is_empty() {
             return Err("Expected a source language".into());
         }
+        if let [field] = lines {
+            if let Ok(source) = links::children(field, "source") {
+                return Ok(Self {
+                    language,
+                    source: links::reference(source)?,
+                });
+            }
+        }
+
+        // Earlier documents stored a separate reference for each source line.
         let mut source = String::new();
         for (index, line) in lines.iter().enumerate() {
             let line = links::children(line, "line")?;
@@ -150,6 +155,26 @@ fn validate_syntax_notation(notation: &str) -> Result<(), String> {
     Ok(())
 }
 
-fn line_field(name: &str, value: &str) -> links::Link {
-    LiNo::new(Some(name.into()), vec![LiNo::reference(value.to_owned())])
+fn quote_reference(text: &str) -> String {
+    let mut delimiter = String::new();
+    for quote in ['\'', '"', '`'] {
+        if text.starts_with(quote) {
+            continue;
+        }
+        let mut longest = 0;
+        let mut run = 0;
+        for character in text.chars() {
+            run = if character == quote { run + 1 } else { 0 };
+            longest = longest.max(run);
+        }
+        // Odd delimiter lengths cannot be confused with an empty reference.
+        let length = longest + 1 + (longest % 2);
+        if delimiter.is_empty() || length < delimiter.len() {
+            delimiter = quote.to_string().repeat(length);
+        }
+        if length == 1 {
+            break;
+        }
+    }
+    format!("{delimiter}{text}{delimiter}")
 }

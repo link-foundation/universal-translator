@@ -13,8 +13,13 @@ export function fixture(name) {
   return readFileSync(new URL(name, import.meta.url), 'utf8');
 }
 
+export function translationData(name) {
+  const directory = new URL('../../data/translation/', import.meta.url);
+  return readFileSync(new URL(name, directory), 'utf8');
+}
+
 export function exampleEffects() {
-  return readEffects(fixture('effects.lino'));
+  return readEffects(translationData('effects.lino'));
 }
 
 // Include zero, negative operands, both bound endpoints, and a long
@@ -183,7 +188,7 @@ export function expectedOutput(effect) {
 }
 
 export function localizedGreetings() {
-  return readEffects(fixture('localized-greetings.lino'));
+  return readEffects(translationData('localized-greetings.lino'));
 }
 
 function observation(values) {
@@ -199,7 +204,7 @@ function observation(values) {
 
 export function referentInput() {
   const [link] = namedLinks(
-    parseLinks(fixture('referent-input.lino')),
+    parseLinks(translationData('referent-input.lino')),
     'referents'
   );
   const fields = linkFields(link);

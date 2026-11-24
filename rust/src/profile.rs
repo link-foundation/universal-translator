@@ -62,10 +62,10 @@ impl Form {
         let source = if kind == "meta-language" {
             Vec::new()
         } else {
-            list_elements(links::elements(&fields, "source")?)
+            links::references(list_elements(links::elements(&fields, "source")?))?
                 .iter()
-                .map(|line| links::reference(links::children(line, "line")?))
-                .collect::<Result<_, _>>()?
+                .flat_map(|source| source.split('\n').map(str::to_owned))
+                .collect()
         };
         let fixed = fields
             .get("fixed")

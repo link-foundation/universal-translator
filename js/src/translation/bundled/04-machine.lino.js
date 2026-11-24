@@ -13,152 +13,149 @@ export default `profile:
       fixed:
         message: 'Hello, World!'
       requires: 'Linux x86-64 syscall ABI'
-      source:
-        (line: 'global _start')
-        (line: ~1{})
-        (line: 'section .rodata')
-        (line: '    message db "Hello, World!", 10')
-        (line: '    message_length equ $ - message')
-        (line: ~1{})
-        (line: 'section .text')
-        (line: '_start:')
-        (line: '    mov eax, 1')
-        (line: '    mov edi, 1')
-        (line: '    lea rsi, [rel message]')
-        (line: '    mov edx, message_length')
-        (line: '    syscall')
-        (line: ~1{})
-        (line: '    mov eax, 60')
-        (line: '    xor edi, edi')
-        (line: '    syscall')
+      source: '''global _start
+
+section .rodata
+    message db "Hello, World!", 10
+    message_length equ $ - message
+
+section .text
+_start:
+    mov eax, 1
+    mov edi, 1
+    lea rsi, [rel message]
+    mov edx, message_length
+    syscall
+
+    mov eax, 60
+    xor edi, edi
+    syscall'''
     form:
       task: greatest-common-divisor
       name: standard
       requires: 'Linux x86-64 syscall ABI'
-      source:
-        (line: 'global _start')
-        (line: ~1{})
-        (line: 'section .bss')
-        (line: '    output resb 11')
-        (line: ~1{})
-        (line: 'section .text')
-        (line: '_start:')
-        (line: '    mov eax, {{left}}')
-        (line: '    mov ecx, {{right}}')
-        (line: '.euclid:')
-        (line: '    test ecx, ecx')
-        (line: '    jz .format_decimal')
-        (line: '    xor edx, edx')
-        (line: '    div ecx')
-        (line: '    mov eax, ecx')
-        (line: '    mov ecx, edx')
-        (line: '    jmp .euclid')
-        (line: ~1{})
-        (line: '.format_decimal:')
-        (line: '    lea rsi, [rel output + 10]')
-        (line: '    mov byte [rsi], 10')
-        (line: '    mov ecx, 10')
-        (line: '.next_digit:')
-        (line: '    xor edx, edx')
-        (line: '    div ecx')
-        (line: "    add dl, '0'")
-        (line: '    dec rsi')
-        (line: '    mov [rsi], dl')
-        (line: '    test eax, eax')
-        (line: '    jnz .next_digit')
-        (line: '    lea rdx, [rel output + 11]')
-        (line: '    sub rdx, rsi')
-        (line: '    mov eax, 1')
-        (line: '    mov edi, 1')
-        (line: '    syscall')
-        (line: ~1{})
-        (line: '    mov eax, 60')
-        (line: '    xor edi, edi')
-        (line: '    syscall')
+      source: '''global _start
+
+section .bss
+    output resb 11
+
+section .text
+_start:
+    mov eax, {{left}}
+    mov ecx, {{right}}
+.euclid:
+    test ecx, ecx
+    jz .format_decimal
+    xor edx, edx
+    div ecx
+    mov eax, ecx
+    mov ecx, edx
+    jmp .euclid
+
+.format_decimal:
+    lea rsi, [rel output + 10]
+    mov byte [rsi], 10
+    mov ecx, 10
+.next_digit:
+    xor edx, edx
+    div ecx
+    add dl, '0'
+    dec rsi
+    mov [rsi], dl
+    test eax, eax
+    jnz .next_digit
+    lea rdx, [rel output + 11]
+    sub rdx, rsi
+    mov eax, 1
+    mov edi, 1
+    syscall
+
+    mov eax, 60
+    xor edi, edi
+    syscall'''
     form:
       task: fizz-buzz
       name: standard
       requires: 'Linux x86-64 syscall ABI'
-      source:
-        (line: 'global _start')
-        (line: ~1{})
-        (line: 'section .rodata')
-        (line: '    fizz db "Fizz", 10')
-        (line: '    fizz_length equ $ - fizz')
-        (line: '    buzz db "Buzz", 10')
-        (line: '    buzz_length equ $ - buzz')
-        (line: '    fizz_buzz db "FizzBuzz", 10')
-        (line: '    fizz_buzz_length equ $ - fizz_buzz')
-        (line: ~1{})
-        (line: 'section .bss')
-        (line: '    output resb 11')
-        (line: ~1{})
-        (line: 'section .text')
-        (line: '_start:')
-        (line: '    mov r12d, 1')
-        (line: '.next_number:')
-        (line: '    cmp r12d, {{limit}}')
-        (line: '    ja .finish')
-        (line: ~1{})
-        (line: '    mov eax, r12d')
-        (line: '    mov ecx, 15')
-        (line: '    xor edx, edx')
-        (line: '    div ecx')
-        (line: '    test edx, edx')
-        (line: '    jz .print_fizz_buzz')
-        (line: ~1{})
-        (line: '    mov eax, r12d')
-        (line: '    mov ecx, 3')
-        (line: '    xor edx, edx')
-        (line: '    div ecx')
-        (line: '    test edx, edx')
-        (line: '    jz .print_fizz')
-        (line: ~1{})
-        (line: '    mov eax, r12d')
-        (line: '    mov ecx, 5')
-        (line: '    xor edx, edx')
-        (line: '    div ecx')
-        (line: '    test edx, edx')
-        (line: '    jz .print_buzz')
-        (line: ~1{})
-        (line: '    mov eax, r12d')
-        (line: '    lea rsi, [rel output + 10]')
-        (line: '    mov byte [rsi], 10')
-        (line: '    mov ecx, 10')
-        (line: '.next_digit:')
-        (line: '    xor edx, edx')
-        (line: '    div ecx')
-        (line: "    add dl, '0'")
-        (line: '    dec rsi')
-        (line: '    mov [rsi], dl')
-        (line: '    test eax, eax')
-        (line: '    jnz .next_digit')
-        (line: '    lea rdx, [rel output + 11]')
-        (line: '    sub rdx, rsi')
-        (line: '    jmp .write_line')
-        (line: ~1{})
-        (line: '.print_fizz_buzz:')
-        (line: '    lea rsi, [rel fizz_buzz]')
-        (line: '    mov edx, fizz_buzz_length')
-        (line: '    jmp .write_line')
-        (line: '.print_fizz:')
-        (line: '    lea rsi, [rel fizz]')
-        (line: '    mov edx, fizz_length')
-        (line: '    jmp .write_line')
-        (line: '.print_buzz:')
-        (line: '    lea rsi, [rel buzz]')
-        (line: '    mov edx, buzz_length')
-        (line: '.write_line:')
-        (line: '    mov eax, 1')
-        (line: '    mov edi, 1')
-        (line: '    syscall')
-        (line: '    inc r12d')
-        (line: '    jmp .next_number')
-        (line: ~1{})
-        (line: '.finish:')
-        (line: '    mov eax, 60')
-        (line: '    xor edi, edi')
-        (line: '    syscall')
+      source: '''global _start
+
+section .rodata
+    fizz db "Fizz", 10
+    fizz_length equ $ - fizz
+    buzz db "Buzz", 10
+    buzz_length equ $ - buzz
+    fizz_buzz db "FizzBuzz", 10
+    fizz_buzz_length equ $ - fizz_buzz
+
+section .bss
+    output resb 11
+
+section .text
+_start:
+    mov r12d, 1
+.next_number:
+    cmp r12d, {{limit}}
+    ja .finish
+
+    mov eax, r12d
+    mov ecx, 15
+    xor edx, edx
+    div ecx
+    test edx, edx
+    jz .print_fizz_buzz
+
+    mov eax, r12d
+    mov ecx, 3
+    xor edx, edx
+    div ecx
+    test edx, edx
+    jz .print_fizz
+
+    mov eax, r12d
+    mov ecx, 5
+    xor edx, edx
+    div ecx
+    test edx, edx
+    jz .print_buzz
+
+    mov eax, r12d
+    lea rsi, [rel output + 10]
+    mov byte [rsi], 10
+    mov ecx, 10
+.next_digit:
+    xor edx, edx
+    div ecx
+    add dl, '0'
+    dec rsi
+    mov [rsi], dl
+    test eax, eax
+    jnz .next_digit
+    lea rdx, [rel output + 11]
+    sub rdx, rsi
+    jmp .write_line
+
+.print_fizz_buzz:
+    lea rsi, [rel fizz_buzz]
+    mov edx, fizz_buzz_length
+    jmp .write_line
+.print_fizz:
+    lea rsi, [rel fizz]
+    mov edx, fizz_length
+    jmp .write_line
+.print_buzz:
+    lea rsi, [rel buzz]
+    mov edx, buzz_length
+.write_line:
+    mov eax, 1
+    mov edi, 1
+    syscall
+    inc r12d
+    jmp .next_number
+
+.finish:
+    mov eax, 60
+    xor edi, edi
+    syscall'''
 
 profile:
   id: gas-aarch64
@@ -174,25 +171,24 @@ profile:
       fixed:
         message: 'Hello, World!'
       requires: 'Linux AArch64 syscall ABI'
-      source:
-        (line: '.global _start')
-        (line: ~1{})
-        (line: '.section .rodata')
-        (line: 'message:')
-        (line: '    .ascii "Hello, World!\\n"')
-        (line: '.equ message_length, . - message')
-        (line: ~1{})
-        (line: .text)
-        (line: '_start:')
-        (line: '    mov x0, #1')
-        (line: '    adr x1, message')
-        (line: '    mov x2, #message_length')
-        (line: '    mov x8, #64')
-        (line: '    svc #0')
-        (line: ~1{})
-        (line: '    mov x0, #0')
-        (line: '    mov x8, #93')
-        (line: '    svc #0')
+      source: '''.global _start
+
+.section .rodata
+message:
+    .ascii "Hello, World!\\n"
+.equ message_length, . - message
+
+.text
+_start:
+    mov x0, #1
+    adr x1, message
+    mov x2, #message_length
+    mov x8, #64
+    svc #0
+
+    mov x0, #0
+    mov x8, #93
+    svc #0'''
 
 profile:
   id: llvm-ir
@@ -208,15 +204,14 @@ profile:
       fixed:
         message: 'Hello, World!'
       requires: 'libc puts'
-      source:
-        (line: '@message = private constant [14 x i8] c"Hello, World!\\00"')
-        (line: ~1{})
-        (line: 'declare i32 @puts(ptr)')
-        (line: ~1{})
-        (line: 'define i32 @main() {')
-        (line: '  call i32 @puts(ptr @message)')
-        (line: '  ret i32 0')
-        (line: })
+      source: '''@message = private constant [14 x i8] c"Hello, World!\\00"
+
+declare i32 @puts(ptr)
+
+define i32 @main() {
+  call i32 @puts(ptr @message)
+  ret i32 0
+}'''
 
 profile:
   id: cil
@@ -232,22 +227,21 @@ profile:
       fixed:
         message: 'Hello, World!'
       requires: mscorlib HelloWorld
-      source:
-        (line: '.assembly extern mscorlib {}')
-        (line: '.assembly HelloWorld {}')
-        (line: '.module HelloWorld.exe')
-        (line: ~1{})
-        (line: '.class private auto ansi HelloWorld extends [mscorlib]System.Object')
-        (line: {)
-        (line: '    .method public hidebysig static void Main() cil managed')
-        (line: '    {')
-        (line: '        .entrypoint')
-        (line: '        .maxstack 1')
-        (line: '        ldstr "Hello, World!"')
-        (line: '        call void [mscorlib]System.Console::WriteLine(string)')
-        (line: '        ret')
-        (line: '    }')
-        (line: })
+      source: '''.assembly extern mscorlib {}
+.assembly HelloWorld {}
+.module HelloWorld.exe
+
+.class private auto ansi HelloWorld extends [mscorlib]System.Object
+{
+    .method public hidebysig static void Main() cil managed
+    {
+        .entrypoint
+        .maxstack 1
+        ldstr "Hello, World!"
+        call void [mscorlib]System.Console::WriteLine(string)
+        ret
+    }
+}'''
 
 profile:
   id: jvm-jasmin
@@ -263,16 +257,15 @@ profile:
       fixed:
         message: 'Hello, World!'
       requires: Main java/lang/System/out
-      source:
-        (line: '.class public Main')
-        (line: '.super java/lang/Object')
-        (line: ~1{})
-        (line: '.method public static main([Ljava/lang/String;)V')
-        (line: '    .limit stack 2')
-        (line: '    .limit locals 1')
-        (line: '    getstatic java/lang/System/out Ljava/io/PrintStream;')
-        (line: '    ldc "Hello, World!"')
-        (line: '    invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V')
-        (line: '    return')
-        (line: '.end method')
+      source: '''.class public Main
+.super java/lang/Object
+
+.method public static main([Ljava/lang/String;)V
+    .limit stack 2
+    .limit locals 1
+    getstatic java/lang/System/out Ljava/io/PrintStream;
+    ldc "Hello, World!"
+    invokevirtual java/io/PrintStream/println(Ljava/lang/String;)V
+    return
+.end method'''
 `;

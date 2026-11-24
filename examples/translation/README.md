@@ -64,11 +64,10 @@ node bin/universal-translator.js encode-source C examples/translation/hello.c > 
 cargo run --locked -- decode-source /tmp/hello-source.lino | cmp examples/translation/hello.c -
 ```
 
-The source document stores the language label and an ordered link for each
-UTF-8 line, including its ending. The two runtimes accept each other's
-documents. A source document supports exact restoration for any language
-label. The effect intermediate supports translation for admitted program
-forms.
+The indented source document stores the language label and a single quoted
+source value. Blank lines, whitespace and line endings inside the quoted
+value are preserved verbatim. Both runtimes can also read older documents
+that store one link per source line.
 
 ## Exchange a grammar tree
 
@@ -365,8 +364,10 @@ evaluated referent example uses
 synthetic observations to show how a narrower description and exact reverse
 translation affect rankings.
 
-Edit profile data in `data` and run
-`node scripts/bundle-translation-profiles.mjs` to refresh the browser-compatible
-JavaScript bundle. Rust reads the same Links Notation source at build time.
+Edit profile data in `data` and shared verification fixtures in
+`data/translation`. Node.js, Bun and Deno load the profiles directly from
+`data`. Rust embeds those files at build time. Run
+`node scripts/bundle-translation-profiles.mjs` after editing profiles to
+refresh the copy used by browser bundlers.
 The [corpus coverage report](../../docs/case-studies/issue-1/README.md#coverage)
 records which tasks and ranked languages the catalog supports.
