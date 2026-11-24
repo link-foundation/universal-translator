@@ -35,6 +35,7 @@ use std::fmt;
 use std::sync::Arc;
 
 pub use crate::Mode;
+use crate::natural;
 pub use meta::Node;
 
 /// A failure to read, lower or write a program. Syntax errors name the
@@ -167,6 +168,22 @@ impl Translator {
 
     /// Read a source text into a typed meta program.
     pub fn to_meta(&self, source: &str, from: &str) -> Result<Node, GrammarError> {
+        if natural::is_natural_language(from) {
+            // A controlled natural language is read sentence by sentence
+            // straight into the meta language; it has no source details to
+            // understand.
+            let read = natural::read_natural(source, from).map_err(GrammarError::new)?;
+            let read = rules::infer_mutability(read);
+            self.report("read", &read);
+            let settings = Settings {
+                from: from.to_owned(),
+                to: from.to_owned(),
+                mode: Mode::default(),
+            };
+            let typed = apply_rules(types::infer_types(read), &self.meaning, &settings);
+            self.report("typed", &typed);
+            return Ok(typed);
+        }
         let syntax = languages::language_syntax(from)?;
         let settings = Settings {
             from: from.to_owned(),
@@ -217,12 +234,26 @@ impl Translator {
         from: Option<&str>,
         options: Options,
     ) -> Result<String, GrammarError> {
-        let syntax = languages::language_syntax(to)?;
-        if options.common_library && syntax.machine {
+        let natural = natural::is_natural_language(to);
+        if natural && options.common_library {
+            return Err(GrammarError::new(format!(
+                "Natural languages have no common library ({to})"
+            )));
+        }
+        let syntax = if natural {
+            None
+        } else {
+            Some(languages::language_syntax(to)?)
+        };
+        let machine = syntax.as_ref().is_some_and(|syntax| syntax.machine);
+        if options.common_library && machine {
             return Err(GrammarError::new(format!(
                 "Machine targets have no common library ({to})"
             )));
         }
+        // Words carry no syntax of their own, so a program read from words
+        // is adapted as if it had been written in the target language.
+        let from = from.filter(|from| !natural::is_natural_language(from));
         let settings = Settings {
             from: from.unwrap_or(to).to_owned(),
             to: to.to_owned(),
@@ -238,9 +269,12 @@ impl Translator {
             transformed = common_library::use_common_library(transformed)?;
         }
         self.report("transformed", &transformed);
+        if natural {
+            return natural::write_natural(&transformed, to).map_err(GrammarError::new);
+        }
         let adapted = apply_rules(transformed, &self.context, &settings);
         self.report("adapted", &adapted);
-        if syntax.machine {
+        if machine {
             machine::emit_machine(&adapted, to)
         } else {
             emitter::emit_program(&adapted, to)
@@ -279,6 +313,28 @@ impl Translator {
 /// listing order.
 pub fn language_ids() -> Vec<&'static str> {
     languages::language_ids()
+}
+
+/// A controlled natural language the translator reads and writes.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct NaturalLanguage {
+    pub id: &'static str,
+    pub label: &'static str,
+    /// The language a profile extends.
+    pub base: Option<&'static str>,
+}
+
+/// The controlled natural languages and profiles, in listing order.
+pub fn natural_languages() -> Vec<NaturalLanguage> {
+    natural::natural_language_ids()
+        .into_iter()
+        .filter_map(|id| natural::natural_language(id).ok())
+        .map(|language| NaturalLanguage {
+            id: &language.id,
+            label: &language.label,
+            base: language.base.as_deref(),
+        })
+        .collect()
 }
 
 /// The identifiers of the machine targets.
