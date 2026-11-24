@@ -6,6 +6,7 @@
 .method public static factorial(J)J
     .limit stack 9
     .limit locals 2
+    .var 0 is number J
     lload 0
     ldc2_w 1
     lcmp
@@ -27,6 +28,7 @@ L2:
 .method public static main([Ljava/lang/String;)V
     .limit stack 7
     .limit locals 3
+    .var 1 is number J
     ldc2_w 0
     lstore 1
 L1:

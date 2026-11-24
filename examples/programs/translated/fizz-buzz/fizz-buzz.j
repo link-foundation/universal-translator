@@ -6,6 +6,7 @@
 .method public static main([Ljava/lang/String;)V
     .limit stack 7
     .limit locals 3
+    .var 1 is number J
     ldc2_w 1
     lstore 1
 L1:

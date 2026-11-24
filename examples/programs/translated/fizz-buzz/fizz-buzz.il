@@ -11,7 +11,7 @@
     {
         .entrypoint
         .maxstack 2
-        .locals init (int64)
+        .locals init (int64 number)
         ldc.i8 1
         stloc 0
       L1:

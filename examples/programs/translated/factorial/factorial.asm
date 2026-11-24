@@ -12,11 +12,13 @@ text_0: db "! = ", 0
 
 section .text
 factorial:
+    %push factorial
+    %define %$number qword [rbp - 8]
     push rbp
     mov rbp, rsp
     sub rsp, 16
-    mov qword [rbp - 8], rdi
-    push qword [rbp - 8]
+    mov %$number, rdi
+    push %$number
     push 1
     pop rcx
     pop rax
@@ -29,8 +31,8 @@ factorial:
     jmp .L2
 .L1:
 .L2:
-    push qword [rbp - 8]
-    push qword [rbp - 8]
+    push %$number
+    push %$number
     push 1
     pop rcx
     pop rax
@@ -46,46 +48,50 @@ factorial:
     pop rax
     leave
     ret
+    %pop
 
 main:
+    %push main
+    %define %$number qword [rbp - 8]
     push rbp
     mov rbp, rsp
     sub rsp, 16
     push 0
     pop rax
-    mov qword [rbp - 8], rax
+    mov %$number, rax
 .L1:
-    push qword [rbp - 8]
+    push %$number
     push 11
     pop rcx
     pop rax
     cmp rax, rcx
     jge .L2
-    push qword [rbp - 8]
+    push %$number
     pop rdi
     call print_integer
     lea rdi, [text_0]
     call print_text
-    push qword [rbp - 8]
+    push %$number
     pop rdi
     call factorial
     push rax
     pop rdi
     call print_integer
     call print_newline
-    push qword [rbp - 8]
+    push %$number
     push 1
     pop rcx
     pop rax
     add rax, rcx
     push rax
     pop rax
-    mov qword [rbp - 8], rax
+    mov %$number, rax
     jmp .L1
 .L2:
     xor eax, eax
     leave
     ret
+    %pop
 
 print_integer:
     push rbp

@@ -6,6 +6,9 @@
 .method public static greatestCommonDivisor(JJ)J
     .limit stack 7
     .limit locals 6
+    .var 0 is first J
+    .var 2 is second J
+    .var 4 is remainder J
 L1:
     lload 2
     ldc2_w 0

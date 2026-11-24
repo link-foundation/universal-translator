@@ -7,10 +7,10 @@
 .class public abstract sealed auto ansi Program
   extends [System.Runtime]System.Object
 {
-    .method public static int64 SumOfSquares(int64) cil managed
+    .method public static int64 SumOfSquares(int64 limit) cil managed
     {
         .maxstack 3
-        .locals init (int64, int64)
+        .locals init (int64 total, int64 number)
         ldc.i8 0
         stloc 0
         ldc.i8 1
@@ -39,7 +39,7 @@
     {
         .entrypoint
         .maxstack 1
-        .locals init (int64)
+        .locals init (int64 limit)
         ldc.i8 10
         stloc 0
         ldstr "Sum of squares from 1 to "

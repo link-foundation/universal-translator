@@ -7,7 +7,7 @@
 .class public abstract sealed auto ansi Program
   extends [System.Runtime]System.Object
 {
-    .method public static int64 Factorial(int64) cil managed
+    .method public static int64 Factorial(int64 number) cil managed
     {
         .maxstack 3
         ldarg 0
@@ -31,7 +31,7 @@
     {
         .entrypoint
         .maxstack 2
-        .locals init (int64)
+        .locals init (int64 number)
         ldc.i8 0
         stloc 0
       L1:

@@ -74,11 +74,21 @@ const nasmArithmetic = {
 };
 const argumentRegisters = ['rdi', 'rsi', 'rdx', 'rcx', 'r8', 'r9'];
 
+// Each procedure names its stack slots with context-local macros, such as
+// "%$remainder", so the names cannot clash with labels or procedures.
 function nasmProcedure(item, texts) {
-  const offset = (slot) => `qword [rbp - ${8 * (slot + 1)}]`;
+  const offset = (slot) => `%$${item.slotNames[slot]}`;
   const frame = Math.ceil(item.slotCount / 2) * 16;
   const lines = [...comments(';', item.comments), `${item.name}:`];
-  const body = ['push rbp', 'mov rbp, rsp'];
+  const body = [
+    `%push ${item.name}`,
+    ...item.slotNames.map(
+      (slotName, slot) =>
+        `%define %$${slotName} qword [rbp - ${8 * (slot + 1)}]`
+    ),
+    'push rbp',
+    'mov rbp, rsp',
+  ];
   if (frame) {
     body.push(`sub rsp, ${frame}`);
   }
@@ -132,6 +142,7 @@ function nasmProcedure(item, texts) {
   for (const [operation, ...operands] of item.code) {
     body.push(...instructions[operation](...operands));
   }
+  body.push('%pop');
   return [
     ...lines,
     ...body.map((line) =>
@@ -230,11 +241,11 @@ function cilText(text) {
 function cilMethod(item, signatures, entryName) {
   const isMain = item.name === 'main';
   const name = isMain ? entryName : item.name;
-  const parameters = Array.from(
-    { length: item.parameterCount },
-    () => 'int64'
-  ).join(', ');
-  const localCount = item.slotCount - item.parameterCount;
+  const parameters = item.slotNames
+    .slice(0, item.parameterCount)
+    .map((slotName) => `int64 ${slotName}`)
+    .join(', ');
+  const locals = item.slotNames.slice(item.parameterCount);
   const access = (slot, argument, local) =>
     slot < item.parameterCount
       ? `${argument} ${slot}`
@@ -267,9 +278,9 @@ function cilMethod(item, signatures, entryName) {
   const body = [
     ...(isMain ? ['.entrypoint'] : []),
     `.maxstack ${Math.max(item.maxDepth, 1)}`,
-    ...(localCount
+    ...(locals.length
       ? [
-          `.locals init (${Array.from({ length: localCount }, () => 'int64').join(', ')})`,
+          `.locals init (${locals.map((slotName) => `int64 ${slotName}`).join(', ')})`,
         ]
       : []),
   ];
@@ -393,6 +404,9 @@ function jvmMethod(item, descriptors) {
   const body = [
     `.limit stack ${2 * item.maxDepth + 3}`,
     `.limit locals ${base + 2 * item.slotCount}`,
+    ...item.slotNames.map(
+      (slotName, index) => `.var ${slot(index)} is ${slotName} J`
+    ),
   ];
   for (const [operation, ...operands] of item.code) {
     body.push(...write[operation](...operands));

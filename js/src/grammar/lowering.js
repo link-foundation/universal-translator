@@ -356,6 +356,7 @@ class FunctionLowering {
       name: this.name,
       parameterCount: this.parameterCount,
       slotCount: this.slots.size,
+      slotNames: [...this.slots.keys()],
       returns: this.returns,
       maxDepth: this.maxDepth,
       comments,

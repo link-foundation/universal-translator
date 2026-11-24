@@ -12,20 +12,24 @@ text_0: db "The greatest common divisor of 1071 and 462 is ", 0
 
 section .text
 greatest_common_divisor:
+    %push greatest_common_divisor
+    %define %$first qword [rbp - 8]
+    %define %$second qword [rbp - 16]
+    %define %$remainder qword [rbp - 24]
     push rbp
     mov rbp, rsp
     sub rsp, 32
-    mov qword [rbp - 8], rdi
-    mov qword [rbp - 16], rsi
+    mov %$first, rdi
+    mov %$second, rsi
 .L1:
-    push qword [rbp - 16]
+    push %$second
     push 0
     pop rcx
     pop rax
     cmp rax, rcx
     je .L2
-    push qword [rbp - 8]
-    push qword [rbp - 16]
+    push %$first
+    push %$second
     pop rcx
     pop rax
     cqo
@@ -33,21 +37,23 @@ greatest_common_divisor:
     mov rax, rdx
     push rax
     pop rax
-    mov qword [rbp - 24], rax
-    push qword [rbp - 16]
+    mov %$remainder, rax
+    push %$second
     pop rax
-    mov qword [rbp - 8], rax
-    push qword [rbp - 24]
+    mov %$first, rax
+    push %$remainder
     pop rax
-    mov qword [rbp - 16], rax
+    mov %$second, rax
     jmp .L1
 .L2:
-    push qword [rbp - 8]
+    push %$first
     pop rax
     leave
     ret
+    %pop
 
 main:
+    %push main
     push rbp
     mov rbp, rsp
     lea rdi, [text_0]
@@ -64,6 +70,7 @@ main:
     xor eax, eax
     leave
     ret
+    %pop
 
 print_integer:
     push rbp

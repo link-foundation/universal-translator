@@ -13,6 +13,7 @@ text_0: db "Hello World!", 0
 
 section .text
 main:
+    %push main
     push rbp
     mov rbp, rsp
     lea rdi, [text_0]
@@ -21,6 +22,7 @@ main:
     xor eax, eax
     leave
     ret
+    %pop
 
 print_integer:
     push rbp

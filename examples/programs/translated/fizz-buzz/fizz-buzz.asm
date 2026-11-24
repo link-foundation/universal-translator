@@ -14,20 +14,22 @@ text_2: db "Buzz", 0
 
 section .text
 main:
+    %push main
+    %define %$number qword [rbp - 8]
     push rbp
     mov rbp, rsp
     sub rsp, 16
     push 1
     pop rax
-    mov qword [rbp - 8], rax
+    mov %$number, rax
 .L1:
-    push qword [rbp - 8]
+    push %$number
     push 101
     pop rcx
     pop rax
     cmp rax, rcx
     jge .L2
-    push qword [rbp - 8]
+    push %$number
     push 15
     pop rcx
     pop rax
@@ -45,7 +47,7 @@ main:
     call print_newline
     jmp .L4
 .L3:
-    push qword [rbp - 8]
+    push %$number
     push 3
     pop rcx
     pop rax
@@ -63,7 +65,7 @@ main:
     call print_newline
     jmp .L6
 .L5:
-    push qword [rbp - 8]
+    push %$number
     push 5
     pop rcx
     pop rax
@@ -81,26 +83,27 @@ main:
     call print_newline
     jmp .L8
 .L7:
-    push qword [rbp - 8]
+    push %$number
     pop rdi
     call print_integer
     call print_newline
 .L8:
 .L6:
 .L4:
-    push qword [rbp - 8]
+    push %$number
     push 1
     pop rcx
     pop rax
     add rax, rcx
     push rax
     pop rax
-    mov qword [rbp - 8], rax
+    mov %$number, rax
     jmp .L1
 .L2:
     xor eax, eax
     leave
     ret
+    %pop
 
 print_integer:
     push rbp

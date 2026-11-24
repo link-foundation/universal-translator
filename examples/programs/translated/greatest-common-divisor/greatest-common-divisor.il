@@ -7,10 +7,10 @@
 .class public abstract sealed auto ansi Program
   extends [System.Runtime]System.Object
 {
-    .method public static int64 GreatestCommonDivisor(int64, int64) cil managed
+    .method public static int64 GreatestCommonDivisor(int64 first, int64 second) cil managed
     {
         .maxstack 2
-        .locals init (int64)
+        .locals init (int64 remainder)
       L1:
         ldarg 1
         ldc.i8 0
