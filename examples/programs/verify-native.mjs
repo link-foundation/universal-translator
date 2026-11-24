@@ -63,6 +63,7 @@ export const libraryFiles = {
   // A package specification and its body.
   ada: ['common_library.ads', 'common_library.adb'],
   vb: 'CommonLibrary.vb',
+  bash: 'common_library.sh',
 };
 const libraryFolder = join(folder, '..', '..', 'common-library');
 
@@ -94,6 +95,7 @@ export const extensions = {
   fortran: '.f90',
   ada: '.adb',
   vb: '.vb',
+  bash: '.sh',
   nasm: '.asm',
   cil: '.il',
   jvm: '.j',
@@ -353,6 +355,7 @@ const runners = {
   },
   csharp: { tool: 'dotnet', run: (file, library) => dotnet(file, library) },
   vb: { tool: 'dotnet', run: (file, library) => dotnet(file, library) },
+  bash: { tool: 'bash', run: (file) => run('bash', [file]) },
   nasm: {
     tool: 'nasm',
     run: (file) => (

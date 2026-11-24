@@ -69,6 +69,7 @@ export const commonLibraryAccess = {
   fortran: { imports: () => ['use common_library'] },
   ada: { imports: () => ['Common_Library'] },
   vb: { prefix: 'CommonLibrary.' },
+  bash: { imports: () => ['source "$(dirname "$0")/common_library.sh"'] },
 };
 
 const call = (operation, argument) =>

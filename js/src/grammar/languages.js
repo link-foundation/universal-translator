@@ -654,6 +654,22 @@ export const languages = {
     types: { integer: 'Long', text: 'String', boolean: 'Boolean', nothing: '' },
     terms: { call: 'procedure call', routine: 'procedure' },
   },
+  bash: {
+    naming: 'snake',
+    label: 'Bash',
+    // Commands, arithmetic and quoting are in dialects/bash.js.
+    blocks: 'keywords',
+    lineComment: '#',
+    quotes: ['"', "'"],
+    declarations: ['local'],
+    variableSigil: '$',
+    operators: { ...braceOperators, integerDivide: '/' },
+    compoundAssignment: false,
+    words: { true: '1', false: '0' },
+    entryPoint: 'top-level',
+    typed: false,
+    terms: { call: 'function call', routine: 'function' },
+  },
 };
 
 // How a language spells a declared name with the given role.
