@@ -16,6 +16,7 @@
 
 import { walk } from './meta.js';
 import { neutralName } from './names.js';
+import { raiseTruthFunctions } from './truth.js';
 
 const opposite = {
   equal: 'notEqual',
@@ -623,7 +624,7 @@ export function liftProgram(machine) {
     }
     return booleanFunctions.has(neutralName(item.name)) ? 'boolean' : 'integer';
   };
-  return {
+  return raiseTruthFunctions({
     kind: 'Program',
     comments: machine.comments,
     imports: [],
@@ -637,5 +638,5 @@ export function liftProgram(machine) {
     main: new FunctionLifting(machine.main, functions, booleanFunctions).lift()
       .body,
     mainComments: machine.main.comments,
-  };
+  });
 }

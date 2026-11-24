@@ -24,6 +24,7 @@ use super::GrammarError;
 use super::lowering::{Instruction, LoweredProgram, Procedure};
 use super::meta::{Node, Value, binary, block, name, number, text, walk};
 use super::names::neutral_name;
+use super::truth::raise_truth_functions;
 
 type Result<T> = std::result::Result<T, GrammarError>;
 
@@ -882,10 +883,12 @@ pub fn lift_program(machine: &LoweredProgram) -> Result<Node> {
         );
     }
     let (_, main) = FunctionLifting::new(&machine.main, &functions, &boolean_functions).lift()?;
-    Ok(Node::new("Program")
-        .with("comments", machine.comments.clone())
-        .with("imports", Value::List(Vec::new()))
-        .with("functions", lifted_functions)
-        .with("main", main)
-        .with("mainComments", machine.main.comments.clone()))
+    Ok(raise_truth_functions(
+        Node::new("Program")
+            .with("comments", machine.comments.clone())
+            .with("imports", Value::List(Vec::new()))
+            .with("functions", lifted_functions)
+            .with("main", main)
+            .with("mainComments", machine.main.comments.clone()),
+    ))
 }

@@ -40,8 +40,8 @@ layers.
 - Hello World Collection and Rosetta Code are the source of the tasks. The
   examples are crafted versions of hello world, factorial, greatest common
   divisor, FizzBuzz, sum of squares, Fibonacci sequence, Ackermann
-  function, Towers of Hanoi, leap year, sum of digits and the hailstone
-  sequence, written so that they translate
+  function, Towers of Hanoi, leap year, sum of digits, the hailstone
+  sequence, 99 bottles of beer and primality by trial division, written so that they translate
   naturally. This is what the issue asks for ("if any examples are missing
   in original we craft them perfectly").
 - Machine targets work with 64-bit integers and printed text. Other values

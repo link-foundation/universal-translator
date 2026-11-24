@@ -47,4 +47,25 @@ describe('Rosetta Code translation rules', () => {
     const r = to(code, 'r');
     expect(translator.translate(r, 'r', 'javascript')).toContain('for (');
   });
+
+  it('lowers other C-style loops into a while loop', () => {
+    const code = 'for (let n = 3; n > 0; n--) {\n  console.log(n);\n}\n';
+    const python = to(code, 'python');
+    expect(python).toContain('n = 3\nwhile n > 0:');
+    expect(python).toContain('n -= 1');
+  });
+
+  it('reads 0 and 1 returned by Perl conditions as booleans', () => {
+    const code =
+      'function odd(n) {\n  if (n % 2 === 0) {\n    return false;\n  }\n  return true;\n}\nif (odd(3)) {\n  console.log(3);\n}\n';
+    const perl = to(code, 'perl');
+    expect(perl).toContain('return 0;');
+    expect(translator.translate(perl, 'perl', 'python')).toContain(
+      'return False'
+    );
+    const nasm = to(code, 'nasm');
+    expect(translator.translate(nasm, 'nasm', 'python')).toContain(
+      'if odd(3):'
+    );
+  });
 });

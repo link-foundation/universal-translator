@@ -11,6 +11,7 @@ import {
 } from './common-library.js';
 import { block, node, rewrite, text } from './meta.js';
 import { countingLoops } from './lifting.js';
+import { raiseTruthFunctions } from './truth.js';
 import { languageSyntax, namingConvention } from './languages.js';
 import {
   avoidReserved,
@@ -565,6 +566,12 @@ export function raiseCountingLoops(program) {
   );
 }
 
+// Perl writes true and false as 1 and 0.
+export function raiseTruthValues(program, context = {}) {
+  const words = context.from && languageSyntax(context.from).words;
+  return words?.true === '1' ? raiseTruthFunctions(program) : program;
+}
+
 export const understandingRules = [
   findEntryPoint,
   concatenationOperator,
@@ -575,6 +582,7 @@ export const understandingRules = [
   dropParameterCopies,
   declareOnFirstAssignment,
   raiseCountingLoops,
+  raiseTruthValues,
   inferMutability,
   dropSourceDetails,
   neutralNames,

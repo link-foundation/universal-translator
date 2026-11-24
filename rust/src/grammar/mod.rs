@@ -28,6 +28,7 @@ pub mod meta;
 pub mod names;
 pub mod parser;
 pub mod rules;
+pub mod truth;
 pub mod types;
 
 use std::fmt;

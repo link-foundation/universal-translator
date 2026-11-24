@@ -13,6 +13,7 @@ use super::languages::{ImmutableParameters, IntegerDivision, Syntax, language_sy
 use super::lifting::counting_loops;
 use super::meta::{Node, binary, block, rewrite, rewrite_opt, text, walk};
 use super::names::{avoid_reserved, name_words, neutral_name, rename_declared, spell_name};
+use super::truth::raise_truth_functions;
 use super::{Mode, Rule, Settings};
 
 fn rule(name: &str, apply: impl Fn(Node, &Settings) -> Node + Send + Sync + 'static) -> Rule {
@@ -44,6 +45,7 @@ pub fn understanding_rules() -> Vec<Rule> {
         rule("raiseCountingLoops", |program, _| {
             raise_counting_loops(program)
         }),
+        rule("raiseTruthValues", raise_truth_values),
         rule("inferMutability", |program, _| infer_mutability(program)),
         rule("dropSourceDetails", |program, _| {
             drop_source_details(program)
@@ -85,6 +87,18 @@ pub fn raise_counting_loops(program: Node) -> Node {
         }
         current
     })
+}
+
+/// Perl writes true and false as 1 and 0.
+pub fn raise_truth_values(program: Node, settings: &Settings) -> Node {
+    let words = language_syntax(&settings.from)
+        .ok()
+        .and_then(|syntax| syntax.words);
+    if words.is_some_and(|(truth, _)| truth == "1") {
+        raise_truth_functions(program)
+    } else {
+        program
+    }
 }
 
 fn flatten_classes(items: Vec<Node>) -> Vec<Node> {

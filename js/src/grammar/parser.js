@@ -155,7 +155,9 @@ class Parser {
     const items = [];
     this.skipSeparators();
     while (!done()) {
-      items.push(this.item());
+      // A C-style loop that is not a counting loop becomes several statements.
+      const item = this.item();
+      items.push(...(item.kind === 'Statements' ? item.statements : [item]));
       this.skipSeparators();
     }
     return items;
@@ -887,18 +889,18 @@ class Parser {
   }
 
   forUpdate() {
-    const variable = this.expectName();
-    const operator = this.next().value;
-    if (operator === '++') {
-      return { name: variable, step: 1 };
+    const name = this.expectName();
+    const written = this.next().value;
+    if (stepOperators[written]) {
+      return { name, operator: stepOperators[written], value: number(1) };
     }
-    if (operator === '+=') {
-      return { name: variable, step: this.expression().value };
+    if (!['+=', '-=', '*=', '/=', '='].includes(written)) {
+      throw new SyntaxError(
+        `Unsupported loop update "${written}"`,
+        this.peek().line
+      );
     }
-    throw new SyntaxError(
-      'Only counting loops with increasing steps are supported',
-      this.peek().line
-    );
+    return { name, operator: written, value: this.expression() };
   }
 
   rangeExpression() {
@@ -1236,26 +1238,42 @@ function calleeName(expression) {
   return expression.name;
 }
 
+// `for (i = a; i < b; i++)` is a counting loop. Every other C-style loop
+// becomes its initial assignment followed by a while loop that ends with
+// the update.
 function countingLoop(initial, condition, update, body) {
   const variable = initial.name;
-  const ok =
+  const counting =
     (initial.kind === 'Declaration' || initial.kind === 'Assignment') &&
     condition.kind === 'Binary' &&
+    ['less', 'lessOrEqual'].includes(condition.operator) &&
     condition.left.kind === 'Name' &&
     condition.left.name === variable &&
     update.name === variable &&
-    update.step === 1;
-  if (!ok || !['less', 'lessOrEqual'].includes(condition.operator)) {
-    throw new SyntaxError(
-      'Only counting loops of the form for (i = a; i < b; i++) are supported',
-      0
-    );
+    update.operator === '+=' &&
+    update.value.kind === 'Number' &&
+    update.value.value === 1;
+  if (counting) {
+    const end =
+      condition.operator === 'less'
+        ? condition.right
+        : add(condition.right, number(1));
+    return node('CountingLoop', { variable, start: initial.value, end, body });
   }
-  const end =
-    condition.operator === 'less'
-      ? condition.right
-      : add(condition.right, number(1));
-  return node('CountingLoop', { variable, start: initial.value, end, body });
+  const start =
+    initial.kind === 'Declaration'
+      ? node('Assignment', {
+          name: initial.name,
+          operator: '=',
+          value: initial.value,
+        })
+      : initial;
+  const step = node('Assignment', update);
+  const loop = node('While', {
+    condition,
+    body: block([...body.statements, step]),
+  });
+  return node('Statements', { statements: [start, loop] });
 }
 
 // Map a source type spelling to a meta type.

@@ -87,7 +87,8 @@ struct Range {
 /// The step of a C-style loop update such as `i++` or `i += 1`.
 struct Update {
     name: String,
-    step: Option<f64>,
+    operator: String,
+    value: Node,
 }
 
 /// Binary operators by precedence level with their spellings.
@@ -300,7 +301,13 @@ impl Parser {
         let mut items = Vec::new();
         self.skip_separators();
         while !done(self) {
-            items.push(self.item()?);
+            // A C-style loop that is not a counting loop becomes several statements.
+            let item = self.item()?;
+            if item.is("Statements") {
+                items.extend(item.node_list("statements"));
+            } else {
+                items.push(item);
+            }
             self.skip_separators();
         }
         Ok(items)
@@ -1026,25 +1033,26 @@ impl Parser {
     }
 
     fn for_update(&mut self) -> Parsed<Update> {
-        let variable = self.expect_name()?;
-        let operator = self.next_value()?;
-        match operator.as_str() {
-            "++" => Ok(Update {
-                name: variable,
-                step: Some(1.0),
-            }),
-            "+=" => {
-                let step = self.expression()?;
-                Ok(Update {
-                    name: variable,
-                    step: step.number("value"),
-                })
-            }
-            _ => Err(GrammarError::syntax(
-                "Only counting loops with increasing steps are supported",
-                self.current().line,
-            )),
+        let name = self.expect_name()?;
+        let written = self.next_value()?;
+        if let Some(operator) = step_operator(&written) {
+            return Ok(Update {
+                name,
+                operator: operator.to_owned(),
+                value: number(1.0),
+            });
         }
+        if !["+=", "-=", "*=", "/=", "="].contains(&written.as_str()) {
+            return Err(GrammarError::syntax(
+                format!("Unsupported loop update \"{written}\""),
+                self.current().line,
+            ));
+        }
+        Ok(Update {
+            name,
+            operator: written,
+            value: self.expression()?,
+        })
     }
 
     fn range_expression(&mut self) -> Parsed<Range> {
@@ -1304,22 +1312,42 @@ fn callee_name(expression: &Node) -> Parsed<String> {
     }
 }
 
+/// `for (i = a; i < b; i++)` is a counting loop. Every other C-style loop
+/// becomes its initial assignment followed by a while loop that ends with
+/// the update.
 fn counting_loop(initial: Node, condition: Node, update: Update, body: Node) -> Parsed {
     let variable = initial.str("name").unwrap_or_default().to_owned();
     let declares = initial.is("Declaration") || initial.is("Assignment");
     let operator = condition.str("operator").unwrap_or_default();
     let counts = declares
         && condition.is("Binary")
+        && ["less", "lessOrEqual"].contains(&operator)
         && condition
             .node("left")
             .is_some_and(|left| left.is_name(&variable))
         && update.name == variable
-        && update.step == Some(1.0);
-    if !counts || !["less", "lessOrEqual"].contains(&operator) {
-        return Err(GrammarError::syntax(
-            "Only counting loops of the form for (i = a; i < b; i++) are supported",
-            0,
-        ));
+        && update.operator == "+="
+        && update.value.is("Number")
+        && update.value.number("value") == Some(1.0);
+    if !counts {
+        let start = if initial.is("Declaration") {
+            Node::new("Assignment")
+                .with("name", variable)
+                .with("operator", "=")
+                .with_opt("value", initial.node("value").cloned())
+        } else {
+            initial
+        };
+        let step = Node::new("Assignment")
+            .with("name", update.name)
+            .with("operator", update.operator)
+            .with("value", update.value);
+        let mut statements = body.node_list("statements");
+        statements.push(step);
+        let looped = Node::new("While")
+            .with("condition", condition)
+            .with("body", block(statements));
+        return Ok(Node::new("Statements").with("statements", vec![start, looped]));
     }
     let right = condition
         .node("right")
