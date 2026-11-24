@@ -35,6 +35,11 @@ export default `profile:
       source:
         (line: 'Write the text “{{message}}” to standard output without adding a newline.')
     form:
+      task: write-crlf
+      name: standard
+      source:
+        (line: 'Write the text “{{message}}” to standard output, then write a carriage return (CR) followed by a line feed (LF).')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -146,6 +151,11 @@ profile:
       name: standard
       source:
         (line: '向标准输出写入文本“{{message}}”，不追加换行符。')
+    form:
+      task: write-crlf
+      name: standard
+      source:
+        (line: '将文本“{{message}}”写入标准输出，然后依次写入回车符（CR）和换行符（LF）。')
     form:
       task: ackermann-cli
       name: standard
@@ -259,6 +269,11 @@ profile:
       source:
         (line: 'मानक आउटपुट पर “{{message}}” लिखें और उसके बाद नई पंक्ति न जोड़ें।')
     form:
+      task: write-crlf
+      name: standard
+      source:
+        (line: 'मानक आउटपुट पर पाठ “{{message}}” लिखें, फिर कैरिज रिटर्न (CR) और उसके बाद लाइन फ़ीड (LF) लिखें।')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -370,6 +385,11 @@ profile:
       name: standard
       source:
         (line: 'Escribe el texto «{{message}}» en la salida estándar sin añadir un salto de línea.')
+    form:
+      task: write-crlf
+      name: standard
+      source:
+        (line: 'Escribe el texto «{{message}}» en la salida estándar y después escribe un retorno de carro (CR) seguido de un salto de línea (LF).')
     form:
       task: ackermann-cli
       name: standard
@@ -483,6 +503,11 @@ profile:
       source:
         (line: 'Écris le texte « {{message}} » sur la sortie standard sans ajouter de saut de ligne.')
     form:
+      task: write-crlf
+      name: standard
+      source:
+        (line: 'Écris le texte « {{message}} » sur la sortie standard, puis écris un retour chariot (CR) suivi d’un saut de ligne (LF).')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -594,6 +619,11 @@ profile:
       name: standard
       source:
         (line: 'اكتب النص «{{message}}» على المخرج القياسي من دون إضافة محرف سطر جديد.')
+    form:
+      task: write-crlf
+      name: standard
+      source:
+        (line: 'اكتب النص «{{message}}» إلى المخرج القياسي، ثم اكتب محرف إرجاع العربة (CR) يليه محرف تغذية السطر (LF).')
     form:
       task: ackermann-cli
       name: standard
@@ -707,6 +737,11 @@ profile:
       source:
         (line: 'মানক আউটপুটে “{{message}}” লেখাটি লিখুন এবং শেষে নতুন লাইন যোগ করবেন না।')
     form:
+      task: write-crlf
+      name: standard
+      source:
+        (line: 'স্ট্যান্ডার্ড আউটপুটে “{{message}}” পাঠ্যটি লিখুন, তারপর একটি ক্যারেজ রিটার্ন (CR) এবং তার পরে একটি লাইন ফিড (LF) লিখুন।')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -818,6 +853,11 @@ profile:
       name: standard
       source:
         (line: 'Escreva o texto «{{message}}» na saída padrão sem acrescentar uma quebra de linha.')
+    form:
+      task: write-crlf
+      name: standard
+      source:
+        (line: 'Escreva o texto “{{message}}” na saída padrão e depois escreva um retorno de carro (CR) seguido de uma quebra de linha (LF).')
     form:
       task: ackermann-cli
       name: standard
@@ -931,6 +971,11 @@ profile:
       source:
         (line: 'Выведите текст «{{message}}» в стандартный поток вывода без перевода строки.')
     form:
+      task: write-crlf
+      name: standard
+      source:
+        (line: 'Запишите текст «{{message}}» в стандартный вывод, затем запишите символ возврата каретки (CR) и символ перевода строки (LF).')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -1042,6 +1087,11 @@ profile:
       name: standard
       source:
         (line: 'متن «{{message}}» معیاری خروج پر لکھیں اور آخر میں سطر تبدیل نہ کریں۔')
+    form:
+      task: write-crlf
+      name: standard
+      source:
+        (line: 'متن «{{message}}» معیاری آؤٹ پٹ پر لکھیں، پھر کیرج ریٹرن (CR) اور اس کے بعد لائن فیڈ (LF) لکھیں۔')
     form:
       task: ackermann-cli
       name: standard

@@ -20,6 +20,9 @@ fizz-buzz-function:
 write-text:
   message: 'Hello world!'
 
+write-crlf:
+  message: 'Hello world!'
+
 gcd-function:
   max: 2147483647
 

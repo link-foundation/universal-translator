@@ -119,6 +119,8 @@ export function expectedOutput(effect) {
       return `${effect.message}\n`;
     case 'write-text':
       return effect.message;
+    case 'write-crlf':
+      return `${effect.message}\r\n`;
     case 'gcd-function':
     case 'ackermann-function':
       return callableEffects

@@ -9,7 +9,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { URL } from 'node:url';
+import { fileURLToPath, URL } from 'node:url';
 import {
   linkFields,
   namedLinks,
@@ -25,6 +25,7 @@ import {
 
 const legacyRust = 'rustc-1.5.0-nightly';
 const quickJs = 'quickjs';
+const cscript = 'cscript';
 
 export function readCorpusCoverage() {
   const snapshot = new URL(
@@ -42,9 +43,12 @@ function decodeEffect(task, parameters) {
     case 'hello':
       assert.ok(
         parameters.length === 1 ||
-          ['browser-alert', 'browser-write', 'write-text'].includes(
-            parameters[1]
-          )
+          [
+            'browser-alert',
+            'browser-write',
+            'write-text',
+            'write-crlf',
+          ].includes(parameters[1])
       );
       return { task: parameters[1] ?? task, message: parameters[0] };
     case 'fizz-buzz': {
@@ -98,6 +102,33 @@ export function rosettaPrograms(rosetta, task) {
   });
 }
 
+function prepareJavaScript(cwd, source, requires) {
+  if (requires.includes(cscript)) {
+    const filename = 'fixture.js';
+    writeFileSync(join(cwd, filename), source);
+    return [
+      'bash',
+      fileURLToPath(new URL('./verify-wscript.sh', import.meta.url)),
+      resolve(process.env.ROSETTA_WINE),
+      filename,
+    ];
+  }
+  const filename = 'fixture.cjs';
+  writeFileSync(join(cwd, filename), source);
+  if (requires.includes(quickJs)) {
+    return [
+      resolve(process.env.ROSETTA_QUICKJS),
+      '--script',
+      '--memory-limit',
+      '32M',
+      '--stack-size',
+      '256K',
+      filename,
+    ];
+  }
+  return [process.execPath, filename];
+}
+
 function executePinnedPrograms(programs, effect, path) {
   const workspace = mkdtempSync(join(tmpdir(), 'translator-rosetta-'));
   try {
@@ -108,21 +139,7 @@ function executePinnedPrograms(programs, effect, path) {
       let command;
       let args;
       if (language === 'javascript') {
-        writeFileSync(join(cwd, 'fixture.cjs'), source);
-        if (requires.includes(quickJs)) {
-          command = resolve(process.env.ROSETTA_QUICKJS);
-          args = [
-            '--script',
-            '--memory-limit',
-            '32M',
-            '--stack-size',
-            '256K',
-            'fixture.cjs',
-          ];
-        } else {
-          command = process.execPath;
-          args = ['fixture.cjs'];
-        }
+        [command, ...args] = prepareJavaScript(cwd, source, requires);
       } else {
         writeFileSync(join(cwd, 'fixture.rs'), source);
         if (requires.includes('num')) {
@@ -168,6 +185,7 @@ function executePinnedPrograms(programs, effect, path) {
         stdout += result.stdout;
         if (
           requires.includes(quickJs) ||
+          requires.includes(cscript) ||
           ['empty-program', 'fizz-buzz-function', 'fizz-buzz-joined'].includes(
             effect.task
           )
@@ -204,6 +222,12 @@ async function verifyNativePrograms(
   if (requires.includes(quickJs) && !process.env.ROSETTA_QUICKJS) {
     console.log(
       `Native verification pending for ${path}: set ROSETTA_QUICKJS to the QuickJS shell's executable path.`
+    );
+    return false;
+  }
+  if (requires.includes(cscript) && !process.env.ROSETTA_WINE) {
+    console.log(
+      `Native verification pending for ${path}: set ROSETTA_WINE to the Wine 64-bit loader's executable path.`
     );
     return false;
   }

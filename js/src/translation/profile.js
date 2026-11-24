@@ -32,6 +32,7 @@ const taskFields = {
   'browser-alert': { message },
   'browser-write': { message },
   'write-text': { message },
+  'write-crlf': { message },
   'empty-program': { status: (value) => value === 0 },
   'ackermann-function': {
     left: (value) => value === 3,

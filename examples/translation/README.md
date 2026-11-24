@@ -186,6 +186,10 @@ both write the exact greeting to the browser document. The standalone
 and its Rust translation must produce the same stdout bytes. The archive
 driver downloads checksum-pinned QuickJS on x86-64 Linux. On other systems,
 set `ROSETTA_QUICKJS` to the full path of a compatible QuickJS executable.
+The original `WScript.Echo` listing runs under Wine CScript. The verifier
+compares its output with the Rust translation byte for byte, including the CR
+and LF terminator. On Ubuntu, install `wine64` and set `ROSETTA_WINE` to
+`/usr/lib/wine/wine64` to include this listing in the corpus check.
 The Ubuntu runner provides Chrome. For a local replay, install Chrome and
 run `rustup target add wasm32-unknown-unknown` before running the driver.
 [Published JavaScript listings](https://rosettagit.org/tasks/hello-world-text/#javascript) ·
@@ -244,11 +248,9 @@ node examples/translation/report-coverage.mjs \
 
 To check the Rosetta Code task directories and the sample counts for the
 six modeled tasks, also pass a directory containing the pinned Git Trees
-responses. This mode downloads thirteen pinned Hello World Text files, fourteen
-FizzBuzz files, five GCD files, one Empty Program, seven Ackermann files,
-and three Hello World Newbie sources from GitHub. It checks their blob hashes,
-exact round trips, and
-effects in both runtimes. The Ackermann checks cover callable inputs,
+responses. This mode downloads the selected pinned files recorded in
+`corpus-coverage.lino` from GitHub. It checks their blob hashes, exact round
+trips, and effects in both runtimes. The Ackermann checks cover callable inputs,
 command-line inputs, the standalone decimal result, and the compact JSON
 array printed by the pinned JavaScript listing.
 

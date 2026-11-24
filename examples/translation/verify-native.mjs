@@ -26,7 +26,7 @@ import {
 } from './fixtures.mjs';
 
 const translator = createTranslator();
-// Browser alerts run in the pinned corpus check with a real browser host.
+// Browser effects run in the pinned corpus check with a real browser host.
 const effects = exampleEffects().filter(
   ({ task }) => !['browser-alert', 'browser-write'].includes(task)
 );

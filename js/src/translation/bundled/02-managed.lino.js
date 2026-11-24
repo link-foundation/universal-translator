@@ -80,6 +80,31 @@ export default `profile:
         (line: ~1{})
         (line: 'writeText("{{message}}");')
     form:
+      task: write-crlf
+      name: standard
+      requires: process.stdout
+      output: process.stdout.write
+      source:
+        (line: 'process.stdout.write("{{message}}\\r\\n");')
+    form:
+      task: write-crlf
+      name: wscript
+      output: WScript.Echo
+      requires: cscript
+      fixed:
+        message: 'Hello world!'
+      source:
+        (line: 'WScript.Echo("Hello world!");')
+    form:
+      task: write-crlf
+      name: common
+      requires: './common-library.mjs'
+      output: writeText
+      source:
+        (line: "import { writeText } from './common-library.mjs';")
+        (line: ~1{})
+        (line: 'writeText("{{message}}\\r\\n");')
+    form:
       task: greatest-common-divisor
       name: standard
       source:

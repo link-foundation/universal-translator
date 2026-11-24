@@ -27,6 +27,7 @@ pub enum Effect {
     BrowserAlert { message: String },
     BrowserWrite { message: String },
     WriteText { message: String },
+    WriteCrlf { message: String },
     EmptyProgram { status: u32 },
     AckermannFunction { left: u32, right: u32 },
     AckermannCli { left: u32, right: u32 },
@@ -49,6 +50,7 @@ impl Effect {
             Self::BrowserAlert { .. } => "browser-alert",
             Self::BrowserWrite { .. } => "browser-write",
             Self::WriteText { .. } => "write-text",
+            Self::WriteCrlf { .. } => "write-crlf",
             Self::EmptyProgram { .. } => "empty-program",
             Self::AckermannFunction { .. } => "ackermann-function",
             Self::AckermannCli { .. } => "ackermann-cli",
@@ -70,7 +72,8 @@ impl Effect {
             Self::Hello { message }
             | Self::BrowserAlert { message }
             | Self::BrowserWrite { message }
-            | Self::WriteText { message } => {
+            | Self::WriteText { message }
+            | Self::WriteCrlf { message } => {
                 vec![("message", message.clone())]
             }
             Self::GcdFunction { max } => vec![("max", max.to_string())],
@@ -113,6 +116,9 @@ impl Effect {
                 message: fields.get("message")?.clone(),
             },
             "write-text" if fields.len() == 1 => Self::WriteText {
+                message: fields.get("message")?.clone(),
+            },
+            "write-crlf" if fields.len() == 1 => Self::WriteCrlf {
                 message: fields.get("message")?.clone(),
             },
             "empty-program" if fields.len() == 1 => Self::EmptyProgram {
@@ -198,7 +204,8 @@ impl Effect {
             Self::Hello { message }
             | Self::BrowserAlert { message }
             | Self::BrowserWrite { message }
-            | Self::WriteText { message } => {
+            | Self::WriteText { message }
+            | Self::WriteCrlf { message } => {
                 static MESSAGE: OnceLock<Regex> = OnceLock::new();
                 message.len() <= 96
                     && !message

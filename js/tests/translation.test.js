@@ -25,6 +25,7 @@ const expectedProfiles = {
   hello: 76,
   'browser-alert': 23,
   'browser-write': 23,
+  'write-crlf': 23,
   'greatest-common-divisor': 72,
   'fizz-buzz': 72,
   'fizz-buzz-function': 23,

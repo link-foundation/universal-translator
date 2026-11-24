@@ -283,6 +283,25 @@ profile:
         (line: '    common_library::write_text("{{message}}");')
         (line: })
     form:
+      task: write-crlf
+      name: standard
+      output: print!
+      source:
+        (line: 'fn main() {')
+        (line: '    print!("{}\\r\\n", "{{message}}");')
+        (line: })
+    form:
+      task: write-crlf
+      name: common
+      requires: common_library
+      output: 'common_library::write_text'
+      source:
+        (line: 'mod common_library;')
+        (line: ~1{})
+        (line: 'fn main() {')
+        (line: '    common_library::write_text("{{message}}\\r\\n");')
+        (line: })
+    form:
       task: greatest-common-divisor
       name: standard
       source:

@@ -23,6 +23,9 @@ export default `profile:
       task: write-text
       name: standard
     form:
+      task: write-crlf
+      name: standard
+    form:
       task: greatest-common-divisor
       name: standard
     form:

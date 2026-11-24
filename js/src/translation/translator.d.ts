@@ -4,6 +4,7 @@ export type Effect =
   | { task: 'hello'; message: string }
   | { task: 'browser-alert'; message: string }
   | { task: 'browser-write'; message: string }
+  | { task: 'write-crlf'; message: string }
   | { task: 'write-text'; message: string }
   | { task: 'empty-program'; status: 0 }
   | { task: 'ackermann-function'; left: 3; right: 4 }
