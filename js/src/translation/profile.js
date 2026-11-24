@@ -34,6 +34,7 @@ const taskFields = {
   'write-text': { message },
   'write-crlf': { message },
   'empty-program': { status: (value) => value === 0 },
+  'integer-sum': { limit: (value) => value === 1000 },
   'ackermann-function': {
     left: (value) => value === 3,
     right: (value) => value === 4,

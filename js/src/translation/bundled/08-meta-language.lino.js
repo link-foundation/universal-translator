@@ -11,6 +11,9 @@ export default `profile:
       task: empty-program
       name: standard
     form:
+      task: integer-sum
+      name: standard
+    form:
       task: hello
       name: standard
     form:

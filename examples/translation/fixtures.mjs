@@ -43,10 +43,30 @@ const callableEffects = new Map([
   ['ackermann-function', { entry: 'ackermann', cases: ackermannCalls }],
 ]);
 
-export function nativeArguments(effect) {
-  return effect?.task === 'ackermann-cli'
-    ? ackermannCalls.map(([left, right]) => [String(left), String(right)])
-    : [[]];
+const integerSumCases = [
+  ['2 2\n', '4\n'],
+  ['3   2\n', '5\n'],
+  ['-1000 -1000\n', '-2000\n'],
+  ['1000 1000\n', '2000\n'],
+  ['-1000 1000\n', '0\n'],
+  ['  +17  -9  \n', '8\n'],
+];
+
+export function nativeInvocations(effect) {
+  if (effect?.task === 'ackermann-cli') {
+    return ackermannCalls.map(([left, right, result]) => ({
+      args: [String(left), String(right)],
+      stdout: `${result}\n`,
+    }));
+  }
+  if (effect?.task === 'integer-sum') {
+    return integerSumCases.map(([input, stdout]) => ({
+      args: [],
+      input,
+      stdout,
+    }));
+  }
+  return [{ args: [] }];
 }
 
 export function nativeProgram(source, language, effect, entry) {
@@ -115,6 +135,8 @@ export function expectedOutput(effect) {
   switch (effect.task) {
     case 'empty-program':
       return '';
+    case 'integer-sum':
+      return integerSumCases.map(([, sum]) => sum).join('');
     case 'hello':
       return `${effect.message}\n`;
     case 'write-text':

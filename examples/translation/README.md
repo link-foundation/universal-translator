@@ -247,12 +247,18 @@ node examples/translation/report-coverage.mjs \
 ```
 
 To check the Rosetta Code task directories and the sample counts for the
-seven modeled tasks, also pass a directory containing the pinned Git Trees
+eight modeled tasks, also pass a directory containing the pinned Git Trees
 responses. This mode downloads the selected pinned files recorded in
 `corpus-coverage.lino` from GitHub. It checks their blob hashes, exact round
 trips, and effects in both runtimes. The Ackermann checks cover callable inputs,
 command-line inputs, the standalone decimal result, and the compact JSON
 array printed by the pinned JavaScript listing.
+For A+B, the verifier feeds both the original and translated programs six
+stdin lines. These include positive and negative values, both endpoints, and
+repeated spaces. It compares stdout with fixed decimal sums. The pinned
+JavaScript variant using `process.openStdin()` prints a usage line on negative
+operands. The two other JavaScript variants use browser prompts and Windows
+Script Host input. These three listings still need their own effect checks.
 
 ```sh
 rosetta_trees=$(mktemp -d)
@@ -273,6 +279,8 @@ gh api "$rosetta_api/aec40331f71266270b317cabf5b13618c110380a?recursive=1" \
   > "$rosetta_trees/Hello-world-Newbie.json"
 gh api "$rosetta_api/b40dd4bbab9ecf8e83dba4da84ecc01ba945c90e?recursive=1" \
   > "$rosetta_trees/Hello-world-Graphical.json"
+gh api "$rosetta_api/e446b0d3607fb0eb63df03c4c097f58884dd2786?recursive=1" \
+  > "$rosetta_trees/A+B.json"
 node examples/translation/report-coverage.mjs \
   /path/to/popular-tasks /path/to/hello-world-collection.html \
   ./target/debug/universal-translator "$rosetta_trees"

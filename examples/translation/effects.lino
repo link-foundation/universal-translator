@@ -61,3 +61,6 @@ fizz-buzz-joined:
 
 empty-program:
   status: 0
+
+integer-sum:
+  limit: 1000

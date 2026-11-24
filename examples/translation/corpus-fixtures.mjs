@@ -19,7 +19,7 @@ import {
 import {
   expectedOutput,
   fixture as readFixture,
-  nativeArguments,
+  nativeInvocations,
   nativeProgram,
 } from './fixtures.mjs';
 
@@ -40,6 +40,9 @@ function decodeEffect(task, parameters) {
     case 'empty-program':
       assert.deepEqual(parameters, ['0']);
       return { task, status: 0 };
+    case 'integer-sum':
+      assert.deepEqual(parameters, ['1000']);
+      return { task, limit: 1000 };
     case 'hello':
       assert.ok(
         parameters.length === 1 ||
@@ -129,6 +132,46 @@ function prepareJavaScript(cwd, source, requires) {
   return [process.execPath, filename];
 }
 
+function runInvocations(command, args, options, effect, label, requires) {
+  const silentStderr =
+    requires.includes(quickJs) ||
+    requires.includes(cscript) ||
+    [
+      'empty-program',
+      'fizz-buzz-function',
+      'fizz-buzz-joined',
+      'integer-sum',
+    ].includes(effect.task);
+  const output = nativeInvocations(effect).map(
+    ({ args: extra, input, stdout }) => {
+      const result = spawnSync(command, [...args, ...extra], {
+        ...options,
+        input,
+      });
+      if (result.error) {
+        throw result.error;
+      }
+      assert.equal(
+        result.status,
+        effect.status ?? 0,
+        `${label} ${result.signal ?? result.stderr}`
+      );
+      if (silentStderr) {
+        assert.equal(result.stderr, '', `${label} stderr`);
+      }
+      if (stdout !== undefined) {
+        assert.equal(
+          result.stdout,
+          stdout,
+          `${label} stdout for ${input ?? extra}`
+        );
+      }
+      return result.stdout;
+    }
+  );
+  assert.equal(output.join(''), expectedOutput(effect), `${label} stdout`);
+}
+
 function executePinnedPrograms(programs, effect, path) {
   const workspace = mkdtempSync(join(tmpdir(), 'translator-rosetta-'));
   try {
@@ -170,30 +213,14 @@ function executePinnedPrograms(programs, effect, path) {
           args = [];
         }
       }
-      const label = `${path} (${language})`;
-      let stdout = '';
-      for (const inputs of nativeArguments(effect)) {
-        const result = spawnSync(command, [...args, ...inputs], options);
-        if (result.error) {
-          throw result.error;
-        }
-        assert.equal(
-          result.status,
-          effect.status ?? 0,
-          `${label} ${result.signal ?? result.stderr}`
-        );
-        stdout += result.stdout;
-        if (
-          requires.includes(quickJs) ||
-          requires.includes(cscript) ||
-          ['empty-program', 'fizz-buzz-function', 'fizz-buzz-joined'].includes(
-            effect.task
-          )
-        ) {
-          assert.equal(result.stderr, '', `${label} stderr`);
-        }
-      }
-      assert.equal(stdout, expectedOutput(effect), `${label} stdout`);
+      runInvocations(
+        command,
+        args,
+        options,
+        effect,
+        `${path} (${language})`,
+        requires
+      );
     }
   } finally {
     rmSync(workspace, { recursive: true, force: true });

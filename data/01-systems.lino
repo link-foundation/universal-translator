@@ -230,6 +230,82 @@ profile:
       source:
         (line: 'fn main(){}')
     form:
+      task: integer-sum
+      name: standard
+      requires: 'std::io'
+      fixed:
+        limit: 1000
+      source:
+        (line: 'use std::io;')
+        (line: ~1{})
+        (line: 'fn main() {')
+        (line: '    let mut input = String::new();')
+        (line: '    io::stdin().read_line(&mut input).expect("read input");')
+        (line: '    let sum: i32 = input')
+        (line: '        .split_whitespace()')
+        (line: '        .map(|value| value.parse::<i32>().expect("expected an integer"))')
+        (line: '        .sum();')
+        (line: '    println!("{sum}");')
+        (line: })
+    form:
+      task: integer-sum
+      name: rosetta-loop
+      requires: 'std::io'
+      fixed:
+        limit: 1000
+      source:
+        (line: 'use std::io;')
+        (line: ~1{})
+        (line: 'fn main() {')
+        (line: '    let mut line = String::new();')
+        (line: '    io::stdin().read_line(&mut line).expect("reading stdin");')
+        (line: ~1{})
+        (line: '    let mut i: i64 = 0;')
+        (line: '    for word in line.split_whitespace() {')
+        (line: '        i += word.parse::<i64>().expect("trying to interpret your input as numbers");')
+        (line: '    }')
+        (line: '    println!("{}", i);')
+        (line: })
+    form:
+      task: integer-sum
+      name: rosetta-iterator
+      requires: 'std::io'
+      fixed:
+        limit: 1000
+      source:
+        (line: 'use std::io;')
+        (line: ~1{})
+        (line: 'fn main() {')
+        (line: '    let mut line = String::new();')
+        (line: '    io::stdin().read_line(&mut line).expect("reading stdin");')
+        (line: ~1{})
+        (line: '    let sum: i64 = line.split_whitespace()')
+        (line: '                       .map(|x| x.parse::<i64>().expect("Not an integer"))')
+        (line: '                       .sum();')
+        (line: '    println!("{}", sum);')
+        (line: })
+    form:
+      task: integer-sum
+      name: common
+      requires: common_library 'std::io'
+      output: 'common_library::print_line'
+      fixed:
+        limit: 1000
+      source:
+        (line: 'mod common_library;')
+        (line: ~1{})
+        (line: 'use std::io;')
+        (line: ~1{})
+        (line: 'fn main() {')
+        (line: '    let mut input = String::new();')
+        (line: '    io::stdin().read_line(&mut input).expect("read input");')
+        (line: '    let sum: i32 = input')
+        (line: '        .split_whitespace()')
+        (line: '        .map(|value| value.parse::<i32>().expect("expected an integer"))')
+        (line: '        .sum();')
+        (line: '    common_library::print_line(&sum.to_string());')
+        (line: })
+    form:
       task: hello
       name: standard
       source:

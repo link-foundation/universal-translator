@@ -39,6 +39,11 @@ profile:
       source:
         (line: 'Write the text “{{message}}” to standard output, then write a carriage return (CR) followed by a line feed (LF).')
     form:
+      task: integer-sum
+      name: standard
+      source:
+        (line: 'Read one line from standard input with two decimal integers between −{{limit}} and {{limit}} inclusive, separated by one or more spaces. Write their decimal sum and a newline to standard output.')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -155,6 +160,11 @@ profile:
       name: standard
       source:
         (line: '将文本“{{message}}”写入标准输出，然后依次写入回车符（CR）和换行符（LF）。')
+    form:
+      task: integer-sum
+      name: standard
+      source:
+        (line: '从标准输入读取一行，其中有两个以一个或多个空格分隔、范围为 −{{limit}} 到 {{limit}}（含端点）的十进制整数。将两数的十进制和及换行符写入标准输出。')
     form:
       task: ackermann-cli
       name: standard
@@ -273,6 +283,11 @@ profile:
       source:
         (line: 'मानक आउटपुट पर पाठ “{{message}}” लिखें, फिर कैरिज रिटर्न (CR) और उसके बाद लाइन फ़ीड (LF) लिखें।')
     form:
+      task: integer-sum
+      name: standard
+      source:
+        (line: 'मानक इनपुट से एक पंक्ति पढ़ें जिसमें एक या अधिक रिक्त स्थानों से अलग किए गए −{{limit}} से {{limit}} तक के दो दशमलव पूर्णांक हों। उनका दशमलव योग और नई पंक्ति मानक आउटपुट पर लिखें।')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -389,6 +404,11 @@ profile:
       name: standard
       source:
         (line: 'Escribe el texto «{{message}}» en la salida estándar y después escribe un retorno de carro (CR) seguido de un salto de línea (LF).')
+    form:
+      task: integer-sum
+      name: standard
+      source:
+        (line: 'Lee una línea de la entrada estándar con dos enteros decimales entre −{{limit}} y {{limit}}, ambos incluidos, separados por uno o más espacios. Escribe su suma decimal y un salto de línea en la salida estándar.')
     form:
       task: ackermann-cli
       name: standard
@@ -507,6 +527,11 @@ profile:
       source:
         (line: 'Écris le texte « {{message}} » sur la sortie standard, puis écris un retour chariot (CR) suivi d’un saut de ligne (LF).')
     form:
+      task: integer-sum
+      name: standard
+      source:
+        (line: 'Lis sur l’entrée standard une ligne contenant deux entiers décimaux de −{{limit}} à {{limit}} inclus, séparés par un ou plusieurs espaces. Écris leur somme décimale suivie d’un saut de ligne sur la sortie standard.')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -623,6 +648,11 @@ profile:
       name: standard
       source:
         (line: 'اكتب النص «{{message}}» إلى المخرج القياسي، ثم اكتب محرف إرجاع العربة (CR) يليه محرف تغذية السطر (LF).')
+    form:
+      task: integer-sum
+      name: standard
+      source:
+        (line: 'اقرأ من المدخل القياسي سطرًا فيه عددان صحيحان عشريان بين −{{limit}} و{{limit}} شاملًا الطرفين، يفصل بينهما فراغ واحد أو أكثر. اكتب مجموعهما العشري ثم محرف سطر جديد إلى المخرج القياسي.')
     form:
       task: ackermann-cli
       name: standard
@@ -741,6 +771,11 @@ profile:
       source:
         (line: 'স্ট্যান্ডার্ড আউটপুটে “{{message}}” পাঠ্যটি লিখুন, তারপর একটি ক্যারেজ রিটার্ন (CR) এবং তার পরে একটি লাইন ফিড (LF) লিখুন।')
     form:
+      task: integer-sum
+      name: standard
+      source:
+        (line: 'স্ট্যান্ডার্ড ইনপুট থেকে একটি লাইন পড়ুন, যাতে −{{limit}} থেকে {{limit}} পর্যন্ত দুটি দশমিক পূর্ণসংখ্যা এক বা একাধিক স্পেস দিয়ে আলাদা থাকে। তাদের দশমিক যোগফল এবং একটি নতুন লাইন স্ট্যান্ডার্ড আউটপুটে লিখুন।')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -857,6 +892,11 @@ profile:
       name: standard
       source:
         (line: 'Escreva o texto “{{message}}” na saída padrão e depois escreva um retorno de carro (CR) seguido de uma quebra de linha (LF).')
+    form:
+      task: integer-sum
+      name: standard
+      source:
+        (line: 'Leia da entrada padrão uma linha com dois inteiros decimais de −{{limit}} a {{limit}}, inclusive, separados por um ou mais espaços. Escreva a soma decimal e uma quebra de linha na saída padrão.')
     form:
       task: ackermann-cli
       name: standard
@@ -975,6 +1015,11 @@ profile:
       source:
         (line: 'Запишите текст «{{message}}» в стандартный вывод, затем запишите символ возврата каретки (CR) и символ перевода строки (LF).')
     form:
+      task: integer-sum
+      name: standard
+      source:
+        (line: 'Прочитайте из стандартного ввода строку с двумя десятичными целыми числами от −{{limit}} до {{limit}} включительно, разделёнными одним или несколькими пробелами. Запишите десятичную сумму и перевод строки в стандартный вывод.')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -1091,6 +1136,11 @@ profile:
       name: standard
       source:
         (line: 'متن «{{message}}» معیاری آؤٹ پٹ پر لکھیں، پھر کیرج ریٹرن (CR) اور اس کے بعد لائن فیڈ (LF) لکھیں۔')
+    form:
+      task: integer-sum
+      name: standard
+      source:
+        (line: 'معیاری ان پٹ سے ایک سطر پڑھیں جس میں −{{limit}} سے {{limit}} تک کے دو اعشاری صحیح اعداد ہوں اور ان کے درمیان ایک یا زیادہ خالی جگہیں ہوں۔ ان کا اعشاری مجموعہ اور نئی سطر معیاری آؤٹ پٹ پر لکھیں۔')
     form:
       task: ackermann-cli
       name: standard

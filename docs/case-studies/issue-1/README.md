@@ -80,17 +80,16 @@ language directories. The CI archive check runs all of them through Links
 Notation source documents and compares restored bytes in both runtimes.
 The archive includes 750 Hello World Text samples, 675 FizzBuzz samples,
 355 GCD samples, 285 Empty Program samples, 374 Ackermann samples, and 151
-Hello World Newbie samples.
+Hello World Newbie samples. It also includes 293 Hello World Graphical
+samples and 439 A+B samples.
 The first three tasks have forms across the programming catalog. Empty
-Program and the bounded Ackermann function have JavaScript, Rust, Links
-Notation, and 20 plain-language forms. The other 1,752 task definitions
-still need adapters and verification. The report checks thirteen original
-Hello World Text programs, fourteen FizzBuzz programs, five GCD programs, one
-Empty Program, seven Ackermann sources, and three Hello World Newbie sources
-against their pinned Git blob
-hashes. It checks exact round trips and the expected effects. The
-selected JavaScript and Rust
-originals also translate in both directions through the Meta Language effect.
+Program, bounded Ackermann, the modeled browser effects, and signed A+B have
+JavaScript, Rust, Links Notation, and 20 plain-language forms. The remaining
+1,750 task definitions and most source variants still need adapters and
+verification. The report checks the selected programs against their pinned
+Git blob hashes, then checks exact round trips and their expected effects.
+The JavaScript and Rust originals also translate in both directions through
+their Meta Language effects.
 The archive check executes the original and translated programs and compares
 their stdout, results of calling the GCD functions over signed and zero
 inputs, and all 20 return values in the bounded Ackermann domain. It checks
@@ -160,7 +159,7 @@ Collection page, in that order, to verify their checksums and reported counts
 and check the selected original programs. Pass the compiled Rust CLI as the
 third argument to compare exact round trips and Meta Language output in both
 runtimes. A fourth argument accepts the pinned Git Trees responses to verify
-the source counts and 47 original Rosetta Code programs.
+the source counts and 50 original Rosetta Code programs.
 [Reproduction commands](../../../examples/translation/README.md#verification)
 
 The portable program translator in Meta Language 1.0.0 reported semantic

@@ -36,6 +36,49 @@ profile:
         status: 0
       source: ()
     form:
+      task: integer-sum
+      name: standard
+      requires: process.stdin console
+      fixed:
+        limit: 1000
+      source:
+        (line: 'process.stdin.setEncoding("utf8");')
+        (line: 'let input = "";')
+        (line: 'process.stdin.on("data", (part) => { input += part; });')
+        (line: 'process.stdin.on("end", () => {')
+        (line: '    const [left, right] = input.trim().split(/ +/).map(Number);')
+        (line: '    console.log(left + right);')
+        (line: '});')
+    form:
+      task: integer-sum
+      name: rosetta-stream
+      requires: process.stdin console
+      fixed:
+        limit: 1000
+      source:
+        (line: 'process.stdin.on("data", buffer => {')
+        (line: '  console.log(')
+        (line: '    (buffer + "").trim().split(" ").map(Number).reduce((a, v) => a + v, 0)')
+        (line: '  );')
+        (line: '});')
+    form:
+      task: integer-sum
+      name: common
+      requires: './common-library.mjs' process.stdin
+      output: printLine
+      fixed:
+        limit: 1000
+      source:
+        (line: "import { printLine } from './common-library.mjs';")
+        (line: ~1{})
+        (line: 'process.stdin.setEncoding("utf8");')
+        (line: 'let input = "";')
+        (line: 'process.stdin.on("data", (part) => { input += part; });')
+        (line: 'process.stdin.on("end", () => {')
+        (line: '    const [left, right] = input.trim().split(/ +/).map(Number);')
+        (line: '    printLine(left + right);')
+        (line: '});')
+    form:
       task: hello
       name: standard
       requires: console

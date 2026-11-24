@@ -40,6 +40,7 @@ const expectedProfiles = {
   'fizz-buzz-lowercase-blank-line': 23,
   'fizz-buzz-joined': 23,
   'empty-program': 23,
+  'integer-sum': 23,
 };
 
 describe('translation through meta-language', () => {

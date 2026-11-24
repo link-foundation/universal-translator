@@ -21,7 +21,7 @@ import {
   expectedOutput,
   fixture,
   localizedGreetings,
-  nativeArguments,
+  nativeInvocations,
   nativeProgram,
 } from './fixtures.mjs';
 
@@ -71,13 +71,18 @@ const environment = {
 const tools = (command) =>
   spawnSync('sh', ['-c', 'command -v "$1"', 'sh', command]).status === 0;
 
-function run(directory, command, ...args) {
+function invoke(directory, command, args, input) {
   return execFileSync(command, args, {
     encoding: 'utf8',
     cwd: directory,
     env: environment,
+    input,
     timeout: 45000,
   });
+}
+
+function run(directory, command, ...args) {
+  return invoke(directory, command, args);
 }
 
 function interpreted(filename, command, ...argumentsBeforeFilename) {
@@ -86,8 +91,13 @@ function interpreted(filename, command, ...argumentsBeforeFilename) {
     tools: [command],
     execute: (directory, _form, invocations) =>
       invocations
-        .map((args) =>
-          run(directory, command, ...argumentsBeforeFilename, filename, ...args)
+        .map(({ args, input }) =>
+          invoke(
+            directory,
+            command,
+            [...argumentsBeforeFilename, filename, ...args],
+            input
+          )
         )
         .join(''),
   };
@@ -100,7 +110,7 @@ function compiled(filename, compiler, ...flags) {
     execute(directory, _form, invocations) {
       run(directory, compiler, ...flags, filename, '-o', 'program');
       return invocations
-        .map((args) => run(directory, './program', ...args))
+        .map(({ args, input }) => invoke(directory, './program', args, input))
         .join('');
     },
   };
@@ -344,7 +354,7 @@ function check(
         join(directory, library.split('/').at(-1))
       );
     }
-    const output = runner.execute(directory, form, nativeArguments(effect));
+    const output = runner.execute(directory, form, nativeInvocations(effect));
     if (output !== expected) {
       throw new Error(
         `${description} expected ${expected.length} bytes but received ${output.length} bytes:\n${output}`

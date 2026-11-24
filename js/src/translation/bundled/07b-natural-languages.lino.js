@@ -40,6 +40,11 @@ export default `profile:
       source:
         (line: 'Tulis teks “{{message}}” ke keluaran standar, lalu tulis carriage return (CR) diikuti line feed (LF).')
     form:
+      task: integer-sum
+      name: standard
+      source:
+        (line: 'Baca satu baris dari masukan standar yang berisi dua bilangan bulat desimal dari −{{limit}} sampai {{limit}}, dipisahkan satu spasi atau lebih. Tulis jumlah desimalnya dan baris baru ke keluaran standar.')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -156,6 +161,11 @@ profile:
       name: standard
       source:
         (line: 'Schreibe den Text „{{message}}“ in die Standardausgabe und danach einen Wagenrücklauf (CR), gefolgt von einem Zeilenvorschub (LF).')
+    form:
+      task: integer-sum
+      name: standard
+      source:
+        (line: 'Lies eine Zeile mit zwei dezimalen Ganzzahlen von −{{limit}} bis einschließlich {{limit}}, getrennt durch ein oder mehrere Leerzeichen, von der Standardeingabe. Schreibe die dezimale Summe mit einem Zeilenumbruch in die Standardausgabe.')
     form:
       task: ackermann-cli
       name: standard
@@ -274,6 +284,11 @@ profile:
       source:
         (line: 'テキスト「{{message}}」を標準出力に書き込み、その後に復帰文字 (CR) と改行文字 (LF) を順に書き込む。')
     form:
+      task: integer-sum
+      name: standard
+      source:
+        (line: '標準入力から、1 個以上の空白で区切られた −{{limit}} 以上 {{limit}} 以下の十進整数 2 個を含む 1 行を読み込む。十進数で表した和と改行を標準出力に書き込む。')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -390,6 +405,11 @@ profile:
       name: standard
       source:
         (line: 'Andika maandishi “{{message}}” kwenye towe la kawaida, kisha andika urejesho wa kishale (CR) ukifuatiwa na mlisho wa mstari (LF).')
+    form:
+      task: integer-sum
+      name: standard
+      source:
+        (line: 'Soma mstari mmoja kutoka ingizo la kawaida wenye namba mbili kamili za desimali kati ya −{{limit}} na {{limit}} pamoja na mipaka hiyo, zikitenganishwa kwa nafasi moja au zaidi. Andika jumla yao ya desimali na mstari mpya kwenye towe la kawaida.')
     form:
       task: ackermann-cli
       name: standard
@@ -508,6 +528,11 @@ profile:
       source:
         (line: 'प्रमाणित आउटपुटवर “{{message}}” हा मजकूर लिहा, मग कॅरेज रिटर्न (CR) आणि त्यानंतर लाइन फीड (LF) लिहा.')
     form:
+      task: integer-sum
+      name: standard
+      source:
+        (line: 'प्रमाणित इनपुटमधून −{{limit}} ते {{limit}} या मर्यादेतील दोन दशमान पूर्णांक असलेली एक ओळ वाचा. त्यांना एक किंवा अधिक रिक्त जागांनी वेगळे केलेले आहे. त्यांची दशमान बेरीज आणि नवीन ओळ प्रमाणित आउटपुटवर लिहा.')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -624,6 +649,11 @@ profile:
       name: standard
       source:
         (line: 'ప్రామాణిక అవుట్‌పుట్‌కు “{{message}}” పాఠాన్ని రాసి, ఆపై క్యారేజ్ రిటర్న్ (CR), తర్వాత లైన్ ఫీడ్ (LF) రాయండి.')
+    form:
+      task: integer-sum
+      name: standard
+      source:
+        (line: 'ప్రామాణిక ఇన్‌పుట్ నుంచి −{{limit}} నుంచి {{limit}} వరకు ఉన్న రెండు దశాంశ పూర్ణాంకాలను ఒక పంక్తిలో చదవండి. వాటి మధ్య ఒకటి లేదా ఎక్కువ ఖాళీలు ఉంటాయి. వాటి దశాంశ మొత్తాన్ని, ఆపై కొత్త పంక్తిని ప్రామాణిక అవుట్‌పుట్‌కు రాయండి.')
     form:
       task: ackermann-cli
       name: standard
@@ -742,6 +772,11 @@ profile:
       source:
         (line: '“{{message}}” metnini standart çıktıya yaz, ardından bir satır başı (CR) ve bir satır ilerletme (LF) yaz.')
     form:
+      task: integer-sum
+      name: standard
+      source:
+        (line: 'Standart girdiden tek satırda −{{limit}} ile {{limit}} arasında, sınırlar dahil, bir veya daha çok boşlukla ayrılmış iki ondalık tam sayı oku. Ondalık toplamı ve bir satır sonunu standart çıktıya yaz.')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -858,6 +893,11 @@ profile:
       name: standard
       source:
         (line: '“{{message}}” என்ற உரையை நிலையான வெளியீட்டில் எழுதி, அதன் பின் கேரேஜ் ரிட்டர்ன் (CR), தொடர்ந்து லைன் ஃபீட் (LF) எழுது.')
+    form:
+      task: integer-sum
+      name: standard
+      source:
+        (line: 'நிலையான உள்ளீட்டிலிருந்து ஒரு வரியைப் படி. அதில் −{{limit}} முதல் {{limit}} வரையிலான இரண்டு பதின்ம முழு எண்கள் ஒன்று அல்லது அதற்கு மேற்பட்ட இடைவெளிகளால் பிரிக்கப்பட்டிருக்கும். அவற்றின் பதின்மக் கூட்டுத்தொகையையும் புதிய வரியையும் நிலையான வெளியீட்டில் எழுது.')
     form:
       task: ackermann-cli
       name: standard
@@ -976,6 +1016,11 @@ profile:
       source:
         (line: 'Ghi văn bản “{{message}}” vào đầu ra chuẩn, rồi ghi một ký tự về đầu dòng (CR) và một ký tự xuống dòng (LF) theo thứ tự đó.')
     form:
+      task: integer-sum
+      name: standard
+      source:
+        (line: 'Đọc một dòng từ đầu vào chuẩn chứa hai số nguyên thập phân từ −{{limit}} đến {{limit}}, kể cả hai đầu mút, cách nhau bằng một hoặc nhiều dấu cách. Ghi tổng thập phân và một ký tự xuống dòng vào đầu ra chuẩn.')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -1092,6 +1137,11 @@ profile:
       name: standard
       source:
         (line: '텍스트 “{{message}}”을 표준 출력에 쓰고, 캐리지 리턴 (CR)과 라인 피드 (LF)를 차례로 쓴다.')
+    form:
+      task: integer-sum
+      name: standard
+      source:
+        (line: '표준 입력에서 −{{limit}} 이상 {{limit}} 이하인 두 십진 정수가 한 개 이상의 공백으로 구분된 한 줄을 읽는다. 두 수의 십진수 합과 줄바꿈을 표준 출력에 쓴다.')
     form:
       task: ackermann-cli
       name: standard
