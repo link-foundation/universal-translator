@@ -43,5 +43,9 @@ name = "grammar"
 path = "rust/tests/grammar.rs"
 
 [[test]]
+name = "common_library"
+path = "rust/tests/common_library.rs"
+
+[[test]]
 name = "lifting"
 path = "rust/tests/lifting.rs"

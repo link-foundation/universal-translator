@@ -106,6 +106,28 @@ impl Parser {
 
     // ---- token helpers ----
 
+    /// Import lines: `import`, `using`, `package`, `use`, `require`,
+    /// `require_once`, Rust `mod name;` and Python `from module import a`.
+    fn is_import_start(&self, token: &Token) -> bool {
+        if token.kind != TokenType::Name || self.is_at("(", 1) {
+            return false;
+        }
+        match token.value.as_str() {
+            "from" => self.peek(2).value == "import",
+            "mod" => self.peek(1).kind == TokenType::Name && self.is_at(";", 2),
+            other => [
+                "import",
+                "using",
+                "package",
+                "use",
+                "require",
+                "require_once",
+                "require_relative",
+            ]
+            .contains(&other),
+        }
+    }
+
     fn peek(&self, offset: usize) -> &Token {
         let last = self.tokens.len() - 1;
         &self.tokens[(self.position + offset).min(last)]
@@ -270,11 +292,7 @@ impl Parser {
                 self.position += 1;
                 return Ok(Node::new("Import").with("text", token.value));
             }
-            TokenType::Name
-                if ["import", "using", "package", "use", "require"]
-                    .contains(&token.value.as_str())
-                    && !self.is_at("(", 1) =>
-            {
+            TokenType::Name if self.is_import_start(&token) => {
                 return self.import_statement();
             }
             _ => {}

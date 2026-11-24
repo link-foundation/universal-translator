@@ -929,17 +929,18 @@ impl Emitter {
             self.line("");
         }
         let mut all = std::mem::take(&mut self.lines);
-        all.extend(self.prelude());
+        all.extend(self.prelude(program));
         all.extend(body);
         Ok(format!("{}\n", all.join("\n")))
     }
 
-    fn prelude(&self) -> Vec<String> {
+    fn prelude(&self, program: &Node) -> Vec<String> {
         let mut lines: Vec<String> = Vec::new();
         if self.id() == "go" {
             lines.push("package main".into());
             lines.push(String::new());
         }
+        lines.extend(program.texts("libraryImports"));
         for (used, line) in [
             ("stdio", "#include <stdio.h>"),
             ("iostream", "#include <iostream>"),

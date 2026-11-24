@@ -328,7 +328,11 @@ fn lets_callers_remove_or_decorate_a_rule() {
     assert!(ruby.contains("# Hello World in JavaScript"));
     assert_eq!(
         *calls.lock().unwrap(),
-        ["copyReassignedParameters", "spellNames"]
+        [
+            "copyReassignedParameters",
+            "spellNames",
+            "spellCommonLibrary"
+        ]
     );
     assert!(
         understanding_rules()

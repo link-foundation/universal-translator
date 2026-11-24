@@ -3,10 +3,10 @@ use std::io::{self, Read, Write};
 use universal_translator::grammar::{
     Translator, language_ids, languages::language_syntax, meta::to_json,
 };
-use universal_translator::{Mode, SourceDocument, translate_program};
+use universal_translator::{Mode, Options, SourceDocument, translate_program};
 
 const USAGE: &str = "Usage:
-  universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace]
+  universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library]
   universal-translator meta <language> [file|-]
   universal-translator translate-program <from|cst> <to> [file|-]
   universal-translator encode-source <language> [file|-]
@@ -18,6 +18,7 @@ const USAGE: &str = "Usage:
 
 Modes: context-dependent (default), literal, same-effect
 --trace writes every pipeline stage to standard error as \"[stage] <json>\".
+--common-library prints through common-library/ calls.
 Omit the file or pass - to read standard input.";
 
 fn source(file: Option<&str>) -> Result<String, String> {
@@ -36,10 +37,12 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
     let mut file = None;
     let mut mode = None;
     let mut trace = false;
+    let mut common_library = false;
     let mut arguments = arguments.iter().copied();
     while let Some(argument) = arguments.next() {
         match argument {
             "--trace" => trace = true,
+            "--common-library" => common_library = true,
             "--mode" if mode.is_none() => {
                 mode = Some(
                     arguments
@@ -61,7 +64,15 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
         });
     }
     translator
-        .translate(&source(file)?, from, to, mode.unwrap_or_default())
+        .translate_with(
+            &source(file)?,
+            from,
+            to,
+            Options {
+                mode: mode.unwrap_or_default(),
+                common_library,
+            },
+        )
         .map_err(|error| error.to_string())
 }
 
