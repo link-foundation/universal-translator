@@ -17,12 +17,7 @@
     "**/yarn.lock",
     "**/examples/programs/translated/**"
   ],
-  "format": [
-    "javascript"
-  ],
-  "reporters": [
-    "console",
-    "html"
-  ],
+  "format": ["javascript"],
+  "reporters": ["console", "html"],
   "output": "./reports/jscpd"
 }
