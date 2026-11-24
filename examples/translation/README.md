@@ -266,6 +266,9 @@ responses. This mode downloads the selected pinned files recorded in
 trips, and effects in both runtimes. The Ackermann checks cover callable inputs,
 command-line inputs, the standalone decimal result, and the compact JSON
 array printed by the pinned JavaScript listing.
+The FizzBuzz replay covers all eight JavaScript and four Rust listings. For
+the JavaScript generator listing, it compares the 100 lowercase output lines
+and final newline with the translated Rust program.
 For A+B, the verifier feeds both the original and translated programs seven
 stdin lines. These include positive and negative values, both endpoints, and
 repeated spaces. The signed forms produce fixed decimal sums. The pinned

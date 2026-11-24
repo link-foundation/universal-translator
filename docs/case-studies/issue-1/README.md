@@ -112,6 +112,11 @@ then calls the function and compares all 100 output lines. It also checks
 that the JavaScript function returns `undefined` and the Rust function
 returns unit.
 [Pinned callable listing](https://github.com/acmeism/RosettaCodeData/blob/1d475861d7141ef2fafff293d9339f56e4b0f5db/Task/FizzBuzz/JavaScript/fizzbuzz-1.js)
+The generator-based JavaScript listing prints 413 bytes with lowercase
+labels and one trailing newline. The verifier runs the unchanged original
+and its Rust translation, giving native evidence for all eight JavaScript
+and all four Rust FizzBuzz listings in the archive.
+[Pinned generator listing](https://github.com/acmeism/RosettaCodeData/blob/1d475861d7141ef2fafff293d9339f56e4b0f5db/Task/FizzBuzz/JavaScript/fizzbuzz-8.js)
 The fourth Rust FizzBuzz listing uses legacy inline assembly to write 413
 bytes to stdout. The verifier compiles it with the checksum-pinned Rust
 nightly from 2015-10-15 on x86-64 Linux and compares all 100 output lines
@@ -125,7 +130,7 @@ each program in Google Chrome. All 20 plain-language profiles distinguish the
 alert from console output.
 [Pinned browser listing](https://github.com/acmeism/RosettaCodeData/blob/1d475861d7141ef2fafff293d9339f56e4b0f5db/Task/Hello-world-Newbie/JavaScript/hello-world-newbie-2.js)
 
-Native verification covers 23 JavaScript examples out of 1,985 and
+Native verification covers 24 JavaScript examples out of 1,985 and
 15 Rust examples out of 1,481 on x86-64 Linux. The remaining source
 variants still need effect verification.
 
@@ -172,7 +177,7 @@ Collection page, in that order, to verify their checksums and reported counts
 and check the selected original programs. Pass the compiled Rust CLI as the
 third argument to compare exact round trips and Meta Language output in both
 runtimes. A fourth argument accepts the pinned Git Trees responses to verify
-the source counts and 52 original Rosetta Code programs.
+the source counts and 53 original Rosetta Code programs.
 [Reproduction commands](../../../examples/translation/README.md#verification)
 
 The portable program translator in Meta Language 1.0.0 reported semantic

@@ -123,6 +123,7 @@ rosetta-code:
     (program: JavaScript/fizzbuzz-5.js javascript rosetta-space 100 fizz-buzz-joined 32)
     (program: JavaScript/fizzbuzz-6.js javascript rosetta-lines 100 fizz-buzz-joined 10)
     (program: JavaScript/fizzbuzz-7.js javascript rosetta 100)
+    (program: JavaScript/fizzbuzz-8.js javascript rosetta-generator 100 fizz-buzz-lowercase)
     (program: Python/fizzbuzz-4.py python rosetta 100)
     (program: Ruby/fizzbuzz-7.rb ruby rosetta 100)
     (program: Lua/fizzbuzz-3.lua lua rosetta 100)

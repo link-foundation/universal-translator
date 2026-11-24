@@ -14,6 +14,8 @@ Translate FizzBuzz variants that write lowercase results, quote each result, or 
 
 Translate FizzBuzz functions that print only when called or return a string joined by spaces or newlines. The native checks compare the original JavaScript listings with Rust and verify the callable and common-library forms.
 
+Translate the generator-based Rosetta Code FizzBuzz listing to Rust and verify all 100 lowercase output lines against the original.
+
 Translate the pinned Hello World Newbie console programs and browser alert. Rust emits a WebAssembly module that uses an explicit browser alert import. Playwright verifies both versions in Chrome.
 
 Preserve JavaScript document writes through a Rust browser import, and translate QuickJS print calls to an equivalent console line. The corpus replay checks the original and translated behavior in their hosts.

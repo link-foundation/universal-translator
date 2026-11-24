@@ -15,6 +15,16 @@ translation job failure. GitHub recorded another conversion to draft at
 [Failing translation job](https://github.com/link-foundation/universal-translator/actions/runs/45316504560/job/138187684723) ·
 [Failing Pipeline Status](https://github.com/link-foundation/universal-translator/actions/runs/45316504560/job/138204827278)
 
+GitHub recorded another ready transition at 07:11:57 UTC on November 24.
+The resulting run at `6bf2e00` restored all 144,048 documents in both
+runtimes and verified 23 JavaScript and 15 Rust originals. The failed-jobs
+log records a successful translation job at line 15, `FULL_NATIVE: false`
+at line 16, the coverage failure at line 18, and its propagation through
+Pipeline Status at line 116. The PR returned to draft at 09:19:31 UTC.
+[Translation job](https://github.com/link-foundation/universal-translator/actions/runs/45346147687/job/138317997778) ·
+[Coverage gate](https://github.com/link-foundation/universal-translator/actions/runs/45346147687/job/138327436537) ·
+[Pipeline Status](https://github.com/link-foundation/universal-translator/actions/runs/45346147687/job/138335208221)
+
 The translation job publishes the coverage result after the pinned corpus
 replay. A separate **Full native Rosetta Code coverage** job requires
 complete evidence from that same run whenever PR 5 is ready. Pipeline
