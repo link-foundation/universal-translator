@@ -48,6 +48,12 @@ fn extension(target: &str) -> &'static str {
         "rust" => "rs",
         "kotlin" => "kt",
         "swift" => "swift",
+        "perl" => "pl",
+        "dart" => "dart",
+        "scala" => "scala",
+        "julia" => "jl",
+        "r" => "R",
+        "groovy" => "groovy",
         "nasm" => "asm",
         "cil" => "il",
         "jvm" => "j",
@@ -94,7 +100,7 @@ fn matches_every_golden_file_for_all_targets() {
         .into_iter()
         .chain(machine_target_ids())
         .collect();
-    assert_eq!(targets.len(), 17);
+    assert_eq!(targets.len(), 23);
     let mut mismatches = Vec::new();
     for task in TASKS {
         let meta = translator.to_meta(&source(task), "javascript").unwrap();

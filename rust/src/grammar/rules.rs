@@ -9,9 +9,9 @@ use std::collections::HashSet;
 use std::sync::Arc;
 
 use super::common_library::{recognize_common_library, spell_common_library};
-use super::languages::{Syntax, language_syntax};
+use super::languages::{ImmutableParameters, IntegerDivision, Syntax, language_syntax};
 use super::meta::{Node, binary, block, rewrite, rewrite_opt, text, walk};
-use super::names::{neutral_name, rename_declared, spell_name};
+use super::names::{name_words, neutral_name, rename_declared, spell_name};
 use super::{Mode, Rule, Settings};
 
 fn rule(name: &str, apply: impl Fn(Node, &Settings) -> Node + Send + Sync + 'static) -> Rule {
@@ -25,16 +25,12 @@ fn rule(name: &str, apply: impl Fn(Node, &Settings) -> Node + Send + Sync + 'sta
 pub fn understanding_rules() -> Vec<Rule> {
     vec![
         rule("findEntryPoint", |program, _| find_entry_point(program)),
-        rule("concatenationOperator", |program, _| {
-            concatenation_operator(program)
-        }),
-        rule("integerDivisionCalls", |program, _| {
-            integer_division_calls(program)
-        }),
+        rule("concatenationOperator", concatenation_operator),
+        rule("integerDivisionCalls", integer_division_calls),
         rule("recognizeCommonLibrary", |program, _| {
             recognize_common_library(program)
         }),
-        rule("recognizePrint", |program, _| recognize_print(program)),
+        rule("recognizePrint", recognize_print),
         rule("expandCompoundAssignment", |program, _| {
             expand_compound_assignment(program)
         }),
@@ -360,13 +356,42 @@ fn print(value: Node, newline: bool) -> Node {
         .with("newline", newline)
 }
 
-fn print_from_call(call: &Node) -> Option<Node> {
+/// Whether an output procedure ends the line or writes text as it is.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum PrintKind {
+    Line,
+    Text,
+}
+
+/// Which kind of output procedure a call names, from the source language's
+/// own output procedures where it lists them.
+fn print_kind(callee: &str, syntax: Option<&Syntax>) -> Option<PrintKind> {
+    if let Some(own) = syntax.and_then(|syntax| syntax.print_calls) {
+        return if own.line.contains(&callee) {
+            Some(PrintKind::Line)
+        } else if own.text.contains(&callee) {
+            Some(PrintKind::Text)
+        } else {
+            None
+        };
+    }
+    if LINE_CALLS.contains(&callee) {
+        Some(PrintKind::Line)
+    } else if TEXT_CALLS.contains(&callee) || callee == "echo" {
+        Some(PrintKind::Text)
+    } else {
+        None
+    }
+}
+
+fn print_from_call(call: &Node, syntax: Option<&Syntax>) -> Option<Node> {
     let callee = call.str("callee").unwrap_or_default();
+    let kind = print_kind(callee, syntax);
     let arguments = call.node_list("arguments");
     let (named, values): (Vec<Node>, Vec<Node>) = arguments
         .into_iter()
         .partition(|value| value.is("NamedArgument"));
-    if LINE_CALLS.contains(&callee) {
+    if kind == Some(PrintKind::Line) {
         let end = named
             .iter()
             .rev()
@@ -380,7 +405,7 @@ fn print_from_call(call: &Node) -> Option<Node> {
         };
         return Some(print(value, newline));
     }
-    if TEXT_CALLS.contains(&callee) || callee == "echo" {
+    if kind == Some(PrintKind::Text) {
         let flat = values
             .into_iter()
             .flat_map(|value| {
@@ -410,7 +435,8 @@ fn ends_with(node: Option<&Node>, suffix: &str) -> bool {
 }
 
 /// Replace each known output procedure with the Print concept.
-pub fn recognize_print(program: Node) -> Node {
+pub fn recognize_print(program: Node, settings: &Settings) -> Node {
+    let syntax = language_syntax(&settings.from).ok();
     rewrite(program, |current| {
         if !current.is("Evaluate") {
             return current;
@@ -419,7 +445,7 @@ pub fn recognize_print(program: Node) -> Node {
             return current;
         };
         if expression.is("Call") {
-            return print_from_call(expression).unwrap_or(current);
+            return print_from_call(expression, syntax.as_ref()).unwrap_or(current);
         }
         if expression.is("Binary") && expression.str("operator") == Some("stream") {
             let mut values = stream_parts(expression);
@@ -608,70 +634,148 @@ pub fn expand_compound_assignment(program: Node) -> Node {
     })
 }
 
-fn flatten_parts(parts: [Option<&Node>; 2]) -> Vec<Node> {
+fn flatten_parts(parts: &[Option<&Node>]) -> Vec<Node> {
     parts
-        .into_iter()
+        .iter()
         .flatten()
         .flat_map(|part| {
             if part.is("Interpolation") {
                 part.node_list("parts")
             } else {
-                vec![part.clone()]
+                vec![(*part).clone()]
             }
         })
         .collect()
 }
 
-/// PHP's "." operator joins text: the same concept as an interpolation.
-pub fn concatenation_operator(program: Node) -> Node {
+/// PHP's "." operator and R's `paste0(...)` join text: the same concept as
+/// an interpolation.
+pub fn concatenation_operator(program: Node, settings: &Settings) -> Node {
+    let call = language_syntax(&settings.from)
+        .ok()
+        .and_then(|syntax| syntax.concatenate_call);
     rewrite(program, |current| {
-        if !current.is("Binary") || current.str("operator") != Some("concatenate") {
-            return current;
+        if current.is("Binary") && current.str("operator") == Some("concatenate") {
+            return parts_to_value(flatten_parts(&[
+                current.node("left"),
+                current.node("right"),
+            ]));
         }
-        parts_to_value(flatten_parts([current.node("left"), current.node("right")]))
+        if current.is("Call") && call.is_some() && current.str("callee") == call {
+            let arguments = current.nodes("arguments");
+            let parts: Vec<Option<&Node>> = arguments.into_iter().map(Some).collect();
+            return parts_to_value(flatten_parts(&parts));
+        }
+        current
     })
 }
 
-/// `Math.trunc(a / b)` and `intdiv(a, b)` are integer division.
-pub fn integer_division_calls(program: Node) -> Node {
+/// Languages without an integer division operator call a library procedure:
+/// JavaScript writes `Math.trunc(a / b)`, Perl `int(a / b)`, PHP
+/// `intdiv(a, b)`, Julia `div(a, b)` and Groovy `a.intdiv(b)`. Each means
+/// the meta operator "divide". The language description names its spelling.
+const INTEGER_DIVISION_SPELLINGS: [IntegerDivision; 2] = [
+    IntegerDivision::Wrapper("Math.trunc"),
+    IntegerDivision::Call("intdiv"),
+];
+
+fn integer_division(call: &Node, spelling: IntegerDivision) -> Option<Node> {
+    let callee = call.str("callee").unwrap_or_default();
+    let arguments = call.node_list("arguments");
+    let divide = |left: Node, right: Node| binary("divide", left, right);
+    match (spelling, arguments.as_slice()) {
+        (IntegerDivision::Wrapper(wrapper), [first])
+            if callee == wrapper
+                && first.is("Binary")
+                && first.str("operator") == Some("divide") =>
+        {
+            Some(first.clone())
+        }
+        (IntegerDivision::Call(own), [first, second]) if callee == own => {
+            Some(divide(first.clone(), second.clone()))
+        }
+        (IntegerDivision::Method(method), [first, second])
+            if callee.strip_prefix('.') == Some(method) =>
+        {
+            Some(divide(first.clone(), second.clone()))
+        }
+        // a.intdiv(b) with a named receiver reads as the callee "a.intdiv".
+        (IntegerDivision::Method(method), [first]) => {
+            let receiver = callee.strip_suffix(method)?.strip_suffix('.')?;
+            Some(divide(
+                Node::new("Name").with("name", receiver),
+                first.clone(),
+            ))
+        }
+        _ => None,
+    }
+}
+
+pub fn integer_division_calls(program: Node, settings: &Settings) -> Node {
+    let own = language_syntax(&settings.from)
+        .ok()
+        .and_then(|syntax| syntax.integer_division);
+    let spellings: Vec<IntegerDivision> =
+        own.into_iter().chain(INTEGER_DIVISION_SPELLINGS).collect();
     rewrite(program, |current| {
         if !current.is("Call") {
             return current;
         }
-        let arguments = current.node_list("arguments");
-        match (current.str("callee"), arguments.as_slice()) {
-            (Some("Math.trunc"), [first])
-                if first.is("Binary") && first.str("operator") == Some("divide") =>
-            {
-                first.clone()
-            }
-            (Some("intdiv"), [first, second]) => binary("divide", first.clone(), second.clone()),
-            _ => current,
-        }
+        spellings
+            .iter()
+            .find_map(|spelling| integer_division(&current, *spelling))
+            .unwrap_or(current)
     })
 }
 
+/// The neutral name of the parameter that a copy named `name` is made from.
+fn copy_name(name: &str) -> String {
+    let mut words = vec!["initial".to_owned()];
+    words.extend(name_words(name));
+    words.join("-")
+}
+
 /// `let mut first = first;` at the start of a Rust, Kotlin or Swift function
-/// only exists because parameters are immutable there. It is a detail of the
-/// source language (see copyReassignedParameters), not part of the meaning.
-pub fn drop_parameter_copies(program: Node) -> Node {
-    map_bodies(program, |item, mut body| {
-        let names = parameter_names(item);
-        let mut statements = body.node_list("statements");
-        let copies = statements
-            .iter()
-            .take_while(|statement| {
-                let name = statement.str("name").unwrap_or_default();
-                statement.is("Declaration")
-                    && names.iter().any(|parameter| parameter == name)
-                    && statement
-                        .node("value")
-                        .is_some_and(|value| value.is_name(name))
-            })
-            .count();
-        statements.drain(..copies);
-        body.set("statements", statements);
-        body
+/// only exists because parameters are immutable there, as does Scala's
+/// `var first: Long = initialFirst`. Both are details of the source language
+/// (see copyReassignedParameters), not part of the meaning: the parameter
+/// takes the name of its copy.
+pub fn drop_parameter_copies(mut program: Node) -> Node {
+    let functions: Vec<Node> = program
+        .node_list("functions")
+        .into_iter()
+        .map(|mut item| {
+            let mut parameters = item.node_list("parameters");
+            let mut body = item.node("body").cloned().unwrap_or_else(|| block(vec![]));
+            let mut statements = body.node_list("statements");
+            while let Some(index) = statements
+                .first()
+                .and_then(|statement| copied_parameter(statement, &parameters))
+            {
+                let copy = statements.remove(0);
+                parameters[index].set("name", copy.str("name").unwrap_or_default());
+            }
+            body.set("statements", statements);
+            item.set("parameters", parameters);
+            item.set("body", body);
+            item
+        })
+        .collect();
+    program.set("functions", functions);
+    program
+}
+
+/// The index of the parameter that a declaration copies, if it is a copy.
+fn copied_parameter(statement: &Node, parameters: &[Node]) -> Option<usize> {
+    if !statement.is("Declaration") {
+        return None;
+    }
+    let value = statement.node("value").filter(|value| value.is("Name"))?;
+    let source = value.str("name")?;
+    let local = statement.str("name").unwrap_or_default();
+    parameters.iter().position(|parameter| {
+        let name = parameter.str("name").unwrap_or_default();
+        name == source && (name == local || copy_name(local) == neutral_name(name))
     })
 }
 
@@ -694,8 +798,11 @@ pub fn concatenation_to_interpolation(program: Node) -> Node {
         if !joins_text {
             return current;
         }
-        parts_to_value(flatten_parts([current.node("left"), current.node("right")]))
-            .with("type", "text")
+        parts_to_value(flatten_parts(&[
+            current.node("left"),
+            current.node("right"),
+        ]))
+        .with("type", "text")
     })
 }
 
@@ -824,39 +931,74 @@ pub fn adapt_comments(program: Node, settings: &Settings) -> Node {
 
 /// Rust, Kotlin and Swift parameters cannot be reassigned. When a function
 /// assigns a parameter, the target works on a mutable local copy instead.
-pub fn copy_reassigned_parameters(program: Node, settings: &Settings) -> Node {
-    if !language_syntax(&settings.to).is_ok_and(|syntax| syntax.immutable_parameters) {
+///
+/// Scala cannot declare a local with the name of a parameter, so there the
+/// parameter itself is renamed: `def f(initialFirst: Long)` with
+/// `var first: Long = initialFirst`.
+pub fn copy_reassigned_parameters(mut program: Node, settings: &Settings) -> Node {
+    let immutable = language_syntax(&settings.to).map_or(ImmutableParameters::No, |syntax| {
+        syntax.immutable_parameters
+    });
+    if immutable == ImmutableParameters::No {
         return program;
     }
-    map_bodies(program, |item, body| {
-        let assigned = assigned_names(&body);
-        let mut statements: Vec<Node> = item
-            .nodes("parameters")
-            .into_iter()
-            .filter(|parameter| {
-                parameter
-                    .str("name")
-                    .is_some_and(|name| assigned.contains(name))
-            })
-            .map(|parameter| {
-                let name = parameter.str("name").unwrap_or_default();
-                let kind = parameter.str("type");
-                Node::new("Declaration")
-                    .with("name", name)
-                    .with_opt("type", kind)
-                    .with(
-                        "value",
-                        Node::new("Name").with("name", name).with_opt("type", kind),
-                    )
-                    .with("mutable", true)
-            })
-            .collect();
-        if statements.is_empty() {
-            return body;
-        }
-        statements.extend(body.node_list("statements"));
-        block(statements)
-    })
+    let renamed = immutable == ImmutableParameters::Renamed;
+    let functions: Vec<Node> = program
+        .node_list("functions")
+        .into_iter()
+        .map(|mut item| {
+            let body = item.node("body").cloned().unwrap_or_else(|| block(vec![]));
+            let assigned = assigned_names(&body);
+            let source = |name: &str| {
+                if renamed && assigned.contains(name) {
+                    copy_name(name)
+                } else {
+                    name.to_owned()
+                }
+            };
+            let mut statements: Vec<Node> = item
+                .nodes("parameters")
+                .into_iter()
+                .filter(|parameter| {
+                    parameter
+                        .str("name")
+                        .is_some_and(|name| assigned.contains(name))
+                })
+                .map(|parameter| {
+                    let name = parameter.str("name").unwrap_or_default();
+                    let kind = parameter.str("type");
+                    Node::new("Declaration")
+                        .with("name", name)
+                        .with_opt("type", kind)
+                        .with(
+                            "value",
+                            Node::new("Name")
+                                .with("name", source(name))
+                                .with_opt("type", kind),
+                        )
+                        .with("mutable", true)
+                })
+                .collect();
+            if statements.is_empty() {
+                return item;
+            }
+            let parameters: Vec<Node> = item
+                .node_list("parameters")
+                .into_iter()
+                .map(|mut parameter| {
+                    let name = source(parameter.str("name").unwrap_or_default());
+                    parameter.set("name", name);
+                    parameter
+                })
+                .collect();
+            statements.extend(body.node_list("statements"));
+            item.set("parameters", parameters);
+            item.set("body", block(statements));
+            item
+        })
+        .collect();
+    program.set("functions", functions);
+    program
 }
 
 /// Spell every declared name in the target's naming convention.

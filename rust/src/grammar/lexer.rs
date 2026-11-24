@@ -3,6 +3,7 @@
 //! layout rules (indentation, line ends) apply.
 
 use super::GrammarError;
+pub use super::languages::InterpolationStyle;
 use super::languages::{Blocks, Syntax};
 
 const SYMBOLS: [&str; 54] = [
@@ -41,17 +42,6 @@ impl TokenType {
             TokenType::End => "end",
         }
     }
-}
-
-/// How embedded expressions are written inside a text literal.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum InterpolationStyle {
-    Plain,
-    Braces,
-    DollarBraces,
-    HashBraces,
-    Dollar,
-    BackslashParentheses,
 }
 
 #[derive(Clone, Debug)]
@@ -201,8 +191,8 @@ impl<'a> Lexer<'a> {
         let readers: [Reader<'a>; 10] = [
             Self::newline,
             |lexer| Ok(lexer.space()),
-            |lexer| Ok(lexer.line_comment()),
             Self::block_comment,
+            |lexer| Ok(lexer.line_comment()),
             |lexer| Ok(lexer.directive()),
             Self::text,
             |lexer| Ok(lexer.number()),
@@ -387,7 +377,11 @@ impl<'a> Lexer<'a> {
             return Ok(false);
         };
         let is_quote = |c: Option<char>| c.is_some_and(|c| self.syntax.quotes.contains(&c));
-        let prefixed = matches!(character, 'f' | '$') && is_quote(self.at(1));
+        let prefixed = self
+            .syntax
+            .interpolation
+            .iter()
+            .any(|entry| entry.prefix == Some(character) && is_quote(self.at(1)));
         if !prefixed && !is_quote(Some(character)) {
             return Ok(false);
         }
@@ -420,6 +414,10 @@ impl<'a> Lexer<'a> {
         let value = self.slice(self.index, self.index + length);
         self.push(TokenType::Number, &value);
         self.index += length;
+        let suffix = self.syntax.number_suffix.or(self.syntax.long_suffix);
+        if let Some(suffix) = suffix.filter(|suffix| self.starts_with(suffix, self.index)) {
+            self.index += suffix.chars().count();
+        }
         true
     }
 
@@ -454,8 +452,11 @@ impl<'a> Lexer<'a> {
     }
 
     fn symbol(&mut self) -> Result<bool, GrammarError> {
-        let Some(symbol) = SYMBOLS
+        let Some(symbol) = self
+            .syntax
+            .symbols
             .iter()
+            .chain(SYMBOLS.iter())
             .find(|candidate| self.starts_with(candidate, self.index))
         else {
             let character = self.at(0).unwrap_or_default();
@@ -472,18 +473,17 @@ impl<'a> Lexer<'a> {
             _ => {}
         }
         self.push(TokenType::Symbol, symbol);
-        self.index += symbol.len();
+        self.index += symbol.chars().count();
         Ok(true)
     }
 }
 
+/// Which interpolation style a text literal uses, from the language's
+/// interpolation table. Literals that match no entry are plain text.
 fn interpolation_style(syntax: &Syntax, quote: char, prefix: Option<char>) -> InterpolationStyle {
-    match (prefix, quote, syntax.id) {
-        (Some('f'), _, "python") | (Some('$'), _, "csharp") => InterpolationStyle::Braces,
-        (_, '`', id) if id.ends_with("script") => InterpolationStyle::DollarBraces,
-        (_, '"', "ruby") => InterpolationStyle::HashBraces,
-        (_, '"', "kotlin" | "php") => InterpolationStyle::Dollar,
-        (_, '"', "swift") => InterpolationStyle::BackslashParentheses,
-        _ => InterpolationStyle::Plain,
-    }
+    syntax
+        .interpolation
+        .iter()
+        .find(|entry| entry.prefix == prefix && entry.quote.is_none_or(|own| own == quote))
+        .map_or(InterpolationStyle::Plain, |entry| entry.style)
 }

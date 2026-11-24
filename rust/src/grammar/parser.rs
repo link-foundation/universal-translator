@@ -8,6 +8,7 @@ use std::sync::OnceLock;
 use regex::Regex;
 
 use super::GrammarError;
+use super::interpolation::{Piece, split_interpolation};
 use super::languages::{Blocks, Syntax, Typed};
 use super::lexer::{InterpolationStyle, Token, TokenType, decode_escapes, tokenize};
 use super::meta::{Node, add, binary, block, name, number, text};
@@ -89,18 +90,42 @@ struct Update {
     step: Option<f64>,
 }
 
+/// Binary operators by precedence level with their spellings.
+type Levels = Vec<Vec<(&'static str, Vec<&'static str>)>>;
+
 struct Parser {
     tokens: Vec<Token>,
     position: usize,
     syntax: Syntax,
+    /// The binary levels with the language's own remainder and integer
+    /// division spellings added.
+    levels: Levels,
 }
 
 impl Parser {
     fn new(tokens: Vec<Token>, syntax: Syntax) -> Self {
+        let operators = syntax.operators;
+        let levels = BINARY_LEVELS
+            .iter()
+            .map(|level| {
+                level
+                    .iter()
+                    .map(|(operator, surfaces)| {
+                        let extra = match *operator {
+                            "remainder" => operators.remainder,
+                            "divide" => operators.integer_divide,
+                            _ => None,
+                        };
+                        (*operator, surfaces.iter().copied().chain(extra).collect())
+                    })
+                    .collect()
+            })
+            .collect();
         Parser {
             tokens,
             position: 0,
             syntax,
+            levels,
         }
     }
 
@@ -347,6 +372,11 @@ impl Parser {
     }
 
     fn is_function_start(&self) -> bool {
+        if self.syntax.assigned_functions {
+            return self.kind(0) == TokenType::Name
+                && self.is_at(self.syntax.assignment.unwrap_or("="), 1)
+                && self.is_at("function", 2);
+        }
         match self.syntax.function_keyword {
             Some(keyword) => self.is_keyword_function_start(keyword),
             None => self.is_prefix_function_start(),
@@ -405,7 +435,12 @@ impl Parser {
     fn function_definition(&mut self) -> Parsed {
         self.skip_modifiers();
         let mut return_type = None;
-        let function_name = if let Some(keyword) = self.syntax.function_keyword {
+        let function_name = if self.syntax.assigned_functions {
+            let function_name = self.expect_name()?;
+            self.expect(self.syntax.assignment.unwrap_or("="))?;
+            self.expect("function")?;
+            function_name
+        } else if let Some(keyword) = self.syntax.function_keyword {
             self.expect(keyword)?;
             self.expect_name()?
         } else {
@@ -416,10 +451,11 @@ impl Parser {
             }
             last
         };
-        let parameters = if self.kind(0) == TokenType::Newline && self.syntax.id == "ruby" {
-            Vec::new()
-        } else {
+        // Ruby and Perl may leave out the parentheses of a parameter list.
+        let mut parameters = if self.is("(") {
             self.parameter_list()?
+        } else {
+            Vec::new()
         };
         if self.accept("->")
             || (self.syntax.return_arrow == Some(":") && self.accept(":"))
@@ -427,8 +463,26 @@ impl Parser {
         {
             return_type = self.type_expression()?;
         }
-        let body = self.block()?;
+        // Scala: def name(...): Type = { ... }
+        if let Some(symbol) = self.syntax.body_after {
+            self.accept(symbol);
+        }
+        let mut body = self.block()?;
         self.close_keyword_block()?;
+        // Perl: sub name { my ($first, $second) = @_; ... }
+        let mut statements = body.node_list("statements");
+        if statements
+            .first()
+            .is_some_and(|first| first.is("Parameters"))
+        {
+            parameters = statements
+                .remove(0)
+                .texts("names")
+                .into_iter()
+                .map(|parameter| Node::new("Parameter").with("name", parameter))
+                .collect();
+            body.set("statements", statements);
+        }
         Ok(Node::new("Function")
             .with("name", function_name)
             .with("parameters", parameters)
@@ -636,6 +690,9 @@ impl Parser {
     }
 
     fn declaration(&mut self) -> Parsed {
+        if self.syntax.unpacked_parameters && self.is_at("(", 1) {
+            return self.unpacked_parameters();
+        }
         let keyword = self.next_value()?;
         let mutable = if self.accept("mut") {
             true
@@ -662,6 +719,22 @@ impl Parser {
             .with("mutable", keyword != "const" && mutable))
     }
 
+    /// Perl passes arguments in `@_`; a function names them by unpacking it.
+    fn unpacked_parameters(&mut self) -> Parsed {
+        self.position += 1;
+        self.expect("(")?;
+        let mut names = vec![self.expect_name()?];
+        while self.accept(",") {
+            names.push(self.expect_name()?);
+        }
+        self.expect(")")?;
+        self.expect("=")?;
+        self.expect("@")?;
+        self.expect("_")?;
+        self.end_statement()?;
+        Ok(Node::new("Parameters").with("names", names))
+    }
+
     fn simple_statement(&mut self) -> Parsed {
         let starts_with_name = self.kind(0) == TokenType::Name;
         if starts_with_name && self.is_at(":=", 1) {
@@ -673,6 +746,8 @@ impl Parser {
         if starts_with_name
             && ASSIGNMENT_SYMBOLS
                 .iter()
+                .copied()
+                .chain(self.syntax.assignment)
                 .any(|symbol| self.is_at(symbol, 1))
         {
             return self.assignment();
@@ -717,6 +792,9 @@ impl Parser {
         let written = self.next_value()?;
         let (operator, value) = match step_operator(&written) {
             Some(operator) => (operator.to_owned(), number(1.0)),
+            None if Some(written.as_str()) == self.syntax.assignment => {
+                ("=".to_owned(), self.expression()?)
+            }
             None => (written, self.expression()?),
         };
         self.end_statement()?;
@@ -743,7 +821,7 @@ impl Parser {
 
     /// Ruby allows calls without parentheses, such as `puts "Hello"`.
     fn is_command_call(&self) -> bool {
-        if self.syntax.id != "ruby" || self.kind(0) != TokenType::Name {
+        if !self.syntax.command_calls || self.kind(0) != TokenType::Name {
             return false;
         }
         let following = self.peek(1);
@@ -847,23 +925,39 @@ impl Parser {
                 .with("condition", condition)
                 .with("body", body));
         }
+        // Perl declares the loop variable: for my $i (...)
+        if self.syntax.declarations.contains(&self.value(0)) && self.kind(1) == TokenType::Name {
+            self.position += 1;
+        }
         let variable = self.expect_name()?;
         if self.syntax.id == "lua" {
-            self.expect("=")?;
-            let start = self.expression()?;
-            self.expect(",")?;
-            let last = self.expression()?;
-            let body = self.block()?;
-            self.close_keyword_block()?;
-            let range = Range {
-                start,
-                end: add(last, number(1.0)),
-            };
-            return Ok(counting_node(variable, range, body));
+            self.numeric_for(variable)
+        } else {
+            self.range_for(variable, parenthesized)
         }
-        self.expect("in")?;
+    }
+
+    /// Lua: `for i = first, last do ... end`
+    fn numeric_for(&mut self, variable: String) -> Parsed {
+        self.expect("=")?;
+        let start = self.expression()?;
+        self.expect(",")?;
+        let last = self.expression()?;
+        let body = self.block()?;
+        self.close_keyword_block()?;
+        let range = Range {
+            start,
+            end: add(last, number(1.0)),
+        };
+        Ok(counting_node(variable, range, body))
+    }
+
+    /// `for i in range`, `for my $i (range)`, `for (i <- range)`
+    fn range_for(&mut self, variable: String, parenthesized: bool) -> Parsed {
+        let opener = self.syntax.for_in.unwrap_or("in");
+        self.expect(opener)?;
         let range = self.range_expression()?;
-        if parenthesized {
+        if opener == "(" || parenthesized {
             self.expect(")")?;
         }
         let body = self.block()?;
@@ -965,6 +1059,8 @@ impl Parser {
             "..." if self.syntax.id == "ruby" => last,
             ".." if self.syntax.id == "rust" => last,
             "..." | ".." | "..=" => inclusive(last),
+            // Scala's `to`, and Julia's and R's `:`
+            "to" | ":" => inclusive(last),
             _ => {
                 return Err(GrammarError::syntax(
                     format!("Unsupported range operator \"{operator}\""),
@@ -987,14 +1083,14 @@ impl Parser {
         if !matches!(token.kind, TokenType::Symbol | TokenType::Name) {
             return None;
         }
-        BINARY_LEVELS[level]
+        self.levels[level]
             .iter()
             .find(|(_, surfaces)| surfaces.contains(&token.value.as_str()))
             .map(|(operator, _)| *operator)
     }
 
     fn binary(&mut self, level: usize) -> Parsed {
-        if level == BINARY_LEVELS.len() {
+        if level == self.levels.len() {
             return self.unary();
         }
         let mut left = self.binary(level + 1)?;
@@ -1057,6 +1153,12 @@ impl Parser {
             if member && self.kind(1) == TokenType::Name {
                 let separator = self.next_value()?;
                 let member = self.next_value()?;
+                if !expression.is("Name") {
+                    expression = Node::new("Method")
+                        .with("receiver", expression)
+                        .with("name", member);
+                    continue;
+                }
                 expression = name(format!("{}{separator}{member}", callee_name(&expression)?));
                 continue;
             }
@@ -1080,9 +1182,18 @@ impl Parser {
                     }
                 }
                 self.expect(")")?;
-                expression = Node::new("Call")
-                    .with("callee", callee_name(&expression)?)
-                    .with("arguments", values);
+                expression = if expression.is("Method") {
+                    let method = expression.str("name").unwrap_or_default();
+                    let receiver = expression.node("receiver").cloned();
+                    Node::new("Call").with("callee", format!(".{method}")).with(
+                        "arguments",
+                        receiver.into_iter().chain(values).collect::<Vec<_>>(),
+                    )
+                } else {
+                    Node::new("Call")
+                        .with("callee", callee_name(&expression)?)
+                        .with("arguments", values)
+                };
                 continue;
             }
             return Ok(expression);
@@ -1096,9 +1207,13 @@ impl Parser {
             TokenType::Text => return self.text_literal(&token),
             TokenType::Name => {
                 return Ok(match token.value.as_str() {
-                    "true" | "True" => Node::new("Boolean").with("value", true),
-                    "false" | "False" => Node::new("Boolean").with("value", false),
-                    _ => name(token.value),
+                    "true" => Node::new("Boolean").with("value", true),
+                    "false" => Node::new("Boolean").with("value", false),
+                    word => match self.syntax.words {
+                        Some((yes, _)) if yes == word => Node::new("Boolean").with("value", true),
+                        Some((_, no)) if no == word => Node::new("Boolean").with("value", false),
+                        _ => name(token.value),
+                    },
                 });
             }
             TokenType::Symbol if token.value == "(" => {
@@ -1162,141 +1277,6 @@ fn counting_node(variable: String, range: Range, body: Node) -> Node {
         .with("start", range.start)
         .with("end", range.end)
         .with("body", body)
-}
-
-/// A piece of interpolated text: literal text or embedded code.
-enum Piece {
-    Literal(String),
-    Code(String),
-}
-
-/// Where an embedded expression starts, which bracket closes it, and what
-/// the opener keeps of itself in the code.
-fn interpolation_openers(
-    style: InterpolationStyle,
-) -> &'static [(&'static str, char, &'static str)] {
-    match style {
-        InterpolationStyle::Braces => &[("{", '}', "")],
-        InterpolationStyle::DollarBraces => &[("${", '}', "")],
-        InterpolationStyle::HashBraces => &[("#{", '}', "")],
-        InterpolationStyle::Dollar => &[("${", '}', ""), ("{$", '}', "$")],
-        InterpolationStyle::BackslashParentheses => &[("\\(", ')', "")],
-        InterpolationStyle::Plain => &[],
-    }
-}
-
-fn starts_with_at(value: &[char], index: usize, prefix: &str) -> bool {
-    prefix
-        .chars()
-        .enumerate()
-        .all(|(offset, character)| value.get(index + offset) == Some(&character))
-}
-
-/// Split interpolated text into literal strings and code pieces. Nested
-/// brackets inside the embedded expression are balanced, so `"\(f(x))"`
-/// works.
-fn split_interpolation(value: &str, style: InterpolationStyle) -> Parsed<Vec<Piece>> {
-    let characters: Vec<char> = value.chars().collect();
-    let mut pieces = Vec::new();
-    let mut literal = String::new();
-    let mut index = 0;
-    while index < characters.len() {
-        if let Some((code, end)) = embedded_code(&characters, index, style)? {
-            if !literal.is_empty() {
-                pieces.push(Piece::Literal(std::mem::take(&mut literal)));
-            }
-            pieces.push(Piece::Code(code));
-            index = end;
-            continue;
-        }
-        let length = literal_length(&characters, index, style);
-        // A doubled brace stands for one brace.
-        if length == 2 && characters[index] != '\\' {
-            literal.push(characters[index]);
-        } else {
-            literal.extend(&characters[index..(index + length).min(characters.len())]);
-        }
-        index += length;
-    }
-    if !literal.is_empty() {
-        pieces.push(Piece::Literal(literal));
-    }
-    Ok(pieces)
-}
-
-/// How many characters of literal text start at `index`: an escape sequence
-/// or a doubled brace counts as two.
-fn literal_length(value: &[char], index: usize, style: InterpolationStyle) -> usize {
-    let backslash = value[index] == '\\';
-    if backslash && style != InterpolationStyle::BackslashParentheses {
-        return 2;
-    }
-    if style == InterpolationStyle::Braces
-        && (starts_with_at(value, index, "{{") || starts_with_at(value, index, "}}"))
-    {
-        return 2;
-    }
-    if backslash && !starts_with_at(value, index, "\\(") {
-        2
-    } else {
-        1
-    }
-}
-
-/// Code embedded in text at `index`, with the index just after it.
-fn embedded_code(
-    value: &[char],
-    index: usize,
-    style: InterpolationStyle,
-) -> Parsed<Option<(String, usize)>> {
-    if literal_length(value, index, style) == 2 {
-        return Ok(None);
-    }
-    let opener = interpolation_openers(style)
-        .iter()
-        .find(|(open, _, _)| starts_with_at(value, index, open));
-    let Some((open, close, keep)) = opener else {
-        if style == InterpolationStyle::Dollar
-            && value[index] == '$'
-            && value
-                .get(index + 1)
-                .is_some_and(|c| c.is_ascii_alphabetic() || *c == '_')
-        {
-            let length = value[index + 1..]
-                .iter()
-                .take_while(|c| c.is_ascii_alphanumeric() || **c == '_')
-                .count();
-            let code = value[index + 1..index + 1 + length].iter().collect();
-            return Ok(Some((code, index + 1 + length)));
-        }
-        return Ok(None);
-    };
-    let start = index + open.chars().count();
-    let end = closing_index(value, start, *close)?;
-    let code: String = value[start..end - 1].iter().collect();
-    Ok(Some((format!("{keep}{code}"), end)))
-}
-
-/// The index just after the bracket that closes one already opened.
-fn closing_index(value: &[char], start: usize, close: char) -> Parsed<usize> {
-    let inner = if close == '}' { '{' } else { '(' };
-    let mut depth = 1;
-    let mut end = start;
-    while end < value.len() && depth > 0 {
-        if value[end] == inner {
-            depth += 1;
-        } else if value[end] == close {
-            depth -= 1;
-        }
-        end += 1;
-    }
-    if depth != 0 {
-        return Err(GrammarError::syntax(
-            format!("Unclosed \"{inner}\" in text"),
-            0,
-        ));
-    }
-    Ok(end)
 }
 
 fn callee_name(expression: &Node) -> Parsed<String> {
