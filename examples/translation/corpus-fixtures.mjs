@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import {
   mkdirSync,
   mkdtempSync,
@@ -14,6 +15,7 @@ import {
   linkFields,
   namedLinks,
   parseLinks,
+  reference,
   references,
 } from '../../js/src/translation/links.js';
 import {
@@ -33,6 +35,41 @@ export function readCorpusCoverage() {
     import.meta.url
   );
   return linkFields(parseLinks(readFileSync(snapshot, 'utf8')));
+}
+
+export function helloWorldConsolePrograms(collection) {
+  return namedLinks(collection.get('verified-console-programs'), 'program')
+    .map(references)
+    .map(([path, language, form, message]) => ({
+      path,
+      language,
+      form,
+      effect: { task: 'hello', message },
+    }));
+}
+
+export function readHelloWorldPage(collection, filename) {
+  const input = readFileSync(filename);
+  assert.equal(
+    createHash('sha256').update(input).digest('hex'),
+    reference(collection.get('sha256')),
+    'Hello World Collection SHA-256 does not match the pinned page'
+  );
+  return input.toString('utf8');
+}
+
+export function helloWorldSource(page, path) {
+  const section = page.split(`<a name="${path}"></a>`);
+  assert.equal(section.length, 2, path);
+  const block = section[1]
+    .split('<a name="')[0]
+    .match(/<pre>([\s\S]*?)<\/pre>/u);
+  assert.ok(block, path);
+  // The pinned snippets use inline links and these HTML punctuation entities.
+  const entities = { amp: '&', gt: '>', lt: '<' };
+  return block[1]
+    .replace(/<\/?a(?:\s[^>]*)?>/gu, '')
+    .replace(/&(amp|gt|lt);/gu, (_, name) => entities[name]);
 }
 
 function decodeEffect(task, parameters) {

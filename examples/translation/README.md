@@ -152,6 +152,18 @@ node examples/translation/verify-native.mjs
 node examples/translation/report-coverage.mjs
 ```
 
+The native harness can also run the published Hello World Collection console
+snippets admitted by the profiles. It checks the page SHA-256 against the
+corpus manifest before extracting or running any snippet. It compares both
+the original and the emitted JavaScript or Rust program with the expected
+output. Pass profile IDs to select the tools installed locally.
+
+```sh
+curl --fail --location http://helloworldcollection.de/ --output hello-world-collection.html
+node examples/translation/verify-native.mjs --require-all \
+  --hello-world=hello-world-collection.html javascript rust
+```
+
 To verify the complete pinned Rosetta Code archive, run the same source
 round-trip check used in CI. The drivers stream the archive and compare
 restored bytes in both implementations. They also validate the expected

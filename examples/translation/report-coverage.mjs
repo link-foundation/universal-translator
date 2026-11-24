@@ -14,7 +14,10 @@ import {
 } from '../../js/src/translation/links.js';
 import { localizedGreetings } from './fixtures.mjs';
 import {
+  helloWorldConsolePrograms,
+  helloWorldSource,
   readCorpusCoverage,
+  readHelloWorldPage,
   rosettaPrograms,
   rosettaTasks,
   verifyProgram,
@@ -179,25 +182,17 @@ if (treeDirectory) {
 const programs = reference(helloWorld.get('programs'));
 const humanLanguages = reference(helloWorld.get('human-languages'));
 let greetingsChecked = 0;
-const consolePrograms = namedLinks(
-  helloWorld.get('verified-console-programs'),
-  'program'
-).map(references);
-for (const [anchor, language, form] of consolePrograms) {
+const consolePrograms = helloWorldConsolePrograms(helloWorld);
+for (const { path, language, form, effect } of consolePrograms) {
   assert.ok(
     byId
       .get(language)
-      ?.forms.some(({ task, name }) => task === 'hello' && name === form),
-    `Missing Hello World Collection form for ${anchor}`
+      ?.forms.some(({ task, name }) => task === effect.task && name === form),
+    `Missing Hello World Collection form for ${path}`
   );
 }
 if (helloWorldPath) {
-  const input = readFileSync(helloWorldPath);
-  assert.equal(
-    createHash('sha256').update(input).digest('hex'),
-    reference(helloWorld.get('sha256'))
-  );
-  const page = input.toString('utf8');
+  const page = readHelloWorldPage(helloWorld, helloWorldPath);
   assert.equal(
     page.match(/<b>(\d+) Hello World programs<\/b>/u)?.[1],
     programs
@@ -206,28 +201,11 @@ if (helloWorldPath) {
     page.match(/<b>(\d+) <a href="#Human">human<\/a> languages<\/b>/u)?.[1],
     humanLanguages
   );
-  // The checksum pins the markup. The selected snippets contain only inline
-  // links and the three entities used for source punctuation.
-  const entities = { amp: '&', gt: '>', lt: '<' };
-  for (const [anchor, language, form, message] of consolePrograms) {
-    const section = page.split(`<a name="${anchor}"></a>`);
-    assert.equal(section.length, 2, anchor);
-    const block = section[1]
-      .split('<a name="')[0]
-      .match(/<pre>([\s\S]*?)<\/pre>/u);
-    assert.ok(block, anchor);
-    const source = block[1]
-      .replace(/<\/?a(?:\s[^>]*)?>/gu, '')
-      .replace(/&(amp|gt|lt);/gu, (_, name) => entities[name]);
+  for (const program of consolePrograms) {
     await verifyProgram(
       translator,
-      source,
-      {
-        language,
-        form,
-        effect: { task: 'hello', message },
-        path: anchor,
-      },
+      helloWorldSource(page, program.path),
+      program,
       rustBinary
     );
   }

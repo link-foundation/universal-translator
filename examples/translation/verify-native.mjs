@@ -15,7 +15,14 @@ import {
   languageProfiles,
   writeEffect,
 } from '../../js/src/index.js';
+import { linkFields } from '../../js/src/translation/links.js';
 
+import {
+  helloWorldConsolePrograms,
+  helloWorldSource,
+  readCorpusCoverage,
+  readHelloWorldPage,
+} from './corpus-fixtures.mjs';
 import {
   exampleEffects,
   expectedOutput,
@@ -371,6 +378,9 @@ const args = process.argv.slice(2);
 const group = args
   .find((argument) => argument.startsWith('--group='))
   ?.slice(8);
+const helloWorldPath = args
+  .find((argument) => argument.startsWith('--hello-world='))
+  ?.slice('--hello-world='.length);
 const requested = args.filter((argument) => !argument.startsWith('--'));
 const allRunners = { ...runners, ...extendedRunners };
 const groups = { baseline: runners, extended: extendedRunners };
@@ -385,6 +395,23 @@ for (const id of requested) {
 }
 const missing = [];
 let checked = 0;
+let collectionChecked = 0;
+let collectionPage;
+let collectionPrograms = [];
+if (helloWorldPath) {
+  const collection = linkFields(
+    readCorpusCoverage().get('hello-world-collection')
+  );
+  collectionPage = readHelloWorldPage(collection, helloWorldPath);
+  collectionPrograms = helloWorldConsolePrograms(collection);
+  for (const { language, path } of collectionPrograms) {
+    if (!Object.hasOwn(allRunners, language)) {
+      throw new Error(
+        `Missing native runner for Hello World Collection ${path}`
+      );
+    }
+  }
+}
 const sourceForms = {
   hello: 'collection',
   'empty-program': 'rosetta',
@@ -501,6 +528,23 @@ for (const { id, forms, unicodeGreeting } of profiles) {
       checked += 1;
     }
   }
+  for (const { path, form, effect } of collectionPrograms.filter(
+    ({ language }) => language === id
+  )) {
+    const source = helloWorldSource(collectionPage, path);
+    const description = `Hello World Collection ${path}`;
+    const expected = expectedOutput(effect);
+    const originalRunner =
+      id === 'ada' ? compiled('hello_world.adb', 'gnatmake', '-q') : runner;
+    check(originalRunner, source, expected, description, form, effect);
+    const target = id === 'javascript' ? 'rust' : 'javascript';
+    const options = { mode: 'same-effect' };
+    const meta = translator.translate(source, id, 'meta', options);
+    const emitted = translator.translate(meta, 'meta', target, options);
+    check(runners[target], emitted, expected, `${description} to ${target}`);
+    console.log(`PASS ${description} original and ${target} translation`);
+    collectionChecked += 1;
+  }
   console.log(`PASS ${id}`);
 }
 if (group !== 'extended') {
@@ -526,6 +570,11 @@ console.log(
 );
 if (missing.length) {
   console.log(missing.join('\n'));
+}
+if (helloWorldPath) {
+  console.log(
+    `${collectionChecked} Hello World Collection originals and translations checked.`
+  );
 }
 if ((requireAll && missing.length) || checked === 0) {
   process.exitCode = 1;

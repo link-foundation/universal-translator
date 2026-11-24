@@ -470,22 +470,26 @@ jobs:
           fi
           test -x /usr/lib/wine/wine64
 
-      - name: Round-trip the pinned Rosetta Code corpus
+      - name: Round-trip the pinned source corpora
         env:
           ROSETTA_WINE: /usr/lib/wine/wine64
           # PR #5 owns the full native corpus requirement from issue #1.
           REQUIRE_FULL_NATIVE: ${{ github.event.pull_request.number == 5 && !github.event.pull_request.draft }}
         run: |
           archive="$RUNNER_TEMP/rosetta-code.tar.gz"
+          collection="$RUNNER_TEMP/hello-world-collection.html"
           curl --fail --location --silent --show-error --retry 3 \
             https://codeload.github.com/acmeism/RosettaCodeData/tar.gz/1d475861d7141ef2fafff293d9339f56e4b0f5db \
             --output "$archive"
+          curl --fail --location --silent --show-error --retry 3 \
+            http://helloworldcollection.de/ --output "$collection"
           args=()
           if [[ "$REQUIRE_FULL_NATIVE" == "true" ]]; then
             args+=(--require-full-native)
           fi
-          bash scripts/run-with-budget-warning.sh 540 "Rosetta Code source round trips" \
-            python3 examples/translation/verify-corpus.py "$archive" "${args[@]}"
+          bash scripts/run-with-budget-warning.sh 540 "Pinned source round trips" \
+            python3 examples/translation/verify-corpus.py "$archive" \
+              --hello-world "$collection" "${args[@]}"
 
   native-translation:
     name: Native translation (${{ matrix.group }})
@@ -576,7 +580,12 @@ jobs:
         timeout-minutes: 6
         env:
           NATIVE_GROUP: ${{ matrix.group }}
-        run: node examples/translation/verify-native.mjs --require-all --group="$NATIVE_GROUP"
+        run: |
+          collection="$RUNNER_TEMP/hello-world-collection.html"
+          curl --fail --location --silent --show-error --retry 3 \
+            http://helloworldcollection.de/ --output "$collection"
+          node examples/translation/verify-native.mjs --require-all \
+            --group="$NATIVE_GROUP" --hello-world="$collection"
 
   # === DOCKER IMAGE BUILD CHECK (pull requests) ===
   # Builds the Dockerfile without pushing so a broken image fails the pull

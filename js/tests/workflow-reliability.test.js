@@ -681,6 +681,8 @@ describe('native translation tool setup', () => {
       'sudo apt-get "${apt_options[@]}" update --error-on=any',
       'sudo apt-get "${apt_options[@]}" install --yes --no-install-recommends "${packages[@]}"',
       'name: Check output with native tools',
+      'http://helloworldcollection.de/ --output "$collection"',
+      '--group="$NATIVE_GROUP" --hello-world="$collection"',
     ]);
   });
 });
