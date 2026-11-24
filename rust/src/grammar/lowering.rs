@@ -49,6 +49,8 @@ pub struct Procedure {
     pub name: String,
     pub parameter_count: usize,
     pub slot_count: usize,
+    /// The variable name of each slot, in slot order.
+    pub slot_names: Vec<String>,
     pub returns: bool,
     pub max_depth: i64,
     pub comments: Vec<String>,
@@ -451,10 +453,18 @@ impl<'a> FunctionLowering<'a> {
         if !self.returns && self.code.last() != Some(&Instruction::ReturnNothing) {
             self.emit(Instruction::ReturnNothing);
         }
+        let mut named: Vec<(usize, String)> = self
+            .slots
+            .into_iter()
+            .map(|(name, slot)| (slot, name))
+            .collect();
+        named.sort();
+        let slot_names: Vec<String> = named.into_iter().map(|(_, name)| name).collect();
         Procedure {
             name: self.name,
             parameter_count: self.parameter_count,
-            slot_count: self.slots.len(),
+            slot_count: slot_names.len(),
+            slot_names,
             returns: self.returns,
             max_depth: self.max_depth,
             comments,

@@ -8,7 +8,9 @@
 //!
 //! Machine targets (x86-64 assembly, CIL and JVM bytecode) replace the last
 //! step: the adapted meta program is lowered to stack machine code and
-//! written in the target's assembler syntax.
+//! written in the target's assembler syntax. Machine code is also read
+//! back: its instructions are lifted into the meta language and continue
+//! through type inference and the meaning rules.
 //!
 //! Every rule list is ordinary data, so callers can add, remove, reorder or
 //! decorate rules, and a trace hook sees the tree after every stage.
@@ -16,8 +18,10 @@
 pub mod emitter;
 pub mod languages;
 pub mod lexer;
+pub mod lifting;
 pub mod lowering;
 pub mod machine;
+pub mod machine_reader;
 pub mod meta;
 pub mod names;
 pub mod parser;
@@ -153,19 +157,24 @@ impl Translator {
     /// Read a source text into a typed meta program.
     pub fn to_meta(&self, source: &str, from: &str) -> Result<Node, GrammarError> {
         let syntax = languages::language_syntax(from)?;
-        if syntax.machine {
-            return Err(GrammarError::new(format!(
-                "{} is a lowering target; translate into it, not from it",
-                syntax.label
-            )));
-        }
-        let source_tree = parser::parse_program(source, &syntax)?;
-        self.report("parsed", &source_tree);
         let settings = Settings {
             from: from.to_owned(),
             to: from.to_owned(),
             mode: Mode::default(),
         };
+        if syntax.machine {
+            // Machine code has no grammar to parse: read its instructions,
+            // lift them to the meta language and continue like any other
+            // source.
+            let machine = machine_reader::read_machine(source, from)?;
+            let lifted = rules::infer_mutability(lifting::lift_program(&machine)?);
+            self.report("lifted", &lifted);
+            let typed = apply_rules(types::infer_types(lifted), &self.meaning, &settings);
+            self.report("typed", &typed);
+            return Ok(typed);
+        }
+        let source_tree = parser::parse_program(source, &syntax)?;
+        self.report("parsed", &source_tree);
         let meta = apply_rules(source_tree, &self.understanding, &settings);
         self.report("understood", &meta);
         let typed = apply_rules(types::infer_types(meta), &self.meaning, &settings);
@@ -222,7 +231,7 @@ pub fn language_ids() -> Vec<&'static str> {
     languages::language_ids()
 }
 
-/// The identifiers of the machine targets, which are written but not read.
+/// The identifiers of the machine targets.
 pub fn machine_target_ids() -> Vec<&'static str> {
     languages::machine_target_ids()
 }

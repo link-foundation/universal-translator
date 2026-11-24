@@ -1,12 +1,14 @@
 use std::fs;
 use std::io::{self, Read, Write};
-use universal_translator::{Mode, Options, SourceDocument, Translator, translate_program};
+use universal_translator::grammar::{
+    Translator, language_ids, languages::language_syntax, meta::to_json,
+};
+use universal_translator::{Mode, SourceDocument, translate_program};
 
 const USAGE: &str = "Usage:
-  universal-translator translate <from> <to> [file|-] [--mode <mode>] [--form <form>]
-  universal-translator translate-grammar <from> <to> [file|-] [--mode <mode>]
+  universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace]
+  universal-translator meta <language> [file|-]
   universal-translator translate-program <from|cst> <to> [file|-]
-  universal-translator roundtrip <language> [file|-]
   universal-translator encode-source <language> [file|-]
   universal-translator decode-source [file|-]
   universal-translator encode-cst <language> [file|-]
@@ -15,6 +17,7 @@ const USAGE: &str = "Usage:
   universal-translator --version
 
 Modes: context-dependent (default), literal, same-effect
+--trace writes every pipeline stage to standard error as \"[stage] <json>\".
 Omit the file or pass - to read standard input.";
 
 fn source(file: Option<&str>) -> Result<String, String> {
@@ -29,51 +32,14 @@ fn source(file: Option<&str>) -> Result<String, String> {
     }
 }
 
-fn translate(
-    translator: &Translator,
-    from: &str,
-    to: &str,
-    arguments: &[&str],
-) -> Result<String, String> {
+fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String> {
     let mut file = None;
     let mut mode = None;
-    let mut form = None;
+    let mut trace = false;
     let mut arguments = arguments.iter().copied();
     while let Some(argument) = arguments.next() {
         match argument {
-            "--mode" if mode.is_none() => {
-                mode = Some(
-                    arguments
-                        .next()
-                        .ok_or("Missing --mode value")?
-                        .parse::<Mode>()?,
-                );
-            }
-            "--form" if form.is_none() => {
-                form = Some(
-                    arguments
-                        .next()
-                        .filter(|value| !value.starts_with('-'))
-                        .ok_or("Missing --form value")?,
-                );
-            }
-            part if (part == "-" || !part.starts_with('-')) && file.is_none() => file = Some(part),
-            _ => return Err(format!("Unexpected argument {argument}")),
-        }
-    }
-    let options = Options {
-        mode: mode.unwrap_or_default(),
-        form,
-    };
-    translator.translate(&source(file)?, from, to, &options)
-}
-
-fn translate_grammar(from: &str, to: &str, arguments: &[&str]) -> Result<String, String> {
-    let mut file = None;
-    let mut mode = None;
-    let mut arguments = arguments.iter().copied();
-    while let Some(argument) = arguments.next() {
-        match argument {
+            "--trace" => trace = true,
             "--mode" if mode.is_none() => {
                 mode = Some(
                     arguments
@@ -86,7 +52,15 @@ fn translate_grammar(from: &str, to: &str, arguments: &[&str]) -> Result<String,
             _ => return Err(format!("Unexpected argument {argument}")),
         }
     }
-    universal_translator::grammar::Translator::new()
+    let mut translator = Translator::new();
+    if trace {
+        // Every pipeline stage as JSON, so a translation can be followed
+        // rule layer by rule layer.
+        translator = translator.with_trace(|stage, tree| {
+            eprintln!("[{stage}] {}", to_json(Some(&tree.clone().into())));
+        });
+    }
+    translator
         .translate(&source(file)?, from, to, mode.unwrap_or_default())
         .map_err(|error| error.to_string())
 }
@@ -96,16 +70,17 @@ fn run(arguments: &[String]) -> Result<String, String> {
     match arguments.as_slice() {
         [] | ["--help" | "-h"] => Ok(format!("{USAGE}\n")),
         ["--version" | "-v"] => Ok(format!("{}\n", env!("CARGO_PKG_VERSION"))),
-        ["languages"] => Ok(Translator::default()
-            .profiles()
-            .map(|profile| format!("{}\t{}\n", profile.id, profile.label))
+        ["languages"] => Ok(language_ids()
+            .into_iter()
+            .filter_map(|id| language_syntax(id).ok())
+            .map(|syntax| format!("{}\t{}\n", syntax.id, syntax.label))
             .collect()),
-        ["roundtrip", language] => Ok(Translator::default()
-            .parse(&source(None)?, language)?
-            .restore()),
-        ["roundtrip", language, file] => Ok(Translator::default()
-            .parse(&source(Some(file))?, language)?
-            .restore()),
+        ["meta", language, trailing @ ..] if trailing.len() <= 1 => {
+            let meta = Translator::new()
+                .to_meta(&source(trailing.first().copied())?, language)
+                .map_err(|error| error.to_string())?;
+            Ok(to_json(Some(&meta.into())) + "\n")
+        }
         ["encode-source", language, trailing @ ..] if trailing.len() <= 1 => {
             let document = SourceDocument {
                 language: (*language).to_owned(),
@@ -126,10 +101,7 @@ fn run(arguments: &[String]) -> Result<String, String> {
         ["decode-cst", trailing @ ..] if trailing.len() <= 1 => {
             Ok(SourceDocument::from_syntax_notation(&source(trailing.first().copied())?)?.source)
         }
-        ["translate", from, to, trailing @ ..] => {
-            translate(&Translator::default(), from, to, trailing)
-        }
-        ["translate-grammar", from, to, trailing @ ..] => translate_grammar(from, to, trailing),
+        ["translate", from, to, trailing @ ..] => translate(from, to, trailing),
         ["translate-program", from, to, trailing @ ..] if trailing.len() <= 1 => {
             let input = source(trailing.first().copied())?;
             let document = if *from == "cst" {

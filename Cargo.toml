@@ -11,6 +11,7 @@ include = [
     "/rust/tests/**",
     "/examples/translation/hello.c",
     "/examples/translation/hello.cs",
+    "/examples/programs/**",
     "/README.md",
     "/LICENSE",
 ]
@@ -40,3 +41,7 @@ path = "rust/tests/source_document.rs"
 [[test]]
 name = "grammar"
 path = "rust/tests/grammar.rs"
+
+[[test]]
+name = "lifting"
+path = "rust/tests/lifting.rs"

@@ -80,11 +80,20 @@ fn nasm_procedure(
     calls: &HashMap<String, bool>,
     texts: &mut Vec<String>,
 ) -> Result<Vec<String>> {
-    let offset = |slot: usize| format!("qword [rbp - {}]", 8 * (slot + 1));
+    // Each procedure names its stack slots with context-local macros, such
+    // as "%$remainder", so the names cannot clash with labels or procedures.
+    let offset = |slot: usize| format!("%${}", item.slot_names[slot]);
     let frame = item.slot_count.div_ceil(2) * 16;
     let mut lines = comments(";", &item.comments, "");
     lines.push(format!("{}:", item.name));
-    let mut body: Vec<String> = vec!["push rbp".into(), "mov rbp, rsp".into()];
+    let mut body: Vec<String> = vec![format!("%push {}", item.name)];
+    body.extend(
+        item.slot_names
+            .iter()
+            .enumerate()
+            .map(|(slot, name)| format!("%define %${name} qword [rbp - {}]", 8 * (slot + 1))),
+    );
+    body.extend(["push rbp", "mov rbp, rsp"].map(String::from));
     if frame != 0 {
         body.push(format!("sub rsp, {frame}"));
     }
@@ -174,6 +183,7 @@ fn nasm_procedure(
             Instruction::PrintNewline => body.push("call print_newline".into()),
         }
     }
+    body.push("%pop".into());
     lines.extend(body.into_iter().map(|line| {
         if line.starts_with('.') || line.starts_with(';') {
             line
@@ -306,7 +316,14 @@ fn cil_method(
     } else {
         item.name.as_str()
     };
-    let local_count = item.slot_count - item.parameter_count;
+    let named = |names: &[String]| {
+        names
+            .iter()
+            .map(|name| format!("int64 {name}"))
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+    let locals = &item.slot_names[item.parameter_count..];
     let access = |slot: usize, argument: &str, local: &str| {
         if slot < item.parameter_count {
             format!("{argument} {slot}")
@@ -319,8 +336,8 @@ fn cil_method(
         body.push(".entrypoint".into());
     }
     body.push(format!(".maxstack {}", item.max_depth.max(1)));
-    if local_count != 0 {
-        body.push(format!(".locals init ({})", int64_list(local_count)));
+    if !locals.is_empty() {
+        body.push(format!(".locals init ({})", named(locals)));
     }
     for instruction in &item.code {
         match instruction {
@@ -359,7 +376,7 @@ fn cil_method(
     lines.push(format!(
         "    .method public static {} {name}({}) cil managed",
         if item.returns { "int64" } else { "void" },
-        int64_list(item.parameter_count)
+        named(&item.slot_names[..item.parameter_count])
     ));
     lines.push("    {".into());
     lines.extend(body.into_iter().map(|line| {
@@ -474,6 +491,12 @@ fn jvm_method(item: &Procedure, descriptors: &HashMap<String, String>) -> Vec<St
         format!(".limit stack {}", 2 * item.max_depth + 3),
         format!(".limit locals {}", base + 2 * item.slot_count),
     ];
+    body.extend(
+        item.slot_names
+            .iter()
+            .enumerate()
+            .map(|(index, name)| format!(".var {} is {name} J", slot(index))),
+    );
     let descriptor = |callee: &str| {
         descriptors
             .get(callee)

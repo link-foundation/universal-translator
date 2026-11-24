@@ -9,7 +9,7 @@ use std::collections::HashSet;
 use std::sync::Arc;
 
 use super::languages::{Syntax, language_syntax};
-use super::meta::{Node, block, rewrite, rewrite_opt, text, walk};
+use super::meta::{Node, binary, block, rewrite, rewrite_opt, text, walk};
 use super::names::{neutral_name, rename_declared, spell_name};
 use super::{Mode, Rule, Settings};
 
@@ -26,6 +26,9 @@ pub fn understanding_rules() -> Vec<Rule> {
         rule("findEntryPoint", |program, _| find_entry_point(program)),
         rule("concatenationOperator", |program, _| {
             concatenation_operator(program)
+        }),
+        rule("integerDivisionCalls", |program, _| {
+            integer_division_calls(program)
         }),
         rule("recognizePrint", |program, _| recognize_print(program)),
         rule("expandCompoundAssignment", |program, _| {
@@ -621,6 +624,25 @@ pub fn concatenation_operator(program: Node) -> Node {
             return current;
         }
         parts_to_value(flatten_parts([current.node("left"), current.node("right")]))
+    })
+}
+
+/// `Math.trunc(a / b)` and `intdiv(a, b)` are integer division.
+pub fn integer_division_calls(program: Node) -> Node {
+    rewrite(program, |current| {
+        if !current.is("Call") {
+            return current;
+        }
+        let arguments = current.node_list("arguments");
+        match (current.str("callee"), arguments.as_slice()) {
+            (Some("Math.trunc"), [first])
+                if first.is("Binary") && first.str("operator") == Some("divide") =>
+            {
+                first.clone()
+            }
+            (Some("intdiv"), [first, second]) => binary("divide", first.clone(), second.clone()),
+            _ => current,
+        }
     })
 }
 
