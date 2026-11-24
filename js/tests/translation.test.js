@@ -30,7 +30,7 @@ function cli(argv, input = '') {
 
 describe('public translation API', () => {
   it('exports the grammar translator and its languages', () => {
-    expect(grammarLanguageIds.length).toBe(22);
+    expect(grammarLanguageIds.length).toBe(23);
     expect(
       createTranslator()
         .languages()

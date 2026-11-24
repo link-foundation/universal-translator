@@ -56,6 +56,7 @@ export const libraryFiles = {
   r: 'common_library.R',
   groovy: 'CommonLibrary.groovy',
   objc: 'CommonLibrary.h',
+  nim: 'common_library.nim',
   d: 'common_library.d',
 };
 const libraryFolder = join(folder, '..', '..', 'common-library');
@@ -82,6 +83,7 @@ export const extensions = {
   r: '.R',
   groovy: '.groovy',
   objc: '.m',
+  nim: '.nim',
   d: '.d',
   nasm: '.asm',
   cil: '.il',
@@ -95,6 +97,7 @@ const ilasm = process.env.ILASM || 'ilasm';
 const jasmin = process.env.JASMIN_CLASSPATH;
 const lua = process.env.LUA || 'lua';
 const d = process.env.DC || 'gdc';
+const nim = process.env.NIM || 'nim';
 const objc = process.env.OBJC_CC || 'gcc';
 const objcFlags = (process.env.OBJC_FLAGS ?? '').split(' ').filter(Boolean);
 
@@ -241,6 +244,25 @@ const runners = {
   },
   // DC names another D compiler with GDC's options, such as LDC's ldc2
   // (which takes -w and -of= instead).
+  // Nim finds the copied common library beside the program.
+  nim: {
+    tool: nim,
+    run: (file) =>
+      run(
+        nim,
+        [
+          'c',
+          '-r',
+          '--hints:off',
+          '--warningAsError:User:on',
+          `--nimcache:${dirname(file)}/nimcache`,
+          file,
+        ],
+        {
+          cwd: dirname(file),
+        }
+      ),
+  },
   d: {
     tool: d,
     run: (file, library) => (

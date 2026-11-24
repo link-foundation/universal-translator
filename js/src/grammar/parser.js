@@ -67,13 +67,25 @@ class Parser {
     this.tokens = tokens;
     this.position = 0;
     this.syntax = syntax;
-    const { remainder, integerDivide } = syntax.operators;
-    const extra = { remainder, divide: integerDivide };
+    // Word operators such as Nim's mod and div, or Pascal's <>, join the
+    // shared symbols of their level.
+    const { remainder, integerDivide, and, or, equal, notEqual } =
+      syntax.operators;
+    const extra = {
+      remainder,
+      divide: integerDivide,
+      and,
+      or,
+      equal,
+      notEqual,
+    };
     this.levels = binaryLevels.map((level) =>
       Object.fromEntries(
         Object.entries(level).map(([operator, surfaces]) => [
           operator,
-          extra[operator] ? [...surfaces, extra[operator]] : surfaces,
+          extra[operator] && !surfaces.includes(extra[operator])
+            ? [...surfaces, extra[operator]]
+            : surfaces,
         ])
       )
     );
@@ -350,7 +362,7 @@ class Parser {
       returnType = this.typeExpression();
     }
     // Scala: def name(...): Type = { ... }
-    if (this.syntax.bodyAfter) {
+    if (this.syntax.bodyAfter && this.syntax.blocks !== 'indentation') {
       this.accept(this.syntax.bodyAfter);
     }
     const body = this.block();
@@ -446,7 +458,10 @@ class Parser {
       return block(statements);
     }
     if (this.syntax.blocks === 'indentation') {
-      this.expect(':');
+      // Nim: proc name(...): Type = <indented body>
+      if (!(this.syntax.bodyAfter && this.accept(this.syntax.bodyAfter))) {
+        this.expect(':');
+      }
       this.skipComments();
       if (this.peek().type !== 'newline') {
         throw new SyntaxError(
@@ -1002,7 +1017,11 @@ class Parser {
         ? number(-operand.value)
         : node('Unary', { operator: 'negate', operand });
     }
-    if (this.accept('!') || this.accept('not')) {
+    if (
+      this.accept('!') ||
+      this.accept('not') ||
+      this.accept(this.syntax.operators.not)
+    ) {
       return node('Unary', { operator: 'not', operand: this.unary() });
     }
     return this.postfix();

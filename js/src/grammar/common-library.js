@@ -63,6 +63,7 @@ export const commonLibraryAccess = {
   r: { imports: () => ['source("common_library.R")'] },
   groovy: { prefix: 'CommonLibrary.' },
   objc: { imports: () => ['#import "CommonLibrary.h"'] },
+  nim: { imports: () => ['import common_library'] },
   d: { imports: () => ['import common_library;'] },
 };
 

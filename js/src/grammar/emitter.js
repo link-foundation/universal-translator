@@ -51,6 +51,7 @@ const conditionParentheses = new Set([
 ]);
 const withoutTerminator = new Set([
   'python',
+  'nim',
   'ruby',
   'lua',
   'go',
@@ -221,6 +222,9 @@ class Emitter {
     const delimited = embeddings[this.id];
     if (delimited) {
       const { prefix = '', open, close, format } = delimited;
+      if (this.id === 'nim') {
+        this.uses.add('strformat');
+      }
       return `${prefix}"${parts.map((part) => (part.kind === 'Text' ? this.escape(part.value, { format }) : `${open}${this.expression(part)}${close}`)).join('')}"`;
     }
     switch (this.id) {
@@ -360,7 +364,8 @@ class Emitter {
         this.line(`${header} {`);
         break;
       case 'indentation':
-        this.line(`${header}:`);
+        // Nim's procedure heads end with "=" instead of ":".
+        this.line(header.endsWith('=') ? header : `${header}:`);
         break;
       default:
         this.line(header);
@@ -380,7 +385,7 @@ class Emitter {
 
   body(block) {
     if (block.statements.length === 0 && this.syntax.blocks === 'indentation') {
-      this.line('pass');
+      this.line(this.syntax.emptyStatement ?? 'pass');
     }
     for (const statement of block.statements) {
       this.statement(statement);
@@ -473,8 +478,8 @@ class Emitter {
     if (this.syntax.blocks === 'braces') {
       return `} ${this.syntax.bracedElseIf ?? 'else if'} ${condition} {`;
     }
-    if (this.id === 'python') {
-      return `elif ${condition}:`;
+    if (this.syntax.blocks === 'indentation') {
+      return `${this.syntax.elseIf ?? 'elif'} ${condition}:`;
     }
     if (this.id === 'lua') {
       return `elseif ${condition} then`;
@@ -529,6 +534,7 @@ class Emitter {
       julia: `for ${identifier} in ${from}:${last}`,
       r: `for (${identifier} in ${from}:${last})`,
       groovy: `for (${identifier} in ${from}..<${to})`,
+      nim: `for ${identifier} in ${from} ..< ${to}`,
       d: `for (long ${identifier} = ${from}; ${identifier} < ${to}; ${identifier}++)`,
     };
     this.openBlock(headers[this.id]);
@@ -670,6 +676,9 @@ class Emitter {
       lines.push('package main', '');
     }
     lines.push(...(this.syntax.prelude ?? []));
+    if (this.uses.has('strformat')) {
+      lines.push('import std/strformat');
+    }
     if (this.uses.has('std.conv')) {
       lines.push('import std.conv;');
     }
@@ -718,6 +727,7 @@ const embeddings = {
   scala: { ...dollarBraces, prefix: 's', format: 'dollar' },
   julia: { open: '$(', close: ')' },
   swift: { open: '\\(', close: ')' },
+  nim: { prefix: 'fmt', open: '{', close: '}', format: 'braces' },
 };
 
 function mergeTexts(parts) {
@@ -802,6 +812,8 @@ const printers = {
       .map((part) => emitter.expression(part))
       .join(', ')}, sep = "")`,
 };
+printers.nim = (emitter, { parts, newline }) =>
+  `${newline ? 'echo ' : 'stdout.write('}${parts.map((part) => emitter.expression(part)).join(', ')}${newline ? '' : ')'}`;
 printers.d = (emitter, { parts, newline }) =>
   `${newline ? 'writeln' : 'write'}(${parts.map((part) => emitter.expression(part)).join(', ')});`;
 printers.typescript = printers.javascript;
@@ -829,6 +841,8 @@ const declarers = {
   scala: (emitter, { name, type, mutable, initial }) =>
     `${mutable ? 'var' : 'val'} ${name}: ${emitter.type(type)} = ${initial}`,
   r: (emitter, { name, initial }) => `${name} <- ${initial}`,
+  nim: (emitter, { name, mutable, initial }) =>
+    `${mutable ? 'var' : 'let'} ${name} = ${initial}`,
   typedPrefix: (emitter, { name, type, initial }) =>
     `${emitter.type(type)} ${name} = ${initial}${emitter.terminator()}`,
 };
@@ -859,6 +873,8 @@ const signatures = {
     `def ${name}(${typed((id, type) => `${id}: ${type}`)}): ${returns} =`,
   julia: ({ name, names }) => `function ${name}(${names})`,
   r: ({ name, names }) => `${name} <- function(${names})`,
+  nim: ({ name, typed, after }) =>
+    `proc ${name}(${typed((id, type) => `${id}: ${type}`)})${after(': ')} =`,
   typedPrefix: ({ name, typed, returns }) =>
     `${returns} ${name}(${typed((id, type) => `${type} ${id}`)})`,
 };

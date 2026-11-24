@@ -265,22 +265,20 @@ class Lexer {
 
   text() {
     const character = this.source[this.index];
-    const prefixed = (this.syntax.interpolation ?? []).some(
+    // A prefix such as Python's f or Nim's fmt marks an interpolated literal.
+    const prefixed = (this.syntax.interpolation ?? []).find(
       ({ prefix }) =>
-        prefix === character &&
-        this.syntax.quotes.includes(this.source[this.index + 1])
-    );
+        prefix &&
+        this.source.startsWith(prefix, this.index) &&
+        this.syntax.quotes.includes(this.source[this.index + prefix.length])
+    )?.prefix;
     if (!prefixed && !this.syntax.quotes.includes(character)) {
       return false;
     }
-    const start = prefixed ? this.index + 1 : this.index;
+    const start = prefixed ? this.index + prefixed.length : this.index;
     const quote = this.source[start];
     const { raw, end } = readQuoted(this.source, start, quote, this.line);
-    const style = interpolationStyle(
-      this.syntax,
-      quote,
-      prefixed ? character : undefined
-    );
+    const style = interpolationStyle(this.syntax, quote, prefixed);
     this.push('text', raw, { quote, style });
     this.line += raw.split('\n').length - 1;
     this.index = end;
