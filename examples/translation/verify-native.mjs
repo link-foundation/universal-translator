@@ -28,7 +28,8 @@ import {
 const translator = createTranslator();
 // Browser effects run in the pinned corpus check with a real browser host.
 const effects = exampleEffects().filter(
-  ({ task }) => !['browser-alert', 'browser-write'].includes(task)
+  ({ task }) =>
+    !['browser-alert', 'browser-write', 'browser-integer-sum'].includes(task)
 );
 const localized = localizedGreetings().filter(({ message }) =>
   ["S'mae byd!", 'こんにちは、 世界！', 'ជំរាបសួរ ពិភពលោក'].includes(message)

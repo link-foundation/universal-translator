@@ -36,6 +36,7 @@ const taskFields = {
   'empty-program': { status: (value) => value === 0 },
   'integer-sum': { limit: (value) => value === 1000 },
   'integer-sum-or-usage': { limit: (value) => value === 1000 },
+  'browser-integer-sum': { limit: (value) => value === 1000 },
   'ackermann-function': {
     left: (value) => value === 3,
     right: (value) => value === 4,

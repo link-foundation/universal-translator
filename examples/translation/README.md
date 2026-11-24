@@ -257,10 +257,13 @@ For A+B, the verifier feeds both the original and translated programs seven
 stdin lines. These include positive and negative values, both endpoints, and
 repeated spaces. The signed forms produce fixed decimal sums. The pinned
 JavaScript variant using `process.openStdin()` and its translations emit
-`usage: <number> <number>` when either input has an explicit sign. The two
-other JavaScript listings use browser prompts and Windows Script Host input.
-Ubuntu 24.04's Wine 9.0 returns `E_NOTIMPL` from `WScript.StdIn`, so the
-unchanged Windows script produced empty output in the local native probe.
+`usage: <number> <number>` when either input has an explicit sign. The HTML
+listing and the emitted Rust WebAssembly open the same two Chrome prompts
+with empty defaults. Six inputs check the prompt order, exact entered text,
+and sum displayed in the DOM. The Windows Script Host listing uses
+`WScript.StdIn`. Ubuntu 24.04's Wine 9.0 returns `E_NOTIMPL` from that getter,
+and the unchanged Windows script produced empty output in the local probe.
+[Wine source](https://github.com/wine-mirror/wine/blob/3e119694dc2c4d5b0773cbc38afb49ff031225bb/programs/wscript/host.c#L420-L423)
 
 ```sh
 rosetta_trees=$(mktemp -d)

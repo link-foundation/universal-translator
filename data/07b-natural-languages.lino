@@ -49,6 +49,11 @@ profile:
       source:
         (line: 'Baca dua bilangan bulat desimal yang dipisahkan spasi dari masukan standar, dengan nilai mutlak paling besar {{limit}}. Jika salah satunya bertanda, cetak “usage: <number> <number>”. Jika tidak, cetak jumlahnya dalam desimal. Akhiri dengan baris baru.')
     form:
+      task: browser-integer-sum
+      name: standard
+      source:
+        (line: 'Buka dua dialog peramban dalam urutan “enter A number” dan “enter B number”, masing-masing dengan nilai awal kosong. Baca satu bilangan bulat desimal dengan nilai mutlak paling besar {{limit}} dari setiap dialog. Isi teks input dengan jawaban asli yang dipisahkan satu spasi dan teks output dengan jumlah desimalnya.')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -175,6 +180,11 @@ profile:
       name: standard
       source:
         (line: 'Lies zwei durch Leerzeichen getrennte dezimale Ganzzahlen mit einem Betrag von höchstens {{limit}} aus der Standardeingabe. Hat eine Zahl ein Vorzeichen, gib „usage: <number> <number>“ aus. Andernfalls gib die Dezimalsumme aus. Beende die Ausgabe mit einem Zeilenumbruch.')
+    form:
+      task: browser-integer-sum
+      name: standard
+      source:
+        (line: 'Öffne im Browser nacheinander die Eingabedialoge „enter A number“ und „enter B number“, jeweils mit leerer Vorgabe. Lies aus jedem eine dezimale Ganzzahl mit einem Betrag von höchstens {{limit}}. Setze den Text von input auf die unveränderten Antworten mit einem Leerzeichen dazwischen und den Text von output auf ihre Dezimalsumme.')
     form:
       task: ackermann-cli
       name: standard
@@ -303,6 +313,11 @@ profile:
       source:
         (line: '標準入力から、空白で区切られた絶対値 {{limit}} 以下の十進整数を二つ読み取る。どちらかに符号が付いていれば「usage: <number> <number>」を出力し、それ以外は十進数で和を出力する。末尾に改行を付ける。')
     form:
+      task: browser-integer-sum
+      name: standard
+      source:
+        (line: 'ブラウザーで「enter A number」と「enter B number」の入力ダイアログを順に開く。初期値はどちらも空とする。それぞれから絶対値が {{limit}} 以下の十進整数を読む。入力された文字列を一つの空白でつないで input のテキストに設定し、十進数の和を output のテキストに設定する。')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -429,6 +444,11 @@ profile:
       name: standard
       source:
         (line: 'Soma kutoka ingizo la kawaida namba kamili mbili za desimali zilizotenganishwa kwa nafasi, kila moja ikiwa na thamani kamili isiyozidi {{limit}}. Ikiwa mojawapo ina alama ya kuongeza au kupunguza, chapisha “usage: <number> <number>”. Vinginevyo chapisha jumla yao ya desimali. Malizia kwa mstari mpya.')
+    form:
+      task: browser-integer-sum
+      name: standard
+      source:
+        (line: 'Fungua vichocheo viwili vya kivinjari kwa mpangilio “enter A number” na “enter B number”, kila kimoja kikiwa tupu mwanzoni. Soma namba kamili ya desimali kutoka kila kimoja, yenye thamani kamili isiyozidi {{limit}}. Weka majibu halisi yakitenganishwa kwa nafasi moja kama maandishi ya input na jumla yao ya desimali kama maandishi ya output.')
     form:
       task: ackermann-cli
       name: standard
@@ -557,6 +577,11 @@ profile:
       source:
         (line: 'मानक इनपुटमधून रिकाम्या जागांनी वेगळ्या केलेल्या दोन दशमान पूर्णांकांचे वाचन करा, ज्यांचे निरपेक्ष मूल्य जास्तीत जास्त {{limit}} आहे. कोणत्याही संख्येआधी धन किंवा ऋण चिन्ह असल्यास “usage: <number> <number>” छापा, अन्यथा दशमान बेरीज छापा. शेवटी नवीन ओळ द्या.')
     form:
+      task: browser-integer-sum
+      name: standard
+      source:
+        (line: 'ब्राउझरमध्ये “enter A number” आणि “enter B number” हे दोन रिकाम्या आरंभिक मूल्याचे प्रॉम्प्ट क्रमाने उघडा. प्रत्येकातून निरपेक्ष मूल्य जास्तीत जास्त {{limit}} असलेला दशमान पूर्णांक वाचा. input च्या मजकुरात मूळ उत्तरे एका रिकाम्या जागेने जोडा. output च्या मजकुरात त्यांची दशमान बेरीज लिहा.')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -683,6 +708,11 @@ profile:
       name: standard
       source:
         (line: 'ప్రామాణిక ఇన్‌పుట్‌ నుంచి ఖాళీలతో విడదీసిన రెండు దశాంశ పూర్ణాంకాలను చదవండి. వాటి పరమ విలువ {{limit}} మించదు. దేనికైనా ధన లేదా ఋణ సంకేతం ఉంటే “usage: <number> <number>” ముద్రించండి. లేకపోతే వాటి దశాంశ మొత్తాన్ని ముద్రించండి. చివరలో కొత్త పంక్తిని రాయండి.')
+    form:
+      task: browser-integer-sum
+      name: standard
+      source:
+        (line: 'బ్రౌజర్‌లో “enter A number”, “enter B number” అనే రెండు ప్రాంప్ట్‌లను ఆ క్రమంలో ఖాళీ ప్రారంభ విలువతో తెరవండి. ప్రతిదాని నుంచి పరమ విలువ {{limit}} మించని ఒక దశాంశ పూర్ణాంకాన్ని చదవండి. input పాఠ్యంలో అసలు సమాధానాలను ఒక ఖాళీతో కలపండి. output పాఠ్యంలో వాటి దశాంశ మొత్తాన్ని పెట్టండి.')
     form:
       task: ackermann-cli
       name: standard
@@ -811,6 +841,11 @@ profile:
       source:
         (line: 'Standart girdiden boşluklarla ayrılan, mutlak değeri en çok {{limit}} olan iki ondalık tam sayı oku. Birinde işaret varsa “usage: <number> <number>” yaz, yoksa ondalık toplamlarını yaz. Çıktıyı satır sonuyla bitir.')
     form:
+      task: browser-integer-sum
+      name: standard
+      source:
+        (line: 'Tarayıcıda sırasıyla “enter A number” ve “enter B number” istemlerini aç. Başlangıç değeri ikisinde de boş olsun. Her birinden mutlak değeri en çok {{limit}} olan bir ondalık tam sayı oku. input metnine özgün yanıtları bir boşlukla ayırarak, output metnine ondalık toplamlarını yaz.')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -937,6 +972,11 @@ profile:
       name: standard
       source:
         (line: 'நிலையான உள்ளீட்டிலிருந்து இடைவெளிகளால் பிரிக்கப்பட்ட, தனி மதிப்பு அதிகபட்சம் {{limit}} கொண்ட இரண்டு பதின்ம முழு எண்களைப் படிக்கவும். ஒன்றில் கூட்டல் அல்லது கழித்தல் குறி இருந்தால் “usage: <number> <number>” என்பதை அச்சிடவும். இல்லையெனில் அவற்றின் பதின்மக் கூட்டுத்தொகையை அச்சிடவும். முடிவில் புதிய வரியைச் சேர்க்கவும்.')
+    form:
+      task: browser-integer-sum
+      name: standard
+      source:
+        (line: 'உலாவியில் “enter A number” மற்றும் “enter B number” என்னும் இரு உள்ளீட்டுப் பெட்டிகளை அவ்வரிசையில் தொடக்க மதிப்பு காலியாகத் திறக்கவும். ஒவ்வொன்றிலிருந்தும் தனி மதிப்பு அதிகபட்சம் {{limit}} கொண்ட ஒரு பதின்ம முழு எண்ணைப் படிக்கவும். அசல் பதில்களை ஓர் இடைவெளியால் இணைத்து input உரையிலும், அவற்றின் பதின்மக் கூட்டுத்தொகையை output உரையிலும் வைக்கவும்.')
     form:
       task: ackermann-cli
       name: standard
@@ -1065,6 +1105,11 @@ profile:
       source:
         (line: 'Đọc từ đầu vào chuẩn hai số nguyên thập phân cách nhau bằng dấu cách, có giá trị tuyệt đối không quá {{limit}}. Nếu số nào có dấu cộng hoặc trừ, in “usage: <number> <number>”. Nếu không, in tổng ở dạng thập phân. Kết thúc bằng một ký tự xuống dòng.')
     form:
+      task: browser-integer-sum
+      name: standard
+      source:
+        (line: 'Mở lần lượt hai hộp nhập trong trình duyệt có lời nhắc “enter A number” và “enter B number”, đều để trống giá trị ban đầu. Đọc từ mỗi hộp một số nguyên thập phân có giá trị tuyệt đối không quá {{limit}}. Đặt hai câu trả lời nguyên văn cách nhau một dấu cách vào văn bản của input, và đặt tổng thập phân của chúng vào văn bản của output.')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -1191,6 +1236,11 @@ profile:
       name: standard
       source:
         (line: '표준 입력에서 공백으로 구분되며 절댓값이 {{limit}} 이하인 십진 정수 두 개를 읽는다. 하나라도 부호가 붙어 있으면 “usage: <number> <number>”를 출력하고, 그 외에는 두 수의 합을 십진수로 출력한다. 끝에 줄바꿈을 붙인다.')
+    form:
+      task: browser-integer-sum
+      name: standard
+      source:
+        (line: '브라우저에서 “enter A number”와 “enter B number” 입력창을 차례로 열고 두 기본값은 비워 둔다. 각 입력창에서 절댓값이 {{limit}} 이하인 십진 정수 하나를 읽는다. 입력한 원문을 공백 하나로 이어 input의 텍스트에 넣고, 십진수 합을 output의 텍스트에 넣는다.')
     form:
       task: ackermann-cli
       name: standard

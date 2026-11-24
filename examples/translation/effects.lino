@@ -66,3 +66,5 @@ integer-sum:
   limit: 1000
 integer-sum-or-usage:
   limit: 1000
+browser-integer-sum:
+  limit: 1000

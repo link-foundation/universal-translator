@@ -213,6 +213,41 @@ profile:
         (line: '    unsafe { write_document_utf8(message.as_ptr(), message.len()) };')
         (line: })
     form:
+      task: browser-integer-sum
+      name: standard
+      requires: wasm32-unknown-unknown browser
+      output: browser.set_text_utf8
+      fixed:
+        limit: 1000
+      source:
+        (line: '#[link(wasm_import_module = "browser")]')
+        (line: 'extern "C" {')
+        (line: '    fn prompt_utf8(message: *const u8, length: usize) -> usize;')
+        (line: '    fn read_prompt_utf8(buffer: *mut u8, length: usize);')
+        (line: '    fn set_text_utf8(id: *const u8, id_length: usize, text: *const u8, text_length: usize);')
+        (line: })
+        (line: ~1{})
+        (line: 'fn prompt_number(message: &str) -> String {')
+        (line: '    let length = unsafe { prompt_utf8(message.as_ptr(), message.len()) };')
+        (line: '    let mut buffer = vec![0; length];')
+        (line: '    unsafe { read_prompt_utf8(buffer.as_mut_ptr(), buffer.len()) };')
+        (line: '    String::from_utf8(buffer).expect("prompt result is UTF-8")')
+        (line: })
+        (line: ~1{})
+        (line: 'fn set_text(id: &str, text: &str) {')
+        (line: '    unsafe { set_text_utf8(id.as_ptr(), id.len(), text.as_ptr(), text.len()) };')
+        (line: })
+        (line: ~1{})
+        (line: '#[no_mangle]')
+        (line: 'pub extern "C" fn prompt_sum() {')
+        (line: '    let left = prompt_number("enter A number");')
+        (line: '    let right = prompt_number("enter B number");')
+        (line: '    let sum = left.trim().parse::<i32>().expect("expected an integer")')
+        (line: '        + right.trim().parse::<i32>().expect("expected an integer");')
+        (line: '    set_text("input", &format!("{left} {right}"));')
+        (line: '    set_text("output", &sum.to_string());')
+        (line: })
+    form:
       task: empty-program
       name: standard
       requires: ()

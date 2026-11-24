@@ -9,6 +9,7 @@ export type Effect =
   | { task: 'empty-program'; status: 0 }
   | { task: 'integer-sum'; limit: 1000 }
   | { task: 'integer-sum-or-usage'; limit: 1000 }
+  | { task: 'browser-integer-sum'; limit: 1000 }
   | { task: 'ackermann-function'; left: 3; right: 4 }
   | { task: 'ackermann-cli'; left: 3; right: 4 }
   | { task: 'ackermann-json'; left: 3; right: 3 }

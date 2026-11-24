@@ -17,6 +17,9 @@ export default `profile:
       task: integer-sum-or-usage
       name: standard
     form:
+      task: browser-integer-sum
+      name: standard
+    form:
       task: hello
       name: standard
     form:

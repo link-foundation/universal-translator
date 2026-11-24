@@ -43,7 +43,9 @@ function decodeEffect(task, parameters) {
     case 'integer-sum': {
       const [limit, variant = task] = parameters;
       assert.equal(limit, '1000');
-      assert.ok([task, 'integer-sum-or-usage'].includes(variant));
+      assert.ok(
+        [task, 'integer-sum-or-usage', 'browser-integer-sum'].includes(variant)
+      );
       return { task: variant, limit: 1000 };
     }
     case 'hello':
@@ -238,7 +240,11 @@ async function verifyNativePrograms(
   target,
   { requires, output }
 ) {
-  if (['browser-alert', 'browser-write'].includes(effect.task)) {
+  if (
+    ['browser-alert', 'browser-write', 'browser-integer-sum'].includes(
+      effect.task
+    )
+  ) {
     const { verifyBrowser } = await import('./verify-browser.mjs');
     const programs = { [language]: source, [target]: translated };
     await verifyBrowser(programs.javascript, programs.rust, effect);

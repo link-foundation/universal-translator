@@ -50,6 +50,11 @@ export default `profile:
       source:
         (line: 'Read two space-separated decimal integers of magnitude at most {{limit}} from standard input. If either has a sign, print “usage: <number> <number>”. Otherwise print their decimal sum. End the output with a newline.')
     form:
+      task: browser-integer-sum
+      name: standard
+      source:
+        (line: 'Open two browser prompts in order with the text “enter A number” and “enter B number”, each initially empty. Read a decimal integer of magnitude at most {{limit}} from each. Set the text of input to the exact responses separated by one space. Set the text of output to their decimal sum.')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -176,6 +181,11 @@ profile:
       name: standard
       source:
         (line: '从标准输入读取两个用空格分隔、绝对值不超过 {{limit}} 的十进制整数。若任一整数带有正负号，则输出“usage: <number> <number>”；否则输出它们的十进制和。输出以换行符结束。')
+    form:
+      task: browser-integer-sum
+      name: standard
+      source:
+        (line: '依次在浏览器中显示“enter A number”和“enter B number”两个提示框，默认值均为空。分别读取一个绝对值不超过 {{limit}} 的十进制整数。把两个原始回答以一个空格连接后写入 input 元素的文本，把它们的十进制和写入 output 元素的文本。')
     form:
       task: ackermann-cli
       name: standard
@@ -304,6 +314,11 @@ profile:
       source:
         (line: 'मानक इनपुट से रिक्त स्थान द्वारा अलग किए गए दो दशमलव पूर्णांक पढ़ें, जिनका निरपेक्ष मान अधिकतम {{limit}} हो। यदि किसी के आगे धन या ऋण चिह्न है तो “usage: <number> <number>” छापें, अन्यथा उनका दशमलव योग छापें। अंत में नई पंक्ति दें।')
     form:
+      task: browser-integer-sum
+      name: standard
+      source:
+        (line: 'ब्राउज़र में क्रम से “enter A number” और “enter B number” के दो प्रॉम्प्ट दिखाएँ, दोनों का आरंभिक मान खाली हो। हर प्रॉम्प्ट से अधिकतम {{limit}} के निरपेक्ष मान वाला दशमलव पूर्णांक पढ़ें। input के पाठ में दोनों मूल उत्तरों को एक रिक्त स्थान से जोड़कर लिखें। output के पाठ में उनका दशमलव योग लिखें।')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -430,6 +445,11 @@ profile:
       name: standard
       source:
         (line: 'Lee de la entrada estándar dos enteros decimales separados por espacios, de valor absoluto no superior a {{limit}}. Si alguno lleva signo, imprime «usage: <number> <number>». En caso contrario, imprime su suma en decimal. Termina con un salto de línea.')
+    form:
+      task: browser-integer-sum
+      name: standard
+      source:
+        (line: 'Abre en el navegador las preguntas “enter A number” y “enter B number” en ese orden, ambas con valor inicial vacío. Lee en cada una un entero decimal de valor absoluto no superior a {{limit}}. Pon en el texto de input las respuestas originales separadas por un espacio y en el texto de output su suma en decimal.')
     form:
       task: ackermann-cli
       name: standard
@@ -558,6 +578,11 @@ profile:
       source:
         (line: 'Lis sur l’entrée standard deux entiers décimaux séparés par des espaces, de valeur absolue au plus {{limit}}. Si l’un porte un signe, affiche « usage: <number> <number> ». Sinon, affiche leur somme en décimal. Termine par un saut de ligne.')
     form:
+      task: browser-integer-sum
+      name: standard
+      source:
+        (line: 'Ouvre successivement dans le navigateur les invites « enter A number » et « enter B number », avec une réponse initiale vide. Lis dans chacune un entier décimal de valeur absolue au plus {{limit}}. Écris les réponses exactes séparées par une espace dans le texte de input et leur somme décimale dans celui de output.')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -684,6 +709,11 @@ profile:
       name: standard
       source:
         (line: 'اقرأ من الدخل القياسي عددين صحيحين عشريين تفصل بينهما مسافات، ولا تتجاوز القيمة المطلقة لأي منهما {{limit}}. إذا سبق أحدهما رمز زائد أو ناقص، فاطبع «usage: <number> <number>»، وإلا فاطبع مجموعهما بالعشري. اختم بسطر جديد.')
+    form:
+      task: browser-integer-sum
+      name: standard
+      source:
+        (line: 'اعرض في المتصفح بالترتيب نافذتي الإدخال «enter A number» و«enter B number»، وكلتاهما فارغة في البداية. اقرأ من كل منهما عدداً صحيحاً عشرياً لا تتجاوز قيمته المطلقة {{limit}}. اجعل نص input الردين الأصليين مفصولين بمسافة، واجعل نص output مجموعهما العشري.')
     form:
       task: ackermann-cli
       name: standard
@@ -812,6 +842,11 @@ profile:
       source:
         (line: 'স্ট্যান্ডার্ড ইনপুট থেকে ফাঁক দিয়ে আলাদা করা দুটি দশমিক পূর্ণসংখ্যা পড়ুন, যাদের পরম মান সর্বোচ্চ {{limit}}। কোনোটির আগে যোগ বা বিয়োগ চিহ্ন থাকলে “usage: <number> <number>” মুদ্রণ করুন, নইলে তাদের দশমিক যোগফল মুদ্রণ করুন। শেষে একটি নতুন লাইন দিন।')
     form:
+      task: browser-integer-sum
+      name: standard
+      source:
+        (line: 'ব্রাউজারে ক্রমে “enter A number” ও “enter B number” প্রম্পট খুলুন, দুটির প্রাথমিক মানই খালি। প্রতিটি থেকে সর্বোচ্চ {{limit}} পরম মানের একটি দশমিক পূর্ণসংখ্যা পড়ুন। input-এর লেখায় মূল উত্তর দুটি একটি ফাঁক দিয়ে বসান। output-এর লেখায় তাদের দশমিক যোগফল বসান।')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -938,6 +973,11 @@ profile:
       name: standard
       source:
         (line: 'Leia da entrada padrão dois inteiros decimais separados por espaços, com valor absoluto de até {{limit}}. Se algum tiver sinal, imprima «usage: <number> <number>». Caso contrário, imprima a soma em decimal. Termine com uma quebra de linha.')
+    form:
+      task: browser-integer-sum
+      name: standard
+      source:
+        (line: 'Abra no navegador as perguntas “enter A number” e “enter B number” nessa ordem, ambas inicialmente vazias. Leia em cada uma um inteiro decimal com valor absoluto de até {{limit}}. Ponha as respostas exatas separadas por um espaço no texto de input e a soma decimal no texto de output.')
     form:
       task: ackermann-cli
       name: standard
@@ -1066,6 +1106,11 @@ profile:
       source:
         (line: 'Прочитай из стандартного ввода два разделённых пробелами десятичных целых числа с модулем не более {{limit}}. Если у одного есть знак, выведи «usage: <number> <number>», иначе выведи их десятичную сумму. Заверши вывод переводом строки.')
     form:
+      task: browser-integer-sum
+      name: standard
+      source:
+        (line: 'Открой в браузере по порядку запросы «enter A number» и «enter B number», оба с пустым начальным значением. Прочитай из каждого десятичное целое число с модулем не больше {{limit}}. Запиши точные ответы через один пробел в текст элемента input, а их десятичную сумму в текст элемента output.')
+    form:
       task: ackermann-cli
       name: standard
       source:
@@ -1192,6 +1237,11 @@ profile:
       name: standard
       source:
         (line: 'معیاری اِن پٹ سے خالی جگہوں سے جدا دو اعشاری صحیح اعداد پڑھیں جن کی مطلق قدر زیادہ سے زیادہ {{limit}} ہو۔ اگر کسی پر جمع یا تفریق کی علامت ہو تو “usage: <number> <number>” چھاپیں، ورنہ ان کا اعشاری مجموعہ چھاپیں۔ آخر میں نئی سطر لکھیں۔')
+    form:
+      task: browser-integer-sum
+      name: standard
+      source:
+        (line: 'براؤزر میں ترتیب سے “enter A number” اور “enter B number” کے دو خالی ابتدائی قدر والے مکالمے کھولیں۔ ہر ایک سے زیادہ سے زیادہ {{limit}} کی مطلق قدر والا اعشاری صحیح عدد پڑھیں۔ input کے متن میں دونوں اصل جواب ایک خالی جگہ سے جدا کرکے لکھیں۔ output کے متن میں ان کا اعشاری مجموعہ لکھیں۔')
     form:
       task: ackermann-cli
       name: standard

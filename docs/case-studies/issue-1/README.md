@@ -98,6 +98,10 @@ pairs, and the compact JSON array `[4,5,9,61]`, including trailing newlines.
 The A+B checks feed signed decimal pairs as well as input with repeated
 spaces. The JavaScript `process.openStdin()` original and its translations
 preserve the usage message on either explicitly signed operand.
+The HTML A+B listing opens two prompts in Google Chrome. The emitted Rust
+WebAssembly imports prompt and DOM operations. The native check verifies the
+prompt order, exact messages and empty defaults, the entered text with
+original spacing, and the decimal sum for six cases.
 Two JavaScript FizzBuzz listings return strings separated by spaces or newlines.
 The original expressions and the translated Rust functions return 412 bytes
 with no trailing separator and produce no additional output. Both common
@@ -121,9 +125,15 @@ each program in Google Chrome. All 20 plain-language profiles distinguish the
 alert from console output.
 [Pinned browser listing](https://github.com/acmeism/RosettaCodeData/blob/1d475861d7141ef2fafff293d9339f56e4b0f5db/Task/Hello-world-Newbie/JavaScript/hello-world-newbie-2.js)
 
-Native verification covers 22 JavaScript examples out of 1,985 and
+Native verification covers 23 JavaScript examples out of 1,985 and
 15 Rust examples out of 1,481 on x86-64 Linux. The remaining source
 variants still need effect verification.
+
+The unchanged Windows Script Host A+B listing produced zero output under
+Ubuntu 24.04's Wine 9.0 even with its two decimal inputs supplied over stdin.
+Wine's `WScript.StdIn` getter returns `E_NOTIMPL`, including in the upstream
+implementation. The console greeting uses `WScript.Echo` and runs under the
+same host. [Wine source](https://github.com/wine-mirror/wine/blob/3e119694dc2c4d5b0773cbc38afb49ff031225bb/programs/wscript/host.c#L420-L423)
 
 The fifth pinned Rust GCD listing comes from the published Tests section.
 It contains three calls and the expected output. Running the whole listing
@@ -162,7 +172,7 @@ Collection page, in that order, to verify their checksums and reported counts
 and check the selected original programs. Pass the compiled Rust CLI as the
 third argument to compare exact round trips and Meta Language output in both
 runtimes. A fourth argument accepts the pinned Git Trees responses to verify
-the source counts and 51 original Rosetta Code programs.
+the source counts and 52 original Rosetta Code programs.
 [Reproduction commands](../../../examples/translation/README.md#verification)
 
 The portable program translator in Meta Language 1.0.0 reported semantic
