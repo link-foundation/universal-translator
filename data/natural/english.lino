@@ -1,0 +1,47 @@
+natural:
+  id: english
+  label: English
+  native-label: English
+  profile: cnl-default
+  sentence-end: '.'
+  block-end: ':'
+  quotes: '“' '”'
+  list-separator: ','
+  list-and: and
+  true: true
+  false: false
+  note: 'Note: {text}'
+  templates:
+    function: 'Define {name} using {parameters}'
+    function-without-parameters: 'Define {name}'
+    declare: 'Create {name} with value {value}'
+    assign: 'Change {name} to {value}'
+    print-line: 'Write {value} and end the line'
+    print: 'Write {value}'
+    return-value: 'Give back {value}'
+    return: 'Stop here'
+    nothing: 'Do nothing'
+    evaluate: 'Run {expression}'
+    if: 'If {condition}, do this'
+    else-if: 'Otherwise, if {condition}, do this'
+    else: 'Otherwise, do this'
+    while: 'While {condition}, repeat this'
+    for: 'For each {variable} from {start} to {last}, repeat this'
+    call: '{callee} of ({arguments})'
+    call-without-arguments: '{callee} of nothing'
+    join: '{left} followed by {right}'
+    or: '{left} or {right}'
+    and: '{left} and {right}'
+    not: 'not {operand}'
+    negate: 'the negative of {operand}'
+    equal: '{left} equals {right}'
+    not-equal: '{left} does not equal {right}'
+    less: '{left} falls below {right}'
+    less-or-equal: '{left} does not exceed {right}'
+    greater: '{left} exceeds {right}'
+    greater-or-equal: '{left} does not fall below {right}'
+    add: '{left} plus {right}'
+    subtract: '{left} minus {right}'
+    multiply: '{left} times {right}'
+    divide: '{left} divided by {right}'
+    remainder: '{left} modulo {right}'

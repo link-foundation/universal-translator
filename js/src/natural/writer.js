@@ -1,0 +1,333 @@
+// Meta program -> controlled natural language text.
+//
+// Every sentence is the first template the language lists for the statement,
+// with its slots filled. Expressions are written at a precedence level and
+// get parentheses only where the reader would otherwise group them
+// differently.
+
+import { naturalLanguage } from './catalog.js';
+import {
+  binaryTemplates,
+  levelIndex,
+  levelOfTemplate,
+  levels,
+  unaryTemplates,
+} from './levels.js';
+import { subtract, number } from '../grammar/meta.js';
+
+const indentUnit = '  ';
+
+// Neutral name ("move-disks") -> the language's spelling of it.
+export function writeName(neutral, language) {
+  const words = neutral
+    .split('-')
+    .map((word) => language.lexicon[word] ?? word);
+  const spelled = words.join(language.nameJoiner);
+  return language.reserved.has(spelled.toLowerCase()) ? `${spelled}_` : spelled;
+}
+
+const word = (value) => ({ type: 'word', value });
+
+// Fill the first template of `key` with token lists.
+function fill(language, key, slots) {
+  const template = language.compiled[key]?.[0];
+  if (!template) {
+    throw new Error(`${language.id} has no "${key}" template`);
+  }
+  return template.flatMap((token) => {
+    if (token.type !== 'slot') {
+      return [token];
+    }
+    const value = slots[token.value];
+    if (!value) {
+      throw new Error(
+        `Template "${key}" of ${language.id} uses {${token.value}}`
+      );
+    }
+    return value;
+  });
+}
+
+function list(language, items) {
+  if (items.length < 2 || !language.listAnd) {
+    return items.flatMap((item, index) =>
+      index
+        ? [{ type: 'separator', value: language.listSeparator }, ...item]
+        : item
+    );
+  }
+  const head = items
+    .slice(0, -1)
+    .flatMap((item, index) =>
+      index
+        ? [{ type: 'separator', value: language.listSeparator }, ...item]
+        : item
+    );
+  return [...head, ...language.listAnd.split(' ').map(word), ...items.at(-1)];
+}
+
+const parenthesize = (tokens) => [
+  { type: 'open', value: '(' },
+  ...tokens,
+  { type: 'close', value: ')' },
+];
+
+function levelOf(expression) {
+  switch (expression.kind) {
+    case 'Interpolation':
+      return levelIndex.join;
+    case 'Binary':
+      return levelOfTemplate[binaryTemplates[expression.operator]];
+    case 'Unary':
+      return levelOfTemplate[unaryTemplates[expression.operator]];
+    default:
+      return levelIndex.primary;
+  }
+}
+
+function binarySlots(expression, language, level) {
+  const { associativity } = levels[level];
+  const leftLevel = associativity === 'left' ? level : level + 1;
+  return {
+    left: writeExpression(expression.left, language, leftLevel),
+    right: writeExpression(expression.right, language, level + 1),
+  };
+}
+
+function primary(expression, language) {
+  switch (expression.kind) {
+    case 'Number':
+      return [{ type: 'number', value: expression.value }];
+    case 'Text':
+      return [{ type: 'text', value: expression.value }];
+    case 'Boolean':
+      return [word(expression.value ? language.true : language.false)];
+    case 'Name':
+      return [word(writeName(expression.name, language))];
+    case 'Call': {
+      const callee = [word(writeName(expression.callee, language))];
+      if (!expression.arguments.length) {
+        return fill(language, 'call-without-arguments', { callee });
+      }
+      const separator = { type: 'separator', value: language.listSeparator };
+      const argumentsTokens = expression.arguments.flatMap(
+        (argument, index) => [
+          ...(index ? [separator] : []),
+          ...writeExpression(argument, language, 0),
+        ]
+      );
+      return fill(language, 'call', { callee, arguments: argumentsTokens });
+    }
+    default:
+      throw new Error(`Cannot write a ${expression.kind} expression in words`);
+  }
+}
+
+// Tokens of an expression that must bind at least as tightly as `minimum`.
+export function writeExpression(expression, language, minimum = 0) {
+  const level = levelOf(expression);
+  let tokens;
+  if (expression.kind === 'Interpolation') {
+    tokens = expression.parts
+      .map((part) => writeExpression(part, language, level + 1))
+      .reduce((left, right) => fill(language, 'join', { left, right }));
+  } else if (expression.kind === 'Binary') {
+    tokens = fill(
+      language,
+      binaryTemplates[expression.operator],
+      binarySlots(expression, language, level)
+    );
+  } else if (expression.kind === 'Unary') {
+    tokens = fill(language, unaryTemplates[expression.operator], {
+      operand: writeExpression(expression.operand, language, level),
+    });
+  } else {
+    tokens = primary(expression, language);
+  }
+  return level < minimum ? parenthesize(tokens) : tokens;
+}
+
+// Tokens -> text. Spaces go between tokens, except next to parentheses and
+// before separators.
+export function renderTokens(tokens, language) {
+  const [opening, closing] = language.quotes;
+  let output = '';
+  let previous;
+  for (const token of tokens) {
+    const text =
+      token.type === 'text'
+        ? `${opening}${token.value.split(closing).join(closing + closing)}${closing}`
+        : String(token.value);
+    const glued =
+      !previous ||
+      previous.type === 'open' ||
+      token.type === 'close' ||
+      token.type === 'separator';
+    output += glued ? text : ` ${text}`;
+    previous = token;
+  }
+  return output;
+}
+
+function capitalize(sentence) {
+  return sentence.charAt(0).toLocaleUpperCase() + sentence.slice(1);
+}
+
+class Writer {
+  constructor(language) {
+    this.language = language;
+    this.lines = [];
+  }
+
+  sentence(depth, key, slots, opensBlock = false) {
+    const { language } = this;
+    const text = renderTokens(fill(language, key, slots), language);
+    const end = opensBlock ? language.blockEnd : language.sentenceEnd;
+    this.lines.push(`${indentUnit.repeat(depth)}${capitalize(text)}${end}`);
+  }
+
+  note(depth, text) {
+    const line = this.language.note.replace('{text}', text);
+    this.lines.push(`${indentUnit.repeat(depth)}${line}`);
+  }
+
+  expression(value, level = 0) {
+    return writeExpression(value, this.language, level);
+  }
+
+  block(block, depth) {
+    const statements = block?.statements ?? [];
+    if (!statements.length) {
+      this.sentence(depth, 'nothing', {});
+    }
+    statements.forEach((statement) => this.statement(statement, depth));
+  }
+
+  conditional(statement, depth, key = 'if') {
+    this.sentence(
+      depth,
+      key,
+      { condition: this.expression(statement.condition) },
+      true
+    );
+    this.block(statement.then, depth + 1);
+    const { otherwise } = statement;
+    if (otherwise?.kind === 'If') {
+      this.conditional(otherwise, depth, 'else-if');
+    } else if (otherwise) {
+      this.sentence(depth, 'else', {}, true);
+      this.block(otherwise, depth + 1);
+    }
+  }
+
+  statement(statement, depth) {
+    const { language } = this;
+    const name = (value) => [word(writeName(value, language))];
+    switch (statement.kind) {
+      case 'Comment':
+        return this.note(depth, statement.text);
+      case 'Declaration':
+        return this.sentence(depth, 'declare', {
+          name: name(statement.name),
+          value: this.expression(statement.value),
+        });
+      case 'Assignment':
+        if (statement.operator && statement.operator !== '=') {
+          throw new Error(
+            `Unexpanded compound assignment ${statement.operator}`
+          );
+        }
+        return this.sentence(depth, 'assign', {
+          name: name(statement.name),
+          value: this.expression(statement.value),
+        });
+      case 'Print':
+        return this.sentence(
+          depth,
+          statement.newline ? 'print-line' : 'print',
+          {
+            value: this.expression(statement.value),
+          }
+        );
+      case 'Return':
+        return statement.value
+          ? this.sentence(depth, 'return-value', {
+              value: this.expression(statement.value),
+            })
+          : this.sentence(depth, 'return', {});
+      case 'Evaluate':
+        return this.sentence(depth, 'evaluate', {
+          expression: this.expression(statement.expression),
+        });
+      case 'If':
+        return this.conditional(statement, depth);
+      case 'While':
+        this.sentence(
+          depth,
+          'while',
+          { condition: this.expression(statement.condition) },
+          true
+        );
+        return this.block(statement.body, depth + 1);
+      case 'CountingLoop':
+        // Natural languages count up to the last value, not past it.
+        this.sentence(
+          depth,
+          'for',
+          {
+            variable: name(statement.variable),
+            start: this.expression(statement.start),
+            last: this.expression(subtract(statement.end, number(1))),
+          },
+          true
+        );
+        return this.block(statement.body, depth + 1);
+      case 'Block':
+        return this.block(statement, depth);
+      default:
+        throw new Error(`Cannot write a ${statement.kind} statement in words`);
+    }
+  }
+
+  function(item) {
+    const { language } = this;
+    (item.comments ?? []).forEach((text) => this.note(0, text));
+    const name = [word(writeName(item.name, language))];
+    if (item.parameters.length) {
+      const parameters = list(
+        language,
+        item.parameters.map((parameter) => [
+          word(writeName(parameter.name, language)),
+        ])
+      );
+      this.sentence(0, 'function', { name, parameters }, true);
+    } else {
+      this.sentence(0, 'function-without-parameters', { name }, true);
+    }
+    this.block(item.body, 1);
+  }
+
+  program(program) {
+    const header = [...(program.comments ?? [])];
+    header.forEach((text) => this.note(0, text));
+    for (const item of program.functions) {
+      if (this.lines.length) {
+        this.lines.push('');
+      }
+      this.function(item);
+    }
+    const main = program.main?.statements ?? [];
+    if (main.length || program.mainComments?.length) {
+      if (this.lines.length) {
+        this.lines.push('');
+      }
+      (program.mainComments ?? []).forEach((text) => this.note(0, text));
+      main.forEach((statement) => this.statement(statement, 0));
+    }
+    return `${this.lines.join('\n')}\n`;
+  }
+}
+
+export function writeNatural(program, id) {
+  return new Writer(naturalLanguage(id)).program(program);
+}
