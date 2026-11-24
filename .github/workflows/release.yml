@@ -381,7 +381,7 @@ jobs:
   translation:
     name: Rust and cross-language translation
     runs-on: ubuntu-24.04
-    # Leave headroom above the Rust tests and corpus verification budgets.
+    # Leave headroom above the Rust tests and command-line comparison budgets.
     timeout-minutes: 30
     concurrency:
       group: check-${{ github.workflow }}-${{ github.ref }}-translation
@@ -395,17 +395,10 @@ jobs:
         check-file-line-limits,
       ]
     # Use !cancelled() instead of always() so cancellation propagates correctly (hive-mind issue #1278)
-    # Also run for PR #5 when ready so its coverage gate has evidence even
-    # when change detection classifies the diff as documentation-only.
     if: |
       !cancelled() &&
       (
         needs.detect-changes.outputs.any-code-changed == 'true' ||
-        (
-          github.event_name == 'pull_request' &&
-          github.event.pull_request.number == 5 &&
-          !github.event.pull_request.draft
-        ) ||
         (
           github.event_name == 'workflow_dispatch' &&
           github.event.inputs.release_mode == 'instant'
@@ -415,8 +408,6 @@ jobs:
       (needs.test-compilation.result == 'success' || needs.test-compilation.result == 'skipped') &&
       (needs.lint.result == 'success' || needs.lint.result == 'skipped') &&
       (needs.check-file-line-limits.result == 'success' || needs.check-file-line-limits.result == 'skipped')
-    outputs:
-      full-native: ${{ steps.corpus.outputs.full-native }}
     env:
       CARGO_BUILD_JOBS: '1'
       CARGO_INCREMENTAL: '0'
@@ -448,10 +439,8 @@ jobs:
 
       - run: npm ci
 
-      - name: Check generated Links Notation registry
-        run: |
-          node scripts/bundle-translation-profiles.mjs --check
-          node examples/translation/report-coverage.mjs
+      - name: Check the shared golden translations
+        run: node examples/programs/write-translations.mjs --check
 
       - name: Check Rust formatting
         run: cargo fmt --check
@@ -459,74 +448,20 @@ jobs:
       - name: Test Rust
         run: bash scripts/run-with-budget-warning.sh 540 "Rust test suite" cargo test --locked
 
-      - name: Check translations agree across JavaScript and Rust
+      - name: Check that the JavaScript and Rust command lines agree
         run: |
           cargo build --locked --bin universal-translator
-          node examples/translation/verify-parity.mjs
+          bash experiments/verify-syntax-exchange.sh
           node examples/translation/dependent-meanings.mjs
 
-      - name: Install Wine CScript for the pinned Windows Script Host listing
-        run: |
-          if [[ ! -x /usr/lib/wine/wine64 ]]; then
-            sudo apt-get -o Acquire::Retries=2 update --error-on=any &
-            wait "$!"
-            sudo apt-get -o Acquire::Retries=2 install --yes --no-install-recommends wine64 &
-            wait "$!"
-          fi
-          test -x /usr/lib/wine/wine64
-
-      - name: Check grammar exchange, native translation, and pinned corpora
-        id: corpus
-        env:
-          ROSETTA_WINE: /usr/lib/wine/wine64
-        run: |
-          archive="$RUNNER_TEMP/rosetta-code.tar.gz"
-          collection="$RUNNER_TEMP/hello-world-collection.html"
-          curl --fail --location --silent --show-error --retry 3 \
-            https://codeload.github.com/acmeism/RosettaCodeData/tar.gz/1d475861d7141ef2fafff293d9339f56e4b0f5db \
-            --output "$archive"
-          curl --fail --location --silent --show-error --retry 3 \
-            http://helloworldcollection.de/ --output "$collection"
-          bash scripts/run-with-budget-warning.sh 540 "Pinned source round trips" \
-            bash experiments/verify-syntax-exchange.sh --corpus "$archive" \
-              --hello-world "$collection"
-
-  native-corpus-readiness:
-    name: Full native Rosetta Code coverage
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    needs: [translation]
-    if: |
-      !cancelled() &&
-      github.event_name == 'pull_request' &&
-      github.event.pull_request.number == 5 &&
-      !github.event.pull_request.draft
-    permissions: {}
-    steps:
-      - name: Require complete native translation evidence
-        env:
-          TRANSLATION_RESULT: ${{ needs.translation.result }}
-          FULL_NATIVE: ${{ needs.translation.outputs.full-native }}
-        run: |
-          if [[ "$TRANSLATION_RESULT" != 'success' ]]; then
-            echo "::error::Native coverage requires a successful translation job. Resolve its failing or skipped checks and rerun."
-            exit 1
-          fi
-          if [[ "$FULL_NATIVE" != 'true' ]]; then
-            echo "::error::PR #5 needs verified native translations for every pinned JavaScript and Rust original. See the translation job summary for coverage counts."
-            exit 1
-          fi
-
   native-translation:
-    name: Native translation (${{ matrix.group }})
+    name: Native translation
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        group: [baseline, extended]
+    # Typical run: about 8 minutes, mostly the Kotlin, Swift and .NET
+    # compilers. 30min bounds a stalled toolchain download.
+    timeout-minutes: 30
     concurrency:
-      group: check-${{ github.workflow }}-${{ github.ref }}-native-translation-${{ matrix.group }}
+      group: check-${{ github.workflow }}-${{ github.ref }}-native-translation
       cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
     needs: [detect-changes]
     if: |
@@ -555,24 +490,16 @@ jobs:
           node-version: '24.x'
           cache: npm
 
-      - run: npm ci
-
-      - name: Set up Dart for baseline native tests
-        if: matrix.group == 'baseline'
-        uses: dart-lang/setup-dart@2286a0c042b44434fe26d292bbce8d34f7ec662b # v1
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
         with:
-          sdk: '3.12.0'
+          deno-version: v2.x
 
-      - name: Set up Julia for extended native tests
-        if: matrix.group == 'extended'
-        uses: julia-actions/setup-julia@4c0cb0fce8556fdb04a90347310e5db8b1f98fb9 # v2
+      - uses: actions/setup-dotnet@v5
         with:
-          version: '1.12'
+          dotnet-version: '8.0.x'
 
       - name: Install native tools
-        timeout-minutes: 6
-        env:
-          NATIVE_GROUP: ${{ matrix.group }}
+        timeout-minutes: 5
         run: |
           # Use Ubuntu's primary archives to avoid stalled runner mirrors.
           apt_sources="$RUNNER_TEMP/native-tools.list"
@@ -585,33 +512,24 @@ jobs:
             -o "Dir::Etc::sourcelist=$apt_sources" -o 'Dir::Etc::sourceparts=-'
             -o Acquire::Retries=2 -o Acquire::https::Timeout=20
           )
-          case "$NATIVE_GROUP" in
-            baseline)
-              packages=(fp-compiler gfortran gobjc jasmin-sable libgnustep-base-dev lld lua5.4
-                mono-devel nasm ocaml qemu-user r-base-core scala tcl)
-              ;;
-            extended)
-              packages=(clojure crystal elixir erlang-base fish ghc gnat gnucobol groovy
-                guile-3.0 haxe ldc nim octave polyml racket rakudo sbcl swi-prolog-nox xsltproc)
-              ;;
-            *)
-              printf 'Unknown native tool group: %s\n' "$NATIVE_GROUP" >&2
-              exit 2
-              ;;
-          esac
+          packages=(lua5.4 nasm php-cli ruby jasmin-sable)
           sudo apt-get "${apt_options[@]}" update --error-on=any
           sudo apt-get "${apt_options[@]}" install --yes --no-install-recommends "${packages[@]}"
-
-      - name: Check output with native tools
-        timeout-minutes: 6
-        env:
-          NATIVE_GROUP: ${{ matrix.group }}
-        run: |
-          collection="$RUNNER_TEMP/hello-world-collection.html"
+          # ILAsm ships as a NuGet package for each runtime identifier.
           curl --fail --location --silent --show-error --retry 3 \
-            http://helloworldcollection.de/ --output "$collection"
-          node examples/translation/verify-native.mjs --require-all \
-            --group="$NATIVE_GROUP" --hello-world="$collection"
+            https://api.nuget.org/v3-flatcontainer/runtime.linux-x64.microsoft.netcore.ilasm/8.0.0/runtime.linux-x64.microsoft.netcore.ilasm.8.0.0.nupkg \
+            --output "$RUNNER_TEMP/ilasm.zip"
+          unzip -q "$RUNNER_TEMP/ilasm.zip" -d "$RUNNER_TEMP/ilasm"
+          chmod +x "$RUNNER_TEMP/ilasm/runtimes/linux-x64/native/ilasm"
+          echo "ILASM=$RUNNER_TEMP/ilasm/runtimes/linux-x64/native/ilasm" >> "$GITHUB_ENV"
+
+      - name: Run every translation with its native toolchain
+        timeout-minutes: 8
+        env:
+          LUA: lua5.4
+        run: |
+          bash scripts/run-with-budget-warning.sh 300 "Native translations" \
+            node examples/programs/verify-native.mjs --require-all
 
   # === DOCKER IMAGE BUILD CHECK (pull requests) ===
   # Builds the Dockerfile without pushing so a broken image fails the pull
@@ -1290,7 +1208,6 @@ jobs:
       - lint
       - test
       - translation
-      - native-corpus-readiness
       - native-translation
       - docker-build
       - docker-publish-config

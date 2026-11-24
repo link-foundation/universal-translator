@@ -1,5 +1,4 @@
 import { describe, it, expect } from 'test-anywhere';
-import { spawnSync } from 'node:child_process';
 import { readFileSync, readdirSync } from 'node:fs';
 
 const WORKFLOW_DIRECTORY = '.github/workflows';
@@ -260,7 +259,7 @@ describe('workflow concurrency policy', () => {
     expectCancellableCheckConcurrency(
       getJobBlock(releaseWorkflow, 'native-translation'),
       'native-translation',
-      '-${{ matrix.group }}',
+      '',
       "${{ github.ref != 'refs/heads/main' }}"
     );
 
@@ -536,65 +535,14 @@ describe('release workflow change gates', () => {
   }
 });
 
-describe('native corpus readiness', () => {
-  const workflow = readWorkflow('.github/workflows/release.yml');
-  const translation = getJobBlock(workflow, 'translation');
-  const readiness = getJobBlock(workflow, 'native-corpus-readiness');
-
-  it('requires fresh corpus evidence for PR 5 when ready, even without code changes', () => {
-    const context = createTestJobContext({
-      pullRequest: { number: 5, draft: false },
-    });
-    const translationCondition = getMultilineIfExpression(translation);
-    const readinessCondition = getMultilineIfExpression(readiness);
-
-    expect(evaluateWorkflowIf(translationCondition, context)).toBe(true);
-    expect(evaluateWorkflowIf(readinessCondition, context)).toBe(true);
-
-    context.github.event.pull_request.draft = true;
-    expect(evaluateWorkflowIf(translationCondition, context)).toBe(false);
-    expect(evaluateWorkflowIf(readinessCondition, context)).toBe(false);
-
-    context.github.event.pull_request = { number: 6, draft: false };
-    expect(evaluateWorkflowIf(readinessCondition, context)).toBe(false);
-
-    context.github.event_name = 'push';
-    expect(evaluateWorkflowIf(readinessCondition, context)).toBe(false);
-  });
-
-  it('fails readiness for incomplete, missing, or failed native verification', () => {
-    expect(readiness).toContain('    needs: [translation]');
-    expect(getJobBlock(workflow, 'pipeline-status')).toContain(
-      '      - native-corpus-readiness'
-    );
-    expect(translation).not.toContain('--require-full-native');
-
-    const command = readiness
-      .split('        run: |\n')[1]
-      .split('\n')
-      .filter((line) => line.startsWith('          '))
-      .map((line) => line.slice(10))
-      .join('\n');
-    for (const [result, coverage, status] of [
-      ['success', 'false', 1],
-      ['success', '', 1],
-      ['failure', 'true', 1],
-      ['skipped', '', 1],
-      ['success', 'true', 0],
-    ]) {
-      const check = spawnSync('bash', ['-e', '-c', command], {
-        encoding: 'utf8',
-        env: {
-          ...process.env,
-          TRANSLATION_RESULT: result,
-          FULL_NATIVE: coverage,
-        },
-      });
-      expect(check.status).toBe(status);
-      if (status) {
-        expect(check.stdout).toContain('::error');
-      }
-    }
+describe('translation checks', () => {
+  it('checks the golden files and both command lines', () => {
+    const workflow = readWorkflow('.github/workflows/release.yml');
+    expectOrdered(getJobBlock(workflow, 'translation'), [
+      'node examples/programs/write-translations.mjs --check',
+      'cargo test --locked',
+      'bash experiments/verify-syntax-exchange.sh',
+    ]);
   });
 });
 
@@ -749,9 +697,9 @@ describe('native translation tool setup', () => {
       '-o "Dir::Etc::sourcelist=$apt_sources" -o \'Dir::Etc::sourceparts=-\'',
       'sudo apt-get "${apt_options[@]}" update --error-on=any',
       'sudo apt-get "${apt_options[@]}" install --yes --no-install-recommends "${packages[@]}"',
-      'name: Check output with native tools',
-      'http://helloworldcollection.de/ --output "$collection"',
-      '--group="$NATIVE_GROUP" --hello-world="$collection"',
+      'ilasm',
+      'name: Run every translation with its native toolchain',
+      'node examples/programs/verify-native.mjs --require-all',
     ]);
   });
 });

@@ -4,7 +4,10 @@
 // standard output. Languages whose toolchain is missing are reported as
 // skipped, never as passed.
 //
-//   node examples/programs/verify-native.mjs [language ...]
+//   node examples/programs/verify-native.mjs [--require-all] [language ...]
+//
+// --require-all turns a missing toolchain into a failure. LUA names the Lua
+// interpreter when it is not called lua.
 
 import { spawnSync } from 'node:child_process';
 import {
@@ -45,7 +48,9 @@ export const extensions = {
 // Machine targets need an assembler. ILASM names the ilasm executable and
 // JASMIN_CLASSPATH the Jasmin jar (with java_cup) when they are not on PATH.
 const ilasm = process.env.ILASM || 'ilasm';
+// Without JASMIN_CLASSPATH the jasmin command (Debian jasmin-sable) is used.
 const jasmin = process.env.JASMIN_CLASSPATH;
+const lua = process.env.LUA || 'lua';
 
 const run = (command, args, options = {}) => {
   const result = spawnSync(command, args, {
@@ -62,8 +67,8 @@ const run = (command, args, options = {}) => {
 };
 
 function available(command) {
-  if (command === 'jasmin') {
-    return Boolean(jasmin) && available('java');
+  if (command === 'jasmin' && jasmin) {
+    return available('java');
   }
   return spawnSync('sh', ['-c', `command -v "${command}"`]).status === 0;
 }
@@ -80,7 +85,7 @@ const runners = {
   },
   python: { tool: 'python3', run: (file) => run('python3', [file]) },
   ruby: { tool: 'ruby', run: (file) => run('ruby', [file]) },
-  lua: { tool: 'lua', run: (file) => run('lua', [file]) },
+  lua: { tool: lua, run: (file) => run(lua, [file]) },
   php: { tool: 'php', run: (file) => run('php', [file]) },
   c: {
     tool: 'gcc',
@@ -168,7 +173,9 @@ const runners = {
   jvm: {
     tool: 'jasmin',
     run: (file) => (
-      run('java', ['-cp', jasmin, 'jasmin.Main', '-d', dirname(file), file]),
+      jasmin
+        ? run('java', ['-cp', jasmin, 'jasmin.Main', '-d', dirname(file), file])
+        : run('jasmin', ['-d', dirname(file), file]),
       run('java', ['-cp', dirname(file), 'Program'])
     ),
   },
@@ -193,9 +200,10 @@ export function programFiles() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const targets = process.argv.slice(2).length
-    ? process.argv.slice(2)
-    : Object.keys(extensions);
+  const options = process.argv.slice(2);
+  const requireAll = options.includes('--require-all');
+  const chosen = options.filter((option) => option !== '--require-all');
+  const targets = chosen.length ? chosen : Object.keys(extensions);
   const work = mkdtempSync(join(tmpdir(), 'grammar-native-'));
   let failures = 0;
   for (const { path, file, task, language } of programFiles()) {
@@ -206,6 +214,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       const label = `${file} -> ${target}`;
       if (!available(runner.tool)) {
         console.log(`SKIP ${label}: ${runner.tool} is not installed`);
+        failures += requireAll ? 1 : 0;
         continue;
       }
       const directory = join(work, `${task}-${language}-${target}`);
