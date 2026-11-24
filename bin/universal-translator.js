@@ -21,7 +21,7 @@ const COMMANDS = {
 const GRAMMAR_ENGINE =
   'Set UNIVERSAL_TRANSLATOR_META_LANGUAGE to the Meta Language 1.0 module file';
 const GRAMMAR_COMMANDS = ['encode-cst', 'decode-cst', 'translate-program'];
-const TRANSLATION_COMMANDS = ['translate', 'roundtrip', 'languages'];
+const TRANSLATION_COMMANDS = ['translate', 'meta', 'languages'];
 const SOURCE_COMMANDS = [
   'encode-source',
   'decode-source',
@@ -36,9 +36,9 @@ function usage() {
     'Commands:',
     '  add       Add two numbers',
     '  multiply  Multiply two numbers',
-    '  translate <from> <to> [file|-] [--mode <mode>] [--form <form>]',
+    '  translate <from> <to> [file|-] [--mode <mode>]  Translate through the meta language',
     '  translate-program <from|cst> <to> [file|-]  Translate a checked JavaScript or Rust program',
-    '  roundtrip <language> [file|-]  Reconstruct the original source',
+    '  meta <language> [file|-]  Print the typed meta program as JSON',
     '  encode-source <language> [file|-]  Write a Links Notation source document',
     '  decode-source [file|-]  Restore source from a Links Notation document',
     '  encode-cst <language> [file|-]  Parse source into a Meta Language CST',
@@ -84,7 +84,7 @@ function translationArguments(args) {
   let file;
   for (let index = 0; index < args.length; index++) {
     const argument = args[index];
-    if (argument === '--mode' || argument === '--form') {
+    if (argument === '--mode') {
       const key = argument.slice(2);
       const value = args[++index];
       if (!value || value.startsWith('-') || options[key] !== undefined) {
@@ -103,18 +103,18 @@ function translationArguments(args) {
   return { file, options };
 }
 
-function runTranslation(command, args, read, write, grammarEngine) {
-  const translator = createTranslator({ grammarEngine });
+function runTranslation(command, args, read, write) {
+  const translator = createTranslator();
   const [from, to, ...trailing] = args;
   if (command === 'languages' && args.length === 0) {
     write(
       translator
-        .listLanguages()
+        .languages()
         .map(({ id, label }) => `${id}\t${label}\n`)
         .join('')
     );
-  } else if (command === 'roundtrip' && from && args.length <= 2) {
-    write(translator.restore(translator.parse(read(to), from)));
+  } else if (command === 'meta' && from && args.length <= 2) {
+    write(`${JSON.stringify(translator.toMeta(read(to), from), null, 2)}\n`);
   } else if (command === 'translate' && from && to) {
     const { file, options } = translationArguments(trailing);
     write(translator.translate(read(file), from, to, options));
@@ -157,7 +157,7 @@ function runSourceCommand(command, args, { read, write, grammarEngine }) {
   } else if (GRAMMAR_COMMANDS.includes(command)) {
     runGrammarCommand(command, args, read, write, grammarEngine);
   } else if (TRANSLATION_COMMANDS.includes(command)) {
-    runTranslation(command, args, read, write, grammarEngine);
+    runTranslation(command, args, read, write);
   } else {
     throw new Error(usage());
   }

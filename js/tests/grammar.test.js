@@ -214,3 +214,13 @@ describe('grammar translator: replaceable rule layers', () => {
     expect(() => translator.toMeta('let = ;', 'javascript')).toThrow('line 1');
   });
 });
+
+describe('shared golden translations', () => {
+  it('matches every file under examples/programs/translated', async () => {
+    const { expectedTranslations } =
+      await import('../../examples/programs/write-translations.mjs');
+    for (const { path, text } of expectedTranslations()) {
+      expect(readFileSync(path, 'utf8')).toBe(text);
+    }
+  });
+});

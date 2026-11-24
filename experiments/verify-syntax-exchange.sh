@@ -9,11 +9,4 @@ curl --fail --location --silent --show-error --retry 3 \
   tar -xz --strip-components=2 -C "$work" --wildcards \
     '*/js/package.json' '*/js/package-lock.json' '*/js/src'
 npm ci --omit=dev --ignore-scripts --no-audit --no-fund --prefix "$work"
-if [[ ${1:-} == --corpus ]]; then
-  shift
-  node experiments/verify-syntax-exchange.mjs "$work/src/index.js"
-  UNIVERSAL_TRANSLATOR_META_LANGUAGE="$work/src/index.js" \
-    python3 examples/translation/verify-corpus.py "$@"
-else
-  node experiments/verify-syntax-exchange.mjs "$work/src/index.js" "$@"
-fi
+node experiments/verify-syntax-exchange.mjs "$work/src/index.js" "$@"

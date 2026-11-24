@@ -26,7 +26,17 @@ export declare const multiply: (a: number, b: number) => number;
  */
 export declare const delay: (ms: number) => Promise<void>;
 
-export * from './translation/translator.js';
+export {
+  createGrammarTranslator as createTranslator,
+  translate,
+} from './grammar/translator.js';
+export type {
+  GrammarTranslator,
+  GrammarTranslatorOptions,
+  TranslationMode,
+  TranslationOptions,
+} from './grammar/translator.js';
+export * from './grammar/languages.js';
 export * from './translation/source-document.js';
 export * from './translation/program.js';
 export * as commonLibrary from './common-library.mjs';

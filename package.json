@@ -22,12 +22,6 @@
       "import": "./js/src/index.js"
     }
   },
-  "imports": {
-    "#translation-profiles": {
-      "browser": "./js/src/translation/bundled/index.js",
-      "default": "./js/src/translation/registry-files.js"
-    }
-  },
   "scripts": {
     "test": "node --test --test-timeout=30000 js/tests/*.test.js",
     "lint": "node scripts/lint.mjs",

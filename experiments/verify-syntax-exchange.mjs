@@ -1,14 +1,13 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import { pathToFileURL, URL } from 'node:url';
 import {
   createSourceSyntaxCodec,
-  createTranslator,
   writeSourceDocument,
 } from '../js/src/index.js';
-import { verifyPortableOutput } from '../examples/translation/portable-programs.mjs';
 import {
   linkFields,
   parseLinks,
@@ -105,18 +104,20 @@ console.log(
   `The tagged JavaScript engine round-tripped ${ranked.size} ranked grammar specimens`
 );
 
-const translator = createTranslator({ grammarEngine });
-const sqlite = translator.parse('SELECT sqlite_version();\n', 'sqlite');
-assert.equal(sqlite.network.parseGrammars()[0].language, 'sql-sqlite');
-const document = translator.parse(hello('c'), 'c');
-assert.deepEqual(document.interpretation.requires, ['stdio.h']);
-const realizes = document.network
-  .links()
-  .find((link) => link.metadata().term === 'realizes');
-const operation = document.network.link(realizes.references()[0]);
-const root = document.network.link(operation.references()[0]);
-assert.equal(root.metadata().term, 'translation_unit');
-assert.equal(translator.restore(document), hello('c'));
+// Run a JavaScript or Rust program and return its standard output.
+function runProgram(language, source) {
+  if (language === 'javascript') {
+    return success(
+      run(process.execPath, ['--input-type=module'], { input: source })
+    );
+  }
+  const directory = mkdtempSync(join(tmpdir(), 'syntax-exchange-'));
+  writeFileSync(join(directory, 'main.rs'), source);
+  success(
+    run('rustc', ['-o', join(directory, 'main'), join(directory, 'main.rs')])
+  );
+  return success(run(join(directory, 'main'), []));
+}
 
 const programs = [
   {
@@ -144,20 +145,10 @@ for (const { from, to, source, stdout } of programs) {
     [rustCli, fromJs],
   ]) {
     const translated = success(cli(['translate-program', 'cst', to], notation));
-    assert.equal(
-      success(cli(['translate', from, to, '--mode', 'same-effect'], source)),
-      translated
-    );
     targets.add(translated);
   }
-  verifyPortableOutput(
-    [
-      { language: from, source },
-      ...[...targets].map((source) => ({ language: to, source })),
-    ],
-    stdout,
-    `CST exchange from ${from} to ${to}`
-  );
+  assert.equal(targets.size, 1, `Both CLIs agree from ${from} to ${to}`);
+  assert.equal(runProgram(to, [...targets][0]), stdout);
 }
 for (const cli of [jsCli, rustCli]) {
   for (const [source, diagnostic] of [

@@ -66,3 +66,11 @@ export function createGrammarTranslator({
       fromMeta(toMeta(source, from), to, { ...options, from }),
   };
 }
+
+let defaultTranslator;
+
+// Translate with the default rule layers.
+export function translate(source, from, to, options) {
+  defaultTranslator ??= createGrammarTranslator();
+  return defaultTranslator.translate(source, from, to, options);
+}
