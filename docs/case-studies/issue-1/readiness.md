@@ -1,5 +1,38 @@
 # PR 5 readiness investigation
 
+## Repeated failure on the same commit
+
+The November 24 restart verified passing draft checks on `55f3a2d` and
+reported 13 open acceptance criteria. The Hive Mind restart finalizer then
+marked the same commit ready at 03:01:01 UTC. The transition is recorded at
+lines 85,977–85,981 of the restart log. The new run restored 144,048 text
+documents in both runtimes and verified 52 selected effects. Its strict
+assertion failed because only 23 of 1,985 JavaScript originals and 15 of
+1,481 Rust originals had native evidence. Pipeline Status propagated the
+translation job failure. GitHub recorded another conversion to draft at
+04:20:59 UTC.
+[Restart log](https://gist.github.com/konard/0b29090c8aac11c62b4b51f91e4bad5f) ·
+[Failing translation job](https://github.com/link-foundation/universal-translator/actions/runs/45316504560/job/138187684723) ·
+[Failing Pipeline Status](https://github.com/link-foundation/universal-translator/actions/runs/45316504560/job/138204827278)
+
+The translation job publishes the coverage result after the pinned corpus
+replay. A separate **Full native Rosetta Code coverage** job requires
+complete evidence from that same run whenever PR 5 is ready. Pipeline
+Status still propagates a failure from either job. Draft runs report the
+same counts and continue to fail on source restoration errors and selected
+native regressions. The local verifier also supports `--require-full-native`.
+
+The solve launcher operator can stop the repeated ready transitions by
+disabling automatic readiness for this incomplete PR. The launcher needs
+the upstream disposition fix to preserve the hold across restart
+iterations. Keep the requirements report enabled when launching a version
+that enforces it in those iterations. The repository's check still guards
+readiness if a launcher or reviewer marks the PR ready.
+[Launcher disposition issue](https://github.com/link-assistant/hive-mind/issues/3924) ·
+[Upstream PR](https://github.com/link-assistant/hive-mind/pull/3929)
+
+## Earlier readiness transitions
+
 The last working session at 18:14:43 UTC on November 23 explicitly reported
 that executable translation for 1,755 Rosetta Code tasks and the remaining
 grammar, top-50, and natural-language requirements were open. Codex returned
@@ -29,8 +62,8 @@ The archive check now runs the pinned JavaScript and Rust examples it
 recognizes in their own runtimes and executes their translated output.
 It verifies stdout against an independent oracle, verifies both CLIs
 against the same Meta Language effect, and counts the evidence by source
-language. The same step enforces the full count on PR 5 whenever GitHub
-marks it ready. A draft run exposes the current counts in the CI summary.
+language. The initial version enforced the full count in the same step
+whenever GitHub marked PR 5 ready.
 This assertion covers native JavaScript and Rust corpus acceptance. The
 [requirements inventory](requirements.md) tracks the remaining issue scope.
 

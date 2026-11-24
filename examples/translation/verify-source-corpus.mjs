@@ -134,6 +134,9 @@ if (!helloWorldOnly) {
   if (process.env.GITHUB_STEP_SUMMARY) {
     appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
   }
+  if (process.env.GITHUB_OUTPUT) {
+    appendFileSync(process.env.GITHUB_OUTPUT, `full-native=${complete}\n`);
+  }
   assert.ok(
     !requireFullNative || complete,
     'Full native Rosetta Code translation is required'

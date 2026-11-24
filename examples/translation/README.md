@@ -218,8 +218,9 @@ rm "$archive"
 
 Add `--require-full-native` to require native execution and translation
 evidence for every archived JavaScript and Rust example. The coverage report
-prints counts for both source languages before the check exits. PR #5 runs
-this form when GitHub marks it ready for review.
+prints counts for both source languages before the check exits. When PR #5
+is ready for review, its **Full native Rosetta Code coverage** job requires
+the same complete counts from that run's successful translation job.
 
 To verify the three calls from the Rust GCD Tests section in context, pass
 the pinned signed recursive implementation and the listing with its output

@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'test-anywhere';
+import { spawnSync } from 'node:child_process';
 import { readFileSync, readdirSync } from 'node:fs';
 
 const WORKFLOW_DIRECTORY = '.github/workflows';
@@ -103,6 +104,10 @@ function evaluateWorkflowIf(expression, context) {
     .replaceAll('!cancelled()', '!context.cancelled')
     .replaceAll('github.event_name', 'context.github.event_name')
     .replaceAll(
+      'github.event.pull_request',
+      'context.github.event.pull_request'
+    )
+    .replaceAll(
       'github.event.inputs.release_mode',
       'context.github.event.inputs.release_mode'
     )
@@ -147,6 +152,7 @@ function expectCancellableCheckConcurrency(
 
 function createTestJobContext({
   eventName = 'pull_request',
+  pullRequest = {},
   releaseMode,
   outputs = {},
   result = 'skipped',
@@ -156,6 +162,7 @@ function createTestJobContext({
     github: {
       event_name: eventName,
       event: {
+        pull_request: pullRequest,
         inputs: {
           release_mode: releaseMode,
         },
@@ -527,6 +534,68 @@ describe('release workflow change gates', () => {
       expect(evaluateWorkflowIf(condition, excludedOnlyPush)).toBe(false);
     });
   }
+});
+
+describe('native corpus readiness', () => {
+  const workflow = readWorkflow('.github/workflows/release.yml');
+  const translation = getJobBlock(workflow, 'translation');
+  const readiness = getJobBlock(workflow, 'native-corpus-readiness');
+
+  it('requires fresh corpus evidence for PR 5 when ready, even without code changes', () => {
+    const context = createTestJobContext({
+      pullRequest: { number: 5, draft: false },
+    });
+    const translationCondition = getMultilineIfExpression(translation);
+    const readinessCondition = getMultilineIfExpression(readiness);
+
+    expect(evaluateWorkflowIf(translationCondition, context)).toBe(true);
+    expect(evaluateWorkflowIf(readinessCondition, context)).toBe(true);
+
+    context.github.event.pull_request.draft = true;
+    expect(evaluateWorkflowIf(translationCondition, context)).toBe(false);
+    expect(evaluateWorkflowIf(readinessCondition, context)).toBe(false);
+
+    context.github.event.pull_request = { number: 6, draft: false };
+    expect(evaluateWorkflowIf(readinessCondition, context)).toBe(false);
+
+    context.github.event_name = 'push';
+    expect(evaluateWorkflowIf(readinessCondition, context)).toBe(false);
+  });
+
+  it('fails readiness for incomplete, missing, or failed native verification', () => {
+    expect(readiness).toContain('    needs: [translation]');
+    expect(getJobBlock(workflow, 'pipeline-status')).toContain(
+      '      - native-corpus-readiness'
+    );
+    expect(translation).not.toContain('--require-full-native');
+
+    const command = readiness
+      .split('        run: |\n')[1]
+      .split('\n')
+      .filter((line) => line.startsWith('          '))
+      .map((line) => line.slice(10))
+      .join('\n');
+    for (const [result, coverage, status] of [
+      ['success', 'false', 1],
+      ['success', '', 1],
+      ['failure', 'true', 1],
+      ['skipped', '', 1],
+      ['success', 'true', 0],
+    ]) {
+      const check = spawnSync('bash', ['-e', '-c', command], {
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          TRANSLATION_RESULT: result,
+          FULL_NATIVE: coverage,
+        },
+      });
+      expect(check.status).toBe(status);
+      if (status) {
+        expect(check.stdout).toContain('::error');
+      }
+    }
+  });
 });
 
 describe('manual release quality gates', () => {

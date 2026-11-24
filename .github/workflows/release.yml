@@ -395,13 +395,17 @@ jobs:
         check-file-line-limits,
       ]
     # Use !cancelled() instead of always() so cancellation propagates correctly (hive-mind issue #1278)
-    # Run for relevant code/package/workflow changes, or for an instant manual
-    # release. Skipped fast checks count as non-failures only after one of
-    # those positive gates passes.
+    # Also run for PR #5 when ready so its coverage gate has evidence even
+    # when change detection classifies the diff as documentation-only.
     if: |
       !cancelled() &&
       (
         needs.detect-changes.outputs.any-code-changed == 'true' ||
+        (
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.number == 5 &&
+          !github.event.pull_request.draft
+        ) ||
         (
           github.event_name == 'workflow_dispatch' &&
           github.event.inputs.release_mode == 'instant'
@@ -411,6 +415,8 @@ jobs:
       (needs.test-compilation.result == 'success' || needs.test-compilation.result == 'skipped') &&
       (needs.lint.result == 'success' || needs.lint.result == 'skipped') &&
       (needs.check-file-line-limits.result == 'success' || needs.check-file-line-limits.result == 'skipped')
+    outputs:
+      full-native: ${{ steps.corpus.outputs.full-native }}
     env:
       CARGO_BUILD_JOBS: '1'
       CARGO_INCREMENTAL: '0'
@@ -471,10 +477,9 @@ jobs:
           test -x /usr/lib/wine/wine64
 
       - name: Round-trip the pinned source corpora
+        id: corpus
         env:
           ROSETTA_WINE: /usr/lib/wine/wine64
-          # PR #5 owns the full native corpus requirement from issue #1.
-          REQUIRE_FULL_NATIVE: ${{ github.event.pull_request.number == 5 && !github.event.pull_request.draft }}
         run: |
           archive="$RUNNER_TEMP/rosetta-code.tar.gz"
           collection="$RUNNER_TEMP/hello-world-collection.html"
@@ -483,13 +488,35 @@ jobs:
             --output "$archive"
           curl --fail --location --silent --show-error --retry 3 \
             http://helloworldcollection.de/ --output "$collection"
-          args=()
-          if [[ "$REQUIRE_FULL_NATIVE" == "true" ]]; then
-            args+=(--require-full-native)
-          fi
           bash scripts/run-with-budget-warning.sh 540 "Pinned source round trips" \
             python3 examples/translation/verify-corpus.py "$archive" \
-              --hello-world "$collection" "${args[@]}"
+              --hello-world "$collection"
+
+  native-corpus-readiness:
+    name: Full native Rosetta Code coverage
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    needs: [translation]
+    if: |
+      !cancelled() &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.number == 5 &&
+      !github.event.pull_request.draft
+    permissions: {}
+    steps:
+      - name: Require complete native translation evidence
+        env:
+          TRANSLATION_RESULT: ${{ needs.translation.result }}
+          FULL_NATIVE: ${{ needs.translation.outputs.full-native }}
+        run: |
+          if [[ "$TRANSLATION_RESULT" != 'success' ]]; then
+            echo "::error::Native coverage requires a successful translation job. Resolve its failing or skipped checks and rerun."
+            exit 1
+          fi
+          if [[ "$FULL_NATIVE" != 'true' ]]; then
+            echo "::error::PR #5 needs verified native translations for every pinned JavaScript and Rust original. See the translation job summary for coverage counts."
+            exit 1
+          fi
 
   native-translation:
     name: Native translation (${{ matrix.group }})
@@ -1264,6 +1291,7 @@ jobs:
       - lint
       - test
       - translation
+      - native-corpus-readiness
       - native-translation
       - docker-build
       - docker-publish-config
