@@ -89,6 +89,41 @@ requirements:
     status: done
     check: requirements-gate
     evidence: scripts/check-requirements.mjs .github/workflows/release.yml
+  lean-and-rocq:
+    text: 'Lean and Rocq among the programming languages, with every task translated and checked by their compilers'
+    from: 'PR 5 review'
+    status: pending
+    check: lean-and-rocq
+    evidence: js/src/formal/languages.js rust/src/formal/languages.rs
+  fragments:
+    text: 'Parse and translate a single statement, function or whole program on its own; a fragment must be complete, so a function ends with its closing'
+    from: 'PR 5 review'
+    status: pending
+    check: fragments
+    evidence: js/tests/fragments.test.js rust/tests/fragments.rs
+  class-fragments:
+    text: 'Parse and translate a class on its own'
+    from: 'PR 5 review'
+    status: blocked
+    reason: 'The meta language has no objects or classes yet (objects-and-concurrency in rosetta-coverage.lino), so a class has no meaning to translate'
+  web-demo:
+    text: 'Web demo that parses any fragment of any language and shows its equivalent in a target language'
+    from: 'PR 5 review'
+    status: pending
+    check: web-demo
+    evidence: examples/universal-app/src/App.js .github/workflows/example-app.yml
+  cli-library-api-docker:
+    text: 'Extensible CLI, library, HTTP API and Docker image'
+    from: 'PR 5 review'
+    status: pending
+    check: cli-library-api-docker
+    evidence: bin/universal-translator.js js/src/index.js rust/src/lib.rs Dockerfile
+  best-practices:
+    text: 'Use the associative technology stack, the code architecture principles and the CI/CD best practices'
+    from: 'PR 5 review'
+    status: pending
+    check: best-practices
+    evidence: docs/case-studies/issue-1/best-practices.md
   source-layout:
     text: 'Sources split into src/meta (shared), src/formal (programming languages, Lean, Rocq and machine code) and src/natural (human languages), with dependencies pointing to the meta language'
     from: 'PR 5 review'

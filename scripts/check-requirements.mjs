@@ -75,6 +75,16 @@ function rustLanguageIds() {
   return ids;
 }
 
+// undefined when the file names every word, otherwise what is missing.
+function mentionsAll(path, words) {
+  if (!existsSync(join(root, path))) {
+    return `no ${path}`;
+  }
+  const source = readFileSync(join(root, path), 'utf8');
+  const missing = words.filter((word) => !source.includes(word));
+  return missing.length ? `${path} lacks ${missing.join(', ')}` : undefined;
+}
+
 const translatedCount = (task) =>
   files(`examples/programs/translated/${task}`).length;
 
@@ -174,6 +184,45 @@ const checks = {
       )
       .map(({ id }) => id);
     return problems.length ? `unclear: ${problems.join(', ')}` : undefined;
+  },
+  'lean-and-rocq': ({ grammarLanguageIds }) => {
+    const missing = ['lean', 'rocq'].filter(
+      (id) => !grammarLanguageIds.includes(id)
+    );
+    return missing.length ? `no ${missing.join(' or ')}` : undefined;
+  },
+  fragments: () =>
+    mentionsAll('js/src/index.js', ['translateFragment', 'parseFragment']) ??
+    mentionsAll('rust/src/lib.rs', ['translate_fragment']) ??
+    mentionsAll('bin/universal-translator.js', ['--fragment']),
+  'web-demo': () =>
+    mentionsAll('examples/universal-app/src/App.js', [
+      'translateFragment',
+      'languages',
+    ]) ?? mentionsAll('.github/workflows/example-app.yml', ['playwright']),
+  'cli-library-api-docker': () =>
+    mentionsAll('js/src/index.js', ['createTranslationServer']) ??
+    mentionsAll('bin/universal-translator.js', ['serve']) ??
+    mentionsAll('Dockerfile', ['universal-translator']) ??
+    mentionsAll('.github/workflows/release.yml', ['docker build']),
+  'best-practices': () => {
+    const review = 'docs/case-studies/issue-1/best-practices.md';
+    const missing = mentionsAll(review, [
+      'associative-tech-stack.md',
+      'code-architecture-principles',
+      'CI-CD-BEST-PRACTICES.md',
+    ]);
+    if (missing) {
+      return missing;
+    }
+    // Every file the review cites as evidence must exist.
+    const cited = [
+      ...readFileSync(join(root, review), 'utf8').matchAll(
+        /`((?:js|rust|scripts|examples|docs|data|\.github)\/[^`*\s]+)`/g
+      ),
+    ].map(([, path]) => path);
+    const absent = cited.filter((path) => !existsSync(join(root, path)));
+    return absent.length ? `cites missing ${absent.join(', ')}` : undefined;
   },
   'source-layout': () => {
     const layers = ['meta', 'formal', 'natural'];
