@@ -191,6 +191,7 @@ describe('grammar translator: replaceable rule layers', () => {
     );
     expect(calls).toEqual([
       'copyReassignedParameters',
+      'expandArrayFills',
       'spellNames',
       'spellCommonLibrary',
     ]);

@@ -5,6 +5,7 @@
 import { add, block, laterCalls, name, node, number } from './meta.js';
 import { languageSyntax } from './languages.js';
 import { dialects } from './dialects/index.js';
+import { withArrays } from './array-spellings.js';
 
 const precedence = {
   or: 1,
@@ -65,7 +66,7 @@ const withoutTerminator = new Set([
 ]);
 const blockCommentLanguages = new Set(['c', 'csharp']);
 
-class Emitter {
+class BaseEmitter {
   constructor(syntax) {
     this.syntax = syntax;
     // A dialect such as Objective-C is written with the tables of the
@@ -788,6 +789,9 @@ const compoundOperators = {
   divide: '/=',
   remainder: '%=',
 };
+
+// Arrays are written by a mixin of their own, which the dialects inherit.
+const Emitter = withArrays(BaseEmitter);
 
 export function emitProgram(program, languageId) {
   const LanguageEmitter = emitterFor(languageId);

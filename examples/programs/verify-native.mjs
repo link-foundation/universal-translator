@@ -5,7 +5,7 @@
 // skipped, never as passed.
 //
 //   node examples/programs/verify-native.mjs [--require-all]
-//     [--common-library] [language ...]
+//     [--common-library] [--tasks=task,task] [language ...]
 //
 // --require-all turns a missing toolchain into a failure. --common-library
 // translates with the common library route and copies the library file from
@@ -485,6 +485,7 @@ if (
   let index = -1;
   const requireAll = options.includes('--require-all');
   const commonLibrary = options.includes('--common-library');
+  const tasks = optionValue(options, 'tasks')?.split(',');
   const chosen = options.filter((option) => !option.startsWith('--'));
   const targets = (chosen.length ? chosen : Object.keys(extensions)).filter(
     (target) => !commonLibrary || libraryFiles[target]
@@ -492,6 +493,9 @@ if (
   const work = mkdtempSync(join(tmpdir(), 'grammar-native-'));
   let failures = 0;
   for (const { path, file, task, language } of programFiles()) {
+    if (tasks && !tasks.includes(task)) {
+      continue;
+    }
     // The expected output is the output of the JavaScript program for the task.
     const expected = runners.javascript.run(join(folder, `${task}.js`));
     for (const target of targets) {

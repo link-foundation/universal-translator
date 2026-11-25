@@ -1,7 +1,8 @@
 // Type inference for the meta language. Statically typed targets need a
 // type for every variable, parameter and result; untyped sources do not
 // write them down, so the types are derived from literals, operators,
-// declarations and call sites. Meta types: integer, text, boolean, nothing.
+// declarations and call sites. Meta types: integer, text, boolean, nothing,
+// and array (a fixed-length array of integers).
 
 import { rewrite } from './meta.js';
 
@@ -45,6 +46,12 @@ function expressionType(expression, scope, signatures) {
     }
     case 'Call':
       return signatures.get(expression.callee)?.returnType;
+    case 'ArrayLiteral':
+    case 'NewArray':
+      return 'array';
+    case 'Index':
+    case 'Length':
+      return 'integer';
     default:
       return undefined;
   }
@@ -76,6 +83,11 @@ const statementTypers = {
   },
   Assignment: (statement, context) => ({
     ...statement,
+    value: context.typed(statement.value),
+  }),
+  IndexAssignment: (statement, context) => ({
+    ...statement,
+    index: context.typed(statement.index),
     value: context.typed(statement.value),
   }),
   Print: (statement, context) => ({

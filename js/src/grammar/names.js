@@ -82,6 +82,7 @@ export function renameDeclared(program, rename) {
         return { ...current, callee: change(current.callee) };
       case 'Declaration':
       case 'Assignment':
+      case 'IndexAssignment':
         return { ...current, name: change(current.name) };
       case 'CountingLoop':
         return { ...current, variable: change(current.variable) };

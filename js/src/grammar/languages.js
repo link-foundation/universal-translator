@@ -104,6 +104,8 @@ export const languages = {
   lua: {
     naming: 'snake',
     label: 'Lua',
+    arrayBase: 1,
+    arrayFill: 'empty',
     blocks: 'end',
     lineComment: '--',
     quotes: ['"', "'"],
@@ -155,6 +157,7 @@ export const languages = {
   c: {
     naming: 'snake',
     label: 'C',
+    arrayFill: 'always',
     // A function called before its definition needs a prototype.
     forwardDeclarations: 'prototype',
     blocks: 'braces',
@@ -189,6 +192,7 @@ export const languages = {
   csharp: {
     naming: { function: 'pascal', variable: 'camel' },
     label: 'C#',
+    arrayFill: 'nonzero',
     blocks: 'braces',
     lineComment: '//',
     blockComment: ['/*', '*/'],
@@ -206,6 +210,7 @@ export const languages = {
   java: {
     naming: 'camel',
     label: 'Java',
+    arrayFill: 'nonzero',
     blocks: 'braces',
     lineComment: '//',
     blockComment: ['/*', '*/'],
@@ -222,6 +227,7 @@ export const languages = {
   go: {
     naming: 'camel',
     label: 'Go',
+    arrayFill: 'nonzero',
     blocks: 'braces',
     lineComment: '//',
     blockComment: ['/*', '*/'],
@@ -378,6 +384,7 @@ export const languages = {
   julia: {
     naming: 'snake',
     label: 'Julia',
+    arrayBase: 1,
     blocks: 'end',
     lineComment: '#',
     blockComment: ['#=', '=#'],
@@ -400,6 +407,7 @@ export const languages = {
   r: {
     naming: 'snake',
     label: 'R',
+    arrayBase: 1,
     blocks: 'braces',
     lineComment: '#',
     quotes: ['"', "'"],
@@ -449,6 +457,7 @@ export const languages = {
     family: 'c',
     naming: 'camel',
     label: 'Objective-C',
+    arrayFill: 'always',
     // A function called before its definition needs a prototype.
     forwardDeclarations: 'prototype',
     blocks: 'braces',
@@ -501,6 +510,7 @@ export const languages = {
   d: {
     naming: 'camel',
     label: 'D',
+    arrayFill: 'nonzero',
     blocks: 'braces',
     lineComment: '//',
     blockComment: ['/*', '*/'],
@@ -520,6 +530,7 @@ export const languages = {
   pascal: {
     naming: 'pascal',
     label: 'Pascal',
+    arrayFill: 'nonzero',
     // Statements, routines and the program layout are in dialects/pascal.js.
     blocks: 'keywords',
     caseInsensitive: true,
@@ -559,6 +570,7 @@ export const languages = {
   fortran: {
     naming: 'snake',
     label: 'Fortran',
+    arrayBase: 1,
     // Statements, procedures and the program layout are in
     // dialects/fortran.js.
     blocks: 'keywords',
@@ -604,6 +616,8 @@ export const languages = {
     lineComment: '--',
     quotes: ['"'],
     doubledQuotes: true,
+    // The apostrophe of an attribute: Numbers'Length.
+    symbols: ["'"],
     declarations: [],
     assignment: ':=',
     compoundAssignment: false,
@@ -630,6 +644,7 @@ export const languages = {
   vb: {
     naming: { function: 'pascal', variable: 'camel' },
     label: 'Visual Basic .NET',
+    arrayFill: 'nonzero',
     // Statements, procedures and the module layout are in dialects/vb.js.
     blocks: 'keywords',
     caseInsensitive: true,
@@ -657,6 +672,7 @@ export const languages = {
   bash: {
     naming: 'snake',
     label: 'Bash',
+    arrayFill: 'empty',
     // Commands, arithmetic and quoting are in dialects/bash.js.
     blocks: 'keywords',
     lineComment: '#',
@@ -673,6 +689,7 @@ export const languages = {
   matlab: {
     naming: 'snake',
     label: 'MATLAB/Octave',
+    arrayBase: 1,
     // Functions, fprintf formats and the script layout are in
     // dialects/matlab.js.
     blocks: 'keywords',

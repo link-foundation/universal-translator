@@ -6,6 +6,7 @@
 import { decodeEscapes, SyntaxError, tokenize } from './lexer.js';
 import { add, block, name, node, number, text } from './meta.js';
 import { dialects } from './dialects/index.js';
+import { withArrays } from './array-parser.js';
 
 const binaryLevels = [
   { or: ['||', 'or'] },
@@ -79,7 +80,7 @@ const controlWords = new Set([
   'catch',
 ]);
 
-class Parser {
+class BaseParser {
   constructor(tokens, syntax) {
     this.tokens = tokens;
     this.position = 0;
@@ -660,7 +661,7 @@ class Parser {
     let offset = 0;
     while (
       this.peek(offset).type === 'name' ||
-      ['*', '::', '[', ']'].includes(this.peek(offset).value)
+      ['*', '::', '[', ']', '<', '>'].includes(this.peek(offset).value)
     ) {
       offset += 1;
     }
@@ -668,7 +669,9 @@ class Parser {
       offset >= 2 &&
       this.peek(offset - 1).type === 'name' &&
       (this.is('=', offset) || this.is(';', offset)) &&
-      (typeWords.has(this.peek().value) || this.peek(1).type === 'name')
+      (typeWords.has(this.peek().value) ||
+        this.peek(1).type === 'name' ||
+        this.is('<', 1))
     );
   }
 
@@ -1401,6 +1404,9 @@ function countingLoop(initial, condition, update, body) {
   return node('Statements', { statements: [start, loop] });
 }
 
+// Arrays are read by a mixin of their own, which the dialects inherit.
+const Parser = withArrays(BaseParser);
+
 // Map a source type spelling to a meta type.
 export function sourceType(spelling) {
   const words = spelling
@@ -1418,6 +1424,13 @@ export function sourceType(spelling) {
     /^(char ?\*|std ?:: ?string|string|String|& ?str|&'static str)$/.test(words)
   ) {
     return 'text';
+  }
+  if (
+    /^((int|long|Long|number|i64) ?\[ ?\]|std ?:: ?vector ?< ?int ?>|Vec ?< ?i64 ?>|IntArray|\[ ?\] ?int|\[ ?Int ?\]|List ?< ?(int|Long) ?>|Array ?\[ ?Long ?\]|seq ?\[ ?int ?\]|\[ ?(\d+ ?)?\] ?i64)$/.test(
+      words
+    )
+  ) {
+    return 'array';
   }
   if (/^(bool|boolean|Bool|Boolean)$/.test(words)) {
     return 'boolean';

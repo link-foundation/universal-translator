@@ -18,6 +18,15 @@
 //   Binary         { operator, left, right }
 //   Unary          { operator, operand }
 //   Call           { callee, arguments }
+//   ArrayLiteral   { elements }         NewArray { length, fill }
+//   Index          { array, index }     Length { array }
+//   IndexAssignment { name, index, value }
+//
+// Arrays hold integers and have a fixed length. A program creates one only
+// as the value of a declaration (ArrayLiteral or NewArray, every element
+// equal to `fill`); `array` and the array of Length are always a Name.
+// Indexes count from 0: languages that count from 1 add 1 when they write
+// an index and subtract it when they read one. The meta type is "array".
 //
 // Binary operators: add, subtract, multiply, divide, remainder, equal,
 // notEqual, less, lessOrEqual, greater, greaterOrEqual, and, or.
@@ -125,6 +134,7 @@ const ignoredKeys = new Set([
   'mainComments',
   'imports',
   'mutable',
+  'elementsAssigned',
 ]);
 
 // The meaning of a program, without details that do not change behaviour:

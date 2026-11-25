@@ -20,6 +20,11 @@ import {
   renameDeclared,
   spellName,
 } from './names.js';
+import {
+  expandArrayFills,
+  raiseArrayFills,
+  recognizeArrays,
+} from './arrays.js';
 
 // ---------------------------------------------------------------------------
 // Understanding layer
@@ -378,20 +383,32 @@ export function declareOnFirstAssignment(program) {
   };
 }
 
-// A variable is mutable exactly when the program assigns it again.
+// A variable is mutable exactly when the program assigns it again. An array
+// whose elements the program assigns is marked too: Rust, Swift and Nim
+// declare it like a mutable variable.
 export function inferMutability(program) {
   const assigned = new Set();
+  const stored = new Set();
   rewrite(program, (current) => {
     if (current.kind === 'Assignment') {
       assigned.add(current.name);
     }
+    if (current.kind === 'IndexAssignment') {
+      stored.add(current.name);
+    }
     return current;
   });
-  return rewrite(program, (current) =>
-    current.kind === 'Declaration'
-      ? { ...current, mutable: assigned.has(current.name) }
-      : current
-  );
+  return rewrite(program, (current) => {
+    if (current.kind !== 'Declaration') {
+      return current;
+    }
+    const marked = { ...current, mutable: assigned.has(current.name) };
+    delete marked.elementsAssigned;
+    if (stored.has(current.name)) {
+      marked.elementsAssigned = true;
+    }
+    return marked;
+  });
 }
 
 export function dropSourceDetails(program) {
@@ -583,12 +600,14 @@ export const understandingRules = [
   findEntryPoint,
   concatenationOperator,
   integerDivisionCalls,
+  recognizeArrays,
   recognizeCommonLibrary,
   recognizePrint,
   expandCompoundAssignment,
   dropParameterCopies,
   declareOnFirstAssignment,
   raiseCountingLoops,
+  raiseArrayFills,
   raiseTruthValues,
   inferMutability,
   dropSourceDetails,
@@ -761,6 +780,7 @@ export function spellNames(program, { to }) {
 export const contextRules = [
   adaptComments,
   copyReassignedParameters,
+  expandArrayFills,
   spellNames,
   spellCommonLibrary,
 ];
