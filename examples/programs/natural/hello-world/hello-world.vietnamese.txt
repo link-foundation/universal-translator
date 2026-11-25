@@ -1,4 +1,4 @@
 Ghi chú: Hello World in JavaScript
-Ghi chú: print "Hello World!" into console followed by new line symbol by function call
 
+Ghi chú: print "Hello World!" into console followed by new line symbol by function call
 Viết “Hello World!” và xuống dòng.

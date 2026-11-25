@@ -13,7 +13,12 @@
 // itself. The last command evaluates `run main`, which Rocq prints.
 
 import { laterCalls, name, node } from '../../meta/tree.js';
-import { defaultValues, eachStatement } from './shared.js';
+import {
+  blankNode,
+  commentNode,
+  defaultValues,
+  eachStatement,
+} from './shared.js';
 
 // Words that end an application: `if f x then`, `let x := f y in`.
 const keywords = new Set([
@@ -152,9 +157,9 @@ const statementParser = (Base) =>
         const token = this.peek();
         if (token.type === 'comment') {
           this.next();
-          statements.push(node('Comment', { text: token.value }));
+          statements.push(commentNode(token));
         } else if (token.type === 'newline') {
-          this.next();
+          statements.push(...blankNode(this.next(), statements));
         } else if (this.accept('pure')) {
           this.state();
           break;
@@ -350,7 +355,7 @@ const parser = (Base) =>
       const token = this.peek();
       if (token.type === 'comment') {
         this.next();
-        return node('Comment', { text: token.value });
+        return commentNode(token);
       }
       if (this.is('Load')) {
         const words = this.skipCommand();

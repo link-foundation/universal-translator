@@ -12,7 +12,10 @@
 //   Return         { value }
 //   Print          { value, newline }
 //   Evaluate       { expression }
-//   Comment        { text }
+//   Comment        { text, trailing?, block? }   trailing: the spaces between
+//                  the code and a comment on the same line; block: written
+//                  as a block comment
+//   Blank          { lines }           empty lines between two statements
 //   Number         { value }            Text { value }    Boolean { value }
 //   Name           { name }             Interpolation { parts }
 //   Binary         { operator, left, right }
@@ -35,6 +38,25 @@
 export const node = (kind, fields = {}) => ({ kind, ...fields });
 
 export const block = (statements = []) => node('Block', { statements });
+
+// Concrete syntax: empty lines only stand between two statements of a block,
+// and two runs of them in a row merge.
+export function layout(statements = []) {
+  const kept = [];
+  for (const statement of statements) {
+    if (
+      statement.kind === 'Blank' &&
+      (!kept.length || kept.at(-1).kind === 'Blank')
+    ) {
+      continue;
+    }
+    kept.push(statement);
+  }
+  while (kept.at(-1)?.kind === 'Blank') {
+    kept.pop();
+  }
+  return kept;
+}
 
 export const number = (value) => node('Number', { value });
 
@@ -138,10 +160,10 @@ const ignoredKeys = new Set([
 ]);
 
 // The meaning of a program, without details that do not change behaviour:
-// comments, imports, inferred types and mutability.
+// comments and empty lines, imports, inferred types and mutability.
 export function essence(tree) {
   const withoutComments = rewrite(tree, (current) =>
-    current.kind === 'Comment' ? undefined : current
+    current.kind === 'Comment' || current.kind === 'Blank' ? undefined : current
   );
   return JSON.parse(
     JSON.stringify(withoutComments, (key, value) =>

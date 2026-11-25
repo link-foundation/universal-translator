@@ -165,6 +165,7 @@ class BaseParser {
       return;
     }
     if (
+      this.peek().trailing ||
       this.is('}') ||
       this.peek().type === 'end' ||
       this.peek().type === 'dedent' ||
@@ -188,6 +189,11 @@ class BaseParser {
     const items = [];
     this.skipSeparators();
     while (!done()) {
+      // Concrete syntax: empty lines between two items are kept.
+      const blank = this.blankLinesBefore();
+      if (blank && items.length) {
+        items.push(node('Blank', { lines: blank }));
+      }
       // A C-style loop that is not a counting loop becomes several statements.
       const item = this.item();
       items.push(...(item.kind === 'Statements' ? item.statements : [item]));
@@ -196,11 +202,32 @@ class BaseParser {
     return items;
   }
 
+  // Empty lines right before the current token.
+  blankLinesBefore() {
+    for (let index = this.position - 1; index >= 0; index -= 1) {
+      const token = this.tokens[index];
+      if (token.type === 'newline') {
+        return token.blank ?? 0;
+      }
+      if (
+        !['indent', 'dedent', ';'].includes(token.value) &&
+        !['indent', 'dedent'].includes(token.type)
+      ) {
+        return 0;
+      }
+    }
+    return 0;
+  }
+
   item() {
     const token = this.peek();
     if (token.type === 'comment') {
       this.next();
-      return node('Comment', { text: token.value });
+      return node('Comment', {
+        text: token.value,
+        ...(token.trailing ? { trailing: token.trailing } : {}),
+        ...(token.block ? { block: true } : {}),
+      });
     }
     if (token.type === 'directive') {
       this.next();
@@ -429,27 +456,36 @@ class BaseParser {
     return undefined;
   }
 
+  // The name of a function, and the return type written before it.
+  functionHead() {
+    if (this.syntax.functionForm === 'assigned') {
+      const functionName = this.expectName();
+      this.expect(this.syntax.assignment);
+      this.expect('function');
+      return { functionName };
+    }
+    if (this.syntax.functionKeyword) {
+      this.expect(this.syntax.functionKeyword);
+      return { functionName: this.expectName() };
+    }
+    const words = [];
+    while (!this.is('(')) {
+      words.push(this.next().value);
+    }
+    const functionName = words.pop();
+    return {
+      functionName,
+      returnType: words.length ? sourceType(words.join(' ')) : undefined,
+    };
+  }
+
   functionDefinition() {
     while (modifiers.has(this.peek().value)) {
       this.next();
     }
-    let returnType;
-    let functionName;
-    if (this.syntax.functionForm === 'assigned') {
-      functionName = this.expectName();
-      this.expect(this.syntax.assignment);
-      this.expect('function');
-    } else if (this.syntax.functionKeyword) {
-      this.expect(this.syntax.functionKeyword);
-      functionName = this.expectName();
-    } else {
-      const words = [];
-      while (!this.is('(')) {
-        words.push(this.next().value);
-      }
-      functionName = words.pop();
-      returnType = words.length ? sourceType(words.join(' ')) : undefined;
-    }
+    const head = this.functionHead();
+    const { functionName } = head;
+    let { returnType } = head;
     // Ruby and Perl may leave out the parentheses of a parameter list.
     let parameters = this.is('(') ? this.parameterList() : [];
     if (

@@ -13,7 +13,7 @@ import {
   levels,
   unaryTemplates,
 } from './levels.js';
-import { subtract, number } from '../meta/tree.js';
+import { layout, subtract, number } from '../meta/tree.js';
 
 const indentUnit = '  ';
 
@@ -220,9 +220,12 @@ class Writer {
     this.lines.push(`${indentUnit.repeat(depth)}${capitalize(text)}${end}`);
   }
 
+  // A comment of several lines becomes one note per line.
   note(depth, text) {
-    const line = this.language.note.replace('{text}', text);
-    this.lines.push(`${indentUnit.repeat(depth)}${line}`);
+    for (const part of text.split('\n')) {
+      const line = this.language.note.replace('{text}', part.trim());
+      this.lines.push(`${indentUnit.repeat(depth)}${line}`);
+    }
   }
 
   expression(value, level = 0) {
@@ -234,7 +237,7 @@ class Writer {
     if (!statements.length) {
       this.sentence(depth, 'nothing', {});
     }
-    statements.forEach((statement) => this.statement(statement, depth));
+    layout(statements).forEach((statement) => this.statement(statement, depth));
   }
 
   conditional(statement, depth, key = 'if') {
@@ -255,32 +258,18 @@ class Writer {
   }
 
   statement(statement, depth) {
-    const { language } = this;
-    const name = (value) => [word(writeName(value, language))];
     switch (statement.kind) {
       case 'Comment':
         return this.note(depth, statement.text);
+      case 'Blank':
+        // Concrete syntax: empty lines between sentences stay.
+        return this.lines.at(-1) === ''
+          ? undefined
+          : this.lines.push(...Array(statement.lines).fill(''));
       case 'Declaration':
-        return this.sentence(depth, 'declare', {
-          name: name(statement.name),
-          value: this.expression(statement.value),
-        });
       case 'Assignment':
-        if (statement.operator && statement.operator !== '=') {
-          throw new Error(
-            `Unexpanded compound assignment ${statement.operator}`
-          );
-        }
-        return this.sentence(depth, 'assign', {
-          name: name(statement.name),
-          value: this.expression(statement.value),
-        });
       case 'IndexAssignment':
-        return this.sentence(depth, 'set-element', {
-          name: name(statement.name),
-          index: this.expression(statement.index, levelIndex.primary),
-          value: this.expression(statement.value),
-        });
+        return this.binding(statement, depth);
       case 'Print':
         return this.sentence(
           depth,
@@ -304,6 +293,35 @@ class Writer {
         return this.block(statement, depth);
       default:
         throw new Error(`Cannot write a ${statement.kind} statement in words`);
+    }
+  }
+
+  // A sentence that gives a name or an element a value.
+  binding(statement, depth) {
+    const { language } = this;
+    const name = (value) => [word(writeName(value, language))];
+    switch (statement.kind) {
+      case 'Declaration':
+        return this.sentence(depth, 'declare', {
+          name: name(statement.name),
+          value: this.expression(statement.value),
+        });
+      case 'Assignment':
+        if (statement.operator && statement.operator !== '=') {
+          throw new Error(
+            `Unexpanded compound assignment ${statement.operator}`
+          );
+        }
+        return this.sentence(depth, 'assign', {
+          name: name(statement.name),
+          value: this.expression(statement.value),
+        });
+      case 'IndexAssignment':
+        return this.sentence(depth, 'set-element', {
+          name: name(statement.name),
+          index: this.expression(statement.index, levelIndex.primary),
+          value: this.expression(statement.value),
+        });
     }
   }
 
@@ -372,7 +390,7 @@ class Writer {
         this.lines.push('');
       }
       (program.mainComments ?? []).forEach((text) => this.note(0, text));
-      main.forEach((statement) => this.statement(statement, 0));
+      layout(main).forEach((statement) => this.statement(statement, 0));
     }
     return `${this.lines.join('\n')}\n`;
   }

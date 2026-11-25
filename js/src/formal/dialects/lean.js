@@ -9,7 +9,7 @@
 
 import { laterCalls, name, node } from '../../meta/tree.js';
 import { SyntaxError } from '../lexer.js';
-import { defaultValues } from './shared.js';
+import { commentNode, defaultValues } from './shared.js';
 
 // Words that end an application: `if f x then`, `for i in ... do`.
 const keywords = new Set([
@@ -282,7 +282,7 @@ const parser = (Base) =>
       const token = this.peek();
       if (token.type === 'comment') {
         this.next();
-        return node('Comment', { text: token.value });
+        return commentNode(token);
       }
       if (this.is('import')) {
         this.next();

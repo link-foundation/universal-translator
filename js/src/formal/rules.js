@@ -9,7 +9,7 @@ import {
   recognizeCommonLibrary,
   spellCommonLibrary,
 } from './common-library.js';
-import { block, node, rewrite, text, walk } from '../meta/tree.js';
+import { block, layout, node, rewrite, text, walk } from '../meta/tree.js';
 import { countingLoops } from './lifting.js';
 import { raiseTruthFunctions } from '../meta/truth.js';
 import { languageSyntax, namingConvention } from './languages.js';
@@ -67,8 +67,10 @@ function collectItems(items) {
     main: block(),
   });
   let pending = [];
+  const texts = (trivia) =>
+    trivia.filter(({ kind }) => kind === 'Comment').map(({ text }) => text);
   for (const item of items) {
-    if (item.kind === 'Comment') {
+    if (item.kind === 'Comment' || item.kind === 'Blank') {
       pending.push(item);
       continue;
     }
@@ -78,15 +80,19 @@ function collectItems(items) {
         program.main.statements.length ===
       0;
     if (isFirstCode) {
-      program.comments.push(...pending.map((comment) => comment.text));
-      pending = [];
+      // Comments before the last empty line describe the file; the ones
+      // after it describe the first item.
+      const split = pending.findLastIndex(({ kind }) => kind === 'Blank');
+      const header = split < 0 ? pending : pending.slice(0, split);
+      program.comments.push(...texts(header));
+      pending = split < 0 ? [] : pending.slice(split + 1);
     }
     if (item.kind === 'Import') {
       program.imports.push(item.text);
     } else if (item.kind === 'Function') {
       program.functions.push({
         ...item,
-        comments: pending.map((comment) => comment.text),
+        comments: texts(pending),
       });
     } else {
       program.main.statements.push(...pending, item);
@@ -94,6 +100,7 @@ function collectItems(items) {
     pending = [];
   }
   program.main.statements.push(...pending);
+  program.main = block(layout(program.main.statements));
   return program;
 }
 

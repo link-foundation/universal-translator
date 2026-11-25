@@ -1,5 +1,4 @@
 // Hello World in Zig
-// print "Hello World!" into console followed by new line symbol by function call
 
 const std = @import("std");
 
@@ -11,5 +10,6 @@ pub fn main(init: std.process.Init) void {
     out = &writer.interface;
     defer out.flush() catch {};
 
+    // print "Hello World!" into console followed by new line symbol by function call
     out.print("Hello World!\n", .{}) catch {};
 }

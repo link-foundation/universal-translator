@@ -1,4 +1,4 @@
 Opmerking: Hello World in JavaScript
-Opmerking: print "Hello World!" into console followed by new line symbol by function call
 
+Opmerking: print "Hello World!" into console followed by new line symbol by function call
 Schrijf “Hello World!” en beëindig de regel.

@@ -1,4 +1,4 @@
 નોંધ: Hello World in JavaScript
-નોંધ: print "Hello World!" into console followed by new line symbol by function call
 
+નોંધ: print "Hello World!" into console followed by new line symbol by function call
 “Hello World!” લખો અને લીટી પૂરી કરો.

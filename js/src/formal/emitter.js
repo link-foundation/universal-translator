@@ -2,7 +2,15 @@
 // language-specific spelling comes from languages.js or from the small
 // tables below; the structure of the output follows the meta tree.
 
-import { add, block, laterCalls, name, node, number } from '../meta/tree.js';
+import {
+  add,
+  block,
+  laterCalls,
+  layout,
+  name,
+  node,
+  number,
+} from '../meta/tree.js';
 import { languageSyntax } from './languages.js';
 import { dialects } from './dialects/index.js';
 import { withArrays } from './array-spellings.js';
@@ -65,6 +73,48 @@ const withoutTerminator = new Set([
   'groovy',
 ]);
 const blockCommentLanguages = new Set(['c', 'csharp']);
+
+// The lines of a comment in a language: a block comment where the language
+// prefers one (or has no line comment), otherwise one line comment per line.
+// The import lines a used feature needs, before and after the common
+// library imports.
+const importsBeforeLibrary = [
+  ['strformat', 'import std/strformat'],
+  ['std.conv', 'import std.conv;'],
+  ['dart:io', "import 'dart:io';"],
+];
+const importsAfterLibrary = [
+  ['objc', '#import <objc/objc.h>'],
+  ['stdbool', '#include <stdbool.h>'],
+  ['stdio', '#include <stdio.h>'],
+  ['iostream', '#include <iostream>'],
+  ['string', '#include <string>'],
+  ['fmt', 'import "fmt"'],
+];
+
+export function commentLines(syntax, id, text, { block: preferred } = {}) {
+  const [open, close] = syntax.blockComment ?? [];
+  const lines = text.split('\n');
+  const block =
+    open &&
+    !text.includes(close) &&
+    (blockCommentLanguages.has(id) ||
+      (preferred && lines.length > 1) ||
+      syntax.lineComment === open ||
+      (lines.length > 1 && !syntax.lineComment));
+  if (block) {
+    const body = [...lines];
+    body[0] = `${open}${body[0] ? ` ${body[0]}` : ''}`;
+    body[body.length - 1] += ` ${close}`;
+    return body;
+  }
+  return lines.map((line) =>
+    line ? `${syntax.lineComment} ${line}` : syntax.lineComment
+  );
+}
+
+const isTrivia = (statement) =>
+  statement.kind === 'Comment' || statement.kind === 'Blank';
 
 class BaseEmitter {
   constructor(syntax) {
@@ -222,15 +272,18 @@ class BaseEmitter {
     return level < parent ? `(${result})` : result;
   }
 
+  // Text with the computed parts embedded between delimiters.
+  embedded(parts, { prefix = '', open, close, format }) {
+    if (this.id === 'nim') {
+      this.uses.add('strformat');
+    }
+    return `${prefix}"${parts.map((part) => (part.kind === 'Text' ? this.escape(part.value, { format }) : `${open}${this.expression(part)}${close}`)).join('')}"`;
+  }
+
   // Text built from literal and computed parts, outside of output calls.
   interpolation(parts) {
-    const delimited = embeddings[this.id];
-    if (delimited) {
-      const { prefix = '', open, close, format } = delimited;
-      if (this.id === 'nim') {
-        this.uses.add('strformat');
-      }
-      return `${prefix}"${parts.map((part) => (part.kind === 'Text' ? this.escape(part.value, { format }) : `${open}${this.expression(part)}${close}`)).join('')}"`;
+    if (embeddings[this.id]) {
+      return this.embedded(parts, embeddings[this.id]);
     }
     switch (this.id) {
       case 'javascript':
@@ -339,11 +392,31 @@ class BaseEmitter {
       : this.interpolation(merged);
   }
 
-  comment(text) {
-    if (blockCommentLanguages.has(this.id)) {
-      this.line(`/* ${text} */`);
-    } else {
-      this.line(`${this.syntax.lineComment} ${text}`);
+  // Concrete syntax: a comment keeps its text, its lines and, after code,
+  // its place at the end of the line.
+  comment(text, { trailing, block } = {}) {
+    const lines = commentLines(this.syntax, this.id, text, { block });
+    const last = this.lines.length - 1;
+    if (trailing && lines.length === 1 && this.lines[last]) {
+      this.lines[last] += `${trailing}${lines[0]}`;
+      return;
+    }
+    for (const line of lines) {
+      this.line(line);
+    }
+  }
+
+  // Empty lines kept from the source, never two runs in a row.
+  blank(lines = 1) {
+    let missing = lines;
+    for (let index = this.lines.length - 1; index >= 0; index -= 1) {
+      if (this.lines[index] !== '' || missing === 0) {
+        break;
+      }
+      missing -= 1;
+    }
+    for (let count = 0; count < missing; count += 1) {
+      this.line();
     }
   }
 
@@ -369,7 +442,7 @@ class BaseEmitter {
         this.line(`${header} {`);
         break;
       case 'indentation':
-        // Nim's procedure heads end with "=" instead of ":".
+        // Nim's procedure heads end with "=", not ":".
         this.line(header.endsWith('=') ? header : `${header}:`);
         break;
       default:
@@ -389,11 +462,13 @@ class BaseEmitter {
   }
 
   body(block) {
-    if (block.statements.length === 0 && this.syntax.blocks === 'indentation') {
-      this.line(this.syntax.emptyStatement ?? 'pass');
-    }
-    for (const statement of block.statements) {
+    const statements = layout(block.statements);
+    for (const statement of statements) {
       this.statement(statement);
+    }
+    // A block that only holds comments still needs a statement.
+    if (statements.every(isTrivia) && this.syntax.blocks === 'indentation') {
+      this.line(this.syntax.emptyStatement ?? 'pass');
     }
   }
 
@@ -401,7 +476,9 @@ class BaseEmitter {
     const end = this.terminator();
     switch (statement.kind) {
       case 'Comment':
-        return this.comment(statement.text);
+        return this.comment(statement.text, statement);
+      case 'Blank':
+        return this.blank(statement.lines);
       case 'Print':
         return this.line(this.print(statement));
       case 'Evaluate':
@@ -716,34 +793,11 @@ class BaseEmitter {
       lines.push('package main', '');
     }
     lines.push(...(this.syntax.prelude ?? []));
-    if (this.uses.has('strformat')) {
-      lines.push('import std/strformat');
-    }
-    if (this.uses.has('std.conv')) {
-      lines.push('import std.conv;');
-    }
-    if (this.uses.has('dart:io')) {
-      lines.push("import 'dart:io';");
-    }
+    const used = (headers) =>
+      headers.filter(([use]) => this.uses.has(use)).map(([, line]) => line);
+    lines.push(...used(importsBeforeLibrary));
     lines.push(...(program.libraryImports ?? []));
-    if (this.uses.has('objc')) {
-      lines.push('#import <objc/objc.h>');
-    }
-    if (this.uses.has('stdbool')) {
-      lines.push('#include <stdbool.h>');
-    }
-    if (this.uses.has('stdio')) {
-      lines.push('#include <stdio.h>');
-    }
-    if (this.uses.has('iostream')) {
-      lines.push('#include <iostream>');
-    }
-    if (this.uses.has('string')) {
-      lines.push('#include <string>');
-    }
-    if (this.uses.has('fmt')) {
-      lines.push('import "fmt"');
-    }
+    lines.push(...used(importsAfterLibrary));
     if (lines.length && lines.at(-1) !== '') {
       lines.push('');
     }

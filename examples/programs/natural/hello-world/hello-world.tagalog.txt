@@ -1,4 +1,4 @@
 Tala: Hello World in JavaScript
-Tala: print "Hello World!" into console followed by new line symbol by function call
 
+Tala: print "Hello World!" into console followed by new line symbol by function call
 Isulat ang “Hello World!” at tapusin ang linya.

@@ -116,6 +116,25 @@ export function decodeEscapes(raw) {
   );
 }
 
+// Concrete syntax: the text of a comment keeps its inner whitespace. Only
+// the one space that usually follows the marker and the spaces before the
+// line end are dropped.
+export function commentText(raw) {
+  return raw.replace(/^ /, '').replace(/\s+$/, '');
+}
+
+// A block comment keeps its lines. Continuation lines lose the indentation
+// of the comment itself, so they keep their place relative to it.
+export function blockCommentText(raw, column) {
+  const lines = raw.split('\n');
+  const outdent = new RegExp(`^[ \\t]{0,${column}}`);
+  const text = [
+    lines[0],
+    ...lines.slice(1).map((line) => line.replace(outdent, '')),
+  ].join('\n');
+  return lines.length > 1 ? commentText(text) : text.trim();
+}
+
 export function tokenize(source, syntax) {
   return new Lexer(source, syntax).run();
 }
@@ -203,7 +222,10 @@ class Lexer {
     }
     const last = this.tokens.at(-1);
     if (this.depth === 0 && last && last.type !== 'newline') {
-      this.push('newline', '\n');
+      this.push('newline', '\n', { blank: 0 });
+    } else if (this.depth === 0 && last?.type === 'newline') {
+      // Concrete syntax: count the empty lines between two statements.
+      last.blank += 1;
     }
     this.line += 1;
     this.index += 1;
@@ -237,12 +259,31 @@ class Lexer {
       return false;
     }
     const stop = this.untilLineEnd();
-    this.push(
-      'comment',
-      this.source.slice(this.index + marker.length, stop).trim()
+    this.pushComment(
+      commentText(this.source.slice(this.index + marker.length, stop))
     );
     this.index = stop;
     return true;
+  }
+
+  // A comment after code on the same line stays a trailing comment.
+  pushComment(text, extra = {}) {
+    const last = this.tokens.at(-1);
+    const trailing =
+      last !== undefined &&
+      last.line === this.line &&
+      !['newline', 'indent', 'dedent'].includes(last.type);
+    // A trailing comment keeps the spaces that separate it from the code.
+    const gap = /[ \t]*$/.exec(this.source.slice(0, this.index))[0];
+    this.push('comment', text, {
+      ...extra,
+      ...(trailing ? { trailing: gap || ' ' } : {}),
+    });
+  }
+
+  // Columns from the start of the current line.
+  column() {
+    return this.index - (this.source.lastIndexOf('\n', this.index - 1) + 1);
   }
 
   blockComment() {
@@ -255,7 +296,7 @@ class Lexer {
       throw new SyntaxError('Unterminated comment', this.line);
     }
     const text = this.source.slice(this.index + open.length, end);
-    this.push('comment', text.trim());
+    this.pushComment(blockCommentText(text, this.column()), { block: true });
     this.line += text.split('\n').length - 1;
     this.index = end + close.length;
     return true;
