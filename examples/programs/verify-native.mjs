@@ -65,6 +65,7 @@ export const libraryFiles = {
   vb: 'CommonLibrary.vb',
   bash: 'common_library.sh',
   matlab: 'common_library.m',
+  zig: 'common_library.zig',
 };
 const libraryFolder = join(folder, '..', '..', 'common-library');
 
@@ -99,6 +100,7 @@ export const extensions = {
   bash: '.sh',
   // .m is Objective-C's; Octave runs a script with any extension.
   matlab: '.matlab',
+  zig: '.zig',
   nasm: '.asm',
   cil: '.il',
   jvm: '.j',
@@ -114,6 +116,7 @@ const d = process.env.DC || 'gdc';
 const nim = process.env.NIM || 'nim';
 const objc = process.env.OBJC_CC || 'gcc';
 const octave = process.env.OCTAVE || 'octave';
+const zig = process.env.ZIG || 'zig';
 const objcFlags = (process.env.OBJC_FLAGS ?? '').split(' ').filter(Boolean);
 
 const run = (command, args, options = {}) => {
@@ -368,6 +371,23 @@ const runners = {
       run(octave, ['--no-gui', '--quiet', '--norc', file], {
         cwd: dirname(file),
       }),
+  },
+  // ZIG names the Zig compiler when it is not on PATH. Each run keeps its
+  // compiler cache in its own folder; @import finds the common library
+  // beside the program.
+  zig: {
+    tool: zig,
+    run: (file) => {
+      const cache = join(dirname(file), 'zig-cache');
+      return run(zig, [
+        'run',
+        file,
+        '--cache-dir',
+        cache,
+        '--global-cache-dir',
+        cache,
+      ]);
+    },
   },
   nasm: {
     tool: 'nasm',

@@ -8,5 +8,6 @@ import { fortran } from './fortran.js';
 import { matlab } from './matlab.js';
 import { pascal } from './pascal.js';
 import { vb } from './vb.js';
+import { zig } from './zig.js';
 
-export const dialects = { pascal, fortran, ada, vb, bash, matlab };
+export const dialects = { pascal, fortran, ada, vb, bash, matlab, zig };

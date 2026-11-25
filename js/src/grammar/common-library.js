@@ -71,6 +71,10 @@ export const commonLibraryAccess = {
   vb: { prefix: 'CommonLibrary.' },
   bash: { imports: () => ['source "$(dirname "$0")/common_library.sh"'] },
   matlab: { imports: () => ["source('common_library.m');"] },
+  zig: {
+    imports: () => ['const common_library = @import("common_library.zig");'],
+    prefix: 'common_library.',
+  },
 };
 
 const call = (operation, argument) =>

@@ -689,6 +689,29 @@ export const languages = {
     typed: false,
     terms: { call: 'function call', routine: 'function' },
   },
+  zig: {
+    naming: { function: 'camel', variable: 'snake' },
+    immutableParameters: 'renamed',
+    label: 'Zig',
+    // The output writer, builtins and loop continue expressions are in
+    // dialects/zig.js.
+    blocks: 'braces',
+    lineComment: '//',
+    quotes: ['"'],
+    declarations: ['var', 'const'],
+    functionKeyword: 'fn',
+    operators: { ...braceOperators, and: 'and', or: 'or' },
+    integerDivision: { call: '@divTrunc' },
+    entryPoint: 'main-function',
+    typed: 'annotation',
+    types: {
+      integer: 'i64',
+      text: '[]const u8',
+      boolean: 'bool',
+      nothing: 'void',
+    },
+    terms: { call: 'function call', routine: 'function' },
+  },
 };
 
 // How a language spells a declared name with the given role.

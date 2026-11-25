@@ -795,7 +795,7 @@ export function emitProgram(program, languageId) {
 }
 
 // Languages with a program layout of their own (Fortran, Pascal, Ada,
-// Visual Basic, Bash, MATLAB) extend the shared emitter in dialects/.
+// Visual Basic, Bash, MATLAB, Zig) extend the shared emitter in dialects/.
 const dialectEmitters = new Map();
 function emitterFor(languageId) {
   const extend = dialects[languageId]?.emitter;
