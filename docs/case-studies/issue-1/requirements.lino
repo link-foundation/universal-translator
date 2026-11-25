@@ -109,9 +109,9 @@ requirements:
   web-demo:
     text: 'Web demo that parses any fragment of any language and shows its equivalent in a target language'
     from: 'PR 5 review'
-    status: pending
+    status: done
     check: web-demo
-    evidence: examples/universal-app/src/App.js .github/workflows/example-app.yml
+    evidence: examples/universal-app/src/App.js examples/universal-app/e2e/translate.e2e.mjs .github/workflows/example-app.yml docs/screenshots/web-demo.png
   cli-library-api-docker:
     text: 'Extensible CLI, library, HTTP API and Docker image'
     from: 'PR 5 review'

@@ -108,10 +108,10 @@ try {
   await page.click('button:has-text("Function")');
   await page.selectOption('#target-language', 'rust');
   await page.locator('#target-text').waitFor();
-  assert.match(
-    await page.locator('#target-text').textContent(),
-    /fn factorial/
-  );
+  const functionText = await page.locator('#target-text').textContent();
+  assert.match(functionText, /fn factorial/);
+  // A function fragment stays a function: no program is wrapped around it.
+  assert.doesNotMatch(functionText, /fn main/);
   assert.deepEqual(errors, []);
   if (screenshot) {
     await page.screenshot({ path: screenshot, fullPage: true });
