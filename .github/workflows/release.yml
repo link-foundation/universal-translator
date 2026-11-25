@@ -348,7 +348,7 @@ jobs:
       - name: Run tests (Node.js)
         if: matrix.runtime == 'node'
         shell: bash
-        run: bash scripts/run-with-budget-warning.sh 300 "Node.js test suite" npm test
+        run: bash scripts/run-with-budget-warning.sh 300 "Node.js test suite with coverage" npm run test:coverage
 
       - name: Setup Bun
         if: matrix.runtime == 'bun'

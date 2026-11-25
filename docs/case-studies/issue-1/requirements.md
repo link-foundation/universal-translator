@@ -59,13 +59,14 @@ and `scripts/check-requirements.mjs` checks each one in CI.
 
 ## Layout, interfaces and practices (PR 5 review of November 24, 22:51)
 
-| Requirement                                                 | Where                                                                              | Verified by                                                                            |
-| ----------------------------------------------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| Sources in `src/meta`, `src/formal` and `src/natural`       | `js/src/{meta,formal,natural}` and `rust/src/{meta,formal,natural}`                | The `source-layout` check also rejects imports that point outwards from the meta layer |
-| Associative stack, architecture principles, CI/CD practices | `best-practices.md` maps every item to evidence or a reason                        | The `best-practices` check fails when a cited path is missing                          |
-| Web demo for any fragment of any language                   | `examples/universal-app`                                                           | The `web-e2e` job drives it in Chromium; screenshot in `docs/screenshots/web-demo.png` |
-| Extensible CLI, library, HTTP API and Docker image          | `bin/universal-translator.js`, `js/src/index.js`, `js/src/server.js`, `Dockerfile` | `js/tests/server.test.js`; the release workflow smoke tests the image                  |
-| Classes translated on their own                             | —                                                                                  | Reported as **blocked**: the meta language has no objects or classes yet               |
+| Requirement                                                 | Where                                                                                           | Verified by                                                                            |
+| ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Sources in `src/meta`, `src/formal` and `src/natural`       | `js/src/{meta,formal,natural}` and `rust/src/{meta,formal,natural}`                             | The `source-layout` check also rejects imports that point outwards from the meta layer |
+| Associative stack, architecture principles, CI/CD practices | `best-practices.md` maps every item to evidence or a reason                                     | The `best-practices` check fails when a cited path is missing                          |
+| Web demo for any fragment of any language                   | `examples/universal-app`                                                                        | The `web-e2e` job drives it in Chromium; screenshot in `docs/screenshots/web-demo.png` |
+| Extensible CLI, library, HTTP API and Docker image          | `bin/universal-translator.js`, `js/src/index.js`, `js/src/server.js`, `Dockerfile`              | `js/tests/server.test.js`; the release workflow smoke tests the image                  |
+| Test coverage close to 100%, required by CI/CD              | `npm run test:coverage` (95% of lines, 92% of branches, 96% of functions of `js/src` and `bin`) | The Node.js test job fails below 94% lines, 91% branches or 95% functions              |
+| Classes translated on their own                             | —                                                                                               | Reported as **blocked**: the meta language has no objects or classes yet               |
 
 ## Assumptions
 

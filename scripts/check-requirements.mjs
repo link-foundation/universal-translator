@@ -227,6 +227,28 @@ const checks = {
     const absent = cited.filter((path) => !existsSync(join(root, path)));
     return absent.length ? `cites missing ${absent.join(', ')}` : undefined;
   },
+  // The Node.js test job fails when line, branch or function coverage of the
+  // library and the CLI drops below 90%.
+  'test-coverage': () => {
+    const { scripts } = JSON.parse(
+      readFileSync(join(root, 'package.json'), 'utf8')
+    );
+    const script = scripts['test:coverage'] ?? '';
+    const low = ['lines', 'branches', 'functions'].filter(
+      (kind) =>
+        !(
+          Number(
+            script.match(new RegExp(`--test-coverage-${kind}=(\\d+)`))?.[1]
+          ) >= 90
+        )
+    );
+    if (low.length) {
+      return `test:coverage needs ${low.join(', ')} thresholds of 90% or more`;
+    }
+    return mentionsAll('.github/workflows/release.yml', [
+      'npm run test:coverage',
+    ]);
+  },
   'source-layout': () => {
     const layers = ['meta', 'formal', 'natural'];
     const missing = ['js/src', 'rust/src'].flatMap((base) =>

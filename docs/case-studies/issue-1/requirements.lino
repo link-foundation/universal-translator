@@ -124,6 +124,12 @@ requirements:
     status: done
     check: best-practices
     evidence: docs/case-studies/issue-1/best-practices.md
+  test-coverage:
+    text: 'Close to 100% test coverage, required by CI/CD'
+    from: 'PR 5 review'
+    status: done
+    check: test-coverage
+    evidence: package.json .github/workflows/release.yml
   source-layout:
     text: 'Sources split into src/meta (shared), src/formal (programming languages, Lean, Rocq and machine code) and src/natural (human languages), with dependencies pointing to the meta language'
     from: 'PR 5 review'
