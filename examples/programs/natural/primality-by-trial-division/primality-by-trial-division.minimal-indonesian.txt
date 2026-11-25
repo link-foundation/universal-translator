@@ -1,0 +1,15 @@
+Catatan: Primality by trial division in JavaScript
+
+Begini seseorang melakukan apakah-prima dengan bilangan:
+  Jika bilangan lebih sedikit dari 2, lakukan ini:
+    Jawabannya adalah salah.
+  Ada pembagi, yaitu 2.
+  Ketika pembagi dikali pembagi tidak lebih banyak dari bilangan, lakukan ini banyak kali:
+    Jika bilangan modulo pembagi sama dengan 0, lakukan ini:
+      Jawabannya adalah salah.
+    Setelah ini, pembagi adalah pembagi ditambah 1.
+  Jawabannya adalah benar.
+
+Untuk semua bilangan dari 1 sampai 50, lakukan ini:
+  Jika apakah-prima dari (bilangan), lakukan ini:
+    Katakan bilangan pada satu baris.

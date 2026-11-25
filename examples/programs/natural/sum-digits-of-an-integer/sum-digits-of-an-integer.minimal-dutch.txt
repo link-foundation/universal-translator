@@ -1,0 +1,10 @@
+Opmerking: Sum digits of an integer in JavaScript
+
+Zo doet iemand som-van-cijfers met getal:
+  Er is totaal, het is 0.
+  Wanneer getal is meer dan 0, doe dit veel keren:
+    Hierna is totaal totaal plus getal modulo 10.
+    Hierna is getal getal gedeeld door 10.
+  Het antwoord is totaal.
+
+Zeg “The digits of 1234567890 sum to ” daarna som-van-cijfers van (1234567890) op één regel.

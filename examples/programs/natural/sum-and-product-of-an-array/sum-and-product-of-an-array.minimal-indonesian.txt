@@ -1,0 +1,10 @@
+Catatan: Sum and product of an array in JavaScript
+
+Ada angka, yaitu semua hal ini (1, 2, 3, 4, 5).
+Ada total, yaitu 0.
+Ada hasilkali, yaitu 1.
+Untuk semua indeks dari 0 sampai berapa banyak bagian di dalam angka dikurangi 1, lakukan ini:
+  Setelah ini, total adalah total ditambah bagian indeks dari angka.
+  Setelah ini, hasilkali adalah hasilkali dikali bagian indeks dari angka.
+Katakan “Sum: ” lalu total pada satu baris.
+Katakan “Product: ” lalu hasilkali pada satu baris.

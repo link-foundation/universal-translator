@@ -1,0 +1,37 @@
+natural:
+  id: minimal-korean
+  label: 'Minimal Korean (NSM semantic primes)'
+  extends: korean
+  profile: minimal-english
+  source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  templates:
+    function: '누군가 {name} 을 {parameters} 로 이렇게 한다'
+    function-without-parameters: '누군가 {name} 을 이렇게 한다'
+    declare: '{name} 이 있다, 그것은 {value} 이다'
+    assign: '이후 {name} 은 {value} 이다'
+    print-line: '{value} 을 한 줄에 말한다'
+    print: '{value} 을 말한다'
+    return-value: '답은 {value} 이다'
+    return: '여기서 멈춘다'
+    nothing: '아무것도 하지 않는다'
+    evaluate: '{expression} 을 한다'
+    if: '만약 {condition} 이면 이것을 한다'
+    else-if: '아니면 만약 {condition} 이면 이것을 한다'
+    else: '아니면 이것을 한다'
+    while: '{condition} 일 때 이것을 여러 번 한다'
+    for: '모든 {variable} 에 대해 {start} 부터 {last} 까지 이것을 한다'
+    join: '{left} 그 다음 {right}'
+    equal: '{left} 이 {right} 과 같다'
+    not-equal: '{left} 이 {right} 과 다르다'
+    less: '{left} 이 {right} 보다 적다'
+    less-or-equal: '{left} 이 {right} 보다 많지 않다'
+    greater: '{left} 이 {right} 보다 많다'
+    greater-or-equal: '{left} 이 {right} 보다 적지 않다'
+    array: '이것들 ({elements})'
+    new-array: '{fill} 같은 것 {length} 개'
+    element: '{array} 의 부분 {index}'
+    length: '{array} 의 부분 수'
+    set-element: '이후 {name} 의 부분 {index} 은 {value} 이다'
+  rules:
+    primes: korean
+    extra-words: 을 로 은 줄에 답은 멈춘다 여러 번 에 대해 부터 까지 다음 과 보다 개 의 수 또는 그리고 음수 더하기 빼기 곱하기 나누기 모듈로 거짓 및

@@ -1,0 +1,14 @@
+Tala: Mutual recursion in JavaScript: the Hofstadter Female and Male sequences
+
+Ganito ginagawa ng isang tao ang babae gamit ang indeks:
+  Kung indeks ay pareho sa 0, gawin ito:
+    Ang sagot ay 1.
+  Ang sagot ay indeks bawas lalaki ng (babae ng (indeks bawas 1)).
+
+Ganito ginagawa ng isang tao ang lalaki gamit ang indeks:
+  Kung indeks ay pareho sa 0, gawin ito:
+    Ang sagot ay 0.
+  Ang sagot ay indeks bawas babae ng (lalaki ng (indeks bawas 1)).
+
+Para sa bawat indeks mula 0 hanggang 19, gawin ito:
+  Sabihin ang indeks saka “: ” saka babae ng (indeks) saka “ ” saka lalaki ng (indeks) sa isang linya.

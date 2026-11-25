@@ -1,0 +1,7 @@
+หมายเหตุ: 99 bottles of beer in JavaScript
+
+มี ขวด ซึ่ง เป็น 99.
+เมื่อ ขวด มาก กว่า 0 ทำ อย่าง นี้ หลาย ครั้ง:
+  พูด ขวด แล้ว “ bottles of beer on the wall, ” แล้ว ขวด แล้ว “ bottles of beer.” ใน บรรทัด เดียว.
+  พูด “Take one down and pass it around, ” แล้ว ขวด ลบ 1 แล้ว “ bottles of beer on the wall.” ใน บรรทัด เดียว.
+  หลัง จาก นี้ ขวด เป็น ขวด ลบ 1.

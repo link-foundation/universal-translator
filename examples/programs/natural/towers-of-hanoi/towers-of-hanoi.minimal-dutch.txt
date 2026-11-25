@@ -1,0 +1,10 @@
+Opmerking: Towers of Hanoi in JavaScript, solved recursively
+
+Zo doet iemand verplaats-schijven met aantal, bron, doel en reserve:
+  Als aantal is hetzelfde als 0, doe dit:
+    Stop hier.
+  Doe verplaats-schijven van (aantal min 1, bron, reserve, doel).
+  Zeg “Move disk ” daarna aantal daarna “ from ” daarna bron daarna “ to ” daarna doel op één regel.
+  Doe verplaats-schijven van (aantal min 1, reserve, doel, bron).
+
+Doe verplaats-schijven van (4, 1, 3, 2).

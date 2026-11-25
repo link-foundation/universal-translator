@@ -1,0 +1,4 @@
+หมายเหตุ: Hello World in JavaScript
+
+หมายเหตุ: print "Hello World!" into console followed by new line symbol by function call
+พูด “Hello World!” ใน บรรทัด เดียว.

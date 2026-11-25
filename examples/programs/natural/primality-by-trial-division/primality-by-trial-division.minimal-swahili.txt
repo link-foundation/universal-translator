@@ -1,0 +1,15 @@
+Kumbuka: Primality by trial division in JavaScript
+
+Hivi ndivyo mtu anavyofanya je-tasa kwa nambari:
+  Kama nambari ni chini ya 2, fanya hivi:
+    Jibu ni uongo.
+  Kuna kigawanyo, ni 2.
+  Wakati kigawanyo mara kigawanyo si zaidi ya nambari, fanya hivi mara nyingi:
+    Kama nambari modulo kigawanyo ni sawa na 0, fanya hivi:
+      Jibu ni uongo.
+    Baada ya hii, kigawanyo ni kigawanyo jumlisha 1.
+  Jibu ni kweli.
+
+Kwa kila nambari kutoka 1 hadi 50, fanya hivi:
+  Kama je-tasa ya (nambari), fanya hivi:
+    Sema nambari kwenye mstari mmoja.

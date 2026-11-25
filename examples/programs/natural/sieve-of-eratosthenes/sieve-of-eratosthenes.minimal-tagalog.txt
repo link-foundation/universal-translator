@@ -1,0 +1,13 @@
+Tala: Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+May hangganan, ito ay 100.
+May ba-primo, ito ay (hangganan dagdag 1) bagay na tulad ng 1.
+Pagkatapos nito, ang bahagi 0 ng ba-primo ay 0.
+Pagkatapos nito, ang bahagi 1 ng ba-primo ay 0.
+Para sa bawat numero mula 2 hanggang hangganan, gawin ito:
+  Kung bahagi numero ng ba-primo ay pareho sa 1, gawin ito:
+    Sabihin ang numero sa isang linya.
+    May multiplo, ito ay numero beses numero.
+    Kapag multiplo ay hindi higit sa hangganan, gawin ito nang maraming beses:
+      Pagkatapos nito, ang bahagi multiplo ng ba-primo ay 0.
+      Pagkatapos nito, ang multiplo ay multiplo dagdag numero.

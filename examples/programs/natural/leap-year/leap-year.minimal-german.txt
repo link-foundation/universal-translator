@@ -1,0 +1,10 @@
+Hinweis: Leap year in JavaScript
+
+So tut jemand ist-Schalt-Jahr mit Jahr:
+  Die Antwort ist Jahr modulo 4 ist dasselbe wie 0 und Jahr modulo 100 ist nicht dasselbe wie 0 oder Jahr modulo 400 ist dasselbe wie 0.
+
+Für alle Jahr von 1896 bis 1912, tue dies:
+  Wenn ist-Schalt-Jahr von (Jahr), tue dies:
+    Sage Jahr dann „ is a leap year“ auf einer Zeile.
+  Wenn nicht, tue dies:
+    Sage Jahr dann „ is not a leap year“ auf einer Zeile.

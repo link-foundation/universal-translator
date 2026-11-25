@@ -1,0 +1,10 @@
+Tala: Towers of Hanoi in JavaScript, solved recursively
+
+Ganito ginagawa ng isang tao ang ilipat-disko gamit ang bilang, pinagmulan, patutunguhan at reserba:
+  Kung bilang ay pareho sa 0, gawin ito:
+    Huminto dito.
+  Gawin ang ilipat-disko ng (bilang bawas 1, pinagmulan, reserba, patutunguhan).
+  Sabihin ang “Move disk ” saka bilang saka “ from ” saka pinagmulan saka “ to ” saka patutunguhan sa isang linya.
+  Gawin ang ilipat-disko ng (bilang bawas 1, reserba, patutunguhan, pinagmulan).
+
+Gawin ang ilipat-disko ng (4, 1, 3, 2).

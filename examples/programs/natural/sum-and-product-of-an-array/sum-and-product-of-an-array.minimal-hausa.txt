@@ -1,0 +1,10 @@
+Lura: Sum and product of an array in JavaScript
+
+Akwai adadai, shi ne waɗannan abubuwa (1, 2, 3, 4, 5).
+Akwai duka, shi ne 0.
+Akwai sakamako, shi ne 1.
+Ga kowane fihirisa daga 0 zuwa yawan sassan adadai ragi 1, yi wannan:
+  Bayan wannan, duka ya zama duka ƙari sashe fihirisa na adadai.
+  Bayan wannan, sakamako ya zama sakamako sau sashe fihirisa na adadai.
+Faɗi “Sum: ” sannan duka a layi ɗaya.
+Faɗi “Product: ” sannan sakamako a layi ɗaya.

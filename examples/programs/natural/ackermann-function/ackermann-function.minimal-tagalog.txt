@@ -1,0 +1,12 @@
+Tala: Ackermann function in JavaScript, defined recursively
+
+Ganito ginagawa ng isang tao ang ackermann gamit ang una at ikalawa:
+  Kung una ay pareho sa 0, gawin ito:
+    Ang sagot ay ikalawa dagdag 1.
+  Kung ikalawa ay pareho sa 0, gawin ito:
+    Ang sagot ay ackermann ng (una bawas 1, 1).
+  Ang sagot ay ackermann ng (una bawas 1, ackermann ng (una, ikalawa bawas 1)).
+
+Para sa bawat una mula 0 hanggang 3, gawin ito:
+  Para sa bawat ikalawa mula 0 hanggang 4, gawin ito:
+    Sabihin ang “ackermann(” saka una saka “, ” saka ikalawa saka “) = ” saka ackermann ng (una, ikalawa) sa isang linya.

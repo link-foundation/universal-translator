@@ -1,0 +1,37 @@
+natural:
+  id: minimal-persian
+  label: 'Minimal Persian (NSM semantic primes)'
+  extends: persian
+  profile: minimal-english
+  source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  templates:
+    function: 'کسی {name} را با {parameters} این‌طور می‌کند'
+    function-without-parameters: 'کسی {name} را این‌طور می‌کند'
+    declare: '{name} هست، آن {value} است'
+    assign: 'بعد از این، {name} {value} است'
+    print-line: '{value} را در یک سطر بگو'
+    print: '{value} را بگو'
+    return-value: 'جواب {value} است'
+    return: 'اینجا بایست'
+    nothing: 'هیچ کاری نکن'
+    evaluate: '{expression} را بکن'
+    if: 'اگر {condition}، این را بکن'
+    else-if: 'اگر نه، اگر {condition}، این را بکن'
+    else: 'اگر نه، این را بکن'
+    while: 'وقتی {condition}، این را بارها بکن'
+    for: 'برای همه {variable} از {start} تا {last}، این را بکن'
+    call-without-arguments: '{callee} ( )'
+    equal: '{left} همان {right} است'
+    not-equal: '{left} همان {right} نیست'
+    less: '{left} کمتر از {right} است'
+    less-or-equal: '{left} بیشتر از {right} نیست'
+    greater: '{left} بیشتر از {right} است'
+    greater-or-equal: '{left} کمتر از {right} نیست'
+    array: 'این چیزها ({elements})'
+    new-array: '{length} چیز مثل {fill}'
+    element: 'بخش {index} از {array}'
+    length: 'تعداد بخش‌های {array}'
+    set-element: 'بعد از این، بخش {index} از {name} {value} است'
+  rules:
+    primes: persian
+    extra-words: را با از در سطر جواب بایست هیچ کاری بارها برای تا سپس یا و منفی بعلاوه منهای ضربدر تقسیم بر به پیمانه نادرست تعداد

@@ -1,0 +1,7 @@
+Lura: 99 bottles of beer in JavaScript
+
+Akwai kwalabe, shi ne 99.
+Lokacin da kwalabe ya fi 0, yi wannan sau da yawa:
+  Faɗi kwalabe sannan “ bottles of beer on the wall, ” sannan kwalabe sannan “ bottles of beer.” a layi ɗaya.
+  Faɗi “Take one down and pass it around, ” sannan kwalabe ragi 1 sannan “ bottles of beer on the wall.” a layi ɗaya.
+  Bayan wannan, kwalabe ya zama kwalabe ragi 1.

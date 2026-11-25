@@ -1,0 +1,7 @@
+Примечание: 99 bottles of beer in JavaScript
+
+Есть бутылки, это 99.
+Когда бутылки больше 0, делать это много раз:
+  Сказать бутылки потом « bottles of beer on the wall, » потом бутылки потом « bottles of beer.» на одной строке.
+  Сказать «Take one down and pass it around, » потом бутылки минус 1 потом « bottles of beer on the wall.» на одной строке.
+  После этого бутылки будет бутылки минус 1.

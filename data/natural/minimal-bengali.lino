@@ -1,0 +1,37 @@
+natural:
+  id: minimal-bengali
+  label: 'Minimal Bengali (NSM semantic primes)'
+  extends: bengali
+  profile: minimal-english
+  source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  templates:
+    function: 'কেউ {parameters} দিয়ে এভাবে {name} করে'
+    function-without-parameters: 'কেউ এভাবে {name} করে'
+    declare: 'একটি {name} আছে যা {value}'
+    assign: 'এর পরে {name} এখন {value}'
+    print-line: '{value} এক লাইনে বলো'
+    print: '{value} বলো'
+    return-value: 'উত্তর হলো {value}'
+    return: 'এখানে থামো'
+    nothing: 'কিছুই কোরো না'
+    evaluate: '{expression} করো'
+    if: 'যদি {condition} তবে এটা করো'
+    else-if: 'যদি না হয় তবে যদি {condition} তবে এটা করো'
+    else: 'যদি না হয় তবে এটা করো'
+    while: 'যখন {condition} তখন এটা অনেক বার করো'
+    for: 'প্রতিটি {variable} এর জন্য {start} থেকে {last} পর্যন্ত এটা করো'
+    join: '{left} তারপর {right}'
+    equal: '{left} আর {right} একই'
+    not-equal: '{left} আর {right} একই নয়'
+    less: '{left} {right} এর চেয়ে কম'
+    less-or-equal: '{left} {right} এর চেয়ে বেশি নয়'
+    greater: '{left} {right} এর চেয়ে বেশি'
+    greater-or-equal: '{left} {right} এর চেয়ে কম নয়'
+    array: 'এই জিনিসগুলো ({elements})'
+    new-array: '{length} টি জিনিস {fill} এর মতো'
+    element: '{array} এর অংশ {index}'
+    length: '{array} এর কতগুলো অংশ আছে'
+    set-element: 'এর পরে {name} এর অংশ {index} এখন {value}'
+  rules:
+    primes: bengali
+    extra-words: দিয়ে যা লাইনে উত্তর থামো তবে তখন বার জন্য থেকে পর্যন্ত তারপর আর চেয়ে টি কতগুলো অথবা এবং ও যোগ বিয়োগ গুণ ভাগ মডুলো ঋণাত্মক মিথ্যা

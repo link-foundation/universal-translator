@@ -1,0 +1,14 @@
+Hinweis: Mutual recursion in JavaScript: the Hofstadter Female and Male sequences
+
+So tut jemand weiblich mit Index:
+  Wenn Index ist dasselbe wie 0, tue dies:
+    Die Antwort ist 1.
+  Die Antwort ist Index minus männlich von (weiblich von (Index minus 1)).
+
+So tut jemand männlich mit Index:
+  Wenn Index ist dasselbe wie 0, tue dies:
+    Die Antwort ist 0.
+  Die Antwort ist Index minus weiblich von (männlich von (Index minus 1)).
+
+Für alle Index von 0 bis 19, tue dies:
+  Sage Index dann „: “ dann weiblich von (Index) dann „ “ dann männlich von (Index) auf einer Zeile.

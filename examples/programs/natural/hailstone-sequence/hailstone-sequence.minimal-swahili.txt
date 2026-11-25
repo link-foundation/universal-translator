@@ -1,0 +1,14 @@
+Kumbuka: Hailstone sequence in JavaScript: count the steps to reach 1
+
+Hivi ndivyo mtu anavyofanya mvuamawe-vipindi kwa nambari:
+  Kuna vipindi, ni 0.
+  Wakati nambari si sawa na 1, fanya hivi mara nyingi:
+    Kama nambari modulo 2 ni sawa na 0, fanya hivi:
+      Baada ya hii, nambari ni nambari gawanya kwa 2.
+    Kama sivyo, fanya hivi:
+      Baada ya hii, nambari ni 3 mara nambari jumlisha 1.
+    Baada ya hii, vipindi ni vipindi jumlisha 1.
+  Jibu ni vipindi.
+
+Kwa kila nambari kutoka 1 hadi 10, fanya hivi:
+  Sema nambari kisha “ takes ” kisha mvuamawe-vipindi ya (nambari) kisha “ steps” kwenye mstari mmoja.

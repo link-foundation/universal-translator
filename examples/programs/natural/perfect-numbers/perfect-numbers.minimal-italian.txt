@@ -1,0 +1,16 @@
+Nota: Perfect numbers in JavaScript: numbers equal to the sum of their divisors
+
+Ecco come qualcuno fa è-perfetto con numero:
+  C'è somma, è 1.
+  C'è divisore, è 2.
+  Quando divisore per divisore non è più di numero, fare questo molte volte:
+    Se numero modulo divisore è lo stesso di 0, fare questo:
+      Dopo questo, somma è somma più divisore.
+      Se divisore per divisore non è lo stesso di numero, fare questo:
+        Dopo questo, somma è somma più numero diviso divisore.
+    Dopo questo, divisore è divisore più 1.
+  La risposta è numero è più di 1 e somma è lo stesso di numero.
+
+Per ogni numero da 1 a 10000, fare questo:
+  Se è-perfetto di (numero), fare questo:
+    Dire numero su una riga.

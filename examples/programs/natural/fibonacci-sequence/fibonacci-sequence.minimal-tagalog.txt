@@ -1,0 +1,13 @@
+Tala: Fibonacci sequence in JavaScript, computed iteratively
+
+Ganito ginagawa ng isang tao ang fibonacci gamit ang bilang:
+  May nakaraan, ito ay 0.
+  May kasalukuyan, ito ay 1.
+  Para sa bawat hakbang mula 0 hanggang bilang bawas 1, gawin ito:
+    May susunod, ito ay nakaraan dagdag kasalukuyan.
+    Pagkatapos nito, ang nakaraan ay kasalukuyan.
+    Pagkatapos nito, ang kasalukuyan ay susunod.
+  Ang sagot ay nakaraan.
+
+Para sa bawat indeks mula 0 hanggang 20, gawin ito:
+  Sabihin ang “fibonacci(” saka indeks saka “) = ” saka fibonacci ng (indeks) sa isang linya.

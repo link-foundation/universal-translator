@@ -1,0 +1,13 @@
+Opmerking: Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+Er is limiet, het is 100.
+Er is is-priem, het is (limiet plus 1) dingen zoals 1.
+Hierna is deel 0 van is-priem 0.
+Hierna is deel 1 van is-priem 0.
+Voor alle getal van 2 tot en met limiet, doe dit:
+  Als deel getal van is-priem is hetzelfde als 1, doe dit:
+    Zeg getal op één regel.
+    Er is veelvoud, het is getal maal getal.
+    Wanneer veelvoud is niet meer dan limiet, doe dit veel keren:
+      Hierna is deel veelvoud van is-priem 0.
+      Hierna is veelvoud veelvoud plus getal.

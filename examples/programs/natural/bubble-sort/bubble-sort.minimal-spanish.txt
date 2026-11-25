@@ -1,0 +1,12 @@
+Nota: Bubble sort in JavaScript: sort a list of numbers
+
+Hay números, es estas cosas (5, 3, 8, 1, 9, 2, 7).
+Hay cantidad, es cuántas partes hay en números.
+Para todos los pasada desde 0 hasta cantidad menos 1 menos 1, hacer esto:
+  Para todos los índice desde 0 hasta cantidad menos 1 menos pasada menos 1, hacer esto:
+    Si la parte índice de números es más que la parte (índice más 1) de números, hacer esto:
+      Hay intercambio, es la parte índice de números.
+      Después de esto, la parte índice de números es la parte (índice más 1) de números.
+      Después de esto, la parte (índice más 1) de números es intercambio.
+Para todos los posición desde 0 hasta cantidad menos 1, hacer esto:
+  Decir la parte posición de números en una línea.

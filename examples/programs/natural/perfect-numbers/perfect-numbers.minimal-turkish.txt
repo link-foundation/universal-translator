@@ -1,0 +1,16 @@
+Not: Perfect numbers in JavaScript: numbers equal to the sum of their divisors
+
+Biri mi-mükemmel şeyini sayı ile şöyle yapar:
+  Toplam var, bu 1.
+  Bölen var, bu 2.
+  Bölen çarpı bölen en çok sayı olduğu zaman bunu çok kez yap:
+    Eğer sayı mod bölen ile 0 aynı ise bunu yap:
+      Bundan sonra toplam şimdi toplam artı bölen olur.
+      Eğer bölen çarpı bölen ile sayı aynı değil ise bunu yap:
+        Bundan sonra toplam şimdi toplam artı sayı bölü bölen olur.
+    Bundan sonra bölen şimdi bölen artı 1 olur.
+  Cevap sayı 1 değerinden daha çok ve toplam ile sayı aynı.
+
+Her sayı için 1 ile 10000 arasında bunu yap:
+  Eğer mi-mükemmel (sayı) ise bunu yap:
+    Sayı bir satırda söyle.

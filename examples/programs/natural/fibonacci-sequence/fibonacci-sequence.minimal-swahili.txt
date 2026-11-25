@@ -1,0 +1,13 @@
+Kumbuka: Fibonacci sequence in JavaScript, computed iteratively
+
+Hivi ndivyo mtu anavyofanya fibonacci kwa hesabu:
+  Kuna iliyopita, ni 0.
+  Kuna sasa, ni 1.
+  Kwa kila hatua kutoka 0 hadi hesabu toa 1, fanya hivi:
+    Kuna ijayo, ni iliyopita jumlisha sasa.
+    Baada ya hii, iliyopita ni sasa.
+    Baada ya hii, sasa ni ijayo.
+  Jibu ni iliyopita.
+
+Kwa kila fahirisi kutoka 0 hadi 20, fanya hivi:
+  Sema “fibonacci(” kisha fahirisi kisha “) = ” kisha fibonacci ya (fahirisi) kwenye mstari mmoja.

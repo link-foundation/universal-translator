@@ -1,0 +1,14 @@
+Not: Hailstone sequence in JavaScript: count the steps to reach 1
+
+Biri dolu-adımlar şeyini sayı ile şöyle yapar:
+  Adımlar var, bu 0.
+  Sayı ile 1 aynı değil olduğu zaman bunu çok kez yap:
+    Eğer sayı mod 2 ile 0 aynı ise bunu yap:
+      Bundan sonra sayı şimdi sayı bölü 2 olur.
+    Değilse bunu yap:
+      Bundan sonra sayı şimdi 3 çarpı sayı artı 1 olur.
+    Bundan sonra adımlar şimdi adımlar artı 1 olur.
+  Cevap adımlar.
+
+Her sayı için 1 ile 10 arasında bunu yap:
+  Sayı sonra “ takes ” sonra dolu-adımlar (sayı) sonra “ steps” bir satırda söyle.

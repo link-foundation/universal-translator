@@ -1,0 +1,14 @@
+Not: Mutual recursion in JavaScript: the Hofstadter Female and Male sequences
+
+Biri dişi şeyini indeks ile şöyle yapar:
+  Eğer indeks ile 0 aynı ise bunu yap:
+    Cevap 1.
+  Cevap indeks eksi erkek (dişi (indeks eksi 1)).
+
+Biri erkek şeyini indeks ile şöyle yapar:
+  Eğer indeks ile 0 aynı ise bunu yap:
+    Cevap 0.
+  Cevap indeks eksi dişi (erkek (indeks eksi 1)).
+
+Her indeks için 0 ile 19 arasında bunu yap:
+  Indeks sonra “: ” sonra dişi (indeks) sonra “ ” sonra erkek (indeks) bir satırda söyle.

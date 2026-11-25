@@ -1,0 +1,13 @@
+Lura: Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+Akwai iyaka, shi ne 100.
+Akwai shin-tushe, shi ne abubuwa (iyaka ƙari 1) kamar 1.
+Bayan wannan, sashe 0 na shin-tushe ya zama 0.
+Bayan wannan, sashe 1 na shin-tushe ya zama 0.
+Ga kowane lamba daga 2 zuwa iyaka, yi wannan:
+  Idan sashe lamba na shin-tushe daidai yake da 1, yi wannan:
+    Faɗi lamba a layi ɗaya.
+    Akwai ninki, shi ne lamba sau lamba.
+    Lokacin da ninki bai fi iyaka ba, yi wannan sau da yawa:
+      Bayan wannan, sashe ninki na shin-tushe ya zama 0.
+      Bayan wannan, ninki ya zama ninki ƙari lamba.

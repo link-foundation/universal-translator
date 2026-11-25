@@ -1,0 +1,10 @@
+Opmerking: Sum and product of an array in JavaScript
+
+Er is getallen, het is deze dingen (1, 2, 3, 4, 5).
+Er is totaal, het is 0.
+Er is product, het is 1.
+Voor alle index van 0 tot en met hoeveel delen getallen heeft min 1, doe dit:
+  Hierna is totaal totaal plus deel index van getallen.
+  Hierna is product product maal deel index van getallen.
+Zeg “Sum: ” daarna totaal op één regel.
+Zeg “Product: ” daarna product op één regel.

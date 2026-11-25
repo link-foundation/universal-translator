@@ -1,0 +1,10 @@
+Nota: Towers of Hanoi in JavaScript, solved recursively
+
+É assim que alguém faz mover-discos com contagem, origem, destino e auxiliar:
+  Se contagem é o mesmo que 0, fazer isto:
+    Parar aqui.
+  Fazer mover-discos de (contagem menos 1, origem, auxiliar, destino).
+  Dizer “Move disk ” depois contagem depois “ from ” depois origem depois “ to ” depois destino em uma linha.
+  Fazer mover-discos de (contagem menos 1, auxiliar, destino, origem).
+
+Fazer mover-discos de (4, 1, 3, 2).

@@ -1,0 +1,10 @@
+Tala: Leap year in JavaScript
+
+Ganito ginagawa ng isang tao ang ba-bisyesto-taon gamit ang taon:
+  Ang sagot ay taon modulo 4 ay pareho sa 0 at taon modulo 100 ay hindi pareho sa 0 o taon modulo 400 ay pareho sa 0.
+
+Para sa bawat taon mula 1896 hanggang 1912, gawin ito:
+  Kung ba-bisyesto-taon ng (taon), gawin ito:
+    Sabihin ang taon saka “ is a leap year” sa isang linya.
+  Kung hindi, gawin ito:
+    Sabihin ang taon saka “ is not a leap year” sa isang linya.

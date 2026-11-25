@@ -1,0 +1,36 @@
+natural:
+  id: minimal-indonesian
+  label: 'Minimal Indonesian (NSM semantic primes)'
+  extends: indonesian
+  profile: minimal-english
+  source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  templates:
+    function: 'Begini seseorang melakukan {name} dengan {parameters}'
+    function-without-parameters: 'Begini seseorang melakukan {name}'
+    declare: 'Ada {name}, yaitu {value}'
+    assign: 'Setelah ini, {name} adalah {value}'
+    print-line: 'Katakan {value} pada satu baris'
+    print: 'Katakan {value}'
+    return-value: 'Jawabannya adalah {value}'
+    return: 'Berhenti di sini'
+    nothing: 'Tidak melakukan apa pun'
+    evaluate: 'Lakukan {expression}'
+    if: 'Jika {condition}, lakukan ini'
+    else-if: 'Jika tidak, jika {condition}, lakukan ini'
+    else: 'Jika tidak, lakukan ini'
+    while: 'Ketika {condition}, lakukan ini banyak kali'
+    for: 'Untuk semua {variable} dari {start} sampai {last}, lakukan ini'
+    call-without-arguments: '{callee} ( )'
+    join: '{left} lalu {right}'
+    less: '{left} lebih sedikit dari {right}'
+    less-or-equal: '{left} tidak lebih banyak dari {right}'
+    greater: '{left} lebih banyak dari {right}'
+    greater-or-equal: '{left} tidak lebih sedikit dari {right}'
+    array: 'semua hal ini ({elements})'
+    new-array: '{length} hal seperti {fill}'
+    element: 'bagian {index} dari {array}'
+    length: 'berapa banyak bagian di dalam {array}'
+    set-element: 'Setelah ini, bagian {index} dari {name} adalah {value}'
+  rules:
+    primes: indonesian
+    extra-words: dengan yaitu pada baris jawabannya berhenti pun kali untuk dari sampai lalu berapa atau dan negatif ditambah dikurangi dikali dibagi modulo salah

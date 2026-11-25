@@ -1,0 +1,15 @@
+Tala: Primality by trial division in JavaScript
+
+Ganito ginagawa ng isang tao ang ba-primo gamit ang numero:
+  Kung numero ay mas kaunti kaysa 2, gawin ito:
+    Ang sagot ay mali.
+  May panghati, ito ay 2.
+  Kapag panghati beses panghati ay hindi higit sa numero, gawin ito nang maraming beses:
+    Kung numero modulo panghati ay pareho sa 0, gawin ito:
+      Ang sagot ay mali.
+    Pagkatapos nito, ang panghati ay panghati dagdag 1.
+  Ang sagot ay totoo.
+
+Para sa bawat numero mula 1 hanggang 50, gawin ito:
+  Kung ba-primo ng (numero), gawin ito:
+    Sabihin ang numero sa isang linya.

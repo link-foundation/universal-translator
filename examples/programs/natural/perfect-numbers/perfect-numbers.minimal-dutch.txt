@@ -1,0 +1,16 @@
+Opmerking: Perfect numbers in JavaScript: numbers equal to the sum of their divisors
+
+Zo doet iemand is-volmaakt met getal:
+  Er is som, het is 1.
+  Er is deler, het is 2.
+  Wanneer deler maal deler is niet meer dan getal, doe dit veel keren:
+    Als getal modulo deler is hetzelfde als 0, doe dit:
+      Hierna is som som plus deler.
+      Als deler maal deler is niet hetzelfde als getal, doe dit:
+        Hierna is som som plus getal gedeeld door deler.
+    Hierna is deler deler plus 1.
+  Het antwoord is getal is meer dan 1 en som is hetzelfde als getal.
+
+Voor alle getal van 1 tot en met 10000, doe dit:
+  Als is-volmaakt van (getal), doe dit:
+    Zeg getal op één regel.

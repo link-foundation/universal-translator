@@ -1,0 +1,10 @@
+Not: Greatest common divisor in JavaScript, using the Euclidean algorithm
+
+Biri azami-ortak-bölen şeyini birinci ve ikinci ile şöyle yapar:
+  Ikinci ile 0 aynı değil olduğu zaman bunu çok kez yap:
+    Kalan var, bu birinci mod ikinci.
+    Bundan sonra birinci şimdi ikinci olur.
+    Bundan sonra ikinci şimdi kalan olur.
+  Cevap birinci.
+
+“The greatest common divisor of 1071 and 462 is ” sonra azami-ortak-bölen (1071, 462) bir satırda söyle.

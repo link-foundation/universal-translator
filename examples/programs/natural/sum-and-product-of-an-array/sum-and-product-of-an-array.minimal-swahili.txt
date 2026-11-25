@@ -1,0 +1,10 @@
+Kumbuka: Sum and product of an array in JavaScript
+
+Kuna namba, ni vitu hivi (1, 2, 3, 4, 5).
+Kuna kiasi, ni 0.
+Kuna zao, ni 1.
+Kwa kila fahirisi kutoka 0 hadi idadi ya sehemu za namba toa 1, fanya hivi:
+  Baada ya hii, kiasi ni kiasi jumlisha sehemu fahirisi ya namba.
+  Baada ya hii, zao ni zao mara sehemu fahirisi ya namba.
+Sema “Sum: ” kisha kiasi kwenye mstari mmoja.
+Sema “Product: ” kisha zao kwenye mstari mmoja.

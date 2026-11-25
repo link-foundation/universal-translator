@@ -1,0 +1,7 @@
+Opmerking: 99 bottles of beer in JavaScript
+
+Er is flessen, het is 99.
+Wanneer flessen is meer dan 0, doe dit veel keren:
+  Zeg flessen daarna “ bottles of beer on the wall, ” daarna flessen daarna “ bottles of beer.” op één regel.
+  Zeg “Take one down and pass it around, ” daarna flessen min 1 daarna “ bottles of beer on the wall.” op één regel.
+  Hierna is flessen flessen min 1.

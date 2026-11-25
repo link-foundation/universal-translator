@@ -1,0 +1,39 @@
+natural:
+  id: minimal-tagalog
+  label: 'Minimal Tagalog (NSM semantic primes)'
+  extends: tagalog
+  profile: minimal-english
+  source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  templates:
+    function: 'Ganito ginagawa ng isang tao ang {name} gamit ang {parameters}'
+    function-without-parameters: 'Ganito ginagawa ng isang tao ang {name}'
+    declare: 'May {name}, ito ay {value}'
+    assign: 'Pagkatapos nito, ang {name} ay {value}'
+    print-line: 'Sabihin ang {value} sa isang linya'
+    print: 'Sabihin ang {value}'
+    return-value: 'Ang sagot ay {value}'
+    return: 'Huminto dito'
+    nothing: 'Walang gawin'
+    evaluate: 'Gawin ang {expression}'
+    if: 'Kung {condition}, gawin ito'
+    else-if: 'Kung hindi, kung {condition}, gawin ito'
+    else: 'Kung hindi, gawin ito'
+    while: 'Kapag {condition}, gawin ito nang maraming beses'
+    for: 'Para sa bawat {variable} mula {start} hanggang {last}, gawin ito'
+    call-without-arguments: '{callee} ( )'
+    join: '{left} saka {right}'
+    negate: 'kabaligtaran ng {operand}'
+    equal: '{left} ay pareho sa {right}'
+    not-equal: '{left} ay hindi pareho sa {right}'
+    less: '{left} ay mas kaunti kaysa {right}'
+    less-or-equal: '{left} ay hindi higit sa {right}'
+    greater: '{left} ay higit sa {right}'
+    greater-or-equal: '{left} ay hindi mas kaunti kaysa {right}'
+    array: 'itong mga bagay ({elements})'
+    new-array: '{length} bagay na tulad ng {fill}'
+    element: 'bahagi {index} ng {array}'
+    length: 'ang dami ng bahagi ng {array}'
+    set-element: 'Pagkatapos nito, ang bahagi {index} ng {name} ay {value}'
+  rules:
+    primes: tagalog
+    extra-words: ang ng sa mga na nang gamit linya sagot huminto walang beses para mula hanggang saka o at kabaligtaran kaysa dagdag bawas hinati modulo mali dami

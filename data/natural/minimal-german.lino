@@ -1,0 +1,40 @@
+natural:
+  id: minimal-german
+  label: 'Minimal German (NSM semantic primes)'
+  extends: german
+  profile: minimal-english
+  source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  false: unwahr
+  templates:
+    function: 'So tut jemand {name} mit {parameters}'
+    function-without-parameters: 'So tut jemand {name}'
+    declare: 'Es gibt {name}, es ist {value}'
+    assign: 'Danach ist {name} jetzt {value}'
+    print-line: 'Sage {value} auf einer Zeile'
+    print: 'Sage {value}'
+    return-value: 'Die Antwort ist {value}'
+    return: 'Höre hier auf'
+    nothing: 'Tue nichts'
+    evaluate: 'Tue {expression}'
+    if: 'Wenn {condition}, tue dies'
+    else-if: 'Wenn nicht, wenn {condition}, tue dies'
+    else: 'Wenn nicht, tue dies'
+    while: 'Solange {condition}, tue dies viele Male'
+    for: 'Für alle {variable} von {start} bis {last}, tue dies'
+    call-without-arguments: '{callee} ( )'
+    join: '{left} dann {right}'
+    negate: 'das Gegenteil von {operand}'
+    equal: '{left} ist dasselbe wie {right}'
+    not-equal: '{left} ist nicht dasselbe wie {right}'
+    less: '{left} ist weniger als {right}'
+    less-or-equal: '{left} ist nicht mehr als {right}'
+    greater: '{left} ist mehr als {right}'
+    greater-or-equal: '{left} ist nicht weniger als {right}'
+    array: 'diese Dinge ({elements})'
+    new-array: '{length} Dinge wie {fill}'
+    element: 'Teil {index} von {array}'
+    length: 'wie viele Teile {array} hat'
+    set-element: 'Danach ist Teil {index} von {name} jetzt {value}'
+  rules:
+    primes: german
+    extra-words: mit auf Zeile die Antwort höre nichts solange Male für von bis dann Gegenteil als oder und plus minus mal geteilt durch modulo unwahr hat

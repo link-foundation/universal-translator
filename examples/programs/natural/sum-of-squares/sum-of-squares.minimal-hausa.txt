@@ -1,0 +1,13 @@
+Lura: Sum of squares in JavaScript
+
+Haka wani yake yin jimla-na-murabba'ai da iyaka:
+  Akwai duka, shi ne 0.
+  Akwai lamba, shi ne 1.
+  Lokacin da lamba bai fi iyaka ba, yi wannan sau da yawa:
+    Bayan wannan, duka ya zama duka ƙari lamba sau lamba.
+    Bayan wannan, lamba ya zama lamba ƙari 1.
+  Amsar ita ce duka.
+
+Akwai iyaka, shi ne 10.
+Faɗi “Sum of squares from 1 to ” sannan iyaka sannan “:” a layi ɗaya.
+Faɗi jimla-na-murabba'ai na (iyaka) a layi ɗaya.

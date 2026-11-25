@@ -1,0 +1,7 @@
+Kumbuka: 99 bottles of beer in JavaScript
+
+Kuna chupa, ni 99.
+Wakati chupa ni zaidi ya 0, fanya hivi mara nyingi:
+  Sema chupa kisha “ bottles of beer on the wall, ” kisha chupa kisha “ bottles of beer.” kwenye mstari mmoja.
+  Sema “Take one down and pass it around, ” kisha chupa toa 1 kisha “ bottles of beer on the wall.” kwenye mstari mmoja.
+  Baada ya hii, chupa ni chupa toa 1.

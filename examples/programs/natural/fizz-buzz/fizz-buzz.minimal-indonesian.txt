@@ -1,0 +1,11 @@
+Catatan: FizzBuzz in JavaScript
+
+Untuk semua bilangan dari 1 sampai 100, lakukan ini:
+  Jika bilangan modulo 15 sama dengan 0, lakukan ini:
+    Katakan “FizzBuzz” pada satu baris.
+  Jika tidak, jika bilangan modulo 3 sama dengan 0, lakukan ini:
+    Katakan “Fizz” pada satu baris.
+  Jika tidak, jika bilangan modulo 5 sama dengan 0, lakukan ini:
+    Katakan “Buzz” pada satu baris.
+  Jika tidak, lakukan ini:
+    Katakan bilangan pada satu baris.

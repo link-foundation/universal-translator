@@ -1,0 +1,10 @@
+Not: Sum and product of an array in JavaScript
+
+Sayılar var, bu şu şeyler (1, 2, 3, 4, 5).
+Tutar var, bu 0.
+Çarpım var, bu 1.
+Her indeks için 0 ile sayılar şeyinin kaç parçası var eksi 1 arasında bunu yap:
+  Bundan sonra tutar şimdi tutar artı sayılar şeyinin indeks parçası olur.
+  Bundan sonra çarpım şimdi çarpım çarpı sayılar şeyinin indeks parçası olur.
+“Sum: ” sonra tutar bir satırda söyle.
+“Product: ” sonra çarpım bir satırda söyle.

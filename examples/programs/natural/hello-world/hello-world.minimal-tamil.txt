@@ -1,0 +1,4 @@
+குறிப்பு: Hello World in JavaScript
+
+குறிப்பு: print "Hello World!" into console followed by new line symbol by function call
+“Hello World!” ஐ ஒரு வரியில் சொல்.

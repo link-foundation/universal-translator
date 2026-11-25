@@ -1,0 +1,4 @@
+注：Hello World in JavaScript
+
+注：print "Hello World!" into console followed by new line symbol by function call
+「Hello World!」 を 一つ の 行 に 言う。

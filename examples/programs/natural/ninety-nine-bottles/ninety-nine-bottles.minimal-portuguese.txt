@@ -1,0 +1,7 @@
+Nota: 99 bottles of beer in JavaScript
+
+Há garrafas, é 99.
+Quando garrafas é mais que 0, fazer isto muitas vezes:
+  Dizer garrafas depois “ bottles of beer on the wall, ” depois garrafas depois “ bottles of beer.” em uma linha.
+  Dizer “Take one down and pass it around, ” depois garrafas menos 1 depois “ bottles of beer on the wall.” em uma linha.
+  Depois disto, garrafas é garrafas menos 1.

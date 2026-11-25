@@ -1,0 +1,12 @@
+Catatan: Bubble sort in JavaScript: sort a list of numbers
+
+Ada angka, yaitu semua hal ini (5, 3, 8, 1, 9, 2, 7).
+Ada hitungan, yaitu berapa banyak bagian di dalam angka.
+Untuk semua putaran dari 0 sampai hitungan dikurangi 1 dikurangi 1, lakukan ini:
+  Untuk semua indeks dari 0 sampai hitungan dikurangi 1 dikurangi putaran dikurangi 1, lakukan ini:
+    Jika bagian indeks dari angka lebih banyak dari bagian (indeks ditambah 1) dari angka, lakukan ini:
+      Ada tukar, yaitu bagian indeks dari angka.
+      Setelah ini, bagian indeks dari angka adalah bagian (indeks ditambah 1) dari angka.
+      Setelah ini, bagian (indeks ditambah 1) dari angka adalah tukar.
+Untuk semua posisi dari 0 sampai hitungan dikurangi 1, lakukan ini:
+  Katakan bagian posisi dari angka pada satu baris.

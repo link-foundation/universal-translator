@@ -1,0 +1,10 @@
+Nota: Leap year in JavaScript
+
+Ecco come qualcuno fa è-bisestile-anno con anno:
+  La risposta è anno modulo 4 è lo stesso di 0 e anno modulo 100 non è lo stesso di 0 o anno modulo 400 è lo stesso di 0.
+
+Per ogni anno da 1896 a 1912, fare questo:
+  Se è-bisestile-anno di (anno), fare questo:
+    Dire anno poi « is a leap year» su una riga.
+  Se no, fare questo:
+    Dire anno poi « is not a leap year» su una riga.

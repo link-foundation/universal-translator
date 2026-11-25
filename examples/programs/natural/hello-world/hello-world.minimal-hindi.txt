@@ -1,0 +1,4 @@
+टिप्पणी: Hello World in JavaScript
+
+टिप्पणी: print "Hello World!" into console followed by new line symbol by function call
+“Hello World!” एक पंक्ति में कहें।

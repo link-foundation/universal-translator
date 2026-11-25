@@ -1,0 +1,7 @@
+참고: 99 bottles of beer in JavaScript
+
+병 이 있다, 그것은 99 이다.
+병 이 0 보다 많다 일 때 이것을 여러 번 한다:
+  병 그 다음 “ bottles of beer on the wall, ” 그 다음 병 그 다음 “ bottles of beer.” 을 한 줄에 말한다.
+  “Take one down and pass it around, ” 그 다음 병 빼기 1 그 다음 “ bottles of beer on the wall.” 을 한 줄에 말한다.
+  이후 병 은 병 빼기 1 이다.

@@ -1,0 +1,37 @@
+natural:
+  id: minimal-telugu
+  label: 'Minimal Telugu (NSM semantic primes)'
+  extends: telugu
+  profile: minimal-english
+  source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  templates:
+    function: 'ఎవరో {name} ను {parameters} తో ఇలా చేస్తారు'
+    function-without-parameters: 'ఎవరో {name} ను ఇలా చేస్తారు'
+    declare: '{name} ఉంది, అది {value}'
+    assign: 'దీని తర్వాత {name} ఇప్పుడు {value}'
+    print-line: '{value} ను ఒక పంక్తిలో చెప్పు'
+    print: '{value} ను చెప్పు'
+    return-value: 'జవాబు {value}'
+    return: 'ఇక్కడ ఆగు'
+    nothing: 'ఏమీ చేయవద్దు'
+    evaluate: '{expression} చేయి'
+    if: 'ఒకవేళ {condition} అయితే ఇది చేయి'
+    else-if: 'లేకపోతే ఒకవేళ {condition} అయితే ఇది చేయి'
+    else: 'లేకపోతే ఇది చేయి'
+    while: '{condition} అయినప్పుడు ఇది చాలా సార్లు చేయి'
+    for: 'అన్ని {variable} కి {start} నుండి {last} వరకు ఇది చేయి'
+    join: '{left} తర్వాత {right}'
+    equal: '{left} అనేది {right} తో అదే'
+    not-equal: '{left} అనేది {right} తో అదే కాదు'
+    less: '{left} అనేది {right} కంటే తక్కువ'
+    less-or-equal: '{left} అనేది {right} కంటే ఎక్కువ కాదు'
+    greater: '{left} అనేది {right} కంటే ఎక్కువ'
+    greater-or-equal: '{left} అనేది {right} కంటే తక్కువ కాదు'
+    array: 'ఈ వస్తువులు ({elements})'
+    new-array: '{fill} లాంటి {length} వస్తువులు'
+    element: '{array} లో భాగం {index}'
+    length: '{array} లో ఎన్ని భాగాలు'
+    set-element: 'దీని తర్వాత {name} లో భాగం {index} ఇప్పుడు {value}'
+  rules:
+    primes: telugu
+    extra-words: ను తో పంక్తిలో జవాబు ఆగు చేయవద్దు సార్లు కి నుండి వరకు అనేది కంటే లో ఎన్ని లేదా మరియు రుణ కూడిక తీసివేత గుణకారం భాగహారం మాడ్యులో అబద్ధం

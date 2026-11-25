@@ -1,0 +1,14 @@
+Tala: Hailstone sequence in JavaScript: count the steps to reach 1
+
+Ganito ginagawa ng isang tao ang graniso-yugto gamit ang numero:
+  May yugto, ito ay 0.
+  Kapag numero ay hindi pareho sa 1, gawin ito nang maraming beses:
+    Kung numero modulo 2 ay pareho sa 0, gawin ito:
+      Pagkatapos nito, ang numero ay numero hinati sa 2.
+    Kung hindi, gawin ito:
+      Pagkatapos nito, ang numero ay 3 beses numero dagdag 1.
+    Pagkatapos nito, ang yugto ay yugto dagdag 1.
+  Ang sagot ay yugto.
+
+Para sa bawat numero mula 1 hanggang 10, gawin ito:
+  Sabihin ang numero saka “ takes ” saka graniso-yugto ng (numero) saka “ steps” sa isang linya.

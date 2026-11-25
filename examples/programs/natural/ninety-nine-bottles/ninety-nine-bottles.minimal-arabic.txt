@@ -1,0 +1,7 @@
+ملاحظة: 99 bottles of beer in JavaScript
+
+يوجد زجاجات وهو 99.
+عندما زجاجات أكثر من 0 افعل هذا مرات كثيرة:
+  قل زجاجات ثم « bottles of beer on the wall, » ثم زجاجات ثم « bottles of beer.» في سطر واحد.
+  قل «Take one down and pass it around, » ثم زجاجات ناقص 1 ثم « bottles of beer on the wall.» في سطر واحد.
+  بعد هذا زجاجات هو زجاجات ناقص 1.

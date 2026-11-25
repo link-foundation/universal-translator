@@ -1,0 +1,12 @@
+Opmerking: Bubble sort in JavaScript: sort a list of numbers
+
+Er is getallen, het is deze dingen (5, 3, 8, 1, 9, 2, 7).
+Er is aantal, het is hoeveel delen getallen heeft.
+Voor alle ronde van 0 tot en met aantal min 1 min 1, doe dit:
+  Voor alle index van 0 tot en met aantal min 1 min ronde min 1, doe dit:
+    Als deel index van getallen is meer dan deel (index plus 1) van getallen, doe dit:
+      Er is wissel, het is deel index van getallen.
+      Hierna is deel index van getallen deel (index plus 1) van getallen.
+      Hierna is deel (index plus 1) van getallen wissel.
+Voor alle positie van 0 tot en met aantal min 1, doe dit:
+  Zeg deel positie van getallen op één regel.

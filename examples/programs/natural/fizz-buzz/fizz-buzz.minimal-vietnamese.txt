@@ -1,0 +1,11 @@
+Ghi chú: FizzBuzz in JavaScript
+
+Với mọi số từ 1 đến 100, làm điều này:
+  Nếu số chia lấy dư 15 giống 0, làm điều này:
+    Nói “FizzBuzz” trên một dòng.
+  Nếu không, nếu số chia lấy dư 3 giống 0, làm điều này:
+    Nói “Fizz” trên một dòng.
+  Nếu không, nếu số chia lấy dư 5 giống 0, làm điều này:
+    Nói “Buzz” trên một dòng.
+  Nếu không, làm điều này:
+    Nói số trên một dòng.

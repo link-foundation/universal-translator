@@ -1,0 +1,14 @@
+Hinweis: Hailstone sequence in JavaScript: count the steps to reach 1
+
+So tut jemand Hagelkorn-Schritte mit Zahl:
+  Es gibt Schritte, es ist 0.
+  Solange Zahl ist nicht dasselbe wie 1, tue dies viele Male:
+    Wenn Zahl modulo 2 ist dasselbe wie 0, tue dies:
+      Danach ist Zahl jetzt Zahl geteilt durch 2.
+    Wenn nicht, tue dies:
+      Danach ist Zahl jetzt 3 mal Zahl plus 1.
+    Danach ist Schritte jetzt Schritte plus 1.
+  Die Antwort ist Schritte.
+
+Für alle Zahl von 1 bis 10, tue dies:
+  Sage Zahl dann „ takes “ dann Hagelkorn-Schritte von (Zahl) dann „ steps“ auf einer Zeile.

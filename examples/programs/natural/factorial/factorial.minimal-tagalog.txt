@@ -1,0 +1,9 @@
+Tala: Factorial in JavaScript, defined recursively
+
+Ganito ginagawa ng isang tao ang paktoryal gamit ang numero:
+  Kung numero ay hindi higit sa 1, gawin ito:
+    Ang sagot ay 1.
+  Ang sagot ay numero beses paktoryal ng (numero bawas 1).
+
+Para sa bawat numero mula 0 hanggang 10, gawin ito:
+  Sabihin ang numero saka “! = ” saka paktoryal ng (numero) sa isang linya.

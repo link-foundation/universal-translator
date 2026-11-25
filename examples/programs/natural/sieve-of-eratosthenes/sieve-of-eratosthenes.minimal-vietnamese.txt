@@ -1,0 +1,13 @@
+Ghi chú: Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+Có giới_hạn, nó là 100.
+Có là-nguyên_tố, nó là (giới_hạn cộng 1) thứ như 1.
+Sau đó, phần 0 của là-nguyên_tố là 0.
+Sau đó, phần 1 của là-nguyên_tố là 0.
+Với mọi số từ 2 đến giới_hạn, làm điều này:
+  Nếu phần số của là-nguyên_tố giống 1, làm điều này:
+    Nói số trên một dòng.
+    Có bội_số, nó là số nhân số.
+    Khi bội_số không nhiều hơn giới_hạn, làm điều này nhiều lần:
+      Sau đó, phần bội_số của là-nguyên_tố là 0.
+      Sau đó, bội_số là bội_số cộng số.

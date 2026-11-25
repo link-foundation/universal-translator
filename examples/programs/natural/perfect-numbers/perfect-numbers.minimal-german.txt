@@ -1,0 +1,16 @@
+Hinweis: Perfect numbers in JavaScript: numbers equal to the sum of their divisors
+
+So tut jemand ist-vollkommen mit Zahl:
+  Es gibt Summe, es ist 1.
+  Es gibt Teiler, es ist 2.
+  Solange Teiler mal Teiler ist nicht mehr als Zahl, tue dies viele Male:
+    Wenn Zahl modulo Teiler ist dasselbe wie 0, tue dies:
+      Danach ist Summe jetzt Summe plus Teiler.
+      Wenn Teiler mal Teiler ist nicht dasselbe wie Zahl, tue dies:
+        Danach ist Summe jetzt Summe plus Zahl geteilt durch Teiler.
+    Danach ist Teiler jetzt Teiler plus 1.
+  Die Antwort ist Zahl ist mehr als 1 und Summe ist dasselbe wie Zahl.
+
+Für alle Zahl von 1 bis 10000, tue dies:
+  Wenn ist-vollkommen von (Zahl), tue dies:
+    Sage Zahl auf einer Zeile.

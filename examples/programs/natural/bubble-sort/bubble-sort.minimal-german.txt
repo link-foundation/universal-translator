@@ -1,0 +1,12 @@
+Hinweis: Bubble sort in JavaScript: sort a list of numbers
+
+Es gibt Zahlen, es ist diese Dinge (5, 3, 8, 1, 9, 2, 7).
+Es gibt Anzahl, es ist wie viele Teile Zahlen hat.
+Für alle Durchlauf von 0 bis Anzahl minus 1 minus 1, tue dies:
+  Für alle Index von 0 bis Anzahl minus 1 minus Durchlauf minus 1, tue dies:
+    Wenn Teil Index von Zahlen ist mehr als Teil (Index plus 1) von Zahlen, tue dies:
+      Es gibt Tausch, es ist Teil Index von Zahlen.
+      Danach ist Teil Index von Zahlen jetzt Teil (Index plus 1) von Zahlen.
+      Danach ist Teil (Index plus 1) von Zahlen jetzt Tausch.
+Für alle Position von 0 bis Anzahl minus 1, tue dies:
+  Sage Teil Position von Zahlen auf einer Zeile.

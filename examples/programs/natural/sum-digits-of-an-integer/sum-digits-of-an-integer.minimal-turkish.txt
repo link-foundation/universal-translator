@@ -1,0 +1,10 @@
+Not: Sum digits of an integer in JavaScript
+
+Biri toplam-nin-basamaklar şeyini sayı ile şöyle yapar:
+  Tutar var, bu 0.
+  Sayı 0 değerinden daha çok olduğu zaman bunu çok kez yap:
+    Bundan sonra tutar şimdi tutar artı sayı mod 10 olur.
+    Bundan sonra sayı şimdi sayı bölü 10 olur.
+  Cevap tutar.
+
+“The digits of 1234567890 sum to ” sonra toplam-nin-basamaklar (1234567890) bir satırda söyle.

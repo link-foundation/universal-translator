@@ -1,0 +1,10 @@
+Lura: Greatest common divisor in JavaScript, using the Euclidean algorithm
+
+Haka wani yake yin babba-tarayya-rabo da farko da biyu:
+  Lokacin da biyu bai yi daidai da 0 ba, yi wannan sau da yawa:
+    Akwai saura, shi ne farko modulo biyu.
+    Bayan wannan, farko ya zama biyu.
+    Bayan wannan, biyu ya zama saura.
+  Amsar ita ce farko.
+
+Faɗi “The greatest common divisor of 1071 and 462 is ” sannan babba-tarayya-rabo na (1071, 462) a layi ɗaya.

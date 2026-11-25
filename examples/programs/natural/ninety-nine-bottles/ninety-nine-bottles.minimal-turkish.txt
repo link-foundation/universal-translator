@@ -1,0 +1,7 @@
+Not: 99 bottles of beer in JavaScript
+
+Şişeler var, bu 99.
+Şişeler 0 değerinden daha çok olduğu zaman bunu çok kez yap:
+  Şişeler sonra “ bottles of beer on the wall, ” sonra şişeler sonra “ bottles of beer.” bir satırda söyle.
+  “Take one down and pass it around, ” sonra şişeler eksi 1 sonra “ bottles of beer on the wall.” bir satırda söyle.
+  Bundan sonra şişeler şimdi şişeler eksi 1 olur.

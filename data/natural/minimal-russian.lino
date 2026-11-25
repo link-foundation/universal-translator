@@ -1,0 +1,40 @@
+natural:
+  id: minimal-russian
+  label: 'Minimal Russian (NSM semantic primes)'
+  extends: russian
+  profile: minimal-english
+  source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  true: правда
+  false: неправда
+  templates:
+    function: 'Вот как делают {name} с {parameters}'
+    function-without-parameters: 'Вот как делают {name}'
+    declare: 'Есть {name}, это {value}'
+    assign: 'После этого {name} будет {value}'
+    print-line: 'Сказать {value} на одной строке'
+    print: 'Сказать {value}'
+    return-value: 'Ответ будет {value}'
+    return: 'Остановиться здесь'
+    nothing: 'Ничего не делать'
+    evaluate: 'Сделать {expression}'
+    if: 'Если {condition}, сделать это'
+    else-if: 'Если нет, если {condition}, сделать это'
+    else: 'Если нет, сделать это'
+    while: 'Когда {condition}, делать это много раз'
+    for: 'Для всех {variable} от {start} до {last} делать это'
+    call-without-arguments: '{callee} ( )'
+    join: '{left} потом {right}'
+    equal: '{left} то же самое что {right}'
+    not-equal: '{left} не то же самое что {right}'
+    less: '{left} меньше {right}'
+    less-or-equal: '{left} не больше {right}'
+    greater: '{left} больше {right}'
+    greater-or-equal: '{left} не меньше {right}'
+    array: 'эти вещи ({elements})'
+    new-array: '{length} вещей как {fill}'
+    element: 'часть {index} из {array}'
+    length: 'сколько частей в {array}'
+    set-element: 'После этого часть {index} из {name} будет {value}'
+  rules:
+    primes: russian
+    extra-words: с на строке ответ остановиться ничего раз для от из сколько или и противоположное плюс минус умножить разделить по модулю неправда

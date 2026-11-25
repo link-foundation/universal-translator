@@ -1,0 +1,12 @@
+Opmerking: Ackermann function in JavaScript, defined recursively
+
+Zo doet iemand ackermann met eerste en tweede:
+  Als eerste is hetzelfde als 0, doe dit:
+    Het antwoord is tweede plus 1.
+  Als tweede is hetzelfde als 0, doe dit:
+    Het antwoord is ackermann van (eerste min 1, 1).
+  Het antwoord is ackermann van (eerste min 1, ackermann van (eerste, tweede min 1)).
+
+Voor alle eerste van 0 tot en met 3, doe dit:
+  Voor alle tweede van 0 tot en met 4, doe dit:
+    Zeg “ackermann(” daarna eerste daarna “, ” daarna tweede daarna “) = ” daarna ackermann van (eerste, tweede) op één regel.

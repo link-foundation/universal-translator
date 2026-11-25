@@ -1,0 +1,11 @@
+Not: FizzBuzz in JavaScript
+
+Her sayı için 1 ile 100 arasında bunu yap:
+  Eğer sayı mod 15 ile 0 aynı ise bunu yap:
+    “FizzBuzz” bir satırda söyle.
+  Değilse eğer sayı mod 3 ile 0 aynı ise bunu yap:
+    “Fizz” bir satırda söyle.
+  Değilse eğer sayı mod 5 ile 0 aynı ise bunu yap:
+    “Buzz” bir satırda söyle.
+  Değilse bunu yap:
+    Sayı bir satırda söyle.

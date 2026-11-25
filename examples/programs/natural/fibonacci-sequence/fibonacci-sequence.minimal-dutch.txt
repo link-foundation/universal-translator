@@ -1,0 +1,13 @@
+Opmerking: Fibonacci sequence in JavaScript, computed iteratively
+
+Zo doet iemand fibonacci met aantal:
+  Er is vorige, het is 0.
+  Er is huidig, het is 1.
+  Voor alle stap van 0 tot en met aantal min 1, doe dit:
+    Er is volgende, het is vorige plus huidig.
+    Hierna is vorige huidig.
+    Hierna is huidig volgende.
+  Het antwoord is vorige.
+
+Voor alle index van 0 tot en met 20, doe dit:
+  Zeg “fibonacci(” daarna index daarna “) = ” daarna fibonacci van (index) op één regel.

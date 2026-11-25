@@ -1,0 +1,14 @@
+Lura: Mutual recursion in JavaScript: the Hofstadter Female and Male sequences
+
+Haka wani yake yin mace da fihirisa:
+  Idan fihirisa daidai yake da 0, yi wannan:
+    Amsar ita ce 1.
+  Amsar ita ce fihirisa ragi namiji na (mace na (fihirisa ragi 1)).
+
+Haka wani yake yin namiji da fihirisa:
+  Idan fihirisa daidai yake da 0, yi wannan:
+    Amsar ita ce 0.
+  Amsar ita ce fihirisa ragi mace na (namiji na (fihirisa ragi 1)).
+
+Ga kowane fihirisa daga 0 zuwa 19, yi wannan:
+  Faɗi fihirisa sannan “: ” sannan mace na (fihirisa) sannan “ ” sannan namiji na (fihirisa) a layi ɗaya.

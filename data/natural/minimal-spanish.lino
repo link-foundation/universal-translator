@@ -1,0 +1,38 @@
+natural:
+  id: minimal-spanish
+  label: 'Minimal Spanish (NSM semantic primes)'
+  extends: spanish
+  profile: minimal-english
+  source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  templates:
+    function: 'Así es como alguien hace {name} con {parameters}'
+    function-without-parameters: 'Así es como alguien hace {name}'
+    declare: 'Hay {name}, es {value}'
+    assign: 'Después de esto, {name} es {value}'
+    print-line: 'Decir {value} en una línea'
+    print: 'Decir {value}'
+    return-value: 'La respuesta es {value}'
+    return: 'Parar aquí'
+    nothing: 'No hacer nada'
+    evaluate: 'Hacer {expression}'
+    if: 'Si {condition}, hacer esto'
+    else-if: 'Si no, si {condition}, hacer esto'
+    else: 'Si no, hacer esto'
+    while: 'Cuando {condition}, hacer esto muchas veces'
+    for: 'Para todos los {variable} desde {start} hasta {last}, hacer esto'
+    call-without-arguments: '{callee} ( )'
+    join: '{left} después {right}'
+    equal: '{left} es lo mismo que {right}'
+    not-equal: '{left} no es lo mismo que {right}'
+    less: '{left} es menos que {right}'
+    less-or-equal: '{left} no es más que {right}'
+    greater: '{left} es más que {right}'
+    greater-or-equal: '{left} no es menos que {right}'
+    array: 'estas cosas ({elements})'
+    new-array: '{length} cosas como {fill}'
+    element: 'la parte {index} de {array}'
+    length: 'cuántas partes hay en {array}'
+    set-element: 'Después de esto, la parte {index} de {name} es {value}'
+  rules:
+    primes: spanish
+    extra-words: con de en línea la respuesta parar nada veces para los desde hasta lo que el opuesto o y menos por dividido entre módulo falso cuántas

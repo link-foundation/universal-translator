@@ -1,0 +1,37 @@
+natural:
+  id: minimal-arabic
+  label: 'Minimal Arabic (NSM semantic primes)'
+  extends: arabic
+  profile: minimal-english
+  source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  templates:
+    function: 'هكذا يفعل شخص {name} مع {parameters}'
+    function-without-parameters: 'هكذا يفعل شخص {name}'
+    declare: 'يوجد {name} وهو {value}'
+    assign: 'بعد هذا {name} هو {value}'
+    print-line: 'قل {value} في سطر واحد'
+    print: 'قل {value}'
+    return-value: 'الجواب هو {value}'
+    return: 'توقف هنا'
+    nothing: 'لا تفعل شيئا'
+    evaluate: 'افعل {expression}'
+    if: 'إذا {condition} فافعل هذا'
+    else-if: 'وإلا إذا {condition} فافعل هذا'
+    else: 'وإلا فافعل هذا'
+    while: 'عندما {condition} افعل هذا مرات كثيرة'
+    for: 'لكل {variable} من {start} إلى {last} افعل هذا'
+    join: '{left} ثم {right}'
+    equal: '{left} هو نفس {right}'
+    not-equal: '{left} ليس نفس {right}'
+    less: '{left} أقل من {right}'
+    less-or-equal: '{left} ليس أكثر من {right}'
+    greater: '{left} أكثر من {right}'
+    greater-or-equal: '{left} ليس أقل من {right}'
+    array: 'هذه الأشياء ({elements})'
+    new-array: '{length} أشياء مثل {fill}'
+    element: 'الجزء {index} من {array}'
+    length: 'كم جزءا في {array}'
+    set-element: 'بعد هذا الجزء {index} من {name} هو {value}'
+  rules:
+    primes: arabic
+    extra-words: مع وهو في سطر الجواب توقف وإلا مرات لكل إلى ثم كم جزءا أو و زائد ناقص مضروبا مقسوما على بمقياس سالب خطأ

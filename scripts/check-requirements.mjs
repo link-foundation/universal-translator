@@ -106,6 +106,33 @@ const standards = [
   'minimal-english',
   'minimal-polish',
   'minimal-french',
+  'minimal-arabic',
+  'minimal-bengali',
+  'minimal-chinese',
+  'minimal-dutch',
+  'minimal-german',
+  'minimal-gujarati',
+  'minimal-hausa',
+  'minimal-hindi',
+  'minimal-indonesian',
+  'minimal-italian',
+  'minimal-japanese',
+  'minimal-korean',
+  'minimal-marathi',
+  'minimal-persian',
+  'minimal-portuguese',
+  'minimal-punjabi',
+  'minimal-russian',
+  'minimal-spanish',
+  'minimal-swahili',
+  'minimal-tagalog',
+  'minimal-tamil',
+  'minimal-telugu',
+  'minimal-thai',
+  'minimal-turkish',
+  'minimal-ukrainian',
+  'minimal-urdu',
+  'minimal-vietnamese',
   'english-e-prime',
   'english-basic-english',
   'english-special-english',
@@ -143,10 +170,19 @@ const checks = {
     ['english', 'russian'].every((id) => naturalIds.includes(id))
       ? undefined
       : 'English or Russian is missing',
-  'semantic-primes': ({ semanticPrimes }) =>
-    semanticPrimes().length === 65
-      ? undefined
-      : `${semanticPrimes().length} semantic primes (need 65)`,
+  // Every natural language has a word for each prime (issue 6: semantic
+  // primes as a dictionary modifier for every human language).
+  'semantic-primes': ({ semanticPrimes, baseNatural }) => {
+    if (semanticPrimes().length !== 65) {
+      return `${semanticPrimes().length} semantic primes (need 65)`;
+    }
+    const short = baseNatural.filter((id) =>
+      semanticPrimes().some(({ exponents }) => !exponents[id]?.length)
+    );
+    return short.length
+      ? `no prime exponents in ${short.join(', ')}`
+      : undefined;
+  },
   'controlled-standards': ({ naturalIds, checkDescription }) => {
     const missing = standards.filter((id) => !naturalIds.includes(id));
     const broken = naturalIds.filter((id) => checkDescription(id).length);

@@ -1,0 +1,10 @@
+Nota: Towers of Hanoi in JavaScript, solved recursively
+
+Así es como alguien hace mover-discos con cantidad, origen, destino y auxiliar:
+  Si cantidad es lo mismo que 0, hacer esto:
+    Parar aquí.
+  Hacer mover-discos de (cantidad menos 1, origen, auxiliar, destino).
+  Decir «Move disk » después cantidad después « from » después origen después « to » después destino en una línea.
+  Hacer mover-discos de (cantidad menos 1, auxiliar, destino, origen).
+
+Hacer mover-discos de (4, 1, 3, 2).

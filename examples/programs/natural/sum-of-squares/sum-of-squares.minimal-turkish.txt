@@ -1,0 +1,13 @@
+Not: Sum of squares in JavaScript
+
+Biri toplam-nin-kareler şeyini sınır ile şöyle yapar:
+  Tutar var, bu 0.
+  Sayı var, bu 1.
+  Sayı en çok sınır olduğu zaman bunu çok kez yap:
+    Bundan sonra tutar şimdi tutar artı sayı çarpı sayı olur.
+    Bundan sonra sayı şimdi sayı artı 1 olur.
+  Cevap tutar.
+
+Sınır var, bu 10.
+“Sum of squares from 1 to ” sonra sınır sonra “:” bir satırda söyle.
+Toplam-nin-kareler (sınır) bir satırda söyle.

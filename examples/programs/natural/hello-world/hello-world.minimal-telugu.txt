@@ -1,0 +1,4 @@
+గమనిక: Hello World in JavaScript
+
+గమనిక: print "Hello World!" into console followed by new line symbol by function call
+“Hello World!” ను ఒక పంక్తిలో చెప్పు.

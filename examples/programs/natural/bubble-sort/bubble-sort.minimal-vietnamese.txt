@@ -1,0 +1,12 @@
+Ghi chú: Bubble sort in JavaScript: sort a list of numbers
+
+Có các_số, nó là những thứ này (5, 3, 8, 1, 9, 2, 7).
+Có số_lượng, nó là các_số có bao nhiêu phần.
+Với mọi lượt từ 0 đến số_lượng trừ 1 trừ 1, làm điều này:
+  Với mọi chỉ_số từ 0 đến số_lượng trừ 1 trừ lượt trừ 1, làm điều này:
+    Nếu phần chỉ_số của các_số nhiều hơn phần (chỉ_số cộng 1) của các_số, làm điều này:
+      Có hoán_đổi, nó là phần chỉ_số của các_số.
+      Sau đó, phần chỉ_số của các_số là phần (chỉ_số cộng 1) của các_số.
+      Sau đó, phần (chỉ_số cộng 1) của các_số là hoán_đổi.
+Với mọi vị_trí từ 0 đến số_lượng trừ 1, làm điều này:
+  Nói phần vị_trí của các_số trên một dòng.

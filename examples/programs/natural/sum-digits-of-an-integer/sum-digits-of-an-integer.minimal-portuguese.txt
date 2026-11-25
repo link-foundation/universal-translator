@@ -1,0 +1,10 @@
+Nota: Sum digits of an integer in JavaScript
+
+É assim que alguém faz soma-de-dígitos com número:
+  Há total, é 0.
+  Quando número é mais que 0, fazer isto muitas vezes:
+    Depois disto, total é total mais número módulo 10.
+    Depois disto, número é número dividido por 10.
+  A resposta é total.
+
+Dizer “The digits of 1234567890 sum to ” depois soma-de-dígitos de (1234567890) em uma linha.

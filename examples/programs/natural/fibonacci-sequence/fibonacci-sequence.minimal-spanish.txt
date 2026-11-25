@@ -1,0 +1,13 @@
+Nota: Fibonacci sequence in JavaScript, computed iteratively
+
+Así es como alguien hace fibonacci con cantidad:
+  Hay anterior, es 0.
+  Hay actual, es 1.
+  Para todos los paso desde 0 hasta cantidad menos 1, hacer esto:
+    Hay siguiente, es anterior más actual.
+    Después de esto, anterior es actual.
+    Después de esto, actual es siguiente.
+  La respuesta es anterior.
+
+Para todos los índice desde 0 hasta 20, hacer esto:
+  Decir «fibonacci(» después índice después «) = » después fibonacci de (índice) en una línea.

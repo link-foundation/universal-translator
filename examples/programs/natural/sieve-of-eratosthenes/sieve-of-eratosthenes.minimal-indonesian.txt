@@ -1,0 +1,13 @@
+Catatan: Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+Ada batas, yaitu 100.
+Ada apakah-prima, yaitu (batas ditambah 1) hal seperti 1.
+Setelah ini, bagian 0 dari apakah-prima adalah 0.
+Setelah ini, bagian 1 dari apakah-prima adalah 0.
+Untuk semua bilangan dari 2 sampai batas, lakukan ini:
+  Jika bagian bilangan dari apakah-prima sama dengan 1, lakukan ini:
+    Katakan bilangan pada satu baris.
+    Ada kelipatan, yaitu bilangan dikali bilangan.
+    Ketika kelipatan tidak lebih banyak dari batas, lakukan ini banyak kali:
+      Setelah ini, bagian kelipatan dari apakah-prima adalah 0.
+      Setelah ini, kelipatan adalah kelipatan ditambah bilangan.

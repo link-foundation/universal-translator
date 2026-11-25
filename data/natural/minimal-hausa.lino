@@ -1,0 +1,37 @@
+natural:
+  id: minimal-hausa
+  label: 'Minimal Hausa (NSM semantic primes)'
+  extends: hausa
+  profile: minimal-english
+  source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  templates:
+    function: 'Haka wani yake yin {name} da {parameters}'
+    function-without-parameters: 'Haka wani yake yin {name}'
+    declare: 'Akwai {name}, shi ne {value}'
+    assign: 'Bayan wannan, {name} ya zama {value}'
+    print-line: 'Faɗi {value} a layi ɗaya'
+    print: 'Faɗi {value}'
+    return-value: 'Amsar ita ce {value}'
+    return: 'Tsaya nan'
+    nothing: 'Kada ka yi komai'
+    evaluate: 'Yi {expression}'
+    if: 'Idan {condition}, yi wannan'
+    else-if: 'In ba haka ba, idan {condition}, yi wannan'
+    else: 'In ba haka ba, yi wannan'
+    while: 'Lokacin da {condition}, yi wannan sau da yawa'
+    for: 'Ga kowane {variable} daga {start} zuwa {last}, yi wannan'
+    call-without-arguments: '{callee} ( )'
+    not: 'ba {operand} ba'
+    not-equal: '{left} bai yi daidai da {right} ba'
+    less: '{left} ya gaza {right}'
+    less-or-equal: '{left} bai fi {right} ba'
+    greater: '{left} ya fi {right}'
+    greater-or-equal: '{left} bai gaza {right} ba'
+    array: 'waɗannan abubuwa ({elements})'
+    new-array: 'abubuwa {length} kamar {fill}'
+    element: 'sashe {index} na {array}'
+    length: 'yawan sassan {array}'
+    set-element: 'Bayan wannan, sashe {index} na {name} ya zama {value}'
+  rules:
+    primes: hausa
+    extra-words: da shi ya a layi amsar ita tsaya kada sau ga daga zuwa sannan ko kuma bai gaza korau ƙari ragi raba modulo ƙarya

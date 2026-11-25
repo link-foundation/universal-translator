@@ -1,0 +1,9 @@
+Opmerking: Factorial in JavaScript, defined recursively
+
+Zo doet iemand faculteit met getal:
+  Als getal is niet meer dan 1, doe dit:
+    Het antwoord is 1.
+  Het antwoord is getal maal faculteit van (getal min 1).
+
+Voor alle getal van 0 tot en met 10, doe dit:
+  Zeg getal daarna “! = ” daarna faculteit van (getal) op één regel.

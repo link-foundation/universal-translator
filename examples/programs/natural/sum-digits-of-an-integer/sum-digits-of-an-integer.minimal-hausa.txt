@@ -1,0 +1,10 @@
+Lura: Sum digits of an integer in JavaScript
+
+Haka wani yake yin jimla-na-lambobi da lamba:
+  Akwai duka, shi ne 0.
+  Lokacin da lamba ya fi 0, yi wannan sau da yawa:
+    Bayan wannan, duka ya zama duka ƙari lamba modulo 10.
+    Bayan wannan, lamba ya zama lamba raba da 10.
+  Amsar ita ce duka.
+
+Faɗi “The digits of 1234567890 sum to ” sannan jimla-na-lambobi na (1234567890) a layi ɗaya.
