@@ -394,8 +394,7 @@ impl<'a> Lexer<'a> {
         // literal.
         let prefix = self.syntax.interpolation.iter().find_map(|entry| {
             entry.prefix.filter(|prefix| {
-                self.starts_with(prefix, self.index)
-                    && is_quote(self.at(prefix.chars().count()))
+                self.starts_with(prefix, self.index) && is_quote(self.at(prefix.chars().count()))
             })
         });
         if prefix.is_none() && !is_quote(Some(character)) {
