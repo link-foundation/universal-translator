@@ -5,10 +5,19 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'test-anywhere';
 import { readStandardInput } from '../../bin/universal-translator.js';
+import { itUnless, noPosixShell, sandboxed } from './helpers/skip.js';
 
 const cli = fileURLToPath(
   new URL('../../bin/universal-translator.js', import.meta.url)
 );
+
+// The shell runs the command line with the runtime of this test; Bun and Deno
+// run the file in their own runtimes, which take other arguments.
+const notNode =
+  globalThis.Bun || globalThis.Deno
+    ? 'the pipeline runs the command line with Node'
+    : null;
+const itInShell = itUnless(sandboxed, noPosixShell, notNode);
 
 const again = () =>
   Object.assign(new Error('EAGAIN: resource temporarily unavailable, read'), {
@@ -59,26 +68,22 @@ describe('the command line in pipes', () => {
     expect(() => readStandardInput(readsOf([denied]))).toThrow('denied');
   });
 
-  // Node on a POSIX shell only: Bun and Deno run this file in their own
-  // runtimes.
-  if (!globalThis.Bun && !globalThis.Deno && process.platform !== 'win32') {
-    it('translates text that arrives later through a pipe', async () => {
-      const result = await shell(
-        `(sleep 1; echo 'print(1)') | "$NODE" "$CLI" translate python javascript -`
-      );
-      expect(result.stderr).toBe('');
-      expect(result.stdout).toBe('console.log(1);\n');
-      expect(result.status).toBe(0);
-    });
+  itInShell('translates text that arrives later through a pipe', async () => {
+    const result = await shell(
+      `(sleep 1; echo 'print(1)') | "$NODE" "$CLI" translate python javascript -`
+    );
+    expect(result.stderr).toBe('');
+    expect(result.stdout).toBe('console.log(1);\n');
+    expect(result.status).toBe(0);
+  });
 
-    it('stops quietly when the reader closes the pipe', async () => {
-      // "true" exits before the translator writes, so the write meets a
-      // closed pipe (EPIPE).
-      const result = await shell(
-        `echo 'print(1)' | "$NODE" "$CLI" translate python javascript - | true`
-      );
-      expect(result.stderr).toBe('');
-      expect(result.status).toBe(0);
-    });
-  }
+  itInShell('stops quietly when the reader closes the pipe', async () => {
+    // "true" exits before the translator writes, so the write meets a
+    // closed pipe (EPIPE).
+    const result = await shell(
+      `echo 'print(1)' | "$NODE" "$CLI" translate python javascript - | true`
+    );
+    expect(result.stderr).toBe('');
+    expect(result.status).toBe(0);
+  });
 });
