@@ -1,14 +1,24 @@
 // One select of languages (one entry per language) and, when the language
 // has more than one, a select of its versions: Python 3 or 2, American or
 // British English down to the semantic primes, standards of one's own.
+// With `auto` the first choice is to detect the language of the text.
 
 import { createElement as h } from 'react';
 import { defaultChoice, entryOf } from './languages.js';
 
 const browserLanguages = () => globalThis.navigator?.languages ?? [];
 
-export function LanguagePicker({ id, label, value, entries, onChange, t }) {
-  const entry = entryOf(entries, value) ?? entries[0];
+export function LanguagePicker({
+  id,
+  label,
+  value,
+  entries,
+  onChange,
+  auto,
+  t,
+}) {
+  const detecting = Boolean(auto) && value === 'auto';
+  const entry = detecting ? undefined : (entryOf(entries, value) ?? entries[0]);
   const groups = [
     ['programming', t('picker.programming')],
     ['natural', t('picker.natural')],
@@ -24,15 +34,18 @@ export function LanguagePicker({ id, label, value, entries, onChange, t }) {
         'select',
         {
           id: `${id}-language`,
-          value: entry.id,
+          value: detecting ? 'auto' : entry.id,
           onChange: (event) =>
             onChange(
-              defaultChoice(
-                entries.find((it) => it.id === event.target.value),
-                browserLanguages()
-              )
+              event.target.value === 'auto'
+                ? 'auto'
+                : defaultChoice(
+                    entries.find((it) => it.id === event.target.value),
+                    browserLanguages()
+                  )
             ),
         },
+        auto ? h('option', { value: 'auto' }, auto) : null,
         groups.map(([group, groupLabel]) =>
           h(
             'optgroup',
@@ -44,7 +57,7 @@ export function LanguagePicker({ id, label, value, entries, onChange, t }) {
         )
       )
     ),
-    entry.versions.length > 1 &&
+    entry?.versions.length > 1 &&
       h(
         'label',
         { className: 'field version', htmlFor: `${id}-version` },

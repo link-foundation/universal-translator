@@ -115,7 +115,11 @@ class BaseParser {
       Math.min(this.position + offset, this.tokens.length - 1)
     ];
   }
+  // Reading past the end is a syntax error, so no loop runs on forever.
   next() {
+    if (this.position >= this.tokens.length) {
+      throw new SyntaxError('Unexpected end of program', this.peek().line);
+    }
     return this.tokens[this.position++];
   }
   is(value, offset = 0) {
@@ -204,19 +208,15 @@ class BaseParser {
 
   // Empty lines right before the current token.
   blankLinesBefore() {
-    for (let index = this.position - 1; index >= 0; index -= 1) {
-      const token = this.tokens[index];
-      if (token.type === 'newline') {
-        return token.blank ?? 0;
-      }
-      if (
-        !['indent', 'dedent', ';'].includes(token.value) &&
-        !['indent', 'dedent'].includes(token.type)
-      ) {
-        return 0;
-      }
+    const skipped = (token) =>
+      ['indent', 'dedent', ';'].includes(token.value) ||
+      ['indent', 'dedent'].includes(token.type);
+    let index = this.position - 1;
+    while (index >= 0 && skipped(this.tokens[index])) {
+      index -= 1;
     }
-    return 0;
+    const token = this.tokens[index];
+    return token?.type === 'newline' ? (token.blank ?? 0) : 0;
   }
 
   item() {

@@ -699,3 +699,32 @@ pub fn natural_language_ids() -> Vec<&'static str> {
         .map(|catalog| catalog.ids.iter().map(String::as_str).collect())
         .unwrap_or_default()
 }
+
+/// A language that also reads the given template variants (key -> list of
+/// templates). The written form of every key stays the language's own.
+pub fn with_templates(id: &str, templates: &[(String, Vec<String>)]) -> Result<Language, String> {
+    let mut language = natural_language(id)?.clone();
+    for (key, variants) in templates {
+        if !TEMPLATE_KEYS.contains(&key.as_str()) {
+            return Err(format!("No template \"{key}\" in natural languages"));
+        }
+        let mut merged = language.templates.get(key).cloned().unwrap_or_default();
+        for text in variants {
+            if !merged.contains(text) {
+                merged.push(text.clone());
+            }
+        }
+        let compiled = merged
+            .iter()
+            .map(|text| tokenize(text, &language.spelling(), true))
+            .collect::<Result<Vec<_>, _>>()?;
+        for token in compiled.iter().flatten() {
+            if token.kind == super::tokens::Kind::Word {
+                language.reserved.insert(fold(&token.folded));
+            }
+        }
+        language.compiled.insert(key.clone(), compiled);
+        language.templates.insert(key, merged);
+    }
+    Ok(language)
+}

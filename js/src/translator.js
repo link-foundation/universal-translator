@@ -34,6 +34,9 @@ import {
   translateProgramComments,
 } from './translation/comment-language.js';
 import { createFragmentTranslator } from './translation/fragments.js';
+import { createPartialTranslator } from './translation/partial.js';
+import { createLanguageDetector } from './translation/detect.js';
+import { compileCustomRules } from './translation/custom-rules.js';
 
 const readMachine = (source, from) => machineReaders[from](source);
 
@@ -42,23 +45,81 @@ const modes = ['context-dependent', 'literal', 'same-effect'];
 const applyRules = (tree, rules, context) =>
   rules.reduce((current, rule) => rule(current, context), tree);
 
-export function createGrammarTranslator({
-  parse = parseProgram,
-  understanding = understandingRules,
-  infer = inferTypes,
-  meaning = meaningRules,
-  context = contextRules,
-  layers = [],
-  emit = emitProgram,
-  emitMachineCode = emitMachine,
-  lift = liftProgram,
-  trace = () => {},
-} = {}) {
-  function toMeta(source, from) {
+// The comments can be in a natural language of their own.
+function inCommentLanguage(
+  program,
+  { commentLanguage, commentFrom, translateComment }
+) {
+  return commentLanguage
+    ? translateProgramComments(program, {
+        from: commentFrom,
+        to: commentLanguage,
+        translateComment,
+      })
+    : program;
+}
+
+// A mode, a target and the common library must go together.
+function checkTarget(to, mode, commonLibrary) {
+  if (!modes.includes(mode)) {
+    throw new Error(`Unsupported mode "${mode}"`);
+  }
+  if (commonLibrary && machineTargetIds.includes(to)) {
+    throw new Error(`Machine targets have no common library (${to})`);
+  }
+  const natural = isNaturalLanguage(to);
+  if (natural && commonLibrary) {
+    throw new Error(`Natural languages have no common library (${to})`);
+  }
+  if (!natural) {
+    languageSyntax(to);
+  }
+}
+
+// Machine code is read and written as whole programs only.
+const involvesMachineCode = (from, to) =>
+  machineTargetIds.includes(to) ||
+  (!isNaturalLanguage(from) && languageSyntax(from).machine);
+
+// The result of partial translation for a text translated as a whole.
+function completeResult(text, source) {
+  const lines = source.split('\n').filter((line) => line.trim()).length;
+  return {
+    text,
+    complete: true,
+    errors: [],
+    lines,
+    readLines: lines,
+    coverage: 1,
+  };
+}
+
+export function createGrammarTranslator(settings = {}) {
+  const {
+    parse = parseProgram,
+    understanding = understandingRules,
+    infer = inferTypes,
+    meaning = meaningRules,
+    context = contextRules,
+    layers = [],
+    emit = emitProgram,
+    emitMachineCode = emitMachine,
+    lift = liftProgram,
+    trace = () => {},
+    rules = {},
+  } = settings;
+  // Rules given as data (see translation/custom-rules.js).
+  const custom = compileCustomRules(rules);
+  const metaLayers = [...layers, ...custom.layers];
+
+  function toMeta(text, from) {
+    const source = custom.source(text, from);
     if (isNaturalLanguage(from)) {
       // A controlled natural language is read sentence by sentence straight
       // into the meta language; it has no source details to understand.
-      const read = inferMutability(readNatural(source, from));
+      const read = inferMutability(
+        readNatural(source, from, custom.naturalLanguage(from))
+      );
       trace('read', read);
       const typed = applyRules(infer(read), meaning, {});
       trace('typed', typed);
@@ -92,19 +153,8 @@ export function createGrammarTranslator({
       mode = 'context-dependent',
       commonLibrary = false,
     } = options;
-    if (!modes.includes(mode)) {
-      throw new Error(`Unsupported mode "${mode}"`);
-    }
-    if (commonLibrary && machineTargetIds.includes(to)) {
-      throw new Error(`Machine targets have no common library (${to})`);
-    }
+    checkTarget(to, mode, commonLibrary);
     const natural = isNaturalLanguage(to);
-    if (natural && commonLibrary) {
-      throw new Error(`Natural languages have no common library (${to})`);
-    }
-    if (!natural) {
-      languageSyntax(to);
-    }
     // Words carry no syntax of their own, so a program read from words is
     // adapted as if it had been written in the target language.
     // The rules adapt to the language; only writing depends on its version.
@@ -116,7 +166,9 @@ export function createGrammarTranslator({
     // Custom layers are meta -> meta transformations, so they see the target
     // independent program; context rules then adapt it to the target.
     // The common library route is one more meta layer, run last.
-    const allLayers = commonLibrary ? [...layers, [useCommonLibrary]] : layers;
+    const allLayers = commonLibrary
+      ? [...metaLayers, [useCommonLibrary]]
+      : metaLayers;
     const transformed = allLayers.reduce(
       (current, layer) => applyRules(current, layer, settings),
       meta
@@ -128,20 +180,6 @@ export function createGrammarTranslator({
     const adapted = applyRules(transformed, context, settings);
     trace('adapted', adapted);
     return inCommentLanguage(adapted, options);
-  }
-
-  // The comments can be in a natural language of their own.
-  function inCommentLanguage(
-    program,
-    { commentLanguage, commentFrom, translateComment }
-  ) {
-    return commentLanguage
-      ? translateProgramComments(program, {
-          from: commentFrom,
-          to: commentLanguage,
-          translateComment,
-        })
-      : program;
   }
 
   function translate(source, from, to, options = {}) {
@@ -164,7 +202,10 @@ export function createGrammarTranslator({
   }
 
   // Write an adapted program in a language, a machine target or words.
-  function write(adapted, to) {
+  const write = (adapted, to) => custom.output(writeTarget(adapted, to), to);
+  const emitText = (adapted, to) => custom.output(emit(adapted, to), to);
+
+  function writeTarget(adapted, to) {
     if (isNaturalLanguage(to)) {
       return writeNatural(adapted, to);
     }
@@ -177,7 +218,29 @@ export function createGrammarTranslator({
     return write(adapt(meta, to, options), to);
   }
 
-  const fragments = createFragmentTranslator({ toMeta, adapt, write, emit });
+  const fragments = createFragmentTranslator({
+    toMeta,
+    adapt,
+    write,
+    emit: emitText,
+  });
+  const partial = createPartialTranslator(fragments);
+
+  // Partial translation (the default of the command line, the server and
+  // the web demo) keeps every part it can translate and marks the rest;
+  // all-or-nothing translation throws at the first part it cannot read.
+  function translatePartial(source, from, to, options = {}) {
+    const whole = options.fragment ? fragments.translateFragment : translate;
+    const machine = involvesMachineCode(from, to);
+    try {
+      return completeResult(whole(source, from, to, options), source);
+    } catch (error) {
+      if (machine) {
+        throw error;
+      }
+      return partial.translatePartial(source, from, to, options);
+    }
+  }
 
   return {
     languages: () =>
@@ -197,6 +260,15 @@ export function createGrammarTranslator({
     toMeta,
     fromMeta,
     translate,
+    translatePartial,
+    parsePartial: partial.parsePartial,
+    // The same translator with other data rules.
+    withRules: (other) =>
+      createGrammarTranslator({ ...settings, rules: other }),
+    detectLanguage: createLanguageDetector({
+      parseFragment: fragments.parseFragment,
+      parsePartial: partial.parsePartial,
+    }),
     parseFragment: fragments.parseFragment,
     translateFragment: fragments.translateFragment,
   };
@@ -215,6 +287,25 @@ export function translate(source, from, to, options) {
 export function parseFragment(source, from) {
   defaultTranslator ??= createGrammarTranslator();
   return defaultTranslator.parseFragment(source, from);
+}
+
+// Translate what can be translated and mark the rest, with the default rule
+// layers.
+export function translatePartial(source, from, to, options) {
+  defaultTranslator ??= createGrammarTranslator();
+  return defaultTranslator.translatePartial(source, from, to, options);
+}
+
+// Read what can be read, with the default rule layers.
+export function parsePartial(source, from) {
+  defaultTranslator ??= createGrammarTranslator();
+  return defaultTranslator.parsePartial(source, from);
+}
+
+// Rank the languages a text may be written in, likeliest first.
+export function detectLanguage(source, options) {
+  defaultTranslator ??= createGrammarTranslator();
+  return defaultTranslator.detectLanguage(source, options);
 }
 
 // Translate a fragment with the default rule layers.

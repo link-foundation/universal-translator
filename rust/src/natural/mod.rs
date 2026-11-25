@@ -9,7 +9,9 @@ pub mod rules;
 pub mod tokens;
 pub mod writer;
 
-pub use catalog::{Language, is_natural_language, natural_language, natural_language_ids};
-pub use reader::read_natural;
+pub use catalog::{
+    Language, is_natural_language, natural_language, natural_language_ids, with_templates,
+};
+pub use reader::{read_natural, read_natural_with};
 pub use rules::{SemanticPrime, check_description, check_text, semantic_primes};
 pub use writer::write_natural;

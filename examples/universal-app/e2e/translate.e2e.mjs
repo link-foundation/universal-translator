@@ -3,7 +3,9 @@
 // said in it, the meta language of both texts, random examples (program,
 // function, statement), the comment language, the Standards tab (a
 // vocabulary saved as a standard of one's own, words defined through other
-// words) and the settings panel (skin, scheme, interface language).
+// words), the settings panel (skin, scheme, interface language), the source
+// language detected by default, untranslatable parts listed (or failing the
+// whole text when all-or-nothing is on) and rules from the editor applied.
 //
 // Usage: node examples/universal-app/e2e/translate.e2e.mjs <url> [screenshot.png]
 import assert from 'node:assert/strict';
@@ -111,6 +113,7 @@ async function translatesBetweenVersions() {
   assert.equal(sentence.failed, false, sentence.text);
   assert.match(sentence.text, /console\.log\("Hello World!"\)/);
 
+  await page.check('#all-or-nothing');
   const broken = await translation(
     'javascript',
     'python',
@@ -121,6 +124,58 @@ async function translatesBetweenVersions() {
     true,
     `no error for an open function: ${broken.text}`
   );
+  await page.uncheck('#all-or-nothing');
+}
+
+// The source language is detected by default, parts that cannot be
+// translated are listed, and rules from the visual editor apply.
+async function detectsAndTranslatesPartially() {
+  await page.selectOption('#source-language', 'auto');
+  await choose('target', 'python');
+  await page.fill('#source-text', 'console.log("Auto");\n');
+  await page.waitForSelector('text=print("Auto")');
+  assert.match(
+    await page.locator('#source-language option[value="auto"]').textContent(),
+    /Auto-detect \(JavaScript\)/
+  );
+
+  // Russian comparisons in words.
+  await page.fill(
+    '#source-text',
+    'Если n меньше или равно 1, сделать это:\n  Ничего не делать\n'
+  );
+  await page.waitForSelector('text=if n <= 1:');
+
+  // Partial translation keeps what translates and lists the rest.
+  const partial = await translation(
+    'python',
+    'javascript',
+    'x = 1\nwith open(f) as g:\n    y = 2\nprint(x)\n'
+  );
+  assert.equal(partial.failed, false, partial.text);
+  assert.match(partial.text, /console\.log\(x\)/);
+  assert.match(partial.text, /untranslated \(line 2\)/);
+  assert.match(await page.locator('#untranslated').textContent(), /Line 2: /);
+  if (screenshot) {
+    await page.screenshot({
+      path: screenshot.replace(/\.png$/u, '-partial.png'),
+      fullPage: true,
+    });
+  }
+
+  // A rule from the visual editor changes the translation.
+  await page.click('#add-output');
+  await page.fill('#rule-output-0-find', 'console.log');
+  await page.fill('#rule-output-0-replace', 'print');
+  await page.waitForSelector('#target-text:has-text("print(x)")');
+  if (screenshot) {
+    await page.screenshot({
+      path: screenshot.replace(/\.png$/u, '-rules.png'),
+      fullPage: true,
+    });
+  }
+  await page.click('button[data-action="remove-rule"]');
+  await page.waitForSelector('#target-text:has-text("console.log(x)")');
 }
 
 async function changesTheLeftLanguage() {
@@ -241,6 +296,7 @@ try {
     state: 'attached',
   });
   await translatesBetweenVersions();
+  await detectsAndTranslatesPartially();
   await changesTheLeftLanguage();
   await showsTheMetaLanguage();
   await writesCommentsInAnotherLanguage();
@@ -252,7 +308,7 @@ try {
   await changesTheSettings();
   assert.deepEqual(errors, []);
   console.log(
-    'The web demo translates between languages and versions, shows the meta language, examples, standards and settings'
+    'The web demo translates between languages and versions, detects the source language, translates partially, applies rules, shows the meta language, examples, standards and settings'
   );
 } finally {
   await browser.close();

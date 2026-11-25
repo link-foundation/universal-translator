@@ -597,6 +597,6 @@ class ProgramReader {
   }
 }
 
-export function readNatural(source, id) {
-  return new ProgramReader(naturalLanguage(id)).read(source);
+export function readNatural(source, id, language = naturalLanguage(id)) {
+  return new ProgramReader(language).read(source);
 }

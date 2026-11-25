@@ -21,12 +21,12 @@ natural:
     while: 'While {condition} the program repeats the following'
     for: 'For every {variable} from {start} to {last} the program does the following'
     not: 'it is false that {operand}'
-    equal: '{left} is equal to {right}'
-    not-equal: '{left} is not equal to {right}'
-    less: '{left} is less than {right}'
-    less-or-equal: '{left} is less than or equal to {right}'
-    greater: '{left} is greater than {right}'
-    greater-or-equal: '{left} is greater than or equal to {right}'
+    equal: '{left} is equal to {right}' '{left} = {right}' '{left} == {right}'
+    not-equal: '{left} is not equal to {right}' '{left} != {right}' '{left} ≠ {right}' '{left} <> {right}'
+    less: '{left} is less than {right}' '{left} < {right}'
+    less-or-equal: '{left} is less than or equal to {right}' '{left} <= {right}' '{left} ≤ {right}'
+    greater: '{left} is greater than {right}' '{left} > {right}'
+    greater-or-equal: '{left} is greater than or equal to {right}' '{left} >= {right}' '{left} ≥ {right}'
     set-element: 'The value of item {index} of {name} becomes {value}'
   rules:
     sentence-starts: the there if else while for

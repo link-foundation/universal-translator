@@ -273,3 +273,21 @@ export function naturalLanguage(id) {
 export const isNaturalLanguage = (id) => load().has(id);
 
 export const naturalLanguageIds = () => [...load().keys()];
+
+// A language that also reads the given template variants (key -> list of
+// templates). The written form of every key stays the language's own.
+export function withTemplates(id, templates = {}) {
+  const language = naturalLanguage(id);
+  const merged = { ...language.templates };
+  for (const [key, variants] of Object.entries(templates)) {
+    if (!templateKeys.includes(key)) {
+      throw new Error(`No template "${key}" in natural languages`);
+    }
+    const list = Array.isArray(variants) ? variants : [variants];
+    merged[key] = [
+      ...merged[key],
+      ...list.filter((text) => !merged[key].includes(text)),
+    ];
+  }
+  return compile({ ...language, templates: merged });
+}

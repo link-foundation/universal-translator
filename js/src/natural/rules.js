@@ -55,7 +55,8 @@ function templateWords(language) {
   const words = new Set();
   for (const variants of Object.values(language.compiled)) {
     for (const token of variants.flat()) {
-      if (token.type === 'word') {
+      // Symbols such as "<=" are not words of any vocabulary.
+      if (token.type === 'word' && /\p{L}/u.test(token.folded)) {
         words.add(token.folded);
       }
     }

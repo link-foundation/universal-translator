@@ -57,8 +57,13 @@ describe('universal React example app', () => {
       'baseNaturalLanguageIds()'
     );
     expect(appSource).toContain('languageEntries(translator)');
-    expect(appSource).toContain('translator.translateFragment');
+    expect(appSource).toContain('current.translateFragment');
     expect(appSource).toContain("role: 'alert'");
+    // Auto-detection, partial translation and the rules editor.
+    expect(appSource).toContain("from: 'auto'");
+    expect(appSource).toContain('translatePartial');
+    expect(appSource).toContain("id: 'all-or-nothing'");
+    expect(appSource).toContain('h(RulesEditor');
     expect(workflow).toContain('web-e2e:');
     expect(workflow).toContain('examples/universal-app/e2e/translate.e2e.mjs');
   });
