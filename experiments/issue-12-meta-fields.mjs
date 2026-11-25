@@ -6,14 +6,24 @@ import { createTranslator } from '../js/src/index.js';
 const translator = createTranslator();
 const kinds = new Map();
 function walk(node, owner) {
-  if (Array.isArray(node)) return node.forEach((it) => walk(it, owner));
-  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) {
+    return node.forEach((it) => walk(it, owner));
+  }
+  if (!node || typeof node !== 'object') {
+    return;
+  }
   const kind = node.kind ?? `(${owner})`;
   const fields = kinds.get(kind) ?? new Map();
   kinds.set(kind, fields);
   for (const [key, value] of Object.entries(node)) {
-    if (key === 'kind') continue;
-    const type = Array.isArray(value) ? 'list' : value && typeof value === 'object' ? `node:${value.kind}` : typeof value;
+    if (key === 'kind') {
+      continue;
+    }
+    const type = Array.isArray(value)
+      ? 'list'
+      : value && typeof value === 'object'
+        ? `node:${value.kind}`
+        : typeof value;
     fields.set(key, new Set([...(fields.get(key) ?? []), type]));
     walk(value, key);
   }
@@ -21,11 +31,17 @@ function walk(node, owner) {
 const dir = new URL('./../examples/programs/', import.meta.url);
 for (const file of readdirSync(dir).filter((it) => it.endsWith('.js'))) {
   try {
-    walk(translator.toMeta(readFileSync(new URL(file, dir), 'utf8'), 'javascript'), 'program');
+    walk(
+      translator.toMeta(readFileSync(new URL(file, dir), 'utf8'), 'javascript'),
+      'program'
+    );
   } catch (error) {
     console.error(file, error.message);
   }
 }
 for (const [kind, fields] of kinds) {
-  console.log(kind, [...fields].map(([k, t]) => `${k}=${[...t].join('|')}`).join(' '));
+  console.log(
+    kind,
+    [...fields].map(([k, t]) => `${k}=${[...t].join('|')}`).join(' ')
+  );
 }

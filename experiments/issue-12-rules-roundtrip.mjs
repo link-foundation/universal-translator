@@ -3,7 +3,10 @@
 // Usage: node experiments/issue-12-rules-roundtrip.mjs [file]
 import { readFileSync } from 'node:fs';
 import { deepStrictEqual } from 'node:assert';
-import { formatRules, readRules } from '../js/src/translation/rules-notation.js';
+import {
+  formatRules,
+  readRules,
+} from '../js/src/translation/rules-notation.js';
 
 const text = process.argv[2]
   ? readFileSync(process.argv[2], 'utf8')

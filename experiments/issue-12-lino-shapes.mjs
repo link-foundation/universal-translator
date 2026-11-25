@@ -5,7 +5,9 @@ const show = (link) =>
   link.values?.length
     ? { id: link.id, values: link.values.map(show) }
     : link.id;
-const text = process.argv[2] ?? `rules
+const text =
+  process.argv[2] ??
+  `rules
   source
     rule
       find colour
