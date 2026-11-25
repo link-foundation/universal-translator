@@ -562,10 +562,10 @@ impl Parser {
             return_type = self.type_expression()?;
         }
         // Scala: def name(...): Type = { ... }
-        if let Some(symbol) = self.syntax.body_after {
-            if self.syntax.blocks != Blocks::Indentation {
-                self.accept(symbol);
-            }
+        if let Some(symbol) = self.syntax.body_after
+            && self.syntax.blocks != Blocks::Indentation
+        {
+            self.accept(symbol);
         }
         let mut body = self.block()?;
         self.close_keyword_block()?;

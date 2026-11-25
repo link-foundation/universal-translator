@@ -404,7 +404,7 @@ const C: Syntax = Syntax {
 };
 
 /// Every language the grammar translator describes, in listing order.
-pub const LANGUAGES: [Syntax; 30] = [
+pub static LANGUAGES: [Syntax; 30] = [
     Syntax {
         integer_division: SCRIPT_DIVISION,
         ..JAVASCRIPT
