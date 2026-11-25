@@ -6,6 +6,7 @@
 
 mod ada;
 mod fortran;
+mod matlab;
 mod pascal;
 mod shared;
 mod vb;
@@ -161,6 +162,7 @@ pub(crate) fn emitter_dialect(language: &str) -> &'static dyn EmitterDialect {
     match language {
         "ada" => &ada::Ada,
         "fortran" => &fortran::Fortran,
+        "matlab" => &matlab::Matlab,
         "pascal" => &pascal::Pascal,
         "vb" => &vb::VisualBasic,
         _ => &Plain,
@@ -172,6 +174,7 @@ pub(crate) fn parser_dialect(language: &str) -> &'static dyn ParserDialect {
     match language {
         "ada" => &ada::Ada,
         "fortran" => &fortran::Fortran,
+        "matlab" => &matlab::Matlab,
         "pascal" => &pascal::Pascal,
         "vb" => &vb::VisualBasic,
         _ => &Plain,
