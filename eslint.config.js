@@ -139,6 +139,8 @@ export default [
       'reports/**',
       // Case study raw data files (downloaded from external sources)
       'docs/case-studies/*/data/**',
+      // Downloaded CI logs and API responses kept for issue analysis
+      'dev/log/**',
       // Generated translations, compared byte for byte by the tests
       'examples/programs/translated/**',
       // Fragments with variables they do not declare, and their translations

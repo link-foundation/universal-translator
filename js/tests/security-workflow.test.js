@@ -62,7 +62,7 @@ describe('security workflow', () => {
     );
     expect(codeql).toContain('      actions: read');
     expect(codeql).toContain('      security-events: write');
-    expect(codeql).toContain('uses: actions/checkout@v6');
+    expect(codeql).toContain('uses: actions/checkout@v7');
     expect(codeql).toContain('uses: github/codeql-action/init@v4');
     expect(codeql).toContain('languages: ${{ matrix.language }}');
     expect(codeql).toContain('uses: github/codeql-action/autobuild@v4');
@@ -87,6 +87,13 @@ describe('security workflow', () => {
     expect(dependencyReview).toContain(
       '          comment-summary-in-pr: on-failure'
     );
+    // Scorecards stay in the summary; a low one is not a warning (template).
+    expect(dependencyReview).toContain(
+      '          show-openssf-scorecard: true'
+    );
+    expect(dependencyReview).toContain(
+      '          warn-on-openssf-scorecard-level: 0'
+    );
   });
 
   it('fails closed on high-severity advisories in every npm lock', () => {
@@ -105,19 +112,41 @@ describe('security workflow', () => {
 
     expect(auditedLocks).toEqual(listPackageLocks());
     expect(audit).toContain('    timeout-minutes: 10');
-    expect(audit).toContain('uses: actions/setup-node@v6');
+    expect(audit).toContain('uses: actions/setup-node@v7');
     expect(audit).toContain('node-version: 24');
     expect(audit).toContain('working-directory: ${{ matrix.directory }}');
+    expect(audit).toContain('AUDIT_LEVEL: high');
     expect(audit).toContain(
-      'run: npm audit --package-lock-only --audit-level=high'
+      "AUDIT_FIXABLE_LEVEL: ${{ github.event_name == 'schedule' && 'moderate' || '' }}"
+    );
+    expect(audit).toContain('scripts/npm-audit-report.mjs');
+    // A bare `npm audit --audit-level=high` passes moderate advisories
+    // without a word, which hid the open minimatch and fast-uri alerts.
+    expect(audit).not.toContain('run: npm audit');
+  });
+
+  it('asks the registry about deprecations in every npm lock', () => {
+    const audit = getJobBlock('npm-audit');
+    expect(audit).toContain('- name: Check live npm deprecations');
+    expect(audit).toContain(
+      "DEPRECATED_FAIL: ${{ github.event_name == 'schedule' && 'true' || 'false' }}"
+    );
+    expect(audit).toContain(
+      'scripts/check-deprecated-packages.mjs" package-lock.json'
     );
   });
 });
 
-it('excludes experiments and examples through an explicit CodeQL configuration', () => {
+it('scans shipped examples and skips fixtures and archives in CodeQL', () => {
   expect(workflow).toContain('config-file: ./.github/codeql/codeql-config.yml');
   const config = readFileSync('.github/codeql/codeql-config.yml', 'utf8');
-  expect(config).toContain('paths-ignore:');
-  expect(config).toMatch(/- experiments\b/);
-  expect(config).toMatch(/- examples\b/);
+  const ignored = [...config.matchAll(/^ {2}- (\S+)$/gm)].map(
+    ([, path]) => path
+  );
+  expect(ignored.sort()).toEqual([
+    'dev/log',
+    'docs/case-studies',
+    'examples/programs',
+    'experiments',
+  ]);
 });

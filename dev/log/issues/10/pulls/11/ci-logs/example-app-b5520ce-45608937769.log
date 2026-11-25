@@ -1,0 +1,1632 @@
+Build web app	UNKNOWN STEP	﻿2026-11-25T11:55:47.3776626Z Current runner version: '2.338.2'
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3802016Z ##[group]Runner Image Provisioner
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3802874Z Hosted Compute Agent
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3803515Z Version: 20261111.635
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3804210Z Commit: b8a594ea514ff44cadb5342986c68b1eac6e22ed
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3804947Z Build Date: 2026-11-11T01:49:01Z
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3805655Z Worker ID: {e671072b-c291-46f8-981e-d58ba639e033}
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3806373Z Region: us-east-1
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3806934Z Cloud: AWS
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3807465Z ##[endgroup]
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3809144Z ##[group]Operating System
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3809839Z Ubuntu
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3810470Z 24.04.5
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3810958Z LTS
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3811527Z ##[endgroup]
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3812050Z ##[group]Runner Image
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3812677Z Image: ubuntu-24.04
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3813245Z Version: 20261116.133.1
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3814649Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261116.133/images/ubuntu/Ubuntu2404-Readme.md
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3816334Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261116.133
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3817360Z ##[endgroup]
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3818565Z ##[group]GITHUB_TOKEN Permissions
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3821228Z Contents: read
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3821785Z Metadata: read
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3822373Z Pages: read
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3822888Z ##[endgroup]
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3825077Z Secret source: Actions
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3826012Z Cache mode: write
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.3826906Z Prepare workflow directory
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.4209815Z Prepare all required actions
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.4261193Z Getting action download info
+Build web app	UNKNOWN STEP	2026-11-25T11:55:47.6078747Z Download action repository 'actions/checkout@v6' (SHA:d23441a48e516b6c34aea4fa41551a30e30af803)
+Build web app	UNKNOWN STEP	2026-11-25T11:55:49.0232525Z Download action repository 'actions/setup-node@v6' (SHA:249970729cb0ef3589644e2896645e5dc5ba9c38)
+Build web app	UNKNOWN STEP	2026-11-25T11:55:49.1535144Z Download action repository 'actions/upload-artifact@v7' (SHA:cf430e030ddbb5b0abf93d22962f4752f3646cd9)
+Build web app	UNKNOWN STEP	2026-11-25T11:55:49.3546563Z Download action repository 'actions/configure-pages@v6' (SHA:45bfe0192ca1faeb007ade9deae92b16b8254a0d)
+Build web app	UNKNOWN STEP	2026-11-25T11:55:49.4977493Z Download action repository 'actions/upload-pages-artifact@v5' (SHA:fc324d3547104276b827a68afc52ff2a11cc49c9)
+Build web app	UNKNOWN STEP	2026-11-25T11:55:49.6991412Z Getting action download info
+Build web app	UNKNOWN STEP	2026-11-25T11:55:49.7762733Z Download action repository 'actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f' (SHA:bbbca2ddaa5d8feaa63e36b76fdaad77386f024f)
+Build web app	UNKNOWN STEP	2026-11-25T11:55:50.0215659Z Complete job name: Build web app
+Build web app	UNKNOWN STEP	2026-11-25T11:55:50.0828423Z ##[group]Run actions/checkout@v6
+Build web app	UNKNOWN STEP	2026-11-25T11:55:50.0829180Z with:
+Build web app	UNKNOWN STEP	2026-11-25T11:55:50.0829483Z   persist-credentials: false
+Build web app	UNKNOWN STEP	2026-11-25T11:55:50.0829857Z   repository: link-foundation/universal-translator
+Build web app	UNKNOWN STEP	2026-11-25T11:55:50.0831825Z   token: ***
+Build web app	UNKNOWN STEP	2026-11-25T11:55:50.0832208Z   ssh-strict: true
+Build web app	UNKNOWN STEP	2026-11-25T11:55:50.0832484Z   ssh-user: git
+Build web app	UNKNOWN STEP	2026-11-25T11:55:50.0832845Z   clean: true
+Build web app	UNKNOWN STEP	2026-11-25T11:55:50.0833190Z   sparse-checkout-cone-mode: true
+Build web app	UNKNOWN STEP	2026-11-25T11:55:50.0833493Z   fetch-depth: 1
+Build web app	UNKNOWN STEP	2026-11-25T11:55:50.0833769Z   fetch-tags: false
+Build web app	UNKNOWN STEP	2026-11-25T11:55:50.0834038Z   show-progress: true
+Build web app	UNKNOWN STEP	2026-11-25T11:55:50.0834315Z   lfs: false
+Build web app	UNKNOWN STEP	2026-11-25T11:55:50.0834750Z   submodules: false
+Build web app	UNKNOWN STEP	2026-11-25T11:55:50.0835019Z   set-safe-directory: true
+Build web app	UNKNOWN STEP	2026-11-25T11:55:50.0835325Z   allow-unsafe-pr-checkout: false
+Build web app	UNKNOWN STEP	2026-11-25T11:55:50.0835861Z env:
+Build web app	UNKNOWN STEP	2026-11-25T11:55:50.0836128Z   GIT_CONFIG_COUNT: 1
+Build web app	UNKNOWN STEP	2026-11-25T11:55:50.0836418Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Build web app	UNKNOWN STEP	2026-11-25T11:55:50.0836811Z   GIT_CONFIG_VALUE_0: main
+Build web app	UNKNOWN STEP	2026-11-25T11:55:50.0837085Z ##[endgroup]
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.0745791Z Syncing repository: link-foundation/universal-translator
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.0747098Z ##[group]Getting Git version info
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.0747531Z Working directory is '/home/runner/work/universal-translator/universal-translator'
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.0748169Z [command]/usr/bin/git version
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.3954087Z git version 2.56.1
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.3969913Z ##[endgroup]
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.3980549Z Temporarily overriding HOME='/home/runner/work/_temp/d9e252a7-da6e-40b5-9be3-0268aeb92b32' before making global git config changes
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.3981297Z Adding repository directory to the temporary git global config as a safe directory
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.3984449Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/universal-translator/universal-translator
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.4327023Z Deleting the contents of '/home/runner/work/universal-translator/universal-translator'
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.4333595Z ##[group]Determining repository object format
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.4334824Z ##[endgroup]
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.4335468Z ##[group]Initializing the repository
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.4339091Z [command]/usr/bin/git init /home/runner/work/universal-translator/universal-translator
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.4463180Z Initialized empty Git repository in /home/runner/work/universal-translator/universal-translator/.git/
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.4471730Z [command]/usr/bin/git remote add origin https://github.com/link-foundation/universal-translator
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.4511396Z ##[endgroup]
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.4511940Z ##[group]Disabling automatic garbage collection
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.4514778Z [command]/usr/bin/git config --local gc.auto 0
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.4536129Z ##[endgroup]
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.4536738Z ##[group]Setting up auth
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.4537220Z Removing SSH command configuration
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.4541585Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.4568125Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.8382518Z Removing HTTP extra header
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.8388267Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.8415597Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.8564322Z Removing includeIf entries pointing to credentials config files
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.8569339Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.8592961Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.8749155Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-2f95e165-2239-4aa4-b2fe-6fd12e7e006f.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.8775297Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/universal-translator/universal-translator/.git.path /home/runner/work/_temp/git-credentials-2f95e165-2239-4aa4-b2fe-6fd12e7e006f.config
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.8797372Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/universal-translator/universal-translator/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-2f95e165-2239-4aa4-b2fe-6fd12e7e006f.config
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.8825986Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-2f95e165-2239-4aa4-b2fe-6fd12e7e006f.config
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.8847279Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-2f95e165-2239-4aa4-b2fe-6fd12e7e006f.config
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.8865636Z ##[endgroup]
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.8866191Z ##[group]Fetching the repository
+Build web app	UNKNOWN STEP	2026-11-25T11:55:53.8872546Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +b5520ce7123566d1d640f2bccd4cf4ce5405b1e2:refs/remotes/origin/main
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.3657968Z From https://github.com/link-foundation/universal-translator
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.3658702Z  * [new ref]         b5520ce7123566d1d640f2bccd4cf4ce5405b1e2 -> origin/main
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.3705113Z [command]/usr/bin/git branch --list --remote origin/main
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.3705492Z   origin/main
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.3712950Z [command]/usr/bin/git rev-parse refs/remotes/origin/main
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.3732577Z b5520ce7123566d1d640f2bccd4cf4ce5405b1e2
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.3735929Z ##[endgroup]
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.3736462Z ##[group]Determining the checkout info
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.3737063Z ##[endgroup]
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.3743974Z [command]/usr/bin/git sparse-checkout disable
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.3793224Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.3815640Z ##[group]Checking out the ref
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.3819399Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.4969446Z Reset branch 'main'
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.4973558Z branch 'main' set up to track 'origin/main'.
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.4978522Z ##[endgroup]
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5013244Z [command]/usr/bin/git log -1 --format=%H
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5033015Z b5520ce7123566d1d640f2bccd4cf4ce5405b1e2
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5040429Z ##[group]Removing auth
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5040923Z Removing SSH command configuration
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5043503Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5066017Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5217932Z Removing HTTP extra header
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5220916Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5245111Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5394162Z Removing includeIf entries pointing to credentials config files
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5396860Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5417089Z includeif.gitdir:/home/runner/work/universal-translator/universal-translator/.git.path
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5417776Z includeif.gitdir:/home/runner/work/universal-translator/universal-translator/.git/worktrees/*.path
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5418268Z includeif.gitdir:/github/workspace/.git.path
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5419244Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5424578Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/universal-translator/universal-translator/.git.path
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5443122Z /home/runner/work/_temp/git-credentials-2f95e165-2239-4aa4-b2fe-6fd12e7e006f.config
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5449415Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/universal-translator/universal-translator/.git.path /home/runner/work/_temp/git-credentials-2f95e165-2239-4aa4-b2fe-6fd12e7e006f.config
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5473852Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/universal-translator/universal-translator/.git/worktrees/*.path
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5493896Z /home/runner/work/_temp/git-credentials-2f95e165-2239-4aa4-b2fe-6fd12e7e006f.config
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5502024Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/universal-translator/universal-translator/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-2f95e165-2239-4aa4-b2fe-6fd12e7e006f.config
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5523333Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5540316Z /github/runner_temp/git-credentials-2f95e165-2239-4aa4-b2fe-6fd12e7e006f.config
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5544740Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-2f95e165-2239-4aa4-b2fe-6fd12e7e006f.config
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5567474Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5583402Z /github/runner_temp/git-credentials-2f95e165-2239-4aa4-b2fe-6fd12e7e006f.config
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5589320Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-2f95e165-2239-4aa4-b2fe-6fd12e7e006f.config
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5612429Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5755237Z Removing credentials config '/home/runner/work/_temp/git-credentials-2f95e165-2239-4aa4-b2fe-6fd12e7e006f.config'
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5761135Z ##[endgroup]
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5954181Z ##[group]Run actions/setup-node@v6
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5954443Z with:
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5954743Z   node-version: 24.x
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5955003Z   cache: npm
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5955323Z   cache-dependency-path: examples/universal-app/package-lock.json
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5955660Z   check-latest: false
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5957419Z   token: ***
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5957687Z   package-manager-cache: true
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5957966Z env:
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5958447Z   GIT_CONFIG_COUNT: 1
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5958683Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5959140Z   GIT_CONFIG_VALUE_0: main
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.5959423Z ##[endgroup]
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.9654798Z Found in cache @ /opt/hostedtoolcache/node/24.22.3/x64
+Build web app	UNKNOWN STEP	2026-11-25T11:55:54.9655550Z ##[group]Environment details
+Build web app	UNKNOWN STEP	2026-11-25T11:55:59.2000754Z node: v24.22.3
+Build web app	UNKNOWN STEP	2026-11-25T11:55:59.2001230Z npm: 11.19.1
+Build web app	UNKNOWN STEP	2026-11-25T11:55:59.2001449Z yarn: 1.22.22
+Build web app	UNKNOWN STEP	2026-11-25T11:55:59.2001992Z ##[endgroup]
+Build web app	UNKNOWN STEP	2026-11-25T11:55:59.2014030Z [command]/opt/hostedtoolcache/node/24.22.3/x64/bin/npm config get cache
+Build web app	UNKNOWN STEP	2026-11-25T11:55:59.5584583Z /home/runner/.npm
+Build web app	UNKNOWN STEP	2026-11-25T11:55:59.6636475Z Cache hit for: node-cache-Linux-x64-npm-cca4affaf912947db0812b6214d8a78ad74b52da9e5b1f9516e07f8db050b216
+Build web app	UNKNOWN STEP	2026-11-25T11:56:00.3339126Z Received 39644661 of 39644661 (100.0%), 74.9 MBs/sec
+Build web app	UNKNOWN STEP	2026-11-25T11:56:00.3339873Z Cache Size: ~38 MB (39644661 B)
+Build web app	UNKNOWN STEP	2026-11-25T11:56:00.3358155Z [command]/usr/bin/tar -xf /home/runner/work/_temp/ef48e9b7-931d-425a-a7ad-4ce04d9f4325/cache.tzst -P -C /home/runner/work/universal-translator/universal-translator --use-compress-program unzstd
+Build web app	UNKNOWN STEP	2026-11-25T11:56:00.3817501Z Cache restored successfully
+Build web app	UNKNOWN STEP	2026-11-25T11:56:00.3833205Z Cache restored from key: node-cache-Linux-x64-npm-cca4affaf912947db0812b6214d8a78ad74b52da9e5b1f9516e07f8db050b216
+Build web app	UNKNOWN STEP	2026-11-25T11:56:00.4811916Z ##[group]Run npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+Build web app	UNKNOWN STEP	2026-11-25T11:56:00.4812501Z ^[[36;1mnpm ci --omit=dev --ignore-scripts --no-audit --no-fund^[[0m
+Build web app	UNKNOWN STEP	2026-11-25T11:56:00.4812912Z ^[[36;1mnpm ci --prefix examples/universal-app --no-audit --no-fund^[[0m
+Build web app	UNKNOWN STEP	2026-11-25T11:56:00.6463414Z shell: /usr/bin/bash -e {0}
+Build web app	UNKNOWN STEP	2026-11-25T11:56:00.6463762Z env:
+Build web app	UNKNOWN STEP	2026-11-25T11:56:00.6464041Z   GIT_CONFIG_COUNT: 1
+Build web app	UNKNOWN STEP	2026-11-25T11:56:00.6464337Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Build web app	UNKNOWN STEP	2026-11-25T11:56:00.6464606Z   GIT_CONFIG_VALUE_0: main
+Build web app	UNKNOWN STEP	2026-11-25T11:56:00.6464911Z ##[endgroup]
+Build web app	UNKNOWN STEP	2026-11-25T11:56:02.2012961Z 
+Build web app	UNKNOWN STEP	2026-11-25T11:56:02.2023915Z added 27 packages in 2s
+Build web app	UNKNOWN STEP	2026-11-25T11:56:03.3313108Z npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+Build web app	UNKNOWN STEP	2026-11-25T11:56:03.3502752Z npm warn deprecated rimraf@2.6.3: Rimraf versions prior to v4 are no longer supported
+Build web app	UNKNOWN STEP	2026-11-25T11:56:03.4101517Z npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+Build web app	UNKNOWN STEP	2026-11-25T11:56:03.5166604Z npm warn deprecated boolean@3.2.0: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+Build web app	UNKNOWN STEP	2026-11-25T11:56:04.4062220Z 
+Build web app	UNKNOWN STEP	2026-11-25T11:56:04.4063706Z added 406 packages in 2s
+Build web app	UNKNOWN STEP	2026-11-25T11:56:04.4284879Z ##[group]Run npm run example:web:build
+Build web app	UNKNOWN STEP	2026-11-25T11:56:04.4285228Z ^[[36;1mnpm run example:web:build^[[0m
+Build web app	UNKNOWN STEP	2026-11-25T11:56:04.4311733Z shell: /usr/bin/bash -e {0}
+Build web app	UNKNOWN STEP	2026-11-25T11:56:04.4312008Z env:
+Build web app	UNKNOWN STEP	2026-11-25T11:56:04.4312308Z   GIT_CONFIG_COUNT: 1
+Build web app	UNKNOWN STEP	2026-11-25T11:56:04.4312606Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Build web app	UNKNOWN STEP	2026-11-25T11:56:04.4312942Z   GIT_CONFIG_VALUE_0: main
+Build web app	UNKNOWN STEP	2026-11-25T11:56:04.4313207Z   GITHUB_PAGES: true
+Build web app	UNKNOWN STEP	2026-11-25T11:56:04.4313571Z   VITE_REPOSITORY_URL: https://github.com/link-foundation/universal-translator
+Build web app	UNKNOWN STEP	2026-11-25T11:56:04.4313928Z ##[endgroup]
+Build web app	UNKNOWN STEP	2026-11-25T11:56:04.5046472Z 
+Build web app	UNKNOWN STEP	2026-11-25T11:56:04.5047008Z > @link-foundation/universal-translator@0.12.0 example:web:build
+Build web app	UNKNOWN STEP	2026-11-25T11:56:04.5047511Z > npm --prefix examples/universal-app run build
+Build web app	UNKNOWN STEP	2026-11-25T11:56:04.5047834Z 
+Build web app	UNKNOWN STEP	2026-11-25T11:56:04.5745963Z 
+Build web app	UNKNOWN STEP	2026-11-25T11:56:04.5746392Z > universal-example-app@0.1.0 build
+Build web app	UNKNOWN STEP	2026-11-25T11:56:04.5746799Z > vite build
+Build web app	UNKNOWN STEP	2026-11-25T11:56:04.5746939Z 
+Build web app	UNKNOWN STEP	2026-11-25T11:56:05.2451639Z ^[[36mvite v6.4.6 ^[[32mbuilding for production...^[[36m^[[39m
+Build web app	UNKNOWN STEP	2026-11-25T11:56:05.2874672Z transforming...
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.0575196Z ^[[32m✓^[[39m 65 modules transformed.
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.2118408Z rendering chunks...
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.2196818Z computing gzip size...
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.3470391Z ^[[2mdist/^[[22m^[[32mindex.html                 ^[[39m^[[1m^[[2m  0.66 kB^[[22m^[[1m^[[22m^[[2m │ gzip:   0.37 kB^[[22m
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.3471303Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[35mindex-CcCU2CWd.css  ^[[39m^[[1m^[[2m  3.41 kB^[[22m^[[1m^[[22m^[[2m │ gzip:   1.34 kB^[[22m
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.3472056Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mindex-D1vj6JX0.js   ^[[39m^[[1m^[[33m582.05 kB^[[39m^[[22m^[[2m │ gzip: 165.54 kB^[[22m
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.3472747Z ^[[33m
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.3473214Z (!) Some chunks are larger than 500 kB after minification. Consider:
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.3473815Z - Using dynamic import() to code-split the application
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.3474542Z - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.3475315Z - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.^[[39m
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.3475770Z ^[[32m✓ built in 1.08s^[[39m
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.3823746Z ##[group]Run actions/upload-artifact@v7
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.3824031Z with:
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.3824297Z   name: universal-example-web
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.3824585Z   path: examples/universal-app/dist
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.3824841Z   if-no-files-found: error
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.3825114Z   compression-level: 6
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.3825375Z   overwrite: false
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.3825617Z   include-hidden-files: false
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.3825873Z   archive: true
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.3826071Z env:
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.3826339Z   GIT_CONFIG_COUNT: 1
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.3826578Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.3826853Z   GIT_CONFIG_VALUE_0: main
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.3827097Z ##[endgroup]
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.4947308Z With the provided path, there will be 4 files uploaded
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.4948296Z Artifact name is valid!
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.4949123Z Root directory input is valid!
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.6740903Z Uploading artifact: universal-example-web.zip
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.6767840Z Beginning upload of artifact content to blob storage
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.8373405Z Uploaded bytes 167888
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.8516424Z Finished uploading artifact content to blob storage!
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.8517479Z SHA256 digest of uploaded artifact is 25d1eb3bbbe9da3d2b45e4017f7de6895e3a5f0d3ea17fa839b44022e297549e
+Build web app	UNKNOWN STEP	2026-11-25T11:56:06.8522069Z Finalizing artifact upload
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.2072385Z Artifact universal-example-web successfully finalized. Artifact ID 15018244147
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.2073521Z Artifact universal-example-web has been successfully uploaded! Final size is 167888 bytes. Artifact ID is 15018244147
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.2075506Z Artifact download URL: https://github.com/link-foundation/universal-translator/actions/runs/45608937769/artifacts/15018244147
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.2192008Z ##[group]Run actions/configure-pages@v6
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.2192418Z with:
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.2194236Z   token: ***
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.2194471Z   enablement: false
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.2194732Z env:
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.2194941Z   GIT_CONFIG_COUNT: 1
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.2195221Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.2195494Z   GIT_CONFIG_VALUE_0: main
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.2195770Z ##[endgroup]
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5851397Z ##[group]Run actions/upload-pages-artifact@v5
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5851713Z with:
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5851987Z   path: examples/universal-app/dist
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5852277Z   name: github-pages
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5852517Z   retention-days: 1
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5852798Z   include-hidden-files: false
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5853052Z env:
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5853285Z   GIT_CONFIG_COUNT: 1
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5853556Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5853853Z   GIT_CONFIG_VALUE_0: main
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5854143Z   GITHUB_PAGES: true
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5854418Z ##[endgroup]
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5903589Z ##[start-action display=Archive artifact;id=__actions_upload-pages-artifact.__run]
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5929500Z ##[group]Run echo ::group::Archive artifact
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5929862Z ^[[36;1mecho ::group::Archive artifact^[[0m
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5930134Z ^[[36;1mtar \^[[0m
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5930383Z ^[[36;1m  --dereference --hard-dereference \^[[0m
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5930763Z ^[[36;1m  --directory "$INPUT_PATH" \^[[0m
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5931077Z ^[[36;1m  -cvf "$RUNNER_TEMP/artifact.tar" \^[[0m
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5931379Z ^[[36;1m  --exclude=.git \^[[0m
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5931649Z ^[[36;1m  --exclude=.github \^[[0m
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5931904Z ^[[36;1m  --exclude=.[^/]* \^[[0m
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5932163Z ^[[36;1m  .^[[0m
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5932406Z ^[[36;1mecho ::endgroup::^[[0m
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5947378Z shell: /usr/bin/sh -e {0}
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5947670Z env:
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5947891Z   GIT_CONFIG_COUNT: 1
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5948182Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5948454Z   GIT_CONFIG_VALUE_0: main
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5949223Z   GITHUB_PAGES: true
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5949544Z   INPUT_PATH: examples/universal-app/dist
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5949809Z ##[endgroup]
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5977771Z ##[group]Archive artifact
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5987568Z ./
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5987917Z ./index.html
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5988292Z ./favicon.svg
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5988578Z ./assets/
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5989101Z ./assets/index-D1vj6JX0.js
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5990311Z ./assets/index-CcCU2CWd.css
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.5991944Z ##[endgroup]
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.6004157Z ##[end-action id=__actions_upload-pages-artifact.__run;outcome=success;conclusion=success;duration_ms=9]
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.6007030Z ##[start-action display=Archive artifact;id=__actions_upload-pages-artifact.__run_2]
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.6011721Z ##[end-action id=__actions_upload-pages-artifact.__run_2;outcome=skipped;conclusion=skipped;duration_ms=0]
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.6014010Z ##[start-action display=Archive artifact;id=__actions_upload-pages-artifact.__run_3]
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.6017240Z ##[end-action id=__actions_upload-pages-artifact.__run_3;outcome=skipped;conclusion=skipped;duration_ms=0]
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.6019151Z ##[start-action display=Upload artifact;id=__actions_upload-pages-artifact.upload-artifact]
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.6048514Z ##[group]Run actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.6049123Z with:
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.6049337Z   name: github-pages
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.6049630Z   path: /home/runner/work/_temp/artifact.tar
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.6049893Z   retention-days: 1
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.6050120Z   if-no-files-found: error
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.6050496Z   compression-level: 6
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.6050707Z   overwrite: false
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.6050983Z   include-hidden-files: false
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.6051221Z   archive: true
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.6051428Z env:
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.6051639Z   GIT_CONFIG_COUNT: 1
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.6051883Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.6052143Z   GIT_CONFIG_VALUE_0: main
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.6052378Z   GITHUB_PAGES: true
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.6052603Z ##[endgroup]
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.7134106Z With the provided path, there will be 1 file uploaded
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.7137370Z Artifact name is valid!
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.7137956Z Root directory input is valid!
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.9873607Z Uploading artifact: github-pages.zip
+Build web app	UNKNOWN STEP	2026-11-25T11:56:07.9899289Z Beginning upload of artifact content to blob storage
+Build web app	UNKNOWN STEP	2026-11-25T11:56:08.0588414Z Uploaded bytes 167812
+Build web app	UNKNOWN STEP	2026-11-25T11:56:08.0735623Z Finished uploading artifact content to blob storage!
+Build web app	UNKNOWN STEP	2026-11-25T11:56:08.0736495Z SHA256 digest of uploaded artifact is bd208aa310ccca41e30d9b63e20f27e6772f761492dc62834a405fadfdb17c7a
+Build web app	UNKNOWN STEP	2026-11-25T11:56:08.0737214Z Finalizing artifact upload
+Build web app	UNKNOWN STEP	2026-11-25T11:56:08.4330214Z Artifact github-pages successfully finalized. Artifact ID 15018632484
+Build web app	UNKNOWN STEP	2026-11-25T11:56:08.4331392Z Artifact github-pages has been successfully uploaded! Final size is 167812 bytes. Artifact ID is 15018632484
+Build web app	UNKNOWN STEP	2026-11-25T11:56:08.4332355Z Artifact download URL: https://github.com/link-foundation/universal-translator/actions/runs/45608937769/artifacts/15018632484
+Build web app	UNKNOWN STEP	2026-11-25T11:56:08.4391046Z ##[end-action id=__actions_upload-pages-artifact.upload-artifact;outcome=success;conclusion=success;duration_ms=837]
+Build web app	UNKNOWN STEP	2026-11-25T11:56:08.4481220Z Post job cleanup.
+Build web app	UNKNOWN STEP	2026-11-25T11:56:08.5362450Z Cache hit occurred on the primary key node-cache-Linux-x64-npm-cca4affaf912947db0812b6214d8a78ad74b52da9e5b1f9516e07f8db050b216, not saving cache.
+Build web app	UNKNOWN STEP	2026-11-25T11:56:08.5455611Z Post job cleanup.
+Build web app	UNKNOWN STEP	2026-11-25T11:56:08.6090973Z [command]/usr/bin/git version
+Build web app	UNKNOWN STEP	2026-11-25T11:56:08.6119366Z git version 2.56.1
+Build web app	UNKNOWN STEP	2026-11-25T11:56:08.6144863Z Temporarily overriding HOME='/home/runner/work/_temp/631bf29d-3b94-48f9-9f9c-13bf5f1424e2' before making global git config changes
+Build web app	UNKNOWN STEP	2026-11-25T11:56:08.6146136Z Adding repository directory to the temporary git global config as a safe directory
+Build web app	UNKNOWN STEP	2026-11-25T11:56:08.6149711Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/universal-translator/universal-translator
+Build web app	UNKNOWN STEP	2026-11-25T11:56:08.6170887Z Removing SSH command configuration
+Build web app	UNKNOWN STEP	2026-11-25T11:56:08.6175780Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Build web app	UNKNOWN STEP	2026-11-25T11:56:08.6199976Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Build web app	UNKNOWN STEP	2026-11-25T11:56:08.6372660Z Removing HTTP extra header
+Build web app	UNKNOWN STEP	2026-11-25T11:56:08.6373405Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Build web app	UNKNOWN STEP	2026-11-25T11:56:08.6396918Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Build web app	UNKNOWN STEP	2026-11-25T11:56:08.6557097Z Removing includeIf entries pointing to credentials config files
+Build web app	UNKNOWN STEP	2026-11-25T11:56:08.6563021Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Build web app	UNKNOWN STEP	2026-11-25T11:56:08.6593703Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Build web app	UNKNOWN STEP	2026-11-25T11:56:08.6874273Z Cleaning up orphan processes
+Regenerate Preview Images	UNKNOWN STEP	﻿2026-11-25T11:55:47.4601430Z Current runner version: '2.338.2'
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4625561Z ##[group]Runner Image Provisioner
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4626457Z Hosted Compute Agent
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4627061Z Version: 20261111.635
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4627696Z Commit: b8a594ea514ff44cadb5342986c68b1eac6e22ed
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4628440Z Build Date: 2026-11-11T01:49:01Z
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4629155Z Worker ID: {a8a2896b-77d2-43ba-8692-21bf753c5107}
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4629996Z Region: us-east-1
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4630578Z Cloud: AWS
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4631077Z ##[endgroup]
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4632608Z ##[group]Operating System
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4633282Z Ubuntu
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4633800Z 24.04.5
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4634324Z LTS
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4634810Z ##[endgroup]
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4635567Z ##[group]Runner Image
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4636271Z Image: ubuntu-24.04
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4636873Z Version: 20261116.133.1
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4638216Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261116.133/images/ubuntu/Ubuntu2404-Readme.md
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4639973Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261116.133
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4641139Z ##[endgroup]
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4642300Z ##[group]GITHUB_TOKEN Permissions
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4644711Z Contents: write
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4645551Z Metadata: read
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4646142Z ##[endgroup]
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4648390Z Secret source: Actions
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4649356Z Cache mode: write
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.4650268Z Prepare workflow directory
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.5071488Z Prepare all required actions
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.5122515Z Getting action download info
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:47.6527471Z Download action repository 'actions/checkout@v6' (SHA:d23441a48e516b6c34aea4fa41551a30e30af803)
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:48.9734992Z Download action repository 'actions/upload-artifact@v7' (SHA:cf430e030ddbb5b0abf93d22962f4752f3646cd9)
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:49.2381424Z Complete job name: Regenerate Preview Images
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:49.2863280Z ##[group]Checking docker version
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:49.2873683Z ##[command]/usr/bin/docker version --format '{{.Server.APIVersion}}'
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:50.4474374Z '1.48'
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:50.4482220Z Docker daemon API version: '1.48'
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:50.4482702Z ##[command]/usr/bin/docker version --format '{{.Client.APIVersion}}'
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:50.4610207Z '1.48'
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:50.4618114Z Docker client API version: '1.48'
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:50.4622251Z ##[endgroup]
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:50.4623967Z ##[group]Clean up resources from previous jobs
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:50.4627566Z ##[command]/usr/bin/docker ps --all --quiet --no-trunc --filter "label=132f78"
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:50.4741826Z ##[command]/usr/bin/docker network prune --force --filter "label=132f78"
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:50.4838585Z ##[endgroup]
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:50.4839005Z ##[group]Create local container network
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:50.4845871Z ##[command]/usr/bin/docker network create --label 132f78 github_network_46d2676575a54d198ac27c5a87e4fe34
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:50.5183792Z 3bdc7a9c0438693da6cf360c9b8bd6a76e60ad9dabdb7579fdf0793392ba4213
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:50.5195600Z ##[endgroup]
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:50.5215048Z ##[group]Starting job container
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:50.5230922Z ##[command]/usr/bin/docker pull mcr.microsoft.com/playwright@sha256:b0ab6f3cb99aa7803adbc14d9027ec1785fc6e433b97e134e0f8fe61683b6b53
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:50.6231956Z mcr.microsoft.com/playwright@sha256:b0ab6f3cb99aa7803adbc14d9027ec1785fc6e433b97e134e0f8fe61683b6b53: Pulling from playwright
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:50.6636383Z 18dbadc1f2f9: Pulling fs layer
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:50.6636767Z 0087bd18691f: Pulling fs layer
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:50.6637049Z b59ffadf3f32: Pulling fs layer
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:50.6637387Z 824c9c26fa20: Pulling fs layer
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:50.6637667Z 824c9c26fa20: Waiting
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:50.7419317Z b59ffadf3f32: Verifying Checksum
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:50.7419940Z b59ffadf3f32: Download complete
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:50.8040791Z 18dbadc1f2f9: Verifying Checksum
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:50.8041315Z 18dbadc1f2f9: Download complete
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:51.1428734Z 0087bd18691f: Verifying Checksum
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:51.1429439Z 0087bd18691f: Download complete
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:51.4967159Z 18dbadc1f2f9: Pull complete
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:53.6970969Z 0087bd18691f: Pull complete
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:53.7091168Z b59ffadf3f32: Pull complete
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:55:53.9368354Z 824c9c26fa20: Verifying Checksum
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:03.0805439Z 824c9c26fa20: Download complete
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:03.0806059Z 824c9c26fa20: Pull complete
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:03.0827288Z Digest: sha256:b0ab6f3cb99aa7803adbc14d9027ec1785fc6e433b97e134e0f8fe61683b6b53
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:03.0834829Z Status: Downloaded newer image for mcr.microsoft.com/playwright@sha256:b0ab6f3cb99aa7803adbc14d9027ec1785fc6e433b97e134e0f8fe61683b6b53
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:03.0846508Z mcr.microsoft.com/playwright@sha256:b0ab6f3cb99aa7803adbc14d9027ec1785fc6e433b97e134e0f8fe61683b6b53
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:03.0903579Z ##[command]/usr/bin/docker create --name ddc336847a8e4d8dabee3ad58ecabc18_mcrmicrosoftcomplaywrightsha256b0ab6f3cb99aa7803adbc14d9027ec1785fc6e433b97e134e0f8fe61683b6b53_2aed70 --label 132f78 --workdir /__w/universal-translator/universal-translator --network github_network_46d2676575a54d198ac27c5a87e4fe34  -e "HOME=/github/home" -e GITHUB_ACTIONS=true -e CI=true -v "/var/run/docker.sock":"/var/run/docker.sock" -v "/home/runner/work":"/__w" -v "/home/runner/actions-runner/cached/2.338.2/externals":"/__e":ro -v "/home/runner/work/_temp":"/__w/_temp" -v "/home/runner/work/_actions":"/__w/_actions" -v "/opt/hostedtoolcache":"/__t" -v "/home/runner/work/_temp/_github_home":"/github/home" -v "/home/runner/work/_temp/_github_workflow":"/github/workflow" --entrypoint "tail" mcr.microsoft.com/playwright@sha256:b0ab6f3cb99aa7803adbc14d9027ec1785fc6e433b97e134e0f8fe61683b6b53 "-f" "/dev/null"
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.4318774Z 93bb9287495467023b0a0482e5c607edb95b1dd69ea830a086505b4b1fbd3f96
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.4337931Z ##[command]/usr/bin/docker start 93bb9287495467023b0a0482e5c607edb95b1dd69ea830a086505b4b1fbd3f96
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9513490Z 93bb9287495467023b0a0482e5c607edb95b1dd69ea830a086505b4b1fbd3f96
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9527294Z ##[command]/usr/bin/docker ps --all --filter id=93bb9287495467023b0a0482e5c607edb95b1dd69ea830a086505b4b1fbd3f96 --filter status=running --no-trunc --format "{{.ID}} {{.Status}}"
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9625526Z 93bb9287495467023b0a0482e5c607edb95b1dd69ea830a086505b4b1fbd3f96 Up Less than a second
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9638154Z ##[command]/usr/bin/docker inspect --format "{{range .Config.Env}}{{println .}}{{end}}" 93bb9287495467023b0a0482e5c607edb95b1dd69ea830a086505b4b1fbd3f96
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9735592Z HOME=/github/home
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9735973Z GITHUB_ACTIONS=true
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9736198Z CI=true
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9736570Z PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9736988Z LANG=C.UTF-8
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9737240Z LC_ALL=C.UTF-8
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9737621Z PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9749072Z ##[endgroup]
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9756318Z ##[group]Waiting for all services to be ready
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9757668Z ##[endgroup]
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9974564Z ##[group]Run actions/checkout@v6
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9974986Z with:
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9975590Z   ref: main
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9977616Z   token: ***
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9977847Z   fetch-depth: 0
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9978084Z   persist-credentials: false
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9978365Z   repository: link-foundation/universal-translator
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9978705Z   ssh-strict: true
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9978926Z   ssh-user: git
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9979132Z   clean: true
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9979451Z   sparse-checkout-cone-mode: true
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9979725Z   fetch-tags: false
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9979973Z   show-progress: true
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9980188Z   lfs: false
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9980391Z   submodules: false
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9980631Z   set-safe-directory: true
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9980881Z   allow-unsafe-pr-checkout: false
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9981360Z env:
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9981719Z   GIT_CONFIG_COUNT: 1
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9982138Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9982416Z   GIT_CONFIG_VALUE_0: main
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9982677Z   PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:06.9982956Z ##[endgroup]
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:07.0030646Z ##[command]/usr/bin/docker exec  93bb9287495467023b0a0482e5c607edb95b1dd69ea830a086505b4b1fbd3f96 sh -c "cat /etc/*release | grep ^ID"
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:10.7714394Z Syncing repository: link-foundation/universal-translator
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:10.7716426Z ##[group]Getting Git version info
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:10.7717123Z Working directory is '/__w/universal-translator/universal-translator'
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:10.7717910Z [command]/usr/bin/git version
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:10.7718332Z git version 2.43.0
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:10.7734638Z ##[endgroup]
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:10.7746134Z Temporarily overriding HOME='/__w/_temp/e6b86faa-d93a-4cf8-9a49-2b92e75361e9' before making global git config changes
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:10.7747016Z Adding repository directory to the temporary git global config as a safe directory
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:10.7750428Z [command]/usr/bin/git config --global --add safe.directory /__w/universal-translator/universal-translator
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:10.7782411Z Deleting the contents of '/__w/universal-translator/universal-translator'
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:10.7785629Z ##[group]Determining repository object format
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1041353Z ##[endgroup]
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1042025Z ##[group]Initializing the repository
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1055957Z [command]/usr/bin/git init /__w/universal-translator/universal-translator
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1071120Z Initialized empty Git repository in /__w/universal-translator/universal-translator/.git/
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1079090Z [command]/usr/bin/git remote add origin https://github.com/link-foundation/universal-translator
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1108148Z ##[endgroup]
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1108541Z ##[group]Disabling automatic garbage collection
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1108887Z [command]/usr/bin/git config --local gc.auto 0
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1130441Z ##[endgroup]
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1131434Z ##[group]Setting up auth
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1131946Z Removing SSH command configuration
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1136168Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1162329Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1321983Z Removing HTTP extra header
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1325709Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1349979Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1500440Z Removing includeIf entries pointing to credentials config files
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1505021Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1530408Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1687388Z [command]/usr/bin/git config --file /__w/_temp/git-credentials-4237ec64-2c10-436f-8b7a-ecc8fba21f5a.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1715954Z [command]/usr/bin/git config --local includeIf.gitdir:/__w/universal-translator/universal-translator/.git.path /__w/_temp/git-credentials-4237ec64-2c10-436f-8b7a-ecc8fba21f5a.config
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1737240Z [command]/usr/bin/git config --local includeIf.gitdir:/__w/universal-translator/universal-translator/.git/worktrees/*.path /__w/_temp/git-credentials-4237ec64-2c10-436f-8b7a-ecc8fba21f5a.config
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1769316Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-4237ec64-2c10-436f-8b7a-ecc8fba21f5a.config
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1792928Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-4237ec64-2c10-436f-8b7a-ecc8fba21f5a.config
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1812726Z ##[endgroup]
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1813320Z ##[group]Fetching the repository
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.1819191Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.8058629Z From https://github.com/link-foundation/universal-translator
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.8059275Z  * [new branch]      issue-1-35d65b774bf6 -> origin/issue-1-35d65b774bf6
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.8060638Z  * [new branch]      issue-2-15825f954cd5 -> origin/issue-2-15825f954cd5
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.8061231Z  * [new branch]      issue-6-c597ff1041d9 -> origin/issue-6-c597ff1041d9
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.8061608Z  * [new branch]      issue-8-a666e1cbe6e5 -> origin/issue-8-a666e1cbe6e5
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.8062102Z  * [new branch]      main                 -> origin/main
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.8062423Z  * [new tag]         v0.11.32             -> v0.11.32
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.8062718Z  * [new tag]         v0.12.0              -> v0.12.0
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.8075654Z ##[endgroup]
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.8076106Z ##[group]Determining the checkout info
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.8086062Z [command]/usr/bin/git branch --list --remote origin/main
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.8101905Z   origin/main
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.8104033Z ##[endgroup]
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.8108314Z [command]/usr/bin/git sparse-checkout disable
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.8136247Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.8156996Z ##[group]Checking out the ref
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.8159146Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.9644871Z Reset branch 'main'
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.9645208Z branch 'main' set up to track 'origin/main'.
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.9649264Z ##[endgroup]
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.9676424Z [command]/usr/bin/git log -1 --format=%H
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.9696733Z b5520ce7123566d1d640f2bccd4cf4ce5405b1e2
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.9702946Z ##[group]Removing auth
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.9703240Z Removing SSH command configuration
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.9704722Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.9727218Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.9889191Z Removing HTTP extra header
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.9889751Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:11.9913367Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0097051Z Removing includeIf entries pointing to credentials config files
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0097687Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0098330Z includeif.gitdir:/__w/universal-translator/universal-translator/.git.path
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0098986Z includeif.gitdir:/__w/universal-translator/universal-translator/.git/worktrees/*.path
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0099757Z includeif.gitdir:/github/workspace/.git.path
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0100318Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0105761Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/__w/universal-translator/universal-translator/.git.path
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0123869Z /__w/_temp/git-credentials-4237ec64-2c10-436f-8b7a-ecc8fba21f5a.config
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0131277Z [command]/usr/bin/git config --local --unset includeif.gitdir:/__w/universal-translator/universal-translator/.git.path /__w/_temp/git-credentials-4237ec64-2c10-436f-8b7a-ecc8fba21f5a.config
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0155599Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/__w/universal-translator/universal-translator/.git/worktrees/*.path
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0173452Z /__w/_temp/git-credentials-4237ec64-2c10-436f-8b7a-ecc8fba21f5a.config
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0180651Z [command]/usr/bin/git config --local --unset includeif.gitdir:/__w/universal-translator/universal-translator/.git/worktrees/*.path /__w/_temp/git-credentials-4237ec64-2c10-436f-8b7a-ecc8fba21f5a.config
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0204769Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0223173Z /github/runner_temp/git-credentials-4237ec64-2c10-436f-8b7a-ecc8fba21f5a.config
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0228360Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-4237ec64-2c10-436f-8b7a-ecc8fba21f5a.config
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0252145Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0269976Z /github/runner_temp/git-credentials-4237ec64-2c10-436f-8b7a-ecc8fba21f5a.config
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0274172Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-4237ec64-2c10-436f-8b7a-ecc8fba21f5a.config
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0297705Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0454284Z Removing credentials config '/__w/_temp/git-credentials-4237ec64-2c10-436f-8b7a-ecc8fba21f5a.config'
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0469261Z ##[endgroup]
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0644866Z ##[group]Run npm ci --prefix examples/universal-app --no-audit --no-fund
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0645607Z ^[[36;1mnpm ci --prefix examples/universal-app --no-audit --no-fund^[[0m
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0648461Z shell: sh -e {0}
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0648704Z env:
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0648908Z   GIT_CONFIG_COUNT: 1
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0649172Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0649432Z   GIT_CONFIG_VALUE_0: main
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0649694Z   PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:12.0650011Z ##[endgroup]
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:13.2290145Z npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:13.4211803Z npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:13.6477923Z npm warn deprecated rimraf@2.6.3: Rimraf versions prior to v4 are no longer supported
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:13.6950087Z npm warn deprecated boolean@3.2.0: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:14.9086201Z 
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:14.9087135Z added 406 packages in 3s
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:14.9338396Z ##[group]Run npm install --no-save --package-lock=false --no-audit --no-fund browser-commander@0.8.1 playwright@1.59.1
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:14.9339045Z ^[[36;1mnpm install --no-save --package-lock=false --no-audit --no-fund browser-commander@0.8.1 playwright@1.59.1^[[0m
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:14.9339656Z shell: sh -e {0}
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:14.9339890Z env:
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:14.9340092Z   GIT_CONFIG_COUNT: 1
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:14.9340335Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:14.9340636Z   GIT_CONFIG_VALUE_0: main
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:14.9340876Z   PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:14.9341166Z   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:14.9341405Z ##[endgroup]
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:20.1432893Z npm warn deprecated eslint@9.39.5: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:20.2619163Z 
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:20.2620082Z added 190 packages in 5s
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:20.2804294Z ##[group]Run node scripts/update-preview-images.mjs
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:20.2804673Z ^[[36;1mnode scripts/update-preview-images.mjs^[[0m
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:20.2805096Z shell: sh -e {0}
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:20.2805910Z env:
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:20.2806198Z   GIT_CONFIG_COUNT: 1
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:20.2806431Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:20.2806689Z   GIT_CONFIG_VALUE_0: main
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:20.2806951Z   PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:20.2807224Z ##[endgroup]
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:20.5211876Z [preview] running npm ci (cwd=/__w/universal-translator/universal-translator/examples/universal-app)
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:21.6680022Z npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:21.6906499Z npm warn deprecated rimraf@2.6.3: Rimraf versions prior to v4 are no longer supported
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:21.7116925Z npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:21.8161999Z npm warn deprecated boolean@3.2.0: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:22.8305528Z 
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:22.8306465Z added 406 packages, and audited 407 packages in 2s
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:22.8306826Z 
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:22.8306982Z 61 packages are looking for funding
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:22.8307447Z   run `npm fund` for details
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:22.8481362Z 
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:22.8482118Z 9 moderate severity vulnerabilities
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:22.8482460Z 
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:22.8482825Z To address issues that do not require attention, run:
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:22.8499145Z   npm audit fix
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:22.8499517Z 
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:22.8499816Z To address all issues (including breaking changes), run:
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:22.8500229Z   npm audit fix --force
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:22.8500400Z 
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:22.8500580Z Run `npm audit` for details.
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:22.8662268Z [preview] running npm run build (cwd=/__w/universal-translator/universal-translator/examples/universal-app)
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:22.9325747Z 
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:22.9326314Z > universal-example-app@0.1.0 build
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:22.9326828Z > vite build
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:22.9327022Z 
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:23.0731587Z ^[[36mvite v6.4.6 ^[[32mbuilding for production...^[[36m^[[39m
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:23.1149251Z transforming...
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:23.8287554Z ^[[32m✓^[[39m 65 modules transformed.
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:23.9723884Z rendering chunks...
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:23.9803488Z computing gzip size...
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:23.9944377Z ^[[2mdist/^[[22m^[[32mindex.html                 ^[[39m^[[1m^[[2m  0.60 kB^[[22m^[[1m^[[22m^[[2m │ gzip:   0.36 kB^[[22m
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:23.9944964Z ^[[33m
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:23.9945657Z (!) Some chunks are larger than 500 kB after minification. Consider:
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:23.9946197Z - Using dynamic import() to code-split the application
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:23.9946937Z - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:23.9948041Z - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.^[[39m
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:23.9948781Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[35mindex-CcCU2CWd.css  ^[[39m^[[1m^[[2m  3.41 kB^[[22m^[[1m^[[22m^[[2m │ gzip:   1.34 kB^[[22m
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:23.9949812Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mindex-D1vj6JX0.js   ^[[39m^[[1m^[[33m582.05 kB^[[39m^[[22m^[[2m │ gzip: 165.54 kB^[[22m
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:23.9950383Z ^[[32m✓ built in 902ms^[[39m
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:24.0270931Z [preview] example-app server: http://127.0.0.1:45169/
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:24.1417781Z [preview] capturing preview tile: locale=en theme=light
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.3744160Z locator.waitFor: Timeout 10000ms exceeded.
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.3744546Z Call log:
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.3744815Z   - waiting for locator('#calculator-title') to be visible
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.3745050Z 
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.3745535Z     at waitForSelector (/__w/universal-translator/universal-translator/node_modules/browser-commander/src/elements/selectors.js:361:21)
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.3746272Z     at Object.waitForSelectorBound (/__w/universal-translator/universal-translator/node_modules/browser-commander/src/bindings.js:153:5)
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.3746948Z     at captureTile (/__w/universal-translator/universal-translator/scripts/update-preview-images.mjs:257:21)
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.3747518Z     at async main (/__w/universal-translator/universal-translator/scripts/update-preview-images.mjs:315:9)
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.6926052Z ##[error]Process completed with exit code 1.
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.7028741Z ##[group]Run actions/upload-artifact@v7
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.7029056Z with:
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.7029277Z   name: preview-regen-failure-45608937769
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.7029643Z   path: docs/screenshots/
+Regenerate Preview Images	UNKNOWN STEP	web/test-results/
+Regenerate Preview Images	UNKNOWN STEP	web/playwright-report/
+Regenerate Preview Images	UNKNOWN STEP	
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.7029980Z   retention-days: 7
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.7030214Z   if-no-files-found: ignore
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.7030456Z   compression-level: 6
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.7030678Z   overwrite: false
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.7031107Z   include-hidden-files: false
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.7031366Z   archive: true
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.7031599Z env:
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.7031809Z   GIT_CONFIG_COUNT: 1
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.7032047Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.7032313Z   GIT_CONFIG_VALUE_0: main
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.7032578Z   PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.7032819Z ##[endgroup]
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.7037092Z ##[command]/usr/bin/docker exec  93bb9287495467023b0a0482e5c607edb95b1dd69ea830a086505b4b1fbd3f96 sh -c "cat /etc/*release | grep ^ID"
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.8831873Z Multiple search paths detected. Calculating the least common ancestor of all paths
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.8833863Z The least common ancestor is /__w/universal-translator/universal-translator. This will be the root directory of the artifact
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.8834643Z With the provided path, there will be 8 files uploaded
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.8835568Z Artifact name is valid!
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:34.8836534Z Root directory input is valid!
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.2356507Z Uploading artifact: preview-regen-failure-45608937769.zip
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.2382617Z Beginning upload of artifact content to blob storage
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.4752968Z Uploaded bytes 1113783
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.4898177Z Finished uploading artifact content to blob storage!
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.4899054Z SHA256 digest of uploaded artifact is 8eaafb01b12ef60a11a8b7c2299edb0c2a26ff7b44ae36940bc0cf9e39b2e295
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.4899948Z Finalizing artifact upload
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.8209103Z Artifact preview-regen-failure-45608937769 successfully finalized. Artifact ID 15019346906
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.8209826Z Artifact preview-regen-failure-45608937769 has been successfully uploaded! Final size is 1113783 bytes. Artifact ID is 15019346906
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.8212078Z Artifact download URL: https://github.com/link-foundation/universal-translator/actions/runs/45608937769/artifacts/15019346906
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.8346985Z ##[group]Run if [[ "$DRIFT" == "true" ]]; then
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.8347367Z ^[[36;1mif [[ "$DRIFT" == "true" ]]; then^[[0m
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.8347769Z ^[[36;1m  echo "::notice::Preview images regenerated and (if applicable) committed to main."^[[0m
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.8348340Z ^[[36;1melse^[[0m
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.8348672Z ^[[36;1m  echo "::notice::Preview images are already up to date."^[[0m
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.8348977Z ^[[36;1mfi^[[0m
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.8349326Z shell: sh -e {0}
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.8349562Z env:
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.8349805Z   GIT_CONFIG_COUNT: 1
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.8350058Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.8350409Z   GIT_CONFIG_VALUE_0: main
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.8350709Z   PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.8351000Z   DRIFT: 
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.8351207Z ##[endgroup]
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.8717194Z /__w/_temp/f38e2f9b-3a86-4217-906f-1df89e49235f.sh: 1: [[: not found
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.8728757Z ##[notice]Preview images are already up to date.
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.8809458Z Post job cleanup.
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:35.8816954Z ##[command]/usr/bin/docker exec  93bb9287495467023b0a0482e5c607edb95b1dd69ea830a086505b4b1fbd3f96 sh -c "cat /etc/*release | grep ^ID"
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:36.0081923Z [command]/usr/bin/git version
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:36.0114033Z git version 2.43.0
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:36.0149018Z Temporarily overriding HOME='/__w/_temp/d4f4dcd6-503e-4789-842b-6c677b4a960d' before making global git config changes
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:36.0149765Z Adding repository directory to the temporary git global config as a safe directory
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:36.0153209Z [command]/usr/bin/git config --global --add safe.directory /__w/universal-translator/universal-translator
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:36.0173847Z Removing SSH command configuration
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:36.0178984Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:36.0204190Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:36.0413034Z Removing HTTP extra header
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:36.0426685Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:36.0428978Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:36.0589073Z Removing includeIf entries pointing to credentials config files
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:36.0593258Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:36.0616468Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:36.0871192Z Stop and remove container: ddc336847a8e4d8dabee3ad58ecabc18_mcrmicrosoftcomplaywrightsha256b0ab6f3cb99aa7803adbc14d9027ec1785fc6e433b97e134e0f8fe61683b6b53_2aed70
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:36.0876095Z ##[command]/usr/bin/docker rm --force 93bb9287495467023b0a0482e5c607edb95b1dd69ea830a086505b4b1fbd3f96
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:36.3585556Z 93bb9287495467023b0a0482e5c607edb95b1dd69ea830a086505b4b1fbd3f96
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:36.3606860Z Remove container network: github_network_46d2676575a54d198ac27c5a87e4fe34
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:36.3610134Z ##[command]/usr/bin/docker network rm github_network_46d2676575a54d198ac27c5a87e4fe34
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:36.4516077Z github_network_46d2676575a54d198ac27c5a87e4fe34
+Regenerate Preview Images	UNKNOWN STEP	2026-11-25T11:56:36.4578573Z Cleaning up orphan processes
+Package desktop app (Ubuntu)	UNKNOWN STEP	﻿2026-11-25T11:55:47.4760646Z Current runner version: '2.338.2'
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4780409Z ##[group]Runner Image Provisioner
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4781108Z Hosted Compute Agent
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4781627Z Version: 20261111.635
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4782091Z Commit: b8a594ea514ff44cadb5342986c68b1eac6e22ed
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4782650Z Build Date: 2026-11-11T01:49:01Z
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4783165Z Worker ID: {1cff67f4-a55b-4708-a9cd-c65d5151f191}
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4783701Z Region: us-east-1
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4784177Z Cloud: AWS
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4784551Z ##[endgroup]
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4785614Z ##[group]Operating System
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4786076Z Ubuntu
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4786439Z 24.04.5
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4786819Z LTS
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4787450Z ##[endgroup]
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4787837Z ##[group]Runner Image
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4788301Z Image: ubuntu-24.04
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4788705Z Version: 20261116.133.1
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4789736Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261116.133/images/ubuntu/Ubuntu2404-Readme.md
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4790986Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261116.133
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4791744Z ##[endgroup]
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4792599Z ##[group]GITHUB_TOKEN Permissions
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4794543Z Contents: read
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4794959Z Metadata: read
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4795370Z ##[endgroup]
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4797002Z Secret source: Actions
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4798080Z Cache mode: write
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.4798628Z Prepare workflow directory
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.5071551Z Prepare all required actions
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.5110461Z Getting action download info
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:47.7077332Z Download action repository 'actions/checkout@v6' (SHA:d23441a48e516b6c34aea4fa41551a30e30af803)
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:49.6173590Z Download action repository 'actions/setup-node@v6' (SHA:249970729cb0ef3589644e2896645e5dc5ba9c38)
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:49.7794435Z Download action repository 'actions/upload-artifact@v7' (SHA:cf430e030ddbb5b0abf93d22962f4752f3646cd9)
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:50.0458996Z Complete job name: Package desktop app (Ubuntu)
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:50.1089776Z ##[group]Run actions/checkout@v6
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:50.1090274Z with:
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:50.1090623Z   persist-credentials: false
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:50.1090961Z   repository: link-foundation/universal-translator
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:50.1093354Z   token: ***
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:50.1093628Z   ssh-strict: true
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:50.1093868Z   ssh-user: git
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:50.1094142Z   clean: true
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:50.1094407Z   sparse-checkout-cone-mode: true
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:50.1094733Z   fetch-depth: 1
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:50.1095015Z   fetch-tags: false
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:50.1095277Z   show-progress: true
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:50.1095553Z   lfs: false
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:50.1095789Z   submodules: false
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:50.1096079Z   set-safe-directory: true
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:50.1096391Z   allow-unsafe-pr-checkout: false
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:50.1096798Z env:
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:50.1097265Z   GIT_CONFIG_COUNT: 1
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:50.1097591Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:50.1098009Z   GIT_CONFIG_VALUE_0: main
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:50.1098290Z ##[endgroup]
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.0423509Z Syncing repository: link-foundation/universal-translator
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.0424900Z ##[group]Getting Git version info
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.0425498Z Working directory is '/home/runner/work/universal-translator/universal-translator'
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.0426152Z [command]/usr/bin/git version
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.1886123Z git version 2.56.1
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.1902430Z ##[endgroup]
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.1914528Z Temporarily overriding HOME='/home/runner/work/_temp/430d65d5-c6d5-48ba-bd23-c7f23b29b825' before making global git config changes
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.1915523Z Adding repository directory to the temporary git global config as a safe directory
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.1918903Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/universal-translator/universal-translator
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.2285959Z Deleting the contents of '/home/runner/work/universal-translator/universal-translator'
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.2289525Z ##[group]Determining repository object format
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.2291416Z ##[endgroup]
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.2291878Z ##[group]Initializing the repository
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.2295234Z [command]/usr/bin/git init /home/runner/work/universal-translator/universal-translator
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.3108357Z Initialized empty Git repository in /home/runner/work/universal-translator/universal-translator/.git/
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.3117187Z [command]/usr/bin/git remote add origin https://github.com/link-foundation/universal-translator
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.3168599Z ##[endgroup]
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.3169104Z ##[group]Disabling automatic garbage collection
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.3171880Z [command]/usr/bin/git config --local gc.auto 0
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.3197761Z ##[endgroup]
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.3198450Z ##[group]Setting up auth
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.3198825Z Removing SSH command configuration
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.3202746Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.3232862Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.5291837Z Removing HTTP extra header
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.5297247Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.5324269Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.5479003Z Removing includeIf entries pointing to credentials config files
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.5485611Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.5510818Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.5670016Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-b2526430-b993-48cc-81fd-3dd65794d027.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.5704660Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/universal-translator/universal-translator/.git.path /home/runner/work/_temp/git-credentials-b2526430-b993-48cc-81fd-3dd65794d027.config
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.5728490Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/universal-translator/universal-translator/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-b2526430-b993-48cc-81fd-3dd65794d027.config
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.5752700Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-b2526430-b993-48cc-81fd-3dd65794d027.config
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.5789111Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-b2526430-b993-48cc-81fd-3dd65794d027.config
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.5793910Z ##[endgroup]
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.5794440Z ##[group]Fetching the repository
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:53.5800720Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +b5520ce7123566d1d640f2bccd4cf4ce5405b1e2:refs/remotes/origin/main
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.1346723Z From https://github.com/link-foundation/universal-translator
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.1347584Z  * [new ref]         b5520ce7123566d1d640f2bccd4cf4ce5405b1e2 -> origin/main
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.1356095Z [command]/usr/bin/git branch --list --remote origin/main
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.1389329Z   origin/main
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.1394529Z [command]/usr/bin/git rev-parse refs/remotes/origin/main
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.1414089Z b5520ce7123566d1d640f2bccd4cf4ce5405b1e2
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.1416424Z ##[endgroup]
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.1416876Z ##[group]Determining the checkout info
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.1417957Z ##[endgroup]
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.1422510Z [command]/usr/bin/git sparse-checkout disable
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.1475540Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.1496687Z ##[group]Checking out the ref
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.1499330Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3052195Z Reset branch 'main'
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3058508Z branch 'main' set up to track 'origin/main'.
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3066493Z ##[endgroup]
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3107268Z [command]/usr/bin/git log -1 --format=%H
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3128942Z b5520ce7123566d1d640f2bccd4cf4ce5405b1e2
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3144179Z ##[group]Removing auth
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3144618Z Removing SSH command configuration
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3147469Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3172504Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3335658Z Removing HTTP extra header
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3340263Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3383299Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3540953Z Removing includeIf entries pointing to credentials config files
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3546173Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3568523Z includeif.gitdir:/home/runner/work/universal-translator/universal-translator/.git.path
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3569480Z includeif.gitdir:/home/runner/work/universal-translator/universal-translator/.git/worktrees/*.path
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3570126Z includeif.gitdir:/github/workspace/.git.path
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3571025Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3575732Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/universal-translator/universal-translator/.git.path
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3596147Z /home/runner/work/_temp/git-credentials-b2526430-b993-48cc-81fd-3dd65794d027.config
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3602380Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/universal-translator/universal-translator/.git.path /home/runner/work/_temp/git-credentials-b2526430-b993-48cc-81fd-3dd65794d027.config
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3626516Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/universal-translator/universal-translator/.git/worktrees/*.path
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3645344Z /home/runner/work/_temp/git-credentials-b2526430-b993-48cc-81fd-3dd65794d027.config
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3661623Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/universal-translator/universal-translator/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-b2526430-b993-48cc-81fd-3dd65794d027.config
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3688313Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3705817Z /github/runner_temp/git-credentials-b2526430-b993-48cc-81fd-3dd65794d027.config
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3711058Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-b2526430-b993-48cc-81fd-3dd65794d027.config
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3733297Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3748991Z /github/runner_temp/git-credentials-b2526430-b993-48cc-81fd-3dd65794d027.config
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3757467Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-b2526430-b993-48cc-81fd-3dd65794d027.config
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3779068Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3931790Z Removing credentials config '/home/runner/work/_temp/git-credentials-b2526430-b993-48cc-81fd-3dd65794d027.config'
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.3939642Z ##[endgroup]
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.4141969Z ##[group]Run actions/setup-node@v6
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.4142272Z with:
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.4142503Z   node-version: 24.x
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.4142735Z   cache: npm
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.4143019Z   cache-dependency-path: examples/universal-app/package-lock.json
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.4143364Z   check-latest: false
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.4145463Z   token: ***
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.4145713Z   package-manager-cache: true
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.4145978Z env:
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.4146180Z   GIT_CONFIG_COUNT: 1
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.4146400Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.4146684Z   GIT_CONFIG_VALUE_0: main
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.4146974Z ##[endgroup]
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.6946824Z Found in cache @ /opt/hostedtoolcache/node/24.22.3/x64
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:54.6947698Z ##[group]Environment details
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:58.4847876Z node: v24.22.3
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:58.4848159Z npm: 11.19.1
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:58.4848507Z yarn: 1.22.22
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:58.4848978Z ##[endgroup]
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:58.4862110Z [command]/opt/hostedtoolcache/node/24.22.3/x64/bin/npm config get cache
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:58.8315160Z /home/runner/.npm
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:58.9475975Z Cache hit for: node-cache-Linux-x64-npm-cca4affaf912947db0812b6214d8a78ad74b52da9e5b1f9516e07f8db050b216
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:59.5507772Z Received 39644661 of 39644661 (100.0%), 79.9 MBs/sec
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:59.5508218Z Cache Size: ~38 MB (39644661 B)
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:59.5525422Z [command]/usr/bin/tar -xf /home/runner/work/_temp/8f4b8446-73f5-42a5-aa5d-59e595ae12fd/cache.tzst -P -C /home/runner/work/universal-translator/universal-translator --use-compress-program unzstd
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:59.6043072Z Cache restored successfully
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:59.6062390Z Cache restored from key: node-cache-Linux-x64-npm-cca4affaf912947db0812b6214d8a78ad74b52da9e5b1f9516e07f8db050b216
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:59.8206574Z ##[group]Run npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:59.8207489Z ^[[36;1mnpm ci --omit=dev --ignore-scripts --no-audit --no-fund^[[0m
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:55:59.8207973Z ^[[36;1mnpm ci --prefix examples/universal-app --no-audit --no-fund^[[0m
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:00.0744146Z shell: /usr/bin/bash -e {0}
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:00.0744465Z env:
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:00.0744703Z   GIT_CONFIG_COUNT: 1
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:00.0745026Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:00.0745314Z   GIT_CONFIG_VALUE_0: main
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:00.0745619Z ##[endgroup]
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:01.6814159Z 
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:01.6821886Z added 27 packages in 2s
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:02.7421804Z npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:02.7618481Z npm warn deprecated rimraf@2.6.3: Rimraf versions prior to v4 are no longer supported
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:02.7850386Z npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:02.9159972Z npm warn deprecated boolean@3.2.0: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.7727755Z 
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.7728928Z added 406 packages in 2s
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.7950380Z ##[group]Run npm run example:desktop:package
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.7950734Z ^[[36;1mnpm run example:desktop:package^[[0m
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.7951011Z ^[[36;1mfor attempt in {1..30}; do^[[0m
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.7951474Z ^[[36;1m  echo "Waiting for the packaged app (attempt ${attempt}/30)"^[[0m
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.7951834Z ^[[36;1m  if [[ -d examples/universal-app/out ]] &&^[[0m
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.7952240Z ^[[36;1m    [[ -n "$(find examples/universal-app/out -mindepth 1 -print -quit)" ]]; then^[[0m
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.7952739Z ^[[36;1m    find examples/universal-app/out -maxdepth 2 -mindepth 1 -print^[[0m
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.7953068Z ^[[36;1m    exit 0^[[0m
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.7953298Z ^[[36;1m  fi^[[0m
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.7953505Z ^[[36;1m  sleep 1^[[0m
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.7953762Z ^[[36;1mdone^[[0m
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.7954113Z ^[[36;1mecho "::error::Desktop package output was not created at examples/universal-app/out"^[[0m
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.7954490Z ^[[36;1mexit 1^[[0m
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.7984806Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.7985142Z env:
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.7985383Z   GIT_CONFIG_COUNT: 1
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.7985647Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.7985920Z   GIT_CONFIG_VALUE_0: main
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.7986346Z   VITE_REPOSITORY_URL: https://github.com/link-foundation/universal-translator
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.7986715Z ##[endgroup]
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.8749700Z 
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.8750793Z > @link-foundation/universal-translator@0.12.0 example:desktop:package
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.8751334Z > npm --prefix examples/universal-app run desktop:package
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.8751619Z 
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.9490104Z 
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.9491071Z > universal-example-app@0.1.0 desktop:package
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.9491689Z > npm run build && electron-builder --dir
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:03.9491885Z 
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:04.0264203Z 
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:04.0265414Z > universal-example-app@0.1.0 build
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:04.0265999Z > vite build
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:04.0266189Z 
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:04.6455976Z ^[[36mvite v6.4.6 ^[[32mbuilding for production...^[[36m^[[39m
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:04.6895398Z transforming...
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:05.5035361Z ^[[32m✓^[[39m 65 modules transformed.
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:05.6633618Z rendering chunks...
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:05.6720302Z computing gzip size...
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:05.7902991Z ^[[2mdist/^[[22m^[[32mindex.html                 ^[[39m^[[1m^[[2m  0.60 kB^[[22m^[[1m^[[22m^[[2m │ gzip:   0.36 kB^[[22m
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:05.7903993Z ^[[33m
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:05.7904472Z (!) Some chunks are larger than 500 kB after minification. Consider:
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:05.7905123Z - Using dynamic import() to code-split the application
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:05.7906008Z - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:05.7906939Z - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.^[[39m
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:05.7908163Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[35mindex-CcCU2CWd.css  ^[[39m^[[1m^[[2m  3.41 kB^[[22m^[[1m^[[22m^[[2m │ gzip:   1.34 kB^[[22m
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:05.7909074Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mindex-D1vj6JX0.js   ^[[39m^[[1m^[[33m582.05 kB^[[39m^[[22m^[[2m │ gzip: 165.54 kB^[[22m
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:05.7909758Z ^[[32m✓ built in 1.13s^[[39m
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:06.1102759Z   • electron-builder  version=26.17.0 os=7.0.0-1014-aws
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:06.1103793Z   • Implicit publishing triggered by CI detection. This behavior will be disabled in electron-builder v27. Please use --publish explicitly.
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:06.1131265Z   • loaded configuration  file=package.json ("build" field)
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:06.1154634Z   • author is missed in the package.json  appPackageFile=/home/runner/work/universal-translator/universal-translator/examples/universal-app/package.json
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:06.6133602Z   • executing @electron/rebuild  electronVersion=43.8.10 arch=x64 buildFromSource=false workspaceRoot=/home/runner/work/universal-translator/universal-translator/examples/universal-app projectDir=./ appDir=./
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:06.6135170Z   • installing native dependencies  arch=x64
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:06.6949763Z   • completed installing native dependencies
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:06.6977945Z   • packaging       platform=linux arch=x64 electron=43.8.10 appOutDir=out/linux-unpacked
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:06.7910330Z   • downloaded      label=electron progress=100%
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:09.4407978Z   • downloaded electron zip extracted successfully  output=/home/runner/work/universal-translator/universal-translator/examples/universal-app/out/linux-unpacked
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:09.4487520Z   • searching for node modules  pm=npm searchDir=/home/runner/work/universal-translator/universal-translator/examples/universal-app
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:09.7394983Z   • duplicate dependency references  dependencies=["@capacitor/core@7.6.4","@capacitor/core@7.6.4","react@18.3.1","loose-envify@1.4.0","loose-envify@1.4.0"]
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.0953889Z Waiting for the packaged app (attempt 1/30)
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.0978378Z examples/universal-app/out/linux-unpacked
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.0979003Z examples/universal-app/out/linux-unpacked/chrome_100_percent.pak
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.0979511Z examples/universal-app/out/linux-unpacked/libffmpeg.so
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.0979970Z examples/universal-app/out/linux-unpacked/resources.pak
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.0980400Z examples/universal-app/out/linux-unpacked/chrome_crashpad_handler
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.0980845Z examples/universal-app/out/linux-unpacked/libvulkan.so.1
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.0981273Z examples/universal-app/out/linux-unpacked/libvk_swiftshader.so
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.0981669Z examples/universal-app/out/linux-unpacked/libEGL.so
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.0982090Z examples/universal-app/out/linux-unpacked/v8_context_snapshot.bin
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.0982554Z examples/universal-app/out/linux-unpacked/vk_swiftshader_icd.json
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.0983041Z examples/universal-app/out/linux-unpacked/LICENSE.electron.txt
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.0983423Z examples/universal-app/out/linux-unpacked/resources
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.0983849Z examples/universal-app/out/linux-unpacked/libGLESv2.so
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.0984210Z examples/universal-app/out/linux-unpacked/locales
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.0984602Z examples/universal-app/out/linux-unpacked/chrome_200_percent.pak
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.0985060Z examples/universal-app/out/linux-unpacked/snapshot_blob.bin
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.0985468Z examples/universal-app/out/linux-unpacked/universal-example-app
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.0985906Z examples/universal-app/out/linux-unpacked/icudtl.dat
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.0986393Z examples/universal-app/out/linux-unpacked/chrome-sandbox
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.0986818Z examples/universal-app/out/linux-unpacked/LICENSES.chromium.html
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.0987424Z examples/universal-app/out/builder-debug.yml
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.1062899Z ##[group]Run actions/upload-artifact@v7
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.1063211Z with:
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.1063463Z   name: universal-example-desktop-ubuntu-24.04
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.1063772Z   path: examples/universal-app/out
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.1064092Z   if-no-files-found: error
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.1064324Z   compression-level: 6
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.1064766Z   overwrite: false
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.1064996Z   include-hidden-files: false
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.1065297Z   archive: true
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.1065509Z env:
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.1065713Z   GIT_CONFIG_COUNT: 1
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.1065973Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.1066238Z   GIT_CONFIG_VALUE_0: main
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.1066522Z ##[endgroup]
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.2283618Z With the provided path, there will be 74 files uploaded
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.2288407Z Artifact name is valid!
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.2288811Z Root directory input is valid!
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.4261274Z Uploading artifact: universal-example-desktop-ubuntu-24.04.zip
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:10.4288465Z Beginning upload of artifact content to blob storage
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:11.2512405Z Uploaded bytes 8388608
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:11.8262906Z Uploaded bytes 16777216
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:12.8247272Z Uploaded bytes 25165824
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:13.0490645Z Uploaded bytes 33554432
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:13.6748161Z Uploaded bytes 41943040
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:14.2115900Z Uploaded bytes 50331648
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:14.6033238Z Uploaded bytes 58720256
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:15.1473658Z Uploaded bytes 67108864
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:15.6568228Z Uploaded bytes 75497472
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:16.1409580Z Uploaded bytes 83886080
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:16.6743371Z Uploaded bytes 92274688
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:17.1901431Z Uploaded bytes 100663296
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:17.6054110Z Uploaded bytes 109051904
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:18.2568744Z Uploaded bytes 117440512
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:18.6984612Z Uploaded bytes 125829120
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:18.9655382Z Uploaded bytes 130645514
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:18.9832476Z Finished uploading artifact content to blob storage!
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:18.9848316Z SHA256 digest of uploaded artifact is 0db63d11dfd6ee364de1adc890a726f7cbbd4c3788a9d65929ed8109c06728b2
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:18.9857944Z Finalizing artifact upload
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:19.3297214Z Artifact universal-example-desktop-ubuntu-24.04 successfully finalized. Artifact ID 15019536915
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:19.3298607Z Artifact universal-example-desktop-ubuntu-24.04 has been successfully uploaded! Final size is 130645514 bytes. Artifact ID is 15019536915
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:19.3301274Z Artifact download URL: https://github.com/link-foundation/universal-translator/actions/runs/45608937769/artifacts/15019536915
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:19.3470813Z Post job cleanup.
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:19.4434308Z Cache hit occurred on the primary key node-cache-Linux-x64-npm-cca4affaf912947db0812b6214d8a78ad74b52da9e5b1f9516e07f8db050b216, not saving cache.
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:19.4544492Z Post job cleanup.
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:19.5295803Z [command]/usr/bin/git version
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:19.5329828Z git version 2.56.1
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:19.5359364Z Temporarily overriding HOME='/home/runner/work/_temp/2cbe2d1f-68ae-4d93-908c-d1f941df465c' before making global git config changes
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:19.5360589Z Adding repository directory to the temporary git global config as a safe directory
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:19.5364795Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/universal-translator/universal-translator
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:19.5394443Z Removing SSH command configuration
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:19.5407911Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:19.5479339Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:19.5606867Z Removing HTTP extra header
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:19.5611780Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:19.5640793Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:19.5938780Z Removing includeIf entries pointing to credentials config files
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:19.5939910Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:19.5959558Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Package desktop app (Ubuntu)	UNKNOWN STEP	2026-11-25T11:56:19.6281175Z Cleaning up orphan processes
+Web demo end-to-end	UNKNOWN STEP	﻿2026-11-25T11:55:48.3322996Z Current runner version: '2.338.2'
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3341596Z ##[group]Runner Image Provisioner
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3342322Z Hosted Compute Agent
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3342732Z Version: 20261111.635
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3343491Z Commit: b8a594ea514ff44cadb5342986c68b1eac6e22ed
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3344045Z Build Date: 2026-11-11T01:49:01Z
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3344545Z Worker ID: {1a2309ff-cfff-4754-af0f-4809f23ffbe4}
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3345060Z Region: us-west-2
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3345444Z Cloud: AWS
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3345803Z ##[endgroup]
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3346817Z ##[group]Operating System
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3347248Z Ubuntu
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3347628Z 24.04.5
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3347990Z LTS
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3348358Z ##[endgroup]
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3348759Z ##[group]Runner Image
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3349199Z Image: ubuntu-24.04
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3349597Z Version: 20261116.133.1
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3350517Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261116.133/images/ubuntu/Ubuntu2404-Readme.md
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3351603Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261116.133
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3352296Z ##[endgroup]
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3353077Z ##[group]GITHUB_TOKEN Permissions
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3354930Z Contents: read
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3355353Z Metadata: read
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3355743Z ##[endgroup]
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3357255Z Secret source: Actions
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3357925Z Cache mode: write
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3358395Z Prepare workflow directory
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3652668Z Prepare all required actions
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.3689251Z Getting action download info
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:48.7408322Z Download action repository 'actions/checkout@v6' (SHA:d23441a48e516b6c34aea4fa41551a30e30af803)
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:50.3420936Z Download action repository 'actions/upload-artifact@v7' (SHA:cf430e030ddbb5b0abf93d22962f4752f3646cd9)
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:50.5448275Z Complete job name: Web demo end-to-end
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:50.5875292Z ##[group]Checking docker version
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:50.5884973Z ##[command]/usr/bin/docker version --format '{{.Server.APIVersion}}'
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:51.1926918Z '1.48'
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:51.1937703Z Docker daemon API version: '1.48'
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:51.1938246Z ##[command]/usr/bin/docker version --format '{{.Client.APIVersion}}'
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:51.2073394Z '1.48'
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:51.2081044Z Docker client API version: '1.48'
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:51.2085857Z ##[endgroup]
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:51.2087468Z ##[group]Clean up resources from previous jobs
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:51.2091441Z ##[command]/usr/bin/docker ps --all --quiet --no-trunc --filter "label=74f55c"
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:51.2217722Z ##[command]/usr/bin/docker network prune --force --filter "label=74f55c"
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:51.2322668Z ##[endgroup]
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:51.2323052Z ##[group]Create local container network
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:51.2330553Z ##[command]/usr/bin/docker network create --label 74f55c github_network_79731873ff89402294922e816e9fbb4b
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:51.2685973Z 026802ce3ee39bdba2935b2846fa0c28a27019f2026ee4e4268c48f847976ebb
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:51.2698750Z ##[endgroup]
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:51.2719464Z ##[group]Starting job container
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:51.2736289Z ##[command]/usr/bin/docker pull mcr.microsoft.com/playwright@sha256:b0ab6f3cb99aa7803adbc14d9027ec1785fc6e433b97e134e0f8fe61683b6b53
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:51.6077932Z mcr.microsoft.com/playwright@sha256:b0ab6f3cb99aa7803adbc14d9027ec1785fc6e433b97e134e0f8fe61683b6b53: Pulling from playwright
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:51.7690933Z 18dbadc1f2f9: Pulling fs layer
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:51.7692000Z 0087bd18691f: Pulling fs layer
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:51.7692504Z b59ffadf3f32: Pulling fs layer
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:51.7693049Z 824c9c26fa20: Pulling fs layer
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:51.7693721Z 824c9c26fa20: Waiting
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:52.1553771Z b59ffadf3f32: Verifying Checksum
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:52.1554561Z b59ffadf3f32: Download complete
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:52.2682109Z 18dbadc1f2f9: Download complete
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:52.4911557Z 0087bd18691f: Verifying Checksum
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:52.4912810Z 0087bd18691f: Download complete
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:52.9278137Z 18dbadc1f2f9: Pull complete
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:55.1986953Z 0087bd18691f: Pull complete
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:55.2090480Z b59ffadf3f32: Pull complete
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:55.4033837Z 824c9c26fa20: Verifying Checksum
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:55:55.4034630Z 824c9c26fa20: Download complete
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:04.5340261Z 824c9c26fa20: Pull complete
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:04.5364481Z Digest: sha256:b0ab6f3cb99aa7803adbc14d9027ec1785fc6e433b97e134e0f8fe61683b6b53
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:04.5374895Z Status: Downloaded newer image for mcr.microsoft.com/playwright@sha256:b0ab6f3cb99aa7803adbc14d9027ec1785fc6e433b97e134e0f8fe61683b6b53
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:04.5380750Z mcr.microsoft.com/playwright@sha256:b0ab6f3cb99aa7803adbc14d9027ec1785fc6e433b97e134e0f8fe61683b6b53
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:04.5443818Z ##[command]/usr/bin/docker create --name 766ef91f2fe9484d82f557c74c5695ef_mcrmicrosoftcomplaywrightsha256b0ab6f3cb99aa7803adbc14d9027ec1785fc6e433b97e134e0f8fe61683b6b53_df2889 --label 74f55c --workdir /__w/universal-translator/universal-translator --network github_network_79731873ff89402294922e816e9fbb4b  -e "HOME=/github/home" -e GITHUB_ACTIONS=true -e CI=true -v "/var/run/docker.sock":"/var/run/docker.sock" -v "/home/runner/work":"/__w" -v "/home/runner/actions-runner/cached/2.338.2/externals":"/__e":ro -v "/home/runner/work/_temp":"/__w/_temp" -v "/home/runner/work/_actions":"/__w/_actions" -v "/opt/hostedtoolcache":"/__t" -v "/home/runner/work/_temp/_github_home":"/github/home" -v "/home/runner/work/_temp/_github_workflow":"/github/workflow" --entrypoint "tail" mcr.microsoft.com/playwright@sha256:b0ab6f3cb99aa7803adbc14d9027ec1785fc6e433b97e134e0f8fe61683b6b53 "-f" "/dev/null"
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:07.9076695Z 9867db16e53f49c4333c9b0ca6e8dafd9bd59fb401624f3e2c414c33a94f8795
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:07.9097927Z ##[command]/usr/bin/docker start 9867db16e53f49c4333c9b0ca6e8dafd9bd59fb401624f3e2c414c33a94f8795
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.2830349Z 9867db16e53f49c4333c9b0ca6e8dafd9bd59fb401624f3e2c414c33a94f8795
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.2845819Z ##[command]/usr/bin/docker ps --all --filter id=9867db16e53f49c4333c9b0ca6e8dafd9bd59fb401624f3e2c414c33a94f8795 --filter status=running --no-trunc --format "{{.ID}} {{.Status}}"
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.2945338Z 9867db16e53f49c4333c9b0ca6e8dafd9bd59fb401624f3e2c414c33a94f8795 Up Less than a second
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.2960391Z ##[command]/usr/bin/docker inspect --format "{{range .Config.Env}}{{println .}}{{end}}" 9867db16e53f49c4333c9b0ca6e8dafd9bd59fb401624f3e2c414c33a94f8795
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3060440Z HOME=/github/home
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3060946Z GITHUB_ACTIONS=true
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3061284Z CI=true
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3061615Z PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3062022Z LANG=C.UTF-8
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3062295Z LC_ALL=C.UTF-8
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3062590Z PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3075390Z ##[endgroup]
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3082578Z ##[group]Waiting for all services to be ready
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3084270Z ##[endgroup]
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3310785Z ##[group]Run actions/checkout@v6
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3311190Z with:
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3311528Z   persist-credentials: false
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3311820Z   repository: link-foundation/universal-translator
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3314304Z   token: ***
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3314534Z   ssh-strict: true
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3314742Z   ssh-user: git
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3314991Z   clean: true
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3315218Z   sparse-checkout-cone-mode: true
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3315476Z   fetch-depth: 1
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3315699Z   fetch-tags: false
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3315917Z   show-progress: true
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3316174Z   lfs: false
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3316379Z   submodules: false
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3316633Z   set-safe-directory: true
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3316893Z   allow-unsafe-pr-checkout: false
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3317302Z env:
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3317536Z   GIT_CONFIG_COUNT: 1
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3317775Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3318425Z   GIT_CONFIG_VALUE_0: main
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3318708Z   PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3318965Z ##[endgroup]
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.3367889Z ##[command]/usr/bin/docker exec  9867db16e53f49c4333c9b0ca6e8dafd9bd59fb401624f3e2c414c33a94f8795 sh -c "cat /etc/*release | grep ^ID"
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.6959741Z Syncing repository: link-foundation/universal-translator
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.6961498Z ##[group]Getting Git version info
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.6962052Z Working directory is '/__w/universal-translator/universal-translator'
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.6962651Z [command]/usr/bin/git version
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.6963007Z git version 2.43.0
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.6983633Z ##[endgroup]
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.6990114Z Temporarily overriding HOME='/__w/_temp/ed7dd8ae-139f-4696-8fe3-beee74fb90b2' before making global git config changes
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.6990875Z Adding repository directory to the temporary git global config as a safe directory
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.6993300Z [command]/usr/bin/git config --global --add safe.directory /__w/universal-translator/universal-translator
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7025971Z Deleting the contents of '/__w/universal-translator/universal-translator'
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7026942Z ##[group]Determining repository object format
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7027550Z ##[endgroup]
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7028071Z ##[group]Initializing the repository
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7028767Z [command]/usr/bin/git init /__w/universal-translator/universal-translator
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7053983Z Initialized empty Git repository in /__w/universal-translator/universal-translator/.git/
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7061885Z [command]/usr/bin/git remote add origin https://github.com/link-foundation/universal-translator
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7084993Z ##[endgroup]
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7085540Z ##[group]Disabling automatic garbage collection
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7089119Z [command]/usr/bin/git config --local gc.auto 0
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7110603Z ##[endgroup]
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7111143Z ##[group]Setting up auth
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7111606Z Removing SSH command configuration
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7113936Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7137338Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7292502Z Removing HTTP extra header
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7296320Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7316439Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7489479Z Removing includeIf entries pointing to credentials config files
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7490106Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7516539Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7696068Z [command]/usr/bin/git config --file /__w/_temp/git-credentials-186d621a-2afd-4df5-a38a-504c565c78f5.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7721587Z [command]/usr/bin/git config --local includeIf.gitdir:/__w/universal-translator/universal-translator/.git.path /__w/_temp/git-credentials-186d621a-2afd-4df5-a38a-504c565c78f5.config
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7750996Z [command]/usr/bin/git config --local includeIf.gitdir:/__w/universal-translator/universal-translator/.git/worktrees/*.path /__w/_temp/git-credentials-186d621a-2afd-4df5-a38a-504c565c78f5.config
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7773446Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-186d621a-2afd-4df5-a38a-504c565c78f5.config
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7797148Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-186d621a-2afd-4df5-a38a-504c565c78f5.config
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7822153Z ##[endgroup]
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7822549Z ##[group]Fetching the repository
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:08.7830928Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +b5520ce7123566d1d640f2bccd4cf4ce5405b1e2:refs/remotes/origin/main
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.3853432Z From https://github.com/link-foundation/universal-translator
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.3854308Z  * [new ref]         b5520ce7123566d1d640f2bccd4cf4ce5405b1e2 -> origin/main
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.3870907Z [command]/usr/bin/git branch --list --remote origin/main
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.3891285Z   origin/main
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.3902833Z [command]/usr/bin/git rev-parse refs/remotes/origin/main
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.3920725Z b5520ce7123566d1d640f2bccd4cf4ce5405b1e2
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.3923678Z ##[endgroup]
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.3924269Z ##[group]Determining the checkout info
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.3924884Z ##[endgroup]
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.3928142Z [command]/usr/bin/git sparse-checkout disable
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.3955743Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.3975664Z ##[group]Checking out the ref
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.3977122Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.4799341Z Reset branch 'main'
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.4799907Z branch 'main' set up to track 'origin/main'.
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.4801653Z ##[endgroup]
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.4832495Z [command]/usr/bin/git log -1 --format=%H
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.4852514Z b5520ce7123566d1d640f2bccd4cf4ce5405b1e2
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.4860363Z ##[group]Removing auth
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.4860722Z Removing SSH command configuration
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.4863831Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.4883089Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5046400Z Removing HTTP extra header
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5047072Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5067411Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5222580Z Removing includeIf entries pointing to credentials config files
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5244841Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5261866Z includeif.gitdir:/__w/universal-translator/universal-translator/.git.path
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5262910Z includeif.gitdir:/__w/universal-translator/universal-translator/.git/worktrees/*.path
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5263691Z includeif.gitdir:/github/workspace/.git.path
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5264041Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5267050Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/__w/universal-translator/universal-translator/.git.path
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5282963Z /__w/_temp/git-credentials-186d621a-2afd-4df5-a38a-504c565c78f5.config
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5290074Z [command]/usr/bin/git config --local --unset includeif.gitdir:/__w/universal-translator/universal-translator/.git.path /__w/_temp/git-credentials-186d621a-2afd-4df5-a38a-504c565c78f5.config
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5313124Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/__w/universal-translator/universal-translator/.git/worktrees/*.path
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5328903Z /__w/_temp/git-credentials-186d621a-2afd-4df5-a38a-504c565c78f5.config
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5335127Z [command]/usr/bin/git config --local --unset includeif.gitdir:/__w/universal-translator/universal-translator/.git/worktrees/*.path /__w/_temp/git-credentials-186d621a-2afd-4df5-a38a-504c565c78f5.config
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5356211Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5371930Z /github/runner_temp/git-credentials-186d621a-2afd-4df5-a38a-504c565c78f5.config
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5377804Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-186d621a-2afd-4df5-a38a-504c565c78f5.config
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5397530Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5414490Z /github/runner_temp/git-credentials-186d621a-2afd-4df5-a38a-504c565c78f5.config
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5418328Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-186d621a-2afd-4df5-a38a-504c565c78f5.config
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5439594Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5591654Z Removing credentials config '/__w/_temp/git-credentials-186d621a-2afd-4df5-a38a-504c565c78f5.config'
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5597466Z ##[endgroup]
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5760478Z ##[group]Run npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5760956Z ^[[36;1mnpm ci --omit=dev --ignore-scripts --no-audit --no-fund^[[0m
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5761412Z ^[[36;1mnpm ci --prefix examples/universal-app --no-audit --no-fund^[[0m
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5764346Z shell: sh -e {0}
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5764619Z env:
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5764842Z   GIT_CONFIG_COUNT: 1
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5765090Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5765399Z   GIT_CONFIG_VALUE_0: main
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5765691Z   PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:09.5765951Z ##[endgroup]
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:10.1881956Z 
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:10.1882524Z added 27 packages in 435ms
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:11.2193307Z npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:11.2807673Z npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:11.7051387Z npm warn deprecated rimraf@2.6.3: Rimraf versions prior to v4 are no longer supported
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:11.7553278Z npm warn deprecated boolean@3.2.0: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:12.9726262Z 
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:12.9727418Z added 406 packages in 3s
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:12.9918604Z ##[group]Run npm install --no-save --package-lock=false --no-audit --no-fund playwright@1.59.1
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:12.9919157Z ^[[36;1mnpm install --no-save --package-lock=false --no-audit --no-fund playwright@1.59.1^[[0m
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:12.9919685Z shell: sh -e {0}
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:12.9919928Z env:
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:12.9920133Z   GIT_CONFIG_COUNT: 1
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:12.9920381Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:12.9920648Z   GIT_CONFIG_VALUE_0: main
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:12.9920893Z   PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:12.9921211Z   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:12.9921460Z ##[endgroup]
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:17.6331279Z npm warn deprecated eslint@9.39.5: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:17.7541171Z 
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:17.7542415Z added 162 packages, and removed 1 package in 5s
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:17.7739299Z ##[group]Run npm run example:web:build
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:17.7739639Z ^[[36;1mnpm run example:web:build^[[0m
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:17.7740250Z shell: sh -e {0}
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:17.7740634Z env:
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:17.7740881Z   GIT_CONFIG_COUNT: 1
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:17.7741175Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:17.7742070Z   GIT_CONFIG_VALUE_0: main
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:17.7742386Z   PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:17.7742688Z ##[endgroup]
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:17.8857432Z 
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:17.8858270Z > @link-foundation/universal-translator@0.12.0 example:web:build
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:17.8859030Z > npm --prefix examples/universal-app run build
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:17.8859334Z 
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:17.9583382Z 
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:17.9583964Z > universal-example-app@0.1.0 build
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:17.9584305Z > vite build
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:17.9584432Z 
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:18.0980832Z ^[[36mvite v6.4.6 ^[[32mbuilding for production...^[[36m^[[39m
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:18.1383834Z transforming...
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:18.9552085Z ^[[32m✓^[[39m 65 modules transformed.
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:19.1136392Z rendering chunks...
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:19.1221305Z computing gzip size...
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:19.1357236Z ^[[2mdist/^[[22m^[[32mindex.html                 ^[[39m^[[1m^[[2m  0.60 kB^[[22m^[[1m^[[22m^[[2m │ gzip:   0.36 kB^[[22m
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:19.1358317Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[35mindex-CcCU2CWd.css  ^[[39m^[[1m^[[2m  3.41 kB^[[22m^[[1m^[[22m^[[2m │ gzip:   1.34 kB^[[22m
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:19.1359004Z ^[[33m
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:19.1359398Z (!) Some chunks are larger than 500 kB after minification. Consider:
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:19.1359951Z - Using dynamic import() to code-split the application
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:19.1360675Z - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:19.1361689Z - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.^[[39m
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:19.1362459Z ^[[2mdist/^[[22m^[[2massets/^[[22m^[[36mindex-D1vj6JX0.js   ^[[39m^[[1m^[[33m582.05 kB^[[39m^[[22m^[[2m │ gzip: 165.54 kB^[[22m
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:19.1362999Z ^[[32m✓ built in 1.02s^[[39m
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:19.1711110Z ##[group]Run mkdir -p e2e-output
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:19.1711446Z ^[[36;1mmkdir -p e2e-output^[[0m
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:19.1711883Z ^[[36;1mnpm --prefix examples/universal-app run preview -- --port 4173 --strictPort > e2e-output/preview.log 2>&1 &^[[0m
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:19.1712508Z ^[[36;1mnode examples/universal-app/e2e/translate.e2e.mjs http://127.0.0.1:4173/ e2e-output/web-demo.png^[[0m
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:19.1713038Z shell: sh -e {0}
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:19.1713899Z env:
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:19.1714127Z   GIT_CONFIG_COUNT: 1
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:19.1714375Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:19.1714669Z   GIT_CONFIG_VALUE_0: main
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:19.1714951Z   PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:19.1715207Z ##[endgroup]
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:21.5646655Z The web demo translates statements, programs and sentences
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:21.5948905Z ##[group]Run actions/upload-artifact@v7
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:21.5949231Z with:
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:21.5949439Z   name: web-demo-e2e
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:21.5949694Z   path: e2e-output/
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:21.5949955Z   if-no-files-found: ignore
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:21.5950209Z   compression-level: 6
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:21.5950448Z   overwrite: false
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:21.5950675Z   include-hidden-files: false
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:21.5950925Z   archive: true
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:21.5951142Z env:
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:21.5951338Z   GIT_CONFIG_COUNT: 1
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:21.5951624Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:21.5951888Z   GIT_CONFIG_VALUE_0: main
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:21.5952161Z   PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:21.5952444Z ##[endgroup]
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:21.5956704Z ##[command]/usr/bin/docker exec  9867db16e53f49c4333c9b0ca6e8dafd9bd59fb401624f3e2c414c33a94f8795 sh -c "cat /etc/*release | grep ^ID"
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:21.7808683Z With the provided path, there will be 4 files uploaded
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:21.7813579Z Artifact name is valid!
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:21.7814337Z Root directory input is valid!
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:22.1964237Z Uploading artifact: web-demo-e2e.zip
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:22.1991974Z Beginning upload of artifact content to blob storage
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:23.0649240Z Uploaded bytes 589702
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:23.1614022Z Finished uploading artifact content to blob storage!
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:23.1614590Z SHA256 digest of uploaded artifact is b2cc7f1c69da336efb2ece6c41371b83e1683fff86915651d6418a5ba4adaeb1
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:23.1615169Z Finalizing artifact upload
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:23.7309367Z Artifact web-demo-e2e successfully finalized. Artifact ID 15019142165
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:23.7310379Z Artifact web-demo-e2e has been successfully uploaded! Final size is 589702 bytes. Artifact ID is 15019142165
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:23.7312790Z Artifact download URL: https://github.com/link-foundation/universal-translator/actions/runs/45608937769/artifacts/15019142165
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:23.7491718Z Post job cleanup.
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:23.7499522Z ##[command]/usr/bin/docker exec  9867db16e53f49c4333c9b0ca6e8dafd9bd59fb401624f3e2c414c33a94f8795 sh -c "cat /etc/*release | grep ^ID"
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:23.8854920Z [command]/usr/bin/git version
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:23.8891747Z git version 2.43.0
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:23.8919002Z Temporarily overriding HOME='/__w/_temp/fcbc9018-e13f-4a70-8b00-b678a3e53dc4' before making global git config changes
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:23.8919740Z Adding repository directory to the temporary git global config as a safe directory
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:23.8922134Z [command]/usr/bin/git config --global --add safe.directory /__w/universal-translator/universal-translator
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:23.8948511Z Removing SSH command configuration
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:23.8953344Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:23.8979125Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:23.9157845Z Removing HTTP extra header
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:23.9161383Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:23.9183737Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:23.9334334Z Removing includeIf entries pointing to credentials config files
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:23.9338835Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:23.9358560Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:23.9672380Z Stop and remove container: 766ef91f2fe9484d82f557c74c5695ef_mcrmicrosoftcomplaywrightsha256b0ab6f3cb99aa7803adbc14d9027ec1785fc6e433b97e134e0f8fe61683b6b53_df2889
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:23.9676897Z ##[command]/usr/bin/docker rm --force 9867db16e53f49c4333c9b0ca6e8dafd9bd59fb401624f3e2c414c33a94f8795
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:24.1464961Z 9867db16e53f49c4333c9b0ca6e8dafd9bd59fb401624f3e2c414c33a94f8795
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:24.1487163Z Remove container network: github_network_79731873ff89402294922e816e9fbb4b
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:24.1490392Z ##[command]/usr/bin/docker network rm github_network_79731873ff89402294922e816e9fbb4b
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:24.2585585Z github_network_79731873ff89402294922e816e9fbb4b
+Web demo end-to-end	UNKNOWN STEP	2026-11-25T11:56:24.2654740Z Cleaning up orphan processes
+Deploy GitHub Pages	UNKNOWN STEP	﻿2026-11-25T11:56:41.6849030Z Current runner version: '2.338.2'
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6865763Z ##[group]Runner Image Provisioner
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6866362Z Hosted Compute Agent
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6866751Z Version: 20261111.635
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6867212Z Commit: b8a594ea514ff44cadb5342986c68b1eac6e22ed
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6867724Z Build Date: 2026-11-11T01:49:01Z
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6868225Z Worker ID: {ab464fbc-7ad2-4401-bf28-740cbbdf19e9}
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6868724Z Region: us-east-1
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6869137Z Cloud: AWS
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6869508Z ##[endgroup]
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6870369Z ##[group]Operating System
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6870810Z Ubuntu
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6871164Z 24.04.5
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6871530Z LTS
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6871885Z ##[endgroup]
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6872257Z ##[group]Runner Image
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6872739Z Image: ubuntu-24.04
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6873116Z Version: 20261116.133.1
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6874294Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261116.133/images/ubuntu/Ubuntu2404-Readme.md
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6875361Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261116.133
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6876080Z ##[endgroup]
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6876846Z ##[group]GITHUB_TOKEN Permissions
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6878493Z Metadata: read
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6878880Z Pages: write
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6879438Z ##[endgroup]
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6880969Z Secret source: Actions
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6881658Z Cache mode: write
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.6882281Z Prepare workflow directory
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.7140670Z Prepare all required actions
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.7177024Z Getting action download info
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:41.8709086Z Download action repository 'actions/deploy-pages@v5' (SHA:368f82528645a54fb793d4d04e342629a3f51346)
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:43.5059804Z Complete job name: Deploy GitHub Pages
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:43.5620140Z ##[group]Run actions/deploy-pages@v5
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:43.5620853Z with:
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:43.5624328Z   token: ***
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:43.5624759Z   timeout: 600000
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:43.5625198Z   error_count: 10
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:43.5625686Z   reporting_interval: 5000
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:43.5626170Z   artifact_name: github-pages
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:43.5626621Z   preview: false
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:43.5627193Z env:
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:43.5627578Z   GIT_CONFIG_COUNT: 1
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:43.5628071Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:43.5628591Z   GIT_CONFIG_VALUE_0: main
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:43.5629019Z ##[endgroup]
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:46.0753215Z (node:2044) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:46.0755590Z (Use `node --trace-deprecation ...` to show where the warning was created)
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:46.2077945Z Fetching artifact metadata for "github-pages" in this workflow run
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:46.2789519Z Found 5 artifact(s)
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:46.4211434Z Creating Pages deployment with payload:
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:46.4211908Z {
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:46.4212204Z 	"artifact_id": 15018632484,
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:46.4212682Z 	"pages_build_version": "b5520ce7123566d1d640f2bccd4cf4ce5405b1e2",
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:46.4249668Z 	"oidc_token": "***"
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:46.4250145Z }
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:47.5377939Z Created deployment for b5520ce7123566d1d640f2bccd4cf4ce5405b1e2, ID: b5520ce7123566d1d640f2bccd4cf4ce5405b1e2
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:52.7160345Z Getting Pages deployment status...
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:52.8404676Z Reported success!
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:52.8630361Z Evaluate and set environment url
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:52.8635014Z Evaluated environment url: https://link-foundation.github.io/universal-translator/
+Deploy GitHub Pages	UNKNOWN STEP	2026-11-25T11:56:52.8635840Z Cleaning up orphan processes
+Pipeline Status	UNKNOWN STEP	﻿2026-11-25T11:56:57.7387051Z Current runner version: '2.338.2'
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7403608Z ##[group]Runner Image Provisioner
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7404355Z Hosted Compute Agent
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7404796Z Version: 20261111.635
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7405285Z Commit: b8a594ea514ff44cadb5342986c68b1eac6e22ed
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7405831Z Build Date: 2026-11-11T01:49:01Z
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7406319Z Worker ID: {65397fbe-15c9-44e3-8ee5-97f1d9b70644}
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7406873Z Region: us-west-2
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7407282Z Cloud: AWS
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7407663Z ##[endgroup]
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7408568Z ##[group]Operating System
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7409009Z Ubuntu
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7409401Z 24.04.5
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7409778Z LTS
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7410144Z ##[endgroup]
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7410539Z ##[group]Runner Image
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7411276Z Image: ubuntu-24.04
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7411707Z Version: 20261116.133.1
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7412714Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261116.133/images/ubuntu/Ubuntu2404-Readme.md
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7413947Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261116.133
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7414749Z ##[endgroup]
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7415613Z ##[group]GITHUB_TOKEN Permissions
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7417179Z Contents: read
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7417612Z Metadata: read
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7418009Z ##[endgroup]
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7419470Z Secret source: Actions
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7420136Z Cache mode: write
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7420985Z Prepare workflow directory
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7677659Z Prepare all required actions
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:57.7713010Z Getting action download info
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:58.1649527Z Download action repository 'actions/checkout@v6' (SHA:d23441a48e516b6c34aea4fa41551a30e30af803)
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:56:59.8773897Z Download action repository 'actions/setup-node@v6' (SHA:249970729cb0ef3589644e2896645e5dc5ba9c38)
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:00.1052534Z Complete job name: Pipeline Status
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:00.1622664Z ##[group]Run actions/checkout@v6
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:00.1623323Z with:
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:00.1623712Z   persist-credentials: false
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:00.1624185Z   repository: link-foundation/universal-translator
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:00.1626565Z   token: ***
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:00.1626886Z   ssh-strict: true
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:00.1627260Z   ssh-user: git
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:00.1627584Z   clean: true
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:00.1627955Z   sparse-checkout-cone-mode: true
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:00.1628313Z   fetch-depth: 1
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:00.1628609Z   fetch-tags: false
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:00.1629180Z   show-progress: true
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:00.1629516Z   lfs: false
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:00.1629829Z   submodules: false
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:00.1630167Z   set-safe-directory: true
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:00.1630526Z   allow-unsafe-pr-checkout: false
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:00.1631304Z env:
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:00.1631622Z   GIT_CONFIG_COUNT: 1
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:00.1632046Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:00.1632500Z   GIT_CONFIG_VALUE_0: main
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:00.1632871Z ##[endgroup]
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:02.9726036Z Syncing repository: link-foundation/universal-translator
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:02.9727513Z ##[group]Getting Git version info
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:02.9728219Z Working directory is '/home/runner/work/universal-translator/universal-translator'
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:02.9728924Z [command]/usr/bin/git version
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.2686316Z git version 2.56.1
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.2704759Z ##[endgroup]
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.2710006Z Temporarily overriding HOME='/home/runner/work/_temp/4b522420-9582-4cbc-b6f1-8057cb0ae064' before making global git config changes
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.2711473Z Adding repository directory to the temporary git global config as a safe directory
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.2714395Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/universal-translator/universal-translator
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.3108212Z Deleting the contents of '/home/runner/work/universal-translator/universal-translator'
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.3111053Z ##[group]Determining repository object format
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.3112267Z ##[endgroup]
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.3112710Z ##[group]Initializing the repository
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.3115228Z [command]/usr/bin/git init /home/runner/work/universal-translator/universal-translator
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.3717279Z Initialized empty Git repository in /home/runner/work/universal-translator/universal-translator/.git/
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.3724000Z [command]/usr/bin/git remote add origin https://github.com/link-foundation/universal-translator
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.3756612Z ##[endgroup]
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.3757354Z ##[group]Disabling automatic garbage collection
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.3759330Z [command]/usr/bin/git config --local gc.auto 0
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.3781929Z ##[endgroup]
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.3782605Z ##[group]Setting up auth
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.3783151Z Removing SSH command configuration
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.3786432Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.3811518Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.6890038Z Removing HTTP extra header
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.6890509Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.6911471Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.7052353Z Removing includeIf entries pointing to credentials config files
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.7057677Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.7084825Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.7236711Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-454d1573-e021-43b7-8d6b-7c0ca08f3466.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.7253814Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/universal-translator/universal-translator/.git.path /home/runner/work/_temp/git-credentials-454d1573-e021-43b7-8d6b-7c0ca08f3466.config
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.7275554Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/universal-translator/universal-translator/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-454d1573-e021-43b7-8d6b-7c0ca08f3466.config
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.7301878Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-454d1573-e021-43b7-8d6b-7c0ca08f3466.config
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.7321787Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-454d1573-e021-43b7-8d6b-7c0ca08f3466.config
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.7339194Z ##[endgroup]
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.7339725Z ##[group]Fetching the repository
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:03.7345550Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +b5520ce7123566d1d640f2bccd4cf4ce5405b1e2:refs/remotes/origin/main
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.4976956Z From https://github.com/link-foundation/universal-translator
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.4977509Z  * [new ref]         b5520ce7123566d1d640f2bccd4cf4ce5405b1e2 -> origin/main
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.4991794Z [command]/usr/bin/git branch --list --remote origin/main
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.5017015Z   origin/main
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.5023708Z [command]/usr/bin/git rev-parse refs/remotes/origin/main
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.5040471Z b5520ce7123566d1d640f2bccd4cf4ce5405b1e2
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.5043449Z ##[endgroup]
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.5044105Z ##[group]Determining the checkout info
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.5044770Z ##[endgroup]
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.5048003Z [command]/usr/bin/git sparse-checkout disable
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.5089697Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.5109322Z ##[group]Checking out the ref
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.5112448Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.6627032Z Reset branch 'main'
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.6632232Z branch 'main' set up to track 'origin/main'.
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.6636000Z ##[endgroup]
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.6666532Z [command]/usr/bin/git log -1 --format=%H
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.6683557Z b5520ce7123566d1d640f2bccd4cf4ce5405b1e2
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.6695144Z ##[group]Removing auth
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.6695585Z Removing SSH command configuration
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.6697489Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.6718447Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.6867409Z Removing HTTP extra header
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.6870312Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.6891571Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7041315Z Removing includeIf entries pointing to credentials config files
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7044740Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7071659Z includeif.gitdir:/home/runner/work/universal-translator/universal-translator/.git.path
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7072438Z includeif.gitdir:/home/runner/work/universal-translator/universal-translator/.git/worktrees/*.path
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7073094Z includeif.gitdir:/github/workspace/.git.path
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7073799Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7084793Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/universal-translator/universal-translator/.git.path
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7097875Z /home/runner/work/_temp/git-credentials-454d1573-e021-43b7-8d6b-7c0ca08f3466.config
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7106641Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/universal-translator/universal-translator/.git.path /home/runner/work/_temp/git-credentials-454d1573-e021-43b7-8d6b-7c0ca08f3466.config
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7129166Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/universal-translator/universal-translator/.git/worktrees/*.path
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7145537Z /home/runner/work/_temp/git-credentials-454d1573-e021-43b7-8d6b-7c0ca08f3466.config
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7152155Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/universal-translator/universal-translator/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-454d1573-e021-43b7-8d6b-7c0ca08f3466.config
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7176160Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7194316Z /github/runner_temp/git-credentials-454d1573-e021-43b7-8d6b-7c0ca08f3466.config
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7206181Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-454d1573-e021-43b7-8d6b-7c0ca08f3466.config
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7228501Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7243000Z /github/runner_temp/git-credentials-454d1573-e021-43b7-8d6b-7c0ca08f3466.config
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7249021Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-454d1573-e021-43b7-8d6b-7c0ca08f3466.config
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7271887Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7415139Z Removing credentials config '/home/runner/work/_temp/git-credentials-454d1573-e021-43b7-8d6b-7c0ca08f3466.config'
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7420080Z ##[endgroup]
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7602469Z ##[group]Run actions/setup-node@v6
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7602774Z with:
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7602982Z   node-version: 24.x
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7603240Z   check-latest: false
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7605211Z   token: ***
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7605624Z   package-manager-cache: true
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7605882Z env:
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7606082Z   GIT_CONFIG_COUNT: 1
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7606353Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7606629Z   GIT_CONFIG_VALUE_0: main
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:04.7606843Z ##[endgroup]
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:05.0502598Z Found in cache @ /opt/hostedtoolcache/node/24.22.3/x64
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:05.0506063Z ##[group]Environment details
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:09.9681339Z node: v24.22.3
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:09.9681778Z npm: 11.19.1
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:09.9682167Z yarn: 1.22.22
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:09.9682752Z ##[endgroup]
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:09.9686463Z Detected npm as the package manager from package.json's packageManager field. Auto caching has been enabled for npm. If you want to disable it, set package-manager-cache input to false
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:09.9698141Z [command]/opt/hostedtoolcache/node/24.22.3/x64/bin/npm config get cache
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:10.3003613Z /home/runner/.npm
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:10.6133116Z Cache hit for: node-cache-Linux-x64-npm-666d0bf6afef79c089b3198ab3fbfe17ffe9ffe16c3001b22112fe227cd57162
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.3190360Z Received 3073 of 3073 (100.0%), 0.0 MBs/sec
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.3191289Z Cache Size: ~0 MB (3073 B)
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.3215850Z [command]/usr/bin/tar -xf /home/runner/work/_temp/43cf8d09-afbe-4303-ab56-1782c58095c1/cache.tzst -P -C /home/runner/work/universal-translator/universal-translator --use-compress-program unzstd
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.3251088Z Cache restored successfully
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.3254233Z Cache restored from key: node-cache-Linux-x64-npm-666d0bf6afef79c089b3198ab3fbfe17ffe9ffe16c3001b22112fe227cd57162
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.3373915Z ##[group]Run bash scripts/check-pipeline-status.sh
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.3374309Z ^[[36;1mbash scripts/check-pipeline-status.sh^[[0m
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.5355796Z shell: /usr/bin/bash -e {0}
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.5356122Z env:
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.5356384Z   GIT_CONFIG_COUNT: 1
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.5356635Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.5356923Z   GIT_CONFIG_VALUE_0: main
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.5357861Z   NEEDS_JSON: {
+Pipeline Status	UNKNOWN STEP	  "web-build": {
+Pipeline Status	UNKNOWN STEP	    "result": "success",
+Pipeline Status	UNKNOWN STEP	    "outputs": {}
+Pipeline Status	UNKNOWN STEP	  },
+Pipeline Status	UNKNOWN STEP	  "pages-deploy": {
+Pipeline Status	UNKNOWN STEP	    "result": "success",
+Pipeline Status	UNKNOWN STEP	    "outputs": {}
+Pipeline Status	UNKNOWN STEP	  },
+Pipeline Status	UNKNOWN STEP	  "desktop-package": {
+Pipeline Status	UNKNOWN STEP	    "result": "success",
+Pipeline Status	UNKNOWN STEP	    "outputs": {}
+Pipeline Status	UNKNOWN STEP	  },
+Pipeline Status	UNKNOWN STEP	  "android-build": {
+Pipeline Status	UNKNOWN STEP	    "result": "skipped",
+Pipeline Status	UNKNOWN STEP	    "outputs": {}
+Pipeline Status	UNKNOWN STEP	  },
+Pipeline Status	UNKNOWN STEP	  "web-e2e": {
+Pipeline Status	UNKNOWN STEP	    "result": "success",
+Pipeline Status	UNKNOWN STEP	    "outputs": {}
+Pipeline Status	UNKNOWN STEP	  },
+Pipeline Status	UNKNOWN STEP	  "preview-regen": {
+Pipeline Status	UNKNOWN STEP	    "result": "failure",
+Pipeline Status	UNKNOWN STEP	    "outputs": {}
+Pipeline Status	UNKNOWN STEP	  }
+Pipeline Status	UNKNOWN STEP	}
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.5358787Z   RUN_SHA: b5520ce7123566d1d640f2bccd4cf4ce5405b1e2
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.5359124Z   BRANCH_NAME: main
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.5359502Z ##[endgroup]
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.5842570Z Failed jobs:    preview-regen
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.5843120Z Cancelled jobs: <none>
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.5854440Z ##[error]Failing jobs: preview-regen
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.5862072Z ##[error]Process completed with exit code 1.
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.5963132Z Post job cleanup.
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.6580106Z [command]/usr/bin/git version
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.6611040Z git version 2.56.1
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.6642866Z Temporarily overriding HOME='/home/runner/work/_temp/1bdd9597-c9e2-441f-93b2-e44e0295e875' before making global git config changes
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.6643767Z Adding repository directory to the temporary git global config as a safe directory
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.6647733Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/universal-translator/universal-translator
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.6671032Z Removing SSH command configuration
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.6676377Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.6702927Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.6864668Z Removing HTTP extra header
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.6868920Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.6890354Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.7057626Z Removing includeIf entries pointing to credentials config files
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.7063743Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.7088127Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Pipeline Status	UNKNOWN STEP	2026-11-25T11:57:11.7358289Z Cleaning up orphan processes

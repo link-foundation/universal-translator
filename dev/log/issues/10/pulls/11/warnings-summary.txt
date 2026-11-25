@@ -1,0 +1,64 @@
+=== checks-and-release-45623028403
+      1 Test (node)	Run tests (Node.js)	  ✔ removes only deprecated always-auth entries from npmrc content (1.70387ms)
+      1 Test (node)	Run tests (Node.js)	  ✔ removes deprecated always-auth before npm commands in the release job (1.57ms)
+      1 Test (node)	Run tests (Node.js)	  ✔ removes deprecated always-auth before npm commands in the instant-release job (0.364496ms)
+      1 Test (deno)	Run tests (Deno)	^[[0m^[[38;5;245m./js/tests/workflow-reliability.test.js => ^[[0mremoves deprecated always-auth before npm commands in the release job ... ^[[0m^[[32mok^[[0m ^[[0m^[[38;5;245m(218µs)^[[0m
+      1 Test (deno)	Run tests (Deno)	^[[0m^[[38;5;245m./js/tests/workflow-reliability.test.js => ^[[0mremoves deprecated always-auth before npm commands in the instant-release job ... ^[[0m^[[32mok^[[0m ^[[0m^[[38;5;245m(154µs)^[[0m
+      1 Test (deno)	Run tests (Deno)	^[[0m^[[38;5;245m./js/tests/sanitize-npm-userconfig.test.js => ^[[0mremoves only deprecated always-auth entries from npmrc content ... ^[[0m^[[32mok^[[0m ^[[0m^[[38;5;245m(838µs)^[[0m
+      1 Test (deno)	Run tests (Deno)	^[[0m^[[33m│^[[0m  The following packages are deprecated:
+      1 Test (bun)	Run tests (Bun)	(pass) npm user config sanitization > removes only deprecated always-auth entries from npmrc content [0.10ms]
+      1 Test (bun)	Run tests (Bun)	(pass) npm user config cleanup > removes deprecated always-auth before npm commands in the release job [0.14ms]
+      1 Test (bun)	Run tests (Bun)	(pass) npm user config cleanup > removes deprecated always-auth before npm commands in the instant-release job [0.45ms]
+      1 Release	Remove deprecated npm auth config	﻿##[group]Run node scripts/sanitize-npm-userconfig.mjs
+      1 Release	Remove deprecated npm auth config	shell: /usr/bin/bash -e {0}
+      1 Release	Remove deprecated npm auth config	env:
+      1 Release	Remove deprecated npm auth config	^[[36;1mnode scripts/sanitize-npm-userconfig.mjs^[[0m
+      1 Release	Remove deprecated npm auth config	No deprecated always-auth entry found in /home/runner/work/_temp/.npmrc.
+      1 Release	Remove deprecated npm auth config	##[endgroup]
+      1 Release	Remove deprecated npm auth config	  NPM_CONFIG_USERCONFIG: /home/runner/work/_temp/.npmrc
+      1 Release	Remove deprecated npm auth config	  NODE_AUTH_TOKEN: XXXXX-XXXXX-XXXXX-XXXXX
+      1 Release	Remove deprecated npm auth config	  GIT_CONFIG_VALUE_0: main
+      1 Release	Remove deprecated npm auth config	  GIT_CONFIG_KEY_0: init.defaultBranch
+      1 Release	Remove deprecated npm auth config	  GIT_CONFIG_COUNT: 1
+      1 Native translation	Run every common library translation with its native toolchain	##[warning]Common library translations has run for 336s of its 480s budget.
+      1 Native translation	Restore Lean and Rocq	(node:4989) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabili
+      1 Native translation	Restore Lean and Rocq	(node:4989) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+      1 Native translation	Post Cache Dart, Julia, Scala, Groovy and Zig archives	(node:48165) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+      1 Native translation	Complete job	##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/cache/restore@v4, actions/cache@v4. For more information see: https://github.blog/changelog/2025-09-
+      1 Native translation	Cache Dart, Julia, Scala, Groovy and Zig archives	(node:4941) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued f
+      1 Native translation	Cache Dart, Julia, Scala, Groovy and Zig archives	(node:4941) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+      1 Lint and Format Check	Check for secrets	npm warn deprecated @secretlint/secretlint-rule-preset-recommend@13.0.7: Built into secretlint v14 and later. Remove this package; the rule id still works. https://github.com/secretlint/secretlint/blob/HEAD/docs/rules/pr
+      1 Check File Line Limits	Check file line limits	##[warning]File has 1498 lines (approaching limit of 1500). Extract code to keep files under the 1500 line limit.
+      1 Check File Line Limits	Check file line limits	##[warning]File has 1401 lines (approaching limit of 1500). Move inline scripts to the ./scripts/ folder to reduce file size.
+=== example-app-45623028339
+      1 Web demo end-to-end	Install app dependencies	npm warn deprecated rimraf@2.6.3: Rimraf versions prior to v4 are no longer supported
+      1 Web demo end-to-end	Install app dependencies	npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more 
+      1 Web demo end-to-end	Install app dependencies	npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions m
+      1 Web demo end-to-end	Install app dependencies	npm warn deprecated boolean@3.2.0: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+      1 Web demo end-to-end	Install Playwright	npm warn deprecated eslint@9.39.5: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+      1 Regenerate Preview Images	Summarize regeneration result	##[notice]Preview images are already up to date.
+      1 Regenerate Preview Images	Regenerate preview images	npm warn deprecated rimraf@2.6.3: Rimraf versions prior to v4 are no longer supported
+      1 Regenerate Preview Images	Regenerate preview images	npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is muc
+      1 Regenerate Preview Images	Regenerate preview images	npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old ver
+      1 Regenerate Preview Images	Regenerate preview images	npm warn deprecated boolean@3.2.0: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+      1 Regenerate Preview Images	Regenerate preview images	##[error]Process completed with exit code 1.
+      1 Regenerate Preview Images	Install example app dependencies	npm warn deprecated rimraf@2.6.3: Rimraf versions prior to v4 are no longer supported
+      1 Regenerate Preview Images	Install example app dependencies	npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which
+      1 Regenerate Preview Images	Install example app dependencies	npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for 
+      1 Regenerate Preview Images	Install example app dependencies	npm warn deprecated boolean@3.2.0: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+      1 Regenerate Preview Images	Install browser automation dependencies	npm warn deprecated eslint@9.39.5: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+      1 Pipeline Status	Fail the run when a required job was cancelled or failed	##[error]Process completed with exit code 1.
+      1 Pipeline Status	Fail the run when a required job was cancelled or failed	##[error]Failing jobs: preview-regen
+      1 Package desktop app (Ubuntu)	Install app dependencies	npm warn deprecated rimraf@2.6.3: Rimraf versions prior to v4 are no longer supported
+      1 Package desktop app (Ubuntu)	Install app dependencies	npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is m
+      1 Package desktop app (Ubuntu)	Install app dependencies	npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old v
+      1 Package desktop app (Ubuntu)	Install app dependencies	npm warn deprecated boolean@3.2.0: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+      1 Deploy GitHub Pages	Deploy Pages artifact	(node:2025) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+      1 Build web app	Install app dependencies	npm warn deprecated rimraf@2.6.3: Rimraf versions prior to v4 are no longer supported
+      1 Build web app	Install app dependencies	npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more compre
+      1 Build web app	Install app dependencies	npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be 
+      1 Build web app	Install app dependencies	npm warn deprecated boolean@3.2.0: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+=== security-45623028311
+=== links-45623028282
+      1 Check Links	Check links with lychee	##[notice]Summary report available at: https://github.com/link-foundation/universal-translator/actions/runs/45623028282#summary-139235887567
+=== workflows-45565052314

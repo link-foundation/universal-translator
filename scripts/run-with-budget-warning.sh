@@ -69,7 +69,13 @@ case "$poll_seconds" in
     ;;
 esac
 
-trace() { [ "${verbose}" = "1" ] && echo "[budget] $*" >&2 || true; }
+# ShellCheck 0.9 (preinstalled on ubuntu-24.04) reports SC2015 for the
+# `[ ] && echo || true` form; 0.9 and 0.11 both accept an if statement.
+trace() {
+  if [ "${verbose}" = "1" ]; then
+    echo "[budget] $*" >&2
+  fi
+}
 
 # The command owns TMPDIR and may legitimately clean it. Keep parent control
 # state in GitHub's job-scoped runner directory, with an independent override
@@ -95,6 +101,28 @@ fi
 
 stdout_offset=0
 stderr_offset=0
+stdout_line_open=false
+stderr_line_open=false
+
+# Start wrapper output on a fresh line even if the child omitted a newline.
+# Without capture we cannot inspect either stream.
+say() {
+  if [ "${stderr_line_open}" = true ]; then
+    printf '\n' >&2
+    stderr_line_open=false
+  fi
+  if [ "${stdout_line_open}" = true ] || [ "${capture_output}" != "1" ]; then
+    printf '\n'
+    stdout_line_open=false
+  fi
+  printf '%s\n' "$*"
+}
+
+ends_with_newline() {
+  # Read the last byte of the relayed range, even if the child appends more
+  # data in the meantime. Hex preserves both newlines and NUL bytes.
+  [ "$(od -An -tx1 -j "$(($2 - 1))" -N 1 "$1" | tr -d '[:space:]')" = 0a ]
+}
 
 stream_size() {
   local size
@@ -115,12 +143,22 @@ relay_output() {
   if [ "${size}" -gt "${stdout_offset}" ]; then
     emit_range "${stdout_file}" "${stdout_offset}" "${size}"
     stdout_offset="${size}"
+    if ends_with_newline "${stdout_file}" "${size}"; then
+      stdout_line_open=false
+    else
+      stdout_line_open=true
+    fi
   fi
 
   size="$(stream_size "${stderr_file}")"
   if [ "${size}" -gt "${stderr_offset}" ]; then
     emit_range "${stderr_file}" "${stderr_offset}" "${size}" >&2
     stderr_offset="${size}"
+    if ends_with_newline "${stderr_file}" "${size}"; then
+      stderr_line_open=false
+    else
+      stderr_line_open=true
+    fi
   fi
 }
 
@@ -215,9 +253,13 @@ command_is_running() {
   group_is_populated
 }
 
+# SECONDS is integer-valued and may tick early relative to wall time.
+# Only enforce a deadline after its entire second has elapsed.
+deadline_elapsed() { [ "${SECONDS}" -gt "$1" ]; }
+
 wait_while_running() {
   local deadline=$((SECONDS + $1))
-  while command_is_running && [ "${SECONDS}" -lt "${deadline}" ]; do
+  while command_is_running && ! deadline_elapsed "${deadline}"; do
     relay_output
     sleep "${poll_seconds}"
   done
@@ -227,12 +269,12 @@ report_survivors() {
   local survivors
   survivors="$(group_members)"
   [ -n "${survivors}" ] || return 0
-  echo "::error title=${label} left processes running::${label} could not be terminated. Still running: $(echo "${survivors}" | tr '\n' ';')"
-  echo "${survivors}" >&2
+  say "::error title=${label} left processes running::${label} could not be terminated. Still running: $(echo "${survivors}" | tr '\n' ';')"
+  printf '%s\n' "${survivors}" >&2
 }
 
 terminate_over_budget() {
-  echo "::error title=${label} exceeded its execution budget::${label} did not finish within its ${budget_seconds}s budget, so termination was requested. Shorten the step or raise its budget (keeping it below the job's timeout-minutes backstop)."
+  say "::error title=${label} exceeded its execution budget::${label} did not finish within its ${budget_seconds}s budget, so termination was requested. Shorten the step or raise its budget (keeping it below the job's timeout-minutes backstop)."
   signal_command TERM
 
   # The step's own SECONDS clock, not an accumulation of the (possibly
@@ -241,7 +283,7 @@ terminate_over_budget() {
   wait_while_running "${grace_seconds}"
 
   if command_is_running; then
-    echo "${label} ignored SIGTERM after ${grace_seconds}s; sending SIGKILL."
+    say "${label} ignored SIGTERM after ${grace_seconds}s; sending SIGKILL."
     signal_command KILL
     wait_while_running "${kill_seconds}"
   fi
@@ -258,16 +300,17 @@ SECONDS=0
 warned=false
 
 while command_is_running; do
+  relay_output
+
   if [ "${warned}" = false ] && [ "${SECONDS}" -ge "${warn_seconds}" ]; then
     warned=true
-    echo "::warning title=${label} is approaching its execution budget::${label} has run for ${SECONDS}s of its ${budget_seconds}s budget."
+    say "::warning title=${label} is approaching its execution budget::${label} has run for ${SECONDS}s of its ${budget_seconds}s budget."
   fi
 
-  if [ "${SECONDS}" -ge "${budget_seconds}" ]; then
+  if deadline_elapsed "${budget_seconds}"; then
     terminate_over_budget
   fi
 
-  relay_output
   sleep "${poll_seconds}"
 done
 
@@ -282,5 +325,5 @@ if [ -f "${status_file}" ]; then
 else
   status="${wait_status}"
 fi
-echo "${label} finished in ${SECONDS}s of its ${budget_seconds}s budget (exit ${status})."
+say "${label} finished in ${SECONDS}s of its ${budget_seconds}s budget (exit ${status})."
 exit "${status}"

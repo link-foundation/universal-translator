@@ -1,0 +1,7 @@
+{
+  "theme": "glass",
+  "skinStylesheet": false,
+  "problems": [
+    "TypeError: (intermediate value).readFile is not a function\n    at H8 (file:///tmp/gh-issue-solver-1795615644646/examples/universal-app/dist/assets/index-CnQBJnca.js:9329:7085)\n    at async Promise.all (index 0)\n    at async uR (file:///tmp/gh-issue-solver-1795615644646/examples/universal-app/dist/assets/index-CnQBJnca.js:9524:15158)\n    at async cR (file:///tmp/gh-issue-solver-1795615644646/examples/universal-app/dist/assets/index-CnQBJnca.js:9525:263)\n    at async mR (file:///tmp/gh-issue-solver-1795615644646/examples/universal-app/dist/assets/index-CnQBJnca.js:9526:541)\n    at async vS (file:///tmp/gh-issue-solver-1795615644646/examples/universal-app/dist/assets/index-CnQBJnca.js:9526:756)"
+  ]
+}

@@ -12,7 +12,7 @@
  * - Environment: JS_ROOT=<path>
  *
  * Uses link-foundation libraries:
- * - use-m: Dynamic package loading without package.json dependencies
+ * - Lockfile-installed command-stream and lino-arguments helpers
  * - command-stream: Modern shell command execution with streaming support
  * - lino-arguments: Unified configuration from CLI args, env vars, and .lenv files
  *
@@ -31,9 +31,10 @@ import {
 } from './js-paths.mjs';
 import { bootstrapDependencies } from './bootstrap-dependencies.mjs';
 import { loadCommandStream, loadLinoArguments } from './use-module.mjs';
+import { captureVersionTree, syncVersionLock } from './version-lock.mjs';
 
 // Import link-foundation libraries
-// Loaded through bootstrapDependencies: when the use-m CDN is unreachable,
+// Loaded through bootstrapDependencies: when installed helpers are unavailable,
 // this script reports the failure and writes its outputs, and the process
 // does not die inside module initialisation.
 const [{ $ }, { makeConfig }] = await bootstrapDependencies([
@@ -74,6 +75,7 @@ try {
   // Get JavaScript package root (auto-detect or use explicit config)
   const jsRootConfig = jsRootArg || parseJsRootConfig();
   const jsRoot = getJsRoot({ jsRoot: jsRootConfig, verbose: true });
+  const before = captureVersionTree(jsRoot);
 
   const finalDescription = description || `Manual ${bumpType} release`;
 
@@ -95,10 +97,10 @@ try {
   // Bump version using npm version (doesn't create git tag)
   // IMPORTANT: cd is a virtual command that calls process.chdir(), so we restore after
   if (needsCd({ jsRoot })) {
-    await $`cd ${jsRoot} && npm version ${bumpType} --no-git-tag-version`;
+    await $`cd ${jsRoot} && npm version ${bumpType} --no-git-tag-version --ignore-scripts`;
     process.chdir(originalCwd);
   } else {
-    await $`npm version ${bumpType} --no-git-tag-version`;
+    await $`npm version ${bumpType} --no-git-tag-version --ignore-scripts`;
   }
 
   // Get new version
@@ -150,16 +152,7 @@ try {
   // Synchronize package-lock.json
   console.log('\nSynchronizing package-lock.json...');
 
-  // Use --legacy-peer-deps to handle peer dependency conflicts
-  // --legacy-peer-deps keeps a peer-dependency conflict from failing the
-  // lockfile refresh with npm ERESOLVE.
-  // IMPORTANT: cd is a virtual command that calls process.chdir(), so we restore after
-  if (needsCd({ jsRoot })) {
-    await $`cd ${jsRoot} && npm install --package-lock-only --legacy-peer-deps`;
-    process.chdir(originalCwd);
-  } else {
-    await $`npm install --package-lock-only --legacy-peer-deps`;
-  }
+  syncVersionLock(jsRoot, before);
 
   console.log('\n✅ Instant version bump complete');
   console.log(`Version: ${oldVersion} → ${newVersion}`);

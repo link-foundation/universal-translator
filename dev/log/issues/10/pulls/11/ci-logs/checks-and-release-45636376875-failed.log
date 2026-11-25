@@ -1,0 +1,137 @@
+Lint and Format Check	Dry-run release versioning (PR only)	﻿2026-11-25T14:39:55.5769436Z ##[group]Run trap 'git restore --source=HEAD --staged --worktree -- .' EXIT
+Lint and Format Check	Dry-run release versioning (PR only)	2026-11-25T14:39:55.5769965Z ^[[36;1mtrap 'git restore --source=HEAD --staged --worktree -- .' EXIT^[[0m
+Lint and Format Check	Dry-run release versioning (PR only)	2026-11-25T14:39:55.5770319Z ^[[36;1mnpm run changeset:version^[[0m
+Lint and Format Check	Dry-run release versioning (PR only)	2026-11-25T14:39:55.5770568Z ^[[36;1mgit status --short^[[0m
+Lint and Format Check	Dry-run release versioning (PR only)	2026-11-25T14:39:55.5796584Z shell: /usr/bin/bash -e {0}
+Lint and Format Check	Dry-run release versioning (PR only)	2026-11-25T14:39:55.5797023Z env:
+Lint and Format Check	Dry-run release versioning (PR only)	2026-11-25T14:39:55.5797252Z   GIT_CONFIG_COUNT: 1
+Lint and Format Check	Dry-run release versioning (PR only)	2026-11-25T14:39:55.5797506Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Lint and Format Check	Dry-run release versioning (PR only)	2026-11-25T14:39:55.5797783Z   GIT_CONFIG_VALUE_0: main
+Lint and Format Check	Dry-run release versioning (PR only)	2026-11-25T14:39:55.5798075Z ##[endgroup]
+Lint and Format Check	Dry-run release versioning (PR only)	2026-11-25T14:39:55.6526655Z 
+Lint and Format Check	Dry-run release versioning (PR only)	2026-11-25T14:39:55.6527612Z > @link-foundation/universal-translator@0.14.0 changeset:version
+Lint and Format Check	Dry-run release versioning (PR only)	2026-11-25T14:39:55.6528104Z > node scripts/changeset-version.mjs
+Lint and Format Check	Dry-run release versioning (PR only)	2026-11-25T14:39:55.6528459Z 
+Lint and Format Check	Dry-run release versioning (PR only)	2026-11-25T14:40:04.2065102Z Detected single-language repository (package.json in root)
+Lint and Format Check	Dry-run release versioning (PR only)	2026-11-25T14:40:04.2065975Z Running changeset version...
+Lint and Format Check	Dry-run release versioning (PR only)	2026-11-25T14:40:04.4972991Z 🦋 changeset v3.0.3
+Lint and Format Check	Dry-run release versioning (PR only)	2026-11-25T14:40:04.5497998Z 
+Lint and Format Check	Dry-run release versioning (PR only)	2026-11-25T14:40:04.5499103Z No unreleased changesets found.
+Lint and Format Check	Dry-run release versioning (PR only)	2026-11-25T14:40:04.5499827Z 🦋 Exited with code 1
+Lint and Format Check	Dry-run release versioning (PR only)	2026-11-25T14:40:04.5500052Z 
+Lint and Format Check	Dry-run release versioning (PR only)	2026-11-25T14:40:04.5657847Z Error during version bump: Command failed with exit code 1
+Lint and Format Check	Dry-run release versioning (PR only)	2026-11-25T14:40:04.6303712Z ##[error]Process completed with exit code 1.
+Check for Changesets	Check for changesets	﻿2026-11-25T14:39:55.6925939Z ##[group]Run # Run changeset validation script
+Check for Changesets	Check for changesets	2026-11-25T14:39:55.6926369Z ^[[36;1m# Run changeset validation script^[[0m
+Check for Changesets	Check for changesets	2026-11-25T14:39:55.6926722Z ^[[36;1m# This validates that exactly ONE changeset was ADDED by this PR^[[0m
+Check for Changesets	Check for changesets	2026-11-25T14:39:55.6927122Z ^[[36;1m# Pre-existing changesets from other merged PRs are ignored^[[0m
+Check for Changesets	Check for changesets	2026-11-25T14:39:55.6927459Z ^[[36;1mnode scripts/validate-changeset.mjs^[[0m
+Check for Changesets	Check for changesets	2026-11-25T14:39:55.6956297Z shell: /usr/bin/bash -e {0}
+Check for Changesets	Check for changesets	2026-11-25T14:39:55.6956647Z env:
+Check for Changesets	Check for changesets	2026-11-25T14:39:55.6956864Z   GIT_CONFIG_COUNT: 1
+Check for Changesets	Check for changesets	2026-11-25T14:39:55.6957095Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Check for Changesets	Check for changesets	2026-11-25T14:39:55.6957440Z   GIT_CONFIG_VALUE_0: main
+Check for Changesets	Check for changesets	2026-11-25T14:39:55.6957676Z   GITHUB_BASE_REF: main
+Check for Changesets	Check for changesets	2026-11-25T14:39:55.6957966Z   GITHUB_BASE_SHA: 5709e6b17e85d19fb118db2cf05af531d66a269d
+Check for Changesets	Check for changesets	2026-11-25T14:39:55.6958344Z   GITHUB_HEAD_REF: issue-10-ac0b270fdd45
+Check for Changesets	Check for changesets	2026-11-25T14:39:55.6958653Z   GITHUB_HEAD_SHA: 13780daf1db3a1a7d0ab7836601dd8eaeddcf940
+Check for Changesets	Check for changesets	2026-11-25T14:39:55.6958969Z   RELEASE_PR_ACTOR: 
+Check for Changesets	Check for changesets	2026-11-25T14:39:55.6959291Z ##[endgroup]
+Check for Changesets	Check for changesets	2026-11-25T14:39:55.7259213Z Validating changesets added by this PR...
+Check for Changesets	Check for changesets	2026-11-25T14:39:55.7260874Z Detected single-language repository (package.json in root)
+Check for Changesets	Check for changesets	2026-11-25T14:39:55.7262460Z Package: @link-foundation/universal-translator
+Check for Changesets	Check for changesets	2026-11-25T14:39:55.7360505Z Found 0 changeset file(s) added by this PR
+Check for Changesets	Check for changesets	2026-11-25T14:39:55.7375655Z ##[error]No changeset found in this PR. Please add a changeset by running 'npm run changeset' and commit the result.
+Check for Changesets	Check for changesets	2026-11-25T14:39:55.7393453Z ##[error]Process completed with exit code 1.
+Pipeline Status	Fail the run when a required job was cancelled or failed	﻿2026-11-25T14:49:30.1014429Z ##[group]Run bash scripts/check-pipeline-status.sh
+Pipeline Status	Fail the run when a required job was cancelled or failed	2026-11-25T14:49:30.1014935Z ^[[36;1mbash scripts/check-pipeline-status.sh^[[0m
+Pipeline Status	Fail the run when a required job was cancelled or failed	2026-11-25T14:49:30.1046351Z shell: /usr/bin/bash -e {0}
+Pipeline Status	Fail the run when a required job was cancelled or failed	2026-11-25T14:49:30.1046631Z env:
+Pipeline Status	Fail the run when a required job was cancelled or failed	2026-11-25T14:49:30.1046843Z   GIT_CONFIG_COUNT: 1
+Pipeline Status	Fail the run when a required job was cancelled or failed	2026-11-25T14:49:30.1047091Z   GIT_CONFIG_KEY_0: init.defaultBranch
+Pipeline Status	Fail the run when a required job was cancelled or failed	2026-11-25T14:49:30.1047384Z   GIT_CONFIG_VALUE_0: main
+Pipeline Status	Fail the run when a required job was cancelled or failed	2026-11-25T14:49:30.1050767Z   NEEDS_JSON: {
+Pipeline Status	Fail the run when a required job was cancelled or failed	  "detect-changes": {
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "result": "success",
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "outputs": {
+Pipeline Status	Fail the run when a required job was cancelled or failed	      "js-changed": "true",
+Pipeline Status	Fail the run when a required job was cancelled or failed	      "docs-changed": "false",
+Pipeline Status	Fail the run when a required job was cancelled or failed	      "any-code-changed": "true"
+Pipeline Status	Fail the run when a required job was cancelled or failed	    }
+Pipeline Status	Fail the run when a required job was cancelled or failed	  },
+Pipeline Status	Fail the run when a required job was cancelled or failed	  "test-compilation": {
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "result": "success",
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "outputs": {}
+Pipeline Status	Fail the run when a required job was cancelled or failed	  },
+Pipeline Status	Fail the run when a required job was cancelled or failed	  "check-file-line-limits": {
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "result": "success",
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "outputs": {}
+Pipeline Status	Fail the run when a required job was cancelled or failed	  },
+Pipeline Status	Fail the run when a required job was cancelled or failed	  "version-check": {
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "result": "success",
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "outputs": {}
+Pipeline Status	Fail the run when a required job was cancelled or failed	  },
+Pipeline Status	Fail the run when a required job was cancelled or failed	  "changeset-check": {
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "result": "failure",
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "outputs": {}
+Pipeline Status	Fail the run when a required job was cancelled or failed	  },
+Pipeline Status	Fail the run when a required job was cancelled or failed	  "lint": {
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "result": "failure",
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "outputs": {}
+Pipeline Status	Fail the run when a required job was cancelled or failed	  },
+Pipeline Status	Fail the run when a required job was cancelled or failed	  "test": {
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "result": "skipped",
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "outputs": {}
+Pipeline Status	Fail the run when a required job was cancelled or failed	  },
+Pipeline Status	Fail the run when a required job was cancelled or failed	  "translation": {
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "result": "skipped",
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "outputs": {}
+Pipeline Status	Fail the run when a required job was cancelled or failed	  },
+Pipeline Status	Fail the run when a required job was cancelled or failed	  "native-translation": {
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "result": "success",
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "outputs": {}
+Pipeline Status	Fail the run when a required job was cancelled or failed	  },
+Pipeline Status	Fail the run when a required job was cancelled or failed	  "docker-build": {
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "result": "success",
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "outputs": {}
+Pipeline Status	Fail the run when a required job was cancelled or failed	  },
+Pipeline Status	Fail the run when a required job was cancelled or failed	  "docker-publish-config": {
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "result": "skipped",
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "outputs": {}
+Pipeline Status	Fail the run when a required job was cancelled or failed	  },
+Pipeline Status	Fail the run when a required job was cancelled or failed	  "docker-publish-build": {
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "result": "skipped",
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "outputs": {}
+Pipeline Status	Fail the run when a required job was cancelled or failed	  },
+Pipeline Status	Fail the run when a required job was cancelled or failed	  "validate-docs": {
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "result": "skipped",
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "outputs": {}
+Pipeline Status	Fail the run when a required job was cancelled or failed	  },
+Pipeline Status	Fail the run when a required job was cancelled or failed	  "release-preflight": {
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "result": "success",
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "outputs": {}
+Pipeline Status	Fail the run when a required job was cancelled or failed	  },
+Pipeline Status	Fail the run when a required job was cancelled or failed	  "release": {
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "result": "skipped",
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "outputs": {}
+Pipeline Status	Fail the run when a required job was cancelled or failed	  },
+Pipeline Status	Fail the run when a required job was cancelled or failed	  "instant-release": {
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "result": "skipped",
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "outputs": {}
+Pipeline Status	Fail the run when a required job was cancelled or failed	  },
+Pipeline Status	Fail the run when a required job was cancelled or failed	  "docker-publish": {
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "result": "skipped",
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "outputs": {}
+Pipeline Status	Fail the run when a required job was cancelled or failed	  },
+Pipeline Status	Fail the run when a required job was cancelled or failed	  "changeset-pr": {
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "result": "skipped",
+Pipeline Status	Fail the run when a required job was cancelled or failed	    "outputs": {}
+Pipeline Status	Fail the run when a required job was cancelled or failed	  }
+Pipeline Status	Fail the run when a required job was cancelled or failed	}
+Pipeline Status	Fail the run when a required job was cancelled or failed	2026-11-25T14:49:30.1054980Z   RUN_SHA: 13780daf1db3a1a7d0ab7836601dd8eaeddcf940
+Pipeline Status	Fail the run when a required job was cancelled or failed	2026-11-25T14:49:30.1055326Z   BRANCH_NAME: issue-10-ac0b270fdd45
+Pipeline Status	Fail the run when a required job was cancelled or failed	2026-11-25T14:49:30.1055600Z ##[endgroup]
+Pipeline Status	Fail the run when a required job was cancelled or failed	2026-11-25T14:49:30.1734190Z Failed jobs:    changeset-check, lint
+Pipeline Status	Fail the run when a required job was cancelled or failed	2026-11-25T14:49:30.1734812Z Cancelled jobs: <none>
+Pipeline Status	Fail the run when a required job was cancelled or failed	2026-11-25T14:49:30.1750762Z ##[error]Failing jobs: changeset-check, lint
+Pipeline Status	Fail the run when a required job was cancelled or failed	2026-11-25T14:49:30.1762746Z ##[error]Process completed with exit code 1.

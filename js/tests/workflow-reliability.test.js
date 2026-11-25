@@ -316,7 +316,7 @@ describe('workflow reliability policy', () => {
         'workflow_dispatch:',
         gitDefaultBranchEnv,
         'jobs:',
-        '- uses: actions/checkout@v6',
+        '- uses: actions/checkout@v7',
       ]);
     }
   });
@@ -353,11 +353,13 @@ describe('workflow reliability policy', () => {
     expect(previewRegenJob).toContain(
       'name: preview-regen-failure-${{ github.run_id }}'
     );
-    expect(previewRegenJob).toContain('docs/screenshots/');
-    expect(previewRegenJob).toContain('web/test-results/');
-    expect(previewRegenJob).toContain('web/playwright-report/');
+    expect(previewRegenJob).toContain('path: docs/screenshots/example-app/');
+    // The template's web/ report paths do not exist here, and ignoring a
+    // missing upload hid that the artifact was always empty of them.
+    expect(previewRegenJob).not.toContain('web/test-results/');
+    expect(previewRegenJob).not.toContain('web/playwright-report/');
     expect(previewRegenJob).toContain('retention-days: 7');
-    expect(previewRegenJob).toContain('if-no-files-found: ignore');
+    expect(previewRegenJob).toContain('if-no-files-found: error');
   });
 
   it('uses the official Playwright image for preview regeneration with browser downloads disabled', () => {
@@ -730,7 +732,7 @@ describe('npm user config cleanup', () => {
       const job = getJobBlock(workflow, jobName);
 
       expectOrdered(job, [
-        'uses: actions/setup-node@v6',
+        'uses: actions/setup-node@v7',
         '- name: Remove deprecated npm auth config',
         '- name: Install dependencies',
       ]);

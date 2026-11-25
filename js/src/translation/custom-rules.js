@@ -48,7 +48,8 @@ function textRule(rule, stage, index) {
     pattern = new RegExp(rule.find, 'gu');
   } catch (error) {
     throw new Error(
-      `The ${where} is not a regular expression: ${error.message}`
+      `The ${where} is not a regular expression: ${error.message}`,
+      { cause: error }
     );
   }
   return {

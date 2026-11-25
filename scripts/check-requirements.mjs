@@ -249,8 +249,9 @@ const checks = {
     mentionsAll('Dockerfile', ['universal-translator']) ??
     mentionsAll('.github/workflows/release.yml', [
       'docker/build-push-action',
-      'docker run',
-    ]),
+      'scripts/smoke-test-docker-image.sh',
+    ]) ??
+    mentionsAll('scripts/smoke-test-docker-image.sh', ['docker run']),
   'best-practices': () => {
     const review = 'docs/case-studies/issue-1/best-practices.md';
     const missing = mentionsAll(review, [

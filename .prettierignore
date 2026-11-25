@@ -9,6 +9,8 @@ package-lock.json
 CLAUDE.md
 # Case study raw data files (downloaded from external sources)
 docs/case-studies/*/data/
+# Downloaded CI logs and API responses kept for issue analysis
+dev/log/
 # Generated translations, compared byte for byte by the tests
 examples/programs/translated/
 examples/programs/fragments/translated/

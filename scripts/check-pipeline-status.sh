@@ -8,8 +8,17 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 branch_name="${BRANCH_NAME:-main}"
 git_remote="${GIT_REMOTE:-origin}"
 verbose="${PIPELINE_STATUS_VERBOSE:-0}"
+# The base repository advertises refs/pull/N/head even for fork branches, whose
+# names may also exist (or not) as branches of the base repository.
+head_ref="${HEAD_REF:-refs/heads/${branch_name}}"
 
-trace() { [ "${verbose}" = "1" ] && echo "[pipeline-status] $*" >&2 || true; }
+# ShellCheck 0.9 (preinstalled on ubuntu-24.04) reports SC2015 for the
+# `[ ] && echo || true` form; 0.9 and 0.11 both accept an if statement.
+trace() {
+  if [ "${verbose}" = "1" ]; then
+    echo "[pipeline-status] $*" >&2
+  fi
+}
 
 run_is_superseded() {
   local head="${BRANCH_HEAD_SHA:-}"
@@ -19,7 +28,7 @@ run_is_superseded() {
     return 1
   fi
   if [ -z "${head}" ]; then
-    head="$(git ls-remote "${git_remote}" "refs/heads/${branch_name}" 2>/dev/null | awk 'NR == 1 { print $1 }')"
+    head="$(git ls-remote "${git_remote}" "${head_ref}" 2>/dev/null | awk 'NR == 1 { print $1 }')"
   fi
   if [ -z "${head}" ]; then
     echo "Could not resolve the head of ${branch_name}; assuming this run is current." >&2

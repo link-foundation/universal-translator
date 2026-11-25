@@ -1,0 +1,23 @@
+file:///tmp/gh-issue-solver-1795615644646/examples/universal-app/e2e/file-protocol.e2e.mjs:46
+      throw new Error(`No skin stylesheet: ${problems.join('; ')}`, {
+            ^
+
+Error: No skin stylesheet: TypeError: (intermediate value).readFile is not a function
+    at yu (file:///tmp/dist-warn2/assets/ui-Jzs9QL8R.js:723:11460)
+    at async Promise.all (index 0)
+    at async ju (file:///tmp/dist-warn2/assets/ui-Jzs9QL8R.js:918:15017)
+    at async Ju (file:///tmp/dist-warn2/assets/ui-Jzs9QL8R.js:919:263)
+    at async ct (file:///tmp/dist-warn2/assets/index-oSQX9gYV.js:1301:535)
+    at async pe (file:///tmp/dist-warn2/assets/index-oSQX9gYV.js:1301:747)
+    at file:///tmp/gh-issue-solver-1795615644646/examples/universal-app/e2e/file-protocol.e2e.mjs:46:13
+    at async file:///tmp/gh-issue-solver-1795615644646/examples/universal-app/e2e/file-protocol.e2e.mjs:43:3 {
+  [cause]: page.waitForSelector: Timeout 15000ms exceeded.
+  Call log:
+    - waiting for locator('#ui-theme')
+  
+      at /tmp/gh-issue-solver-1795615644646/examples/universal-app/e2e/file-protocol.e2e.mjs:44:6 {
+    name: 'TimeoutError'
+  }
+}
+
+Node.js v26.13.0
