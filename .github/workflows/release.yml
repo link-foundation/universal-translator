@@ -610,8 +610,11 @@ jobs:
             ~/.opam
           key: ${{ steps.provers-cache.outputs.cache-primary-key }}
 
-      # Typical runs take about 220s and 250s; the budgets leave room for
-      # runners that are around 50% slower (330s and 360s were measured).
+      # Typical runs take about 215-255s and 245-290s; slow runners took 339s
+      # and 369s. Both steps get 540s, so the 70% warning (378s) fires only
+      # when a run is slower than any measured so far. The common library
+      # step used to have the smaller budget although it is the longer one,
+      # and its 336s warning fired on ordinary slow runners.
       - name: Run every translation with its native toolchain
         timeout-minutes: 10
         env:
@@ -621,11 +624,11 @@ jobs:
             node examples/programs/verify-native.mjs --require-all
 
       - name: Run every common library translation with its native toolchain
-        timeout-minutes: 9
+        timeout-minutes: 10
         env:
           LUA: lua5.4
         run: |
-          bash scripts/run-with-budget-warning.sh 480 "Common library translations" \
+          bash scripts/run-with-budget-warning.sh 540 "Common library translations" \
             node examples/programs/verify-native.mjs --require-all --common-library
 
   # === DOCKER IMAGE BUILD CHECK (pull requests) ===
