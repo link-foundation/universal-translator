@@ -424,7 +424,7 @@ const C: Syntax = Syntax {
 };
 
 /// Every language the grammar translator describes, in listing order.
-pub static LANGUAGES: [Syntax; 30] = [
+pub static LANGUAGES: [Syntax; 31] = [
     Syntax {
         integer_division: SCRIPT_DIVISION,
         ..JAVASCRIPT
@@ -1209,6 +1209,40 @@ pub static LANGUAGES: [Syntax; 30] = [
             text: "[]const u8",
             boolean: "bool",
             nothing: "void",
+        }),
+        ..JAVASCRIPT
+    },
+    Syntax {
+        id: "lean",
+        label: "Lean",
+        immutable_parameters: ImmutableParameters::Copied,
+        // Definitions, do blocks and applications are in dialects/lean.rs.
+        blocks: Blocks::Indentation,
+        empty_statement: Some("pure ()"),
+        line_comment: "--",
+        block_comment: Some(("/-", "-/")),
+        quotes: C_QUOTES,
+        interpolation: &[Interpolation {
+            quote: Some('"'),
+            prefix: Some("s!"),
+            style: InterpolationStyle::Braces,
+        }],
+        declarations: &["let"],
+        symbols: &["...<"],
+        function_keyword: None,
+        assignment: Some(":="),
+        compound_assignment: false,
+        operators: Operators {
+            concatenate: Some("++"),
+            ..BRACE_OPERATORS
+        },
+        entry_point: EntryPoint::MainFunction,
+        typed: Typed::Annotation,
+        types: Some(Types {
+            integer: "Int",
+            text: "String",
+            boolean: "Bool",
+            nothing: "Unit",
         }),
         ..JAVASCRIPT
     },

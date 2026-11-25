@@ -729,6 +729,32 @@ export const languages = {
     },
     terms: { call: 'function call', routine: 'function' },
   },
+  lean: {
+    naming: 'camel',
+    immutableParameters: true,
+    label: 'Lean',
+    // Definitions, do blocks and applications are in dialects/lean.js.
+    blocks: 'indentation',
+    emptyStatement: 'pure ()',
+    lineComment: '--',
+    blockComment: ['/-', '-/'],
+    quotes: ['"'],
+    interpolation: [{ prefix: 's!', quote: '"', style: 'braces' }],
+    declarations: ['let'],
+    symbols: ['...<'],
+    assignment: ':=',
+    compoundAssignment: false,
+    operators: { ...braceOperators, concatenate: '++' },
+    entryPoint: 'main-function',
+    typed: 'annotation',
+    types: {
+      integer: 'Int',
+      text: 'String',
+      boolean: 'Bool',
+      nothing: 'Unit',
+    },
+    terms: { call: 'function call', routine: 'function' },
+  },
 };
 
 // How a language spells a declared name with the given role.

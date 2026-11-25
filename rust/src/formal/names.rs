@@ -259,6 +259,10 @@ const RESERVED_WORDS: &[(&str, &str)] = &[
         "addrspace align allowzero and anyframe anytype asm break callconv catch comptime const continue defer else enum errdefer error export extern false fn for if inline linksection noalias noinline nosuspend opaque or orelse packed pub resume return struct suspend switch test threadlocal true try undefined union unreachable usingnamespace var volatile while out buffer writer init std common_library main",
     ),
     (
+        "lean",
+        "abbrev at axiom by calc class deriving do else end example export extends false for from fun have if import in inductive instance let local macro match mut mutual namespace notation open partial private protected pure return section show structure syntax then theorem this true universe variable where while with default main commonlibrary",
+    ),
+    (
         "bash",
         "case coproc dirname do done echo elif else esac fi for function if in local printf return select then time until while",
     ),

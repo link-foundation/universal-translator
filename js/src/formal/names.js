@@ -145,6 +145,7 @@ const reservedLists = {
   matlab:
     'break case catch classdef continue disp else elseif end false fix for fprintf function global if otherwise parfor persistent rem result return source sprintf spmd switch true try while',
   zig: 'addrspace align allowzero and anyframe anytype asm break callconv catch comptime const continue defer else enum errdefer error export extern false fn for if inline linksection noalias noinline nosuspend opaque or orelse packed pub resume return struct suspend switch test threadlocal true try undefined union unreachable usingnamespace var volatile while out buffer writer init std common_library main',
+  lean: 'abbrev at axiom by calc class deriving do else end example export extends false for from fun have if import in inductive instance let local macro match mut mutual namespace notation open partial private protected pure return section show structure syntax then theorem this true universe variable where while with default main commonlibrary',
   bash: 'case coproc dirname do done echo elif else esac fi for function if in local printf return select then time until while',
   groovy:
     'abstract as assert boolean break byte case catch char class const continue def default do double else enum extends false final finally float for goto if implements import in instanceof int interface long native new null package private protected public return short static super switch synchronized this threadsafe throw throws transient true try var void volatile while',

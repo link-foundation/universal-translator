@@ -195,6 +195,7 @@ const arrayTypes = {
   d: 'long[]',
   pascal: 'array of Int64',
   vb: 'Long()',
+  lean: 'Array Int',
 };
 
 // Languages that declare an array whose elements change like a variable

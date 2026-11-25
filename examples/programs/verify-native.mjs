@@ -66,6 +66,7 @@ export const libraryFiles = {
   bash: 'common_library.sh',
   matlab: 'common_library.m',
   zig: 'common_library.zig',
+  lean: 'CommonLibrary.lean',
 };
 const libraryFolder = join(folder, '..', '..', 'common-library');
 
@@ -101,6 +102,7 @@ export const extensions = {
   // .m is Objective-C's; Octave runs a script with any extension.
   matlab: '.matlab',
   zig: '.zig',
+  lean: '.lean',
   nasm: '.asm',
   cil: '.il',
   jvm: '.j',
@@ -117,6 +119,7 @@ const nim = process.env.NIM || 'nim';
 const objc = process.env.OBJC_CC || 'gcc';
 const octave = process.env.OCTAVE || 'octave';
 const zig = process.env.ZIG || 'zig';
+const lean = process.env.LEAN || 'lean';
 const objcFlags = (process.env.OBJC_FLAGS ?? '').split(' ').filter(Boolean);
 
 const run = (command, args, options = {}) => {
@@ -386,6 +389,26 @@ const runners = {
         '--global-cache-dir',
         join(dirname(dirname(file)), 'zig-global-cache'),
       ]),
+  },
+  // LEAN names the Lean 4 executable when it is not on PATH. The common
+  // library is compiled beside the program, where LEAN_PATH finds it. A
+  // loop variable that the body never reads is not worth a warning.
+  lean: {
+    tool: lean,
+    run: (file, library) => {
+      const options = {
+        cwd: dirname(file),
+        env: { ...process.env, LEAN_PATH: dirname(file) },
+      };
+      if (library.length > 0) {
+        run(lean, ['-o', 'CommonLibrary.olean', 'CommonLibrary.lean'], options);
+      }
+      return run(
+        lean,
+        ['-Dlinter.unusedVariables=false', '--run', file],
+        options
+      );
+    },
   },
   nasm: {
     tool: 'nasm',
