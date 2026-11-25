@@ -102,7 +102,9 @@ The 65 semantic primes of Natural Semantic Metalanguage are listed in
 Russian and Spanish exponents. Every example program is written in every
 language and profile in `examples/programs/natural`. The tests read each
 text back to the same meaning, check it against the rules of its standard
-and translate it to every programming language.
+and translate it to every programming language. The Rust implementation
+(`rust/src/natural/`) reads the same data, writes the same texts byte for
+byte and has the same `languages` and `check-words` commands.
 
 `node scripts/check-requirements.mjs` checks every requirement of issue 1
 against `docs/case-studies/issue-1/requirements.lino`, and CI fails while any
