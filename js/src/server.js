@@ -35,7 +35,15 @@ function readBody(request) {
   });
 }
 
-function checkRequest(body) {
+// Regular expressions from a client could take exponential time (ReDoS),
+// so a server accepts only plain text rules unless it is told otherwise.
+const hasRegexRule = (rules) =>
+  ['source', 'output'].some(
+    (stage) =>
+      Array.isArray(rules[stage]) && rules[stage].some((rule) => rule?.regex)
+  );
+
+function checkRequest(body, { allowRegexRules = false } = {}) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     throw new Error('Send a JSON object');
   }
@@ -47,30 +55,84 @@ function checkRequest(body) {
   if (body.mode !== undefined && !MODES.includes(body.mode)) {
     throw new Error(`"mode" must be one of ${MODES.join(', ')}`);
   }
+  if (
+    body.rules !== undefined &&
+    (!body.rules || typeof body.rules !== 'object' || Array.isArray(body.rules))
+  ) {
+    throw new Error('"rules" must be an object');
+  }
+  if (body.rules && !allowRegexRules && hasRegexRule(body.rules)) {
+    throw new Error(
+      'This server accepts only plain text rules (start it with allowRegexRules to accept regular expressions)'
+    );
+  }
   return {
     source: body.source,
     from: body.from,
     to: body.to,
     fragment: body.fragment === true,
+    allOrNothing: body.allOrNothing === true,
+    rules: body.rules,
     options: { mode: body.mode, commonLibrary: body.commonLibrary === true },
   };
 }
 
-function runTranslation(translator, { source, from, to, fragment, options }) {
-  if (fragment && typeof translator.translateFragment === 'function') {
-    return translator.translateFragment(source, from, to, options);
+// Partial by default: the answer holds the translation and the parts that
+// could not be translated. "allOrNothing" fails at the first such part.
+// The source language "auto" is detected first.
+function runTranslation(
+  base,
+  { source, from, to, fragment, allOrNothing, rules, options }
+) {
+  const translator =
+    rules && typeof base.withRules === 'function'
+      ? base.withRules(rules)
+      : base;
+  let language = from;
+  let detected;
+  if (from === 'auto') {
+    detected = translator.detectLanguage?.(source)[0]?.id;
+    if (!detected) {
+      throw new Error('The language of the text could not be detected');
+    }
+    language = detected;
   }
-  return translator.translate(source, from, to, options);
+  const extra = detected ? { detected } : {};
+  if (allOrNothing || typeof translator.translatePartial !== 'function') {
+    const output =
+      fragment && typeof translator.translateFragment === 'function'
+        ? translator.translateFragment(source, language, to, options)
+        : translator.translate(source, language, to, options);
+    return { output, complete: true, errors: [], ...extra };
+  }
+  const result = translator.translatePartial(source, language, to, {
+    ...options,
+    fragment,
+  });
+  return {
+    output: result.text,
+    complete: result.complete,
+    errors: result.errors.map(({ line, endLine, message }) => ({
+      line,
+      endLine,
+      message,
+    })),
+    coverage: result.coverage,
+    ...extra,
+  };
 }
 
 /**
  * Create an HTTP server with two routes:
  * GET /languages lists the programming and natural languages;
- * POST /translate takes {source, from, to, fragment?, mode?, commonLibrary?}
- * and answers {output} or {error}.
+ * POST /translate takes {source, from (or "auto"), to, fragment?, mode?,
+ * commonLibrary?, allOrNothing?, rules?} and answers {output, complete,
+ * errors, coverage?, detected?} or {error}. Rules with regular expressions
+ * are refused unless `allowRegexRules` is true.
  */
 export function createTranslationServer({
   translator = createGrammarTranslator(),
+  allowRegexRules = false,
 } = {}) {
   const languages = () => ({
     languages: translator.languages(),
@@ -90,8 +152,11 @@ export function createTranslationServer({
         } catch (error) {
           throw new Error(`The body is not JSON: ${error.message}`);
         }
-        const output = runTranslation(translator, checkRequest(body));
-        reply(response, 200, { output });
+        reply(
+          response,
+          200,
+          runTranslation(translator, checkRequest(body, { allowRegexRules }))
+        );
       } else {
         reply(response, 404, {
           error: `No route for ${request.method} ${pathname}`,

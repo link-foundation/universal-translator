@@ -18,12 +18,12 @@ natural:
     while: 'As long as {condition}, keep doing this'
     for: 'For each {variable} from {start} to {last}, do this'
     join: '{left} then {right}'
-    equal: '{left} is {right}'
-    not-equal: '{left} is not {right}'
-    less: '{left} is less than {right}'
-    less-or-equal: '{left} is at most {right}'
-    greater: '{left} is more than {right}'
-    greater-or-equal: '{left} is at least {right}'
+    equal: '{left} is {right}' '{left} = {right}' '{left} == {right}'
+    not-equal: '{left} is not {right}' '{left} != {right}' '{left} ≠ {right}' '{left} <> {right}'
+    less: '{left} is less than {right}' '{left} < {right}'
+    less-or-equal: '{left} is at most {right}' '{left} <= {right}' '{left} ≤ {right}'
+    greater: '{left} is more than {right}' '{left} > {right}'
+    greater-or-equal: '{left} is at least {right}' '{left} >= {right}' '{left} ≥ {right}'
     set-element: 'Set item {index} of {name} to {value}'
   rules:
     max-sentence-words: 25

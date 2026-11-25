@@ -115,7 +115,12 @@ class BaseParser {
       Math.min(this.position + offset, this.tokens.length - 1)
     ];
   }
+  // Reading past the end is a syntax error (as in the Rust parser), so a
+  // dialect loop that skips to a token can not run forever on a cut text.
   next() {
+    if (this.position >= this.tokens.length) {
+      throw new SyntaxError('Unexpected end of program', this.peek().line);
+    }
     return this.tokens[this.position++];
   }
   is(value, offset = 0) {

@@ -28,6 +28,7 @@ meta-language = { version = "=1.0.0", default-features = false }
 relative-meta-logic = { version = "=0.21.0", default-features = false, features = ["core"] }
 regex = "1"
 serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 links-notation = { version = "=0.31.8", default-features = false }
 
 [[test]]
@@ -57,3 +58,7 @@ path = "rust/tests/natural.rs"
 [[test]]
 name = "fragments"
 path = "rust/tests/fragments.rs"
+
+[[test]]
+name = "issue_8"
+path = "rust/tests/issue_8.rs"

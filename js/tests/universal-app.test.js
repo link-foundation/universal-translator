@@ -52,8 +52,13 @@ describe('universal React example app', () => {
     expect(appSource).toContain("from '../../../js/src/translator.js'");
     expect(appSource).toContain('translator.languages()');
     expect(appSource).toContain('translator.naturalLanguages()');
-    expect(appSource).toContain('translator.translateFragment');
+    expect(appSource).toContain('current.translateFragment');
     expect(appSource).toContain("role: 'alert'");
+    // Issue #8: auto-detection, partial translation and the rules editor.
+    expect(appSource).toContain("useState('auto')");
+    expect(appSource).toContain('translatePartial');
+    expect(appSource).toContain("id: 'all-or-nothing'");
+    expect(appSource).toContain('h(RulesEditor');
     expect(workflow).toContain('web-e2e:');
     expect(workflow).toContain('examples/universal-app/e2e/translate.e2e.mjs');
   });

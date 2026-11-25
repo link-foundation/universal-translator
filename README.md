@@ -192,8 +192,56 @@ docker run --rm -p 8080:8080 universal-translator          # the HTTP API
 docker run --rm -i universal-translator translate javascript go - < app.js
 ```
 
-`POST /translate` takes `{source, from, to, fragment?, mode?, commonLibrary?}`
-and answers `{output}` or `{error}` with status 400. Pull requests build the
+`POST /translate` takes `{source, from, to, fragment?, mode?, commonLibrary?,
+allOrNothing?, rules?}` and answers `{output, complete, errors, coverage?,
+detected?}`, or `{error}` with status 400. Regular expression rules are refused unless the
+server is created with `createTranslationServer({ allowRegexRules: true })`.
+
+### Partial translation, detection and rules
+
+Translation is partial by default. Whatever reads is translated, and every
+part that does not is kept as a comment with its error:
+
+```bash
+universal-translator translate auto javascript app.py   # detect the source
+universal-translator translate python go app.py --all-or-nothing
+universal-translator coverage python app.py   # {lines, readLines, coverage, errors}
+universal-translator detect app.py            # the likeliest languages first
+universal-translator translate russian python a.txt --rules rules.json
+```
+
+```js
+import {
+  createTranslator,
+  detectLanguage,
+  translatePartial,
+} from '@link-foundation/universal-translator';
+
+translatePartial(
+  'x = 1\nwith open(f) as g:\n    y = 2\n',
+  'python',
+  'javascript'
+);
+// { text, complete: false, errors: [{ line: 2, endLine: 2, message }], coverage }
+detectLanguage('fn main() {}\n')[0].id; // 'rust'
+
+// Rules as data, one list per stage of the pipeline:
+createTranslator({
+  rules: {
+    source: [{ find: 'ничего', replace: 'Ничего', language: 'russian' }],
+    templates: {
+      russian: { 'less-or-equal': ['{left} самое большее {right}'] },
+    },
+    names: [{ find: 'n', replace: 'count' }],
+    output: [{ find: '(\\d+)', replace: '[$1]', regex: true }],
+  },
+});
+```
+
+The web demo detects the source language by default, lists the untranslated
+parts and edits the same rules visually. `node scripts/rosetta-code.mjs all`
+measures coverage over every Rosetta Code task; see the
+[issue 8 case study](docs/case-studies/issue-8/README.md). Pull requests build the
 image and smoke test both the CLI and the API inside it.
 
 ## Features

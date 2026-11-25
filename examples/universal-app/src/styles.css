@@ -234,3 +234,63 @@ h2 {
     max-width: 10ch;
   }
 }
+
+.untranslated {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid #d97706;
+  background: #fffbeb;
+  color: #78350f;
+  font-size: 0.9rem;
+}
+
+.untranslated ul {
+  margin: 0.25rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.rules-editor {
+  margin-top: 1.5rem;
+}
+
+.rule-stage {
+  border: 1px solid #d4d4d8;
+  border-radius: 8px;
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.75rem 0.75rem;
+}
+
+.rule-stage legend {
+  font-weight: 600;
+  padding: 0 0.25rem;
+}
+
+.rule-stage .hint {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
+.rule-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.rule-row input[type='text'] {
+  flex: 1 1 10rem;
+  min-width: 0;
+  padding: 0.35rem 0.5rem;
+}
+
+.rule-row select {
+  max-width: 12rem;
+}
+
+.rules-json textarea {
+  width: 100%;
+  min-height: 8rem;
+  font-family: ui-monospace, monospace;
+}

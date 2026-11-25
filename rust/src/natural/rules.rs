@@ -116,7 +116,8 @@ fn template_words(language: &Language) -> OrderedSet {
     let mut words = OrderedSet::default();
     for (key, _) in &language.templates.entries {
         for token in language.variants(key).iter().flatten() {
-            if token.kind == Kind::Word {
+            // Symbols such as "<=" are not words of any vocabulary.
+            if token.kind == Kind::Word && token.folded.chars().any(char::is_alphabetic) {
                 words.insert(token.folded.clone());
             }
         }

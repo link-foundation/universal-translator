@@ -1390,6 +1390,7 @@ dependencies = [
  "regex",
  "relative-meta-logic",
  "serde",
+ "serde_json",
 ]
 
 [[package]]

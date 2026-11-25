@@ -4,6 +4,13 @@ natural:
   extends: english
   profile: e-prime
   source: 'https://en.wikipedia.org/wiki/E-Prime'
+  templates:
+    equal: '{left} equals {right}' '{left} = {right}' '{left} == {right}'
+    not-equal: '{left} does not equal {right}' '{left} != {right}' '{left} ≠ {right}' '{left} <> {right}'
+    less: '{left} falls below {right}' '{left} < {right}'
+    less-or-equal: '{left} does not exceed {right}' '{left} <= {right}' '{left} ≤ {right}'
+    greater: '{left} exceeds {right}' '{left} > {right}'
+    greater-or-equal: '{left} does not fall below {right}' '{left} >= {right}' '{left} ≥ {right}'
   words:
     is: check
   rules:

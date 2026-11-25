@@ -1,14 +1,18 @@
 use std::fs;
 use std::io::{self, Read, Write};
 use universal_translator::formal::languages::language_syntax;
-use universal_translator::meta::to_json;
+use universal_translator::meta::{format_number, to_json};
 use universal_translator::natural::check_text;
 use universal_translator::translator::{Translator, language_ids, natural_languages};
-use universal_translator::{Mode, Options, SourceDocument, translate_program};
+use universal_translator::{
+    CustomRules, Detection, Mode, Options, PartialReading, SourceDocument, translate_program,
+};
 
 const USAGE: &str = "Usage:
-  universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment]
+  universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment] [--all-or-nothing] [--rules <file.json>]
   universal-translator meta <language> [file|-]
+  universal-translator coverage <language> [file|-]
+  universal-translator detect [file|-]
   universal-translator translate-program <from|cst> <to> [file|-]
   universal-translator encode-source <language> [file|-]
   universal-translator decode-source [file|-]
@@ -27,6 +31,12 @@ Modes: context-dependent (default), literal, same-effect
 --trace writes every pipeline stage to standard error as \"[stage] <json>\".
 --common-library prints through common-library/ calls.
 --fragment translates statements or functions on their own.
+Parts that cannot be translated become comments and are listed on
+standard error; --all-or-nothing fails instead.
+The source language may be \"auto\" to detect it.
+--rules <file.json> adds source, templates, names and output rules.
+coverage prints which parts of a text can be read, as JSON.
+detect prints the most likely languages of a text, as JSON.
 Omit the file or pass - to read standard input.";
 
 fn source(file: Option<&str>) -> Result<String, String> {
@@ -41,18 +51,152 @@ fn source(file: Option<&str>) -> Result<String, String> {
     }
 }
 
+/// A JSON value written the way JavaScript's `JSON.stringify(value, null, 2)`
+/// writes it.
+enum Json {
+    Bool(bool),
+    Number(f64),
+    Text(String),
+    List(Vec<Json>),
+    Object(Vec<(&'static str, Json)>),
+}
+
+impl Json {
+    fn write(&self, indent: usize, out: &mut String) {
+        let inner = "  ".repeat(indent + 1);
+        let close = "  ".repeat(indent);
+        match self {
+            Json::Bool(flag) => out.push_str(&flag.to_string()),
+            Json::Number(value) => out.push_str(&format_number(*value)),
+            Json::Text(text) => out.push_str(&serde_json::to_string(text).unwrap_or_default()),
+            Json::List(items) if items.is_empty() => out.push_str("[]"),
+            Json::Object(entries) if entries.is_empty() => out.push_str("{}"),
+            Json::List(items) => {
+                out.push_str("[\n");
+                for (index, item) in items.iter().enumerate() {
+                    out.push_str(&inner);
+                    item.write(indent + 1, out);
+                    out.push_str(if index + 1 < items.len() { ",\n" } else { "\n" });
+                }
+                out.push_str(&close);
+                out.push(']');
+            }
+            Json::Object(entries) => {
+                out.push_str("{\n");
+                for (index, (key, value)) in entries.iter().enumerate() {
+                    out.push_str(&format!("{inner}\"{key}\": "));
+                    value.write(indent + 1, out);
+                    out.push_str(if index + 1 < entries.len() {
+                        ",\n"
+                    } else {
+                        "\n"
+                    });
+                }
+                out.push_str(&close);
+                out.push('}');
+            }
+        }
+    }
+
+    fn pretty(&self) -> String {
+        let mut out = String::new();
+        self.write(0, &mut out);
+        out + "\n"
+    }
+}
+
+fn count(value: usize) -> Json {
+    Json::Number(value as f64)
+}
+
+/// What `coverage` prints: the summary and where each part starts and ends.
+fn coverage_report(reading: &PartialReading) -> String {
+    let errors = reading
+        .errors
+        .iter()
+        .map(|error| {
+            Json::Object(vec![
+                ("line", count(error.line)),
+                ("endLine", count(error.end_line)),
+                ("message", Json::Text(error.message.clone())),
+                ("source", Json::Text(error.source.clone())),
+            ])
+        })
+        .collect();
+    let parts = reading
+        .parts
+        .iter()
+        .map(|part| {
+            let mut entries = vec![
+                ("start", count(part.start)),
+                ("end", count(part.end)),
+                ("status", Json::Text(part.status.as_str().to_owned())),
+            ];
+            if let Some(kind) = part.kind {
+                entries.push(("kind", Json::Text(kind.as_str().to_owned())));
+            }
+            if let Some(message) = &part.message {
+                entries.push(("message", Json::Text(message.clone())));
+            }
+            entries.push(("line", count(part.line)));
+            entries.push(("endLine", count(part.end_line)));
+            Json::Object(entries)
+        })
+        .collect();
+    Json::Object(vec![
+        ("complete", Json::Bool(reading.complete)),
+        ("lines", count(reading.lines)),
+        ("readLines", count(reading.read_lines)),
+        ("coverage", Json::Number(reading.coverage)),
+        ("errors", Json::List(errors)),
+        ("parts", Json::List(parts)),
+    ])
+    .pretty()
+}
+
+/// What `detect` prints: the likeliest languages first.
+fn detection_report(detections: &[Detection]) -> String {
+    Json::List(
+        detections
+            .iter()
+            .map(|detection| {
+                Json::Object(vec![
+                    ("id", Json::Text(detection.id.clone())),
+                    ("natural", Json::Bool(detection.natural)),
+                    ("reads", Json::Bool(detection.reads)),
+                    ("coverage", Json::Number(detection.coverage)),
+                    ("score", Json::Number(detection.score)),
+                ])
+            })
+            .collect(),
+    )
+    .pretty()
+}
+
 fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String> {
     let mut file = None;
     let mut mode = None;
     let mut trace = false;
     let mut common_library = false;
     let mut fragment = false;
+    let mut all_or_nothing = false;
+    let mut rules = None;
     let mut arguments = arguments.iter().copied();
     while let Some(argument) = arguments.next() {
         match argument {
             "--trace" => trace = true,
             "--common-library" => common_library = true,
             "--fragment" => fragment = true,
+            "--all-or-nothing" => all_or_nothing = true,
+            "--rules" => {
+                let value = arguments
+                    .next()
+                    .filter(|_| rules.is_none())
+                    .ok_or("Expected a single rules file for --rules")?;
+                let text =
+                    fs::read_to_string(value).map_err(|error| format!("{value}: {error}"))?;
+                rules = Some(CustomRules::from_json(&text)?);
+            }
             "--mode" if mode.is_none() => {
                 mode = Some(
                     arguments
@@ -65,7 +209,7 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
             _ => return Err(format!("Unexpected argument {argument}")),
         }
     }
-    let mut translator = Translator::new();
+    let mut translator = Translator::new().with_rules(rules.unwrap_or_default());
     if trace {
         // Every pipeline stage as JSON, so a translation can be followed
         // rule layer by rule layer.
@@ -78,14 +222,51 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
         common_library,
     };
     let source = source(file)?;
-    // --fragment translates a single statement, function definitions or a
-    // whole program into the same kind of fragment.
-    if fragment {
-        translator.translate_fragment(&source, from, to, options)
+    let language = if from == "auto" {
+        let detected = translator
+            .detect_language(&source, 5)
+            .into_iter()
+            .next()
+            .ok_or("The language of the text could not be detected")?
+            .id;
+        eprintln!("Detected language: {detected}");
+        detected
     } else {
-        translator.translate_with(&source, from, to, options)
+        from.to_owned()
+    };
+    // --fragment translates a single statement, function definitions or a
+    // whole program into the same kind of fragment. By default every part
+    // that can be translated is, and the others are marked and listed on
+    // standard error; --all-or-nothing fails at the first part it cannot
+    // read.
+    if all_or_nothing {
+        return if fragment {
+            translator.translate_fragment(&source, &language, to, options)
+        } else {
+            translator.translate_with(&source, &language, to, options)
+        }
+        .map_err(|error| error.to_string());
     }
-    .map_err(|error| error.to_string())
+    let result = translator
+        .translate_partial(&source, &language, to, options, fragment)
+        .map_err(|error| error.to_string())?;
+    if !result.complete {
+        eprintln!(
+            "Translated {} of {} lines; {} part(s) could not be translated:",
+            result.read_lines,
+            result.lines,
+            result.errors.len()
+        );
+        for error in &result.errors {
+            let place = if error.end_line > error.line {
+                format!("lines {}-{}", error.line, error.end_line)
+            } else {
+                format!("line {}", error.line)
+            };
+            eprintln!("  {place}: {}", error.message);
+        }
+    }
+    Ok(result.text)
 }
 
 fn run(arguments: &[String]) -> Result<String, String> {
@@ -117,6 +298,15 @@ fn run(arguments: &[String]) -> Result<String, String> {
                 .map_err(|error| error.to_string())?;
             Ok(to_json(Some(&meta.into())) + "\n")
         }
+        ["coverage", language, trailing @ ..] if trailing.len() <= 1 => {
+            let reading = Translator::new()
+                .parse_partial(&source(trailing.first().copied())?, language)
+                .map_err(|error| error.to_string())?;
+            Ok(coverage_report(&reading))
+        }
+        ["detect", trailing @ ..] if trailing.len() <= 1 => Ok(detection_report(
+            &Translator::new().detect_language(&source(trailing.first().copied())?, 5),
+        )),
         ["encode-source", language, trailing @ ..] if trailing.len() <= 1 => {
             let document = SourceDocument {
                 language: (*language).to_owned(),
