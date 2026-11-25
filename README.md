@@ -58,6 +58,55 @@ and Rust tests check against. `node examples/programs/verify-native.mjs`
 compiles and runs each translation with its native toolchain, and CI runs it
 with `--require-all`.
 
+## Translate a statement or a function on its own
+
+A fragment is a whole program, one or more function definitions, or one or
+more statements. `parseFragment` tries the source in that order and
+returns its kind. `translateFragment` writes the same kind of fragment
+in the target, without a main function, a class or imports.
+
+```js
+import {
+  parseFragment,
+  translateFragment,
+} from '@link-foundation/universal-translator';
+
+parseFragment('x = x + 1;', 'javascript').kind; // 'statements'
+translateFragment('x = x + 1;', 'javascript', 'pascal'); // 'x := x + 1;\n'
+translateFragment('def square(n):\n    return n * n\n', 'python', 'rust');
+// 'fn square(n: i64) -> i64 {\n    return n * n;\n}\n'
+```
+
+```sh
+echo 'x = x + 1;' | node bin/universal-translator.js translate javascript pascal --fragment
+```
+
+The Rust crate has `parse_fragment` and `translate_fragment`, as free
+functions and as methods of `Translator`, and its command line has the same
+`--fragment` flag. A fragment must be complete. A function ends with its
+closing, a block statement with its end, and a single line statement is a
+whole statement. Otherwise the error says what is missing and where, for
+example `The fragment is not complete: it ends before its closing (line 2)`.
+
+Every fragment in `examples/programs/fragments` is translated into every
+language under `examples/programs/fragments/translated`. Both test suites
+check these files and read each of them back into the same JavaScript.
+
+Limits:
+
+- Variables that the fragment uses but does not declare stay undeclared.
+  Pascal, Fortran and Ada only declare the variables that the fragment
+  declares itself, and keep the spelling of the others as written. In Zig
+  such a variable is printed with `{any}`.
+- In Python, Ruby and other languages without declarations, `x = 5` is read
+  as a declaration.
+- In a natural language, a fragment is one or more sentences that match a
+  template of the language.
+- Machine targets (NASM, CIL, JVM) hold whole programs only. A statement or
+  function on its own is rejected.
+- Perl and Bash have no booleans, so `true` and `false` come back as 1 and 0.
+- Classes are not part of the meta language yet.
+
 ## Translate to and from controlled natural languages
 
 Controlled versions of 30 natural languages are languages like any other.
