@@ -110,7 +110,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Check .mjs syntax
+      - name: Check tracked JavaScript syntax
         run: bash scripts/check-mjs-syntax.sh
 
   # Enforce 1500-line limit on .mjs files and release.yml
