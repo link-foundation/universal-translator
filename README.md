@@ -5,8 +5,8 @@ matching JavaScript and Rust implementations. The translator is built from
 grammar and rule tables, not from per-program templates. It reads JavaScript,
 TypeScript, Python, Ruby, Lua, PHP, C, C++, C#, Java, Go, Rust, Kotlin,
 Swift, Perl, Dart, Scala, Julia, R, Groovy, Objective-C, Nim, D, Pascal,
-Fortran, Ada, Visual Basic .NET, Bash, MATLAB/Octave and Zig (30
-languages), and writes any of them. It can also lower a program to x86-64
+Fortran, Ada, Visual Basic .NET, Bash, MATLAB/Octave, Zig, Lean 4 and Rocq
+(32 languages), and writes any of them. It can also lower a program to x86-64
 assembly (NASM), CIL (ILAsm) or JVM bytecode (Jasmin).
 
 ## Translate a program

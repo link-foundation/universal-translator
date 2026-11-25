@@ -1,4 +1,4 @@
-//! Formal languages: the 30 programming languages and the machine targets
+//! Formal languages: the 32 programming languages and the machine targets
 //! (x86-64 assembly, CIL and JVM bytecode). Each language is data in
 //! [`languages`]; the shared [`parser`] and [`emitter`] read and write it,
 //! dialects extend them, and machine code is lowered and lifted.

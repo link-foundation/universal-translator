@@ -49,7 +49,9 @@
     "javascript",
     "typescript",
     "program-translation",
-    "meta-language"
+    "meta-language",
+    "lean4",
+    "rocq"
   ],
   "author": "",
   "license": "Unlicense",
