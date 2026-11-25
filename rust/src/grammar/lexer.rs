@@ -52,6 +52,8 @@ pub struct Token {
     pub line: usize,
     pub quote: Option<char>,
     pub style: InterpolationStyle,
+    /// Whether a text value is already decoded, as doubled quotes are.
+    pub decoded: bool,
 }
 
 impl Token {
@@ -63,16 +65,26 @@ impl Token {
     }
 }
 
+/// Text between quotes. Most languages escape with a backslash; Pascal, Ada,
+/// Fortran and Visual Basic write a quote inside text as two quotes instead,
+/// and keep backslashes as they are.
 fn read_quoted(
     source: &[char],
     start: usize,
     quote: char,
     line: usize,
+    doubled: bool,
 ) -> Result<(String, usize), GrammarError> {
     let mut index = start + 1;
     let mut raw = String::new();
-    while index < source.len() && source[index] != quote {
-        if source[index] == '\\' {
+    while index < source.len() {
+        if source[index] == quote {
+            if !doubled || source.get(index + 1) != Some(&quote) {
+                break;
+            }
+            raw.push(quote);
+            index += 2;
+        } else if source[index] == '\\' && !doubled {
             raw.extend(&source[index..(index + 2).min(source.len())]);
             index += 2;
         } else {
@@ -242,6 +254,7 @@ impl<'a> Lexer<'a> {
             line: self.line,
             quote,
             style,
+            decoded: false,
         });
     }
 
@@ -377,20 +390,25 @@ impl<'a> Lexer<'a> {
             return Ok(false);
         };
         let is_quote = |c: Option<char>| c.is_some_and(|c| self.syntax.quotes.contains(&c));
-        let prefixed = self
-            .syntax
-            .interpolation
-            .iter()
-            .any(|entry| entry.prefix == Some(character) && is_quote(self.at(1)));
-        if !prefixed && !is_quote(Some(character)) {
+        // A prefix such as Python's f or Nim's fmt marks an interpolated
+        // literal.
+        let prefix = self.syntax.interpolation.iter().find_map(|entry| {
+            entry.prefix.filter(|prefix| {
+                self.starts_with(prefix, self.index)
+                    && is_quote(self.at(prefix.chars().count()))
+            })
+        });
+        if prefix.is_none() && !is_quote(Some(character)) {
             return Ok(false);
         }
-        let start = if prefixed { self.index + 1 } else { self.index };
+        let start = self.index + prefix.map_or(0, |prefix| prefix.chars().count());
         let quote = self.source[start];
-        let (raw, end) = read_quoted(&self.source, start, quote, self.line)?;
-        let prefix = if prefixed { Some(character) } else { None };
+        let doubled = self.syntax.doubled_quotes;
+        let (raw, end) = read_quoted(&self.source, start, quote, self.line, doubled)?;
         let style = interpolation_style(self.syntax, quote, prefix);
         self.push_text(TokenType::Text, &raw, Some(quote), style);
+        // Doubled quotes are already read, so the text has no escapes left.
+        self.tokens.last_mut().expect("pushed").decoded = doubled;
         self.line += raw.matches('\n').count();
         self.index = end;
         Ok(true)
@@ -422,6 +440,7 @@ impl<'a> Lexer<'a> {
     }
 
     /// Names, including Rust macro names such as `println!` (but not `x != y`).
+    /// Where `!` starts a comment (Fortran), it never ends a name.
     fn name(&mut self) -> bool {
         if !self.at(0).is_some_and(is_name_start) {
             return false;
@@ -430,7 +449,10 @@ impl<'a> Lexer<'a> {
             .iter()
             .take_while(|c| is_word(**c))
             .count();
-        if self.at(length) == Some('!') && self.at(length + 1) != Some('=') {
+        if self.syntax.line_comment != "!"
+            && self.at(length) == Some('!')
+            && self.at(length + 1) != Some('=')
+        {
             length += 1;
         }
         let value = self.slice(self.index, self.index + length);
@@ -480,7 +502,7 @@ impl<'a> Lexer<'a> {
 
 /// Which interpolation style a text literal uses, from the language's
 /// interpolation table. Literals that match no entry are plain text.
-fn interpolation_style(syntax: &Syntax, quote: char, prefix: Option<char>) -> InterpolationStyle {
+fn interpolation_style(syntax: &Syntax, quote: char, prefix: Option<&str>) -> InterpolationStyle {
     syntax
         .interpolation
         .iter()

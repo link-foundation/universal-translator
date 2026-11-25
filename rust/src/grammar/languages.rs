@@ -12,6 +12,8 @@ pub enum Convention {
     Camel,
     Pascal,
     Snake,
+    /// Capitalized words joined by underscores, as Ada writes `Is_Prime`.
+    Ada,
 }
 
 /// Naming conventions per role: functions and variables.
@@ -33,6 +35,9 @@ pub enum Blocks {
     Braces,
     Indentation,
     End,
+    /// Keyword-delimited blocks laid out by a dialect, such as Pascal's
+    /// `begin ... end` or Fortran's `if ... end if`.
+    Keywords,
 }
 
 /// Where a language writes types, if at all.
@@ -53,6 +58,8 @@ pub enum ForwardDeclarations {
     Prototype,
     /// `local male`, with the definition written without `local`.
     Local,
+    /// The function heading alone, such as Nim's `proc male(index: int): int`.
+    Heading,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -104,7 +111,7 @@ pub enum InterpolationStyle {
 #[derive(Clone, Copy, Debug)]
 pub struct Interpolation {
     pub quote: Option<char>,
-    pub prefix: Option<char>,
+    pub prefix: Option<&'static str>,
     pub style: InterpolationStyle,
 }
 
@@ -143,6 +150,9 @@ pub enum ImmutableParameters {
 pub struct PrintCalls {
     pub line: &'static [&'static str],
     pub text: &'static [&'static str],
+    /// Whether the line procedure prints its arguments one after another,
+    /// without spaces, as D's `writeln` does.
+    pub adjacent: bool,
 }
 
 /// What a language calls a call and a routine, used to adapt comments.
@@ -219,6 +229,16 @@ pub struct Syntax {
     pub machine: bool,
     /// How a function called before its definition is announced.
     pub forward_declarations: ForwardDeclarations,
+    /// The language whose tables a dialect is written with, such as C for
+    /// Objective-C.
+    pub family: Option<&'static str>,
+    /// Whether keywords and names ignore letter case (Pascal, Fortran, Ada).
+    pub case_insensitive: bool,
+    /// Whether a quote inside text is written twice, with no backslash
+    /// escapes (Pascal, Fortran, Ada, Visual Basic, MATLAB).
+    pub doubled_quotes: bool,
+    /// The statement of an empty indented block, where it is not `pass`.
+    pub empty_statement: Option<&'static str>,
 }
 
 impl Syntax {
@@ -355,6 +375,10 @@ const JAVASCRIPT: Syntax = Syntax {
     terms: FUNCTION_TERMS,
     machine: false,
     forward_declarations: ForwardDeclarations::None,
+    family: None,
+    case_insensitive: false,
+    doubled_quotes: false,
+    empty_statement: None,
 };
 
 /// The C description, the base of the other prefix-typed languages.
@@ -380,7 +404,7 @@ const C: Syntax = Syntax {
 };
 
 /// Every language the grammar translator describes, in listing order.
-pub const LANGUAGES: [Syntax; 20] = [
+pub const LANGUAGES: [Syntax; 30] = [
     Syntax {
         integer_division: SCRIPT_DIVISION,
         ..JAVASCRIPT
@@ -409,7 +433,7 @@ pub const LANGUAGES: [Syntax; 20] = [
         quotes: BOTH_QUOTES,
         interpolation: &[Interpolation {
             quote: None,
-            prefix: Some('f'),
+            prefix: Some("f"),
             style: InterpolationStyle::Braces,
         }],
         declarations: &[],
@@ -496,7 +520,7 @@ pub const LANGUAGES: [Syntax; 20] = [
         },
         interpolation: &[Interpolation {
             quote: Some('"'),
-            prefix: Some('$'),
+            prefix: Some("$"),
             style: InterpolationStyle::Braces,
         }],
         declarations: &["var"],
@@ -630,6 +654,7 @@ pub const LANGUAGES: [Syntax; 20] = [
         print_calls: Some(PrintCalls {
             line: &["say"],
             text: &["print"],
+            adjacent: false,
         }),
         words: Some(("1", "0")),
         prelude: &["use strict;", "use warnings;"],
@@ -659,6 +684,7 @@ pub const LANGUAGES: [Syntax; 20] = [
         print_calls: Some(PrintCalls {
             line: &["print"],
             text: &["stdout.write"],
+            adjacent: false,
         }),
         entry_point: EntryPoint::MainFunction,
         typed: Typed::Prefix,
@@ -677,7 +703,7 @@ pub const LANGUAGES: [Syntax; 20] = [
         quotes: C_QUOTES,
         interpolation: &[Interpolation {
             quote: Some('"'),
-            prefix: Some('s'),
+            prefix: Some("s"),
             style: InterpolationStyle::DollarDoubled,
         }],
         declarations: &["var", "val"],
@@ -689,6 +715,7 @@ pub const LANGUAGES: [Syntax; 20] = [
         print_calls: Some(PrintCalls {
             line: &["println"],
             text: &["print"],
+            adjacent: false,
         }),
         entry_point: EntryPoint::ClassMethod,
         container: Some("object Main"),
@@ -720,6 +747,7 @@ pub const LANGUAGES: [Syntax; 20] = [
         print_calls: Some(PrintCalls {
             line: &["println"],
             text: &["print"],
+            adjacent: false,
         }),
         entry_point: EntryPoint::MainFunction,
         call_main: Some("main()"),
@@ -749,6 +777,7 @@ pub const LANGUAGES: [Syntax; 20] = [
         print_calls: Some(PrintCalls {
             line: &[],
             text: &["cat"],
+            adjacent: false,
         }),
         words: Some(("TRUE", "FALSE")),
         ..JAVASCRIPT
@@ -767,6 +796,7 @@ pub const LANGUAGES: [Syntax; 20] = [
         print_calls: Some(PrintCalls {
             line: &["println"],
             text: &["print"],
+            adjacent: false,
         }),
         typed: Typed::Prefix,
         types: Some(Types {
@@ -776,6 +806,371 @@ pub const LANGUAGES: [Syntax; 20] = [
             nothing: "void",
         }),
         terms: METHOD_TERMS,
+        ..JAVASCRIPT
+    },
+    Syntax {
+        id: "objc",
+        label: "Objective-C",
+        family: Some("c"),
+        naming: same(Convention::Camel),
+        words: Some(("YES", "NO")),
+        types: Some(Types {
+            text: "const char *",
+            boolean: "BOOL",
+            ..INTEGER_TYPES
+        }),
+        ..C
+    },
+    Syntax {
+        id: "nim",
+        label: "Nim",
+        naming: same(Convention::Camel),
+        // Parameters cannot be assigned; `var n = n` makes a mutable copy.
+        immutable_parameters: ImmutableParameters::Copied,
+        blocks: Blocks::Indentation,
+        // A procedure body follows "=", other blocks follow ":".
+        body_after: Some("="),
+        // A procedure called before its definition needs its heading first.
+        forward_declarations: ForwardDeclarations::Heading,
+        empty_statement: Some("discard"),
+        line_comment: "#",
+        block_comment: Some(("#[", "]#")),
+        quotes: C_QUOTES,
+        interpolation: &[Interpolation {
+            quote: Some('"'),
+            prefix: Some("fmt"),
+            style: InterpolationStyle::Braces,
+        }],
+        declarations: &["var", "let"],
+        function_keyword: Some("proc"),
+        operators: Operators {
+            and: "and",
+            or: "or",
+            not: "not",
+            not_equal: "!=",
+            equal: None,
+            integer_divide: Some("div"),
+            concatenate: None,
+            remainder: Some("mod"),
+        },
+        else_if: Some("elif"),
+        command_calls: true,
+        print_line: "echo",
+        print_calls: Some(PrintCalls {
+            line: &["echo"],
+            text: &["stdout.write"],
+            adjacent: true,
+        }),
+        typed: Typed::Annotation,
+        types: Some(Types {
+            nothing: "",
+            ..INTEGER_TYPES
+        }),
+        return_arrow: Some(":"),
+        terms: Terms {
+            call: "procedure call",
+            routine: "procedure",
+        },
+        ..JAVASCRIPT
+    },
+    Syntax {
+        id: "d",
+        label: "D",
+        naming: same(Convention::Camel),
+        quotes: C_QUOTES,
+        interpolation: &[],
+        declarations: &["auto", "immutable"],
+        symbols: &["~"],
+        function_keyword: None,
+        operators: Operators {
+            concatenate: Some("~"),
+            ..BRACE_OPERATORS
+        },
+        // writeln and write print their arguments one after another.
+        print_line: "writeln",
+        print_calls: Some(PrintCalls {
+            line: &["writeln"],
+            text: &["write"],
+            adjacent: true,
+        }),
+        concatenate_call: Some("text"),
+        prelude: &["import std.stdio;"],
+        entry_point: EntryPoint::MainFunction,
+        typed: Typed::Prefix,
+        types: Some(Types {
+            integer: "long",
+            ..INTEGER_TYPES
+        }),
+        ..JAVASCRIPT
+    },
+    Syntax {
+        id: "pascal",
+        label: "Pascal",
+        naming: same(Convention::Pascal),
+        // Statements, routines and the program layout are in
+        // dialects/pascal.rs.
+        blocks: Blocks::Keywords,
+        case_insensitive: true,
+        // A routine called before its definition needs a `forward;` heading.
+        forward_declarations: ForwardDeclarations::Heading,
+        block_comment: Some(("{", "}")),
+        quotes: &['\''],
+        doubled_quotes: true,
+        interpolation: &[],
+        declarations: &[],
+        symbols: &["<>"],
+        function_keyword: None,
+        assignment: Some(":="),
+        compound_assignment: false,
+        operators: Operators {
+            and: "and",
+            or: "or",
+            not: "not",
+            not_equal: "<>",
+            equal: Some("="),
+            integer_divide: Some("div"),
+            concatenate: None,
+            remainder: Some("mod"),
+        },
+        words: Some(("True", "False")),
+        // WriteLn and Write print their arguments one after another.
+        print_line: "WriteLn",
+        print_calls: Some(PrintCalls {
+            line: &["WriteLn"],
+            text: &["Write"],
+            adjacent: true,
+        }),
+        prelude: &["program Main;"],
+        typed: Typed::Annotation,
+        types: Some(Types {
+            integer: "Int64",
+            text: "String",
+            boolean: "Boolean",
+            nothing: "",
+        }),
+        terms: Terms {
+            call: "procedure call",
+            routine: "procedure",
+        },
+        ..JAVASCRIPT
+    },
+    Syntax {
+        id: "fortran",
+        label: "Fortran",
+        naming: same(Convention::Snake),
+        // Statements, procedures and the program layout are in
+        // dialects/fortran.rs.
+        blocks: Blocks::Keywords,
+        case_insensitive: true,
+        line_comment: "!",
+        block_comment: None,
+        quotes: &['\''],
+        doubled_quotes: true,
+        interpolation: &[],
+        declarations: &[],
+        // Integer literals passed to integer(8) arguments carry the kind 8.
+        long_suffix: Some("_8"),
+        symbols: &[".and.", ".or.", ".not.", ".true.", ".false.", "/="],
+        function_keyword: None,
+        compound_assignment: false,
+        operators: Operators {
+            and: ".and.",
+            or: ".or.",
+            not: ".not.",
+            not_equal: "/=",
+            equal: None,
+            integer_divide: Some("/"),
+            concatenate: None,
+            remainder: None,
+        },
+        words: Some((".true.", ".false.")),
+        // print and write list their items one after another.
+        print_line: "print",
+        print_calls: Some(PrintCalls {
+            line: &["print"],
+            text: &["write"],
+            adjacent: true,
+        }),
+        typed: Typed::Annotation,
+        types: Some(Types {
+            integer: "integer(8)",
+            text: "character",
+            boolean: "logical",
+            nothing: "",
+        }),
+        terms: Terms {
+            call: "subroutine call",
+            routine: "procedure",
+        },
+        ..JAVASCRIPT
+    },
+    Syntax {
+        id: "ada",
+        label: "Ada",
+        naming: same(Convention::Ada),
+        // In parameters are constants, so a reassigned one is copied first.
+        immutable_parameters: ImmutableParameters::Renamed,
+        // Statements, subprograms and the program layout are in
+        // dialects/ada.rs.
+        blocks: Blocks::Keywords,
+        case_insensitive: true,
+        // A subprogram called before its body is announced by its
+        // specification.
+        forward_declarations: ForwardDeclarations::Heading,
+        line_comment: "--",
+        block_comment: None,
+        quotes: C_QUOTES,
+        doubled_quotes: true,
+        interpolation: &[],
+        declarations: &[],
+        function_keyword: None,
+        assignment: Some(":="),
+        compound_assignment: false,
+        operators: Operators {
+            and: "and then",
+            or: "or else",
+            not: "not",
+            not_equal: "/=",
+            equal: Some("="),
+            integer_divide: Some("/"),
+            concatenate: None,
+            remainder: Some("rem"),
+        },
+        words: Some(("True", "False")),
+        typed: Typed::Annotation,
+        types: Some(Types {
+            integer: "Long_Long_Integer",
+            text: "String",
+            boolean: "Boolean",
+            nothing: "",
+        }),
+        terms: Terms {
+            call: "procedure call",
+            routine: "subprogram",
+        },
+        ..JAVASCRIPT
+    },
+    Syntax {
+        id: "vb",
+        label: "Visual Basic .NET",
+        naming: Naming {
+            function: Convention::Pascal,
+            variable: Convention::Camel,
+        },
+        // Statements, procedures and the module layout are in dialects/vb.rs.
+        blocks: Blocks::Keywords,
+        case_insensitive: true,
+        line_comment: "'",
+        block_comment: None,
+        quotes: C_QUOTES,
+        doubled_quotes: true,
+        interpolation: &[Interpolation {
+            quote: Some('"'),
+            prefix: Some("$"),
+            style: InterpolationStyle::Braces,
+        }],
+        declarations: &[],
+        symbols: &["<>"],
+        function_keyword: None,
+        operators: Operators {
+            and: "AndAlso",
+            or: "OrElse",
+            not: "Not",
+            not_equal: "<>",
+            equal: Some("="),
+            integer_divide: Some("\\"),
+            concatenate: None,
+            remainder: Some("Mod"),
+        },
+        words: Some(("True", "False")),
+        typed: Typed::Annotation,
+        types: Some(Types {
+            integer: "Long",
+            text: "String",
+            boolean: "Boolean",
+            nothing: "",
+        }),
+        terms: Terms {
+            call: "procedure call",
+            routine: "procedure",
+        },
+        ..JAVASCRIPT
+    },
+    Syntax {
+        id: "bash",
+        label: "Bash",
+        naming: same(Convention::Snake),
+        // Commands, arithmetic and quoting are in dialects/bash.rs.
+        blocks: Blocks::Keywords,
+        line_comment: "#",
+        block_comment: None,
+        quotes: BOTH_QUOTES,
+        interpolation: &[],
+        declarations: &["local"],
+        variable_sigil: Some('$'),
+        function_keyword: None,
+        operators: Operators {
+            integer_divide: Some("/"),
+            ..BRACE_OPERATORS
+        },
+        compound_assignment: false,
+        words: Some(("1", "0")),
+        ..JAVASCRIPT
+    },
+    Syntax {
+        id: "matlab",
+        label: "MATLAB/Octave",
+        naming: same(Convention::Snake),
+        // Functions, fprintf formats and the script layout are in
+        // dialects/matlab.rs.
+        blocks: Blocks::Keywords,
+        line_comment: "%",
+        block_comment: None,
+        quotes: &['\''],
+        doubled_quotes: true,
+        interpolation: &[],
+        declarations: &[],
+        symbols: &["~=", "~"],
+        function_keyword: None,
+        operators: Operators {
+            not: "~",
+            not_equal: "~=",
+            ..BRACE_OPERATORS
+        },
+        // Numbers are doubles, so integer division truncates the quotient.
+        integer_division: Some(IntegerDivision::Wrapper("fix")),
+        compound_assignment: false,
+        ..JAVASCRIPT
+    },
+    Syntax {
+        id: "zig",
+        label: "Zig",
+        naming: Naming {
+            function: Convention::Camel,
+            variable: Convention::Snake,
+        },
+        immutable_parameters: ImmutableParameters::Renamed,
+        // The output writer, builtins and loop continue expressions are in
+        // dialects/zig.rs.
+        block_comment: None,
+        quotes: C_QUOTES,
+        interpolation: &[],
+        declarations: &["var", "const"],
+        function_keyword: Some("fn"),
+        operators: Operators {
+            and: "and",
+            or: "or",
+            ..BRACE_OPERATORS
+        },
+        integer_division: Some(IntegerDivision::Call("@divTrunc")),
+        entry_point: EntryPoint::MainFunction,
+        typed: Typed::Annotation,
+        types: Some(Types {
+            integer: "i64",
+            text: "[]const u8",
+            boolean: "bool",
+            nothing: "void",
+        }),
         ..JAVASCRIPT
     },
 ];

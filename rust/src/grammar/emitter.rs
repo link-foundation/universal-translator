@@ -74,6 +74,7 @@ fn embedding(id: &str) -> Option<(&'static str, &'static str, &'static str, Form
         "scala" => ("s", "${", "}", Format::Dollar),
         "julia" => ("", "$(", ")", Format::None),
         "swift" => ("", "\\(", ")", Format::None),
+        "nim" => ("fmt", "{", "}", Format::Braces),
         _ => return None,
     })
 }
@@ -137,8 +138,10 @@ impl Emitter {
         }
     }
 
+    /// The language whose tables the output is written with: a dialect such
+    /// as Objective-C uses those of the family it extends (C).
     fn id(&self) -> &'static str {
-        self.syntax.id
+        self.syntax.family.unwrap_or(self.syntax.id)
     }
 
     fn line(&mut self, content: &str) {
@@ -154,6 +157,7 @@ impl Emitter {
         if matches!(
             self.id(),
             "python"
+                | "nim"
                 | "ruby"
                 | "lua"
                 | "go"
@@ -182,7 +186,9 @@ impl Emitter {
         if meta == "text" && self.id() == "cpp" {
             self.uses.insert("string");
         }
-        if meta == "boolean" && self.id() == "c" {
+        if meta == "boolean" && self.syntax.id == "objc" {
+            self.uses.insert("objc");
+        } else if meta == "boolean" && self.id() == "c" {
             self.uses.insert("stdbool");
         }
         let Some(types) = self.syntax.types else {
@@ -398,6 +404,9 @@ impl Emitter {
     /// Text built from literal and computed parts, outside of output calls.
     fn interpolation(&mut self, parts: &[Node]) -> Result<String> {
         if let Some((prefix, open, close, format)) = embedding(self.id()) {
+            if self.id() == "nim" {
+                self.uses.insert("strformat");
+            }
             return Ok(format!(
                 "{prefix}{}",
                 self.render(parts, open, close, format)?
@@ -433,6 +442,14 @@ impl Emitter {
             // PHP and Perl interpolate only variables, so computed parts are
             // concatenated.
             "php" | "perl" => self.joined(parts, " . "),
+            "d" => {
+                self.uses.insert("std.conv");
+                let pieces = parts
+                    .iter()
+                    .map(|part| self.expression(part))
+                    .collect::<Result<Vec<_>>>()?;
+                Ok(format!("text({})", pieces.join(", ")))
+            }
             "rust" => Ok(format!(
                 "format!({})",
                 self.format_arguments(parts, Format::Braces)?
@@ -624,6 +641,19 @@ impl Emitter {
                     format!("print({single}, terminator: \"\")")
                 }
             }
+            "nim" | "d" => {
+                let pieces = parts
+                    .iter()
+                    .map(|part| self.expression(part))
+                    .collect::<Result<Vec<_>>>()?
+                    .join(", ");
+                match (self.id(), newline) {
+                    ("nim", true) => format!("echo {pieces}"),
+                    ("nim", false) => format!("stdout.write({pieces})"),
+                    (_, true) => format!("writeln({pieces});"),
+                    (_, false) => format!("write({pieces});"),
+                }
+            }
             _ => {
                 return Err(GrammarError::new(format!(
                     "No output procedure for {}",
@@ -678,6 +708,7 @@ impl Emitter {
                     | "scala"
                     | "r"
                     | "groovy"
+                    | "d"
             ) {
                 format!("({value})")
             } else {
@@ -689,8 +720,10 @@ impl Emitter {
     fn open_block(&mut self, header: &str) {
         match self.syntax.blocks {
             Blocks::Braces => self.line(&format!("{header} {{")),
+            // Nim's procedure heads end with "=" instead of ":".
+            Blocks::Indentation if header.ends_with('=') => self.line(header),
             Blocks::Indentation => self.line(&format!("{header}:")),
-            Blocks::End => self.line(header),
+            Blocks::End | Blocks::Keywords => self.line(header),
         }
         self.depth += 1;
     }
@@ -700,14 +733,15 @@ impl Emitter {
         match self.syntax.blocks {
             Blocks::Braces => self.line("}"),
             Blocks::End => self.line("end"),
-            Blocks::Indentation => {}
+            // Keyword blocks close with the words of their own statement.
+            Blocks::Indentation | Blocks::Keywords => {}
         }
     }
 
     fn body(&mut self, block: &Node) -> Result<()> {
         let statements = block.nodes("statements");
         if statements.is_empty() && self.syntax.blocks == Blocks::Indentation {
-            self.line("pass");
+            self.line(self.syntax.empty_statement.unwrap_or("pass"));
         }
         for statement in statements {
             self.statement(statement)?;
@@ -793,6 +827,7 @@ impl Emitter {
                 self.type_name(kind)
             ),
             "r" => format!("{name} <- {initial}"),
+            "nim" => format!("{} {name} = {initial}", if mutable { "var" } else { "let" }),
             _ => format!(
                 "{} {name} = {initial}{}",
                 self.type_name(kind),
@@ -852,7 +887,7 @@ impl Emitter {
             self.line(match self.syntax.blocks {
                 Blocks::Braces => "} else {",
                 Blocks::Indentation => "else:",
-                Blocks::End => "else",
+                Blocks::End | Blocks::Keywords => "else",
             });
             self.depth += 1;
             self.body(otherwise)?;
@@ -868,8 +903,8 @@ impl Emitter {
                 "}} {} {condition} {{",
                 self.syntax.braced_else_if.unwrap_or("else if")
             )
-        } else if self.id() == "python" {
-            format!("elif {condition}:")
+        } else if self.syntax.blocks == Blocks::Indentation {
+            format!("{} {condition}:", self.syntax.else_if.unwrap_or("elif"))
         } else if self.id() == "lua" {
             format!("elseif {condition} then")
         } else {
@@ -941,6 +976,8 @@ impl Emitter {
             "julia" => format!("for {identifier} in {from}:{last}"),
             "r" => format!("for ({identifier} in {from}:{last})"),
             "groovy" => format!("for ({identifier} in {from}..<{to})"),
+            "nim" => format!("for {identifier} in {from} ..< {to}"),
+            "d" => c_style("long"),
             _ => "undefined".to_owned(),
         };
         self.open_block(&header);
@@ -1051,6 +1088,10 @@ impl Emitter {
             ),
             "julia" => format!("function {name}({names})"),
             "r" => format!("{name} <- function({names})"),
+            "nim" => {
+                let list = typed(self, &|id, kind| format!("{id}: {kind}"));
+                format!("proc {name}({list}){} =", after(self, ": "))
+            }
             "csharp" | "java" => format!(
                 "static {returns} {name}({})",
                 typed(self, &|id, kind| format!("{kind} {id}"))
@@ -1103,6 +1144,7 @@ impl Emitter {
             "dart" => Some("void main()"),
             "scala" => Some("def main(args: Array[String]): Unit ="),
             "julia" => Some("function main()"),
+            "d" => Some("void main()"),
             _ => None,
         }
     }
@@ -1123,6 +1165,10 @@ impl Emitter {
                 let name = item.str("name").unwrap_or_default().to_owned();
                 let announcement = match self.syntax.forward_declarations {
                     ForwardDeclarations::Local => format!("local {name}"),
+                    ForwardDeclarations::Heading => {
+                        let signature = self.signature(item);
+                        signature.trim_end_matches('=').trim_end().to_owned()
+                    }
                     _ => format!("{};", self.signature(item)),
                 };
                 self.line(&announcement);
@@ -1184,11 +1230,18 @@ impl Emitter {
             lines.push(String::new());
         }
         lines.extend(self.syntax.prelude.iter().map(|line| (*line).to_owned()));
-        if self.uses.contains("dart:io") {
-            lines.push("import 'dart:io';".into());
+        for (used, line) in [
+            ("strformat", "import std/strformat"),
+            ("std.conv", "import std.conv;"),
+            ("dart:io", "import 'dart:io';"),
+        ] {
+            if self.uses.contains(used) {
+                lines.push(line.into());
+            }
         }
         lines.extend(program.texts("libraryImports"));
         for (used, line) in [
+            ("objc", "#import <objc/objc.h>"),
             ("stdbool", "#include <stdbool.h>"),
             ("stdio", "#include <stdio.h>"),
             ("iostream", "#include <iostream>"),
@@ -1201,6 +1254,14 @@ impl Emitter {
         }
         if lines.last().is_some_and(|line| !line.is_empty()) {
             lines.push(String::new());
+        }
+        // Objective-C includes each header once with #import.
+        if self.syntax.id == "objc" {
+            for line in &mut lines {
+                if let Some(rest) = line.strip_prefix("#include") {
+                    *line = format!("#import{rest}");
+                }
+            }
         }
         lines
     }

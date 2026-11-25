@@ -11,7 +11,7 @@ use super::GrammarError;
 use super::interpolation::{Piece, split_interpolation};
 use super::languages::{Blocks, ForwardDeclarations, Syntax, Typed};
 use super::lexer::{InterpolationStyle, Token, TokenType, decode_escapes, tokenize};
-use super::meta::{Node, add, binary, block, name, number, text};
+use super::meta::{Node, binary, block, name, number, text};
 
 /// Binary operators by precedence level, loosest first, with their spellings.
 const BINARY_LEVELS: [&[(&str, &[&str])]; 6] = [
@@ -62,33 +62,15 @@ const CONTROL_WORDS: [&str; 8] = [
 
 const ASSIGNMENT_SYMBOLS: [&str; 8] = ["=", "+=", "-=", "*=", "/=", "%=", "++", "--"];
 
-/// `++` and `--` written as the compound assignment they stand for.
-fn step_operator(symbol: &str) -> Option<&'static str> {
-    match symbol {
-        "++" => Some("+="),
-        "--" => Some("-="),
-        _ => None,
-    }
-}
+mod loops;
+
+use loops::step_operator;
 
 type Parsed<T = Node> = Result<T, GrammarError>;
 
 /// Parse a whole source text into a `SourceProgram` tree.
 pub fn parse_program(source: &str, syntax: &Syntax) -> Parsed {
     Parser::new(tokenize(source, syntax)?, syntax.clone()).program()
-}
-
-/// The `start` and exclusive `end` of a counting range.
-struct Range {
-    start: Node,
-    end: Node,
-}
-
-/// The step of a C-style loop update such as `i++` or `i += 1`.
-struct Update {
-    name: String,
-    operator: String,
-    value: Node,
 }
 
 /// Binary operators by precedence level with their spellings.
@@ -112,11 +94,18 @@ impl Parser {
                 level
                     .iter()
                     .map(|(operator, surfaces)| {
+                        // Word operators such as Nim's mod and div, or
+                        // Pascal's <>, join the shared symbols of their level.
                         let extra = match *operator {
                             "remainder" => operators.remainder,
                             "divide" => operators.integer_divide,
+                            "and" => Some(operators.and),
+                            "or" => Some(operators.or),
+                            "equal" => operators.equal,
+                            "notEqual" => Some(operators.not_equal),
                             _ => None,
-                        };
+                        }
+                        .filter(|extra| !surfaces.contains(extra));
                         (*operator, surfaces.iter().copied().chain(extra).collect())
                     })
                     .collect()
@@ -191,6 +180,9 @@ impl Parser {
     /// Whether the token at `offset` is the symbol or word `value`.
     fn is_at(&self, value: &str, offset: usize) -> bool {
         let token = self.peek(offset);
+        if token.kind == TokenType::Name && self.syntax.case_insensitive {
+            return token.value.eq_ignore_ascii_case(value);
+        }
         matches!(token.kind, TokenType::Symbol | TokenType::Name) && token.value == value
     }
 
@@ -412,7 +404,8 @@ impl Parser {
     }
 
     /// The number of tokens that announce a function defined later, or 0:
-    /// `int male(int index);` or `local male` followed by `function male`.
+    /// `int male(int index);`, `proc male(index: int): int` or `local male`
+    /// followed by `function male`.
     fn announcement_length(&self) -> usize {
         match self.syntax.forward_declarations {
             ForwardDeclarations::None => 0,
@@ -425,6 +418,7 @@ impl Parser {
                     && self.is_at(";", after);
                 if prototype { after + 1 } else { 0 }
             }
+            ForwardDeclarations::Heading => self.heading_length(),
             ForwardDeclarations::Local => {
                 let announced = self.value(1);
                 let alone = self.is("local")
@@ -438,6 +432,26 @@ impl Parser {
                 if alone && defined { 2 } else { 0 }
             }
         }
+    }
+
+    /// A function heading whose line ends before the body marker.
+    fn heading_length(&self) -> usize {
+        let keyword = self.syntax.function_keyword;
+        if !keyword.is_some_and(|keyword| self.is_keyword_function_start(keyword)) {
+            return 0;
+        }
+        let mut index = 0;
+        while !matches!(self.kind(index), TokenType::Newline | TokenType::End) {
+            if self
+                .syntax
+                .body_after
+                .is_some_and(|symbol| self.is_at(symbol, index))
+            {
+                return 0;
+            }
+            index += 1;
+        }
+        index
     }
 
     /// How many tokens of a type and a name come before `(`.
@@ -512,7 +526,9 @@ impl Parser {
         }
         // Scala: def name(...): Type = { ... }
         if let Some(symbol) = self.syntax.body_after {
-            self.accept(symbol);
+            if self.syntax.blocks != Blocks::Indentation {
+                self.accept(symbol);
+            }
         }
         let mut body = self.block()?;
         self.close_keyword_block()?;
@@ -615,7 +631,10 @@ impl Parser {
                 Ok(block(statements))
             }
             Blocks::Indentation => {
-                self.expect(":")?;
+                // Nim: proc name(...): Type = <indented body>
+                if !self.syntax.body_after.is_some_and(|symbol| self.accept(symbol)) {
+                    self.expect(":")?;
+                }
                 while self.kind(0) == TokenType::Comment {
                     self.position += 1;
                 }
@@ -648,6 +667,10 @@ impl Parser {
                 })?;
                 Ok(block(statements))
             }
+            Blocks::Keywords => Err(GrammarError::syntax(
+                "Keyword blocks are read by the language's dialect",
+                self.current().line,
+            )),
         }
     }
 
@@ -960,180 +983,6 @@ impl Parser {
             .with("body", body))
     }
 
-    fn for_statement(&mut self) -> Parsed {
-        self.position += 1;
-        let parenthesized = self.syntax.id != "go"
-            && self.is("(")
-            && (self.syntax.id == "kotlin" || self.syntax.blocks == Blocks::Braces);
-        if parenthesized {
-            self.expect("(")?;
-        }
-        // C family: for (init; condition; update)
-        if self.tokens_until_block().any(|token| token.value == ";") {
-            let initial = self.statement()?;
-            let condition = self.expression()?;
-            self.expect(";")?;
-            let update = self.for_update()?;
-            if parenthesized {
-                self.expect(")")?;
-            }
-            let body = self.block()?;
-            return counting_loop(initial, condition, update, body);
-        }
-        if self.syntax.id == "go" && !self.is_at("range", 1) && !self.is_at(":=", 1) {
-            let condition = self.expression()?;
-            let body = self.block()?;
-            return Ok(Node::new("While")
-                .with("condition", condition)
-                .with("body", body));
-        }
-        // Perl declares the loop variable: for my $i (...)
-        if self.syntax.declarations.contains(&self.value(0)) && self.kind(1) == TokenType::Name {
-            self.position += 1;
-        }
-        let variable = self.expect_name()?;
-        if self.syntax.id == "lua" {
-            self.numeric_for(variable)
-        } else {
-            self.range_for(variable, parenthesized)
-        }
-    }
-
-    /// Lua: `for i = first, last do ... end`
-    fn numeric_for(&mut self, variable: String) -> Parsed {
-        self.expect("=")?;
-        let start = self.expression()?;
-        self.expect(",")?;
-        let last = self.expression()?;
-        let body = self.block()?;
-        self.close_keyword_block()?;
-        let range = Range {
-            start,
-            end: add(last, number(1.0)),
-        };
-        Ok(counting_node(variable, range, body))
-    }
-
-    /// `for i in range`, `for my $i (range)`, `for (i <- range)`
-    fn range_for(&mut self, variable: String, parenthesized: bool) -> Parsed {
-        let opener = self.syntax.for_in.unwrap_or("in");
-        self.expect(opener)?;
-        let range = self.range_expression()?;
-        if opener == "(" || parenthesized {
-            self.expect(")")?;
-        }
-        let body = self.block()?;
-        self.close_keyword_block()?;
-        Ok(counting_node(variable, range, body))
-    }
-
-    /// Ruby: `(first..last).each do |variable| ... end`
-    fn is_range_each(&self) -> bool {
-        if !self.is("(") {
-            return false;
-        }
-        let mut depth = 0;
-        for offset in 0.. {
-            let token = self.peek(offset);
-            if matches!(token.kind, TokenType::End | TokenType::Newline) {
-                return false;
-            }
-            if token.value == "(" {
-                depth += 1;
-            }
-            if token.value == ")" {
-                depth -= 1;
-                if depth == 0 {
-                    return self.is_at(".", offset + 1) && self.is_at("each", offset + 2);
-                }
-            }
-        }
-        false
-    }
-
-    fn range_each(&mut self) -> Parsed {
-        self.expect("(")?;
-        let range = self.range_expression()?;
-        for word in [")", ".", "each", "do", "|"] {
-            self.expect(word)?;
-        }
-        let variable = self.expect_name()?;
-        self.expect("|")?;
-        let body = self.block()?;
-        self.close_keyword_block()?;
-        Ok(counting_node(variable, range, body))
-    }
-
-    fn tokens_until_block(&self) -> impl Iterator<Item = &Token> {
-        self.tokens[self.position.min(self.tokens.len() - 1)..]
-            .iter()
-            .take_while(|token| {
-                !matches!(token.kind, TokenType::End | TokenType::Newline) && token.value != "{"
-            })
-    }
-
-    fn for_update(&mut self) -> Parsed<Update> {
-        let name = self.expect_name()?;
-        let written = self.next_value()?;
-        if let Some(operator) = step_operator(&written) {
-            return Ok(Update {
-                name,
-                operator: operator.to_owned(),
-                value: number(1.0),
-            });
-        }
-        if !["+=", "-=", "*=", "/=", "="].contains(&written.as_str()) {
-            return Err(GrammarError::syntax(
-                format!("Unsupported loop update \"{written}\""),
-                self.current().line,
-            ));
-        }
-        Ok(Update {
-            name,
-            operator: written,
-            value: self.expression()?,
-        })
-    }
-
-    fn range_expression(&mut self) -> Parsed<Range> {
-        if self.accept("range") {
-            self.expect("(")?;
-            let first = self.expression()?;
-            let second = if self.accept(",") {
-                Some(self.expression()?)
-            } else {
-                None
-            };
-            self.expect(")")?;
-            return Ok(match second {
-                Some(end) => Range { start: first, end },
-                None => Range {
-                    start: number(0.0),
-                    end: first,
-                },
-            });
-        }
-        let start = self.binary(ADDITIVE)?;
-        let operator = self.next_value()?;
-        let last = self.binary(ADDITIVE)?;
-        let inclusive = |last: Node| add(last, number(1.0));
-        let end = match operator.as_str() {
-            "until" | "..<" => last,
-            "..." if self.syntax.id == "ruby" => last,
-            ".." if self.syntax.id == "rust" => last,
-            "..." | ".." | "..=" => inclusive(last),
-            // Scala's `to`, and Julia's and R's `:`
-            "to" | ":" => inclusive(last),
-            _ => {
-                return Err(GrammarError::syntax(
-                    format!("Unsupported range operator \"{operator}\""),
-                    self.current().line,
-                ));
-            }
-        };
-        Ok(Range { start, end })
-    }
-
     // ---- expressions ----
 
     fn expression(&mut self) -> Parsed {
@@ -1199,7 +1048,8 @@ impl Parser {
                 .with("operator", "negate")
                 .with("operand", operand));
         }
-        if self.accept("!") || self.accept("not") {
+        let not = self.syntax.operators.not;
+        if self.accept("!") || self.accept("not") || self.accept(not) {
             let operand = self.unary()?;
             return Ok(Node::new("Unary")
                 .with("operator", "not")
@@ -1228,7 +1078,12 @@ impl Parser {
             if self.accept("(") {
                 let mut values = Vec::new();
                 while !self.is(")") {
-                    if self.kind(0) == TokenType::Name && self.is_at("=", 1) {
+                    // Where "=" compares (Pascal, Ada, Visual Basic),
+                    // `f(a = b)` passes a truth value, not a named argument.
+                    if self.syntax.operators.equal != Some("=")
+                        && self.kind(0) == TokenType::Name
+                        && self.is_at("=", 1)
+                    {
                         let label = self.next_value()?;
                         self.position += 1;
                         let value = self.expression()?;
@@ -1299,17 +1154,25 @@ impl Parser {
         } else {
             token.style
         };
+        // Text read with doubled quotes has no escapes.
+        let decode = |raw: &str| {
+            if token.decoded {
+                raw.to_owned()
+            } else {
+                decode_escapes(raw)
+            }
+        };
         if style == InterpolationStyle::Plain {
             return Ok(text(if single && self.syntax.id == "php" {
                 token.value.clone()
             } else {
-                decode_escapes(&token.value)
+                decode(&token.value)
             }));
         }
         let mut parts = Vec::new();
         for piece in split_interpolation(&token.value, style)? {
             match piece {
-                Piece::Literal(literal) => parts.push(text(decode_escapes(&literal))),
+                Piece::Literal(literal) => parts.push(text(decode(&literal))),
                 Piece::Code(code) => {
                     let inner = Syntax {
                         variable_sigil: Some('$'),
@@ -1334,14 +1197,6 @@ fn assignment(variable: String, operator: &str, value: Node) -> Node {
         .with("value", value)
 }
 
-fn counting_node(variable: String, range: Range, body: Node) -> Node {
-    Node::new("CountingLoop")
-        .with("variable", variable)
-        .with("start", range.start)
-        .with("end", range.end)
-        .with("body", body)
-}
-
 fn callee_name(expression: &Node) -> Parsed<String> {
     match expression.str("name") {
         Some(identifier) if expression.is("Name") => Ok(identifier.to_owned()),
@@ -1350,59 +1205,6 @@ fn callee_name(expression: &Node) -> Parsed<String> {
             0,
         )),
     }
-}
-
-/// `for (i = a; i < b; i++)` is a counting loop. Every other C-style loop
-/// becomes its initial assignment followed by a while loop that ends with
-/// the update.
-fn counting_loop(initial: Node, condition: Node, update: Update, body: Node) -> Parsed {
-    let variable = initial.str("name").unwrap_or_default().to_owned();
-    let declares = initial.is("Declaration") || initial.is("Assignment");
-    let operator = condition.str("operator").unwrap_or_default();
-    let counts = declares
-        && condition.is("Binary")
-        && ["less", "lessOrEqual"].contains(&operator)
-        && condition
-            .node("left")
-            .is_some_and(|left| left.is_name(&variable))
-        && update.name == variable
-        && update.operator == "+="
-        && update.value.is("Number")
-        && update.value.number("value") == Some(1.0);
-    if !counts {
-        let start = if initial.is("Declaration") {
-            Node::new("Assignment")
-                .with("name", variable)
-                .with("operator", "=")
-                .with_opt("value", initial.node("value").cloned())
-        } else {
-            initial
-        };
-        let step = Node::new("Assignment")
-            .with("name", update.name)
-            .with("operator", update.operator)
-            .with("value", update.value);
-        let mut statements = body.node_list("statements");
-        statements.push(step);
-        let looped = Node::new("While")
-            .with("condition", condition)
-            .with("body", block(statements));
-        return Ok(Node::new("Statements").with("statements", vec![start, looped]));
-    }
-    let right = condition
-        .node("right")
-        .cloned()
-        .unwrap_or_else(|| number(0.0));
-    let end = if operator == "less" {
-        right
-    } else {
-        add(right, number(1.0))
-    };
-    Ok(Node::new("CountingLoop")
-        .with("variable", variable)
-        .with_opt("start", initial.node("value").cloned())
-        .with("end", end)
-        .with("body", body))
 }
 
 /// Map a source type spelling to a meta type: integer, text, boolean,

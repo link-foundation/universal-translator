@@ -63,6 +63,16 @@ fn extension(target: &str) -> &'static str {
         "julia" => "jl",
         "r" => "R",
         "groovy" => "groovy",
+        "objc" => "m",
+        "nim" => "nim",
+        "d" => "d",
+        "pascal" => "pas",
+        "fortran" => "f90",
+        "ada" => "adb",
+        "vb" => "vb",
+        "bash" => "sh",
+        "matlab" => "matlab",
+        "zig" => "zig",
         "nasm" => "asm",
         "cil" => "il",
         "jvm" => "j",
@@ -109,7 +119,7 @@ fn matches_every_golden_file_for_all_targets() {
         .into_iter()
         .chain(machine_target_ids())
         .collect();
-    assert_eq!(targets.len(), 23);
+    assert_eq!(targets.len(), 33);
     let mut mismatches = Vec::new();
     for task in tasks() {
         let task = task.as_str();

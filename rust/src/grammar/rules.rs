@@ -416,6 +416,20 @@ fn print_kind(callee: &str, syntax: Option<&Syntax>) -> Option<PrintKind> {
     }
 }
 
+/// The parts of the printed values, with interpolations spread out.
+fn spread_interpolations(values: Vec<Node>) -> Vec<Node> {
+    values
+        .into_iter()
+        .flat_map(|value| {
+            if value.is("Interpolation") {
+                value.node_list("parts")
+            } else {
+                vec![value]
+            }
+        })
+        .collect()
+}
+
 fn print_from_call(call: &Node, syntax: Option<&Syntax>) -> Option<Node> {
     let callee = call.str("callee").unwrap_or_default();
     let kind = print_kind(callee, syntax);
@@ -423,6 +437,11 @@ fn print_from_call(call: &Node, syntax: Option<&Syntax>) -> Option<Node> {
     let (named, values): (Vec<Node>, Vec<Node>) = arguments
         .into_iter()
         .partition(|value| value.is("NamedArgument"));
+    // D's writeln prints its arguments one after another, without spaces.
+    let adjacent = syntax.and_then(|syntax| syntax.print_calls);
+    if kind == Some(PrintKind::Line) && adjacent.is_some_and(|calls| calls.adjacent) {
+        return Some(print(parts_to_value(spread_interpolations(values)), true));
+    }
     if kind == Some(PrintKind::Line) {
         let end = named
             .iter()
@@ -438,17 +457,7 @@ fn print_from_call(call: &Node, syntax: Option<&Syntax>) -> Option<Node> {
         return Some(print(value, newline));
     }
     if kind == Some(PrintKind::Text) {
-        let flat = values
-            .into_iter()
-            .flat_map(|value| {
-                if value.is("Interpolation") {
-                    value.node_list("parts")
-                } else {
-                    vec![value]
-                }
-            })
-            .collect();
-        let (parts, newline) = without_trailing_newline(flat);
+        let (parts, newline) = without_trailing_newline(spread_interpolations(values));
         return Some(print(parts_to_value(parts), newline));
     }
     let style = format_call(callee)?;

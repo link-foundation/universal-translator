@@ -56,6 +56,11 @@ pub fn spell_words(words: &[&str], convention: Convention) -> String {
             .collect(),
         Convention::Pascal => words.iter().map(|word| capitalize(word)).collect(),
         Convention::Snake => words.join("_"),
+        Convention::Ada => words
+            .iter()
+            .map(|word| capitalize(word))
+            .collect::<Vec<_>>()
+            .join("_"),
     }
 }
 
@@ -218,6 +223,46 @@ const RESERVED_WORDS: &[(&str, &str)] = &[
         "if else repeat while function for next break true false null inf nan na in",
     ),
     (
+        "objc",
+        "auto break case char const continue default do double else enum extern float for goto if inline int long register restrict return short signed sizeof static struct switch typedef union unsigned void volatile while bool id self super nil yes no in out inout bycopy byref oneway main",
+    ),
+    (
+        "nim",
+        "addr and as asm bind block break case cast concept const continue converter defer discard distinct div do elif else end enum except export finally for from func if import in include interface is isnot iterator let macro method mixin mod nil not notin object of or out proc ptr raise ref return shl shr static template try tuple type using var when while xor yield echo result stdout int string bool true false",
+    ),
+    (
+        "d",
+        "abstract alias align asm assert auto body bool break byte case cast catch cdouble cent cfloat char class const continue creal dchar debug default delegate delete deprecated do double else enum export extern false final finally float for foreach foreach_reverse function goto idouble if ifloat immutable import in inout int interface invariant ireal is lazy long macro mixin module new nothrow null out override package pragma private protected public pure real ref return scope shared short static struct super switch synchronized template this throw true try typeid typeof ubyte ucent uint ulong union unittest ushort version void wchar while with text write writeln main",
+    ),
+    (
+        "pascal",
+        "and array asm begin break case const constructor continue destructor div do downto else end exit file for forward function goto if implementation in inherited inline interface label mod nil not object of on operator or packed procedure program record repeat result self set shl shr string then to type unit until uses var while with xor true false write writeln int64 boolean main",
+    ),
+    (
+        "fortran",
+        "allocatable call character contains do else end exit function if implicit integer intent logical mod module none print program recursive result return stop subroutine then use value while write main",
+    ),
+    (
+        "ada",
+        "abort abs abstract accept access aliased all and array at begin body case constant declare delay delta digits do else elsif end entry exception exit for function generic goto if in interface is limited loop mod new not null of or others out overriding package parallel pragma private procedure protected raise range record rem renames requeue return reverse select separate some subtype synchronized tagged task terminate then type until use when while with xor put put_line new_line long_io integer_io long_long_integer boolean string true false main",
+    ),
+    (
+        "vb",
+        "addhandler addressof alias and andalso as boolean byref byte byval call case catch cbool cbyte cchar cdate cdbl cdec char cint class clng cobj const continue csbyte cshort csng cstr ctype cuint culng cushort date decimal declare default delegate dim directcast do double each else elseif end endif enum erase error event exit false finally for friend function get gettype getxmlnamespace global gosub goto handles if implements imports in inherits integer interface is isnot let lib like long loop me mod module mustinherit mustoverride mybase myclass namespace narrowing new next not nothing notinheritable notoverridable object of on operator option optional or orelse overloads overridable overrides paramarray partial private property protected public raiseevent readonly redim rem removehandler resume return sbyte select set shadows shared short single static step stop string structure sub synclock then throw to true try trycast typeof uinteger ulong ushort using variant wend when while widening with withevents writeonly xor console vblf main program",
+    ),
+    (
+        "matlab",
+        "break case catch classdef continue disp else elseif end false fix for fprintf function global if otherwise parfor persistent rem result return source sprintf spmd switch true try while",
+    ),
+    (
+        "zig",
+        "addrspace align allowzero and anyframe anytype asm break callconv catch comptime const continue defer else enum errdefer error export extern false fn for if inline linksection noalias noinline nosuspend opaque or orelse packed pub resume return struct suspend switch test threadlocal true try undefined union unreachable usingnamespace var volatile while out buffer writer init std common_library main",
+    ),
+    (
+        "bash",
+        "case coproc dirname do done echo elif else esac fi for function if in local printf return select then time until while",
+    ),
+    (
         "groovy",
         "abstract as assert boolean break byte case catch char class const continue def default do double else enum extends false final finally float for goto if implements import in instanceof int interface long native new null package private protected public return short static super switch synchronized this threadsafe throw throws transient true try var void volatile while",
     ),
@@ -229,8 +274,10 @@ pub fn avoid_reserved(spelled: String, language: &str) -> String {
     let reserved = RESERVED_WORDS
         .iter()
         .any(|(id, words)| *id == language && words.split(' ').any(|word| word == lower));
+    // Ada names cannot end with an underscore.
+    let suffix = if language == "ada" { "_Value" } else { "_" };
     if reserved {
-        format!("{spelled}_")
+        format!("{spelled}{suffix}")
     } else {
         spelled
     }
