@@ -42,6 +42,7 @@ Pull request: https://github.com/link-foundation/universal-translator/pull/11
 | 16:19 | e4364a2, 727f3bf: trace helpers clean under ShellCheck 0.9 and 0.11; the syntax gate fixture checks git. |
 | 16:22 | 9542e1a: the new assertion shows the gate listed the fixture; Node 22's `node --check` passed it.          |
 | 16:32 | 822375b, ce6ea41: untyped `.js` files checked as CommonJS or ES module; the Deno leg pins Node 24.         |
+| 16:50 | Run 45655293732 green. The annotation sweep finds one warning left: Dependency Review on human-signals' OpenSSF Scorecard (2.8 < 3). ac9e65c uses the template's level 0. |
 
 ## Root causes and solutions
 
@@ -146,6 +147,7 @@ Pull request: https://github.com/link-foundation/universal-translator/pull/11
 | Vite `Some chunks are larger than 500 kB`                                  | `manualChunks` groups, all < 500 kB (4aab2bf)   |
 | Vite `Module "node:fs/promises" has been externalized`                     | bundled theme files (4aab2bf)                   |
 | `Common library translations has run for 336s of its 480s budget`          | budget 540 s (e674adc)                          |
+| Dependency Review: `npm/human-signals has an OpenSSF Scorecard of 2.8, which is less than this repository's threshold of 3` | scorecards listed, not warned, as in the template (ac9e65c) |
 
 Any new Vite warning now fails the build (`evidence/vite-build-fails-on-warning.log`). Set
 `VITE_ALLOW_WARNINGS=true` to look at a build locally despite a warning.
@@ -163,7 +165,9 @@ this JavaScript repository. These parts were ported from it:
 - the npm audit report and live deprecation check;
 - the CodeQL result gate;
 - lockfile-installed release helpers;
-- the example app overrides.
+- the example app overrides;
+- Node 24 in every test leg;
+- the Dependency Review scorecard settings.
 
 `scripts/run-with-budget-warning.sh` matches the template except for the `trace` helper, which this
 repository writes as an `if` statement so that ShellCheck 0.9 accepts it as well.
