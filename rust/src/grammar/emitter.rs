@@ -2,9 +2,11 @@
 //! language-specific spelling comes from the language descriptions or from
 //! the small tables below; the structure of the output follows the meta tree.
 
+use std::any::Any;
 use std::collections::HashSet;
 
 use super::GrammarError;
+use super::dialects::{EmitterDialect, emitter_dialect};
 use super::languages::{
     Blocks, EntryPoint, ForwardDeclarations, IntegerDivision, Syntax, language_syntax,
 };
@@ -12,7 +14,7 @@ use super::meta::{Node, add, block, format_number, later_calls, number, text};
 
 /// Binding strength of a meta operator; unknown operators have none, which
 /// compares as never tighter or looser (NaN).
-fn precedence(operator: &str) -> f64 {
+pub(crate) fn precedence(operator: &str) -> f64 {
     match operator {
         "or" => 1.0,
         "and" => 2.0,
@@ -24,7 +26,7 @@ fn precedence(operator: &str) -> f64 {
     }
 }
 
-fn symbol(operator: &str) -> &str {
+pub(crate) fn symbol(operator: &str) -> &str {
     match operator {
         "add" => "+",
         "subtract" => "-",
@@ -41,7 +43,7 @@ fn symbol(operator: &str) -> &str {
     }
 }
 
-fn compound_operator(operator: &str) -> Option<&'static str> {
+pub(crate) fn compound_operator(operator: &str) -> Option<&'static str> {
     match operator {
         "add" => Some("+="),
         "subtract" => Some("-="),
@@ -54,7 +56,7 @@ fn compound_operator(operator: &str) -> Option<&'static str> {
 
 /// How format strings mark escaped characters.
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum Format {
+pub(crate) enum Format {
     None,
     Percent,
     Braces,
@@ -65,7 +67,7 @@ enum Format {
 /// Languages that embed expressions in a double-quoted literal between two
 /// delimiters: the prefix that marks such a literal, the delimiters and the
 /// escaping of literal text.
-fn embedding(id: &str) -> Option<(&'static str, &'static str, &'static str, Format)> {
+pub(crate) fn embedding(id: &str) -> Option<(&'static str, &'static str, &'static str, Format)> {
     Some(match id {
         "python" => ("f", "{", "}", Format::Braces),
         "csharp" => ("$", "{", "}", Format::Braces),
@@ -74,12 +76,13 @@ fn embedding(id: &str) -> Option<(&'static str, &'static str, &'static str, Form
         "scala" => ("s", "${", "}", Format::Dollar),
         "julia" => ("", "$(", ")", Format::None),
         "swift" => ("", "\\(", ")", Format::None),
+        "nim" => ("fmt", "{", "}", Format::Braces),
         _ => return None,
     })
 }
 
 /// Adjacent literal parts joined into one.
-fn merge_texts(parts: &[Node]) -> Vec<Node> {
+pub(crate) fn merge_texts(parts: &[Node]) -> Vec<Node> {
     let mut merged: Vec<Node> = Vec::new();
     for part in parts {
         if part.is("Text")
@@ -107,25 +110,30 @@ fn is_literal_range(start: &Node, end: &Node) -> bool {
     }
 }
 
-type Result<T> = std::result::Result<T, GrammarError>;
+pub(crate) type Result<T> = std::result::Result<T, GrammarError>;
 
-struct Emitter {
-    syntax: Syntax,
-    unit: &'static str,
-    lines: Vec<String>,
-    depth: usize,
-    uses: HashSet<&'static str>,
+pub(crate) struct Emitter {
+    pub(crate) syntax: Syntax,
+    pub(crate) unit: &'static str,
+    pub(crate) lines: Vec<String>,
+    pub(crate) depth: usize,
+    pub(crate) uses: HashSet<&'static str>,
     /// Functions announced before the definitions, as Lua's `local male`.
-    announced: HashSet<String>,
+    pub(crate) announced: HashSet<String>,
+    /// The statements and layout of a language with a grammar of its own.
+    dialect: &'static dyn EmitterDialect,
+    /// What a dialect remembers while it writes (see `state`).
+    state: Box<dyn Any>,
 }
 
-fn field<'a>(node: &'a Node, key: &str) -> Result<&'a Node> {
+pub(crate) fn field<'a>(node: &'a Node, key: &str) -> Result<&'a Node> {
     node.node(key)
         .ok_or_else(|| GrammarError::new(format!("{} has no {key}", node.kind)))
 }
 
 impl Emitter {
-    fn new(syntax: Syntax) -> Self {
+    pub(crate) fn new(syntax: Syntax) -> Self {
+        let syntax_id = syntax.id;
         let unit = if syntax.id == "go" { "\t" } else { "    " };
         Emitter {
             syntax,
@@ -134,14 +142,26 @@ impl Emitter {
             depth: 0,
             uses: HashSet::new(),
             announced: HashSet::new(),
+            dialect: emitter_dialect(syntax_id),
+            state: Box::new(()),
         }
     }
 
-    fn id(&self) -> &'static str {
-        self.syntax.id
+    /// The writing state of a dialect, created on first use.
+    pub(crate) fn state<T: Default + 'static>(&mut self) -> &mut T {
+        if !self.state.is::<T>() {
+            self.state = Box::new(T::default());
+        }
+        self.state.downcast_mut().expect("state of this type")
     }
 
-    fn line(&mut self, content: &str) {
+    /// The language whose tables the output is written with: a dialect such
+    /// as Objective-C uses those of the family it extends (C).
+    pub(crate) fn id(&self) -> &'static str {
+        self.syntax.family.unwrap_or(self.syntax.id)
+    }
+
+    pub(crate) fn line(&mut self, content: &str) {
         if content.is_empty() {
             self.lines.push(String::new());
         } else {
@@ -150,10 +170,16 @@ impl Emitter {
         }
     }
 
-    fn terminator(&self) -> &'static str {
+    pub(crate) fn terminator(&self) -> &'static str {
+        let dialect = self.dialect;
+        dialect.terminator(self)
+    }
+
+    pub(crate) fn base_terminator(&self) -> &'static str {
         if matches!(
             self.id(),
             "python"
+                | "nim"
                 | "ruby"
                 | "lua"
                 | "go"
@@ -171,18 +197,25 @@ impl Emitter {
     }
 
     // ---- names, types, literals ----
-    fn variable(&self, identifier: &str) -> String {
+    pub(crate) fn variable(&self, identifier: &str) -> String {
+        let dialect = self.dialect;
+        dialect.variable(self, identifier)
+    }
+
+    pub(crate) fn base_variable(&self, identifier: &str) -> String {
         match self.syntax.variable_sigil {
             Some(sigil) => format!("{sigil}{identifier}"),
             None => identifier.to_owned(),
         }
     }
 
-    fn type_name(&mut self, meta: &str) -> String {
+    pub(crate) fn type_name(&mut self, meta: &str) -> String {
         if meta == "text" && self.id() == "cpp" {
             self.uses.insert("string");
         }
-        if meta == "boolean" && self.id() == "c" {
+        if meta == "boolean" && self.syntax.id == "objc" {
+            self.uses.insert("objc");
+        } else if meta == "boolean" && self.id() == "c" {
             self.uses.insert("stdbool");
         }
         let Some(types) = self.syntax.types else {
@@ -197,7 +230,7 @@ impl Emitter {
         .to_owned()
     }
 
-    fn escape(&self, value: &str, format: Format) -> String {
+    pub(crate) fn escape(&self, value: &str, format: Format) -> String {
         let mut result = value
             .replace('\\', "\\\\")
             .replace('"', "\\\"")
@@ -219,12 +252,22 @@ impl Emitter {
         }
     }
 
-    fn quote(&self, value: &str) -> String {
+    pub(crate) fn quote(&self, value: &str) -> String {
+        let dialect = self.dialect;
+        dialect.quote(self, value)
+    }
+
+    pub(crate) fn base_quote(&self, value: &str) -> String {
         format!("\"{}\"", self.escape(value, Format::None))
     }
 
     // ---- expressions ----
-    fn unary(&mut self, expression: &Node, parent: f64) -> Result<String> {
+    pub(crate) fn unary(&mut self, expression: &Node, parent: f64) -> Result<String> {
+        let dialect = self.dialect;
+        dialect.unary(self, expression, parent)
+    }
+
+    pub(crate) fn base_unary(&mut self, expression: &Node, parent: f64) -> Result<String> {
         let operator = if expression.str("operator") == Some("not") {
             self.syntax.operators.not
         } else {
@@ -248,11 +291,16 @@ impl Emitter {
         })
     }
 
-    fn expression(&mut self, expression: &Node) -> Result<String> {
+    pub(crate) fn expression(&mut self, expression: &Node) -> Result<String> {
         self.expression_in(expression, 0.0)
     }
 
-    fn expression_in(&mut self, expression: &Node, parent: f64) -> Result<String> {
+    pub(crate) fn expression_in(&mut self, expression: &Node, parent: f64) -> Result<String> {
+        let dialect = self.dialect;
+        dialect.expression_in(self, expression, parent)
+    }
+
+    pub(crate) fn base_expression_in(&mut self, expression: &Node, parent: f64) -> Result<String> {
         match expression.kind.as_str() {
             "Number" => {
                 let value = expression.number("value").unwrap_or(0.0);
@@ -302,7 +350,12 @@ impl Emitter {
         }
     }
 
-    fn binary(&mut self, expression: &Node, parent: f64) -> Result<String> {
+    pub(crate) fn binary(&mut self, expression: &Node, parent: f64) -> Result<String> {
+        let dialect = self.dialect;
+        dialect.binary(self, expression, parent)
+    }
+
+    pub(crate) fn base_binary(&mut self, expression: &Node, parent: f64) -> Result<String> {
         let operator = expression.str("operator").unwrap_or_default();
         let level = precedence(operator);
         let left_node = field(expression, "left")?;
@@ -360,7 +413,7 @@ impl Emitter {
 
     /// Render an interpolation where literal parts are escaped and computed
     /// parts sit between `open` and `close`.
-    fn render(
+    pub(crate) fn render(
         &mut self,
         parts: &[Node],
         open: &str,
@@ -381,7 +434,7 @@ impl Emitter {
         Ok(out)
     }
 
-    fn joined(&mut self, parts: &[Node], separator: &str) -> Result<String> {
+    pub(crate) fn joined(&mut self, parts: &[Node], separator: &str) -> Result<String> {
         let pieces = parts
             .iter()
             .map(|part| {
@@ -396,8 +449,16 @@ impl Emitter {
     }
 
     /// Text built from literal and computed parts, outside of output calls.
-    fn interpolation(&mut self, parts: &[Node]) -> Result<String> {
+    pub(crate) fn interpolation(&mut self, parts: &[Node]) -> Result<String> {
+        let dialect = self.dialect;
+        dialect.interpolation(self, parts)
+    }
+
+    pub(crate) fn base_interpolation(&mut self, parts: &[Node]) -> Result<String> {
         if let Some((prefix, open, close, format)) = embedding(self.id()) {
+            if self.id() == "nim" {
+                self.uses.insert("strformat");
+            }
             return Ok(format!(
                 "{prefix}{}",
                 self.render(parts, open, close, format)?
@@ -433,6 +494,14 @@ impl Emitter {
             // PHP and Perl interpolate only variables, so computed parts are
             // concatenated.
             "php" | "perl" => self.joined(parts, " . "),
+            "d" => {
+                self.uses.insert("std.conv");
+                let pieces = parts
+                    .iter()
+                    .map(|part| self.expression(part))
+                    .collect::<Result<Vec<_>>>()?;
+                Ok(format!("text({})", pieces.join(", ")))
+            }
             "rust" => Ok(format!(
                 "format!({})",
                 self.format_arguments(parts, Format::Braces)?
@@ -485,7 +554,7 @@ impl Emitter {
     }
 
     /// "format string", value, value  — for printf-like and format!-like calls.
-    fn format_arguments(&mut self, parts: &[Node], style: Format) -> Result<String> {
+    pub(crate) fn format_arguments(&mut self, parts: &[Node], style: Format) -> Result<String> {
         let mut format = String::new();
         let mut values = Vec::new();
         for part in parts {
@@ -512,7 +581,12 @@ impl Emitter {
     }
 
     // ---- statements ----
-    fn print(&mut self, statement: &Node) -> Result<String> {
+    pub(crate) fn print(&mut self, statement: &Node) -> Result<String> {
+        let dialect = self.dialect;
+        dialect.print(self, statement)
+    }
+
+    pub(crate) fn base_print(&mut self, statement: &Node) -> Result<String> {
         let value = field(statement, "value")?;
         let newline = statement.flag("newline").unwrap_or(false);
         let parts = if value.is("Interpolation") {
@@ -624,6 +698,19 @@ impl Emitter {
                     format!("print({single}, terminator: \"\")")
                 }
             }
+            "nim" | "d" => {
+                let pieces = parts
+                    .iter()
+                    .map(|part| self.expression(part))
+                    .collect::<Result<Vec<_>>>()?
+                    .join(", ");
+                match (self.id(), newline) {
+                    ("nim", true) => format!("echo {pieces}"),
+                    ("nim", false) => format!("stdout.write({pieces})"),
+                    (_, true) => format!("writeln({pieces});"),
+                    (_, false) => format!("write({pieces});"),
+                }
+            }
             _ => {
                 return Err(GrammarError::new(format!(
                     "No output procedure for {}",
@@ -633,7 +720,7 @@ impl Emitter {
         })
     }
 
-    fn interpolation_or_text(&mut self, parts: &[Node]) -> Result<String> {
+    pub(crate) fn interpolation_or_text(&mut self, parts: &[Node]) -> Result<String> {
         let merged = merge_texts(parts);
         if merged.len() == 1 && merged[0].is("Text") {
             Ok(self.quote(merged[0].str("value").unwrap_or_default()))
@@ -642,7 +729,12 @@ impl Emitter {
         }
     }
 
-    fn return_statement(&mut self, statement: &Node) -> Result<String> {
+    pub(crate) fn return_statement(&mut self, statement: &Node) -> Result<String> {
+        let dialect = self.dialect;
+        dialect.return_statement(self, statement)
+    }
+
+    pub(crate) fn base_return_statement(&mut self, statement: &Node) -> Result<String> {
         let end = self.terminator();
         Ok(match statement.node("value") {
             // R's return is a function: a bare `return` would not leave.
@@ -653,7 +745,7 @@ impl Emitter {
         })
     }
 
-    fn comment(&mut self, text: &str) {
+    pub(crate) fn comment(&mut self, text: &str) {
         if matches!(self.id(), "c" | "csharp") {
             self.line(&format!("/* {text} */"));
         } else {
@@ -661,7 +753,12 @@ impl Emitter {
         }
     }
 
-    fn condition(&mut self, expression: &Node) -> Result<String> {
+    pub(crate) fn condition(&mut self, expression: &Node) -> Result<String> {
+        let dialect = self.dialect;
+        dialect.condition(self, expression)
+    }
+
+    pub(crate) fn base_condition(&mut self, expression: &Node) -> Result<String> {
         let value = self.expression(expression)?;
         Ok(
             if matches!(
@@ -678,6 +775,7 @@ impl Emitter {
                     | "scala"
                     | "r"
                     | "groovy"
+                    | "d"
             ) {
                 format!("({value})")
             } else {
@@ -686,28 +784,36 @@ impl Emitter {
         )
     }
 
-    fn open_block(&mut self, header: &str) {
+    pub(crate) fn open_block(&mut self, header: &str) {
         match self.syntax.blocks {
             Blocks::Braces => self.line(&format!("{header} {{")),
+            // Nim's procedure heads end with "=" instead of ":".
+            Blocks::Indentation if header.ends_with('=') => self.line(header),
             Blocks::Indentation => self.line(&format!("{header}:")),
-            Blocks::End => self.line(header),
+            Blocks::End | Blocks::Keywords => self.line(header),
         }
         self.depth += 1;
     }
 
-    fn close_block(&mut self) {
+    pub(crate) fn close_block(&mut self) {
         self.depth -= 1;
         match self.syntax.blocks {
             Blocks::Braces => self.line("}"),
             Blocks::End => self.line("end"),
-            Blocks::Indentation => {}
+            // Keyword blocks close with the words of their own statement.
+            Blocks::Indentation | Blocks::Keywords => {}
         }
     }
 
-    fn body(&mut self, block: &Node) -> Result<()> {
+    pub(crate) fn body(&mut self, block: &Node) -> Result<()> {
+        let dialect = self.dialect;
+        dialect.body(self, block)
+    }
+
+    pub(crate) fn base_body(&mut self, block: &Node) -> Result<()> {
         let statements = block.nodes("statements");
         if statements.is_empty() && self.syntax.blocks == Blocks::Indentation {
-            self.line("pass");
+            self.line(self.syntax.empty_statement.unwrap_or("pass"));
         }
         for statement in statements {
             self.statement(statement)?;
@@ -715,7 +821,12 @@ impl Emitter {
         Ok(())
     }
 
-    fn statement(&mut self, statement: &Node) -> Result<()> {
+    pub(crate) fn statement(&mut self, statement: &Node) -> Result<()> {
+        let dialect = self.dialect;
+        dialect.statement(self, statement)
+    }
+
+    pub(crate) fn base_statement(&mut self, statement: &Node) -> Result<()> {
         let end = self.terminator();
         match statement.kind.as_str() {
             "Comment" => self.comment(statement.str("text").unwrap_or_default()),
@@ -751,7 +862,12 @@ impl Emitter {
         Ok(())
     }
 
-    fn declaration(&mut self, statement: &Node) -> Result<String> {
+    pub(crate) fn declaration(&mut self, statement: &Node) -> Result<String> {
+        let dialect = self.dialect;
+        dialect.declaration(self, statement)
+    }
+
+    pub(crate) fn base_declaration(&mut self, statement: &Node) -> Result<String> {
         let initial = match statement.node("value") {
             Some(value) => self.expression(value)?,
             None => self.expression(&number(0.0))?,
@@ -793,6 +909,7 @@ impl Emitter {
                 self.type_name(kind)
             ),
             "r" => format!("{name} <- {initial}"),
+            "nim" => format!("{} {name} = {initial}", if mutable { "var" } else { "let" }),
             _ => format!(
                 "{} {name} = {initial}{}",
                 self.type_name(kind),
@@ -803,7 +920,12 @@ impl Emitter {
 
     /// The meta language only knows `x = value`; `x = x + 1` is written back
     /// as `x += 1` in every language that has compound assignment.
-    fn assignment(&mut self, statement: &Node) -> Result<String> {
+    pub(crate) fn assignment(&mut self, statement: &Node) -> Result<String> {
+        let dialect = self.dialect;
+        dialect.assignment(self, statement)
+    }
+
+    pub(crate) fn base_assignment(&mut self, statement: &Node) -> Result<String> {
         let identifier = statement.str("name").unwrap_or_default();
         let target = self.variable(identifier);
         let value = field(statement, "value")?;
@@ -832,7 +954,12 @@ impl Emitter {
         ))
     }
 
-    fn if_statement(&mut self, statement: &Node) -> Result<()> {
+    pub(crate) fn if_statement(&mut self, statement: &Node) -> Result<()> {
+        let dialect = self.dialect;
+        dialect.if_statement(self, statement)
+    }
+
+    pub(crate) fn base_if_statement(&mut self, statement: &Node) -> Result<()> {
         let then = if self.id() == "lua" { " then" } else { "" };
         let condition = self.condition(field(statement, "condition")?)?;
         self.open_block(&format!("if {condition}{then}"));
@@ -852,7 +979,7 @@ impl Emitter {
             self.line(match self.syntax.blocks {
                 Blocks::Braces => "} else {",
                 Blocks::Indentation => "else:",
-                Blocks::End => "else",
+                Blocks::End | Blocks::Keywords => "else",
             });
             self.depth += 1;
             self.body(otherwise)?;
@@ -861,15 +988,15 @@ impl Emitter {
         Ok(())
     }
 
-    fn else_if_header(&mut self, expression: &Node) -> Result<String> {
+    pub(crate) fn else_if_header(&mut self, expression: &Node) -> Result<String> {
         let condition = self.condition(expression)?;
         Ok(if self.syntax.blocks == Blocks::Braces {
             format!(
                 "}} {} {condition} {{",
                 self.syntax.braced_else_if.unwrap_or("else if")
             )
-        } else if self.id() == "python" {
-            format!("elif {condition}:")
+        } else if self.syntax.blocks == Blocks::Indentation {
+            format!("{} {condition}:", self.syntax.else_if.unwrap_or("elif"))
         } else if self.id() == "lua" {
             format!("elseif {condition} then")
         } else {
@@ -877,7 +1004,12 @@ impl Emitter {
         })
     }
 
-    fn while_statement(&mut self, statement: &Node) -> Result<()> {
+    pub(crate) fn while_statement(&mut self, statement: &Node) -> Result<()> {
+        let dialect = self.dialect;
+        dialect.while_statement(self, statement)
+    }
+
+    pub(crate) fn base_while_statement(&mut self, statement: &Node) -> Result<()> {
         let condition = self.condition(field(statement, "condition")?)?;
         let header = match self.id() {
             "go" => format!("for {condition}"),
@@ -890,7 +1022,12 @@ impl Emitter {
         Ok(())
     }
 
-    fn counting_loop(&mut self, statement: &Node) -> Result<()> {
+    pub(crate) fn counting_loop(&mut self, statement: &Node) -> Result<()> {
+        let dialect = self.dialect;
+        dialect.counting_loop(self, statement)
+    }
+
+    pub(crate) fn base_counting_loop(&mut self, statement: &Node) -> Result<()> {
         let identifier = statement.str("variable").unwrap_or_default();
         let start = field(statement, "start")?;
         let end = field(statement, "end")?;
@@ -941,6 +1078,8 @@ impl Emitter {
             "julia" => format!("for {identifier} in {from}:{last}"),
             "r" => format!("for ({identifier} in {from}:{last})"),
             "groovy" => format!("for ({identifier} in {from}..<{to})"),
+            "nim" => format!("for {identifier} in {from} ..< {to}"),
+            "d" => c_style("long"),
             _ => "undefined".to_owned(),
         };
         self.open_block(&header);
@@ -951,7 +1090,7 @@ impl Emitter {
 
     /// R's a:b counts down when b < a, so a range that may be empty becomes
     /// a while loop.
-    fn counting_while(&mut self, statement: &Node) -> Result<()> {
+    pub(crate) fn counting_while(&mut self, statement: &Node) -> Result<()> {
         let identifier = statement.str("variable").unwrap_or_default();
         let start = field(statement, "start")?.clone();
         let end = field(statement, "end")?.clone();
@@ -983,7 +1122,12 @@ impl Emitter {
     }
 
     // ---- functions and program ----
-    fn signature(&mut self, item: &Node) -> String {
+    pub(crate) fn signature(&mut self, item: &Node) -> String {
+        let dialect = self.dialect;
+        dialect.signature(self, item)
+    }
+
+    pub(crate) fn base_signature(&mut self, item: &Node) -> String {
         let name = item.str("name").unwrap_or_default();
         let parameters: Vec<(String, String)> = item
             .nodes("parameters")
@@ -1051,6 +1195,10 @@ impl Emitter {
             ),
             "julia" => format!("function {name}({names})"),
             "r" => format!("{name} <- function({names})"),
+            "nim" => {
+                let list = typed(self, &|id, kind| format!("{id}: {kind}"));
+                format!("proc {name}({list}){} =", after(self, ": "))
+            }
             "csharp" | "java" => format!(
                 "static {returns} {name}({})",
                 typed(self, &|id, kind| format!("{kind} {id}"))
@@ -1062,7 +1210,12 @@ impl Emitter {
         }
     }
 
-    fn function_definition(&mut self, item: &Node) -> Result<()> {
+    pub(crate) fn function_definition(&mut self, item: &Node) -> Result<()> {
+        let dialect = self.dialect;
+        dialect.function_definition(self, item)
+    }
+
+    pub(crate) fn base_function_definition(&mut self, item: &Node) -> Result<()> {
         for text in item.texts("comments") {
             self.comment(&text);
         }
@@ -1091,7 +1244,7 @@ impl Emitter {
         Ok(())
     }
 
-    fn main_header(&self) -> Option<&'static str> {
+    pub(crate) fn main_header(&self) -> Option<&'static str> {
         match self.id() {
             "c" => Some("int main(void)"),
             "cpp" => Some("int main()"),
@@ -1103,39 +1256,39 @@ impl Emitter {
             "dart" => Some("void main()"),
             "scala" => Some("def main(args: Array[String]): Unit ="),
             "julia" => Some("function main()"),
+            "d" => Some("void main()"),
             _ => None,
         }
     }
 
-    fn program(mut self, program: &Node) -> Result<String> {
-        let inside_class = self.syntax.entry_point == EntryPoint::ClassMethod;
-        if inside_class {
-            let container = self.syntax.container.unwrap_or(if self.id() == "csharp" {
-                "class Program"
-            } else {
-                "class Main"
-            });
-            self.open_block(container);
-        }
-        if self.syntax.forward_declarations != ForwardDeclarations::None {
-            let announced = later_calls(&program.node_list("functions"));
-            for item in &announced {
-                let name = item.str("name").unwrap_or_default().to_owned();
-                let announcement = match self.syntax.forward_declarations {
-                    ForwardDeclarations::Local => format!("local {name}"),
-                    _ => format!("{};", self.signature(item)),
-                };
-                self.line(&announcement);
-                self.announced.insert(name);
+    /// `int male(int index);` in C, `proc male(index: int): int` in Nim and
+    /// `local male` in Lua.
+    pub(crate) fn forward_declaration(&mut self, item: &Node) -> String {
+        let dialect = self.dialect;
+        dialect.forward_declaration(self, item)
+    }
+
+    pub(crate) fn base_forward_declaration(&mut self, item: &Node) -> String {
+        match self.syntax.forward_declarations {
+            ForwardDeclarations::Local => {
+                format!("local {}", item.str("name").unwrap_or_default())
             }
-            if !announced.is_empty() {
-                self.line("");
+            ForwardDeclarations::Heading => {
+                let signature = self.signature(item);
+                signature.trim_end_matches('=').trim_end().to_owned()
             }
+            _ => format!("{};", self.signature(item)),
         }
-        for item in program.nodes("functions") {
-            self.function_definition(item)?;
-            self.line("");
-        }
+    }
+
+    /// The top-level statements, in a main procedure where the language has
+    /// one.
+    pub(crate) fn main(&mut self, program: &Node) -> Result<()> {
+        let dialect = self.dialect;
+        dialect.main(self, program)
+    }
+
+    pub(crate) fn base_main(&mut self, program: &Node) -> Result<()> {
         for text in program.texts("mainComments") {
             self.comment(&text);
         }
@@ -1152,6 +1305,41 @@ impl Emitter {
         } else {
             self.body(main)?;
         }
+        Ok(())
+    }
+
+    pub(crate) fn program(&mut self, program: &Node) -> Result<String> {
+        let dialect = self.dialect;
+        dialect.program(self, program)
+    }
+
+    pub(crate) fn base_program(&mut self, program: &Node) -> Result<String> {
+        let inside_class = self.syntax.entry_point == EntryPoint::ClassMethod;
+        if inside_class {
+            let container = self.syntax.container.unwrap_or(if self.id() == "csharp" {
+                "class Program"
+            } else {
+                "class Main"
+            });
+            self.open_block(container);
+        }
+        if self.syntax.forward_declarations != ForwardDeclarations::None {
+            let announced = later_calls(&program.node_list("functions"));
+            for item in &announced {
+                let name = item.str("name").unwrap_or_default().to_owned();
+                let announcement = self.forward_declaration(item);
+                self.line(&announcement);
+                self.announced.insert(name);
+            }
+            if !announced.is_empty() {
+                self.line("");
+            }
+        }
+        for item in program.nodes("functions") {
+            self.function_definition(item)?;
+            self.line("");
+        }
+        self.main(program)?;
         if inside_class {
             self.close_block();
         }
@@ -1177,18 +1365,30 @@ impl Emitter {
         Ok(format!("{}\n", all.join("\n")))
     }
 
-    fn prelude(&self, program: &Node) -> Vec<String> {
+    pub(crate) fn prelude(&mut self, program: &Node) -> Vec<String> {
+        let dialect = self.dialect;
+        dialect.prelude(self, program)
+    }
+
+    pub(crate) fn base_prelude(&mut self, program: &Node) -> Vec<String> {
         let mut lines: Vec<String> = Vec::new();
         if self.id() == "go" {
             lines.push("package main".into());
             lines.push(String::new());
         }
         lines.extend(self.syntax.prelude.iter().map(|line| (*line).to_owned()));
-        if self.uses.contains("dart:io") {
-            lines.push("import 'dart:io';".into());
+        for (used, line) in [
+            ("strformat", "import std/strformat"),
+            ("std.conv", "import std.conv;"),
+            ("dart:io", "import 'dart:io';"),
+        ] {
+            if self.uses.contains(used) {
+                lines.push(line.into());
+            }
         }
         lines.extend(program.texts("libraryImports"));
         for (used, line) in [
+            ("objc", "#import <objc/objc.h>"),
             ("stdbool", "#include <stdbool.h>"),
             ("stdio", "#include <stdio.h>"),
             ("iostream", "#include <iostream>"),
@@ -1201,6 +1401,14 @@ impl Emitter {
         }
         if lines.last().is_some_and(|line| !line.is_empty()) {
             lines.push(String::new());
+        }
+        // Objective-C includes each header once with #import.
+        if self.syntax.id == "objc" {
+            for line in &mut lines {
+                if let Some(rest) = line.strip_prefix("#include") {
+                    *line = format!("#import{rest}");
+                }
+            }
         }
         lines
     }

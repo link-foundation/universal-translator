@@ -5,7 +5,7 @@
 Add a grammar- and rule-based translator between programming, machine and controlled natural languages in JavaScript and Rust.
 
 - Source is parsed with language descriptions kept as data, turned into a typed meta language, rewritten by ordered rule layers and emitted for the target language.
-- 30 languages: JavaScript, TypeScript, Python, Ruby, Lua, PHP, C, C++, C#, Java, Go, Rust, Kotlin, Swift, Perl, Dart, Scala, Julia, R, Groovy, Objective-C, Nim, D, Pascal, Fortran, Ada, Visual Basic .NET, Bash, MATLAB/Octave and Zig. Languages with a program layout of their own (Pascal, Fortran, Ada, Visual Basic, Bash, MATLAB/Octave, Zig) are dialects of the shared parser and emitter. The Rust implementation covers the first 20.
+- 30 languages: JavaScript, TypeScript, Python, Ruby, Lua, PHP, C, C++, C#, Java, Go, Rust, Kotlin, Swift, Perl, Dart, Scala, Julia, R, Groovy, Objective-C, Nim, D, Pascal, Fortran, Ada, Visual Basic .NET, Bash, MATLAB/Octave and Zig. Languages with a program layout of their own (Pascal, Fortran, Ada, Visual Basic, Bash, MATLAB/Octave, Zig) are dialects of the shared parser and emitter. The JavaScript and Rust implementations both cover all 30.
 - Three modes: context-dependent (the default, which adapts comments), literal and same-effect.
 - Every stage and rule list can be replaced, extended or decorated. Project-specific layers such as `commentGlossary` translate comments within the same language.
 - NASM x86-64 assembly, CIL and JVM bytecode are written through a named stack machine and read back by lifting them to the meta language, so machine code translates to every language and to each other.

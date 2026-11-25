@@ -23,7 +23,7 @@ pub const COMMON_LIBRARY_OPERATIONS: [&str; 4] =
     ["print-line", "write-text", "write-integer", "end-line"];
 
 /// The languages with a common library implementation, in listing order.
-pub const COMMON_LIBRARY_LANGUAGES: [&str; 20] = [
+pub const COMMON_LIBRARY_LANGUAGES: [&str; 30] = [
     "javascript",
     "typescript",
     "python",
@@ -44,6 +44,16 @@ pub const COMMON_LIBRARY_LANGUAGES: [&str; 20] = [
     "julia",
     "r",
     "groovy",
+    "objc",
+    "nim",
+    "d",
+    "pascal",
+    "fortran",
+    "ada",
+    "vb",
+    "bash",
+    "matlab",
+    "zig",
 ];
 
 /// The lines that make the library available in a language, given the
@@ -63,6 +73,15 @@ pub fn library_imports(language: &str, names: &[String]) -> Vec<String> {
         "dart" => vec!["import 'common_library.dart';".into()],
         "julia" => vec!["include(\"common_library.jl\")".into()],
         "r" => vec!["source(\"common_library.R\")".into()],
+        "objc" => vec!["#import \"CommonLibrary.h\"".into()],
+        "nim" => vec!["import common_library".into()],
+        "d" => vec!["import common_library;".into()],
+        "pascal" => vec!["uses CommonLibrary;".into()],
+        "fortran" => vec!["use common_library".into()],
+        "ada" => vec!["Common_Library".into()],
+        "bash" => vec!["source \"$(dirname \"$0\")/common_library.sh\"".into()],
+        "matlab" => vec!["source('common_library.m');".into()],
+        "zig" => vec!["const common_library = @import(\"common_library.zig\");".into()],
         "rust" => vec![
             "mod common_library;".into(),
             format!("use common_library::{{{names}}};"),
@@ -74,8 +93,8 @@ pub fn library_imports(language: &str, names: &[String]) -> Vec<String> {
 /// The prefix of each library call in a language.
 pub fn library_prefix(language: &str) -> &'static str {
     match language {
-        "lua" => "common_library.",
-        "csharp" | "java" | "scala" | "groovy" => "CommonLibrary.",
+        "lua" | "zig" => "common_library.",
+        "csharp" | "java" | "scala" | "groovy" | "vb" => "CommonLibrary.",
         _ => "",
     }
 }
