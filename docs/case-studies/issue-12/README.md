@@ -174,6 +174,10 @@ saved earlier is lost.
 - Python tuple assignment (`a, b = b, a % b`) is not read by the translator
   (`Unexpected "," after statement`). While such a text is typed, the highlighter keeps the names of
   the last text that it could read.
+- Main's web build fails on any Vite warning, and Monaco's editor core (about 1.5 MB minified) is
+  one module graph that Rollup cannot split below 500 kB (`manualChunks` gave circular chunks and
+  still oversized ones). Vite's own limit is raised above it, and `chunk-limits.js` fails the build
+  when any other chunk passes 500 kB. Monaco loads only when it is chosen in the settings.
 
 ## Solutions And Alternatives
 
