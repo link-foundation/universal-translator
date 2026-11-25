@@ -3,7 +3,8 @@ import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { pathToFileURL, URL } from 'node:url';
+import { fileURLToPath, pathToFileURL, URL } from 'node:url';
+import { extensions } from '../examples/programs/verify-native.mjs';
 import {
   createSourceSyntaxCodec,
   writeSourceDocument,
@@ -163,4 +164,45 @@ for (const cli of [jsCli, rustCli]) {
 }
 console.log(
   'Both implementations compiled and ran checked JavaScript and Rust translations from exchanged CSTs'
+);
+
+// Both command lines describe the same programming languages, write the
+// shared golden files byte for byte and read them back alike.
+const programmingLanguages = (output) =>
+  output
+    .trim()
+    .split('\n')
+    .map((line) => line.split('\t'))
+    .filter(([, label]) => !label.endsWith('(natural)'))
+    .map(([id]) => id);
+const languageIds = programmingLanguages(rust(['languages']));
+assert.deepEqual(
+  programmingLanguages(success(jsCli(['languages']))),
+  languageIds
+);
+assert.equal(languageIds.length, 30);
+const programsFolder = new URL('../examples/programs/', import.meta.url);
+const goldenTasks = ['hello-world', 'mutual-recursion'];
+for (const task of goldenTasks) {
+  const sourcePath = fileURLToPath(new URL(`${task}.js`, programsFolder));
+  for (const language of languageIds) {
+    const goldenPath = fileURLToPath(
+      new URL(
+        `translated/${task}/${task}${extensions[language]}`,
+        programsFolder
+      )
+    );
+    const golden = readFileSync(goldenPath, 'utf8');
+    for (const cli of [jsCli, rustCli]) {
+      const written = cli(['translate', 'javascript', language, sourcePath]);
+      assert.equal(success(written), golden, `${task} in ${language}`);
+    }
+    const [fromJs, fromRust] = [jsCli, rustCli].map((cli) =>
+      success(cli(['translate', language, 'javascript', goldenPath]))
+    );
+    assert.equal(fromRust, fromJs, `${task} read from ${language}`);
+  }
+}
+console.log(
+  `Both implementations wrote and read back ${goldenTasks.length} golden programs in ${languageIds.length} languages`
 );
