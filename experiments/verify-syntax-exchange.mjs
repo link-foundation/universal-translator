@@ -176,7 +176,7 @@ assert.deepEqual(
   programmingLanguages(success(jsCli(['languages']))),
   languageIds
 );
-assert.equal(languageIds.length, 30);
+assert.equal(languageIds.length, 32);
 const programsFolder = new URL('../examples/programs/', import.meta.url);
 const goldenTasks = ['hello-world', 'mutual-recursion'];
 for (const task of goldenTasks) {
