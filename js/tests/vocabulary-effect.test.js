@@ -185,4 +185,13 @@ describe('the vocabulary of a standard of one own', () => {
       unregisterLanguageVersion('python', 'spoken');
     }
   });
+
+  it('refuses concepts that would name fields of Object itself', () => {
+    for (const concept of ['__proto__.polluted', 'constructor.prototype.x']) {
+      expect(() =>
+        vocabularyChanges('python', [{ concept, words: ['x'] }])
+      ).toThrow();
+    }
+    expect({}.polluted).toBe(undefined);
+  });
 });

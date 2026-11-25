@@ -68,6 +68,8 @@ export function languageVocabulary(id) {
   return collect(languageSyntax(id), '', []);
 }
 
+const unsafeKeys = new Set(['__proto__', 'prototype', 'constructor']);
+
 // Entries -> the syntax changes they make to a language.
 export function vocabularyChanges(id, entries) {
   const known = new Map(
@@ -85,7 +87,11 @@ export function vocabularyChanges(id, entries) {
     if (!entry.list && words.length !== 1) {
       throw new Error(`"${concept}" of ${id} is spelled with one word`);
     }
-    const path = concept.split('.');
+    const path = entry.concept.split('.');
+    // A concept names fields of the syntax only, never of Object itself.
+    if (path.some((key) => unsafeKeys.has(key))) {
+      throw new Error(`"${concept}" is not a concept`);
+    }
     let table = changes;
     for (const key of path.slice(0, -1)) {
       table[key] ??= {};
