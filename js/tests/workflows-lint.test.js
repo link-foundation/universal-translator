@@ -148,6 +148,8 @@ describe('standalone shell scripts under shellcheck', () => {
     noPosixShell,
     noShellcheck
   )('finds nothing in the tracked scripts and hooks', () => {
+    // This runs the runner's ShellCheck (0.9 on ubuntu-24.04), while the job
+    // pins 0.11, so the scripts must be clean under both versions.
     const files = spawnSync('git', ['ls-files', '*.sh', '.husky/*'], {
       encoding: 'utf8',
     })

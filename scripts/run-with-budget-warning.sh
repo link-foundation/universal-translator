@@ -69,7 +69,13 @@ case "$poll_seconds" in
     ;;
 esac
 
-trace() { [ "${verbose}" = "1" ] && echo "[budget] $*" >&2 || true; }
+# ShellCheck 0.9 (preinstalled on ubuntu-24.04) reports SC2015 for the
+# `[ ] && echo || true` form; an if statement is clean in every version.
+trace() {
+  if [ "${verbose}" = "1" ]; then
+    echo "[budget] $*" >&2
+  fi
+}
 
 # The command owns TMPDIR and may legitimately clean it. Keep parent control
 # state in GitHub's job-scoped runner directory, with an independent override

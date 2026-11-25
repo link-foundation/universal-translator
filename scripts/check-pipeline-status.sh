@@ -12,7 +12,13 @@ verbose="${PIPELINE_STATUS_VERBOSE:-0}"
 # names may also exist (or not) as branches of the base repository.
 head_ref="${HEAD_REF:-refs/heads/${branch_name}}"
 
-trace() { [ "${verbose}" = "1" ] && echo "[pipeline-status] $*" >&2 || true; }
+# ShellCheck 0.9 (preinstalled on ubuntu-24.04) reports SC2015 for the
+# `[ ] && echo || true` form; an if statement is clean in every version.
+trace() {
+  if [ "${verbose}" = "1" ]; then
+    echo "[pipeline-status] $*" >&2
+  fi
+}
 
 run_is_superseded() {
   local head="${BRANCH_HEAD_SHA:-}"
