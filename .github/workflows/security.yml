@@ -25,6 +25,10 @@ jobs:
     name: CodeQL (${{ matrix.language }})
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    # Analyze every file, not only the lines a pull request touches, so the
+    # result gate below sees the same alerts as the Security tab.
+    env:
+      CODEQL_ACTION_DIFF_INFORMED_QUERIES: 'false'
     concurrency:
       group: check-${{ github.workflow }}-${{ github.ref }}-codeql-${{ matrix.language }}
       cancel-in-progress: true
@@ -52,6 +56,23 @@ jobs:
 
       - name: Analyze
         uses: github/codeql-action/analyze@v4
+        with:
+          output: codeql-results
+
+      # The analyze step uploads alerts but passes whatever it finds, so a new
+      # alert only showed up in the Security tab. Fail on findings and on
+      # extractor warnings instead.
+      - name: Require clean CodeQL results
+        if: ${{ !cancelled() }}
+        run: node scripts/check-codeql-results.mjs codeql-results
+
+      - name: Preserve CodeQL reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: codeql-results-${{ matrix.language }}
+          path: codeql-results
+          if-no-files-found: error
 
   dependency-review:
     name: Dependency Review

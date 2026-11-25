@@ -240,6 +240,12 @@ the package (`"some-package": false`). `js/tests/issue-228-regressions.test.js`
 checks every entry of the example app's lock, including optional
 platform-specific packages.
 
+CodeQL analyses every file, not only the lines a pull request changes, and
+`scripts/check-codeql-results.mjs` fails the run on any finding or extractor
+warning. The SARIF reports are kept as the `codeql-results-*` artifacts. The
+shipped examples are scanned; translated test fixtures, case-study archives and
+development logs are excluded in `.github/codeql/codeql-config.yml`.
+
 ## Questions?
 
 If you have questions about contributing, feel free to open an issue for discussion.
