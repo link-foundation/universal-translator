@@ -121,7 +121,7 @@ requirements:
   best-practices:
     text: 'Use the associative technology stack, the code architecture principles and the CI/CD best practices'
     from: 'PR 5 review'
-    status: pending
+    status: done
     check: best-practices
     evidence: docs/case-studies/issue-1/best-practices.md
   source-layout:

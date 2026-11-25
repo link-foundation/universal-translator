@@ -432,7 +432,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca # stable
         with:
-          components: rustfmt
+          components: rustfmt, clippy
           targets: wasm32-unknown-unknown
 
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
@@ -454,6 +454,9 @@ jobs:
 
       - name: Check Rust formatting
         run: cargo fmt --check
+
+      - name: Lint Rust
+        run: cargo clippy --locked --all-targets -- -D warnings
 
       - name: Test Rust
         run: bash scripts/run-with-budget-warning.sh 540 "Rust test suite" cargo test --locked

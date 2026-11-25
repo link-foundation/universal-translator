@@ -1,0 +1,62 @@
+# Best practices review
+
+The PR 5 review asked for three checks against this repository:
+
+- the associative technology stack ([associative-tech-stack.md](https://github.com/link-assistant/formal-ai/blob/main/docs/associative-tech-stack.md)),
+- the [code-architecture-principles](https://github.com/link-foundation/code-architecture-principles),
+- the CI/CD practices ([CI-CD-BEST-PRACTICES.md](https://github.com/link-assistant/hive-mind/blob/main/docs/CI-CD-BEST-PRACTICES.md)).
+
+This file maps each one to evidence in the repository, or says why it does not apply. `node scripts/check-requirements.mjs` fails when a path cited here in backticks does not exist.
+
+## Associative technology stack
+
+| Component                                                 | Status       | Evidence or reason                                                                                                                                                                                                          |
+| --------------------------------------------------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| links-notation                                            | Used         | Natural language data, translation data and the meta tree are Links Notation: `data/natural`, `data/translation`, `js/src/meta/links.js`. The requirements themselves are in `docs/case-studies/issue-1/requirements.lino`. |
+| meta-language                                             | Used         | It parses source documents and programs in both implementations: `js/src/translation/source-document.js`, `js/src/translation/program.js`, `rust/src/source_document.rs`, `rust/src/program.rs`.                            |
+| lino-arguments                                            | Used         | `universal-translator serve` reads `--port`/`--host`, then `PORT`/`HOST`, then `.lenv`, in that order: `bin/universal-translator.js`, tested in `js/tests/server.test.js`.                                                  |
+| relative-meta-logic                                       | Concept only | Truth values in the meta language (`js/src/meta/truth.js`) are plain booleans of the translated programs. Many-valued logic would change what the programs mean, so the package is not a dependency.                        |
+| link-cli / doublets                                       | Not used     | Translation is a pure function from text to text and keeps nothing between calls. A doublets store would add state the translator has no use for.                                                                           |
+| lino-objects-codec                                        | Not used     | The server sends JSON because browsers and `curl` read it directly. The codec fits once objects are exchanged in Links Notation, and the formats are listed in one place (`js/src/server.js`).                              |
+| lino-i18n                                                 | Not used     | The demo interface is English only. The translated texts already cover more than 30 natural languages through `data/natural`.                                                                                               |
+| link-calculator, command-stream, meta-theory, transformer | Not used     | The translator has no arithmetic engine, no shell pipelines and no theorem prover. The rule layers in `js/src/natural/rules.js` follow the same idea as the transformer (ordered rewrite layers) without the dependency.    |
+
+## Code architecture principles
+
+| Principle                                     | Evidence                                                                                                                                                                                                                                            |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Modularity, separation of concerns, layers    | The sources are split into `js/src/meta` (shared types and trees), `js/src/formal` (programming languages and machine code) and `js/src/natural` (human languages). The same split is in `rust/src/meta`, `rust/src/formal` and `rust/src/natural`. |
+| Dependency rule (dependencies point inwards)  | Nothing in `js/src/meta` or `rust/src/meta` imports the formal or natural layers. The `source-layout` check in `scripts/check-requirements.mjs` enforces this.                                                                                      |
+| Functional core, imperative shell             | Translation in `js/src/translator.js` is pure. Input/output lives only in `bin/universal-translator.js` (CLI) and `js/src/server.js` (HTTP).                                                                                                        |
+| Hexagonal ports and adapters                  | The CLI, the HTTP server, the browser demo (`examples/universal-app/src/App.js`) and the Docker image all adapt one library entry point.                                                                                                            |
+| Validation at boundaries, fail fast           | `js/src/server.js` checks every request field and answers 400 with a message. The CLI rejects unknown options and bad ports. Incomplete fragments fail instead of being guessed.                                                                    |
+| Stable contracts, extensible public surface   | `js/src/index.js` with `js/src/index.d.ts`, and `rust/src/lib.rs`. A language is added by one entry in `js/src/formal/languages.js` and `rust/src/formal/languages.rs`.                                                                             |
+| Single source of truth, configuration vs code | Natural language vocabularies are data (`data/natural`), from which `scripts/build-natural-sources.mjs` builds sources. Golden translations are generated and checked by `examples/programs/write-translations.mjs`.                                |
+| Deterministic core, environment parity        | The JavaScript and Rust implementations agree byte for byte (`experiments/verify-syntax-exchange.sh` in CI). Dependencies are pinned exactly in `package.json`, `package-lock.json`, `Cargo.toml` and `Cargo.lock`.                                 |
+| Tests as specification                        | Every requirement is checked by `scripts/check-requirements.mjs`, through `js/tests/requirements.test.js` and the translation job in `.github/workflows/release.yml`.                                                                               |
+
+Classes and inheritance from the object-oriented principles do not apply: the code is functional modules.
+
+## CI/CD best practices
+
+| #   | Practice                                    | Evidence                                                                                                                                                              |
+| --- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Run checks only on relevant changes         | `scripts/detect-code-changes.mjs` feeds the `detect-changes` job in `.github/workflows/release.yml`.                                                                  |
+| 2   | File size limits                            | `scripts/check-file-line-limits.sh` (job `check-file-line-limits`); ESLint `max-lines`.                                                                               |
+| 3   | Automated formatting                        | Prettier through `scripts/lint.mjs` and `scripts/check-staged-formatting.mjs`; `cargo fmt --check`.                                                                   |
+| 4   | Static analysis and linting                 | ESLint with strict rules (`scripts/lint.mjs`). `cargo clippy --all-targets -- -D warnings` runs in the translation job.                                               |
+| 5   | Fast-fail job ordering                      | Tests and translation wait for `lint`, `changeset-check`, `test-compilation` and `check-file-line-limits`.                                                            |
+| 6   | Changeset versioning                        | `.changeset` with `scripts/check-changesets.mjs` and `scripts/validate-changeset.mjs`.                                                                                |
+| 7   | Validate the merge result                   | `scripts/simulate-fresh-merge.sh` runs before the tests on pull requests.                                                                                             |
+| 8   | Pre-commit hooks                            | `.husky/pre-commit`, installed by `scripts/install-git-hooks.mjs`.                                                                                                    |
+| 9   | Release automation                          | Jobs `release`, `instant-release` and `changeset-pr`, with `scripts/publish-to-npm.mjs` and `scripts/create-github-release.mjs`.                                      |
+| 10  | Concurrency control                         | Every job has a `concurrency` group that cancels outdated runs except on `main`. `scripts/read-job-cancel-in-progress.sh` reads the effective values.                 |
+| 11  | Secrets detection                           | `secretlint` in the `lint` job.                                                                                                                                       |
+| 12  | Documentation validation                    | `scripts/check-required-docs.sh` (job `validate-docs`) and lychee in `.github/workflows/links.yml`.                                                                   |
+| 13  | Container images on native runners          | The Docker publish jobs build amd64 on `ubuntu-24.04` and arm64 on `ubuntu-24.04-arm`. The image is smoke tested (CLI and HTTP API) after `docker/build-push-action`. |
+| 14  | Lint the workflows                          | actionlint, zizmor and `scripts/check-status-gate-covers-all-jobs.mjs` in `.github/workflows/workflows.yml`.                                                          |
+| 15  | Audit dependencies                          | CodeQL, dependency review and `npm audit` in `.github/workflows/security.yml`.                                                                                        |
+| 16  | Prove publishing before building            | `scripts/preflight-credentials.sh` in the `release-preflight` job.                                                                                                    |
+| 17  | Tell a broken pipeline from a changed world | `scripts/publish-failure-classifier.mjs` and `scripts/push-failure-classifier.mjs`; `scripts/run-with-budget-warning.sh` reports slow suites.                         |
+
+The web demo is also checked end to end in a real browser by the `web-e2e` job in `.github/workflows/example-app.yml`, using `examples/universal-app/e2e/translate.e2e.mjs`.
