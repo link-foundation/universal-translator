@@ -14,7 +14,10 @@
 //!   Return         { value }
 //!   Print          { value, newline }
 //!   Evaluate       { expression }
-//!   Comment        { text }
+//!   Comment        { text, trailing?, block? }   trailing: the spaces between
+//!                  the code and a comment on the same line; block: written
+//!                  as a block comment
+//!   Blank          { lines }           empty lines between two statements
 //!   Number         { value }            Text { value }    Boolean { value }
 //!   Name           { name }             Interpolation { parts }
 //!   Binary         { operator, left, right }
@@ -233,6 +236,22 @@ pub fn block(statements: Vec<Node>) -> Node {
     Node::new("Block").with("statements", statements)
 }
 
+/// Concrete syntax: empty lines only stand between two statements of a
+/// block, and two runs of them in a row merge.
+pub fn layout(statements: Vec<Node>) -> Vec<Node> {
+    let mut kept: Vec<Node> = Vec::new();
+    for statement in statements {
+        if statement.is("Blank") && kept.last().is_none_or(|last| last.is("Blank")) {
+            continue;
+        }
+        kept.push(statement);
+    }
+    while kept.last().is_some_and(|last| last.is("Blank")) {
+        kept.pop();
+    }
+    kept
+}
+
 pub fn number(value: f64) -> Node {
     Node::new("Number").with("value", value)
 }
@@ -408,7 +427,7 @@ const IGNORED_KEYS: [&str; 7] = [
 ];
 
 /// The meaning of a program, without details that do not change behaviour:
-/// comments, imports, inferred types and mutability.
+/// comments and empty lines, imports, inferred types and mutability.
 pub fn essence(tree: &Node) -> Node {
     fn strip(value: Value) -> Value {
         match value {
@@ -426,8 +445,10 @@ pub fn essence(tree: &Node) -> Node {
             .collect();
         node
     }
-    let without_comments = rewrite_opt(tree.clone(), |node| (!node.is("Comment")).then_some(node))
-        .unwrap_or_else(|| Node::new("Comment"));
+    let without_comments = rewrite_opt(tree.clone(), |node| {
+        (!node.is("Comment") && !node.is("Blank")).then_some(node)
+    })
+    .unwrap_or_else(|| Node::new("Comment"));
     strip_node(without_comments)
 }
 

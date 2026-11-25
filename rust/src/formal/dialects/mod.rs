@@ -11,7 +11,7 @@ mod lean;
 mod matlab;
 mod pascal;
 mod rocq;
-mod shared;
+pub(crate) mod shared;
 mod vb;
 mod zig;
 

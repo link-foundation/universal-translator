@@ -10,7 +10,7 @@ use super::languages::{
     Blocks, EntryPoint, ForwardDeclarations, IntegerDivision, Syntax, language_syntax,
 };
 use crate::meta::GrammarError;
-use crate::meta::{Node, add, block, format_number, later_calls, number, text};
+use crate::meta::{Node, add, block, format_number, later_calls, layout, number, text};
 
 /// Binding strength of a meta operator; unknown operators have none, which
 /// compares as never tighter or looser (NaN).
@@ -124,6 +124,53 @@ pub(crate) struct Emitter {
     dialect: &'static dyn EmitterDialect,
     /// What a dialect remembers while it writes (see `state`).
     state: Box<dyn Any>,
+}
+
+/// The import lines a used feature needs, before and after the common
+/// library imports.
+const IMPORTS_BEFORE_LIBRARY: [(&str, &str); 3] = [
+    ("strformat", "import std/strformat"),
+    ("std.conv", "import std.conv;"),
+    ("dart:io", "import 'dart:io';"),
+];
+const IMPORTS_AFTER_LIBRARY: [(&str, &str); 6] = [
+    ("objc", "#import <objc/objc.h>"),
+    ("stdbool", "#include <stdbool.h>"),
+    ("stdio", "#include <stdio.h>"),
+    ("iostream", "#include <iostream>"),
+    ("string", "#include <string>"),
+    ("fmt", "import \"fmt\""),
+];
+
+/// The lines of a comment in a language: a block comment where the language
+/// prefers one (or has no line comment), otherwise one line comment per line.
+pub fn comment_lines(syntax: &Syntax, id: &str, text: &str, preferred: bool) -> Vec<String> {
+    let spaced = |marker: &str, line: &str| match line {
+        "" => marker.to_owned(),
+        _ => format!("{marker} {line}"),
+    };
+    let lines: Vec<&str> = text.split('\n').collect();
+    let (several, line_comment) = (lines.len() > 1, syntax.line_comment);
+    match syntax.block_comment {
+        Some((open, close))
+            if !text.contains(close)
+                && (matches!(id, "c" | "csharp")
+                    || (preferred && several)
+                    || line_comment == open
+                    || (several && line_comment.is_empty())) =>
+        {
+            let mut body: Vec<String> = lines.iter().map(|line| (*line).to_owned()).collect();
+            body[0] = spaced(open, lines[0]);
+            body.last_mut()
+                .expect("one line at least")
+                .push_str(&format!(" {close}"));
+            body
+        }
+        _ => lines
+            .iter()
+            .map(|line| spaced(line_comment, line))
+            .collect(),
+    }
 }
 
 pub(crate) fn field<'a>(node: &'a Node, key: &str) -> Result<&'a Node> {
@@ -754,12 +801,35 @@ impl Emitter {
     }
 
     pub(crate) fn comment(&mut self, text: &str) {
-        if matches!(self.id(), "c" | "csharp") {
-            self.line(&format!("/* {text} */"));
-        } else if self.id() == "rocq" {
-            self.line(&format!("(* {text} *)"));
-        } else {
-            self.line(&format!("{} {text}", self.syntax.line_comment));
+        self.comment_with(text, None, false);
+    }
+
+    /// Concrete syntax: a comment keeps its text, its lines and, after code,
+    /// its place at the end of the line.
+    pub(crate) fn comment_with(&mut self, text: &str, trailing: Option<&str>, block: bool) {
+        // Rocq keeps every comment whole, on a line of its own.
+        if self.id() == "rocq" {
+            return self.line(&format!("(* {text} *)"));
+        }
+        let lines = comment_lines(&self.syntax, self.id(), text, block);
+        if let (Some(trailing), [only]) = (trailing, lines.as_slice())
+            && let Some(last) = self.lines.last_mut().filter(|last| !last.is_empty())
+        {
+            last.push_str(trailing);
+            last.push_str(only);
+            return;
+        }
+        for line in &lines {
+            self.line(line);
+        }
+    }
+
+    /// Empty lines kept from the source, never two runs in a row.
+    pub(crate) fn blank(&mut self, lines: usize) {
+        let lines_now = self.lines.iter().rev();
+        let present = lines_now.take_while(|line| line.is_empty()).count();
+        for _ in present.min(lines)..lines {
+            self.line("");
         }
     }
 
@@ -821,12 +891,14 @@ impl Emitter {
     }
 
     pub(crate) fn base_body(&mut self, block: &Node) -> Result<()> {
-        let statements = block.nodes("statements");
-        if statements.is_empty() && self.syntax.blocks == Blocks::Indentation {
-            self.line(self.syntax.empty_statement.unwrap_or("pass"));
-        }
-        for statement in statements {
+        let statements = layout(block.node_list("statements"));
+        for statement in &statements {
             self.statement(statement)?;
+        }
+        // A block that only holds comments still needs a statement.
+        let trivia = |it: &Node| matches!(it.kind.as_str(), "Comment" | "Blank");
+        if statements.iter().all(trivia) && self.syntax.blocks == Blocks::Indentation {
+            self.line(self.syntax.empty_statement.unwrap_or("pass"));
         }
         Ok(())
     }
@@ -842,7 +914,12 @@ impl Emitter {
         }
         let end = self.terminator();
         match statement.kind.as_str() {
-            "Comment" => self.comment(statement.str("text").unwrap_or_default()),
+            "Comment" => self.comment_with(
+                statement.str("text").unwrap_or_default(),
+                statement.str("trailing"),
+                statement.flag("block") == Some(true),
+            ),
+            "Blank" => self.blank(statement.number("lines").unwrap_or(1.0) as usize),
             "Print" => {
                 let line = self.print(statement)?;
                 self.line(&line);
@@ -1390,28 +1467,16 @@ impl Emitter {
             lines.push(String::new());
         }
         lines.extend(self.syntax.prelude.iter().map(|line| (*line).to_owned()));
-        for (used, line) in [
-            ("strformat", "import std/strformat"),
-            ("std.conv", "import std.conv;"),
-            ("dart:io", "import 'dart:io';"),
-        ] {
-            if self.uses.contains(used) {
-                lines.push(line.into());
-            }
-        }
+        let used = |headers: &[(&str, &str)]| -> Vec<String> {
+            headers
+                .iter()
+                .filter(|(use_, _)| self.uses.contains(*use_))
+                .map(|(_, line)| (*line).to_owned())
+                .collect()
+        };
+        lines.extend(used(&IMPORTS_BEFORE_LIBRARY));
         lines.extend(program.texts("libraryImports"));
-        for (used, line) in [
-            ("objc", "#import <objc/objc.h>"),
-            ("stdbool", "#include <stdbool.h>"),
-            ("stdio", "#include <stdio.h>"),
-            ("iostream", "#include <iostream>"),
-            ("string", "#include <string>"),
-            ("fmt", "import \"fmt\""),
-        ] {
-            if self.uses.contains(used) {
-                lines.push(line.into());
-            }
-        }
+        lines.extend(used(&IMPORTS_AFTER_LIBRARY));
         if lines.last().is_some_and(|line| !line.is_empty()) {
             lines.push(String::new());
         }

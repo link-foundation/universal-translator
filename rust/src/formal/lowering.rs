@@ -233,10 +233,12 @@ impl<'a> FunctionLowering<'a> {
     fn statement(&mut self, node: &Node) -> Result<()> {
         match node.kind.as_str() {
             "Comment" => {
-                self.emit(Instruction::Comment(
-                    node.str("text").unwrap_or_default().to_owned(),
-                ));
+                for line in node.str("text").unwrap_or_default().split('\n') {
+                    self.emit(Instruction::Comment(line.to_owned()));
+                }
             }
+            // Machine code has no layout to keep.
+            "Blank" => {}
             "Declaration" => {
                 let value = field(node, "value")?;
                 let name = node.str("name").unwrap_or_default();

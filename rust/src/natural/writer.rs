@@ -12,7 +12,7 @@ use super::levels::{
     Associativity, LEVELS, binary_template, level_index, level_of_template, unary_template,
 };
 use super::tokens::{Kind, Token};
-use crate::meta::{Node, number, subtract};
+use crate::meta::{Node, layout, number, subtract};
 
 const INDENT_UNIT: &str = "  ";
 
@@ -340,10 +340,13 @@ impl Writer<'_> {
         Ok(())
     }
 
+    /// A comment of several lines becomes one note per line.
     fn note(&mut self, depth: usize, text: &str) {
-        let line = self.language.note.replacen("{text}", text, 1);
-        self.lines
-            .push(format!("{}{line}", INDENT_UNIT.repeat(depth)));
+        for part in text.split('\n') {
+            let line = self.language.note.replacen("{text}", part.trim(), 1);
+            self.lines
+                .push(format!("{}{line}", INDENT_UNIT.repeat(depth)));
+        }
     }
 
     fn expression(&self, value: Option<&Node>) -> Result<Vec<Token>, String> {
@@ -362,7 +365,7 @@ impl Writer<'_> {
         if statements.is_empty() {
             self.sentence(depth, "nothing", &Slots::new(), false)?;
         }
-        for statement in statements {
+        for statement in &layout(statements.into_iter().cloned().collect()) {
             self.statement(statement, depth)?;
         }
         Ok(())
@@ -386,6 +389,14 @@ impl Writer<'_> {
         match statement.kind.as_str() {
             "Comment" => {
                 self.note(depth, statement.str("text").unwrap_or_default());
+                Ok(())
+            }
+            // Concrete syntax: empty lines between sentences stay.
+            "Blank" => {
+                if self.lines.last().is_none_or(|line| !line.is_empty()) {
+                    let lines = statement.number("lines").unwrap_or(1.0) as usize;
+                    self.lines.extend(std::iter::repeat_n(String::new(), lines));
+                }
                 Ok(())
             }
             "Declaration" | "Assignment" => {
@@ -526,7 +537,7 @@ impl Writer<'_> {
             for text in &main_comments {
                 self.note(0, text);
             }
-            for statement in main {
+            for statement in &layout(main.into_iter().cloned().collect()) {
                 self.statement(statement, 0)?;
             }
         }

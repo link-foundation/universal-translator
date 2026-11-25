@@ -14,7 +14,7 @@
 //! result of a function that returns one, and a procedure is the action
 //! itself. The last command evaluates `run main`, which Rocq prints.
 
-use super::shared::{default_value, each_statement};
+use super::shared::{blank_node, comment_node, default_value, each_statement};
 use super::{EmitterDialect, ParserDialect};
 use crate::formal::emitter::{Emitter, Result, field};
 use crate::formal::lexer::TokenType;
@@ -194,10 +194,11 @@ fn sequence(p: &mut Parser) -> Parsed {
         match p.kind(0) {
             TokenType::Comment => {
                 let token = p.next()?;
-                statements.push(Node::new("Comment").with("text", token.value));
+                statements.push(comment_node(&token));
             }
             TokenType::Newline => {
-                p.next()?;
+                let token = p.next()?;
+                statements.extend(blank_node(&token, &statements));
             }
             _ if p.accept("pure") => {
                 state(p)?;
@@ -393,7 +394,7 @@ impl ParserDialect for Rocq {
     fn item(&self, p: &mut Parser) -> Parsed {
         if p.kind(0) == TokenType::Comment {
             let token = p.next()?;
-            return Ok(Node::new("Comment").with("text", token.value));
+            return Ok(comment_node(&token));
         }
         if p.is("Load") {
             let words = skip_command(p)?;

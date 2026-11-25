@@ -15,7 +15,7 @@ use super::lifting::counting_loops;
 use super::names::{avoid_reserved, name_words, neutral_name, rename_declared, spell_name};
 use crate::meta::truth::raise_truth_functions;
 use crate::meta::{Mode, Rule, Settings};
-use crate::meta::{Node, binary, block, rewrite, rewrite_opt, text, walk};
+use crate::meta::{Node, binary, block, layout, rewrite, rewrite_opt, text, walk};
 
 fn rule(name: &str, apply: impl Fn(Node, &Settings) -> Node + Send + Sync + 'static) -> Rule {
     Rule {
@@ -140,6 +140,7 @@ fn is_python_main_guard(statement: &Node) -> bool {
 fn comment_texts(comments: &[Node]) -> Vec<String> {
     comments
         .iter()
+        .filter(|comment| comment.is("Comment"))
         .map(|comment| comment.str("text").unwrap_or_default().to_owned())
         .collect()
 }
@@ -153,13 +154,20 @@ fn collect_items(items: Vec<Node>) -> Node {
     let mut statements = Vec::new();
     let mut pending: Vec<Node> = Vec::new();
     for item in items {
-        if item.is("Comment") {
+        if item.is("Comment") || item.is("Blank") {
             pending.push(item);
             continue;
         }
         if imports.len() + functions.len() + statements.len() == 0 {
+            // Comments before the last empty line describe the file; the
+            // ones after it describe the first item.
+            let split = pending.iter().rposition(|trivia| trivia.is("Blank"));
+            let rest = match split {
+                Some(split) => pending.split_off(split + 1),
+                None => Vec::new(),
+            };
             comments.extend(comment_texts(&pending));
-            pending.clear();
+            pending = rest;
         }
         if item.is("Import") {
             imports.push(item.str("text").unwrap_or_default().to_owned());
@@ -177,7 +185,7 @@ fn collect_items(items: Vec<Node>) -> Node {
         .with("comments", comments)
         .with("imports", imports)
         .with("functions", functions)
-        .with("main", block(statements))
+        .with("main", block(layout(statements)))
 }
 
 fn is_exit_success(statement: Option<&Node>) -> bool {
