@@ -45,14 +45,17 @@ describe('universal React example app', () => {
     expect(packageJson.scripts['mobile:ios:run']).toContain('cap run ios');
   });
 
-  it('renders a visual UI using the package add and multiply functions', () => {
+  it('renders the translator with every language and fragments', () => {
     const appSource = readText(appSourcePath);
+    const workflow = readText(workflowPath);
 
-    expect(appSource).toContain("from '../../../js/src/index.js'");
-    expect(appSource).toContain('add(parsedLeft, parsedRight)');
-    expect(appSource).toContain('multiply(parsedLeft, parsedRight)');
-    expect(appSource).toContain('Addition');
-    expect(appSource).toContain('Multiplication');
+    expect(appSource).toContain("from '../../../js/src/translator.js'");
+    expect(appSource).toContain('translator.languages()');
+    expect(appSource).toContain('translator.naturalLanguages()');
+    expect(appSource).toContain('translator.translateFragment');
+    expect(appSource).toContain("role: 'alert'");
+    expect(workflow).toContain('web-e2e:');
+    expect(workflow).toContain('examples/universal-app/e2e/translate.e2e.mjs');
   });
 
   it('shares the Vite build output with Capacitor and GitHub Pages', () => {

@@ -216,6 +216,56 @@ jobs:
             examples/universal-app/android/app/build/outputs/**/*.aab
           if-no-files-found: warn
 
+  # Drive the translator demo in a real browser: languages are listed,
+  # statements, programs and sentences translate, and an incomplete
+  # fragment reports an error. The screenshot is uploaded for review.
+  web-e2e:
+    name: Web demo end-to-end
+    runs-on: ubuntu-24.04
+    container:
+      # Same digest as preview-regen; keep both in sync with playwright below.
+      image: mcr.microsoft.com/playwright@sha256:b0ab6f3cb99aa7803adbc14d9027ec1785fc6e433b97e134e0f8fe61683b6b53 # v1.59.1-noble
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    concurrency:
+      group: check-${{ github.workflow }}-${{ github.ref }}-web-e2e
+      cancel-in-progress: true
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Install app dependencies
+        run: |
+          npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+          npm ci --prefix examples/universal-app --no-audit --no-fund
+
+      # Pinned exactly and only used by this job, like preview-regen.
+      - name: Install Playwright
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+        run: npm install --no-save --package-lock=false --no-audit --no-fund playwright@1.59.1 # zizmor: ignore[adhoc-packages]
+
+      - name: Build app
+        run: npm run example:web:build
+
+      - name: Translate in the browser
+        run: |
+          mkdir -p e2e-output
+          npm --prefix examples/universal-app run preview -- --port 4173 --strictPort > e2e-output/preview.log 2>&1 &
+          node examples/universal-app/e2e/translate.e2e.mjs http://127.0.0.1:4173/ e2e-output/web-demo.png
+
+      - name: Upload screenshot
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-demo-e2e
+          path: e2e-output/
+          if-no-files-found: ignore
+
   # Regenerate example-app preview screenshots (docs/screenshots/example-app/*)
   # using browser-commander + Playwright so README/site images always reflect
   # the current UI. Issue: #62. Implementation: scripts/update-preview-images.mjs.
@@ -347,6 +397,7 @@ jobs:
       - pages-deploy
       - desktop-package
       - android-build
+      - web-e2e
       - preview-regen
     steps:
       - uses: actions/checkout@v6

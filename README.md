@@ -258,8 +258,14 @@ Note: `package-lock.json` is not committed by default to allow any package manag
 
 ### Universal App Example
 
-The template includes `examples/universal-app`, a Vite React app that imports
-`add` and `multiply` from `js/src/index.js` and renders a visual calculator UI.
+`examples/universal-app` is a Vite React demo of the translator: pick any of
+the programming or natural languages on both sides, paste a statement, a
+function or a whole program, and read its translation (or the reason it does
+not parse). The `web-e2e` job drives it in Chromium with
+`examples/universal-app/e2e/translate.e2e.mjs`.
+
+![Web demo](docs/screenshots/web-demo.png)
+
 The same static build is used by:
 
 - GitHub Pages (`npm run example:web:build`)

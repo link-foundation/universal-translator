@@ -1,8 +1,17 @@
 # Universal Example App
 
-This example turns the package functions in `js/src/index.js` into a React UI and
-uses the same build output for GitHub Pages, Electron desktop packages, and
-Capacitor mobile projects.
+This example is the translator's web demo. It lists every programming and
+natural language, reads a statement, a function or a whole program in the
+source language and shows its translation, or the reason the text does not
+parse. A fragment only has to be complete: a function must end with its
+closing and a statement must be whole. The same build output is used for
+GitHub Pages, Electron desktop packages, and Capacitor mobile projects.
+
+```bash
+npm run example:web:build
+npm --prefix examples/universal-app run preview -- --port 4173 &
+node examples/universal-app/e2e/translate.e2e.mjs http://127.0.0.1:4173/ web-demo.png
+```
 
 ![Universal example app preview](../../docs/screenshots/example-app/example-app.png)
 
