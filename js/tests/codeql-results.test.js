@@ -278,7 +278,20 @@ describe('CodeQL accepted findings', () => {
       result.notices[0],
       /^::notice title=Accepted CodeQL finding::/
     );
-    assert.ok(result.notices[0].includes(alert));
+    // An exact comparison: CodeQL reads includes() on a URL as an
+    // incomplete URL sanitizer (js/incomplete-url-substring-sanitization).
+    assert.equal(result.notices[0].match(/ \((\S+)\): /)?.[1], alert);
+  });
+
+  it('names the file, line and hash of a rejected finding', async () => {
+    const other = finding('js/src/other.js');
+    other.locations[0].physicalLocation.region = { startLine: 7 };
+    const result = await run([withRule([other])], [entry]);
+    assert.equal(result.ok, false);
+    assert.match(
+      result.errors.join('\n'),
+      /at js\/src\/other\.js:7 \(primaryLocationLineHash [^)]+\): /
+    );
   });
 
   it('still fails other findings of the same rule', async () => {

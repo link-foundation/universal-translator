@@ -131,6 +131,16 @@ function resultKey(finding) {
   });
 }
 
+// Names the file, line and primaryLocationLineHash, which is what an entry in
+// the accepted findings list needs after the alert is reviewed and dismissed.
+function findingLocation(finding) {
+  const location = finding?.locations?.[0]?.physicalLocation;
+  const path = location?.artifactLocation?.uri ?? 'unknown file';
+  const line = location?.region?.startLine;
+  const hash = finding?.partialFingerprints?.primaryLocationLineHash;
+  return `${path}${line ? `:${line}` : ''}${hash ? ` (primaryLocationLineHash ${hash})` : ''}`;
+}
+
 function runRules(run) {
   return new Set(
     [run.tool.driver, ...(run.tool.extensions ?? [])].flatMap((component) =>
@@ -181,7 +191,7 @@ function checkFindings(run, index, file, accepted, state) {
       return [];
     }
     return [
-      `${file} run ${index}: ${finding?.ruleId ?? 'unknown rule'} [${finding?.level ?? 'unspecified severity'}] ${finding?.message?.text ?? 'CodeQL finding'}`,
+      `${file} run ${index}: ${finding?.ruleId ?? 'unknown rule'} [${finding?.level ?? 'unspecified severity'}] at ${findingLocation(finding)}: ${finding?.message?.text ?? 'CodeQL finding'}`,
     ];
   });
 }
