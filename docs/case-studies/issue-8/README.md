@@ -9,7 +9,7 @@ Raw snapshots are stored in `data/`:
 - `issue-comments.json`, `pr-comments.json`, `pr-review-comments.json`: the
   discussion on the issue and on pull request #9. They were empty when this
   study was written.
-- `rosetta-code/`: the coverage report over every Rosetta Code task,
+- `rosetta-code/` (in `data/`): the coverage report over every Rosetta Code task,
   regenerated with `node scripts/rosetta-code.mjs all` (see below).
 
 Online sources reviewed on 2026-11-25:
@@ -47,26 +47,28 @@ Online sources reviewed on 2026-11-25:
 | 2026-11-25 09:12 | Translation rules as data at every stage; the server translates partially and detects.                   |
 | 2026-11-25 09:15 | The web demo gets auto-detection, a list of untranslated parts and a visual rules editor.                |
 | 2026-11-25 09:32 | The Rosetta Code coverage script lands. Its first run hung, and that led to a parser bug (root cause 5). |
-| later            | Rust parity, the Rosetta Code report, documentation and a changeset follow.                              |
+| 2026-11-25 09:38 | All 1772 Rosetta Code tasks (programming and draft) are downloaded.                                      |
+| 2026-11-25 10:02 | The first full coverage run finishes: 39.4% of 1,292,095 solution lines read.                            |
+| 2026-11-25 10:10 | Rust gets partial translation, detection, rules as data and the CLI flags.                               |
 
 ## Requirements
 
-| #   | Requirement                                                                                                    | Where it is done                                                                                           | Verified by                                                                 |
-| --- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| R1  | Read `Если n меньше или равно 1, сделать это:` / `больше или равно`                                            | `data/natural/russian.lino` and every other language's variants                                            | `js/tests/issue-8.test.js` "reads the Russian examples"                     |
-| R2  | Read the "other obvious variations" (`либо`, `не больше`, `<=`, `≤`, `at most`, ...) in every natural language | `data/natural/*.lino`, `experiments/issue-8-add-variants.mjs`                                              | "reads other obvious variations", `checkDescription` for every language     |
-| R3  | Load every Rosetta Code task automatically                                                                     | `scripts/rosetta-code.mjs download`                                                                        | `js/tests/rosetta-code.test.js` (offline fixture), `rosetta-code/README.md` |
-| R4  | Sort the tasks by simplest meaning                                                                             | `sortBySimplicity` (median solution length, then how many languages solve it)                              | `js/tests/rosetta-code.test.js`                                             |
-| R5  | A parsing mode that reads all it can and counts the missing parts                                              | `parsePartial` in JS and Rust, `coverage` CLI command                                                      | `js/tests/issue-8.test.js`, Rust `issue_8` tests, the report                |
-| R6  | Translate partially by default and mark untranslated parts with their errors                                   | `translatePartial`; the CLI, server and web demo default to it                                             | tests, `docs/screenshots/issue-8/partial-translation.png`                   |
-| R7  | Keep all-or-nothing as an option                                                                               | `--all-or-nothing`, `allOrNothing` in the server, a checkbox in the demo                                   | tests, e2e                                                                  |
-| R8  | Configurable rules at each stage                                                                               | `rules` setting (`source`, `templates`, `names`, `output`), `--rules file.json`, `withRules`               | "rules as data" tests                                                       |
-| R9  | A visual rules editor in the web demo                                                                          | `examples/universal-app/src/RulesEditor.js`                                                                | `e2e/translate.e2e.mjs`, `docs/screenshots/issue-8/rules-editor.png`        |
-| R10 | Auto-detect the source language by default in the UI                                                           | `detectLanguage`; "Auto-detect" is the demo's default source; `auto` in the CLI and server                 | detection tests, e2e                                                        |
-| R11 | Collect the data and write this case study                                                                     | this folder                                                                                                | —                                                                           |
-| R12 | Add debug output where root causes are unclear                                                                 | `coverage --verbose` prints per-task timing; `experiments/issue-8-rosetta-timing.mjs` times every solution | used to find root cause 5                                                   |
-| R13 | Report problems in other projects                                                                              | none found: every root cause was in this repository                                                        | —                                                                           |
-| R14 | Apply every fix to the whole codebase (JS and Rust)                                                            | Rust ports of partial reading, detection, rules and CLI flags                                              | Rust tests                                                                  |
+| #   | Requirement                                                                                                    | Where it is done                                                                                           | Verified by                                                                      |
+| --- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| R1  | Read `Если n меньше или равно 1, сделать это:` / `больше или равно`                                            | `data/natural/russian.lino` and every other language's variants                                            | `js/tests/issue-8.test.js` "reads the Russian examples"                          |
+| R2  | Read the "other obvious variations" (`либо`, `не больше`, `<=`, `≤`, `at most`, ...) in every natural language | `data/natural/*.lino`, `experiments/issue-8-add-variants.mjs`                                              | "reads other obvious variations", `checkDescription` for every language          |
+| R3  | Load every Rosetta Code task automatically                                                                     | `scripts/rosetta-code.mjs download`                                                                        | `js/tests/rosetta-code.test.js` (offline fixture), `data/rosetta-code/README.md` |
+| R4  | Sort the tasks by simplest meaning                                                                             | `sortBySimplicity` (median solution length, then how many languages solve it)                              | `js/tests/rosetta-code.test.js`                                                  |
+| R5  | A parsing mode that reads all it can and counts the missing parts                                              | `parsePartial` in JS and Rust, `coverage` CLI command                                                      | `js/tests/issue-8.test.js`, Rust `issue_8` tests, the report                     |
+| R6  | Translate partially by default and mark untranslated parts with their errors                                   | `translatePartial`; the CLI, server and web demo default to it                                             | tests, `docs/screenshots/issue-8/partial-translation.png`                        |
+| R7  | Keep all-or-nothing as an option                                                                               | `--all-or-nothing`, `allOrNothing` in the server, a checkbox in the demo                                   | tests, e2e                                                                       |
+| R8  | Configurable rules at each stage                                                                               | `rules` setting (`source`, `templates`, `names`, `output`), `--rules file.json`, `withRules`               | "rules as data" tests                                                            |
+| R9  | A visual rules editor in the web demo                                                                          | `examples/universal-app/src/RulesEditor.js`                                                                | `e2e/translate.e2e.mjs`, `docs/screenshots/issue-8/rules-editor.png`             |
+| R10 | Auto-detect the source language by default in the UI                                                           | `detectLanguage`; "Auto-detect" is the demo's default source; `auto` in the CLI and server                 | detection tests, e2e                                                             |
+| R11 | Collect the data and write this case study                                                                     | this folder                                                                                                | —                                                                                |
+| R12 | Add debug output where root causes are unclear                                                                 | `coverage --verbose` prints per-task timing; `experiments/issue-8-rosetta-timing.mjs` times every solution | used to find root cause 5                                                        |
+| R13 | Report problems in other projects                                                                              | none found: every root cause was in this repository                                                        | —                                                                                |
+| R14 | Apply every fix to the whole codebase (JS and Rust)                                                            | Rust ports of partial reading, detection, rules and CLI flags                                              | Rust tests                                                                       |
 
 ## Root Causes
 
@@ -93,6 +95,34 @@ Online sources reviewed on 2026-11-25:
    returned "Unexpected end of program", so this was also a parity gap.
    `next()` now throws the same error in JS. A regression test is in
    `js/tests/issue-8.test.js` ("cut texts").
+
+## Rosetta Code Results
+
+The first full run (`data/rosetta-code/README.md`) reads 1782 tasks: every
+programming and draft task with a solution in one of our languages. It
+counts the first solution in each language, 1,292,095 written lines in all.
+Partial reading covers 508,806 of them (39.4%). Coverage per language ranges
+from about 55% (Java, Dart, TypeScript, Lua, Go) down to 20–24% (Perl, Fortran, Bash, Ada, Pascal), 18% for Objective-C, and
+under 11% for Lean and Rocq, which have only 7 and 14 solutions. Hundreds of single-language
+solutions already read completely. No task reads completely in _every_
+language yet. The report lists the simplest tasks first with their missing
+lines, so grammar work can follow it in order.
+
+The issue's long-term goal is to translate _every_ Rosetta Code
+solution, and this pull request does not reach it. What it delivers is
+what the issue asks for on the way there:
+
+- loading every task;
+- the simplest-first order;
+- the partial mode that counts the missing parts;
+- the first measurements.
+
+The remaining 60% of lines need grammar and meaning work, language by
+language, guided by this report. `coverage.json` keeps
+per-task, per-language counts of read lines and missing parts.
+
+The run also found root cause 5. Before the fix, partial reading never
+finished on the very first task.
 
 ## Solutions And Alternatives
 
@@ -122,6 +152,6 @@ Online sources reviewed on 2026-11-25:
 - **Rosetta Code.** Each task's wikitext is fetched with the MediaWiki API,
   ten titles per request. The solutions of the 32 languages we read are kept
   in `.cache/` (they stay under the GNU FDL, outside this repository). Tasks
-  are sorted from the simplest. Only counts are committed (`rosetta-code/`).
+  are sorted from the simplest. Only counts are committed (`data/rosetta-code/`).
   The report is the to-do list for future grammar work: the simplest tasks
   that still miss lines come first.
