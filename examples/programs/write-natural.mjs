@@ -10,7 +10,7 @@
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createGrammarTranslator } from '../../js/src/grammar/translator.js';
+import { createGrammarTranslator } from '../../js/src/translator.js';
 import { naturalLanguageIds } from '../../js/src/natural/catalog.js';
 import { programFiles } from './verify-native.mjs';
 

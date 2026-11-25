@@ -1,7 +1,7 @@
 // Longest sentence (in words; a quoted text counts as one) per task for a language.
 // Usage: node experiments/sentence-lengths.mjs [language]
 import { readFileSync, readdirSync } from 'node:fs';
-import { createGrammarTranslator } from '../js/src/grammar/translator.js';
+import { createGrammarTranslator } from '../js/src/translator.js';
 import { writeNatural } from '../js/src/natural/writer.js';
 import { naturalLanguage } from '../js/src/natural/catalog.js';
 import { tokenize } from '../js/src/natural/tokens.js';

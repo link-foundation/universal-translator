@@ -7,11 +7,11 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use universal_translator::Mode;
-use universal_translator::grammar::{Translator, meaning_difference, natural_languages};
 use universal_translator::natural::{
     check_description, check_text, natural_language, natural_language_ids, read_natural,
     semantic_primes,
 };
+use universal_translator::translator::{Translator, meaning_difference, natural_languages};
 
 fn programs() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("examples/programs")
@@ -171,7 +171,7 @@ fn every_task_in_every_natural_language() {
     let texts = texts();
     assert_eq!(texts.len(), tasks().len() * natural_language_ids().len());
     let mut failures = Vec::new();
-    let mut current: Option<(String, universal_translator::grammar::Node)> = None;
+    let mut current: Option<(String, universal_translator::meta::Node)> = None;
     for Text {
         task,
         language,

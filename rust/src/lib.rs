@@ -2,19 +2,21 @@
 //! translator, exchange sources as Links Notation documents and concrete
 //! syntax trees, and rank dependent interpretations.
 
-pub mod grammar;
-mod links;
+pub mod formal;
+pub mod meta;
 pub mod natural;
 mod program;
 mod referents;
 mod source_document;
+pub mod translator;
 
-pub use grammar::{GrammarError, Options, Translator};
+pub use meta::GrammarError;
 pub use program::translate_program;
 pub use referents::{
     Candidate, Observation, RankedCandidate, Ranking, rank_interpretations, read_referent_input,
 };
 pub use source_document::SourceDocument;
+pub use translator::{Options, Translator};
 
 /// How closely a translation follows the source.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]

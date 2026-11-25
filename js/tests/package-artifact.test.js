@@ -40,7 +40,7 @@ describe('published package artifact', () => {
       const paths = artifact.files.map((file) => file.path);
       expect(paths).toContain('bin/universal-translator.js');
       expect(paths).toContain('js/src/index.js');
-      expect(paths).toContain('js/src/grammar/translator.js');
+      expect(paths).toContain('js/src/translator.js');
       expect(paths.some((path) => path.startsWith('js/tests/'))).toBe(false);
       expect(paths.filter((path) => path.startsWith('bin/'))).toEqual([
         'bin/universal-translator.js',

@@ -6,7 +6,7 @@ import {
   parseLinks,
   reference,
   references,
-} from '../../js/src/translation/links.js';
+} from '../../js/src/meta/links.js';
 
 export function fixture(name) {
   return readFileSync(new URL(name, import.meta.url), 'utf8');

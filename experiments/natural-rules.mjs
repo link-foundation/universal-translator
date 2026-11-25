@@ -1,7 +1,7 @@
 // Check every controlled language description and every task written in it
 // against the language's rules. Usage: node experiments/natural-rules.mjs [language]
 import { readFileSync, readdirSync } from 'node:fs';
-import { createGrammarTranslator } from '../js/src/grammar/translator.js';
+import { createGrammarTranslator } from '../js/src/translator.js';
 import { writeNatural } from '../js/src/natural/writer.js';
 import { naturalLanguageIds } from '../js/src/natural/catalog.js';
 import { checkDescription, checkText } from '../js/src/natural/rules.js';

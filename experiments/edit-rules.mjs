@@ -1,7 +1,7 @@
 // One-off source edit for the rule layers: the six new languages.
 import { readFileSync, writeFileSync } from 'node:fs';
 
-const path = 'js/src/grammar/rules.js';
+const path = 'js/src/formal/rules.js';
 let source = readFileSync(path, 'utf8');
 const replace = (from, to) => {
   if (!source.includes(from)) {

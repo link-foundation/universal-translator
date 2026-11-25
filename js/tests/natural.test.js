@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'test-anywhere';
 
 import { runCli } from '../../bin/universal-translator.js';
-import { meaningDifference, sameMeaning } from '../src/grammar/meta.js';
+import { meaningDifference, sameMeaning } from '../src/meta/tree.js';
 import {
   checkDescription,
   checkText,

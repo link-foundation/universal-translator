@@ -238,7 +238,7 @@ fn format_limit(value: f64) -> String {
     if value.is_infinite() {
         "Infinity".into()
     } else {
-        crate::grammar::meta::format_number(value)
+        crate::meta::format_number(value)
     }
 }
 

@@ -185,9 +185,15 @@ node bin/universal-translator.js add 2 3
 │   └── universal-app/    # React + GitHub Pages + Electron + Capacitor app
 ├── js/
 │   ├── src/              # JavaScript library and TypeScript declarations
+│   │   ├── meta/         # Shared meta language: tree, types, truth, Links Notation
+│   │   ├── formal/       # Programming languages and machine code (parse, emit, lower, lift)
+│   │   ├── natural/      # Human languages and controlled languages (read, write)
+│   │   ├── translation/  # Source-preserving documents and referent ranking
+│   │   └── translator.js # The pipeline that connects the three layers
 │   └── tests/            # JavaScript and repository tooling tests
 ├── rust/
-│   ├── src/              # Rust library and CLI
+│   ├── src/              # Rust library and CLI, with the same meta/, formal/,
+│   │                     # natural/ and translator.rs layout as js/src
 │   └── tests/            # Rust integration tests
 ├── scripts/              # Build and release scripts
 ├── eslint.config.js      # ESLint configuration

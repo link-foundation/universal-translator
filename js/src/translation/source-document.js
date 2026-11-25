@@ -1,5 +1,5 @@
 import { LinkType } from 'meta-language';
-import { namedLinks, parseLinks, reference } from './links.js';
+import { namedLinks, parseLinks, reference } from '../meta/links.js';
 
 export function splitSourceLines(source) {
   return source.match(/[^\n]*\n|[^\n]+/g) ?? [];

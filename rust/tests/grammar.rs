@@ -3,13 +3,14 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
 use universal_translator::Mode;
-use universal_translator::grammar::languages::Convention;
-use universal_translator::grammar::lowering::{Instruction, lower_program};
-use universal_translator::grammar::meta::{Node, rewrite};
-use universal_translator::grammar::names::{name_words, spell_name};
-use universal_translator::grammar::rules::{context_rules, understanding_rules};
-use universal_translator::grammar::{
-    Rule, Translator, language_ids, machine_target_ids, meaning_difference,
+use universal_translator::formal::languages::Convention;
+use universal_translator::formal::lowering::{Instruction, lower_program};
+use universal_translator::formal::names::{name_words, spell_name};
+use universal_translator::formal::rules::{context_rules, understanding_rules};
+use universal_translator::meta::Rule;
+use universal_translator::meta::{Node, rewrite};
+use universal_translator::translator::{
+    Translator, language_ids, machine_target_ids, meaning_difference,
 };
 
 /// Every task with goldens under `examples/programs/translated`.

@@ -1,5 +1,5 @@
-import { createGrammarTranslator } from '../js/src/grammar/translator.js';
-import { meaningDifference } from '../js/src/grammar/meta.js';
+import { createGrammarTranslator } from '../js/src/translator.js';
+import { meaningDifference } from '../js/src/meta/tree.js';
 import { readFileSync, readdirSync } from 'node:fs';
 import { extensions } from '../examples/programs/verify-native.mjs';
 const t = createGrammarTranslator();

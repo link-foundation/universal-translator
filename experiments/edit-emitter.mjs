@@ -1,7 +1,7 @@
 // One-off source edit for the emitter: the six new languages.
 import { readFileSync, writeFileSync } from 'node:fs';
 
-const path = 'js/src/grammar/emitter.js';
+const path = 'js/src/formal/emitter.js';
 let source = readFileSync(path, 'utf8');
 const replace = (from, to) => {
   if (!source.includes(from)) {

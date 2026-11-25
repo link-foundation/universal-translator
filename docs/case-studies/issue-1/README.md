@@ -78,8 +78,8 @@ Objective-C, Nim, D, Pascal, Fortran, Ada, Visual Basic .NET, Bash,
 MATLAB/Octave and Zig, plus the machine targets NASM, CIL and JVM bytecode.
 Pascal, Fortran, Ada, Visual Basic, Bash, MATLAB/Octave and Zig lay out
 their programs in ways the shared brace and indentation grammar does not
-cover, so each has a dialect in `js/src/grammar/dialects/` and
-`rust/src/grammar/dialects/` that extends the shared parser and emitter.
+cover, so each has a dialect in `js/src/formal/dialects/` and
+`rust/src/formal/dialects/` that extends the shared parser and emitter.
 The JavaScript and Rust implementations both cover all 30.
 `node bin/universal-translator.js languages` lists them.
 Assembly (NASM x86-64), CIL (ILAsm) and JVM bytecode (Jasmin) are machine
@@ -103,7 +103,7 @@ source text ──lexer + parser (grammar tables)──▶ source tree
 NASM / CIL / Jasmin ──machine reader──▶ stack machine ──lifting──▶ meta program
 ```
 
-1. **Languages are data.** `js/src/grammar/languages.js` lists each
+1. **Languages are data.** `js/src/formal/languages.js` lists each
    language's comment markers, quotes, block style, declaration keywords,
    operators, print function, entry point, type names and naming
    convention. The lexer, parser and emitter read these tables. A project

@@ -16,7 +16,7 @@ use regex::Regex;
 use super::catalog::{Language, natural_language};
 use super::levels::{Associativity, LEVELS, level_index, operator_of_template};
 use super::tokens::{Kind, Token};
-use crate::grammar::meta::{Node, Value, add, block, name, number};
+use crate::meta::{Node, Value, add, block, name, number};
 
 const NAME_SLOTS: [&str; 3] = ["name", "variable", "callee"];
 /// Slots the writer fills with a primary expression (parenthesized unless it

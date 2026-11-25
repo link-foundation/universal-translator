@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
-import { createGrammarTranslator } from '../../js/src/grammar/translator.js';
-import { grammarLanguageIds } from '../../js/src/grammar/languages.js';
-import { machineTargetIds } from '../../js/src/grammar/machine.js';
+import { createGrammarTranslator } from '../../js/src/translator.js';
+import { grammarLanguageIds } from '../../js/src/formal/languages.js';
+import { machineTargetIds } from '../../js/src/formal/machine.js';
 const t = createGrammarTranslator();
 for (const f of readdirSync('../../examples/programs').filter((f) =>
   f.endsWith('.js')

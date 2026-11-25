@@ -22,7 +22,7 @@
 // Notes ("Note: ...") copy comments of the program and quoted texts are the
 // program's own data, so neither is checked.
 
-import { parseLinks } from '../translation/links.js';
+import { parseLinks } from '../meta/links.js';
 import { naturalLanguage } from './catalog.js';
 import { naturalSources } from './sources.js';
 import { tokenize } from './tokens.js';

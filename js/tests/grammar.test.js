@@ -2,12 +2,12 @@ import { describe, expect, it } from 'test-anywhere';
 import { readFileSync } from 'node:fs';
 
 import { programFiles } from '../../examples/programs/verify-native.mjs';
-import { createGrammarTranslator } from '../src/grammar/translator.js';
-import { grammarLanguageIds } from '../src/grammar/languages.js';
-import { meaningDifference, rewrite } from '../src/grammar/meta.js';
-import { nameWords, spellName } from '../src/grammar/names.js';
-import { contextRules, understandingRules } from '../src/grammar/rules.js';
-import { lowerProgram } from '../src/grammar/lowering.js';
+import { createGrammarTranslator } from '../src/translator.js';
+import { grammarLanguageIds } from '../src/formal/languages.js';
+import { meaningDifference, rewrite } from '../src/meta/tree.js';
+import { nameWords, spellName } from '../src/formal/names.js';
+import { contextRules, understandingRules } from '../src/formal/rules.js';
+import { lowerProgram } from '../src/formal/lowering.js';
 
 const translator = createGrammarTranslator();
 const programs = programFiles();

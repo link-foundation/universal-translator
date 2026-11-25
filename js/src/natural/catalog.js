@@ -7,7 +7,7 @@
 // these tables, so a sentence the writer produces is exactly a sentence the
 // reader accepts.
 
-import { parseLinks } from '../translation/links.js';
+import { parseLinks } from '../meta/links.js';
 import { tokenize } from './tokens.js';
 import { naturalSources } from './sources.js';
 

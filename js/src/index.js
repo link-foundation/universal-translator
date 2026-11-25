@@ -30,31 +30,31 @@ export const delay = (ms) =>
 export {
   createGrammarTranslator as createTranslator,
   translate,
-} from './grammar/translator.js';
-export { grammarLanguageIds, languages } from './grammar/languages.js';
-export { machineTargetIds, machineTargets } from './grammar/machine.js';
+} from './translator.js';
+export { grammarLanguageIds, languages } from './formal/languages.js';
+export { machineTargetIds, machineTargets } from './formal/machine.js';
 export {
   commonLibraryAccess,
   commonLibraryOperations,
   recognizeCommonLibrary,
   spellCommonLibrary,
   useCommonLibrary,
-} from './grammar/common-library.js';
-export { lowerProgram } from './grammar/lowering.js';
-export { liftProgram } from './grammar/lifting.js';
+} from './formal/common-library.js';
+export { lowerProgram } from './formal/lowering.js';
+export { liftProgram } from './formal/lifting.js';
 export {
   machineReaders,
   readCil,
   readJvm,
   readNasm,
-} from './grammar/machine-reader.js';
+} from './formal/machine-reader.js';
 export {
   commentGlossary,
   contextRules,
   mapComments,
   meaningRules,
   understandingRules,
-} from './grammar/rules.js';
+} from './formal/rules.js';
 export {
   isNaturalLanguage,
   naturalLanguage,

@@ -9,9 +9,9 @@
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createGrammarTranslator } from '../../js/src/grammar/translator.js';
-import { grammarLanguageIds } from '../../js/src/grammar/languages.js';
-import { machineTargetIds } from '../../js/src/grammar/machine.js';
+import { createGrammarTranslator } from '../../js/src/translator.js';
+import { grammarLanguageIds } from '../../js/src/formal/languages.js';
+import { machineTargetIds } from '../../js/src/formal/machine.js';
 import { extensions, programFiles } from './verify-native.mjs';
 
 const folder = dirname(fileURLToPath(import.meta.url));

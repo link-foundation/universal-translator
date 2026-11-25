@@ -14,7 +14,7 @@
 use regex::Regex;
 use std::sync::LazyLock;
 
-use crate::grammar::meta::format_number;
+use crate::meta::format_number;
 
 /// What a token is.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

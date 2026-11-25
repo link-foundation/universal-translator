@@ -1,4 +1,4 @@
-use crate::links;
+use crate::meta::links;
 use links_notation::{LiNo, ParserConfig, parse_lino_to_links_with_config};
 use meta_language::{LinkNetwork, LinkType, ParseConfiguration, grammar_provenance};
 

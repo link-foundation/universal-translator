@@ -6,7 +6,7 @@
 // that parses as what the slot holds (an expression, a name or a list of
 // names), and literal words only match outside parentheses.
 
-import { add, block, name, node, number } from '../grammar/meta.js';
+import { add, block, name, node, number } from '../meta/tree.js';
 import { naturalLanguage } from './catalog.js';
 import { tokenize } from './tokens.js';
 import { levelIndex, levels, operatorOfTemplate } from './levels.js';

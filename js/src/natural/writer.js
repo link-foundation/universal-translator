@@ -13,7 +13,7 @@ import {
   levels,
   unaryTemplates,
 } from './levels.js';
-import { subtract, number } from '../grammar/meta.js';
+import { subtract, number } from '../meta/tree.js';
 
 const indentUnit = '  ';
 

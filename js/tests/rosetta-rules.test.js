@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'test-anywhere';
-import { createGrammarTranslator } from '../src/grammar/translator.js';
+import { createGrammarTranslator } from '../src/translator.js';
 
 // Rules that the Rosetta Code tasks in examples/programs rely on.
 const translator = createGrammarTranslator();

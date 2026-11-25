@@ -1,4 +1,4 @@
-import { createGrammarTranslator } from '../js/src/grammar/translator.js';
+import { createGrammarTranslator } from '../js/src/translator.js';
 const t = createGrammarTranslator();
 const c = `/* Hello world in C */
 

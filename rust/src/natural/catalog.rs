@@ -13,7 +13,7 @@ use std::sync::LazyLock;
 use links_notation::LiNo;
 
 use super::tokens::{Spelling, Token, fold, tokenize};
-use crate::links::Link;
+use crate::meta::links::Link;
 
 /// The embedded data/natural/*.lino files, in file name order.
 pub const SOURCES: &[(&str, &str)] = &[

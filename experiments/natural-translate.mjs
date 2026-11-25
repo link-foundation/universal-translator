@@ -2,8 +2,8 @@
 // language and compare meanings with the direct route.
 // Usage: node experiments/natural-translate.mjs [natural] [target]
 import { readFileSync, readdirSync } from 'node:fs';
-import { createGrammarTranslator } from '../js/src/grammar/translator.js';
-import { sameMeaning, meaningDifference } from '../js/src/grammar/meta.js';
+import { createGrammarTranslator } from '../js/src/translator.js';
+import { sameMeaning, meaningDifference } from '../js/src/meta/tree.js';
 const [natural = 'english', only] = process.argv.slice(2);
 const t = createGrammarTranslator();
 let failed = 0;

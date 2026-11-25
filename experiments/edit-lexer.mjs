@@ -2,7 +2,7 @@
 // symbols and number suffixes.
 import { readFileSync, writeFileSync } from 'node:fs';
 
-const path = 'js/src/grammar/lexer.js';
+const path = 'js/src/formal/lexer.js';
 let source = readFileSync(path, 'utf8');
 const replace = (from, to) => {
   if (!source.includes(from)) {

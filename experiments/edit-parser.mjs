@@ -1,7 +1,7 @@
 // One-off source edit for the parser: the six new languages.
 import { readFileSync, writeFileSync } from 'node:fs';
 
-const path = 'js/src/grammar/parser.js';
+const path = 'js/src/formal/parser.js';
 let source = readFileSync(path, 'utf8');
 const replace = (from, to) => {
   if (!source.includes(from)) {

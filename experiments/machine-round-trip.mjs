@@ -1,7 +1,7 @@
 // Translate every machine golden into every machine target and JavaScript,
 // and compare with the translation from the JavaScript original.
 import { readFileSync, readdirSync } from 'node:fs';
-import { createGrammarTranslator } from '../js/src/grammar/translator.js';
+import { createGrammarTranslator } from '../js/src/translator.js';
 const t = createGrammarTranslator();
 const root = 'examples/programs/translated';
 const ext = { nasm: '.asm', cil: '.il', jvm: '.j' };

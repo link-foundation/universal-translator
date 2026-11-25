@@ -4,9 +4,9 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { createGrammarTranslator } from '../src/grammar/translator.js';
-import { machineTargetIds } from '../src/grammar/machine.js';
-import { readCil, readJvm, readNasm } from '../src/grammar/machine-reader.js';
+import { createGrammarTranslator } from '../src/translator.js';
+import { machineTargetIds } from '../src/formal/machine.js';
+import { readCil, readJvm, readNasm } from '../src/formal/machine-reader.js';
 
 const translator = createGrammarTranslator();
 const folder = join(import.meta.dirname, '../../examples/programs');

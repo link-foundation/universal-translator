@@ -3,13 +3,13 @@ requirements:
     text: 'Translate every program through a shared meta language'
     from: 'issue 1'
     status: done
-    evidence: js/src/grammar/translator.js rust/src/grammar/mod.rs js/tests/grammar.test.js rust/tests/grammar.rs
+    evidence: js/src/translator.js rust/src/translator.rs js/tests/grammar.test.js rust/tests/grammar.rs
   thirty-programming-languages:
     text: 'Support at least 30 of the most popular programming languages'
     from: 'PR 5 review'
     status: done
     check: thirty-programming-languages
-    evidence: js/src/grammar/languages.js examples/programs/verify-native.mjs
+    evidence: js/src/formal/languages.js examples/programs/verify-native.mjs
   hello-world-everywhere:
     text: 'Hello world in every supported programming language'
     from: 'PR 5 review'
@@ -27,7 +27,7 @@ requirements:
     from: 'issue 1'
     status: done
     check: machine-code
-    evidence: js/src/grammar/machine.js js/src/grammar/lifting.js js/tests/lifting.test.js
+    evidence: js/src/formal/machine.js js/src/formal/lifting.js js/tests/lifting.test.js
   thirty-natural-languages:
     text: 'Support at least 30 of the most popular natural languages'
     from: 'PR 5 review'
@@ -63,7 +63,7 @@ requirements:
     from: 'PR 5 review'
     status: done
     check: natural-to-formal
-    evidence: js/src/grammar/translator.js js/tests/natural.test.js
+    evidence: js/src/translator.js js/tests/natural.test.js
   formal-to-natural:
     text: 'Translate from any formal language to any natural language'
     from: 'PR 5 review'
@@ -75,7 +75,7 @@ requirements:
     from: 'issue 1'
     status: done
     check: javascript-and-rust
-    evidence: rust/src/grammar rust/tests/grammar.rs experiments/verify-syntax-exchange.sh
+    evidence: rust/src/formal rust/tests/grammar.rs experiments/verify-syntax-exchange.sh
   rosetta-algorithm-types:
     text: 'Support all algorithm types from Rosetta Code'
     from: 'PR 5 review'
@@ -89,6 +89,12 @@ requirements:
     status: done
     check: requirements-gate
     evidence: scripts/check-requirements.mjs .github/workflows/release.yml
+  source-layout:
+    text: 'Sources split into src/meta (shared), src/formal (programming languages, Lean, Rocq and machine code) and src/natural (human languages), with dependencies pointing to the meta language'
+    from: 'PR 5 review'
+    status: done
+    check: source-layout
+    evidence: js/src/meta js/src/formal js/src/natural js/src/translator.js rust/src/meta rust/src/formal rust/src/natural rust/src/translator.rs
   case-study:
     text: 'Case study with collected data, requirements and readiness'
     from: 'issue 1'

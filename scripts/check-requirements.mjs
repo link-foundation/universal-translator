@@ -11,7 +11,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseLinks } from '../js/src/translation/links.js';
+import { parseLinks } from '../js/src/meta/links.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const caseStudy = join(root, 'docs/case-studies/issue-1');
@@ -33,8 +33,8 @@ export function readEntries(file) {
 const files = (path) => readdirSync(join(root, path));
 
 async function load() {
-  const { grammarLanguageIds } = await import('../js/src/grammar/languages.js');
-  const { machineTargetIds } = await import('../js/src/grammar/machine.js');
+  const { grammarLanguageIds } = await import('../js/src/formal/languages.js');
+  const { machineTargetIds } = await import('../js/src/formal/machine.js');
   const natural = await import('../js/src/natural/catalog.js');
   const { semanticPrimes, checkDescription } =
     await import('../js/src/natural/rules.js');
@@ -71,7 +71,7 @@ function rustLanguageIds() {
       }
     }
   };
-  walk('rust/src/grammar');
+  walk('rust/src/formal');
   return ids;
 }
 
@@ -174,6 +174,32 @@ const checks = {
       )
       .map(({ id }) => id);
     return problems.length ? `unclear: ${problems.join(', ')}` : undefined;
+  },
+  'source-layout': () => {
+    const layers = ['meta', 'formal', 'natural'];
+    const missing = ['js/src', 'rust/src'].flatMap((base) =>
+      layers
+        .map((layer) => `${base}/${layer}`)
+        .filter((path) => !existsSync(join(root, path)))
+    );
+    if (missing.length) {
+      return `missing ${missing.join(', ')}`;
+    }
+    // The meta language is the centre: it depends on no language family,
+    // and natural languages do not depend on formal ones.
+    const inward = [
+      ['js/src/meta', /from '\.\.\/(formal|natural)\//],
+      ['rust/src/meta', /crate::(formal|natural)\b/],
+      ['js/src/natural', /from '\.\.\/formal\//],
+      ['rust/src/natural', /crate::formal\b/],
+    ].flatMap(([path, outward]) =>
+      files(path).filter((file) =>
+        outward.test(readFileSync(join(root, path, file), 'utf8'))
+      )
+    );
+    return inward.length
+      ? `depend on an outer layer: ${inward.join(', ')}`
+      : undefined;
   },
   'requirements-gate': () =>
     readFileSync(join(root, '.github/workflows/release.yml'), 'utf8').includes(

@@ -1,9 +1,9 @@
 use std::fs;
 use std::io::{self, Read, Write};
-use universal_translator::grammar::{
-    Translator, language_ids, languages::language_syntax, meta::to_json, natural_languages,
-};
+use universal_translator::formal::languages::language_syntax;
+use universal_translator::meta::to_json;
 use universal_translator::natural::check_text;
+use universal_translator::translator::{Translator, language_ids, natural_languages};
 use universal_translator::{Mode, Options, SourceDocument, translate_program};
 
 const USAGE: &str = "Usage:

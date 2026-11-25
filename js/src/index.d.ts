@@ -29,14 +29,14 @@ export declare const delay: (ms: number) => Promise<void>;
 export {
   createGrammarTranslator as createTranslator,
   translate,
-} from './grammar/translator.js';
+} from './translator.js';
 export type {
   GrammarTranslator,
   GrammarTranslatorOptions,
   TranslationMode,
   TranslationOptions,
-} from './grammar/translator.js';
-export * from './grammar/languages.js';
+} from './translator.js';
+export * from './formal/languages.js';
 export declare const machineTargetIds: string[];
 export declare const machineTargets: Record<string, Record<string, unknown>>;
 export declare function lowerProgram(program: unknown): unknown;
@@ -68,7 +68,7 @@ export declare function semanticPrimes(): {
   category: string;
   exponents: Record<string, string[]>;
 }[];
-import type { Rule } from './grammar/translator.js';
+import type { Rule } from './translator.js';
 export declare const understandingRules: Rule[];
 export declare const meaningRules: Rule[];
 export declare const contextRules: Rule[];

@@ -3,8 +3,8 @@ use std::io::Write;
 use std::path::Path;
 use std::process::{Command, Stdio};
 
-use universal_translator::grammar::common_library::COMMON_LIBRARY_LANGUAGES;
-use universal_translator::grammar::{language_ids, machine_target_ids};
+use universal_translator::formal::common_library::COMMON_LIBRARY_LANGUAGES;
+use universal_translator::translator::{language_ids, machine_target_ids};
 use universal_translator::{Mode, Options, Translator};
 
 const PROGRAMS: [&str; 5] = [

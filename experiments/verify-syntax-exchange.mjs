@@ -9,11 +9,7 @@ import {
   createSourceSyntaxCodec,
   writeSourceDocument,
 } from '../js/src/index.js';
-import {
-  linkFields,
-  parseLinks,
-  references,
-} from '../js/src/translation/links.js';
+import { linkFields, parseLinks, references } from '../js/src/meta/links.js';
 
 const [modulePath, executable = 'target/debug/universal-translator'] =
   process.argv.slice(2);

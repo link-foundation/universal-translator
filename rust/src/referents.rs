@@ -1,4 +1,4 @@
-use crate::links::{self, Fields, Link};
+use crate::meta::links::{self, Fields, Link};
 use rml::probability::{Aggregator, TruthValue};
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;

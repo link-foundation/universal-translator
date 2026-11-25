@@ -12,7 +12,7 @@ import {
   namedLinks,
   parseLinks,
   reference,
-} from '../../js/src/translation/links.js';
+} from '../../js/src/meta/links.js';
 import { fixture, translationData } from './fixtures.mjs';
 
 export function glossaryPhrases() {

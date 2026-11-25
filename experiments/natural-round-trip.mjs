@@ -2,8 +2,8 @@
 // JavaScript -> meta -> words -> meta, and compare meanings.
 // Usage: node experiments/natural-round-trip.mjs [language] [task.js] [--print]
 import { readFileSync, readdirSync } from 'node:fs';
-import { createGrammarTranslator } from '../js/src/grammar/translator.js';
-import { meaningDifference, sameMeaning } from '../js/src/grammar/meta.js';
+import { createGrammarTranslator } from '../js/src/translator.js';
+import { meaningDifference, sameMeaning } from '../js/src/meta/tree.js';
 import { writeNatural } from '../js/src/natural/writer.js';
 import { readNatural } from '../js/src/natural/reader.js';
 const [language = 'english', only] = process.argv

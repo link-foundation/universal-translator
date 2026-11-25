@@ -28,7 +28,7 @@ import {
 import { availableParallelism, tmpdir } from 'node:os';
 import { basename, dirname, extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createGrammarTranslator } from '../../js/src/grammar/translator.js';
+import { createGrammarTranslator } from '../../js/src/translator.js';
 
 const folder = dirname(fileURLToPath(import.meta.url));
 const translator = createGrammarTranslator();

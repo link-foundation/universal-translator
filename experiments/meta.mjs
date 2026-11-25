@@ -1,7 +1,7 @@
 // Prints the meta program of a JS example after a trip through a language:
 // node experiments/meta.mjs <task> <language> [path]
 import { readFileSync } from 'node:fs';
-import { createGrammarTranslator } from '../js/src/grammar/translator.js';
+import { createGrammarTranslator } from '../js/src/translator.js';
 
 const [task, language] = process.argv.slice(2);
 const translator = createGrammarTranslator();

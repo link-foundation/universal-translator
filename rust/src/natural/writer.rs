@@ -12,7 +12,7 @@ use super::levels::{
     Associativity, LEVELS, binary_template, level_index, level_of_template, unary_template,
 };
 use super::tokens::{Kind, Token};
-use crate::grammar::meta::{Node, number, subtract};
+use crate::meta::{Node, number, subtract};
 
 const INDENT_UNIT: &str = "  ";
 

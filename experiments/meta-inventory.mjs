@@ -1,7 +1,7 @@
 // List node kinds, operators and identifier words used by the example tasks.
 import { readFileSync, readdirSync } from 'node:fs';
-import { createGrammarTranslator } from '../js/src/grammar/translator.js';
-import { walk } from '../js/src/grammar/meta.js';
+import { createGrammarTranslator } from '../js/src/translator.js';
+import { walk } from '../js/src/meta/tree.js';
 const t = createGrammarTranslator();
 const kinds = new Map(),
   words = new Set(),

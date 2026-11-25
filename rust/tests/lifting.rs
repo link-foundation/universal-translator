@@ -5,9 +5,9 @@ use std::process::{Command, Stdio};
 use std::sync::{Arc, Mutex};
 
 use universal_translator::Mode;
-use universal_translator::grammar::lowering::Instruction;
-use universal_translator::grammar::machine_reader::{read_cil, read_jvm, read_nasm};
-use universal_translator::grammar::{Translator, machine_target_ids};
+use universal_translator::formal::lowering::Instruction;
+use universal_translator::formal::machine_reader::{read_cil, read_jvm, read_nasm};
+use universal_translator::translator::{Translator, machine_target_ids};
 
 /// Every task with goldens under `examples/programs/translated`.
 fn tasks() -> Vec<String> {
@@ -83,7 +83,8 @@ fn assert_same_program(lifted: &str, original: &str) {
     let translator = Translator::new();
     let expected = translator.to_meta(original, "javascript").unwrap();
     let actual = translator.to_meta(lifted, "javascript").unwrap();
-    if let Some(difference) = universal_translator::grammar::meaning_difference(&expected, &actual)
+    if let Some(difference) =
+        universal_translator::translator::meaning_difference(&expected, &actual)
     {
         // Lifting may spell an equivalent program differently, so the
         // printed output decides when Node.js can run both.
