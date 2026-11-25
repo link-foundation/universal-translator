@@ -1,6 +1,8 @@
 // End-to-end check of the web demo in a real browser: every sample kind
-// (statement, function, program, sentence) translates, an incomplete
-// fragment shows an error, and a screenshot is saved for review.
+// (statement, function, program, sentence) translates, the source language
+// is detected by default, untranslatable parts are listed (or fail the
+// whole text when all-or-nothing is on), rules added in the editor apply,
+// and screenshots are saved for review.
 //
 // Usage: node examples/universal-app/e2e/translate.e2e.mjs <url> [screenshot.png]
 import assert from 'node:assert/strict';
@@ -94,6 +96,55 @@ try {
   assert.equal(sentence.failed, false, sentence.text);
   assert.match(sentence.text, /console\.log\("Hello World!"\)/);
 
+  // The source language is detected by default.
+  await page.selectOption('#source-language', 'auto');
+  await page.selectOption('#target-language', 'python');
+  await page.fill('#source-text', 'console.log("Auto");\n');
+  await page.waitForSelector('text=print("Auto")');
+  assert.match(
+    await page.locator('#source-language option[value="auto"]').textContent(),
+    /Auto-detect \(javascript\)/
+  );
+
+  // Issue #8: Russian comparisons in words.
+  await page.fill(
+    '#source-text',
+    'Если n меньше или равно 1, сделать это:\n  Ничего не делать\n'
+  );
+  await page.waitForSelector('text=if n <= 1:');
+
+  // Partial translation keeps what translates and lists the rest.
+  const partial = await translation(
+    'python',
+    'javascript',
+    'x = 1\nwith open(f) as g:\n    y = 2\nprint(x)\n'
+  );
+  assert.equal(partial.failed, false, partial.text);
+  assert.match(partial.text, /console\.log\(x\)/);
+  assert.match(partial.text, /untranslated \(line 2\)/);
+  assert.match(await page.locator('#untranslated').textContent(), /Line 2: /);
+  if (screenshot) {
+    await page.screenshot({
+      path: screenshot.replace(/\.png$/u, '-partial.png'),
+      fullPage: true,
+    });
+  }
+
+  // A rule from the visual editor changes the translation.
+  await page.click('#add-output');
+  await page.fill('#rule-output-0-find', 'console.log');
+  await page.fill('#rule-output-0-replace', 'print');
+  await page.waitForSelector('#target-text:has-text("print(x)")');
+  if (screenshot) {
+    await page.screenshot({
+      path: screenshot.replace(/\.png$/u, '-rules.png'),
+      fullPage: true,
+    });
+  }
+  await page.click('button[aria-label="Remove rule"]');
+  await page.waitForSelector('#target-text:has-text("console.log(x)")');
+
+  await page.check('#all-or-nothing');
   const broken = await translation(
     'javascript',
     'python',
@@ -105,6 +156,7 @@ try {
     `no error for an open function: ${broken.text}`
   );
 
+  await page.uncheck('#all-or-nothing');
   await page.click('button:has-text("Function")');
   await page.selectOption('#target-language', 'rust');
   await page.locator('#target-text').waitFor();
