@@ -1,6 +1,6 @@
 import { machineTargets } from './machine.js';
 import { rocqRuntime } from './rocq-runtime.js';
-import { splitVersion, versionSyntax } from './versions.js';
+import { mergeSyntax, splitVersion, versionSyntax } from './versions.js';
 
 // Surface syntax descriptions for the grammar-based translator.
 //
@@ -812,7 +812,7 @@ export function languageSyntax(identifier) {
   if (!syntax) {
     throw new Error(`The grammar translator does not describe "${identifier}"`);
   }
-  return { id, ...syntax, ...versionSyntax(id, version) };
+  return mergeSyntax({ id, ...syntax }, versionSyntax(id, version));
 }
 
 export const grammarLanguageIds = Object.keys(languages);

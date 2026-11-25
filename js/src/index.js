@@ -60,9 +60,43 @@ export {
 } from './formal/rules.js';
 export {
   isNaturalLanguage,
+  isOwnNaturalLanguage,
   naturalLanguage,
   naturalLanguageIds,
+  naturalLanguageSource,
+  registerNaturalLanguage,
+  unregisterNaturalLanguage,
 } from './natural/catalog.js';
+export {
+  addDefinition,
+  cachedLookup,
+  createStandard,
+  defineWord,
+  expandWord,
+  knownForm,
+  lemmaCandidates,
+  lexemeGlosses,
+  naturalVocabulary,
+  primitiveWords,
+  readDefinitionCache,
+  readStandard,
+  standardEntries,
+  standardSize,
+  standardWordLimit,
+  unknownWords,
+  wikidataLanguageCodes,
+  wikidataLookup,
+  wordsOfText,
+  writeDefinitionCache,
+  writeStandard,
+} from './natural/standards.js';
+export {
+  languageVocabulary,
+  loadLanguageVersion,
+  readLanguageVersion,
+  vocabularyChanges,
+  writeLanguageVersion,
+} from './formal/vocabulary.js';
 export {
   baseNaturalLanguageIds,
   naturalLanguageVersions,
@@ -71,7 +105,10 @@ export {
 } from './natural/variants.js';
 export {
   languageVersions,
+  mergeSyntax,
+  registerLanguageVersion,
   splitVersion,
+  unregisterLanguageVersion,
   versionsOf,
 } from './formal/versions.js';
 export {

@@ -35,10 +35,11 @@ export function versionsOf(id) {
     return [];
   }
   return Object.entries(described.versions)
-    .map(([version, { label }]) => ({
+    .map(([version, { label, custom }]) => ({
       version,
       label,
       default: version === described.default,
+      ...(custom ? { custom: true } : {}),
     }))
     .sort((left, right) => Number(right.default) - Number(left.default));
 }
@@ -53,4 +54,51 @@ export function versionSyntax(id, version) {
     throw new Error(`${id} has no version "${version}"`);
   }
   return { ...described.syntax, version };
+}
+
+const isRecord = (value) =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+// A syntax with the changes of a version: nested tables (operators, words,
+// print, ...) are merged key by key, every other value is replaced.
+export function mergeSyntax(syntax, changes) {
+  const merged = { ...syntax };
+  for (const [key, value] of Object.entries(changes)) {
+    merged[key] =
+      isRecord(value) && isRecord(syntax[key])
+        ? mergeSyntax(syntax[key], value)
+        : value;
+  }
+  return merged;
+}
+
+const versionName = /^[\p{L}\p{N}][\p{L}\p{N}._-]*$/u;
+
+// Add a version of a language of one's own: a standard that starts from the
+// closest language and changes some of its words, for example a Python whose
+// "and" is spelled "&&". The version is then written as "python@<version>".
+export function registerLanguageVersion(id, version, { label, syntax = {} }) {
+  if (!versionName.test(version)) {
+    throw new Error(`"${version}" is not a version name`);
+  }
+  languageVersions[id] ??= { default: undefined, versions: {} };
+  const { versions } = languageVersions[id];
+  if (versions[version] && !versions[version].custom) {
+    throw new Error(`${id}@${version} is a built-in version`);
+  }
+  versions[version] = {
+    label: label ?? `${id} ${version}`,
+    syntax,
+    custom: true,
+  };
+  return `${id}@${version}`;
+}
+
+// Remove a version added with registerLanguageVersion.
+export function unregisterLanguageVersion(id, version) {
+  const described = languageVersions[id]?.versions[version];
+  if (!described?.custom) {
+    throw new Error(`${id}@${version} is not a version of one's own`);
+  }
+  delete languageVersions[id].versions[version];
 }

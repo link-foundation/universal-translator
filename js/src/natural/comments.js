@@ -68,21 +68,25 @@ const dictionaries = new Map();
 // Phrase of `from` -> phrase of `to`, for every meaning both languages have.
 export function commentDictionary(from, to) {
   const key = `${from}>${to}`;
-  if (!dictionaries.has(key)) {
-    const source = phrasesOf(from);
-    const target = phrasesOf(to);
-    const dictionary = new Map();
-    for (const [meaning, phrases] of source) {
-      const [preferred] = target.get(meaning) ?? [];
-      if (preferred) {
-        phrases
-          .filter((phrase) => !dictionary.has(phrase))
-          .forEach((phrase) => dictionary.set(phrase, preferred));
-      }
-    }
-    dictionaries.set(key, dictionary);
+  // A standard registered again under the same id is a new language object.
+  const languages = [naturalLanguage(from), naturalLanguage(to)];
+  const known = dictionaries.get(key);
+  if (known?.languages.every((language, at) => language === languages[at])) {
+    return known.dictionary;
   }
-  return dictionaries.get(key);
+  const source = phrasesOf(from);
+  const target = phrasesOf(to);
+  const dictionary = new Map();
+  for (const [meaning, phrases] of source) {
+    const [preferred] = target.get(meaning) ?? [];
+    if (preferred) {
+      phrases
+        .filter((phrase) => !dictionary.has(phrase))
+        .forEach((phrase) => dictionary.set(phrase, preferred));
+    }
+  }
+  dictionaries.set(key, { languages, dictionary });
+  return dictionary;
 }
 
 // Words are letters with inner apostrophes and hyphens; everything else
@@ -143,11 +147,12 @@ export function translateCommentText(text, { from, to }) {
   return output;
 }
 
-const phraseSets = new Map();
+const phraseSets = new WeakMap();
 function knownWords(id) {
-  if (!phraseSets.has(id)) {
+  const language = naturalLanguage(id);
+  if (!phraseSets.has(language)) {
     phraseSets.set(
-      id,
+      language,
       new Set(
         [...phrasesOf(id).values()]
           .flat()
@@ -155,7 +160,7 @@ function knownWords(id) {
       )
     );
   }
-  return phraseSets.get(id);
+  return phraseSets.get(language);
 }
 
 // The natural language most words of the comments belong to (English when

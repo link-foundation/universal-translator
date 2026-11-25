@@ -679,13 +679,19 @@ class BaseEmitter {
     const returns = item.returnType;
     const after = (arrow) =>
       returns === 'nothing' ? '' : `${arrow}${this.type(returns)}`;
-    return write({
+    const head = write({
       name: item.name,
       typed,
       names,
       after,
       returns: this.type(returns),
     });
+    // A version of one's own may spell the function keyword differently.
+    const own = this.syntax.functionKeyword;
+    const usual = languageSyntax(this.syntax.id).functionKeyword;
+    return own && usual && own !== usual
+      ? head.replace(new RegExp(`(^|\\s)${usual}(?=\\s)`), `$1${own}`)
+      : head;
   }
 
   // `int male(int index);` in C, `proc male(index: int): int` in Nim and

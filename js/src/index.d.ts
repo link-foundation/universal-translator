@@ -101,7 +101,147 @@ export interface LanguageVersion {
   version: string;
   label: string;
   default: boolean;
+  /** Added with registerLanguageVersion. */
+  custom?: boolean;
 }
+/** Syntax with the changes of a version, nested tables merged key by key. */
+export declare function mergeSyntax<T extends Record<string, unknown>>(
+  syntax: T,
+  changes: Record<string, unknown>
+): T;
+/** Add a version of one's own ("python@mine"); returns its identifier. */
+export declare function registerLanguageVersion(
+  id: string,
+  version: string,
+  options: { label?: string; syntax?: Record<string, unknown> }
+): string;
+export declare function unregisterLanguageVersion(
+  id: string,
+  version: string
+): void;
+export interface VocabularyEntry {
+  /** A meta language concept: "operators.and", "template:if", "prime:want". */
+  concept: string;
+  words: string[];
+  list?: boolean;
+}
+/** The words of a programming language and the concepts they spell. */
+export declare function languageVocabulary(id: string): VocabularyEntry[];
+/** Changed entries -> the syntax changes of a version. */
+export declare function vocabularyChanges(
+  id: string,
+  entries: readonly { concept: string; words: string[] }[]
+): Record<string, unknown>;
+export interface SavedLanguageVersion {
+  language: string;
+  version: string;
+  label?: string;
+  syntax: Record<string, unknown>;
+}
+export declare function writeLanguageVersion(
+  version: SavedLanguageVersion
+): string;
+export declare function readLanguageVersion(
+  source: string
+): SavedLanguageVersion;
+/** Read a saved version and register it; returns "<language>@<version>". */
+export declare function loadLanguageVersion(source: string): string;
+/** Add a natural language standard of one's own (Links Notation, like
+ * data/natural); returns its id. */
+export declare function registerNaturalLanguage(source: string): string;
+export declare function unregisterNaturalLanguage(id: string): void;
+export declare function isOwnNaturalLanguage(id: string): boolean;
+/** The Links Notation description of a natural language. */
+export declare function naturalLanguageSource(id: string): string;
+/** Every word of a natural language and the concept it stands for. */
+export declare function naturalVocabulary(id: string): VocabularyEntry[];
+export declare const standardWordLimit: number;
+export interface Standard {
+  id: string;
+  language: string;
+  limit: number;
+  /** Prime exponents and grammatical words: word -> "prime:<id>" | "grammar". */
+  primitives: Map<string, string>;
+  /** Composite words: word -> definition. */
+  definitions: Map<string, string>;
+}
+export declare function createStandard(options?: {
+  id?: string;
+  language?: string;
+  words?: Record<string, string>;
+  limit?: number;
+}): Standard;
+export declare function primitiveWords(language: string): Map<string, string>;
+export declare function standardSize(standard: Standard): number;
+export declare function knownForm(
+  standard: Standard,
+  word: string
+): string | undefined;
+export declare function unknownWords(
+  standard: Standard,
+  definition: string
+): string[];
+export declare function addDefinition(
+  standard: Standard,
+  word: string,
+  definition: string
+): string;
+export declare function standardEntries(standard: Standard): {
+  word: string;
+  kind: 'prime' | 'grammar' | 'composite';
+  meaning?: string;
+  definition?: string;
+}[];
+/** A word expanded down to primitive words. */
+export declare function expandWord(standard: Standard, word: string): string;
+export type DefinitionLookup = (
+  word: string,
+  language: string
+) => Promise<string[] | undefined>;
+export interface DefinitionResult {
+  word: string;
+  defined: boolean;
+  added: { word: string; definition: string }[];
+  missing: string[];
+  lookups: number;
+}
+/** Define a word and, recursively, the unknown words of its definition. */
+export declare function defineWord(
+  standard: Standard,
+  word: string,
+  options?: { lookup?: DefinitionLookup; depth?: number; budget?: number }
+): Promise<DefinitionResult>;
+export declare function cachedLookup(
+  table: Record<string, string[]>
+): DefinitionLookup;
+export declare const wikidataLanguageCodes: Record<string, string>;
+/** Definitions from the glosses of Wikidata lexemes, through a cache. */
+export declare function wikidataLookup(options?: {
+  fetch?: typeof globalThis.fetch;
+  cache?: Map<string, string[]>;
+  limit?: number;
+  interval?: number;
+  retries?: number;
+  wait?: (milliseconds: number) => Promise<void>;
+}): DefinitionLookup;
+export declare function lexemeGlosses(
+  lexemes: readonly unknown[],
+  word: string,
+  code: string
+): string[];
+export declare function lemmaCandidates(
+  word: string,
+  language?: string
+): string[];
+export declare function wordsOfText(text: string): string[];
+export declare function writeDefinitionCache(
+  cache: Map<string, string[]>
+): string;
+export declare function writeStandard(standard: Standard): string;
+export declare function readStandard(source: string): Standard;
+export declare function readDefinitionCache(
+  source: string
+): Map<string, string[]>;
 export declare const languageVersions: Record<
   string,
   {

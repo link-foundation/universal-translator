@@ -192,10 +192,13 @@ function compile(description) {
 }
 
 let catalog;
+let descriptions;
+// Sources of the standards registered at run time, by id.
+const ownSources = new Map();
 
 function load() {
   if (!catalog) {
-    const descriptions = readAll();
+    descriptions = readAll();
     catalog = new Map(
       Object.keys(descriptions).map((id) => [
         id,
@@ -205,6 +208,59 @@ function load() {
   }
   return catalog;
 }
+
+// Add a natural language standard of one's own, written like the files in
+// data/natural: usually a profile that extends the closest language and
+// changes some of its templates and words. Returns its id.
+export function registerNaturalLanguage(source) {
+  load();
+  const description = readDescription(source);
+  const { id } = description;
+  if (!/^[\p{Ll}\p{N}][\p{Ll}\p{N}-]*$/u.test(id ?? '')) {
+    throw new Error(`"${id}" is not a natural language id`);
+  }
+  if (descriptions[id] && !ownSources.has(id)) {
+    throw new Error(`"${id}" is a built-in natural language`);
+  }
+  if (description.extends === id) {
+    throw new Error(`Natural language "${id}" extends itself`);
+  }
+  const compiled = compile(resolve({ ...descriptions, [id]: description }, id));
+  descriptions[id] = description;
+  catalog.set(id, compiled);
+  ownSources.set(id, source);
+  return id;
+}
+
+// Remove a standard added with registerNaturalLanguage.
+export function unregisterNaturalLanguage(id) {
+  load();
+  if (!ownSources.has(id)) {
+    throw new Error(`"${id}" is not a natural language of one's own`);
+  }
+  if (Object.values(descriptions).some((other) => other.extends === id)) {
+    throw new Error(`Another natural language extends "${id}"`);
+  }
+  ownSources.delete(id);
+  delete descriptions[id];
+  catalog.delete(id);
+}
+
+// The Links Notation description of a natural language, to read or to start
+// a standard of one's own from.
+export function naturalLanguageSource(id) {
+  load();
+  if (ownSources.has(id)) {
+    return ownSources.get(id);
+  }
+  const source = naturalSources[`${id}.lino`];
+  if (!source) {
+    throw new Error(`No natural language "${id}"`);
+  }
+  return source;
+}
+
+export const isOwnNaturalLanguage = (id) => ownSources.has(id);
 
 export function naturalLanguage(id) {
   const language = load().get(id);

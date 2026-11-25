@@ -32,6 +32,8 @@ export default [
         module: 'readonly',
         // Node.js 18+ globals
         fetch: 'readonly',
+        URL: 'readonly',
+        URLSearchParams: 'readonly',
         AbortController: 'readonly',
         AbortSignal: 'readonly',
         setTimeout: 'readonly',
