@@ -74,6 +74,15 @@ export {
   splitVersion,
   versionsOf,
 } from './formal/versions.js';
+export {
+  commentDictionary,
+  detectCommentLanguage,
+  translateCommentText,
+} from './natural/comments.js';
+export {
+  translateComments,
+  translateProgramComments,
+} from './translation/comment-language.js';
 export { readNatural } from './natural/reader.js';
 export { writeNatural } from './natural/writer.js';
 export {

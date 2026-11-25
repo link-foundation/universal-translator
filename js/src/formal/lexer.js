@@ -259,9 +259,10 @@ class Lexer {
       return false;
     }
     const stop = this.untilLineEnd();
-    this.pushComment(
-      commentText(this.source.slice(this.index + marker.length, stop))
-    );
+    const start = this.index + marker.length;
+    this.pushComment(commentText(this.source.slice(start, stop)), {
+      span: [start, stop],
+    });
     this.index = stop;
     return true;
   }
@@ -296,7 +297,10 @@ class Lexer {
       throw new SyntaxError('Unterminated comment', this.line);
     }
     const text = this.source.slice(this.index + open.length, end);
-    this.pushComment(blockCommentText(text, this.column()), { block: true });
+    this.pushComment(blockCommentText(text, this.column()), {
+      block: true,
+      span: [this.index + open.length, end],
+    });
     this.line += text.split('\n').length - 1;
     this.index = end + close.length;
     return true;

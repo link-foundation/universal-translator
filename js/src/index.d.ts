@@ -74,6 +74,72 @@ export declare function semanticPrimes(): {
   category: string;
   exponents: Record<string, string[]>;
 }[];
+/** One entry per natural language (versions are listed by
+ * `naturalLanguageVersions`). */
+export declare function baseNaturalLanguageIds(): string[];
+export interface NaturalLanguageVersion {
+  id: string;
+  label: string;
+  kind: 'full' | 'region' | 'vocabulary' | 'standard';
+  words?: number;
+  primes?: boolean;
+  default: boolean;
+}
+/** Versions of a natural language: full vocabulary first, then regional
+ * spellings, smaller vocabularies down to the semantic primes, standards. */
+export declare function naturalLanguageVersions(
+  id: string
+): NaturalLanguageVersion[];
+/** The version that fits the browser languages (navigator.languages). */
+export declare function preferredNaturalVersion(
+  id: string,
+  browserLanguages?: readonly string[]
+): string;
+/** The version with the vocabulary of the semantic primes, if any. */
+export declare function primesVersion(id: string): string | undefined;
+export interface LanguageVersion {
+  version: string;
+  label: string;
+  default: boolean;
+}
+export declare const languageVersions: Record<
+  string,
+  {
+    default: string;
+    versions: Record<
+      string,
+      { label: string; syntax?: Record<string, unknown> }
+    >;
+  }
+>;
+/** "python@2" -> { id: "python", version: "2" }. */
+export declare function splitVersion(identifier: string): {
+  id: string;
+  version?: string;
+};
+/** Versions of a programming language, the default first. */
+export declare function versionsOf(id: string): LanguageVersion[];
+/** Phrases of one natural language -> phrases of another. */
+export declare function commentDictionary(
+  from: string,
+  to: string
+): Map<string, string>;
+/** The natural language most words of the comments belong to. */
+export declare function detectCommentLanguage(texts: string[]): string;
+/** Translate a comment text word by word with the comment dictionary. */
+export declare const translateCommentText: CommentTranslator;
+/** Translate the comments of a source text in place. */
+export declare function translateComments(
+  source: string,
+  language: string,
+  options: { from?: string; to: string; translateComment?: CommentTranslator }
+): string;
+/** Translate the comments of a meta program. */
+export declare function translateProgramComments<T>(
+  program: T,
+  options: { from?: string; to: string; translateComment?: CommentTranslator }
+): T;
+import type { CommentTranslator } from './translator.js';
 import type { Rule } from './translator.js';
 export declare const understandingRules: Rule[];
 export declare const meaningRules: Rule[];

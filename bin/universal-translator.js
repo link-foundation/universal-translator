@@ -43,6 +43,9 @@ function usage() {
     '  translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment]  Translate through the meta language',
     '            --common-library prints through common-library/ calls',
     '            --fragment translates statements or functions on their own',
+    '            --comment-language <natural> translates the comments too (only them when <from> is <to>)',
+    '            --comment-from <natural> names the language of the comments (detected otherwise)',
+    '            <to> may name a version: python@2',
     '  translate-program <from|cst> <to> [file|-]  Translate a checked JavaScript or Rust program',
     '  meta <language> [file|-]  Print the typed meta program as JSON',
     '  encode-source <language> [file|-]  Write a Links Notation source document',
@@ -92,6 +95,13 @@ function readSource(file) {
   }).decode(input);
 }
 
+// Options with a value, and the translation option each one sets.
+const valueOptions = {
+  '--mode': 'mode',
+  '--comment-language': 'commentLanguage',
+  '--comment-from': 'commentFrom',
+};
+
 function translationArguments(args) {
   const options = {};
   let file;
@@ -103,8 +113,8 @@ function translationArguments(args) {
       options.commonLibrary = true;
     } else if (argument === '--fragment') {
       options.fragment = true;
-    } else if (argument === '--mode') {
-      const key = argument.slice(2);
+    } else if (valueOptions[argument]) {
+      const key = valueOptions[argument];
       const value = args[++index];
       if (!value || value.startsWith('-') || options[key] !== undefined) {
         throw new Error(`Expected a single value for ${argument}`);
@@ -140,6 +150,17 @@ function checkWords(text, language) {
   return `The text keeps the rules of ${language}\n`;
 }
 
+// --fragment translates a single statement, function definitions or a
+// whole program into the same kind of fragment; --trace is the translator's.
+function translateText(translator, source, from, to, options) {
+  const { fragment, ...settings } = options;
+  delete settings.trace;
+  const translation = fragment
+    ? translator.translateFragment
+    : translator.translate;
+  return translation(source, from, to, settings);
+}
+
 function runTranslation(command, args, read, write, stderr) {
   const [from, to, ...trailing] = args;
   const { file, options } =
@@ -158,17 +179,7 @@ function runTranslation(command, args, read, write, stderr) {
   } else if (command === 'meta' && from && args.length <= 2) {
     write(`${JSON.stringify(translator.toMeta(read(to), from), null, 2)}\n`);
   } else if (command === 'translate' && from && to) {
-    // --fragment translates a single statement, function definitions or a
-    // whole program into the same kind of fragment.
-    const translation = options.fragment
-      ? translator.translateFragment
-      : translator.translate;
-    write(
-      translation(read(file), from, to, {
-        mode: options.mode,
-        commonLibrary: options.commonLibrary,
-      })
-    );
+    write(translateText(translator, read(file), from, to, options));
   } else {
     throw new Error(usage());
   }

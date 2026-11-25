@@ -29,6 +29,10 @@ import {
 } from './natural/catalog.js';
 import { readNatural } from './natural/reader.js';
 import { writeNatural } from './natural/writer.js';
+import {
+  translateComments,
+  translateProgramComments,
+} from './translation/comment-language.js';
 import { createFragmentTranslator } from './translation/fragments.js';
 
 const readMachine = (source, from) => machineReaders[from](source);
@@ -82,11 +86,12 @@ export function createGrammarTranslator({
   // Run the custom layers and the context rules for a target. A natural
   // target receives the transformed program, since it has no syntax to
   // adapt to.
-  function adapt(
-    meta,
-    to,
-    { from = to, mode = 'context-dependent', commonLibrary = false } = {}
-  ) {
+  function adapt(meta, to, options = {}) {
+    const {
+      from = to,
+      mode = 'context-dependent',
+      commonLibrary = false,
+    } = options;
     if (!modes.includes(mode)) {
       throw new Error(`Unsupported mode "${mode}"`);
     }
@@ -118,11 +123,44 @@ export function createGrammarTranslator({
     );
     trace('transformed', transformed);
     if (natural) {
-      return transformed;
+      return inCommentLanguage(transformed, options);
     }
     const adapted = applyRules(transformed, context, settings);
     trace('adapted', adapted);
-    return adapted;
+    return inCommentLanguage(adapted, options);
+  }
+
+  // The comments can be in a natural language of their own.
+  function inCommentLanguage(
+    program,
+    { commentLanguage, commentFrom, translateComment }
+  ) {
+    return commentLanguage
+      ? translateProgramComments(program, {
+          from: commentFrom,
+          to: commentLanguage,
+          translateComment,
+        })
+      : program;
+  }
+
+  function translate(source, from, to, options = {}) {
+    const { commentLanguage, commentFrom, translateComment } = options;
+    // Same code, other comment language: change only the comments, in place,
+    // so every character of the code stays.
+    if (
+      commentLanguage &&
+      from === to &&
+      !isNaturalLanguage(from) &&
+      !languageSyntax(from).machine
+    ) {
+      return translateComments(source, from, {
+        from: commentFrom,
+        to: commentLanguage,
+        translateComment,
+      });
+    }
+    return fromMeta(toMeta(source, from), to, { ...options, from });
   }
 
   // Write an adapted program in a language, a machine target or words.
@@ -158,8 +196,7 @@ export function createGrammarTranslator({
       }),
     toMeta,
     fromMeta,
-    translate: (source, from, to, options = {}) =>
-      fromMeta(toMeta(source, from), to, { ...options, from }),
+    translate,
     parseFragment: fragments.parseFragment,
     translateFragment: fragments.translateFragment,
   };

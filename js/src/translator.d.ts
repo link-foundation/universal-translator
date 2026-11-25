@@ -5,7 +5,19 @@ export interface TranslationOptions {
   /** Print through the operations of `common-library/` instead of the
    * target's own output statements. */
   commonLibrary?: boolean;
+  /** Natural language to translate the comments to. When `from` and `to`
+   * are the same programming language only the comments change, in place. */
+  commentLanguage?: string;
+  /** Natural language of the comments (detected when not given). */
+  commentFrom?: string;
+  /** Translator for one comment text; a dictionary is the default. */
+  translateComment?: CommentTranslator;
 }
+
+export type CommentTranslator = (
+  text: string,
+  languages: { from: string; to: string }
+) => string;
 
 export type Rule = (tree: unknown, context: Record<string, unknown>) => unknown;
 
@@ -33,7 +45,12 @@ export interface Fragment {
 }
 
 export interface GrammarTranslator {
-  languages(): { id: string; label: string }[];
+  /** Programming languages; `versions` lists the versions a target may name (python@2). */
+  languages(): {
+    id: string;
+    label: string;
+    versions?: { version: string; label: string; default: boolean }[];
+  }[];
   /** Controlled natural languages and profiles (base is the language a profile extends). */
   naturalLanguages(): { id: string; label: string; base?: string }[];
   toMeta(source: string, from: string): unknown;

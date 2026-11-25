@@ -50,6 +50,27 @@ describe('translation server', () => {
     });
   });
 
+  it('translates only the comments to a comment language', async () => {
+    await withServer(async (base) => {
+      const response = await post(base, {
+        source: '// number\nlet x = 1;\n',
+        from: 'javascript',
+        to: 'javascript',
+        commentLanguage: 'russian',
+      });
+      expect((await response.json()).output).toBe('// число\nlet x = 1;\n');
+      const wrong = await post(base, {
+        source: '',
+        from: 'javascript',
+        to: 'python',
+        commentLanguage: 1,
+      });
+      expect((await wrong.json()).error).toBe(
+        '"commentLanguage" must be a string'
+      );
+    });
+  });
+
   it('rejects invalid requests with a message', async () => {
     await withServer(async (base) => {
       const broken = await post(base, '{');

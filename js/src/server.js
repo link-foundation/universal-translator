@@ -47,12 +47,22 @@ function checkRequest(body) {
   if (body.mode !== undefined && !MODES.includes(body.mode)) {
     throw new Error(`"mode" must be one of ${MODES.join(', ')}`);
   }
+  for (const key of ['commentLanguage', 'commentFrom']) {
+    if (body[key] !== undefined && typeof body[key] !== 'string') {
+      throw new Error(`"${key}" must be a string`);
+    }
+  }
   return {
     source: body.source,
     from: body.from,
     to: body.to,
     fragment: body.fragment === true,
-    options: { mode: body.mode, commonLibrary: body.commonLibrary === true },
+    options: {
+      mode: body.mode,
+      commonLibrary: body.commonLibrary === true,
+      commentLanguage: body.commentLanguage,
+      commentFrom: body.commentFrom,
+    },
   };
 }
 
@@ -66,8 +76,8 @@ function runTranslation(translator, { source, from, to, fragment, options }) {
 /**
  * Create an HTTP server with two routes:
  * GET /languages lists the programming and natural languages;
- * POST /translate takes {source, from, to, fragment?, mode?, commonLibrary?}
- * and answers {output} or {error}.
+ * POST /translate takes {source, from, to, fragment?, mode?, commonLibrary?,
+ * commentLanguage?, commentFrom?} and answers {output} or {error}.
  */
 export function createTranslationServer({
   translator = createGrammarTranslator(),
