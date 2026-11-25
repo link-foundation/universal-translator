@@ -5,6 +5,7 @@
 //! calls back as `base_...`, behaves as in every other language.
 
 mod ada;
+mod bash;
 mod fortran;
 mod matlab;
 mod pascal;
@@ -162,6 +163,7 @@ impl ParserDialect for Plain {}
 pub(crate) fn emitter_dialect(language: &str) -> &'static dyn EmitterDialect {
     match language {
         "ada" => &ada::Ada,
+        "bash" => &bash::Bash,
         "fortran" => &fortran::Fortran,
         "matlab" => &matlab::Matlab,
         "pascal" => &pascal::Pascal,
@@ -175,6 +177,7 @@ pub(crate) fn emitter_dialect(language: &str) -> &'static dyn EmitterDialect {
 pub(crate) fn parser_dialect(language: &str) -> &'static dyn ParserDialect {
     match language {
         "ada" => &ada::Ada,
+        "bash" => &bash::Bash,
         "fortran" => &fortran::Fortran,
         "matlab" => &matlab::Matlab,
         "pascal" => &pascal::Pascal,
