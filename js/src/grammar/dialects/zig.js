@@ -19,6 +19,8 @@ const writerSetup = [
 const writerNames = new Set(['out', 'buffer', 'writer']);
 const placeholders = { integer: '{d}', text: '{s}', boolean: '{}' };
 const builtins = { divTrunc: 'divide', rem: 'remainder' };
+// Arrays of n values live as long as the function, in pages of memory.
+const allocator = 'std.heap.page_allocator';
 
 // The parts of a print format: {d}, {s} and {} take the next value, and
 // {{ and }} are braces.
@@ -215,7 +217,48 @@ const parser = (Base) =>
       if (this.is('out') && this.is('.', 1) && this.is('print', 2)) {
         return this.printStatement();
       }
+      if (this.is('page_allocator', 7) && this.is('alloc', 9)) {
+        return this.allocation();
+      }
       return super.statement();
+    }
+
+    // const a = std.heap.page_allocator.alloc(i64, @intCast(n)) catch
+    // unreachable; and the lines after it that free the array and fill it
+    // with @memset(a, v): the array of n values v.
+    allocation() {
+      this.next();
+      const variable = this.expectName();
+      this.position += 9;
+      this.expectName();
+      this.expect(',');
+      const length = this.expression();
+      for (const word of [')', 'catch', 'unreachable']) {
+        this.expect(word);
+      }
+      this.endStatement();
+      let fill = number(0);
+      const skipLines = () => {
+        while (this.peek().type === 'newline') {
+          this.next();
+        }
+      };
+      skipLines();
+      if (this.is('defer') && this.is('std', 1)) {
+        this.restOfLine();
+        skipLines();
+      }
+      if (this.is('@') && this.is('memset', 1) && this.is(variable, 3)) {
+        this.position += 5;
+        fill = this.expression();
+        this.expect(')');
+        this.endStatement();
+      }
+      return node('Declaration', {
+        name: variable,
+        type: 'array',
+        value: node('NewArray', { length, fill }),
+      });
     }
 
     // The values of `.{ a, b }`.
@@ -272,8 +315,27 @@ const parser = (Base) =>
       return node('While', { condition, update, body: this.block() });
     }
 
-    // @divTrunc(a, b) and @rem(a, b).
+    // @divTrunc(a, b) and @rem(a, b). @intCast(x) and @as(i64, x) only
+    // change the integer type, and .{ a, b } is an array literal.
     primary() {
+      if (this.is('@') && this.is('intCast', 1) && this.is('(', 2)) {
+        this.position += 3;
+        const value = this.expression();
+        this.expect(')');
+        return value;
+      }
+      if (this.is('@') && this.is('as', 1) && this.is('(', 2)) {
+        this.position += 3;
+        this.expectName();
+        this.expect(',');
+        const value = this.expression();
+        this.expect(')');
+        return value;
+      }
+      if (this.is('.') && this.is('{', 1)) {
+        this.position += 2;
+        return this.literal('}');
+      }
       const operator = builtins[this.peek(1).value];
       if (!this.is('@') || !operator || !this.is('(', 2)) {
         return super.primary();
@@ -348,6 +410,24 @@ const statementEmitter = (Base) =>
       this.scopes.at(-1).add(name);
       const keyword = mutable ? 'var' : 'const';
       return `${keyword} ${name}: ${this.type(type ?? 'integer')} = ${initial};`;
+    }
+
+    // An array of values is a Zig array of their count; an array of n
+    // values is allocated, freed when the function ends and filled.
+    arrayDeclaration(statement) {
+      const { name, value } = statement;
+      this.scopes.at(-1).add(name);
+      if (value.kind === 'NewArray') {
+        const length = this.expression(value.length);
+        this.line(
+          `const ${name} = ${allocator}.alloc(i64, @intCast(${length})) catch unreachable;`
+        );
+        this.line(`defer ${allocator}.free(${name});`);
+        return `@memset(${name}, ${this.expression(value.fill)});`;
+      }
+      const changes = statement.mutable || statement.elementsAssigned;
+      const count = value.elements.length;
+      return `${changes ? 'var' : 'const'} ${name}: [${count}]i64 = ${this.expression(value)};`;
     }
 
     // Signed integers have no %= operator.

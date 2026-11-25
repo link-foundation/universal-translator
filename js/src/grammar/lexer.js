@@ -229,7 +229,10 @@ class Lexer {
     const marker = this.syntax.lineComment;
     if (
       !this.source.startsWith(marker, this.index) ||
-      (this.syntax.id === 'lua' && this.source.startsWith('--[[', this.index))
+      (this.syntax.id === 'lua' &&
+        this.source.startsWith('--[[', this.index)) ||
+      // Bash: ${#a[@]} is the length of a, not a comment.
+      (this.syntax.id === 'bash' && this.source[this.index - 1] === '{')
     ) {
       return false;
     }

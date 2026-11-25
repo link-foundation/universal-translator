@@ -35,6 +35,10 @@ const statements = (Base) =>
       if (this.accept('return')) {
         return node('Return', {});
       }
+      const store = this.isElementAssignment();
+      if (store) {
+        return this.elementAssignment(store);
+      }
       const name = this.expectName();
       this.expect('=');
       const value = this.expression();
@@ -237,6 +241,8 @@ const declaredTypes = {
   integer: 'integer(8)',
   boolean: 'logical',
   text: 'character(len=:), allocatable',
+  // An array is allocated by its first assignment.
+  array: 'integer(8), allocatable, dimension(:)',
 };
 
 // Statements: if, do, print, call and the result variable of functions.

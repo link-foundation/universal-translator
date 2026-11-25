@@ -66,6 +66,10 @@ const statements = (Base) =>
       if (this.is('fprintf') || this.is('disp')) {
         return this.output();
       }
+      const store = this.isElementAssignment();
+      if (store) {
+        return this.elementAssignment(store);
+      }
       if (this.peek().type === 'name' && this.is('=', 1)) {
         const name = this.next().value;
         this.next();

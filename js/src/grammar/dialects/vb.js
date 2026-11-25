@@ -3,6 +3,7 @@
 
 import { add, block, node, number } from '../meta.js';
 import { defaultValues, keywordParser } from './shared.js';
+import { offset } from '../arrays.js';
 
 // Words before a procedure that do not change what it means.
 const modifiers = ['private', 'public', 'shared', 'friend'];
@@ -33,6 +34,10 @@ const statements = (Base) =>
             ? undefined
             : this.expression();
         return node('Return', { value });
+      }
+      const store = this.isElementAssignment();
+      if (store) {
+        return this.elementAssignment(store);
       }
       if (this.peek().type === 'name') {
         const assignment = this.assignment();
@@ -70,11 +75,30 @@ const statements = (Base) =>
     }
 
     // Dim name As Type = value: the type is kept when the value is missing.
+    // Dim name(last) As Long is an array of zeros up to the index last,
+    // and Dim name As Long() = {...} an array of the values.
     dim() {
       const name = this.expectName();
+      if (this.accept('(')) {
+        const last = this.expression();
+        this.expect(')');
+        this.expect('as');
+        this.expectName();
+        const length = offset(last, 1);
+        return node('Declaration', {
+          name,
+          type: 'array',
+          value: node('NewArray', { length, fill: number(0) }),
+          mutable: true,
+        });
+      }
       let type;
       if (this.accept('as')) {
         type = this.typeOf(this.expectName());
+        if (this.accept('(')) {
+          this.expect(')');
+          type = 'array';
+        }
       }
       const value = this.accept('=')
         ? this.expression()

@@ -163,6 +163,14 @@ const words = (Base) =>
         return call;
       }
       if (this.accept('{')) {
+        // ${#a[@]}: the length of the array a.
+        if (this.accept('#')) {
+          const array = node('Name', { name: this.expectName() });
+          for (const symbol of ['[', '@', ']', '}']) {
+            this.expect(symbol);
+          }
+          return node('Length', { array });
+        }
         const name = node('Name', { name: this.expectName() });
         this.expect('}');
         return name;
@@ -178,6 +186,14 @@ const words = (Base) =>
 
     // One argument; a minus sign before a number belongs to it.
     word() {
+      // (a b c): an array of the words.
+      if (this.accept('(')) {
+        const elements = [];
+        while (!this.accept(')')) {
+          elements.push(this.word());
+        }
+        return node('ArrayLiteral', { elements });
+      }
       if (this.is('-') && this.peek(1).type === 'number') {
         this.next();
         return number(-Number(this.next().value));
@@ -268,6 +284,15 @@ const statements = (Base) =>
         const name = this.expectName();
         this.expect('=');
         return node('Declaration', { name, value: this.word(), mutable: true });
+      }
+      // a[index]=value
+      if (this.isElementAssignment()) {
+        const name = this.next().value;
+        this.next();
+        const index = this.expression();
+        this.expect(']');
+        this.expect('=');
+        return node('IndexAssignment', { name, index, value: this.word() });
       }
       if (this.peek().type === 'name' && this.is('=', 1)) {
         const name = this.next().value;
@@ -518,6 +543,10 @@ const wordEmitter = (Base) =>
           return quoted(this.expression(value));
         case 'Interpolation':
           return this.interpolation(value.parts);
+        case 'ArrayLiteral':
+          return `(${value.elements.map((element) => this.word(element)).join(' ')})`;
+        case 'Length':
+          return quoted(this.expression(value));
         default: {
           // $(((a ... reads as $(( (a ..., so the inner bracket stands apart.
           const inner = this.expression(value);
@@ -610,6 +639,7 @@ const statementEmitter = (Base) =>
         case 'Print':
         case 'Declaration':
         case 'Assignment':
+        case 'IndexAssignment':
           return super.statement({
             ...statement,
             value: this.lift(statement.value),
@@ -659,6 +689,12 @@ const statementEmitter = (Base) =>
 
     assignment({ name, value }) {
       return `${name}=${this.word(value, true)}`;
+    }
+
+    // The index is one word: a[i+1]=value.
+    indexAssignment({ name, index, value }) {
+      const written = this.expression(index).replace(/ /g, '');
+      return `${name}[${written}]=${this.word(value, true)}`;
     }
 
     indented(body) {

@@ -2,6 +2,7 @@
 // subprograms and variables, and whose statements follow begin.
 
 import { add, block, laterCalls, node, number, text } from '../meta.js';
+import { offset } from '../arrays.js';
 import { declaredVariables, keywordParser } from './shared.js';
 
 // The output procedures of Ada.Text_IO and of an Integer_IO instance.
@@ -28,6 +29,13 @@ const statements = (Base) =>
       if (outputWords.has(this.peek().value.toLowerCase())) {
         return this.output();
       }
+      if (this.accept('declare')) {
+        return this.declareBlock();
+      }
+      const store = this.isElementAssignment();
+      if (store) {
+        return this.elementAssignment(store);
+      }
       if (this.peek().type === 'name' && this.is(':=', 1)) {
         const name = this.next().value;
         this.next();
@@ -38,6 +46,65 @@ const statements = (Base) =>
         });
       }
       return node('Evaluate', { expression: this.called(this.expression()) });
+    }
+
+    // declare Name : Integer_Array (0 .. Last) := ...; begin ... end; holds
+    // arrays and the statements after them, which the meta program lists
+    // in the same block.
+    declareBlock() {
+      const statements = [];
+      this.skipLines();
+      while (!this.accept('begin')) {
+        const variable = this.expectName();
+        this.expect(':');
+        this.expectName();
+        this.expect('(');
+        this.expression();
+        this.expect('..');
+        const last = this.expression();
+        this.expect(')');
+        this.expect(':=');
+        statements.push(
+          node('Declaration', {
+            name: variable,
+            type: 'array',
+            value: this.aggregate(offset(last, 1)),
+          })
+        );
+        this.expect(';');
+        this.skipLines();
+      }
+      statements.push(...this.statementsUntil(() => this.is('end')));
+      this.expect('end');
+      return node('Sequence', { statements });
+    }
+
+    // (others => V) is the array of n values V; (A, B) and (0 => A) list
+    // the values.
+    aggregate(length) {
+      this.expect('(');
+      if (this.accept('others')) {
+        this.expect('=>');
+        const fill = this.expression();
+        this.expect(')');
+        return length.kind === 'Number' && length.value === 0
+          ? node('ArrayLiteral', { elements: [] })
+          : node('NewArray', { length, fill });
+      }
+      if (this.peek().type === 'number' && this.is('=>', 1)) {
+        this.position += 2;
+      }
+      return this.literal(')');
+    }
+
+    // Numbers'Length.
+    primary() {
+      const value = super.primary();
+      if (value.kind === 'Name' && this.is("'") && this.is('length', 1)) {
+        this.position += 2;
+        return node('Length', { array: value });
+      }
+      return value;
     }
 
     // Put (A, 0); Put (": "); Put_Line (B); on one line print one line.
@@ -125,12 +192,16 @@ const parser = (Base) =>
   class AdaParser extends statements(keywordParser(Base)) {
     // `null;` stands for a block without statements.
     statementsUntil(done) {
-      return super.statementsUntil(() => {
-        while (this.accept('null')) {
-          this.skipLines();
-        }
-        return done();
-      });
+      return super
+        .statementsUntil(() => {
+          while (this.accept('null')) {
+            this.skipLines();
+          }
+          return done();
+        })
+        .flatMap((statement) =>
+          statement.kind === 'Sequence' ? statement.statements : [statement]
+        );
     }
 
     // "and then" and "or else" are single operators.
@@ -280,6 +351,11 @@ const outputEmitter = (Base) =>
     }
   };
 
+const isArrayDeclaration = (statement) =>
+  statement.kind === 'Declaration' &&
+  (statement.type === 'array' ||
+    ['ArrayLiteral', 'NewArray'].includes(statement.value?.kind));
+
 // Statements and the declarative parts of subprograms.
 const statementEmitter = (Base) =>
   class AdaStatementEmitter extends outputEmitter(Base) {
@@ -301,11 +377,55 @@ const statementEmitter = (Base) =>
         : expression.callee;
     }
 
+    // An array is declared, with its bounds, in a declare block that holds
+    // the statements after it.
     body(statements) {
       if (statements.statements.length === 0) {
         this.line('null;');
       }
-      super.body(statements);
+      const all = statements.statements;
+      const first = all.findIndex(isArrayDeclaration);
+      if (first < 0) {
+        super.body(statements);
+        return;
+      }
+      super.body({ ...statements, statements: all.slice(0, first) });
+      let last = first;
+      while (last < all.length && isArrayDeclaration(all[last])) {
+        last += 1;
+      }
+      this.line('declare');
+      this.depth += 1;
+      all.slice(first, last).forEach((statement) => {
+        this.line(this.arrayDeclaration(statement));
+      });
+      this.depth -= 1;
+      this.line('begin');
+      this.indented({ ...statements, statements: all.slice(last) });
+      this.line('end;');
+    }
+
+    // Name : Integer_Array (0 .. Last) := (others => V), or the values.
+    arrayDeclaration({ name, value }) {
+      this.uses.add('array');
+      const length =
+        value.kind === 'NewArray'
+          ? value.length
+          : number(value.elements.length);
+      const bounds = `0 .. ${this.expression(offset(length, -1))}`;
+      let values;
+      if (value.kind === 'NewArray' || value.elements.length === 0) {
+        values = `(others => ${this.expression(value.fill ?? number(0))})`;
+      } else {
+        const elements = value.elements.map((element) =>
+          this.expression(element)
+        );
+        values =
+          elements.length === 1
+            ? `(0 => ${elements[0]})`
+            : `(${elements.join(', ')})`;
+      }
+      return `${name} : Integer_Array (${bounds}) := ${values};`;
     }
 
     declaration({ name, value }) {
@@ -354,6 +474,10 @@ const statementEmitter = (Base) =>
     variables(body) {
       const variables = declaredVariables(body, { loops: false });
       for (const [variable, type] of variables) {
+        if (type === 'array') {
+          variables.delete(variable);
+          continue;
+        }
         this.line(`${variable} : ${this.type(type)};`);
       }
       return variables.size;
@@ -441,6 +565,12 @@ const emitter = (Base) =>
       if (this.uses.has('integer_io')) {
         this.line(
           '    package Long_IO is new Integer_IO (Long_Long_Integer); use Long_IO;'
+        );
+        this.line();
+      }
+      if (this.uses.has('array')) {
+        this.line(
+          '    type Integer_Array is array (Long_Long_Integer range <>) of Long_Long_Integer;'
         );
         this.line();
       }
