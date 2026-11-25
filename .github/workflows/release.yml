@@ -273,7 +273,9 @@ jobs:
         run: npm run check:duplication
 
       - name: Check for secrets
-        run: npx --yes -p secretlint@13.0.7 -p @secretlint/secretlint-rule-preset-recommend@13.0.7 secretlint "**/*"
+        # secretlint 14 ships the recommended preset; the separate preset
+        # package is deprecated, and .secretlintrc.json keeps its rule id.
+        run: npx --yes -p secretlint@14.1.0 secretlint "**/*"
 
   # Test the three JavaScript runtimes on Ubuntu.
   # IMPORTANT: Tests must validate the ACTUAL merge result, not a stale merge preview.
@@ -548,7 +550,7 @@ jobs:
           echo "ILASM=$RUNNER_TEMP/ilasm/runtimes/linux-x64/native/ilasm" >> "$GITHUB_ENV"
 
       - name: Cache Dart, Julia, Scala, Groovy and Zig archives
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ runner.temp }}/tools-archives
           key: native-tools-dart3.6.0-julia1.11.2-scala3.3.4-groovy4.0.24-zig0.17.1
@@ -615,7 +617,7 @@ jobs:
       # later step fails.
       - name: Restore Lean and Rocq
         id: provers-cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: |
             ~/.elan
@@ -652,7 +654,7 @@ jobs:
 
       - name: Save Lean and Rocq
         if: steps.provers-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: |
             ~/.elan
