@@ -6,14 +6,12 @@ import { parseLinks } from '../src/meta/links.js';
 // The same text as the Rust test "shows_the_meta_program_as_links_notation".
 const expected = [
   'program (comments hi)',
-  '  main: block',
-  '    statements',
-  '      declaration (mutable false) (name x) (type text)',
-  "        value: text (type text) (value 'a b')",
-  '      print (newline true)',
-  '        value: binary (operator multiply) (type integer)',
-  '          left: name (name x) (type text)',
-  '          right: number (type integer) (value 3)',
+  '  declaration x (mutable false) (type text)',
+  "    text 'a b' (type text)",
+  '  print (newline true)',
+  '    binary multiply (type integer)',
+  '      name x (type text)',
+  '      number 3 (type integer)',
   '',
 ].join('\n');
 
@@ -50,6 +48,48 @@ describe('meta view', () => {
         callee: 'f',
         arguments: [{ kind: 'Number', value: 1 }],
       })
-    ).toBe('call (callee f)\n  arguments\n    number (value 1)\n');
+    ).toBe('call f\n  number 1\n');
+  });
+
+  it('nests parameters and statements, and names a field after a block', () => {
+    const source = [
+      'def twice(n):',
+      '    if n > 1:',
+      '        return n * 2',
+      '    else:',
+      '        return 0',
+      '',
+      'print(twice(3))',
+      '',
+    ].join('\n');
+    expect(formatMeta(translator.toMeta(source, 'python'))).toBe(
+      [
+        'program',
+        '  function twice (blank-after true) (return-type integer)',
+        '    parameter n (type integer)',
+        '    if',
+        '      binary greater (type boolean)',
+        '        name n (type integer)',
+        '        number 1 (type integer)',
+        '      return',
+        '        binary multiply (type integer)',
+        '          name n (type integer)',
+        '          number 2 (type integer)',
+        '      otherwise',
+        '        return',
+        '          number 0 (type integer)',
+        '  print (newline true)',
+        '    call twice (type integer)',
+        '      number 3 (type integer)',
+        '',
+      ].join('\n')
+    );
+  });
+
+  it('never writes a block marker or a field label', () => {
+    const text = formatMeta(
+      translator.toMeta('for i in range(3):\n    print(i)\n', 'python')
+    );
+    expect(/\bblock\b|\w:/u.test(text)).toBe(false);
   });
 });

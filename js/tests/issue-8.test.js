@@ -115,7 +115,13 @@ describe('partial translation', () => {
   });
 
   it('reports coverage on the command line', () => {
-    const report = JSON.parse(cli(['coverage', 'python'], source).output);
+    // Indented Links Notation by default (issue 12), JSON with --json.
+    const lines = cli(['coverage', 'python'], source).output.split('\n');
+    expect(lines).toContain('coverage: 0.75');
+    expect(lines).toContain('parts:');
+    const report = JSON.parse(
+      cli(['coverage', 'python', '--json'], source).output
+    );
     expect(report.coverage).toBe(0.75);
   });
 });
@@ -146,9 +152,12 @@ describe('language detection', () => {
     const run = cli(['translate', 'auto', 'python'], cases[0][0]);
     expect(run.output).toContain('print("hi")');
     expect(run.errors).toContain('Detected language: javascript');
-    expect(JSON.parse(cli(['detect'], cases[1][0]).output)[0].id).toBe(
-      'python'
+    expect(cli(['detect'], cases[1][0]).output).toMatch(
+      /^\(id python\) \(natural false\) \(reads true\) /
     );
+    expect(
+      JSON.parse(cli(['detect', '--json'], cases[1][0]).output)[0].id
+    ).toBe('python');
   });
 });
 

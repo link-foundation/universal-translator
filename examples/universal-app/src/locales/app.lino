@@ -7,6 +7,7 @@ en
   tabs
     translate "Translate"
     standards "Standards"
+    rules "Rules"
   examples
     label "Random example"
     Program "Program"
@@ -30,6 +31,7 @@ en
     comments "Comment language"
     commentsSame "Same as the code"
     allOrNothing "All or nothing (no partial translation)"
+    wrap "Wrap long lines"
   text
     source "Source"
     translation "Translation"
@@ -70,8 +72,13 @@ en
     newName "new name"
     regex "Regex"
     remove "Remove rule"
-    json "Rules as JSON (import and export)"
-    applyJson "Apply JSON"
+    text "Rules as text (Links Notation, import and export)"
+    textHint "Edit, paste or copy the rules; Apply replaces the rules above with them."
+    applyText "Apply"
+    resetText "Undo edits"
+    note "Translation rules in use: {count}."
+    noteError "The translation rules have an error: {error}"
+    open "Edit the rules"
     add "Add rule"
   about
     title "How it works"
@@ -114,6 +121,8 @@ en
     contrast "Contrast"
     motion "Motion"
     textSize "Text size"
+    editor "Text editor"
+    wrap "Word wrap"
     locale "Interface language"
   panel
     settings "Settings"
@@ -138,6 +147,8 @@ en
     full "Full"
     reduced "Reduced"
     auto "Browser language"
+    plain "Plain"
+    monaco "Monaco (code editor)"
 ru
   app
     title "Универсальный переводчик"
@@ -145,6 +156,7 @@ ru
   tabs
     translate "Перевод"
     standards "Стандарты"
+    rules "Правила"
   examples
     label "Случайный пример"
     Program "Программа"
@@ -168,6 +180,7 @@ ru
     comments "Язык комментариев"
     commentsSame "Как в коде"
     allOrNothing "Всё или ничего (без частичного перевода)"
+    wrap "Переносить длинные строки"
   text
     source "Исходный текст"
     translation "Перевод"
@@ -208,8 +221,13 @@ ru
     newName "новое имя"
     regex "Регулярное выражение"
     remove "Удалить правило"
-    json "Правила в JSON (импорт и экспорт)"
-    applyJson "Применить JSON"
+    text "Правила текстом (Links Notation, импорт и экспорт)"
+    textHint "Измените, вставьте или скопируйте правила; «Применить» заменяет ими правила выше."
+    applyText "Применить"
+    resetText "Отменить правки"
+    note "Действует правил перевода: {count}."
+    noteError "В правилах перевода ошибка: {error}"
+    open "Изменить правила"
     add "Добавить правило"
   about
     title "Как это работает"
@@ -252,6 +270,8 @@ ru
     contrast "Контраст"
     motion "Анимация"
     textSize "Размер текста"
+    editor "Редактор текста"
+    wrap "Перенос строк"
     locale "Язык интерфейса"
   panel
     settings "Настройки"
@@ -276,6 +296,8 @@ ru
     full "Полная"
     reduced "Меньше"
     auto "Язык браузера"
+    plain "Простой"
+    monaco "Monaco (редактор кода)"
 de
   app
     title "Universeller Übersetzer"
@@ -283,6 +305,7 @@ de
   tabs
     translate "Übersetzen"
     standards "Standards"
+    rules "Regeln"
   examples
     label "Zufälliges Beispiel"
     Program "Programm"
@@ -306,6 +329,7 @@ de
     comments "Sprache der Kommentare"
     commentsSame "Wie im Code"
     allOrNothing "Alles oder nichts (keine Teilübersetzung)"
+    wrap "Lange Zeilen umbrechen"
   text
     source "Quelle"
     translation "Übersetzung"
@@ -346,8 +370,13 @@ de
     newName "neuer Name"
     regex "Regulärer Ausdruck"
     remove "Regel entfernen"
-    json "Regeln als JSON (Import und Export)"
-    applyJson "JSON anwenden"
+    text "Regeln als Text (Links Notation, Import und Export)"
+    textHint "Regeln bearbeiten, einfügen oder kopieren; „Anwenden“ ersetzt die Regeln oben durch sie."
+    applyText "Anwenden"
+    resetText "Änderungen verwerfen"
+    note "Aktive Übersetzungsregeln: {count}."
+    noteError "Die Übersetzungsregeln enthalten einen Fehler: {error}"
+    open "Regeln bearbeiten"
     add "Regel hinzufügen"
   about
     title "So funktioniert es"
@@ -390,6 +419,8 @@ de
     contrast "Kontrast"
     motion "Bewegung"
     textSize "Textgröße"
+    editor "Texteditor"
+    wrap "Zeilenumbruch"
     locale "Sprache der Oberfläche"
   panel
     settings "Einstellungen"
@@ -414,6 +445,8 @@ de
     full "Voll"
     reduced "Reduziert"
     auto "Browsersprache"
+    plain "Einfach"
+    monaco "Monaco (Code-Editor)"
 fr
   app
     title "Traducteur universel"
@@ -421,6 +454,7 @@ fr
   tabs
     translate "Traduire"
     standards "Standards"
+    rules "Règles"
   examples
     label "Exemple au hasard"
     Program "Programme"
@@ -444,6 +478,7 @@ fr
     comments "Langue des commentaires"
     commentsSame "Comme le code"
     allOrNothing "Tout ou rien (pas de traduction partielle)"
+    wrap "Renvoyer les longues lignes à la ligne"
   text
     source "Source"
     translation "Traduction"
@@ -484,8 +519,13 @@ fr
     newName "nouveau nom"
     regex "Expression régulière"
     remove "Supprimer la règle"
-    json "Règles en JSON (import et export)"
-    applyJson "Appliquer le JSON"
+    text "Règles en texte (Links Notation, import et export)"
+    textHint "Modifiez, collez ou copiez les règles ; « Appliquer » remplace les règles ci-dessus par celles-ci."
+    applyText "Appliquer"
+    resetText "Annuler les modifications"
+    note "Règles de traduction actives : {count}."
+    noteError "Les règles de traduction contiennent une erreur : {error}"
+    open "Modifier les règles"
     add "Ajouter une règle"
   about
     title "Comment ça marche"
@@ -528,6 +568,8 @@ fr
     contrast "Contraste"
     motion "Animations"
     textSize "Taille du texte"
+    editor "Éditeur de texte"
+    wrap "Retour à la ligne"
     locale "Langue de l’interface"
   panel
     settings "Paramètres"
@@ -552,6 +594,8 @@ fr
     full "Complètes"
     reduced "Réduites"
     auto "Langue du navigateur"
+    plain "Simple"
+    monaco "Monaco (éditeur de code)"
 es
   app
     title "Traductor universal"
@@ -559,6 +603,7 @@ es
   tabs
     translate "Traducir"
     standards "Estándares"
+    rules "Reglas"
   examples
     label "Ejemplo aleatorio"
     Program "Programa"
@@ -582,6 +627,7 @@ es
     comments "Idioma de los comentarios"
     commentsSame "Como el código"
     allOrNothing "Todo o nada (sin traducción parcial)"
+    wrap "Ajustar las líneas largas"
   text
     source "Origen"
     translation "Traducción"
@@ -622,8 +668,13 @@ es
     newName "nuevo nombre"
     regex "Expresión regular"
     remove "Eliminar regla"
-    json "Reglas como JSON (importar y exportar)"
-    applyJson "Aplicar JSON"
+    text "Reglas como texto (Links Notation, importar y exportar)"
+    textHint "Edite, pegue o copie las reglas; «Aplicar» reemplaza con ellas las reglas de arriba."
+    applyText "Aplicar"
+    resetText "Deshacer cambios"
+    note "Reglas de traducción activas: {count}."
+    noteError "Las reglas de traducción tienen un error: {error}"
+    open "Editar las reglas"
     add "Añadir regla"
   about
     title "Cómo funciona"
@@ -666,6 +717,8 @@ es
     contrast "Contraste"
     motion "Movimiento"
     textSize "Tamaño del texto"
+    editor "Editor de texto"
+    wrap "Ajuste de línea"
     locale "Idioma de la interfaz"
   panel
     settings "Ajustes"
@@ -690,6 +743,8 @@ es
     full "Completo"
     reduced "Reducido"
     auto "Idioma del navegador"
+    plain "Sencillo"
+    monaco "Monaco (editor de código)"
 zh
   app
     title "通用翻译器"
@@ -697,6 +752,7 @@ zh
   tabs
     translate "翻译"
     standards "标准"
+    rules "规则"
   examples
     label "随机示例"
     Program "程序"
@@ -720,6 +776,7 @@ zh
     comments "注释语言"
     commentsSame "与代码相同"
     allOrNothing "全有或全无（不做部分翻译）"
+    wrap "长行自动换行"
   text
     source "源文本"
     translation "译文"
@@ -760,8 +817,13 @@ zh
     newName "新名称"
     regex "正则表达式"
     remove "删除规则"
-    json "JSON 格式的规则（导入和导出）"
-    applyJson "应用 JSON"
+    text "文本形式的规则（Links Notation，导入和导出）"
+    textHint "编辑、粘贴或复制规则；“应用”会用它们替换上面的规则。"
+    applyText "应用"
+    resetText "撤销修改"
+    note "正在使用的翻译规则：{count} 条。"
+    noteError "翻译规则有错误：{error}"
+    open "编辑规则"
     add "添加规则"
   about
     title "工作原理"
@@ -804,6 +866,8 @@ zh
     contrast "对比度"
     motion "动画"
     textSize "文字大小"
+    editor "文本编辑器"
+    wrap "自动换行"
     locale "界面语言"
   panel
     settings "设置"
@@ -828,6 +892,8 @@ zh
     full "完整"
     reduced "减少"
     auto "浏览器语言"
+    plain "简单"
+    monaco "Monaco（代码编辑器）"
 hi
   app
     title "सार्वभौमिक अनुवादक"
@@ -835,6 +901,7 @@ hi
   tabs
     translate "अनुवाद"
     standards "मानक"
+    rules "नियम"
   examples
     label "यादृच्छिक उदाहरण"
     Program "प्रोग्राम"
@@ -858,6 +925,7 @@ hi
     comments "टिप्पणियों की भाषा"
     commentsSame "कोड जैसी"
     allOrNothing "सब या कुछ नहीं (आंशिक अनुवाद नहीं)"
+    wrap "लंबी पंक्तियाँ लपेटें"
   text
     source "स्रोत"
     translation "अनुवाद"
@@ -898,8 +966,13 @@ hi
     newName "नया नाम"
     regex "रेगुलर एक्सप्रेशन"
     remove "नियम हटाएँ"
-    json "JSON के रूप में नियम (आयात और निर्यात)"
-    applyJson "JSON लागू करें"
+    text "पाठ के रूप में नियम (Links Notation, आयात और निर्यात)"
+    textHint "नियम संपादित करें, चिपकाएँ या कॉपी करें; „लागू करें“ ऊपर के नियमों को इनसे बदल देता है।"
+    applyText "लागू करें"
+    resetText "बदलाव रद्द करें"
+    note "उपयोग में अनुवाद नियम: {count}।"
+    noteError "अनुवाद नियमों में त्रुटि है: {error}"
+    open "नियम संपादित करें"
     add "नियम जोड़ें"
   about
     title "यह कैसे काम करता है"
@@ -942,6 +1015,8 @@ hi
     contrast "कंट्रास्ट"
     motion "एनीमेशन"
     textSize "पाठ का आकार"
+    editor "पाठ संपादक"
+    wrap "पंक्ति लपेटना"
     locale "इंटरफ़ेस की भाषा"
   panel
     settings "सेटिंग्स"
@@ -966,3 +1041,5 @@ hi
     full "पूरा"
     reduced "कम"
     auto "ब्राउज़र की भाषा"
+    plain "सरल"
+    monaco "Monaco (कोड संपादक)"

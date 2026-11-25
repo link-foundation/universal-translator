@@ -1,15 +1,23 @@
-// A meta program as indented Links Notation, for people to read: one line
-// per node, its kind first, its plain fields as (name value) links and its
-// child nodes indented below it under their field name. Fields come in name
-// order, as in the Rust format_meta.
+// A meta program as indented Links Notation, for people to read. Every node
+// is one line: its kind, its main value as a plain word and its other plain
+// fields as (name value) links. Its child nodes are nested below it, in
+// the order they are read, with no field names:
 //
-//   program
-//     main: block
-//       statements
-//         print (newline true)
-//           value: binary (operator multiply) (type integer)
-//             left: name (name x) (type integer)
-//             right: number (type integer) (value 3)
+//   program (comments hi)
+//     declaration x (mutable false) (type text)
+//       text 'a b' (type text)
+//     print (newline true)
+//       binary multiply (type integer)
+//         name x (type text)
+//         number 3 (type integer)
+//
+// A block is not written: its statements are the children of the node that
+// holds it (the main program, a function, a loop, the "then" of an if). A
+// field that comes after a block is introduced by its name, a plain word
+// such as "otherwise", so it cannot be mistaken for one more statement.
+// Links Notation keeps "name:" for links that define a unique name, and no
+// field name is unique here: "value", "left" or "body" appear again and
+// again. The Rust format_meta writes the same text.
 
 const kebab = (text) =>
   text.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
@@ -23,57 +31,129 @@ function atom(value) {
     : text;
 }
 
+// The field written as a plain word right after the kind.
+const mainField = {
+  Assignment: 'name',
+  Binary: 'operator',
+  Blank: 'lines',
+  Boolean: 'value',
+  Call: 'callee',
+  Comment: 'text',
+  CountingLoop: 'variable',
+  Declaration: 'name',
+  Function: 'name',
+  IndexAssignment: 'name',
+  Name: 'name',
+  Number: 'value',
+  Parameter: 'name',
+  Text: 'value',
+  Unary: 'operator',
+  '': 'name',
+};
+
+// The order in which child nodes are read; other fields follow by name.
+const childOrder = [
+  'condition',
+  'array',
+  'index',
+  'left',
+  'operand',
+  'right',
+  'start',
+  'end',
+  'step',
+  'length',
+  'fill',
+  'expression',
+  'value',
+  'arguments',
+  'elements',
+  'parts',
+  'parameters',
+  'functions',
+  'statements',
+  'then',
+  'body',
+  'main',
+  'otherwise',
+];
+
 const isNode = (value) =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
 
 const isScalar = (value) =>
-  value === null || ['string', 'number', 'boolean'].includes(typeof value);
-
-// Fields in name order, the kind left out.
-const fieldsOf = (node) =>
-  Object.entries(node)
-    .filter(([field]) => field !== 'kind')
-    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+  ['string', 'number', 'boolean'].includes(typeof value);
 
 const isEmpty = (value) =>
   value === undefined ||
+  value === null ||
   (Array.isArray(value) && value.length === 0) ||
   (isNode(value) && Object.keys(value).length === 0);
 
-function head(node) {
-  const parts = node.kind ? [kebab(node.kind)] : [];
+const isBlock = (value) => isNode(value) && value.kind === 'Block';
+
+const byName = ([a], [b]) => (a < b ? -1 : a > b ? 1 : 0);
+
+const rank = (field) =>
+  childOrder.includes(field) ? childOrder.indexOf(field) : childOrder.length;
+
+const fieldsOf = (node) =>
+  Object.entries(node)
+    .filter(([field, value]) => field !== 'kind' && !isEmpty(value))
+    .sort(byName);
+
+// Fields holding nodes, in reading order.
+const childFields = (node) =>
+  fieldsOf(node)
+    .filter(([, value]) => !isScalar(value) && !value.every?.(isScalar))
+    .sort((a, b) => rank(a[0]) - rank(b[0]) || byName(a, b));
+
+// A node without a kind (a parameter) is named after its list: "parameter".
+const kindOf = (node, list) =>
+  node.kind ? kebab(node.kind) : list ? kebab(list).replace(/s$/u, '') : '';
+
+function head(node, list) {
+  const main = mainField[node.kind ?? ''];
+  const parts = [kindOf(node, list)];
+  if (main && isScalar(node[main])) {
+    parts.push(atom(node[main]));
+  }
   for (const [field, value] of fieldsOf(node)) {
-    if (isEmpty(value)) {
+    if (field === main && isScalar(value)) {
       continue;
     }
     if (isScalar(value)) {
-      parts.push(`(${field} ${atom(value)})`);
+      parts.push(`(${kebab(field)} ${atom(value)})`);
     } else if (Array.isArray(value) && value.every(isScalar)) {
-      parts.push(`(${[field, ...value.map(atom)].join(' ')})`);
+      parts.push(`(${[kebab(field), ...value.map(atom)].join(' ')})`);
     }
   }
-  return parts.join(' ');
+  return parts.filter(Boolean).join(' ');
 }
 
-function lines(node, indent, label, out) {
-  out.push(`${indent}${label ? `${label}: ` : ''}${head(node)}`.trimEnd());
+function children(value, field, indent, out) {
+  const items = isBlock(value) ? (value.statements ?? []) : [value].flat();
+  for (const item of items) {
+    if (isNode(item)) {
+      lines(item, indent, field, out);
+    } else {
+      out.push(`${indent}${atom(item)}`);
+    }
+  }
+}
+
+function lines(node, indent, list, out) {
+  out.push(`${indent}${head(node, list)}`);
   const inner = `${indent}  `;
-  for (const [field, value] of fieldsOf(node)) {
-    if (isEmpty(value)) {
-      continue;
+  let afterBlock = false;
+  for (const [field, value] of childFields(node)) {
+    if (afterBlock) {
+      out.push(`${inner}${kebab(field)}`);
+      children(value, field, `${inner}  `, out);
+    } else {
+      children(value, field, inner, out);
     }
-    if (isNode(value)) {
-      lines(value, inner, field, out);
-    } else if (Array.isArray(value) && !value.every(isScalar)) {
-      out.push(`${inner}${field}`);
-      for (const item of value) {
-        if (isNode(item)) {
-          lines(item, `${inner}  `, '', out);
-        } else {
-          out.push(`${inner}  ${atom(item)}`);
-        }
-      }
-    }
+    afterBlock ||= isBlock(value);
   }
   return out;
 }

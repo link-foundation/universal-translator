@@ -5,7 +5,10 @@
 // vocabulary saved as a standard of one's own, words defined through other
 // words), the settings panel (skin, scheme, interface language), the source
 // language detected by default, untranslatable parts listed (or failing the
-// whole text when all-or-nothing is on) and rules from the editor applied.
+// whole text when all-or-nothing is on) and rules from the Rules tab
+// applied, as rows or as Links Notation. Issue 12: panes of equal height
+// that do not move the title and the pickers, word wrap, skins that change
+// the look and the Monaco editor coloured from the meta language.
 //
 // Usage: node examples/universal-app/e2e/translate.e2e.mjs <url> [screenshot.png]
 import assert from 'node:assert/strict';
@@ -163,19 +166,114 @@ async function detectsAndTranslatesPartially() {
     });
   }
 
-  // A rule from the visual editor changes the translation.
+  // A rule from the Rules tab changes the translation, and the Translate
+  // tab says that rules are in use.
+  await page.click('#tab-rules');
   await page.click('#add-output');
   await page.fill('#rule-output-0-find', 'console.log');
   await page.fill('#rule-output-0-replace', 'print');
-  await page.waitForSelector('#target-text:has-text("print(x)")');
   if (screenshot) {
     await page.screenshot({
       path: screenshot.replace(/\.png$/u, '-rules.png'),
       fullPage: true,
     });
   }
+  await page.click('#tab-translate');
+  await page.waitForSelector('#target-text:has-text("print(x)")');
+  assert.match(await page.locator('#rules-note').textContent(), /1/);
+  await page.click('#tab-rules');
   await page.click('button[data-action="remove-rule"]');
+  await page.click('#tab-translate');
   await page.waitForSelector('#target-text:has-text("console.log(x)")');
+}
+
+// The rules as text are indented Links Notation, saved as such; a text
+// that is not rules says why and changes nothing.
+async function editsRulesAsLinksNotation() {
+  await page.click('#tab-rules');
+  await page.fill('#rules-text', 'output\n  find print\n');
+  await page.click('#apply-rules');
+  assert.match(
+    await page.locator('#rules-text-error').textContent(),
+    /source:, templates:, names:, output:/
+  );
+  await page.fill(
+    '#rules-text',
+    'output:\n  (find console.log) (replace say)\n'
+  );
+  await page.click('#apply-rules');
+  assert.equal(await page.locator('#rules-text-error').count(), 0);
+  const saved = await page.evaluate(() =>
+    globalThis.localStorage.getItem('rules')
+  );
+  assert.match(saved, /^output:\n/u, 'rules are kept as Links Notation');
+  assert.doesNotMatch(saved, /^[[{]/u, 'not JSON');
+  await page.click('#tab-translate');
+  await translation('javascript', 'python', 'console.log("Hi");\n');
+  await choose('target', 'javascript');
+  await page.waitForSelector('#target-text:has-text("say(")');
+  await page.click('#tab-rules');
+  await page.fill('#rules-text', '');
+  await page.click('#apply-rules');
+  await page.click('#tab-translate');
+  await page.waitForSelector('#target-text:has-text("console.log(")');
+}
+
+// The panes on both sides are as high as each other and grow with their
+// text; the title and the pickers stay where they are meanwhile.
+async function keepsTheLayoutStill() {
+  // Where an element is on the page (not in the window, which scrolls).
+  const box = (selector) =>
+    page.$eval(selector, (element) => {
+      const { x, y, width, height } = element.getBoundingClientRect();
+      return { x, y: y + globalThis.scrollY, width, height };
+    });
+  const title = await box('#translator-title');
+  const picker = await box('#target-language');
+  for (const text of ['x = 1\n', 'x = 1\n'.repeat(30)]) {
+    await translation('python', 'javascript', text);
+    const [source, target] = [
+      await box('#source-text'),
+      await box('#target-text'),
+    ];
+    assert.ok(
+      Math.abs(source.height - target.height) < 1,
+      `panes ${source.height} and ${target.height} differ`
+    );
+    assert.ok(source.height >= 250, 'a pane has room for a few lines');
+    assert.ok(source.height <= 900 * 0.7 + 1, 'a pane stops growing');
+    assert.deepEqual(await box('#translator-title'), title);
+    assert.equal((await box('#target-language')).y, picker.y);
+  }
+  // The first control of every row starts at the same left edge.
+  const left = (await box('#source-text')).x;
+  for (const selector of ['#source-language', '#mode', '#show-meta']) {
+    const { x } = await box(selector);
+    assert.ok(
+      Math.abs(x - left) < 1,
+      `${selector} starts at ${x}, not ${left}`
+    );
+  }
+}
+
+// Word wrap is a check beside the options and a setting.
+async function wrapsLongLines() {
+  assert.equal(await page.getAttribute('html', 'data-wrap'), 'true');
+  const long = `x = ${'1 + '.repeat(80)}1\n`;
+  await translation('python', 'javascript', long);
+  const wrapped = await page.locator('#target-text').boundingBox();
+  await page.uncheck('#word-wrap');
+  assert.equal(await page.getAttribute('html', 'data-wrap'), 'false');
+  const unwrapped = await page.locator('#target-text').boundingBox();
+  assert.ok(unwrapped.height <= wrapped.height, 'one line when not wrapped');
+  assert.equal(
+    await page.$eval(
+      '#target-text',
+      (pane) => globalThis.getComputedStyle(pane).whiteSpace
+    ),
+    'pre'
+  );
+  await page.check('#word-wrap');
 }
 
 async function changesTheLeftLanguage() {
@@ -196,7 +294,8 @@ async function showsTheMetaLanguage() {
   const source = await page.locator('#source-meta').textContent();
   const target = await page.locator('#target-meta').textContent();
   assert.match(source, /^program/);
-  assert.match(source, /\(value Hi\)/);
+  assert.match(source, /^ {4}text Hi \(type text\)$/m);
+  assert.doesNotMatch(source, /\bblock\b|\w:/, 'plain nesting, no labels');
   assert.equal(target, source, 'one meaning on both sides');
   await page.uncheck('#show-meta');
 }
@@ -267,7 +366,19 @@ async function savesAStandard() {
   assert.match(await output().textContent(), /console\.log\("Hi"\)/);
 }
 
+// How the translator panel looks: a skin changes it.
+const look = () =>
+  page.$eval('.translator-panel', (panel) => {
+    const style = globalThis.getComputedStyle(panel);
+    return {
+      background: style.backgroundColor,
+      radius: style.borderRadius,
+      filter: style.backdropFilter,
+    };
+  });
+
 async function changesTheSettings() {
+  const app = await look();
   await page.click('#settings-link');
   const panel = page.locator('#settings-panel');
   await panel.waitFor();
@@ -276,6 +387,20 @@ async function changesTheSettings() {
   await panel.locator('ui-option[data-value="glass"]').click();
   await page.waitForSelector('#ui-theme', { state: 'attached' });
   assert.equal(await page.getAttribute('html', 'data-theme'), 'glass');
+  // The skin is seen, in the light and the dark scheme alike.
+  await page.waitForFunction(
+    (before) =>
+      globalThis.getComputedStyle(
+        globalThis.document.querySelector('.translator-panel')
+      ).backgroundColor !== before,
+    app.background
+  );
+  const glass = await look();
+  assert.notDeepEqual(glass, app, 'the glass skin changes the panel');
+  await page.emulateMedia({ colorScheme: 'dark' });
+  assert.notDeepEqual(await look(), glass, 'the dark glass skin differs');
+  assert.notEqual((await look()).radius, app.radius);
+  await page.emulateMedia({ colorScheme: 'light' });
   await page.reload();
   // Saved for the next visit.
   await page.waitForSelector('#ui-theme', { state: 'attached' });
@@ -290,6 +415,57 @@ async function changesTheSettings() {
   assert.equal(await page.getAttribute('html', 'data-scheme'), 'dark');
 }
 
+// The Monaco editor, chosen in the settings: both panes, coloured from the
+// meta language with the colours of the skin, and the text still
+// translates.
+async function editsInMonaco() {
+  await page.goto(
+    `${url}#settings=(settings%20(version%201)%20(theme%20app)%20(editor%20monaco))`
+  );
+  await page.reload();
+  await page.waitForSelector('#source-text .monaco-editor', {
+    timeout: 60000,
+  });
+  await page.waitForSelector('#target-text .monaco-editor');
+  await choose('source', 'python');
+  await choose('target', 'javascript');
+  await page.click('#source-text .view-lines');
+  await page.keyboard.press('ControlOrMeta+A');
+  await page.keyboard.press('Delete');
+  await page.keyboard.insertText('print(gcd(48, 18))');
+  await page.waitForSelector(
+    '#target-text[data-value*="console.log(gcd(48, 18))"]'
+  );
+  // gcd is a function and 48 a number: coloured, and not alike. Monaco
+  // draws the lines a moment after the text is set.
+  const colour = async (word) => {
+    const span = await page.waitForFunction(
+      (text) =>
+        [
+          ...globalThis.document.querySelectorAll(
+            '#target-text .view-line > span > span'
+          ),
+        ].find((it) => it.textContent === text),
+      word
+    );
+    return span.evaluate((it) => globalThis.getComputedStyle(it).color);
+  };
+  const [fn, number] = [await colour('gcd'), await colour('48')];
+  assert.notEqual(fn, number);
+  assert.notEqual(fn, 'rgb(0, 0, 0)');
+  const [source, target] = [
+    await page.locator('#source-text').boundingBox(),
+    await page.locator('#target-text').boundingBox(),
+  ];
+  assert.ok(Math.abs(source.height - target.height) < 1, 'equal panes');
+  if (screenshot) {
+    await page.screenshot({
+      path: screenshot.replace(/\.png$/u, '-monaco.png'),
+      fullPage: true,
+    });
+  }
+}
+
 try {
   await page.goto(`${url}?seed=7`);
   await page.waitForSelector('#source-language option[value="python"]', {
@@ -297,6 +473,9 @@ try {
   });
   await translatesBetweenVersions();
   await detectsAndTranslatesPartially();
+  await editsRulesAsLinksNotation();
+  await keepsTheLayoutStill();
+  await wrapsLongLines();
   await changesTheLeftLanguage();
   await showsTheMetaLanguage();
   await writesCommentsInAnotherLanguage();
@@ -306,9 +485,10 @@ try {
   }
   await savesAStandard();
   await changesTheSettings();
+  await editsInMonaco();
   assert.deepEqual(errors, []);
   console.log(
-    'The web demo translates between languages and versions, detects the source language, translates partially, applies rules, shows the meta language, examples, standards and settings'
+    'The web demo translates between languages and versions, detects the source language, translates partially, applies rules (rows and Links Notation), keeps equal panes still, wraps lines, shows the meta language, examples, standards, settings with skins and the Monaco editor'
   );
 } finally {
   await browser.close();

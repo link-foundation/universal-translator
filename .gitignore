@@ -146,3 +146,4 @@ reports/
 /target/
 __pycache__/
 ci-logs/
+e2e-output/

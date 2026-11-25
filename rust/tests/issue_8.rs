@@ -155,8 +155,24 @@ fn partial_translation_is_the_default_of_the_command_line() {
 
 #[test]
 fn reports_coverage_on_the_command_line() {
+    // Indented Links Notation by default (issue 12), JSON with --json.
     let run = cli(&["coverage", "python"], PARTIAL);
-    assert!(run.output.contains("\"coverage\": 0.75,"), "{}", run.output);
+    assert!(
+        run.output.lines().any(|line| line == "coverage: 0.75"),
+        "{}",
+        run.output
+    );
+    assert!(
+        run.output.lines().any(|line| line == "parts:"),
+        "{}",
+        run.output
+    );
+    let json = cli(&["coverage", "python", "--json"], PARTIAL);
+    assert!(
+        json.output.contains("\"coverage\": 0.75,"),
+        "{}",
+        json.output
+    );
 }
 
 const DETECTED: [(&str, &str); 5] = [
@@ -189,8 +205,13 @@ fn translates_from_auto_on_the_command_line() {
     assert!(run.errors.contains("Detected language: javascript"));
     let detected = cli(&["detect"], DETECTED[1].0).output;
     assert!(
-        detected.starts_with("[\n  {\n    \"id\": \"python\","),
+        detected.starts_with("(id python) (natural false) (reads true) "),
         "{detected}"
+    );
+    let json = cli(&["detect", "--json"], DETECTED[1].0).output;
+    assert!(
+        json.starts_with("[\n  {\n    \"id\": \"python\","),
+        "{json}"
     );
 }
 

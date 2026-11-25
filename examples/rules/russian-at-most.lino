@@ -1,0 +1,10 @@
+source:
+  (find ничего) (replace Ничего) (language russian)
+templates:
+  russian:
+    less-or-equal: '{left} самое большее {right}'
+names:
+  (find n) (replace count)
+output:
+  (find pass) (replace 'pass  # ничего') (language python)
+  (find '(\d+)') (replace '[$1]') (regex true) (language javascript)

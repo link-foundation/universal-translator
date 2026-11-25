@@ -1,6 +1,7 @@
 import { createLogger, defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath } from 'node:url';
+import { chunkLimit, oversizedChunks } from './chunk-limits.js';
 
 const themeReader = 'export async function readThemeFile(path) {';
 const themeFiles = fileURLToPath(
@@ -97,6 +98,23 @@ function failOnWarnings() {
   };
 }
 
+// Every chunk but Monaco's editor core stays below 500 kB; see
+// chunk-limits.js.
+function limitChunkSizes() {
+  return {
+    name: 'limit-chunk-sizes',
+    apply: 'build',
+    generateBundle(options, bundle) {
+      const oversized = oversizedChunks(bundle);
+      if (oversized.length) {
+        logger.warn(
+          `Chunks larger than ${chunkLimit / 1024} kB after minification: ${oversized.join(', ')}`
+        );
+      }
+    },
+  };
+}
+
 function resolveBasePath() {
   if (process.env.GITHUB_PAGES !== 'true') {
     return './';
@@ -109,9 +127,12 @@ function resolveBasePath() {
 export default defineConfig({
   base: resolveBasePath(),
   customLogger: logger,
-  plugins: [react(), bundleThemeFiles(), failOnWarnings()],
+  plugins: [react(), bundleThemeFiles(), limitChunkSizes(), failOnWarnings()],
   build: {
     outDir: 'dist',
+    // Above Monaco's editor core; limitChunkSizes keeps 500 kB for the
+    // rest.
+    chunkSizeWarningLimit: 2048,
     emptyOutDir: true,
     rollupOptions: {
       output: { manualChunks: chunkFor },

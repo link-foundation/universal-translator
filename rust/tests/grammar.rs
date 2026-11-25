@@ -552,14 +552,39 @@ fn shows_the_meta_program_as_links_notation() {
     assert_eq!(
         universal_translator::meta::notation::format_meta(&meta),
         "program (comments hi)
-  main: block
-    statements
-      declaration (mutable false) (name x) (type text)
-        value: text (type text) (value 'a b')
-      print (newline true)
-        value: binary (operator multiply) (type integer)
-          left: name (name x) (type text)
-          right: number (type integer) (value 3)
+  declaration x (mutable false) (type text)
+    text 'a b' (type text)
+  print (newline true)
+    binary multiply (type integer)
+      name x (type text)
+      number 3 (type integer)
+"
+    );
+}
+
+#[test]
+fn nests_meta_parameters_and_names_a_field_after_a_block() {
+    let source = "def twice(n):\n    if n > 1:\n        return n * 2\n    else:\n        return 0\n\nprint(twice(3))\n";
+    let meta = Translator::new().to_meta(source, "python").expect("python");
+    assert_eq!(
+        universal_translator::meta::notation::format_meta(&meta),
+        "program
+  function twice (blank-after true) (return-type integer)
+    parameter n (type integer)
+    if
+      binary greater (type boolean)
+        name n (type integer)
+        number 1 (type integer)
+      return
+        binary multiply (type integer)
+          name n (type integer)
+          number 2 (type integer)
+      otherwise
+        return
+          number 0 (type integer)
+  print (newline true)
+    call twice (type integer)
+      number 3 (type integer)
 "
     );
 }

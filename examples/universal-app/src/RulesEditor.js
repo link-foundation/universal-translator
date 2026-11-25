@@ -1,10 +1,15 @@
-import { createElement as h, useState } from 'react';
+import { createElement as h, useEffect, useState } from 'react';
 import { templateKeys } from '../../../js/src/natural/catalog.js';
+import {
+  formatRules,
+  readRules,
+} from '../../../js/src/translation/rules-notation.js';
+import { CodeEditor } from './CodeEditor.js';
+import { linoLexicon } from './highlight.js';
 
-// A visual editor for translation rules given as data: one table per stage
-// of the pipeline. The rules are the same JSON the library, the command
-// line (--rules) and the server accept, and the JSON view edits them as
-// text. Every label is in the interface language (rules.* in
+// A visual editor for translation rules given as data, on a tab of its
+// own: one table per stage of the pipeline, and the same rules as indented
+// Links Notation, the text the command line (--rules) and the server read. Every label is in the interface language (rules.* in
 // locales/app.lino); each stage has a title and a hint there.
 export const stages = ['source', 'templates', 'names', 'output'];
 
@@ -36,6 +41,20 @@ export function toRules(rows) {
     rules.templates = templates;
   }
   return rules;
+}
+
+// How many rules the rows make.
+export function ruleCount(rows) {
+  const rules = toRules(rows);
+  return (
+    ['source', 'names', 'output'].reduce(
+      (sum, stage) => sum + (rules[stage]?.length ?? 0),
+      0
+    ) +
+    Object.values(rules.templates ?? {})
+      .flatMap((keys) => Object.values(keys))
+      .flat().length
+  );
 }
 
 export function toRows(rules) {
@@ -176,41 +195,97 @@ function RuleRow({ stage, row, index, update, remove, languages, t }) {
   );
 }
 
-function JsonView({ rows, onChange, t }) {
-  const current = JSON.stringify(toRules(rows), null, 2);
+// The rules as indented Links Notation, the text the command line
+// (--rules) and the server read: it follows the tables, and a text typed
+// here replaces them when it is applied.
+function TextView({ rows, onChange, engine, wrap, t }) {
+  const current = formatRules(toRules(rows));
   const [draft, setDraft] = useState(current);
   const [problem, setProblem] = useState('');
+  const [edited, setEdited] = useState(false);
+  useEffect(() => {
+    if (!edited) {
+      setDraft(current);
+    }
+  }, [current, edited]);
+  const apply = () => {
+    try {
+      onChange(toRows(readRules(draft)));
+      setProblem('');
+      setEdited(false);
+    } catch (error) {
+      setProblem(error.message);
+    }
+  };
   return h(
-    'details',
-    { className: 'rules-json' },
-    h('summary', { onClick: () => setDraft(current) }, t('rules.json')),
-    h('textarea', {
-      id: 'rules-json',
-      spellCheck: false,
-      value: draft,
-      onChange: (event) => setDraft(event.target.value),
-    }),
+    'section',
+    { className: 'rules-text', 'aria-labelledby': 'rules-text-title' },
+    h('h3', { id: 'rules-text-title' }, t('rules.text')),
+    h('p', { className: 'hint' }, t('rules.textHint')),
     h(
-      'button',
-      {
-        type: 'button',
-        id: 'apply-json',
-        onClick: () => {
-          try {
-            onChange(toRows(JSON.parse(draft)));
-            setProblem('');
-          } catch (error) {
-            setProblem(error.message);
-          }
+      'div',
+      { className: 'field' },
+      h(CodeEditor, {
+        id: 'rules-text',
+        engine,
+        wrap,
+        label: t('rules.text'),
+        value: draft,
+        lexicon: linoLexicon,
+        onChange: (text) => {
+          setDraft(text);
+          setEdited(true);
         },
-      },
-      t('rules.applyJson')
+      })
     ),
-    problem ? h('p', { className: 'error', role: 'alert' }, problem) : null
+    h(
+      'div',
+      { className: 'actions' },
+      h(
+        'button',
+        {
+          type: 'button',
+          id: 'apply-rules',
+          className: 'primary',
+          disabled: !edited,
+          onClick: apply,
+        },
+        t('rules.applyText')
+      ),
+      h(
+        'button',
+        {
+          type: 'button',
+          id: 'reset-rules-text',
+          disabled: !edited,
+          onClick: () => {
+            setEdited(false);
+            setDraft(current);
+            setProblem('');
+          },
+        },
+        t('rules.resetText')
+      )
+    ),
+    problem
+      ? h(
+          'p',
+          { id: 'rules-text-error', className: 'error', role: 'alert' },
+          problem
+        )
+      : null
   );
 }
 
-export function RulesEditor({ rows, onChange, languages, error, t }) {
+export function RulesEditor({
+  rows,
+  onChange,
+  languages,
+  error,
+  engine,
+  wrap,
+  t,
+}) {
   const setStage = (stage, list) => onChange({ ...rows, [stage]: list });
   return h(
     'section',
@@ -255,7 +330,7 @@ export function RulesEditor({ rows, onChange, languages, error, t }) {
         )
       )
     ),
-    h(JsonView, { rows, onChange, t }),
+    h(TextView, { rows, onChange, engine, wrap, t }),
     error
       ? h('p', { id: 'rules-error', role: 'alert', className: 'error' }, error)
       : null

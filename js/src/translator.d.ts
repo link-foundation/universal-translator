@@ -21,6 +21,24 @@ export type CommentTranslator = (
 
 export type Rule = (tree: unknown, context: Record<string, unknown>) => unknown;
 
+/** A text rule: `find` is plain text unless `regex` is true; `language`
+ * limits it to one source (source rules) or target (output rules). */
+export interface TextRule {
+  find: string;
+  replace?: string;
+  regex?: boolean;
+  language?: string;
+}
+
+/** Rules given as data, one list per stage of the pipeline. */
+export interface TranslationRules {
+  source?: TextRule[];
+  /** More wordings a natural language reads: language -> key -> templates. */
+  templates?: Record<string, Record<string, string | string[]>>;
+  names?: { find: string; replace: string }[];
+  output?: TextRule[];
+}
+
 export interface GrammarTranslatorOptions {
   parse?: (source: string, syntax: Record<string, unknown>) => unknown;
   understanding?: Rule[];
@@ -32,6 +50,8 @@ export interface GrammarTranslatorOptions {
   emitMachineCode?: (meta: unknown, to: string) => string;
   lift?: (machine: unknown) => unknown;
   trace?: (stage: string, tree: unknown) => void;
+  /** Rules as indented Links Notation text (see readRules) or an object. */
+  rules?: TranslationRules | string;
 }
 
 /** What a fragment holds: a whole program, function definitions only, or
@@ -54,6 +74,8 @@ export interface GrammarTranslator {
   /** Controlled natural languages and profiles (base is the language a profile extends). */
   naturalLanguages(): { id: string; label: string; base?: string }[];
   toMeta(source: string, from: string): unknown;
+  /** The same translator with other data rules. */
+  withRules(rules: TranslationRules | string): GrammarTranslator;
   fromMeta(
     meta: unknown,
     to: string,

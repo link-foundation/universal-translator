@@ -4,7 +4,20 @@
 //   programming   a version of a programming language ("python@mine")
 //   natural       a natural language standard ("english-mine")
 //   words         a standard of words defined through other words
+//
+// The list of standards is one record per standard, named by its id (a
+// unique name, so "id:"), with its fields as (name value) links:
+//
+//   'python@spoken-python':
+//     (kind programming) (label 'Spoken Python')
+//     (source 'language: python
+//   ...')
+//
+// The word standards are one text per natural language: "english: '…'".
+// Values saved as JSON by earlier versions are still read.
 
+import { parseLinks } from '../../../js/src/meta/links.js';
+import { linoValue } from '../../../js/src/translation/rules-notation.js';
 import {
   isNaturalLanguage,
   isOwnNaturalLanguage,
@@ -48,22 +61,82 @@ export const defaultStorage = () => {
   }
 };
 
-function readJson(storage, key, fallback) {
+// Links Notation records -> [{ id, fields: { name: value } }]. A line of
+// one (name value) link is read by links-notation as that link itself.
+export function readRecords(text) {
+  const words = (link) => (link.values?.length ? null : link.id);
+  return parseLinks(text).map(({ id, values }) => {
+    const fields = {};
+    for (const line of values) {
+      const links = line.values.every((link) => !link.values?.length)
+        ? [line]
+        : line.values;
+      for (const link of links) {
+        const [name, value] = link.id
+          ? [link.id, ...link.values.map(words)]
+          : link.values.map(words);
+        fields[name] = value;
+      }
+    }
+    return { id, fields };
+  });
+}
+
+// [{ id, fields }] -> Links Notation text, each record a few lines.
+export function writeRecords(records) {
+  return records
+    .map(
+      ({ id, fields }) =>
+        `${linoValue(id)}:\n${fields
+          .map(
+            (line) =>
+              `  ${line.map(([name, value]) => `(${name} ${linoValue(value)})`).join(' ')}`
+          )
+          .join('\n')}\n`
+    )
+    .join('');
+}
+
+// A stored value: Links Notation, or JSON written by earlier versions.
+function readStored(storage, key, fromLino, fallback) {
   try {
-    return JSON.parse(storage.getItem(key) ?? 'null') ?? fallback;
+    const text = (storage.getItem(key) ?? '').trim();
+    if (!text) {
+      return fallback;
+    }
+    return /^[[{]/u.test(text)
+      ? (JSON.parse(text) ?? fallback)
+      : fromLino(text);
   } catch {
     return fallback;
   }
 }
 
+const standardsFromLino = (text) =>
+  readRecords(text).map(({ id, fields }) => ({ ...fields, id }));
+
 // [{ kind: 'programming' | 'natural', id, label, source }]
 export const savedStandards = (storage) =>
-  readJson(storage, standardsKey, []).filter(
+  readStored(storage, standardsKey, standardsFromLino, []).filter(
     (item) => item && typeof item.source === 'string'
   );
 
+export const standardsText = (items) =>
+  writeRecords(
+    items.map(({ id, kind, label, source }) => ({
+      id,
+      fields: [
+        [
+          ['kind', kind],
+          ['label', label],
+        ],
+        [['source', source]],
+      ],
+    }))
+  );
+
 function store(storage, items) {
-  storage.setItem(standardsKey, JSON.stringify(items));
+  storage.setItem(standardsKey, standardsText(items));
 }
 
 function register(item) {
@@ -151,9 +224,22 @@ export function removeStandard(storage, id) {
   );
 }
 
-// Word standards: one per natural language, as Links Notation.
+// Word standards: one per natural language, each a Links Notation text.
+const wordStandardsFromLino = (text) =>
+  Object.fromEntries(
+    parseLinks(text).map(({ id, values }) => [id, values[0]?.id ?? ''])
+  );
+
+const wordStandards = (storage) =>
+  readStored(storage, wordStandardsKey, wordStandardsFromLino, {});
+
+export const wordStandardsText = (all) =>
+  Object.entries(all)
+    .map(([language, text]) => `${linoValue(language)}: ${linoValue(text)}\n`)
+    .join('');
+
 export function loadWordStandard(storage, language) {
-  const text = readJson(storage, wordStandardsKey, {})[language];
+  const text = wordStandards(storage)[language];
   try {
     return text ? readStandard(text) : undefined;
   } catch {
@@ -162,10 +248,12 @@ export function loadWordStandard(storage, language) {
 }
 
 export function saveWordStandard(storage, standard) {
-  const all = readJson(storage, wordStandardsKey, {});
   storage.setItem(
     wordStandardsKey,
-    JSON.stringify({ ...all, [standard.language]: writeStandard(standard) })
+    wordStandardsText({
+      ...wordStandards(storage),
+      [standard.language]: writeStandard(standard),
+    })
   );
 }
 
