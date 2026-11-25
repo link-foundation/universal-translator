@@ -53,6 +53,28 @@ async function load() {
   };
 }
 
+// Language ids the Rust implementation describes (id: "...") in its grammar.
+function rustLanguageIds() {
+  const ids = new Set();
+  const walk = (path) => {
+    for (const entry of readdirSync(join(root, path), {
+      withFileTypes: true,
+    })) {
+      const child = `${path}/${entry.name}`;
+      if (entry.isDirectory()) {
+        walk(child);
+      } else if (entry.name.endsWith('.rs')) {
+        const source = readFileSync(join(root, child), 'utf8');
+        for (const [, id] of source.matchAll(/\bid: "([a-z]+)"/g)) {
+          ids.add(id);
+        }
+      }
+    }
+  };
+  walk('rust/src/grammar');
+  return ids;
+}
+
 const translatedCount = (task) =>
   files(`examples/programs/translated/${task}`).length;
 
@@ -126,12 +148,20 @@ const checks = {
     naturalTextsComplete(data) ? undefined : 'natural texts are missing',
   'natural-to-formal': (data) => checks['parse-natural-algorithms'](data),
   'formal-to-natural': (data) => checks['parse-natural-algorithms'](data),
-  'javascript-and-rust': () =>
-    ['rust/src/natural/mod.rs', 'rust/tests/natural.rs'].every((path) =>
-      existsSync(join(root, path))
-    )
-      ? undefined
-      : 'the Rust natural language layer is missing',
+  'javascript-and-rust': ({ grammarLanguageIds }) => {
+    if (
+      !['rust/src/natural/mod.rs', 'rust/tests/natural.rs'].every((path) =>
+        existsSync(join(root, path))
+      )
+    ) {
+      return 'the Rust natural language layer is missing';
+    }
+    const rust = rustLanguageIds();
+    const missing = grammarLanguageIds.filter((id) => !rust.has(id));
+    return missing.length
+      ? `the Rust implementation lacks ${missing.join(', ')}`
+      : undefined;
+  },
   'rosetta-algorithm-types': ({ tasks }) => {
     const problems = readEntries(join(caseStudy, 'rosetta-coverage.lino'))
       .filter(
