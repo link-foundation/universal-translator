@@ -222,6 +222,7 @@ fn routine(p: &mut Parser) -> Parsed<Option<Node>> {
     p.expect("begin")?;
     let body = p.statements_until(&|p| p.is("end"))?;
     p.expect("end")?;
+    p.accept(";");
     Ok(Some(
         Node::new("Function")
             .with("name", name)
