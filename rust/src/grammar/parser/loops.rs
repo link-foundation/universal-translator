@@ -30,7 +30,7 @@ struct Update {
 }
 
 impl Parser {
-    pub(super) fn for_statement(&mut self) -> Parsed {
+    pub(crate) fn for_statement(&mut self) -> Parsed {
         self.position += 1;
         let parenthesized = self.syntax.id != "go"
             && self.is("(")
@@ -70,7 +70,7 @@ impl Parser {
     }
 
     /// Lua: `for i = first, last do ... end`
-    pub(super) fn numeric_for(&mut self, variable: String) -> Parsed {
+    pub(crate) fn numeric_for(&mut self, variable: String) -> Parsed {
         self.expect("=")?;
         let start = self.expression()?;
         self.expect(",")?;
@@ -85,7 +85,7 @@ impl Parser {
     }
 
     /// `for i in range`, `for my $i (range)`, `for (i <- range)`
-    pub(super) fn range_for(&mut self, variable: String, parenthesized: bool) -> Parsed {
+    pub(crate) fn range_for(&mut self, variable: String, parenthesized: bool) -> Parsed {
         let opener = self.syntax.for_in.unwrap_or("in");
         self.expect(opener)?;
         let range = self.range_expression()?;
@@ -98,7 +98,7 @@ impl Parser {
     }
 
     /// Ruby: `(first..last).each do |variable| ... end`
-    pub(super) fn is_range_each(&self) -> bool {
+    pub(crate) fn is_range_each(&self) -> bool {
         if !self.is("(") {
             return false;
         }
@@ -121,7 +121,7 @@ impl Parser {
         false
     }
 
-    pub(super) fn range_each(&mut self) -> Parsed {
+    pub(crate) fn range_each(&mut self) -> Parsed {
         self.expect("(")?;
         let range = self.range_expression()?;
         for word in [")", ".", "each", "do", "|"] {
@@ -134,7 +134,7 @@ impl Parser {
         Ok(counting_node(variable, range, body))
     }
 
-    pub(super) fn tokens_until_block(&self) -> impl Iterator<Item = &Token> {
+    pub(crate) fn tokens_until_block(&self) -> impl Iterator<Item = &Token> {
         self.tokens[self.position.min(self.tokens.len() - 1)..]
             .iter()
             .take_while(|token| {

@@ -16,6 +16,7 @@
 //! decorate rules, and a trace hook sees the tree after every stage.
 
 pub mod common_library;
+mod dialects;
 pub mod emitter;
 mod interpolation;
 pub mod languages;

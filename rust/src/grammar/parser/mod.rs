@@ -3,11 +3,13 @@
 //! the surface concepts (calls, imports, classes) that later rule layers
 //! interpret. The parser never decides what a program means.
 
+use std::any::Any;
 use std::sync::OnceLock;
 
 use regex::Regex;
 
 use super::GrammarError;
+use super::dialects::{ParserDialect, parser_dialect};
 use super::interpolation::{Piece, split_interpolation};
 use super::languages::{Blocks, ForwardDeclarations, Syntax, Typed};
 use super::lexer::{InterpolationStyle, Token, TokenType, decode_escapes, tokenize};
@@ -66,7 +68,7 @@ mod loops;
 
 use loops::step_operator;
 
-type Parsed<T = Node> = Result<T, GrammarError>;
+pub(crate) type Parsed<T = Node> = Result<T, GrammarError>;
 
 /// Parse a whole source text into a `SourceProgram` tree.
 pub fn parse_program(source: &str, syntax: &Syntax) -> Parsed {
@@ -76,17 +78,21 @@ pub fn parse_program(source: &str, syntax: &Syntax) -> Parsed {
 /// Binary operators by precedence level with their spellings.
 type Levels = Vec<Vec<(&'static str, Vec<&'static str>)>>;
 
-struct Parser {
-    tokens: Vec<Token>,
-    position: usize,
-    syntax: Syntax,
+pub(crate) struct Parser {
+    pub(crate) tokens: Vec<Token>,
+    pub(crate) position: usize,
+    pub(crate) syntax: Syntax,
     /// The binary levels with the language's own remainder and integer
     /// division spellings added.
     levels: Levels,
+    /// The statements and layout of a language with a grammar of its own.
+    dialect: &'static dyn ParserDialect,
+    /// What a dialect remembers while it reads (see `state`).
+    state: Box<dyn Any>,
 }
 
 impl Parser {
-    fn new(tokens: Vec<Token>, syntax: Syntax) -> Self {
+    pub(crate) fn new(tokens: Vec<Token>, syntax: Syntax) -> Self {
         let operators = syntax.operators;
         let levels = BINARY_LEVELS
             .iter()
@@ -111,19 +117,30 @@ impl Parser {
                     .collect()
             })
             .collect();
+        let dialect = parser_dialect(syntax.id);
         Parser {
-            tokens,
+            tokens: dialect.tokens(tokens),
             position: 0,
             syntax,
             levels,
+            dialect,
+            state: Box::new(()),
         }
+    }
+
+    /// The reading state of a dialect, created on first use.
+    pub(crate) fn state<T: Default + 'static>(&mut self) -> &mut T {
+        if !self.state.is::<T>() {
+            self.state = Box::new(T::default());
+        }
+        self.state.downcast_mut().expect("state of this type")
     }
 
     // ---- token helpers ----
 
     /// Import lines: `import`, `using`, `package`, `use`, `require`,
     /// `require_once`, Rust `mod name;` and Python `from module import a`.
-    fn is_import_start(&self, token: &Token) -> bool {
+    pub(crate) fn is_import_start(&self, token: &Token) -> bool {
         if token.kind != TokenType::Name || self.is_at("(", 1) {
             return false;
         }
@@ -143,25 +160,25 @@ impl Parser {
         }
     }
 
-    fn peek(&self, offset: usize) -> &Token {
+    pub(crate) fn peek(&self, offset: usize) -> &Token {
         let last = self.tokens.len() - 1;
         &self.tokens[(self.position + offset).min(last)]
     }
 
-    fn current(&self) -> &Token {
+    pub(crate) fn current(&self) -> &Token {
         self.peek(0)
     }
 
-    fn kind(&self, offset: usize) -> TokenType {
+    pub(crate) fn kind(&self, offset: usize) -> TokenType {
         self.peek(offset).kind
     }
 
-    fn value(&self, offset: usize) -> &str {
+    pub(crate) fn value(&self, offset: usize) -> &str {
         &self.peek(offset).value
     }
 
     /// The current token; reading past the end is a syntax error.
-    fn next(&mut self) -> Parsed<Token> {
+    pub(crate) fn next(&mut self) -> Parsed<Token> {
         let token = self.current().clone();
         if self.position >= self.tokens.len() {
             return Err(GrammarError::syntax(
@@ -173,12 +190,12 @@ impl Parser {
         Ok(token)
     }
 
-    fn next_value(&mut self) -> Parsed<String> {
+    pub(crate) fn next_value(&mut self) -> Parsed<String> {
         Ok(self.next()?.value)
     }
 
     /// Whether the token at `offset` is the symbol or word `value`.
-    fn is_at(&self, value: &str, offset: usize) -> bool {
+    pub(crate) fn is_at(&self, value: &str, offset: usize) -> bool {
         let token = self.peek(offset);
         if token.kind == TokenType::Name && self.syntax.case_insensitive {
             return token.value.eq_ignore_ascii_case(value);
@@ -186,11 +203,11 @@ impl Parser {
         matches!(token.kind, TokenType::Symbol | TokenType::Name) && token.value == value
     }
 
-    fn is(&self, value: &str) -> bool {
+    pub(crate) fn is(&self, value: &str) -> bool {
         self.is_at(value, 0)
     }
 
-    fn accept(&mut self, value: &str) -> bool {
+    pub(crate) fn accept(&mut self, value: &str) -> bool {
         if self.is(value) {
             self.position += 1;
             return true;
@@ -198,7 +215,7 @@ impl Parser {
         false
     }
 
-    fn expect(&mut self, value: &str) -> Parsed<()> {
+    pub(crate) fn expect(&mut self, value: &str) -> Parsed<()> {
         if self.accept(value) {
             return Ok(());
         }
@@ -209,7 +226,7 @@ impl Parser {
         ))
     }
 
-    fn expect_name(&mut self) -> Parsed<String> {
+    pub(crate) fn expect_name(&mut self) -> Parsed<String> {
         let token = self.next()?;
         if token.kind != TokenType::Name {
             return Err(GrammarError::syntax(
@@ -220,19 +237,19 @@ impl Parser {
         Ok(token.value)
     }
 
-    fn skip_separators(&mut self) {
+    pub(crate) fn skip_separators(&mut self) {
         while self.kind(0) == TokenType::Newline || self.is(";") {
             self.position += 1;
         }
     }
 
-    fn skip_newlines(&mut self) {
+    pub(crate) fn skip_newlines(&mut self) {
         while self.kind(0) == TokenType::Newline {
             self.position += 1;
         }
     }
 
-    fn end_statement(&mut self) -> Parsed<()> {
+    pub(crate) fn end_statement(&mut self) -> Parsed<()> {
         if self.accept(";") || self.kind(0) == TokenType::Newline {
             self.skip_separators();
             return Ok(());
@@ -251,7 +268,7 @@ impl Parser {
     }
 
     /// The values of the tokens before the first of `stops`.
-    fn words_until(&mut self, stops: &[&str]) -> Parsed<Vec<String>> {
+    pub(crate) fn words_until(&mut self, stops: &[&str]) -> Parsed<Vec<String>> {
         let mut words = Vec::new();
         while !stops.iter().any(|stop| self.is(stop)) {
             if self.kind(0) == TokenType::End {
@@ -266,15 +283,15 @@ impl Parser {
         Ok(words)
     }
 
-    fn is_modifier(&self, offset: usize) -> bool {
+    pub(crate) fn is_modifier(&self, offset: usize) -> bool {
         MODIFIERS.contains(&self.value(offset))
     }
 
-    fn modifier_count(&self) -> usize {
+    pub(crate) fn modifier_count(&self) -> usize {
         (0..).take_while(|offset| self.is_modifier(*offset)).count()
     }
 
-    fn skip_modifiers(&mut self) {
+    pub(crate) fn skip_modifiers(&mut self) {
         while self.is_modifier(0) {
             self.position += 1;
         }
@@ -282,14 +299,24 @@ impl Parser {
 
     // ---- program structure ----
 
-    fn program(&mut self) -> Parsed {
-        let items = self.items(|parser| parser.kind(0) == TokenType::End)?;
+    pub(crate) fn program(&mut self) -> Parsed {
+        let dialect = self.dialect;
+        dialect.program(self)
+    }
+
+    pub(crate) fn base_program(&mut self) -> Parsed {
+        let items = self.items(&|parser| parser.kind(0) == TokenType::End)?;
         Ok(Node::new("SourceProgram")
             .with("language", self.syntax.id)
             .with("items", items))
     }
 
-    fn items(&mut self, done: impl Fn(&Self) -> bool) -> Parsed<Vec<Node>> {
+    pub(crate) fn items(&mut self, done: &dyn Fn(&Parser) -> bool) -> Parsed<Vec<Node>> {
+        let dialect = self.dialect;
+        dialect.items(self, done)
+    }
+
+    pub(crate) fn base_items(&mut self, done: &dyn Fn(&Self) -> bool) -> Parsed<Vec<Node>> {
         let mut items = Vec::new();
         self.skip_separators();
         while !done(self) {
@@ -305,7 +332,12 @@ impl Parser {
         Ok(items)
     }
 
-    fn item(&mut self) -> Parsed {
+    pub(crate) fn item(&mut self) -> Parsed {
+        let dialect = self.dialect;
+        dialect.item(self)
+    }
+
+    pub(crate) fn base_item(&mut self) -> Parsed {
         let token = self.current().clone();
         match token.kind {
             TokenType::Comment => {
@@ -336,7 +368,7 @@ impl Parser {
         self.statement()
     }
 
-    fn import_statement(&mut self) -> Parsed {
+    pub(crate) fn import_statement(&mut self) -> Parsed {
         let mut parts = Vec::new();
         let line = self.current().line;
         while self.kind(0) != TokenType::Newline
@@ -356,19 +388,19 @@ impl Parser {
         Ok(Node::new("Import").with("text", joined))
     }
 
-    fn is_namespace_or_class(&self) -> bool {
+    pub(crate) fn is_namespace_or_class(&self) -> bool {
         let offset = self.modifier_count();
         ["class", "namespace", "object"].contains(&self.value(offset))
             && self.kind(offset) == TokenType::Name
     }
 
-    fn class_definition(&mut self) -> Parsed {
+    pub(crate) fn class_definition(&mut self) -> Parsed {
         self.skip_modifiers();
         let form = self.next_value()?;
         let title = self.expect_name()?;
         self.skip_newlines();
         self.expect("{")?;
-        let items = self.items(|parser| parser.is("}"))?;
+        let items = self.items(&|parser| parser.is("}"))?;
         self.expect("}")?;
         Ok(Node::new("Class")
             .with("form", form)
@@ -376,7 +408,7 @@ impl Parser {
             .with("items", items))
     }
 
-    fn is_function_start(&self) -> bool {
+    pub(crate) fn is_function_start(&self) -> bool {
         if self.syntax.assigned_functions {
             return self.kind(0) == TokenType::Name
                 && self.is_at(self.syntax.assignment.unwrap_or("="), 1)
@@ -389,13 +421,13 @@ impl Parser {
     }
 
     /// `[modifiers] function-keyword name`
-    fn is_keyword_function_start(&self, keyword: &str) -> bool {
+    pub(crate) fn is_keyword_function_start(&self, keyword: &str) -> bool {
         let offset = self.modifier_count();
         self.is_at(keyword, offset) && self.kind(offset + 1) == TokenType::Name
     }
 
     /// Prefix-typed languages: `[modifiers] [type] name ( ... ) {`
-    fn is_prefix_function_start(&self) -> bool {
+    pub(crate) fn is_prefix_function_start(&self) -> bool {
         let offset = self.prefix_head_length();
         offset > 0
             && self.is_at("(", offset)
@@ -406,7 +438,7 @@ impl Parser {
     /// The number of tokens that announce a function defined later, or 0:
     /// `int male(int index);`, `proc male(index: int): int` or `local male`
     /// followed by `function male`.
-    fn announcement_length(&self) -> usize {
+    pub(crate) fn announcement_length(&self) -> usize {
         match self.syntax.forward_declarations {
             ForwardDeclarations::None => 0,
             ForwardDeclarations::Prototype => {
@@ -435,7 +467,7 @@ impl Parser {
     }
 
     /// A function heading whose line ends before the body marker.
-    fn heading_length(&self) -> usize {
+    pub(crate) fn heading_length(&self) -> usize {
         let keyword = self.syntax.function_keyword;
         if !keyword.is_some_and(|keyword| self.is_keyword_function_start(keyword)) {
             return 0;
@@ -455,7 +487,7 @@ impl Parser {
     }
 
     /// How many tokens of a type and a name come before `(`.
-    fn prefix_head_length(&self) -> usize {
+    pub(crate) fn prefix_head_length(&self) -> usize {
         if CONTROL_WORDS.contains(&self.value(0)) {
             return 0;
         }
@@ -469,7 +501,7 @@ impl Parser {
     }
 
     /// The index after the parentheses opening at `offset` and any newlines.
-    fn after_parentheses(&self, offset: usize) -> usize {
+    pub(crate) fn after_parentheses(&self, offset: usize) -> usize {
         let mut depth = 0i64;
         let mut index = offset;
         while self.kind(index) != TokenType::End {
@@ -493,7 +525,12 @@ impl Parser {
         after
     }
 
-    fn function_definition(&mut self) -> Parsed {
+    pub(crate) fn function_definition(&mut self) -> Parsed {
+        let dialect = self.dialect;
+        dialect.function_definition(self)
+    }
+
+    pub(crate) fn base_function_definition(&mut self) -> Parsed {
         self.skip_modifiers();
         let mut return_type = None;
         let function_name = if self.syntax.assigned_functions {
@@ -553,7 +590,7 @@ impl Parser {
             .with("body", body))
     }
 
-    fn parameter_list(&mut self) -> Parsed<Vec<Node>> {
+    pub(crate) fn parameter_list(&mut self) -> Parsed<Vec<Node>> {
         self.expect("(")?;
         let mut parameters = Vec::new();
         let mut pending_names = Vec::new();
@@ -599,7 +636,12 @@ impl Parser {
         Ok(parameters)
     }
 
-    fn type_expression(&mut self) -> Parsed<Option<String>> {
+    pub(crate) fn type_expression(&mut self) -> Parsed<Option<String>> {
+        let dialect = self.dialect;
+        dialect.type_expression(self)
+    }
+
+    pub(crate) fn base_type_expression(&mut self) -> Parsed<Option<String>> {
         let mut words = Vec::new();
         let mut depth = 0i64;
         loop {
@@ -621,18 +663,22 @@ impl Parser {
 
     // ---- blocks ----
 
-    fn block(&mut self) -> Parsed {
+    pub(crate) fn block(&mut self) -> Parsed {
         match self.syntax.blocks {
             Blocks::Braces => {
                 self.skip_newlines();
                 self.expect("{")?;
-                let statements = self.items(|parser| parser.is("}"))?;
+                let statements = self.items(&|parser| parser.is("}"))?;
                 self.expect("}")?;
                 Ok(block(statements))
             }
             Blocks::Indentation => {
                 // Nim: proc name(...): Type = <indented body>
-                if !self.syntax.body_after.is_some_and(|symbol| self.accept(symbol)) {
+                if !self
+                    .syntax
+                    .body_after
+                    .is_some_and(|symbol| self.accept(symbol))
+                {
                     self.expect(":")?;
                 }
                 while self.kind(0) == TokenType::Comment {
@@ -651,8 +697,9 @@ impl Parser {
                         self.current().line,
                     ));
                 }
-                let statements = self
-                    .items(|parser| matches!(parser.kind(0), TokenType::Dedent | TokenType::End))?;
+                let statements = self.items(&|parser| {
+                    matches!(parser.kind(0), TokenType::Dedent | TokenType::End)
+                })?;
                 self.position += 1;
                 Ok(block(statements))
             }
@@ -660,7 +707,7 @@ impl Parser {
                 // Keyword-delimited blocks (Ruby, Lua) stop at end / else / elsif.
                 self.accept("then");
                 self.accept("do");
-                let statements = self.items(|parser| {
+                let statements = self.items(&|parser| {
                     ["end", "else", "elsif", "elseif"]
                         .iter()
                         .any(|word| parser.is(word))
@@ -674,7 +721,7 @@ impl Parser {
         }
     }
 
-    fn close_keyword_block(&mut self) -> Parsed<()> {
+    pub(crate) fn close_keyword_block(&mut self) -> Parsed<()> {
         if self.syntax.blocks == Blocks::End {
             self.expect("end")?;
         }
@@ -683,7 +730,12 @@ impl Parser {
 
     // ---- statements ----
 
-    fn statement(&mut self) -> Parsed {
+    pub(crate) fn statement(&mut self) -> Parsed {
+        let dialect = self.dialect;
+        dialect.statement(self)
+    }
+
+    pub(crate) fn base_statement(&mut self) -> Parsed {
         let word = if self.kind(0) == TokenType::Name {
             self.value(0).to_owned()
         } else {
@@ -709,7 +761,7 @@ impl Parser {
         self.simple_statement()
     }
 
-    fn return_statement(&mut self) -> Parsed {
+    pub(crate) fn return_statement(&mut self) -> Parsed {
         self.position += 1;
         // R leaves a function without a value by calling `return(invisible())`
         // (or `return()`, which prints NULL at the top level).
@@ -735,7 +787,7 @@ impl Parser {
         Ok(Node::new("Return").with_opt("value", value))
     }
 
-    fn is_statement_end(&self) -> bool {
+    pub(crate) fn is_statement_end(&self) -> bool {
         matches!(
             self.kind(0),
             TokenType::Newline | TokenType::End | TokenType::Dedent
@@ -743,7 +795,7 @@ impl Parser {
             || self.is("}")
     }
 
-    fn is_typed_declaration(&self) -> bool {
+    pub(crate) fn is_typed_declaration(&self) -> bool {
         let offset = (0..)
             .take_while(|offset| {
                 self.kind(*offset) == TokenType::Name
@@ -757,7 +809,7 @@ impl Parser {
             && (TYPE_WORDS.contains(&self.value(0)) || self.kind(1) == TokenType::Name)
     }
 
-    fn typed_declaration(&mut self) -> Parsed {
+    pub(crate) fn typed_declaration(&mut self) -> Parsed {
         let mut words = self.words_until(&["=", ";"])?;
         let variable = words.pop().unwrap_or_default();
         let kind = source_type(&words.join(" "));
@@ -774,7 +826,7 @@ impl Parser {
             .with("mutable", !words.iter().any(|word| word == "const")))
     }
 
-    fn declaration(&mut self) -> Parsed {
+    pub(crate) fn declaration(&mut self) -> Parsed {
         if self.syntax.unpacked_parameters && self.is_at("(", 1) {
             return self.unpacked_parameters();
         }
@@ -805,7 +857,7 @@ impl Parser {
     }
 
     /// Perl passes arguments in `@_`; a function names them by unpacking it.
-    fn unpacked_parameters(&mut self) -> Parsed {
+    pub(crate) fn unpacked_parameters(&mut self) -> Parsed {
         self.position += 1;
         self.expect("(")?;
         let mut names = vec![self.expect_name()?];
@@ -820,7 +872,7 @@ impl Parser {
         Ok(Node::new("Parameters").with("names", names))
     }
 
-    fn simple_statement(&mut self) -> Parsed {
+    pub(crate) fn simple_statement(&mut self) -> Parsed {
         let starts_with_name = self.kind(0) == TokenType::Name;
         if starts_with_name && self.is_at(":=", 1) {
             return self.short_declaration();
@@ -852,7 +904,7 @@ impl Parser {
     }
 
     /// Go: `name := value`
-    fn short_declaration(&mut self) -> Parsed {
+    pub(crate) fn short_declaration(&mut self) -> Parsed {
         let variable = self.next_value()?;
         self.position += 1;
         let value = self.expression()?;
@@ -864,7 +916,7 @@ impl Parser {
     }
 
     /// `++name` and `--name`
-    fn prefix_step(&mut self) -> Parsed {
+    pub(crate) fn prefix_step(&mut self) -> Parsed {
         let operator = step_operator(&self.next_value()?).unwrap_or("+=");
         let variable = self.next_value()?;
         self.end_statement()?;
@@ -872,7 +924,7 @@ impl Parser {
     }
 
     /// `name = value`, `name += value`, `name++` ...
-    fn assignment(&mut self) -> Parsed {
+    pub(crate) fn assignment(&mut self) -> Parsed {
         let variable = self.next_value()?;
         let written = self.next_value()?;
         let (operator, value) = match step_operator(&written) {
@@ -888,7 +940,7 @@ impl Parser {
 
     /// Calls written without parentheses: `puts value`, `echo value`. The
     /// callee is the current word unless given.
-    fn command_call(&mut self, callee: Option<&str>) -> Parsed {
+    pub(crate) fn command_call(&mut self, callee: Option<&str>) -> Parsed {
         let written = self.next_value()?;
         let callee = callee.map_or(written, str::to_owned);
         let mut values = vec![self.expression()?];
@@ -905,7 +957,7 @@ impl Parser {
     }
 
     /// Ruby allows calls without parentheses, such as `puts "Hello"`.
-    fn is_command_call(&self) -> bool {
+    pub(crate) fn is_command_call(&self) -> bool {
         if !self.syntax.command_calls || self.kind(0) != TokenType::Name {
             return false;
         }
@@ -917,11 +969,11 @@ impl Parser {
             && !["do", "then", "if"].contains(&following.value.as_str())
     }
 
-    fn echo_statement(&mut self) -> Parsed {
+    pub(crate) fn echo_statement(&mut self) -> Parsed {
         self.command_call(Some("echo"))
     }
 
-    fn condition(&mut self) -> Parsed {
+    pub(crate) fn condition(&mut self) -> Parsed {
         let value = self.expression()?;
         if self.syntax.blocks == Blocks::End {
             self.accept("then");
@@ -930,7 +982,7 @@ impl Parser {
         Ok(value)
     }
 
-    fn if_statement(&mut self) -> Parsed {
+    pub(crate) fn if_statement(&mut self) -> Parsed {
         self.position += 1;
         let condition = self.condition()?;
         let then = self.block()?;
@@ -960,7 +1012,7 @@ impl Parser {
         Ok(result(otherwise))
     }
 
-    fn skip_blank_lines_before_else(&mut self) {
+    pub(crate) fn skip_blank_lines_before_else(&mut self) {
         let mut offset = 0;
         while self.kind(offset) == TokenType::Newline {
             offset += 1;
@@ -973,7 +1025,12 @@ impl Parser {
         }
     }
 
-    fn while_statement(&mut self) -> Parsed {
+    pub(crate) fn while_statement(&mut self) -> Parsed {
+        let dialect = self.dialect;
+        dialect.while_statement(self)
+    }
+
+    pub(crate) fn base_while_statement(&mut self) -> Parsed {
         self.position += 1;
         let condition = self.condition()?;
         let body = self.block()?;
@@ -985,12 +1042,12 @@ impl Parser {
 
     // ---- expressions ----
 
-    fn expression(&mut self) -> Parsed {
+    pub(crate) fn expression(&mut self) -> Parsed {
         self.binary(0)
     }
 
     /// The meta operator spelled by the current token at a precedence level.
-    fn binary_operator(&self, level: usize) -> Option<&'static str> {
+    pub(crate) fn binary_operator(&self, level: usize) -> Option<&'static str> {
         let token = self.current();
         if !matches!(token.kind, TokenType::Symbol | TokenType::Name) {
             return None;
@@ -1001,7 +1058,7 @@ impl Parser {
             .map(|(operator, _)| *operator)
     }
 
-    fn binary(&mut self, level: usize) -> Parsed {
+    pub(crate) fn binary(&mut self, level: usize) -> Parsed {
         if level == self.levels.len() {
             return self.unary();
         }
@@ -1038,7 +1095,7 @@ impl Parser {
         }
     }
 
-    fn unary(&mut self) -> Parsed {
+    pub(crate) fn unary(&mut self) -> Parsed {
         if self.accept("-") {
             let operand = self.unary()?;
             if operand.is("Number") {
@@ -1058,7 +1115,7 @@ impl Parser {
         self.postfix()
     }
 
-    fn postfix(&mut self) -> Parsed {
+    pub(crate) fn postfix(&mut self) -> Parsed {
         let mut expression = self.primary()?;
         loop {
             let member =
@@ -1118,7 +1175,12 @@ impl Parser {
         }
     }
 
-    fn primary(&mut self) -> Parsed {
+    pub(crate) fn primary(&mut self) -> Parsed {
+        let dialect = self.dialect;
+        dialect.primary(self)
+    }
+
+    pub(crate) fn base_primary(&mut self) -> Parsed {
         let token = self.next()?;
         match token.kind {
             TokenType::Number => return Ok(number(token.value.parse().unwrap_or(0.0))),
@@ -1147,7 +1209,7 @@ impl Parser {
         ))
     }
 
-    fn text_literal(&self, token: &Token) -> Parsed {
+    pub(crate) fn text_literal(&self, token: &Token) -> Parsed {
         let single = token.quote == Some('\'');
         let style = if single && ["php", "ruby"].contains(&self.syntax.id) {
             InterpolationStyle::Plain
