@@ -50,8 +50,13 @@ describe('universal React example app', () => {
     const workflow = readText(workflowPath);
 
     expect(appSource).toContain("from '../../../js/src/translator.js'");
-    expect(appSource).toContain('translator.languages()');
-    expect(appSource).toContain('translator.naturalLanguages()');
+    expect(readText(`${exampleRoot}/src/languages.js`)).toContain(
+      'translator.languages()'
+    );
+    expect(readText(`${exampleRoot}/src/languages.js`)).toContain(
+      'baseNaturalLanguageIds()'
+    );
+    expect(appSource).toContain('languageEntries(translator)');
     expect(appSource).toContain('translator.translateFragment');
     expect(appSource).toContain("role: 'alert'");
     expect(workflow).toContain('web-e2e:');

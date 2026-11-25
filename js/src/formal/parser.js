@@ -490,7 +490,7 @@ class BaseParser {
     let parameters = this.is('(') ? this.parameterList() : [];
     if (
       this.accept('->') ||
-      (this.syntax.returnArrow === ':' && this.accept(':'))
+      (this.syntax.returnArrow && this.accept(this.syntax.returnArrow))
     ) {
       returnType = this.typeExpression();
     } else if (this.syntax.typed === 'suffix' && !this.is('{')) {
@@ -617,9 +617,7 @@ class BaseParser {
     // Keyword-delimited blocks (Ruby, Lua) stop at end / else / elsif.
     this.accept('then');
     this.accept('do');
-    const statements = this.items(() =>
-      ['end', 'else', 'elsif', 'elseif'].some((word) => this.is(word))
-    );
+    const statements = this.items(() => this.is('end') || startsElse(this));
     return block(statements);
   }
 
@@ -918,9 +916,7 @@ class BaseParser {
     while (this.peek(offset).type === 'newline') {
       offset += 1;
     }
-    if (
-      ['else', 'elif', 'elsif', 'elseif'].some((word) => this.is(word, offset))
-    ) {
+    if (startsElse(this, offset)) {
       this.position += offset;
     }
   }
@@ -1493,5 +1489,10 @@ export function sourceType(spelling) {
   return `source:${words}`;
 }
 
+const elseWords = ['else', 'elif', 'elsif', 'elseif'];
+const startsElse = (parser, offset = 0) =>
+  [...elseWords, parser.syntax.elseIf ?? 'else'].some((word) =>
+    parser.is(word, offset)
+  );
 const assignmentSymbols = ['=', '+=', '-=', '*=', '/=', '%=', '++', '--'];
 const stepOperators = { '++': '+=', '--': '-=' };

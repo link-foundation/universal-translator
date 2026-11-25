@@ -111,9 +111,12 @@ const isExitSuccess = (statement) =>
 
 // Collect functions, the entry point and file comments into a Program. The
 // body of `main` becomes the program's main block.
-export function findEntryPoint(source) {
+export function findEntryPoint(source, { from } = {}) {
   const program = collectItems(flattenClasses(source.items));
-  const entry = program.functions.find((item) => entryNames.has(item.name));
+  const own = from && languageSyntax(from).mainName;
+  const entry = program.functions.find(
+    (item) => entryNames.has(item.name) || item.name === own
+  );
   if (!entry) {
     return program;
   }
@@ -240,9 +243,19 @@ function streamParts(expression) {
   return [expression];
 }
 
+const knownPrint = (callee) =>
+  lineCalls.has(callee) ||
+  textCalls.has(callee) ||
+  Object.hasOwn(formatCalls, callee) ||
+  callee === 'echo';
+
 // Which kind of output procedure a call names: 'line' when it ends the line,
 // 'text' when the text carries its own line ends.
-function printKind(callee, { printCalls: own }) {
+function printKind(callee, { printCalls: own, print: renamed }) {
+  // A version of one's own may give the line output another name.
+  if (renamed?.line === callee && !knownPrint(callee)) {
+    return 'line';
+  }
   if (own) {
     return own.line.includes(callee)
       ? 'line'

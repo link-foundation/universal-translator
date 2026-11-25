@@ -14,8 +14,31 @@ import {
   versionSyntax,
 } from './versions.js';
 
-// Fields that name the language; they spell no concept.
-const notWords = new Set(['id', 'label', 'version', 'custom']);
+// Fields that name the language, choose how it is laid out (naming, blocks,
+// the entry point, where types go) or list what a reader accepts: they spell
+// no concept a standard of one's own could rename.
+const notWords = new Set([
+  'id',
+  'label',
+  'version',
+  'custom',
+  'naming',
+  'blocks',
+  'entryPoint',
+  'typed',
+  'arrayFill',
+  'forwardDeclarations',
+  'functionForm',
+  'immutableParameters',
+  'terms',
+  'symbols',
+  'escapeSigils',
+  'quotes',
+  'declarations',
+  'printCalls',
+  'commandCalls',
+  'textConversions',
+]);
 
 const isWords = (value) =>
   typeof value === 'string' ||

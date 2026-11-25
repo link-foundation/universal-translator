@@ -224,6 +224,7 @@ export declare function wikidataLookup(options?: {
   limit?: number;
   interval?: number;
   retries?: number;
+  timeout?: number;
   wait?: (milliseconds: number) => Promise<void>;
 }): DefinitionLookup;
 export declare function lexemeGlosses(

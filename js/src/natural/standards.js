@@ -357,13 +357,15 @@ const wikidataApi = 'https://www.wikidata.org/w/api.php';
 // once; a cache filled ahead of time makes the lookup work offline.
 // Requests are spaced `interval` milliseconds apart, and a request Wikidata
 // refuses for being too frequent (429) is retried after the time it asks
-// for, at most `retries` times.
+// for, at most `retries` times. A request without an answer in `timeout`
+// milliseconds fails, so a lost connection cannot keep a caller waiting.
 export function wikidataLookup({
   fetch = globalThis.fetch,
   cache = new Map(),
   limit = 5,
   interval = 0,
   retries = 3,
+  timeout = 20000,
   wait = (milliseconds) =>
     new Promise((resolve) => setTimeout(resolve, milliseconds)),
 } = {}) {
@@ -379,7 +381,9 @@ export function wikidataLookup({
       await wait(next - now);
     }
     next = Math.max(now, next) + interval;
-    const response = await fetch(`${wikidataApi}?${query}`);
+    const response = await fetch(`${wikidataApi}?${query}`, {
+      signal: AbortSignal.timeout(timeout),
+    });
     if (response.status === 429 && attempt < retries) {
       const after = Number(response.headers?.get?.('retry-after'));
       await wait(

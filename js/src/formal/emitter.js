@@ -396,13 +396,33 @@ class BaseEmitter {
       throw new Error(`No output procedure for ${this.syntax.label}`);
     }
     const parts = value.kind === 'Interpolation' ? value.parts : [value];
-    return printer(this, {
-      value,
-      newline,
-      parts,
-      lineParts: newline ? [...parts, { kind: 'Text', value: '\n' }] : parts,
-      single: () => this.expression(value),
-    });
+    return this.ownSpelling(
+      'print.line',
+      printer(this, {
+        value,
+        newline,
+        parts,
+        lineParts: newline ? [...parts, { kind: 'Text', value: '\n' }] : parts,
+        single: () => this.expression(value),
+      })
+    );
+  }
+
+  // A version of one's own may spell a word of its language differently
+  // (print.line, returnArrow, mainName, ...): the usual spelling a writer
+  // put down is replaced by its own.
+  ownSpelling(concept, written) {
+    const spelling = (syntax) =>
+      concept.split('.').reduce((table, key) => table?.[key], syntax);
+    const own = spelling(this.syntax);
+    const usual = spelling(languageSyntax(this.syntax.id));
+    return typeof own === 'string' &&
+      typeof usual === 'string' &&
+      usual &&
+      own !== usual &&
+      written.includes(usual)
+      ? written.replace(usual, own)
+      : written;
   }
 
   interpolationOrText(parts) {
@@ -588,7 +608,7 @@ class BaseEmitter {
       return `${this.syntax.elseIf ?? 'elif'} ${condition}:`;
     }
     if (this.id === 'lua') {
-      return `elseif ${condition} then`;
+      return `${this.syntax.elseIf ?? 'elseif'} ${condition} then`;
     }
     return `${this.syntax.elseIf} ${condition}`;
   }
@@ -682,7 +702,9 @@ class BaseEmitter {
     const names = item.parameters.map((parameter) => parameter.name).join(', ');
     const returns = item.returnType;
     const after = (arrow) =>
-      returns === 'nothing' ? '' : `${arrow}${this.type(returns)}`;
+      returns === 'nothing'
+        ? ''
+        : `${this.ownSpelling('returnArrow', arrow)}${this.type(returns)}`;
     const head = write({
       name: item.name,
       typed,
@@ -736,7 +758,7 @@ class BaseEmitter {
   }
 
   mainHeader() {
-    return {
+    const header = {
       c: 'int main(void)',
       cpp: 'int main()',
       go: 'func main()',
@@ -749,6 +771,7 @@ class BaseEmitter {
       julia: 'function main()',
       d: 'void main()',
     }[this.id];
+    return header && this.ownSpelling('mainName', header);
   }
 
   program(program) {
@@ -786,7 +809,7 @@ class BaseEmitter {
     this.lines = [];
     // File comments come first, except where a header must open the file.
     if (this.id === 'php') {
-      this.lines.push('<?php', '');
+      this.lines.push(this.syntax.header ?? '<?php', '');
     }
     for (const text of program.comments) {
       this.comment(text);

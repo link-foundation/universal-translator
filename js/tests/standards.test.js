@@ -405,6 +405,19 @@ describe('definitions from Wikidata', () => {
     expect(waits).toEqual([1000]);
   });
 
+  it('gives up on a request without an answer', async () => {
+    const fetch = (url, { signal }) =>
+      new Promise((resolve, reject) =>
+        signal.addEventListener('abort', () => reject(signal.reason))
+      );
+    const lookup = wikidataLookup({ fetch, timeout: 10 });
+    const failure = await lookup('silence').then(
+      () => undefined,
+      (error) => error
+    );
+    expect(failure?.name).toBe('TimeoutError');
+  });
+
   const cacheFile = 'data/definitions/wikidata-english.lino';
   it('defines words offline from the Wikidata pre-cache', async () => {
     expect(existsSync(cacheFile)).toBe(true);
