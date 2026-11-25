@@ -214,6 +214,9 @@ struct Lexer<'a> {
     indentation: Vec<usize>,
     /// Open brackets; newlines inside them are not significant.
     depth: usize,
+    /// Comment lines waiting for the next code line to show their block:
+    /// (index of their first token, width).
+    pending: Vec<(usize, usize)>,
 }
 
 type Reader<'a> = fn(&mut Lexer<'a>) -> Result<bool, GrammarError>;
@@ -233,6 +236,7 @@ impl<'a> Lexer<'a> {
             line_start: true,
             indentation: vec![0],
             depth: 0,
+            pending: Vec::new(),
         }
     }
 
@@ -266,9 +270,8 @@ impl<'a> Lexer<'a> {
         {
             self.push(TokenType::Newline, "\n");
         }
-        while self.indentation.len() > 1 {
-            self.indentation.pop();
-            self.push(TokenType::Dedent, "0");
+        if self.syntax.blocks == Blocks::Indentation {
+            self.place_blocks(0);
         }
         self.push(TokenType::End, "");
         Ok(self.tokens)
@@ -320,23 +323,54 @@ impl<'a> Lexer<'a> {
             .take_while(|c| **c == ' ' || **c == '\t')
             .count();
         match self.at(width) {
-            None | Some('\r' | '\n' | '#') => return Ok(()),
+            None | Some('\r' | '\n') => return Ok(()),
             _ if self.depth > 0 => return Ok(()),
             _ => {}
         }
+        if self.starts_comment(self.index + width) {
+            self.pending.push((self.tokens.len(), width));
+            return Ok(());
+        }
+        self.place_blocks(width);
+        if Some(&width) != self.indentation.last() {
+            return Err(GrammarError::syntax("Inconsistent indentation", self.line));
+        }
+        Ok(())
+    }
+
+    fn starts_comment(&self, index: usize) -> bool {
+        let open = self.syntax.block_comment.map(|(open, _)| open);
+        [Some(self.syntax.line_comment), open]
+            .into_iter()
+            .flatten()
+            .any(|marker| !marker.is_empty() && self.starts_with(marker, index))
+    }
+
+    /// Open or close blocks up to a code line of this width. Comment lines
+    /// before it go into the new block when it opens one; when it closes
+    /// blocks, the comments indented deeper than it stay in the block they
+    /// follow, and the others go after the closed blocks.
+    fn place_blocks(&mut self, width: usize) {
+        let pending = std::mem::take(&mut self.pending);
+        let start = pending.first().map_or(self.tokens.len(), |(at, _)| *at);
+        let comments = self.tokens.split_off(start);
         let current = |lexer: &Self| *lexer.indentation.last().unwrap_or(&0);
+        let mut inside = pending
+            .iter()
+            .find(|(_, comment)| *comment <= width)
+            .map_or(comments.len(), |(at, _)| at - start);
         if width > current(self) {
             self.indentation.push(width);
             self.push(TokenType::Indent, &width.to_string());
+            inside = 0;
         }
+        let mut comments = comments.into_iter();
+        self.tokens.extend(comments.by_ref().take(inside));
         while width < current(self) {
             self.indentation.pop();
             self.push(TokenType::Dedent, &width.to_string());
         }
-        if width != current(self) {
-            return Err(GrammarError::syntax("Inconsistent indentation", self.line));
-        }
-        Ok(())
+        self.tokens.extend(comments);
     }
 
     fn newline(&mut self) -> Result<bool, GrammarError> {

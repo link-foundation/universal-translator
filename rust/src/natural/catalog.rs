@@ -285,10 +285,7 @@ pub const SOURCES: &[(&str, &str)] = &[
         "telugu.lino",
         include_str!("../../../data/natural/telugu.lino"),
     ),
-    (
-        "thai.lino",
-        include_str!("../../../data/natural/thai.lino"),
-    ),
+    ("thai.lino", include_str!("../../../data/natural/thai.lino")),
     (
         "turkish.lino",
         include_str!("../../../data/natural/turkish.lino"),
@@ -297,10 +294,7 @@ pub const SOURCES: &[(&str, &str)] = &[
         "ukrainian.lino",
         include_str!("../../../data/natural/ukrainian.lino"),
     ),
-    (
-        "urdu.lino",
-        include_str!("../../../data/natural/urdu.lino"),
-    ),
+    ("urdu.lino", include_str!("../../../data/natural/urdu.lino")),
     (
         "vietnamese.lino",
         include_str!("../../../data/natural/vietnamese.lino"),

@@ -312,3 +312,7 @@ export interface TranslationServerOptions {
 export declare function createTranslationServer(
   options?: TranslationServerOptions
 ): import('node:http').Server;
+
+/** A meta program (or fragment) as indented Links Notation: one line per
+ * node, its kind and plain fields first, child nodes indented below. */
+export declare function formatMeta(program: unknown): string;

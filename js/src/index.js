@@ -45,6 +45,7 @@ export {
 } from './formal/common-library.js';
 export { lowerProgram } from './formal/lowering.js';
 export { liftProgram } from './formal/lifting.js';
+export { formatMeta } from './meta/notation.js';
 export {
   machineReaders,
   readCil,

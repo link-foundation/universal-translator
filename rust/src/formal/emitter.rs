@@ -895,9 +895,10 @@ impl Emitter {
         for statement in &statements {
             self.statement(statement)?;
         }
-        // A block that only holds comments still needs a statement.
-        let trivia = |it: &Node| matches!(it.kind.as_str(), "Comment" | "Blank");
-        if statements.iter().all(trivia) && self.syntax.blocks == Blocks::Indentation {
+        // A nested block that only holds comments still needs a statement.
+        let trivia = |it: &&Node| matches!(it.kind.as_str(), "Comment" | "Blank");
+        let indented = self.syntax.blocks == Blocks::Indentation && self.depth > 0;
+        if indented && statements.iter().all(|it| trivia(&it)) {
             self.line(self.syntax.empty_statement.unwrap_or("pass"));
         }
         Ok(())

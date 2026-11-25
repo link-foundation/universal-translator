@@ -487,7 +487,11 @@ class BaseEmitter {
       this.statement(statement);
     }
     // A block that only holds comments still needs a statement.
-    if (statements.every(isTrivia) && this.syntax.blocks === 'indentation') {
+    if (
+      statements.every(isTrivia) &&
+      this.syntax.blocks === 'indentation' &&
+      this.depth > 0
+    ) {
       this.line(this.syntax.emptyStatement ?? 'pass');
     }
   }

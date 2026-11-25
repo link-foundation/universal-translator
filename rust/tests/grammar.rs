@@ -474,3 +474,53 @@ fn refuses_programs_it_cannot_lower() {
         .unwrap_err();
     assert!(error.to_string().contains("cannot lower"), "{error}");
 }
+
+// ---- comments inside indented blocks ----
+
+#[test]
+fn keeps_a_comment_that_opens_an_indented_block() {
+    let python = "def sq(n):\n    # square it\n    return n * n\n\nprint(sq(2))\n";
+    let javascript = translate(python, "python", "javascript");
+    assert_eq!(
+        javascript,
+        "function sq(n) {\n    // square it\n    return n * n;\n}\n\nconsole.log(sq(2));\n"
+    );
+    assert_eq!(translate(&javascript, "javascript", "python"), python);
+}
+
+#[test]
+fn keeps_comments_that_close_an_indented_block() {
+    let python = "def sq(n):\n    return n * n\n    # inside\n# outside\nprint(sq(2))\n";
+    let javascript = translate(python, "python", "javascript");
+    assert_eq!(
+        javascript,
+        "function sq(n) {\n    return n * n;\n    // inside\n}\n\n// outside\nconsole.log(sq(2));\n"
+    );
+    assert_eq!(
+        translate(&javascript, "javascript", "python"),
+        "def sq(n):\n    return n * n\n    # inside\n\n# outside\nprint(sq(2))\n"
+    );
+    assert_eq!(translate("// only\n", "javascript", "python"), "# only\n");
+}
+
+// ---- the meta view ----
+
+#[test]
+fn shows_the_meta_program_as_links_notation() {
+    let meta = Translator::new()
+        .to_meta("# hi\nx = 'a b'\nprint(x * 3)\n", "python")
+        .expect("python");
+    assert_eq!(
+        universal_translator::meta::notation::format_meta(&meta),
+        "program (comments hi)
+  main: block
+    statements
+      declaration (mutable false) (name x) (type text)
+        value: text (type text) (value 'a b')
+      print (newline true)
+        value: binary (operator multiply) (type integer)
+          left: name (name x) (type text)
+          right: number (type integer) (value 3)
+"
+    );
+}

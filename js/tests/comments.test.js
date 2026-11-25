@@ -96,3 +96,28 @@ describe('comment language', () => {
     expect(output).toBe('// число\nlet x = 1;\n');
   });
 });
+
+describe('comments inside indented blocks', () => {
+  it('keeps a comment that opens an indented block', () => {
+    const python =
+      'def sq(n):\n    # square it\n    return n * n\n\nprint(sq(2))\n';
+    const javascript = translate(python, 'python', 'javascript');
+    expect(javascript).toBe(
+      'function sq(n) {\n    // square it\n    return n * n;\n}\n\nconsole.log(sq(2));\n'
+    );
+    expect(translate(javascript, 'javascript', 'python')).toBe(python);
+  });
+
+  it('keeps comments that close an indented block', () => {
+    const python =
+      'def sq(n):\n    return n * n\n    # inside\n# outside\nprint(sq(2))\n';
+    const javascript = translate(python, 'python', 'javascript');
+    expect(javascript).toBe(
+      'function sq(n) {\n    return n * n;\n    // inside\n}\n\n// outside\nconsole.log(sq(2));\n'
+    );
+    expect(translate(javascript, 'javascript', 'python')).toBe(
+      'def sq(n):\n    return n * n\n    # inside\n\n# outside\nprint(sq(2))\n'
+    );
+    expect(translate('// only\n', 'javascript', 'python')).toBe('# only\n');
+  });
+});
