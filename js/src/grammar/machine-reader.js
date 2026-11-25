@@ -7,6 +7,8 @@
 // A reader returns { comments, functions, main }. Every function has
 // { name, parameterCount, slotNames, returns, comments, code }.
 
+import { jasminVariable } from './machine.js';
+
 const relationsByJump = (table) =>
   Object.fromEntries(Object.entries(table).map(([key, value]) => [value, key]));
 
@@ -547,7 +549,7 @@ export function readJvm(source) {
       const [, number, slotName] = body
         .shift()
         .match(/^\.var (\d+) is (\w+) \[?J$/);
-      slotNames[(Number(number) - base) / 2] = slotName;
+      slotNames[(Number(number) - base) / 2] = jasminVariable(slotName);
     }
     const slotOf = (number) => (Number(number) - base) / 2;
     items.push({

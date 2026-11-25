@@ -5,6 +5,46 @@
 
 import { lowerProgram } from './lowering.js';
 
+// Jasmin reads these words as instructions or keywords, so a variable named
+// like one (swap, pop, new) is written with a trailing underscore, which the
+// reader removes again.
+const jasminWords = new Set(
+  `
+  aaload aastore abstract aconst_null aload aload_0 aload_1 aload_2 aload_3
+  anewarray annotation areturn arraylength astore astore_0 astore_1 astore_2
+  astore_3 athrow baload bastore bipush breakpoint caload castore checkcast
+  d2f d2i d2l dadd daload dastore dcmpg dcmpl dconst_0 dconst_1 ddiv default
+  dload dload_0 dload_1 dload_2 dload_3 dmul dneg drem dreturn dstore
+  dstore_0 dstore_1 dstore_2 dstore_3 dsub dup dup2 dup2_x1 dup2_x2 dup_x1
+  dup_x2 enum f2d f2i f2l fadd faload fastore fcmpg fcmpl fconst_0 fconst_1
+  fconst_2 fdiv final fload fload_0 fload_1 fload_2 fload_3 fmul fneg frem
+  freturn from fstore fstore_0 fstore_1 fstore_2 fstore_3 fsub getfield
+  getstatic goto goto_w i2b i2c i2d i2f i2l i2s iadd iaload iand iastore
+  iconst_0 iconst_1 iconst_2 iconst_3 iconst_4 iconst_5 iconst_m1 idiv
+  if_acmpeq if_acmpne if_icmpeq if_icmpge if_icmpgt if_icmple if_icmplt
+  if_icmpne ifeq ifge ifgt ifle iflt ifne ifnonnull ifnull iinc iload iload_0
+  iload_1 iload_2 iload_3 imul ineg instanceof int2byte int2char int2short
+  interface invokedynamic invokeinterface invokenonvirtual invokespecial
+  invokestatic invokevirtual ior irem ireturn is ishl ishr istore istore_0
+  istore_1 istore_2 istore_3 isub iushr ixor jsr jsr_w l2d l2f l2i ladd
+  laload land lastore lcmp lconst_0 lconst_1 ldc ldc2_w ldc_w ldiv lload
+  lload_0 lload_1 lload_2 lload_3 lmul lneg lookupswitch lor lrem lreturn
+  lshl lshr lstore lstore_0 lstore_1 lstore_2 lstore_3 lsub lushr lxor method
+  monitorenter monitorexit multianewarray native new newarray nop pop pop2
+  private public putfield putstatic ret ret_w return saload sastore sipush
+  static strictfp swap synchronized tableswitch to using volatile wide
+`
+    .trim()
+    .split(/\s+/)
+);
+
+export const jasminName = (name) => (jasminWords.has(name) ? `${name}_` : name);
+
+export const jasminVariable = (name) =>
+  name.endsWith('_') && jasminWords.has(name.slice(0, -1))
+    ? name.slice(0, -1)
+    : name;
+
 export const machineTargets = {
   nasm: {
     label: 'x86-64 assembly',
@@ -488,7 +528,7 @@ function jvmMethod(item, descriptors) {
     `.limit locals ${base + 2 * item.slotCount}`,
     ...item.slotNames.map(
       (slotName, index) =>
-        `.var ${slot(index)} is ${slotName} ${isArray(index) ? '[J' : 'J'}`
+        `.var ${slot(index)} is ${jasminName(slotName)} ${isArray(index) ? '[J' : 'J'}`
     ),
   ];
   for (const [operation, ...operands] of item.code) {

@@ -14,6 +14,7 @@ use regex::{Captures, Regex};
 
 use super::GrammarError;
 use super::lowering::{Instruction, LoweredProgram, Procedure};
+use super::machine::jasmin_variable;
 
 type Result<T> = std::result::Result<T, GrammarError>;
 
@@ -853,7 +854,7 @@ pub fn read_jvm(source: &str) -> Result<LoweredProgram> {
             if named.len() <= slot {
                 named.resize(slot + 1, None);
             }
-            named[slot] = Some(group(&declared, 2).to_owned());
+            named[slot] = Some(jasmin_variable(group(&declared, 2)).to_owned());
         }
         let code = read_instructions(&body, &jvm_rules(base), "jvm")?;
         items.push(procedure(

@@ -10,7 +10,7 @@
     .var 3 is count J
     .var 5 is pass J
     .var 7 is index J
-    .var 9 is swap J
+    .var 9 is swap_ J
     .var 11 is position J
     ldc2_w 7
     ldc2_w 0
