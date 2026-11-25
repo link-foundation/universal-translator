@@ -1,0 +1,12 @@
+Catatan: Bubble sort in JavaScript: sort a list of numbers
+
+Buat angka dengan nilai daftar (5, 3, 8, 1, 9, 2, 7).
+Buat hitungan dengan nilai panjang angka.
+Untuk setiap putaran dari 0 sampai hitungan dikurangi 1 dikurangi 1, ulangi ini:
+  Untuk setiap indeks dari 0 sampai hitungan dikurangi 1 dikurangi putaran dikurangi 1, ulangi ini:
+    Jika elemen indeks pada angka lebih dari elemen (indeks ditambah 1) pada angka, lakukan ini:
+      Buat tukar dengan nilai elemen indeks pada angka.
+      Ubah elemen indeks pada angka menjadi elemen (indeks ditambah 1) pada angka.
+      Ubah elemen (indeks ditambah 1) pada angka menjadi tukar.
+Untuk setiap posisi dari 0 sampai hitungan dikurangi 1, ulangi ini:
+  Tulis elemen posisi pada angka dan akhiri baris.

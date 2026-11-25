@@ -1,0 +1,14 @@
+Note: Mutual recursion in JavaScript: the Hofstadter Female and Male sequences
+
+Here is how to work out female from index:
+  If index is 0, do this:
+    The answer is 1.
+  The answer is index minus male of (female of (index minus 1)).
+
+Here is how to work out male from index:
+  If index is 0, do this:
+    The answer is 0.
+  The answer is index minus female of (male of (index minus 1)).
+
+For each index from 0 to 19, do this:
+  Show index then “: ” then female of (index) then “ ” then male of (index) on its own line.

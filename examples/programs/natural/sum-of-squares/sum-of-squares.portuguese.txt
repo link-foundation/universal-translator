@@ -1,0 +1,13 @@
+Nota: Sum of squares in JavaScript
+
+Definir soma-de-quadrados usando limite:
+  Criar total com valor 0.
+  Criar número com valor 1.
+  Enquanto número é no máximo limite, repetir isto:
+    Mudar total para total mais número vezes número.
+    Mudar número para número mais 1.
+  Devolver total.
+
+Criar limite com valor 10.
+Escrever “Sum of squares from 1 to ” seguido de limite seguido de “:” e terminar a linha.
+Escrever soma-de-quadrados de (limite) e terminar a linha.

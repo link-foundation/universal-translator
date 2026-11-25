@@ -1,0 +1,13 @@
+Opmerking: Sum of squares in JavaScript
+
+Definieer som-van-kwadraten met limiet:
+  Maak totaal met waarde 0.
+  Maak getal met waarde 1.
+  Zolang getal is hoogstens limiet, herhaal dit:
+    Verander totaal in totaal plus getal maal getal.
+    Verander getal in getal plus 1.
+  Geef totaal terug.
+
+Maak limiet met waarde 10.
+Schrijf “Sum of squares from 1 to ” gevolgd door limiet gevolgd door “:” en beëindig de regel.
+Schrijf som-van-kwadraten van (limiet) en beëindig de regel.

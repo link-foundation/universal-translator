@@ -1,0 +1,13 @@
+Remarque : Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+Il y a limite, c'est 100.
+Il y a est-premier, c'est (limite plus 1) choses comme 1.
+Après ceci, la partie 0 de est-premier est 0.
+Après ceci, la partie 1 de est-premier est 0.
+Pour tous les nombre de 2 à limite, faire ceci:
+  Si la partie nombre de est-premier est le même que 1, faire ceci:
+    Dire nombre sur une ligne.
+    Il y a multiple, c'est nombre fois nombre.
+    Quand multiple n'est pas plus que limite, faire ceci beaucoup de fois:
+      Après ceci, la partie multiple de est-premier est 0.
+      Après ceci, multiple est multiple plus nombre.

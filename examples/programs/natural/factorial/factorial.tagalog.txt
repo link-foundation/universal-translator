@@ -1,0 +1,9 @@
+Tala: Factorial in JavaScript, defined recursively
+
+Tukuyin ang paktoryal gamit ang numero:
+  Kung numero ay hindi hihigit sa 1, gawin ito:
+    Ibalik ang 1.
+  Ibalik ang numero beses paktoryal ng (numero bawas 1).
+
+Para sa bawat numero mula 0 hanggang 10, ulitin ito:
+  Isulat ang numero na sinusundan ng “! = ” na sinusundan ng paktoryal ng (numero) at tapusin ang linya.

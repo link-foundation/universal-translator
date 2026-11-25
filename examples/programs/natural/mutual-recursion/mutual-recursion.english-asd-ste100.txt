@@ -1,0 +1,14 @@
+Note: Mutual recursion in JavaScript: the Hofstadter Female and Male sequences
+
+Procedure female with index:
+  If index equals 0, do these steps:
+    Return 1.
+  Return index minus male of (female of (index minus 1)).
+
+Procedure male with index:
+  If index equals 0, do these steps:
+    Return 0.
+  Return index minus female of (male of (index minus 1)).
+
+For each index from 0 to 19, do these steps:
+  Write line index then “: ” then female of (index) then “ ” then male of (index).

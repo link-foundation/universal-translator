@@ -1,0 +1,14 @@
+Remarque : Mutual recursion in JavaScript: the Hofstadter Female and Male sequences
+
+Définir féminin avec indice:
+  Si indice est égal à 0, faire ceci:
+    Renvoyer 1.
+  Renvoyer indice moins masculin de (féminin de (indice moins 1)).
+
+Définir masculin avec indice:
+  Si indice est égal à 0, faire ceci:
+    Renvoyer 0.
+  Renvoyer indice moins féminin de (masculin de (indice moins 1)).
+
+Pour chaque indice de 0 à 19, répéter ceci:
+  Écrire indice suivi de «: » suivi de féminin de (indice) suivi de « » suivi de masculin de (indice) et finir la ligne.

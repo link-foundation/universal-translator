@@ -1,0 +1,7 @@
+Ghi chú: 99 bottles of beer in JavaScript
+
+Tạo chai với giá trị 99.
+Trong khi chai lớn hơn 0, lặp lại điều này:
+  Viết chai nối với “ bottles of beer on the wall, ” nối với chai nối với “ bottles of beer.” và xuống dòng.
+  Viết “Take one down and pass it around, ” nối với chai trừ 1 nối với “ bottles of beer on the wall.” và xuống dòng.
+  Đổi chai thành chai trừ 1.

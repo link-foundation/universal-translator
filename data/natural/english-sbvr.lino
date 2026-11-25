@@ -1,0 +1,31 @@
+natural:
+  id: english-sbvr
+  label: 'English (SBVR Structured English)'
+  extends: english
+  profile: sbvr
+  source: 'https://www.omg.org/spec/SBVR/'
+  templates:
+    function: 'Rule {name} with {parameters} is defined as follows'
+    function-without-parameters: 'Rule {name} is defined as follows'
+    declare: 'It is obligatory that {name} is initially {value}'
+    assign: 'It is obligatory that {name} becomes {value}'
+    print-line: 'It is obligatory that the output shows {value} as a line'
+    print: 'It is obligatory that the output shows {value}'
+    return-value: 'It is obligatory that the result is {value}'
+    return: 'It is obligatory that the rule ends'
+    nothing: 'It is permitted that nothing happens'
+    evaluate: 'It is obligatory that {expression} is performed'
+    if: 'If {condition} then the following applies'
+    else-if: 'Otherwise if {condition} then the following applies'
+    else: 'Otherwise the following applies'
+    while: 'As long as {condition} the following applies repeatedly'
+    for: 'For each {variable} from {start} to {last} the following applies'
+    equal: '{left} is equal to {right}'
+    not-equal: '{left} is not equal to {right}'
+    less: '{left} is less than {right}'
+    less-or-equal: '{left} is at most {right}'
+    greater: '{left} is greater than {right}'
+    greater-or-equal: '{left} is at least {right}'
+    set-element: 'It is obligatory that item {index} of {name} becomes {value}'
+  rules:
+    sentence-starts: rule it if otherwise as for

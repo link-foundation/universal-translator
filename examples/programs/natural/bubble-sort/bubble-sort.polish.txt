@@ -1,0 +1,12 @@
+Uwaga: Bubble sort in JavaScript: sort a list of numbers
+
+Utwórz liczby z wartością lista (5, 3, 8, 1, 9, 2, 7).
+Utwórz licznik z wartością długość liczby.
+Dla każdego przebieg od 0 do licznik minus 1 minus 1 powtarzaj to:
+  Dla każdego indeks od 0 do licznik minus 1 minus przebieg minus 1 powtarzaj to:
+    Jeśli element indeks listy liczby przekracza element (indeks plus 1) listy liczby, zrób to:
+      Utwórz zamiana z wartością element indeks listy liczby.
+      Zmień element indeks listy liczby na element (indeks plus 1) listy liczby.
+      Zmień element (indeks plus 1) listy liczby na zamiana.
+Dla każdego pozycja od 0 do licznik minus 1 powtarzaj to:
+  Wypisz element pozycja listy liczby i zakończ wiersz.

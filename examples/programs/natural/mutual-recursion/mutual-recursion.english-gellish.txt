@@ -1,0 +1,14 @@
+Note: Mutual recursion in JavaScript: the Hofstadter Female and Male sequences
+
+Female is defined as a procedure with input index:
+  If index is equal to 0 then the following is performed:
+    The procedure has as result 1.
+  The procedure has as result index minus male applied to (female applied to (index minus 1)).
+
+Male is defined as a procedure with input index:
+  If index is equal to 0 then the following is performed:
+    The procedure has as result 0.
+  The procedure has as result index minus female applied to (male applied to (index minus 1)).
+
+For each index from 0 to 19 the following is repeated:
+  The output has as next line index concatenated with “: ” concatenated with female applied to (index) concatenated with “ ” concatenated with male applied to (index).

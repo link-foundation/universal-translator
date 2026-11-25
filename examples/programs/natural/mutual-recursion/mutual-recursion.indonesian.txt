@@ -1,0 +1,14 @@
+Catatan: Mutual recursion in JavaScript: the Hofstadter Female and Male sequences
+
+Definisikan perempuan dengan indeks:
+  Jika indeks sama dengan 0, lakukan ini:
+    Kembalikan 1.
+  Kembalikan indeks dikurangi lelaki dari (perempuan dari (indeks dikurangi 1)).
+
+Definisikan lelaki dengan indeks:
+  Jika indeks sama dengan 0, lakukan ini:
+    Kembalikan 0.
+  Kembalikan indeks dikurangi perempuan dari (lelaki dari (indeks dikurangi 1)).
+
+Untuk setiap indeks dari 0 sampai 19, ulangi ini:
+  Tulis indeks diikuti “: ” diikuti perempuan dari (indeks) diikuti “ ” diikuti lelaki dari (indeks) dan akhiri baris.

@@ -1,0 +1,10 @@
+Tala: Greatest common divisor in JavaScript, using the Euclidean algorithm
+
+Tukuyin ang pinakamalaki-karaniwan-panghati gamit ang una at ikalawa:
+  Habang ikalawa ay hindi katumbas ng 0, ulitin ito:
+    Lumikha ng natira na may halagang una modulo ikalawa.
+    Palitan ang una ng ikalawa.
+    Palitan ang ikalawa ng natira.
+  Ibalik ang una.
+
+Isulat ang “The greatest common divisor of 1071 and 462 is ” na sinusundan ng pinakamalaki-karaniwan-panghati ng (1071, 462) at tapusin ang linya.

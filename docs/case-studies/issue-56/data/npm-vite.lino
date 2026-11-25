@@ -1,0 +1,1 @@
+(snapshot: (object: (version: (string: 8.0.12)) (repository: (object: (type: (string: git)) (url: (string: 'git+https://github.com/vitejs/vite.git')) (directory: (string: packages/vite)))) (homepage: (string: 'https://vite.dev')) (license: (string: MIT)) (description: (string: 'Native-ESM powered web dev build tool'))))

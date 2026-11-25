@@ -1,0 +1,10 @@
+Catatan: Greatest common divisor in JavaScript, using the Euclidean algorithm
+
+Definisikan terbesar-bersama-pembagi dengan pertama dan kedua:
+  Selama kedua tidak sama dengan 0, ulangi ini:
+    Buat sisa dengan nilai pertama modulo kedua.
+    Ubah pertama menjadi kedua.
+    Ubah kedua menjadi sisa.
+  Kembalikan pertama.
+
+Tulis “The greatest common divisor of 1071 and 462 is ” diikuti terbesar-bersama-pembagi dari (1071, 462) dan akhiri baris.

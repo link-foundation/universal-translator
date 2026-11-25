@@ -1,0 +1,7 @@
+Tala: 99 bottles of beer in JavaScript
+
+Lumikha ng bote na may halagang 99.
+Habang bote ay mas mataas sa 0, ulitin ito:
+  Isulat ang bote na sinusundan ng “ bottles of beer on the wall, ” na sinusundan ng bote na sinusundan ng “ bottles of beer.” at tapusin ang linya.
+  Isulat ang “Take one down and pass it around, ” na sinusundan ng bote bawas 1 na sinusundan ng “ bottles of beer on the wall.” at tapusin ang linya.
+  Palitan ang bote ng bote bawas 1.

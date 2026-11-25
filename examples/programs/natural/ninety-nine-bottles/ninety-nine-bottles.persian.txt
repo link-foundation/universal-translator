@@ -1,0 +1,7 @@
+یادداشت: 99 bottles of beer in JavaScript
+
+بطری‌ها را با مقدار 99 بساز.
+تا وقتی بطری‌ها بیشتر از 0 است این را تکرار کن:
+  بطری‌ها سپس « bottles of beer on the wall, » سپس بطری‌ها سپس « bottles of beer.» را بنویس و سطر را تمام کن.
+  «Take one down and pass it around, » سپس بطری‌ها منهای 1 سپس « bottles of beer on the wall.» را بنویس و سطر را تمام کن.
+  بطری‌ها را به بطری‌ها منهای 1 تغییر بده.

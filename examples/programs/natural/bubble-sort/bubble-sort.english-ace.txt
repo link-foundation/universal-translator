@@ -1,0 +1,12 @@
+Note: Bubble sort in JavaScript: sort a list of numbers
+
+There is a variable numbers whose value is the list (5, 3, 8, 1, 9, 2, 7).
+There is a variable count whose value is the length of numbers.
+For every pass from 0 to count minus 1 minus 1 the program does the following:
+  For every index from 0 to count minus 1 minus pass minus 1 the program does the following:
+    If item index of numbers is greater than item (index plus 1) of numbers then the program does the following:
+      There is a variable swap whose value is item index of numbers.
+      The value of item index of numbers becomes item (index plus 1) of numbers.
+      The value of item (index plus 1) of numbers becomes swap.
+For every position from 0 to count minus 1 the program does the following:
+  The program writes a line that contains item position of numbers.

@@ -1,0 +1,15 @@
+Hinweis: Primality by trial division in JavaScript
+
+Definiere ist-Primzahl mit Zahl:
+  Wenn Zahl ist kleiner als 2, tue dies:
+    Gib falsch zurück.
+  Erzeuge Teiler mit dem Wert 2.
+  Solange Teiler mal Teiler ist höchstens Zahl, wiederhole dies:
+    Wenn Zahl modulo Teiler ist gleich 0, tue dies:
+      Gib falsch zurück.
+    Ändere Teiler auf Teiler plus 1.
+  Gib wahr zurück.
+
+Für jedes Zahl von 1 bis 50 wiederhole dies:
+  Wenn ist-Primzahl von (Zahl), tue dies:
+    Schreibe Zahl und beende die Zeile.

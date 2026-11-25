@@ -1,0 +1,16 @@
+Note: Perfect numbers in JavaScript: numbers equal to the sum of their divisors
+
+Is-perfect is defined as a procedure with input number:
+  Sum is classified as a variable with initial value 1.
+  Divisor is classified as a variable with initial value 2.
+  While divisor times divisor is at most number the following is repeated:
+    If number modulo divisor is equal to 0 then the following is performed:
+      Sum has as new value sum plus divisor.
+      If divisor times divisor is not equal to number then the following is performed:
+        Sum has as new value sum plus number divided by divisor.
+    Divisor has as new value divisor plus 1.
+  The procedure has as result number is greater than 1 and sum is equal to number.
+
+For each number from 1 to 10000 the following is repeated:
+  If is-perfect applied to (number) then the following is performed:
+    The output has as next line number.

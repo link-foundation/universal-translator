@@ -1,0 +1,10 @@
+Note: Greatest common divisor in JavaScript, using the Euclidean algorithm
+
+Rule greatest-common-divisor with first and second is defined as follows:
+  As long as second is not equal to 0 the following applies repeatedly:
+    It is obligatory that remainder is initially first modulo second.
+    It is obligatory that first becomes second.
+    It is obligatory that second becomes remainder.
+  It is obligatory that the result is first.
+
+It is obligatory that the output shows “The greatest common divisor of 1071 and 462 is ” followed by greatest-common-divisor of (1071, 462) as a line.

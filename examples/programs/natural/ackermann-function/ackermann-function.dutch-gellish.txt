@@ -1,0 +1,12 @@
+Opmerking: Ackermann function in JavaScript, defined recursively
+
+Ackermann is gedefinieerd als een procedure met invoer eerste en tweede:
+  Als eerste is gelijk aan 0 dan wordt het volgende uitgevoerd:
+    De procedure heeft als resultaat tweede plus 1.
+  Als tweede is gelijk aan 0 dan wordt het volgende uitgevoerd:
+    De procedure heeft als resultaat ackermann toegepast op (eerste min 1, 1).
+  De procedure heeft als resultaat ackermann toegepast op (eerste min 1, ackermann toegepast op (eerste, tweede min 1)).
+
+Voor elke eerste van 0 tot en met 3 wordt het volgende herhaald:
+  Voor elke tweede van 0 tot en met 4 wordt het volgende herhaald:
+    De uitvoer heeft als volgende regel “ackermann(” samengevoegd met eerste samengevoegd met “, ” samengevoegd met tweede samengevoegd met “) = ” samengevoegd met ackermann toegepast op (eerste, tweede).

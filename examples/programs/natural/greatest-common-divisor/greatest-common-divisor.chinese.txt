@@ -1,0 +1,10 @@
+注：Greatest common divisor in JavaScript, using the Euclidean algorithm
+
+定义 最大-公-约数 使用 第一 和 第二：
+  当 第二 不 等于 0 时 重复 这些：
+    创建 余数 值 为 第一 模 第二。
+    把 第一 改 为 第二。
+    把 第二 改 为 余数。
+  返回 第一。
+
+输出 “The greatest common divisor of 1071 and 462 is ” 接 最大-公-约数 (1071， 462) 并 换行。

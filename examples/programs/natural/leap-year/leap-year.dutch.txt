@@ -1,0 +1,10 @@
+Opmerking: Leap year in JavaScript
+
+Definieer is-schrikkel-jaar met jaar:
+  Geef jaar modulo 4 is gelijk aan 0 en jaar modulo 100 is ongelijk aan 0 of jaar modulo 400 is gelijk aan 0 terug.
+
+Voor elke jaar van 1896 tot en met 1912, herhaal dit:
+  Als is-schrikkel-jaar van (jaar), doe dit:
+    Schrijf jaar gevolgd door “ is a leap year” en beëindig de regel.
+  Anders, doe dit:
+    Schrijf jaar gevolgd door “ is not a leap year” en beëindig de regel.

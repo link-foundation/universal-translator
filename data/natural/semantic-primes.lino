@@ -1,0 +1,456 @@
+semantic-primes:
+  i:
+    category: substantives
+    english: 'i' 'me' 'my'
+    french: 'je' 'moi'
+    polish: 'ja' 'mnie'
+    russian: 'я' 'меня'
+    spanish: 'yo'
+  you:
+    category: substantives
+    english: 'you'
+    french: 'tu' 'toi'
+    polish: 'ty' 'ciebie'
+    russian: 'ты' 'тебя'
+    spanish: 'tú'
+  someone:
+    category: substantives
+    english: 'someone' 'somebody' 'who'
+    french: 'quelqu’un' 'qui'
+    polish: 'ktoś' 'kto'
+    russian: 'кто-то' 'кто'
+    spanish: 'alguien'
+  something:
+    category: substantives
+    english: 'something' 'thing' 'anything' 'what'
+    french: 'quelque' 'chose' 'chose' 'quoi'
+    polish: 'coś' 'rzecz' 'co'
+    russian: 'что-то' 'вещь' 'что'
+    spanish: 'algo' 'cosa'
+  people:
+    category: substantives
+    english: 'people'
+    french: 'gens'
+    polish: 'ludzie'
+    russian: 'люди'
+    spanish: 'gente'
+  body:
+    category: substantives
+    english: 'body'
+    french: 'corps'
+    polish: 'ciało'
+    russian: 'тело'
+    spanish: 'cuerpo'
+  kind:
+    category: relational
+    english: 'kind' 'kinds'
+    french: 'sorte'
+    polish: 'rodzaj'
+    russian: 'род'
+    spanish: 'tipo'
+  part:
+    category: relational
+    english: 'part' 'parts'
+    french: 'partie'
+    polish: 'część'
+    russian: 'часть'
+    spanish: 'parte'
+  this:
+    category: determiners
+    english: 'this' 'these' 'that'
+    french: 'ce' 'ceci' 'cette'
+    polish: 'ten' 'to' 'tym'
+    russian: 'этот' 'это'
+    spanish: 'este' 'esto'
+  same:
+    category: determiners
+    english: 'same'
+    french: 'même'
+    polish: 'sam' 'samym'
+    russian: 'тот' 'же'
+    spanish: 'mismo'
+  other:
+    category: determiners
+    english: 'other' 'else'
+    french: 'autre'
+    polish: 'inny'
+    russian: 'другой'
+    spanish: 'otro'
+  one:
+    category: quantifiers
+    english: 'one'
+    french: 'un' 'une'
+    polish: 'jeden' 'jednej'
+    russian: 'один'
+    spanish: 'uno'
+  two:
+    category: quantifiers
+    english: 'two'
+    french: 'deux'
+    polish: 'dwa'
+    russian: 'два'
+    spanish: 'dos'
+  some:
+    category: quantifiers
+    english: 'some'
+    french: 'quelques'
+    polish: 'niektóre'
+    russian: 'некоторые'
+    spanish: 'algunos'
+  all:
+    category: quantifiers
+    english: 'all' 'every'
+    french: 'tout' 'tous'
+    polish: 'wszystkie' 'wszystkich'
+    russian: 'все'
+    spanish: 'todos'
+  much:
+    category: quantifiers
+    english: 'much' 'many'
+    french: 'beaucoup'
+    polish: 'dużo' 'wiele'
+    russian: 'много'
+    spanish: 'mucho'
+  little:
+    category: quantifiers
+    english: 'little' 'few'
+    french: 'peu'
+    polish: 'mało'
+    russian: 'мало'
+    spanish: 'poco'
+  good:
+    category: evaluators
+    english: 'good'
+    french: 'bon'
+    polish: 'dobry'
+    russian: 'хороший'
+    spanish: 'bueno'
+  bad:
+    category: evaluators
+    english: 'bad'
+    french: 'mauvais'
+    polish: 'zły'
+    russian: 'плохой'
+    spanish: 'malo'
+  big:
+    category: descriptors
+    english: 'big'
+    french: 'grand'
+    polish: 'duży'
+    russian: 'большой'
+    spanish: 'grande'
+  small:
+    category: descriptors
+    english: 'small'
+    french: 'petit'
+    polish: 'mały'
+    russian: 'маленький'
+    spanish: 'pequeño'
+  think:
+    category: mental
+    english: 'think'
+    french: 'penser'
+    polish: 'myśleć'
+    russian: 'думать'
+    spanish: 'pensar'
+  know:
+    category: mental
+    english: 'know'
+    french: 'savoir'
+    polish: 'wiedzieć'
+    russian: 'знать'
+    spanish: 'saber'
+  want:
+    category: mental
+    english: 'want'
+    french: 'vouloir'
+    polish: 'chcieć'
+    russian: 'хотеть'
+    spanish: 'querer'
+  don't-want:
+    category: mental
+    english: "don't-want"
+    french: 'ne-pas-vouloir'
+    polish: 'nie-chcieć'
+    russian: 'не-хотеть'
+    spanish: 'no-querer'
+  feel:
+    category: mental
+    english: 'feel'
+    french: 'sentir'
+    polish: 'czuć'
+    russian: 'чувствовать'
+    spanish: 'sentir'
+  see:
+    category: mental
+    english: 'see'
+    french: 'voir'
+    polish: 'widzieć'
+    russian: 'видеть'
+    spanish: 'ver'
+  hear:
+    category: mental
+    english: 'hear'
+    french: 'entendre'
+    polish: 'słyszeć'
+    russian: 'слышать'
+    spanish: 'oír'
+  say:
+    category: speech
+    english: 'say' 'says'
+    french: 'dire'
+    polish: 'mówić' 'powiedzieć'
+    russian: 'сказать'
+    spanish: 'decir'
+  words:
+    category: speech
+    english: 'words'
+    french: 'mots'
+    polish: 'słowa'
+    russian: 'слова'
+    spanish: 'palabras'
+  true:
+    category: speech
+    english: 'true'
+    french: 'vrai'
+    polish: 'prawda'
+    russian: 'правда'
+    spanish: 'verdad'
+  do:
+    category: actions
+    english: 'do' 'does' 'done'
+    french: 'faire' 'fait'
+    polish: 'robić' 'zrobić' 'robi'
+    russian: 'делать'
+    spanish: 'hacer'
+  happen:
+    category: actions
+    english: 'happen' 'happens'
+    french: 'arriver'
+    polish: 'dziać'
+    russian: 'происходить'
+    spanish: 'pasar'
+  move:
+    category: actions
+    english: 'move'
+    french: 'bouger'
+    polish: 'ruszać'
+    russian: 'двигаться'
+    spanish: 'moverse'
+  be-somewhere:
+    category: existence
+    english: 'be-somewhere'
+    french: 'être-quelque-part'
+    polish: 'być-gdzieś'
+    russian: 'быть-где-то'
+    spanish: 'estar'
+  there:
+    category: existence
+    english: 'there' 'is'
+    french: 'il' 'y' 'a'
+    polish: 'jest'
+    russian: 'есть'
+    spanish: 'hay'
+  be:
+    category: existence
+    english: 'be' 'is' 'are'
+    french: 'être' 'est'
+    polish: 'być' 'jest'
+    russian: 'быть'
+    spanish: 'ser'
+  mine:
+    category: possession
+    english: 'mine'
+    french: 'à-moi'
+    polish: 'mój'
+    russian: 'мой'
+    spanish: 'mío'
+  live:
+    category: life
+    english: 'live'
+    french: 'vivre'
+    polish: 'żyć'
+    russian: 'жить'
+    spanish: 'vivir'
+  die:
+    category: life
+    english: 'die'
+    french: 'mourir'
+    polish: 'umrzeć'
+    russian: 'умереть'
+    spanish: 'morir'
+  when:
+    category: time
+    english: 'when' 'time'
+    french: 'quand' 'moment'
+    polish: 'kiedy' 'czas'
+    russian: 'когда' 'время'
+    spanish: 'cuando' 'tiempo'
+  now:
+    category: time
+    english: 'now'
+    french: 'maintenant'
+    polish: 'teraz'
+    russian: 'сейчас'
+    spanish: 'ahora'
+  before:
+    category: time
+    english: 'before'
+    french: 'avant'
+    polish: 'przed'
+    russian: 'до'
+    spanish: 'antes'
+  after:
+    category: time
+    english: 'after'
+    french: 'après'
+    polish: 'po'
+    russian: 'после'
+    spanish: 'después'
+  a-long-time:
+    category: time
+    english: 'a-long-time'
+    french: 'longtemps'
+    polish: 'długo'
+    russian: 'долго'
+    spanish: 'mucho-tiempo'
+  a-short-time:
+    category: time
+    english: 'a-short-time'
+    french: 'peu-de-temps'
+    polish: 'krótko'
+    russian: 'недолго'
+    spanish: 'poco-tiempo'
+  for-some-time:
+    category: time
+    english: 'for-some-time'
+    french: 'pendant-un-certain-temps'
+    polish: 'przez-jakiś-czas'
+    russian: 'некоторое-время'
+    spanish: 'por-un-tiempo'
+  moment:
+    category: time
+    english: 'moment'
+    french: 'instant'
+    polish: 'chwila'
+    russian: 'момент'
+    spanish: 'momento'
+  where:
+    category: space
+    english: 'where' 'place'
+    french: 'où' 'endroit'
+    polish: 'gdzie' 'miejsce'
+    russian: 'где' 'место'
+    spanish: 'donde' 'lugar'
+  here:
+    category: space
+    english: 'here'
+    french: 'ici'
+    polish: 'tutaj'
+    russian: 'здесь'
+    spanish: 'aquí'
+  above:
+    category: space
+    english: 'above'
+    french: 'au-dessus'
+    polish: 'nad'
+    russian: 'над'
+    spanish: 'arriba'
+  below:
+    category: space
+    english: 'below'
+    french: 'au-dessous'
+    polish: 'pod'
+    russian: 'под'
+    spanish: 'abajo'
+  far:
+    category: space
+    english: 'far'
+    french: 'loin'
+    polish: 'daleko'
+    russian: 'далеко'
+    spanish: 'lejos'
+  near:
+    category: space
+    english: 'near'
+    french: 'près'
+    polish: 'blisko'
+    russian: 'близко'
+    spanish: 'cerca'
+  side:
+    category: space
+    english: 'side'
+    french: 'côté'
+    polish: 'strona'
+    russian: 'сторона'
+    spanish: 'lado'
+  inside:
+    category: space
+    english: 'inside'
+    french: 'dedans'
+    polish: 'wewnątrz'
+    russian: 'внутри'
+    spanish: 'dentro'
+  touch:
+    category: space
+    english: 'touch'
+    french: 'toucher'
+    polish: 'dotykać'
+    russian: 'касаться'
+    spanish: 'tocar'
+  not:
+    category: logical
+    english: 'not'
+    french: 'ne' 'pas'
+    polish: 'nie'
+    russian: 'не'
+    spanish: 'no'
+  maybe:
+    category: logical
+    english: 'maybe'
+    french: 'peut-être'
+    polish: 'może'
+    russian: 'может-быть'
+    spanish: 'quizás'
+  can:
+    category: logical
+    english: 'can'
+    french: 'pouvoir'
+    polish: 'móc'
+    russian: 'мочь'
+    spanish: 'poder'
+  because:
+    category: logical
+    english: 'because'
+    french: 'parce-que'
+    polish: 'bo'
+    russian: 'потому-что'
+    spanish: 'porque'
+  if:
+    category: logical
+    english: 'if'
+    french: 'si'
+    polish: 'jeżeli'
+    russian: 'если'
+    spanish: 'si'
+  very:
+    category: intensifier
+    english: 'very'
+    french: 'très'
+    polish: 'bardzo'
+    russian: 'очень'
+    spanish: 'muy'
+  more:
+    category: augmentor
+    english: 'more'
+    french: 'plus'
+    polish: 'bardziej' 'więcej'
+    russian: 'больше'
+    spanish: 'más'
+  like:
+    category: similarity
+    english: 'like' 'as' 'how' 'way'
+    french: 'comme' 'comment'
+    polish: 'jak' 'tak'
+    russian: 'как'
+    spanish: 'como'

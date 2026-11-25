@@ -1,0 +1,13 @@
+Uwaga: Fibonacci sequence in JavaScript, computed iteratively
+
+Zdefiniuj fibonacci używając licznik:
+  Utwórz poprzedni z wartością 0.
+  Utwórz bieżący z wartością 1.
+  Dla każdego krok od 0 do licznik minus 1 powtarzaj to:
+    Utwórz następny z wartością poprzedni plus bieżący.
+    Zmień poprzedni na bieżący.
+    Zmień bieżący na następny.
+  Zwróć poprzedni.
+
+Dla każdego indeks od 0 do 20 powtarzaj to:
+  Wypisz „fibonacci(” a następnie indeks a następnie „) = ” a następnie fibonacci dla (indeks) i zakończ wiersz.

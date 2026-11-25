@@ -1,0 +1,16 @@
+Opmerking: Perfect numbers in JavaScript: numbers equal to the sum of their divisors
+
+Definieer is-volmaakt met getal:
+  Maak som met waarde 1.
+  Maak deler met waarde 2.
+  Zolang deler maal deler is hoogstens getal, herhaal dit:
+    Als getal modulo deler is gelijk aan 0, doe dit:
+      Verander som in som plus deler.
+      Als deler maal deler is ongelijk aan getal, doe dit:
+        Verander som in som plus getal gedeeld door deler.
+    Verander deler in deler plus 1.
+  Geef getal is groter dan 1 en som is gelijk aan getal terug.
+
+Voor elke getal van 1 tot en met 10000, herhaal dit:
+  Als is-volmaakt van (getal), doe dit:
+    Schrijf getal en beëindig de regel.

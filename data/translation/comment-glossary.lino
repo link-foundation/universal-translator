@@ -1,0 +1,12 @@
+glossary:
+  from: russian
+  to: english
+  phrase:
+    source: 'Привет, мир на C#'
+    target: 'Hello World in C#'
+  phrase:
+    source: 'Напечатать строку вызовом метода'
+    target: 'Print a line by method call'
+  phrase:
+    source: 'Напечатать'
+    target: 'Print'

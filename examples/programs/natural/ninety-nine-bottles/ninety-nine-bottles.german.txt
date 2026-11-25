@@ -1,0 +1,7 @@
+Hinweis: 99 bottles of beer in JavaScript
+
+Erzeuge Flaschen mit dem Wert 99.
+Solange Flaschen ist größer als 0, wiederhole dies:
+  Schreibe Flaschen gefolgt von „ bottles of beer on the wall, “ gefolgt von Flaschen gefolgt von „ bottles of beer.“ und beende die Zeile.
+  Schreibe „Take one down and pass it around, “ gefolgt von Flaschen minus 1 gefolgt von „ bottles of beer on the wall.“ und beende die Zeile.
+  Ändere Flaschen auf Flaschen minus 1.

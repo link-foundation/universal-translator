@@ -1,0 +1,10 @@
+Kumbuka: Sum and product of an array in JavaScript
+
+Unda namba yenye thamani orodha (1, 2, 3, 4, 5).
+Unda kiasi yenye thamani 0.
+Unda zao yenye thamani 1.
+Kwa kila fahirisi kutoka 0 hadi urefu wa namba toa 1, rudia hivi:
+  Badilisha kiasi kuwa kiasi jumlisha kipengele fahirisi cha namba.
+  Badilisha zao kuwa zao mara kipengele fahirisi cha namba.
+Andika “Sum: ” ikifuatiwa na kiasi na umalize mstari.
+Andika “Product: ” ikifuatiwa na zao na umalize mstari.

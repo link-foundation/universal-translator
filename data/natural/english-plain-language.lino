@@ -1,0 +1,31 @@
+natural:
+  id: english-plain-language
+  label: 'English (Plain language, ISO 24495-1)'
+  extends: english
+  profile: plain-language
+  source: 'https://www.iso.org/standard/78907.html'
+  templates:
+    function: 'Here is how to work out {name} from {parameters}'
+    function-without-parameters: 'Here is how to work out {name}'
+    declare: 'Let {name} start as {value}'
+    assign: 'Set {name} to {value}'
+    print-line: 'Show {value} on its own line'
+    print: 'Show {value}'
+    return-value: 'The answer is {value}'
+    if: 'If {condition}, do this'
+    else-if: 'If not, but {condition}, do this'
+    else: 'If not, do this'
+    while: 'As long as {condition}, keep doing this'
+    for: 'For each {variable} from {start} to {last}, do this'
+    join: '{left} then {right}'
+    equal: '{left} is {right}'
+    not-equal: '{left} is not {right}'
+    less: '{left} is less than {right}'
+    less-or-equal: '{left} is at most {right}'
+    greater: '{left} is more than {right}'
+    greater-or-equal: '{left} is at least {right}'
+    set-element: 'Set item {index} of {name} to {value}'
+  rules:
+    max-sentence-words: 25
+    average-sentence-words: 20
+    forbidden-words: shall hereby herein thereof whereas aforementioned

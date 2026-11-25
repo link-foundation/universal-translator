@@ -49,7 +49,7 @@ const INITIAL_WAIT_MS_DEFAULT = 5000;
 const REQUEST_TIMEOUT_MS = 30_000;
 const USER_AGENT_DEFAULT = 'lychee';
 // lychee's documented default --accept list; used when the workflow does not
-// set the flag. tests/recheck-broken-links.test.js reads this file and the
+// set the flag. js/tests/recheck-broken-links.test.js reads this file and the
 // workflow together, so the two cannot drift apart.
 const ACCEPT_DEFAULT = '100..=103,200..=299';
 

@@ -1,8 +1,17 @@
 # Universal Example App
 
-This example turns the package functions in `src/index.js` into a React UI and
-uses the same build output for GitHub Pages, Electron desktop packages, and
-Capacitor mobile projects.
+This example is the translator's web demo. It lists every programming and
+natural language, reads a statement, a function or a whole program in the
+source language and shows its translation, or the reason the text does not
+parse. A fragment only has to be complete: a function must end with its
+closing and a statement must be whole. The same build output is used for
+GitHub Pages, Electron desktop packages, and Capacitor mobile projects.
+
+```bash
+npm run example:web:build
+npm --prefix examples/universal-app run preview -- --port 4173 &
+node examples/universal-app/e2e/translate.e2e.mjs http://127.0.0.1:4173/ web-demo.png
+```
 
 ![Universal example app preview](../../docs/screenshots/example-app/example-app.png)
 
@@ -13,6 +22,7 @@ Capacitor mobile projects.
 ## Local Setup
 
 ```bash
+npm ci
 npm install --prefix examples/universal-app
 ```
 
@@ -68,6 +78,6 @@ submission require Apple signing credentials. Android emulator or physical
 device testing does not require a Google Play Console account, while Play Store
 submission requires the normal Google Play signing and service account setup.
 
-The workflow includes gated Android and iOS build jobs. Set
-`EXAMPLE_APP_ENABLE_ANDROID_BUILD=true` or `EXAMPLE_APP_ENABLE_IOS_BUILD=true`
-as repository variables before enabling those native CI paths.
+Set the repository variable `EXAMPLE_APP_ENABLE_ANDROID_BUILD=true` to
+enable the Android CI build. The hosted desktop job packages the Ubuntu
+app. Use the local Xcode steps above to build the iOS app.

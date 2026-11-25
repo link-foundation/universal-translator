@@ -1,0 +1,14 @@
+Lura: Mutual recursion in JavaScript: the Hofstadter Female and Male sequences
+
+Ayyana mace da fihirisa:
+  Idan fihirisa daidai yake da 0, yi wannan:
+    Mayar da 1.
+  Mayar da fihirisa ragi namiji na (mace na (fihirisa ragi 1)).
+
+Ayyana namiji da fihirisa:
+  Idan fihirisa daidai yake da 0, yi wannan:
+    Mayar da 0.
+  Mayar da fihirisa ragi mace na (namiji na (fihirisa ragi 1)).
+
+Ga kowane fihirisa daga 0 zuwa 19, maimaita wannan:
+  Rubuta fihirisa sannan “: ” sannan mace na (fihirisa) sannan “ ” sannan namiji na (fihirisa) kuma ka gama layi.

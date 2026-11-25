@@ -1,0 +1,12 @@
+Catatan: Ackermann function in JavaScript, defined recursively
+
+Definisikan ackermann dengan pertama dan kedua:
+  Jika pertama sama dengan 0, lakukan ini:
+    Kembalikan kedua ditambah 1.
+  Jika kedua sama dengan 0, lakukan ini:
+    Kembalikan ackermann dari (pertama dikurangi 1, 1).
+  Kembalikan ackermann dari (pertama dikurangi 1, ackermann dari (pertama, kedua dikurangi 1)).
+
+Untuk setiap pertama dari 0 sampai 3, ulangi ini:
+  Untuk setiap kedua dari 0 sampai 4, ulangi ini:
+    Tulis “ackermann(” diikuti pertama diikuti “, ” diikuti kedua diikuti “) = ” diikuti ackermann dari (pertama, kedua) dan akhiri baris.

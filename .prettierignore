@@ -1,6 +1,7 @@
 node_modules
 coverage
 dist
+/target/
 *.min.js
 package-lock.json
 .eslintcache
@@ -8,3 +9,7 @@ package-lock.json
 CLAUDE.md
 # Case study raw data files (downloaded from external sources)
 docs/case-studies/*/data/
+# Generated translations, compared byte for byte by the tests
+examples/programs/translated/
+examples/programs/fragments/translated/
+js/src/natural/sources.js

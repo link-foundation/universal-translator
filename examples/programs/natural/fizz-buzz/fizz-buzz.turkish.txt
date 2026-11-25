@@ -1,0 +1,11 @@
+Not: FizzBuzz in JavaScript
+
+Her sayı için 1 ile 100 arasında şunu tekrarla:
+  Eğer sayı mod 15 ile 0 eşit ise şunu yap:
+    “FizzBuzz” yaz ve satırı bitir.
+  Değilse eğer sayı mod 3 ile 0 eşit ise şunu yap:
+    “Fizz” yaz ve satırı bitir.
+  Değilse eğer sayı mod 5 ile 0 eşit ise şunu yap:
+    “Buzz” yaz ve satırı bitir.
+  Değilse şunu yap:
+    Sayı yaz ve satırı bitir.

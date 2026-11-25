@@ -1,0 +1,16 @@
+Note: Perfect numbers in JavaScript: numbers equal to the sum of their divisors
+
+The procedure is-perfect takes number:
+  There is a variable sum whose value is 1.
+  There is a variable divisor whose value is 2.
+  While divisor times divisor is less than or equal to number the program repeats the following:
+    If number modulo divisor is equal to 0 then the program does the following:
+      The value of sum becomes sum plus divisor.
+      If divisor times divisor is not equal to number then the program does the following:
+        The value of sum becomes sum plus number divided by divisor.
+    The value of divisor becomes divisor plus 1.
+  The procedure returns number is greater than 1 and sum is equal to number.
+
+For every number from 1 to 10000 the program does the following:
+  If is-perfect of (number) then the program does the following:
+    The program writes a line that contains number.

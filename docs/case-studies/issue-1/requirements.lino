@@ -1,0 +1,143 @@
+requirements:
+  meta-language:
+    text: 'Translate every program through a shared meta language'
+    from: 'issue 1'
+    status: done
+    evidence: js/src/translator.js rust/src/translator.rs js/tests/grammar.test.js rust/tests/grammar.rs
+  thirty-programming-languages:
+    text: 'Support at least 30 of the most popular programming languages'
+    from: 'PR 5 review'
+    status: done
+    check: thirty-programming-languages
+    evidence: js/src/formal/languages.js examples/programs/verify-native.mjs
+  hello-world-everywhere:
+    text: 'Hello world in every supported programming language'
+    from: 'PR 5 review'
+    status: done
+    check: hello-world-everywhere
+    evidence: examples/programs/hello-world.js examples/programs/translated/hello-world
+  every-task-everywhere:
+    text: 'Every example algorithm translated into every programming language and run natively'
+    from: 'issue 1'
+    status: done
+    check: every-task-everywhere
+    evidence: examples/programs/write-translations.mjs examples/programs/verify-native.mjs .github/workflows/release.yml
+  machine-code:
+    text: 'Assembly, CIL and JVM bytecode to and from every language'
+    from: 'issue 1'
+    status: done
+    check: machine-code
+    evidence: js/src/formal/machine.js js/src/formal/lifting.js js/tests/lifting.test.js
+  thirty-natural-languages:
+    text: 'Support at least 30 of the most popular natural languages'
+    from: 'PR 5 review'
+    status: done
+    check: thirty-natural-languages
+    evidence: data/natural js/src/natural/catalog.js js/tests/natural.test.js
+  controlled-english-and-russian:
+    text: 'Start with small controlled versions of English, Russian and other languages'
+    from: 'PR 5 review'
+    status: done
+    check: controlled-english-and-russian
+    evidence: data/natural/english.lino data/natural/russian.lino
+  semantic-primes:
+    text: 'Start with the semantic primes of Natural Semantic Metalanguage'
+    from: 'PR 5 review'
+    status: done
+    check: semantic-primes
+    evidence: data/natural/semantic-primes.lino js/src/natural/rules.js
+  controlled-standards:
+    text: 'ASD-STE100, ACE, Gellish, SBVR, plain language (ISO 24495-1), Minimal English, Minimal Polish, Minimal French, the 65 primes, E-Prime, Basic English, Special English, Globish and cnl-default, each describing every algorithm'
+    from: 'PR 5 review'
+    status: done
+    check: controlled-standards
+    evidence: data/natural js/src/natural/rules.js js/tests/natural.test.js
+  parse-natural-algorithms:
+    text: 'Parse the natural language version of every algorithm in every natural language'
+    from: 'PR 5 review'
+    status: done
+    check: parse-natural-algorithms
+    evidence: js/src/natural/reader.js examples/programs/natural js/tests/natural.test.js
+  natural-to-formal:
+    text: 'Translate from natural language to the meta language and to any formal language'
+    from: 'PR 5 review'
+    status: done
+    check: natural-to-formal
+    evidence: js/src/translator.js js/tests/natural.test.js
+  formal-to-natural:
+    text: 'Translate from any formal language to any natural language'
+    from: 'PR 5 review'
+    status: done
+    check: formal-to-natural
+    evidence: js/src/natural/writer.js examples/programs/write-natural.mjs
+  javascript-and-rust:
+    text: 'JavaScript and Rust implementations that agree byte for byte'
+    from: 'issue 1'
+    status: done
+    check: javascript-and-rust
+    evidence: rust/src/formal rust/tests/grammar.rs experiments/verify-syntax-exchange.sh
+  rosetta-algorithm-types:
+    text: 'Support all algorithm types from Rosetta Code'
+    from: 'PR 5 review'
+    status: blocked
+    reason: 'Rosetta Code has more than 1,300 tasks. The meta language covers the algorithm types listed as covered in rosetta-coverage.lino; the types listed there as blocked need values the meta language does not have yet'
+    check: rosetta-algorithm-types
+    evidence: docs/case-studies/issue-1/rosetta-coverage.lino
+  requirements-gate:
+    text: 'CI does not pass until every requirement is done (test driven)'
+    from: 'PR 5 review'
+    status: done
+    check: requirements-gate
+    evidence: scripts/check-requirements.mjs .github/workflows/release.yml
+  lean-and-rocq:
+    text: 'Lean and Rocq among the programming languages, with every task translated and checked by their compilers'
+    from: 'PR 5 review'
+    status: done
+    check: lean-and-rocq
+    evidence: js/src/formal/dialects/lean.js js/src/formal/dialects/rocq.js rust/src/formal/dialects/lean.rs rust/src/formal/dialects/rocq.rs examples/programs/verify-native.mjs
+  fragments:
+    text: 'Parse and translate a single statement, function or whole program on its own; a fragment must be complete, so a function ends with its closing'
+    from: 'PR 5 review'
+    status: done
+    check: fragments
+    evidence: js/tests/fragments.test.js rust/tests/fragments.rs
+  class-fragments:
+    text: 'Parse and translate a class on its own'
+    from: 'PR 5 review'
+    status: blocked
+    reason: 'The meta language has no objects or classes yet (objects-and-concurrency in rosetta-coverage.lino), so a class has no meaning to translate'
+  web-demo:
+    text: 'Web demo that parses any fragment of any language and shows its equivalent in a target language'
+    from: 'PR 5 review'
+    status: done
+    check: web-demo
+    evidence: examples/universal-app/src/App.js examples/universal-app/e2e/translate.e2e.mjs .github/workflows/example-app.yml docs/screenshots/web-demo.png
+  cli-library-api-docker:
+    text: 'Extensible CLI, library, HTTP API and Docker image'
+    from: 'PR 5 review'
+    status: done
+    check: cli-library-api-docker
+    evidence: bin/universal-translator.js js/src/index.js js/src/server.js js/tests/server.test.js rust/src/lib.rs Dockerfile .github/workflows/release.yml
+  best-practices:
+    text: 'Use the associative technology stack, the code architecture principles and the CI/CD best practices'
+    from: 'PR 5 review'
+    status: done
+    check: best-practices
+    evidence: docs/case-studies/issue-1/best-practices.md
+  test-coverage:
+    text: 'Close to 100% test coverage, required by CI/CD'
+    from: 'PR 5 review'
+    status: done
+    check: test-coverage
+    evidence: package.json .github/workflows/release.yml
+  source-layout:
+    text: 'Sources split into src/meta (shared), src/formal (programming languages, Lean, Rocq and machine code) and src/natural (human languages), with dependencies pointing to the meta language'
+    from: 'PR 5 review'
+    status: done
+    check: source-layout
+    evidence: js/src/meta js/src/formal js/src/natural js/src/translator.js rust/src/meta rust/src/formal rust/src/natural rust/src/translator.rs
+  case-study:
+    text: 'Case study with collected data, requirements and readiness'
+    from: 'issue 1'
+    status: done
+    evidence: docs/case-studies/issue-1/README.md docs/case-studies/issue-1/requirements.md docs/case-studies/issue-1/readiness.md

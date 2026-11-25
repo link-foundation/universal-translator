@@ -1,0 +1,15 @@
+Remarque : Primality by trial division in JavaScript
+
+Définir est-premier avec nombre:
+  Si nombre est inférieur à 2, faire ceci:
+    Renvoyer faux.
+  Créer diviseur avec la valeur 2.
+  Tant que diviseur fois diviseur est au plus nombre, répéter ceci:
+    Si nombre modulo diviseur est égal à 0, faire ceci:
+      Renvoyer faux.
+    Changer diviseur en diviseur plus 1.
+  Renvoyer vrai.
+
+Pour chaque nombre de 1 à 50, répéter ceci:
+  Si est-premier de (nombre), faire ceci:
+    Écrire nombre et finir la ligne.

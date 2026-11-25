@@ -1,0 +1,41 @@
+natural:
+  id: minimal-english
+  label: 'Minimal English (NSM semantic primes)'
+  extends: english
+  profile: minimal-english
+  source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  true: true
+  false: untrue
+  templates:
+    function: 'This is how someone does {name} with {parameters}'
+    function-without-parameters: 'This is how someone does {name}'
+    declare: 'There is {name}, it is {value}'
+    assign: 'After this, {name} is {value}'
+    print-line: 'Say {value} on one line'
+    print: 'Say {value}'
+    return-value: 'The answer is {value}'
+    return: 'Stop here'
+    nothing: 'Do not do anything'
+    evaluate: 'Do {expression}'
+    if: 'If {condition}, do this'
+    else-if: 'If not, if {condition}, do this'
+    else: 'If not, do this'
+    while: 'When {condition}, do this many times'
+    for: 'For all {variable} from {start} to {last}, do this'
+    call-without-arguments: '{callee} ( )'
+    join: '{left} then {right}'
+    negate: 'the opposite of {operand}'
+    equal: '{left} is the same as {right}'
+    not-equal: '{left} is not the same as {right}'
+    less: '{left} is less than {right}'
+    less-or-equal: '{left} is not more than {right}'
+    greater: '{left} is more than {right}'
+    greater-or-equal: '{left} is not less than {right}'
+    array: 'these things ({elements})'
+    new-array: '{length} things like {fill}'
+    element: 'part {index} of {array}'
+    length: 'how many parts {array} has'
+    set-element: 'After this, part {index} of {name} is {value}'
+  rules:
+    primes: english
+    extra-words: it the on line answer stop with of from to then for or and plus minus times divided by modulo opposite untrue less than as anything things has

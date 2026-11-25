@@ -1,0 +1,7 @@
+Примітка: 99 bottles of beer in JavaScript
+
+Створити пляшки зі значенням 99.
+Поки пляшки більше за 0, повторювати це:
+  Написати пляшки потім « bottles of beer on the wall, » потім пляшки потім « bottles of beer.» і завершити рядок.
+  Написати «Take one down and pass it around, » потім пляшки мінус 1 потім « bottles of beer on the wall.» і завершити рядок.
+  Змінити пляшки на пляшки мінус 1.

@@ -31,15 +31,15 @@ Raw evidence is stored in `docs/case-studies/issue-56/data/`.
 
 | File                                                                                                              | Purpose                                                                         |
 | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `issue-56.json`, `issue-56-comments.json`                                                                         | Issue metadata and comments.                                                    |
-| `pr-57.json`                                                                                                      | PR metadata before implementation.                                              |
-| `vk-bot-desktop-repo.json`, `vk-bot-desktop-package.json`, `vk-bot-desktop-file-tree.txt`                         | Referenced Electron/React desktop repository metadata.                          |
+| `issue-56.lino`, `issue-56-comments.lino`                                                                         | Issue metadata and comments.                                                    |
+| `pr-57.lino`                                                                                                      | PR metadata before implementation.                                              |
+| `vk-bot-desktop-repo.lino`, `vk-bot-desktop-package.lino`, `vk-bot-desktop-file-tree.txt`                         | Referenced Electron/React desktop repository metadata.                          |
 | `vk-bot-desktop-build-renderer.mjs`, `vk-bot-desktop-electron-main.cjs`, `vk-bot-desktop-js-workflow.yml`         | Relevant desktop app build and workflow patterns.                               |
-| `deep-sdk-repo.json`, `deep-sdk-package.json`, `deep-sdk-file-tree.txt`                                           | Referenced Capacitor repository metadata.                                       |
-| `deep-sdk-capacitor.config.ts`, `deep-sdk-gh-pages.yml`, `deep-sdk-electron-package.json`                         | Relevant Capacitor, Pages, and desktop packaging patterns.                      |
+| `deep-sdk-repo.lino`, `deep-sdk-package.lino`, `deep-sdk-file-tree.txt`                                           | Referenced Capacitor repository metadata.                                       |
+| `deep-sdk-capacitor.config.ts`, `deep-sdk-gh-pages.yml`, `deep-sdk-electron-package.lino`                         | Relevant Capacitor, Pages, and desktop packaging patterns.                      |
 | `npm-*.json`                                                                                                      | Current npm registry metadata for Vite, Capacitor, and Electron Forge packages. |
 | `actions-*-release.json`                                                                                          | Current GitHub Actions major versions checked during implementation.            |
-| `recent-merged-prs.json`, `link-foundation-code-search.json`                                                      | Local project history and code-search context.                                  |
+| `recent-merged-prs.lino`, `link-foundation-code-search.lino`                                                      | Local project history and code-search context.                                  |
 | `universal-app-test-before.log`                                                                                   | Failing regression test before the app existed.                                 |
 | `universal-app-test-final-2.log`, `npm-test-final-3.log`, `npm-check-final-4.log`                                 | Final Node regression, full test, and quality check logs.                       |
 | `example-web-build-final-2.log`, `example-desktop-package-final-2.log`, `example-mobile-sync-final-2.log`         | Final web build, Electron package, and Capacitor sync logs.                     |

@@ -1,0 +1,14 @@
+Ghi chú: Hailstone sequence in JavaScript: count the steps to reach 1
+
+Định nghĩa mưa_đá-các_bước với số_:
+  Tạo các_bước với giá trị 0.
+  Trong khi số_ khác 1, lặp lại điều này:
+    Nếu số_ chia lấy dư 2 bằng 0, làm điều này:
+      Đổi số_ thành số_ chia 2.
+    Ngược lại, làm điều này:
+      Đổi số_ thành 3 nhân số_ cộng 1.
+    Đổi các_bước thành các_bước cộng 1.
+  Trả về các_bước.
+
+Với mỗi số_ từ 1 đến 10, lặp lại điều này:
+  Viết số_ nối với “ takes ” nối với mưa_đá-các_bước của (số_) nối với “ steps” và xuống dòng.

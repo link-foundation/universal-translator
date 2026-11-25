@@ -1,0 +1,12 @@
+Lura: Ackermann function in JavaScript, defined recursively
+
+Ayyana ackermann da farko da biyu:
+  Idan farko daidai yake da 0, yi wannan:
+    Mayar da biyu ƙari 1.
+  Idan biyu daidai yake da 0, yi wannan:
+    Mayar da ackermann na (farko ragi 1, 1).
+  Mayar da ackermann na (farko ragi 1, ackermann na (farko, biyu ragi 1)).
+
+Ga kowane farko daga 0 zuwa 3, maimaita wannan:
+  Ga kowane biyu daga 0 zuwa 4, maimaita wannan:
+    Rubuta “ackermann(” sannan farko sannan “, ” sannan biyu sannan “) = ” sannan ackermann na (farko, biyu) kuma ka gama layi.

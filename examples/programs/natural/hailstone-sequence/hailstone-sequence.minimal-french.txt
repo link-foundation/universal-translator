@@ -1,0 +1,14 @@
+Remarque : Hailstone sequence in JavaScript: count the steps to reach 1
+
+Voici comment quelqu’un fait grêlon-étapes avec nombre:
+  Il y a étapes, c'est 0.
+  Quand nombre n'est pas le même que 1, faire ceci beaucoup de fois:
+    Si nombre modulo 2 est le même que 0, faire ceci:
+      Après ceci, nombre est nombre divisé par 2.
+    Sinon, faire ceci:
+      Après ceci, nombre est 3 fois nombre plus 1.
+    Après ceci, étapes est étapes plus 1.
+  La réponse est étapes.
+
+Pour tous les nombre de 1 à 10, faire ceci:
+  Dire nombre puis « takes » puis grêlon-étapes de (nombre) puis « steps» sur une ligne.

@@ -1,0 +1,7 @@
+Opmerking: 99 bottles of beer in JavaScript
+
+Flessen is geclassificeerd als een variabele met beginwaarde 99.
+Zolang flessen is groter dan 0 wordt het volgende herhaald:
+  De uitvoer heeft als volgende regel flessen samengevoegd met “ bottles of beer on the wall, ” samengevoegd met flessen samengevoegd met “ bottles of beer.”.
+  De uitvoer heeft als volgende regel “Take one down and pass it around, ” samengevoegd met flessen min 1 samengevoegd met “ bottles of beer on the wall.”.
+  Flessen heeft als nieuwe waarde flessen min 1.

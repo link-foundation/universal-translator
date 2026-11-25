@@ -1,0 +1,15 @@
+Nota: Primality by trial division in JavaScript
+
+Definir es-primo usando número:
+  Si número es menor que 2, hacer esto:
+    Devolver falso.
+  Crear divisor con valor 2.
+  Mientras divisor por divisor es como mucho número, repetir esto:
+    Si número módulo divisor es igual a 0, hacer esto:
+      Devolver falso.
+    Cambiar divisor a divisor más 1.
+  Devolver verdadero.
+
+Para cada número desde 1 hasta 50, repetir esto:
+  Si es-primo de (número), hacer esto:
+    Escribir número y terminar la línea.

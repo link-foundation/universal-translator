@@ -1,0 +1,11 @@
+Nota: FizzBuzz in JavaScript
+
+Para cada número de 1 até 100, repetir isto:
+  Se número módulo 15 é igual a 0, fazer isto:
+    Escrever “FizzBuzz” e terminar a linha.
+  Senão, se número módulo 3 é igual a 0, fazer isto:
+    Escrever “Fizz” e terminar a linha.
+  Senão, se número módulo 5 é igual a 0, fazer isto:
+    Escrever “Buzz” e terminar a linha.
+  Senão, fazer isto:
+    Escrever número e terminar a linha.

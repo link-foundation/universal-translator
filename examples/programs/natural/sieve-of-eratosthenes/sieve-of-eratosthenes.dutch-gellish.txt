@@ -1,0 +1,13 @@
+Opmerking: Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+Limiet is geclassificeerd als een variabele met beginwaarde 100.
+Is-priem is geclassificeerd als een variabele met beginwaarde een lijst van (limiet plus 1) kopieën van 1.
+Element 0 van is-priem heeft als nieuwe waarde 0.
+Element 1 van is-priem heeft als nieuwe waarde 0.
+Voor elke getal van 2 tot en met limiet wordt het volgende herhaald:
+  Als element getal van is-priem is gelijk aan 1 dan wordt het volgende uitgevoerd:
+    De uitvoer heeft als volgende regel getal.
+    Veelvoud is geclassificeerd als een variabele met beginwaarde getal maal getal.
+    Zolang veelvoud is hoogstens limiet wordt het volgende herhaald:
+      Element veelvoud van is-priem heeft als nieuwe waarde 0.
+      Veelvoud heeft als nieuwe waarde veelvoud plus getal.

@@ -1,0 +1,13 @@
+Kumbuka: Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+Unda kikomo yenye thamani 100.
+Unda je-tasa yenye thamani orodha ya urefu (kikomo jumlisha 1) iliyojaa 1.
+Badilisha kipengele 0 cha je-tasa kuwa 0.
+Badilisha kipengele 1 cha je-tasa kuwa 0.
+Kwa kila nambari kutoka 2 hadi kikomo, rudia hivi:
+  Ikiwa kipengele nambari cha je-tasa ni sawa na 1, fanya hivi:
+    Andika nambari na umalize mstari.
+    Unda kigawe yenye thamani nambari mara nambari.
+    Wakati kigawe si zaidi ya kikomo, rudia hivi:
+      Badilisha kipengele kigawe cha je-tasa kuwa 0.
+      Badilisha kigawe kuwa kigawe jumlisha nambari.

@@ -1,0 +1,14 @@
+Note: Hailstone sequence in JavaScript: count the steps to reach 1
+
+Rule hailstone-steps with number is defined as follows:
+  It is obligatory that steps is initially 0.
+  As long as number is not equal to 1 the following applies repeatedly:
+    If number modulo 2 is equal to 0 then the following applies:
+      It is obligatory that number becomes number divided by 2.
+    Otherwise the following applies:
+      It is obligatory that number becomes 3 times number plus 1.
+    It is obligatory that steps becomes steps plus 1.
+  It is obligatory that the result is steps.
+
+For each number from 1 to 10 the following applies:
+  It is obligatory that the output shows number followed by “ takes ” followed by hailstone-steps of (number) followed by “ steps” as a line.

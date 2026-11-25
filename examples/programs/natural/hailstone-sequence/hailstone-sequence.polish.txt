@@ -1,0 +1,14 @@
+Uwaga: Hailstone sequence in JavaScript: count the steps to reach 1
+
+Zdefiniuj grad-kroki używając liczba:
+  Utwórz kroki z wartością 0.
+  Dopóki liczba nie równa się 1, powtarzaj to:
+    Jeśli liczba modulo 2 równa się 0, zrób to:
+      Zmień liczba na liczba podzielone przez 2.
+    W przeciwnym razie zrób to:
+      Zmień liczba na 3 razy liczba plus 1.
+    Zmień kroki na kroki plus 1.
+  Zwróć kroki.
+
+Dla każdego liczba od 1 do 10 powtarzaj to:
+  Wypisz liczba a następnie „ takes ” a następnie grad-kroki dla (liczba) a następnie „ steps” i zakończ wiersz.

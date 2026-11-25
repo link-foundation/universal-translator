@@ -1,0 +1,10 @@
+Catatan: Leap year in JavaScript
+
+Definisikan apakah-kabisat-tahun dengan tahun:
+  Kembalikan tahun modulo 4 sama dengan 0 dan tahun modulo 100 tidak sama dengan 0 atau tahun modulo 400 sama dengan 0.
+
+Untuk setiap tahun dari 1896 sampai 1912, ulangi ini:
+  Jika apakah-kabisat-tahun dari (tahun), lakukan ini:
+    Tulis tahun diikuti “ is a leap year” dan akhiri baris.
+  Selain itu, lakukan ini:
+    Tulis tahun diikuti “ is not a leap year” dan akhiri baris.

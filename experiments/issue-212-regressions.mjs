@@ -28,13 +28,17 @@ const tests = [
   'check-release-needed',
   'workflows-lint',
   'security-workflow',
-].map((name) => `tests/${name}.test.js`);
+].map((name) => `js/tests/${name}.test.js`);
 try {
   const archive = join(snapshot, 'snapshot.tar');
   execFileSync('git', ['archive', '--format=tar', `--output=${archive}`, ref]);
   execFileSync('tar', ['-xf', archive, '-C', snapshot]);
   symlinkSync(resolve('node_modules'), join(snapshot, 'node_modules'), 'dir');
-  for (const path of [...tests, 'tests/fixtures/preflight-stub']) {
+  mkdirSync(join(snapshot, 'js/tests/fixtures'), { recursive: true });
+  cpSync('js/tests/helpers', join(snapshot, 'js/tests/helpers'), {
+    recursive: true,
+  });
+  for (const path of [...tests, 'js/tests/fixtures/preflight-stub']) {
     cpSync(path, join(snapshot, path), { recursive: true });
   }
   const result = spawnSync(

@@ -1,0 +1,10 @@
+Nota: Leap year in JavaScript
+
+Definir é-bissexto-ano usando ano:
+  Devolver ano módulo 4 é igual a 0 e ano módulo 100 é diferente de 0 ou ano módulo 400 é igual a 0.
+
+Para cada ano de 1896 até 1912, repetir isto:
+  Se é-bissexto-ano de (ano), fazer isto:
+    Escrever ano seguido de “ is a leap year” e terminar a linha.
+  Senão, fazer isto:
+    Escrever ano seguido de “ is not a leap year” e terminar a linha.

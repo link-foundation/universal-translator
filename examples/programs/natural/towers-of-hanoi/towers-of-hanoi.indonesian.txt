@@ -1,0 +1,10 @@
+Catatan: Towers of Hanoi in JavaScript, solved recursively
+
+Definisikan pindahkan-cakram dengan hitungan, asal, tujuan dan cadangan:
+  Jika hitungan sama dengan 0, lakukan ini:
+    Berhenti di sini.
+  Jalankan pindahkan-cakram dari (hitungan dikurangi 1, asal, cadangan, tujuan).
+  Tulis “Move disk ” diikuti hitungan diikuti “ from ” diikuti asal diikuti “ to ” diikuti tujuan dan akhiri baris.
+  Jalankan pindahkan-cakram dari (hitungan dikurangi 1, cadangan, tujuan, asal).
+
+Jalankan pindahkan-cakram dari (4, 1, 3, 2).

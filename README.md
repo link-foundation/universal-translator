@@ -1,7 +1,200 @@
 # @link-foundation/universal-translator
 
-JavaScript/TypeScript package with a command-line interface and a universal app
-example. Releases use the existing Changesets pipeline and npm trusted publishing.
+Translate programs between languages through a typed meta language, with
+matching JavaScript and Rust implementations. The translator is built from
+grammar and rule tables, not from per-program templates. It reads JavaScript,
+TypeScript, Python, Ruby, Lua, PHP, C, C++, C#, Java, Go, Rust, Kotlin,
+Swift, Perl, Dart, Scala, Julia, R, Groovy, Objective-C, Nim, D, Pascal,
+Fortran, Ada, Visual Basic .NET, Bash, MATLAB/Octave, Zig, Lean 4 and Rocq
+(32 languages), and writes any of them. It can also lower a program to x86-64
+assembly (NASM), CIL (ILAsm) or JVM bytecode (Jasmin).
+
+## Translate a program
+
+```sh
+npm ci
+node bin/universal-translator.js translate javascript python examples/programs/factorial.js
+node bin/universal-translator.js translate python rust - < program.py
+node bin/universal-translator.js translate javascript nasm examples/programs/fizz-buzz.js
+node bin/universal-translator.js meta go examples/programs/hand-written/sum-of-squares.go
+node bin/universal-translator.js languages
+cargo run --locked -- translate-grammar javascript kotlin examples/programs/factorial.js
+```
+
+Both CLIs read a file, or standard input when you omit the file or pass `-`.
+The JavaScript package supports Node.js 20 and later, Bun and Deno.
+
+Each translation runs these stages:
+
+1. A lexer and a table-driven parser read the source language.
+2. Understanding rules turn the syntax tree into a meta program.
+3. Type inference gives every value a type.
+4. Meaning rules and any configured meta→meta layers rewrite the program.
+5. Context rules adapt it to the target language.
+6. An emitter writes the target syntax. For the machine targets, the program
+   is first lowered to a stack machine.
+
+Pick a mode with `--mode`:
+
+- `context-dependent` (the default) adapts names, comments and terms such as
+  "function" or "method" to the target language.
+- `literal` keeps names and comment text as written.
+- `same-effect` keeps only what the program does and may restructure it.
+
+The meta language has integers, text, booleans and integer arrays. Arrays
+are indexed from 0 in the meta language, and languages that count from 1
+shift every index. In C an array is a local variable-length array, so its
+length is `sizeof a / sizeof a[0]`. The sieve, bubble sort and sum and
+product examples use arrays. The case study lists the other compromises.
+
+`createTranslator({ layers })` takes rule layers that can be replaced or
+decorated. The common library in `common-library/` only hides differences
+between standard libraries, such as printing. `--common-library` translates
+every print into a call to it.
+
+Every program in `examples/programs` has been translated into every target
+in `examples/programs/translated`. These shared files are what the JavaScript
+and Rust tests check against. `node examples/programs/verify-native.mjs`
+compiles and runs each translation with its native toolchain, and CI runs it
+with `--require-all`.
+
+## Translate a statement or a function on its own
+
+A fragment is a whole program, one or more function definitions, or one or
+more statements. `parseFragment` tries the source in that order and
+returns its kind. `translateFragment` writes the same kind of fragment
+in the target, without a main function, a class or imports.
+
+```js
+import {
+  parseFragment,
+  translateFragment,
+} from '@link-foundation/universal-translator';
+
+parseFragment('x = x + 1;', 'javascript').kind; // 'statements'
+translateFragment('x = x + 1;', 'javascript', 'pascal'); // 'x := x + 1;\n'
+translateFragment('def square(n):\n    return n * n\n', 'python', 'rust');
+// 'fn square(n: i64) -> i64 {\n    return n * n;\n}\n'
+```
+
+```sh
+echo 'x = x + 1;' | node bin/universal-translator.js translate javascript pascal --fragment
+```
+
+The Rust crate has `parse_fragment` and `translate_fragment`, as free
+functions and as methods of `Translator`, and its command line has the same
+`--fragment` flag. A fragment must be complete. A function ends with its
+closing, a block statement with its end, and a single line statement is a
+whole statement. Otherwise the error says what is missing and where, for
+example `The fragment is not complete: it ends before its closing (line 2)`.
+
+Every fragment in `examples/programs/fragments` is translated into every
+language under `examples/programs/fragments/translated`. Both test suites
+check these files and read each of them back into the same JavaScript.
+
+Limits:
+
+- Variables that the fragment uses but does not declare stay undeclared.
+  Pascal, Fortran and Ada only declare the variables that the fragment
+  declares itself, and keep the spelling of the others as written. In Zig
+  such a variable is printed with `{any}`.
+- In Python, Ruby and other languages without declarations, `x = 5` is read
+  as a declaration.
+- In a natural language, a fragment is one or more sentences that match a
+  template of the language.
+- Machine targets (NASM, CIL, JVM) hold whole programs only. A statement or
+  function on its own is rejected.
+- Perl and Bash have no booleans, so `true` and `false` come back as 1 and 0.
+- Classes are not part of the meta language yet.
+
+## Translate to and from controlled natural languages
+
+Controlled versions of 30 natural languages are languages like any other.
+They are English, Chinese, Hindi, Spanish, French, Arabic, Bengali,
+Portuguese, Russian, Urdu, Indonesian, German, Japanese, Marathi, Telugu,
+Turkish, Tamil, Vietnamese, Korean, Italian, Persian, Swahili, Tagalog,
+Thai, Polish, Ukrainian, Hausa, Gujarati, Punjabi and Dutch. Each one is
+described as data in `data/natural/<id>.lino`: one sentence template for
+every meta statement, one phrase for every operator, and a small lexicon
+for program names. The writer and the reader use the same tables, so every
+sentence the writer produces is one the reader accepts.
+
+```sh
+node bin/universal-translator.js translate javascript russian examples/programs/fizz-buzz.js
+node bin/universal-translator.js translate english rust examples/programs/natural/factorial/factorial.english.txt
+node bin/universal-translator.js translate nasm minimal-english examples/programs/translated/factorial/factorial.asm
+node bin/universal-translator.js check-words english-e-prime examples/programs/natural/leap-year/leap-year.english-e-prime.txt
+```
+
+```text
+Для каждого число от 1 до 100 повторять это:
+  Если число по модулю 15 равно 0, сделать это:
+    Написать «FizzBuzz» и закончить строку.
+```
+
+Profiles extend a language and add the rules of a controlled language
+standard. `checkText` and `check-words` enforce those rules:
+
+| Profile                   | Standard                                     | Rules that are checked                                |
+| ------------------------- | -------------------------------------------- | ----------------------------------------------------- |
+| `english` (`cnl-default`) | Balanced intersection of the standards below | One-to-one single-word lexicon; every text reads back |
+| `english-asd-ste100`      | ASD-STE100 Simplified Technical English      | At most 20 words, imperative starts, word list        |
+| `english-ace`             | Attempto Controlled English                  | Sentences start with ACE's determiners and keywords   |
+| `english-gellish`         | Gellish Formal English                       | Templates use each listed Gellish relation phrase     |
+| `dutch-gellish`           | Gellish Formeel Nederlands                   | Templates use each listed Gellish relation phrase     |
+| `english-sbvr`            | SBVR Structured English                      | Sentences start with SBVR keywords                    |
+| `english-plain-language`  | Plain language (ISO 24495-1)                 | At most 25 words, 20 on average; no "shall"           |
+| `english-e-prime`         | E-Prime                                      | No form of "to be"                                    |
+| `english-basic-english`   | Basic English (Ogden's 850 words)            | At most 25 words; template words from Ogden's list    |
+| `english-special-english` | VOA Special English / Learning English       | Template words from its word list, short sentences    |
+| `english-globish`         | Globish                                      | At most 20 words; template words from Globish list    |
+| `minimal-english`         | Minimal English (NSM)                        | Template words are semantic primes or molecules       |
+| `minimal-french`          | Minimal French (NSM)                         | Template words are semantic primes or molecules       |
+| `minimal-polish`          | Minimal Polish (NSM)                         | Template words are semantic primes or molecules       |
+
+The 65 semantic primes of Natural Semantic Metalanguage are listed in
+`data/natural/semantic-primes.lino` with their English, French, Polish,
+Russian and Spanish exponents. Every example program is written in every
+language and profile in `examples/programs/natural`. The tests read each
+text back to the same meaning, check it against the rules of its standard
+and translate it to every programming language. The Rust implementation
+(`rust/src/natural/`) reads the same data, writes the same texts byte for
+byte and has the same `languages` and `check-words` commands.
+
+`node scripts/check-requirements.mjs` checks every requirement of issue 1
+against `docs/case-studies/issue-1/requirements.lino`, and CI fails while any
+of them is neither done nor reported as blocked.
+
+See the [runnable examples](examples/translation/README.md) and the
+[issue 1 case study](docs/case-studies/issue-1/README.md).
+
+## Library, CLI, HTTP API and Docker
+
+The same translator is available four ways:
+
+```js
+import {
+  createTranslator,
+  createTranslationServer,
+} from '@link-foundation/universal-translator';
+
+createTranslator().translate('console.log("Hi");', 'javascript', 'python');
+createTranslationServer().listen(8080); // GET /languages, POST /translate
+```
+
+```bash
+universal-translator translate javascript python app.js
+universal-translator serve --port 8080   # or PORT=8080, or PORT: 8080 in .lenv
+curl -d '{"source":"console.log(\"Hi\");","from":"javascript","to":"rust"}' \
+  -H 'content-type: application/json' http://localhost:8080/translate
+docker build -t universal-translator .
+docker run --rm -p 8080:8080 universal-translator          # the HTTP API
+docker run --rm -i universal-translator translate javascript go - < app.js
+```
+
+`POST /translate` takes `{source, from, to, fragment?, mode?, commonLibrary?}`
+and answers `{output}` or `{error}` with status 400. Pull requests build the
+image and smoke test both the CLI and the API inside it.
 
 ## Features
 
@@ -24,8 +217,7 @@ npx @link-foundation/universal-translator --version
 npx @link-foundation/universal-translator add 2 3
 ```
 
-These registry commands require the first release to have been published. For
-checkout-based use before publication, run `node bin/universal-translator.js --version`.
+To check the version in this checkout, run `node bin/universal-translator.js --version`.
 
 ### Development
 
@@ -65,16 +257,26 @@ node bin/universal-translator.js add 2 3
 ├── .changeset/           # Changeset configuration
 ├── .github/workflows/    # GitHub Actions CI/CD
 ├── .husky/               # Git hooks (pre-commit)
+├── data/                 # Shared Links Notation data
 ├── examples/             # Usage examples
 │   └── universal-app/    # React + GitHub Pages + Electron + Capacitor app
+├── js/
+│   ├── src/              # JavaScript library and TypeScript declarations
+│   │   ├── meta/         # Shared meta language: tree, types, truth, Links Notation
+│   │   ├── formal/       # Programming languages and machine code (parse, emit, lower, lift)
+│   │   ├── natural/      # Human languages and controlled languages (read, write)
+│   │   ├── translation/  # Source-preserving documents and referent ranking
+│   │   └── translator.js # The pipeline that connects the three layers
+│   └── tests/            # JavaScript and repository tooling tests
+├── rust/
+│   ├── src/              # Rust library and CLI, with the same meta/, formal/,
+│   │                     # natural/ and translator.rs layout as js/src
+│   └── tests/            # Rust integration tests
 ├── scripts/              # Build and release scripts
-├── src/                  # Source code
-│   ├── index.js          # Main entry point
-│   └── index.d.ts        # TypeScript definitions
-├── tests/                # Test files
-├── .eslintrc.js          # ESLint configuration
+├── eslint.config.js      # ESLint configuration
 ├── .prettierrc           # Prettier configuration
 ├── bunfig.toml           # Bun configuration
+├── Cargo.toml            # Rust package manifest
 ├── deno.json             # Deno configuration
 └── package.json          # Node.js package manifest
 ```
@@ -105,8 +307,14 @@ Note: `package-lock.json` is not committed by default to allow any package manag
 
 ### Universal App Example
 
-The template includes `examples/universal-app`, a Vite React app that imports
-`add` and `multiply` from `src/index.js` and renders a visual calculator UI.
+`examples/universal-app` is a Vite React demo of the translator: pick any of
+the programming or natural languages on both sides, paste a statement, a
+function or a whole program, and read its translation (or the reason it does
+not parse). The `web-e2e` job drives it in Chromium with
+`examples/universal-app/e2e/translate.e2e.mjs`.
+
+![Web demo](docs/screenshots/web-demo.png)
+
 The same static build is used by:
 
 - GitHub Pages (`npm run example:web:build`)
@@ -201,7 +409,7 @@ The GitHub Actions workflow (`.github/workflows/release.yml`) implements a fast-
 
 **Slow checks** (only run after all fast checks pass):
 
-7. **Test matrix**: 3 runtimes × 3 OS = 9 test combinations
+7. **Ubuntu tests**: Node.js, Bun, and Deno run in parallel with the Rust suite and cross-language output checks
 8. **Broken link checks**: Validates all links in Markdown/HTML files (separate workflow)
 
 **Release** (on merge to main):
@@ -246,15 +454,12 @@ This design decouples PR validation from the need to pull changes from the defau
 
 ### Deploying the example app
 
-The `example-app.yml` workflow deploys the universal example app to GitHub
-Pages on every push to `main`. Before the first run on `main` in a new
-repository created from this template, open **Settings → Pages** and set
-**Source = GitHub Actions**. This is a one-time manual step and cannot be
-configured from a workflow because the Pages source defaults to
-_Deploy from a branch_. Without it, the `pages-deploy` job fails on
-`actions/deploy-pages` with `Get Pages site failed` /
-`Failed to create deployment`. After flipping the source, the workflow
-provisions the Pages site on its first run.
+The `example-app.yml` workflow publishes a downloadable web build on pull
+requests and deploys the app to GitHub Pages on matching pushes to `main`.
+For a new repository, open **Settings → Pages** and set **Source = GitHub
+Actions**. When the site is missing or misconfigured, the main workflow
+still uploads the web build and reports the setting to change in the
+**Configure GitHub Pages** step. Re-run the failed jobs after updating it.
 
 ### Auto-regenerated preview screenshots
 

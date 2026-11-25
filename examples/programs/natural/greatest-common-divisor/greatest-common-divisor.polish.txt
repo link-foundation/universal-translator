@@ -1,0 +1,10 @@
+Uwaga: Greatest common divisor in JavaScript, using the Euclidean algorithm
+
+Zdefiniuj największy-wspólny-dzielnik używając pierwszy i drugi:
+  Dopóki drugi nie równa się 0, powtarzaj to:
+    Utwórz reszta z wartością pierwszy modulo drugi.
+    Zmień pierwszy na drugi.
+    Zmień drugi na reszta.
+  Zwróć pierwszy.
+
+Wypisz „The greatest common divisor of 1071 and 462 is ” a następnie największy-wspólny-dzielnik dla (1071, 462) i zakończ wiersz.

@@ -1,0 +1,14 @@
+Not: Mutual recursion in JavaScript: the Hofstadter Female and Male sequences
+
+Dişi işlevini indeks ile tanımla:
+  Eğer indeks ile 0 eşit ise şunu yap:
+    1 döndür.
+  Indeks eksi erkek (dişi (indeks eksi 1)) döndür.
+
+Erkek işlevini indeks ile tanımla:
+  Eğer indeks ile 0 eşit ise şunu yap:
+    0 döndür.
+  Indeks eksi dişi (erkek (indeks eksi 1)) döndür.
+
+Her indeks için 0 ile 19 arasında şunu tekrarla:
+  Indeks ardından “: ” ardından dişi (indeks) ardından “ ” ardından erkek (indeks) yaz ve satırı bitir.

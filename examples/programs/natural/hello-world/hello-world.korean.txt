@@ -1,0 +1,4 @@
+참고: Hello World in JavaScript
+참고: print "Hello World!" into console followed by new line symbol by function call
+
+“Hello World!” 을 쓰고 줄을 바꾼다.

@@ -5,7 +5,7 @@ on:
     branches:
       - main
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
   # Manual release support - consolidated here to work with npm trusted publishing
   # npm only allows ONE workflow file as trusted publisher, so all publishing
   # must go through this workflow (release.yml)
@@ -31,6 +31,13 @@ on:
         description: 'Manual release description (optional)'
         required: false
         type: string
+
+# A new PR event replaces the whole check run, including when only draft
+# status changes. Give publish-capable runs their own workflow group so
+# their writer jobs retain their existing serialization.
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('checks-and-release-pr-{0}', github.ref) || format('checks-and-release-run-{0}', github.run_id) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # Least-privilege default for the highest-value token in the repository.
 # Every job starts read-only; the publishing jobs escalate individually.
@@ -268,22 +275,21 @@ jobs:
       - name: Check for secrets
         run: npx --yes -p secretlint@13.0.7 -p @secretlint/secretlint-rule-preset-recommend@13.0.7 secretlint "**/*"
 
-  # Test matrix: 3 runtimes (Node.js, Bun, Deno) x 3 OS (Ubuntu, macOS, Windows)
+  # Test the three JavaScript runtimes on Ubuntu.
   # IMPORTANT: Tests must validate the ACTUAL merge result, not a stale merge preview.
   # See docs/case-studies/issue-23 for why this is critical.
   # Fast-fail: slow test matrix only runs after fast checks pass (hive-mind principle #5)
   test:
-    name: Test (${{ matrix.runtime }} on ${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    # Typical run: <1min per runtime/OS on warm runners, with Windows
-    # sometimes slower on cold starts. Each test step owns an explicit
+    name: Test (${{ matrix.runtime }})
+    runs-on: ubuntu-24.04
+    # Each test step owns an explicit
     # budget below (see scripts/run-with-budget-warning.sh); this cap is
     # only the backstop behind those budgets, sized so the budgets always
     # expire first. A job killed by timeout-minutes reports *cancelled*,
     # which hides the failure -- see docs/CI-TIMEOUT-BUDGETS.md.
     timeout-minutes: 15
     concurrency:
-      group: check-${{ github.workflow }}-${{ github.ref }}-test-${{ matrix.runtime }}-${{ matrix.os }}
+      group: check-${{ github.workflow }}-${{ github.ref }}-test-${{ matrix.runtime }}
       cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
     needs:
       [
@@ -313,7 +319,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, macos-15, windows-2025]
         runtime: [node, bun, deno]
     steps:
       - uses: actions/checkout@v6
@@ -330,29 +335,26 @@ jobs:
         run: bash scripts/simulate-fresh-merge.sh
 
       - name: Setup Node.js
-        if: matrix.runtime == 'node'
+        if: matrix.runtime != 'deno'
         uses: actions/setup-node@v6
         with:
           node-version: '24.x'
+          cache: npm
 
-      - name: Install dependencies (Node.js)
-        if: matrix.runtime == 'node'
-        run: npm install
+      - name: Install locked dependencies
+        if: matrix.runtime != 'deno'
+        run: npm ci
 
       - name: Run tests (Node.js)
         if: matrix.runtime == 'node'
         shell: bash
-        run: bash scripts/run-with-budget-warning.sh 300 "Node.js test suite" npm test
+        run: bash scripts/run-with-budget-warning.sh 300 "Node.js test suite with coverage" npm run test:coverage
 
       - name: Setup Bun
         if: matrix.runtime == 'bun'
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: '1.x'
-
-      - name: Install dependencies (Bun)
-        if: matrix.runtime == 'bun'
-        run: bun install
 
       - name: Run tests (Bun)
         if: matrix.runtime == 'bun'
@@ -374,6 +376,306 @@ jobs:
         if: matrix.runtime == 'deno'
         shell: bash
         run: bash scripts/run-with-budget-warning.sh 100 "Deno test suite" deno test -A --parallel
+
+  # Exercise the shared data with both implementations and an independent oracle.
+  translation:
+    name: Rust and cross-language translation
+    runs-on: ubuntu-24.04
+    # Leave headroom above the Rust tests and command-line comparison budgets.
+    timeout-minutes: 30
+    concurrency:
+      group: check-${{ github.workflow }}-${{ github.ref }}-translation
+      cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+    needs:
+      [
+        detect-changes,
+        changeset-check,
+        test-compilation,
+        lint,
+        check-file-line-limits,
+      ]
+    # Use !cancelled() instead of always() so cancellation propagates correctly (hive-mind issue #1278)
+    if: |
+      !cancelled() &&
+      (
+        needs.detect-changes.outputs.any-code-changed == 'true' ||
+        (
+          github.event_name == 'workflow_dispatch' &&
+          github.event.inputs.release_mode == 'instant'
+        )
+      ) &&
+      (needs.changeset-check.result == 'success' || needs.changeset-check.result == 'skipped') &&
+      (needs.test-compilation.result == 'success' || needs.test-compilation.result == 'skipped') &&
+      (needs.lint.result == 'success' || needs.lint.result == 'skipped') &&
+      (needs.check-file-line-limits.result == 'success' || needs.check-file-line-limits.result == 'skipped')
+    env:
+      CARGO_BUILD_JOBS: '1'
+      CARGO_INCREMENTAL: '0'
+      CARGO_PROFILE_DEV_DEBUG: '0'
+      CARGO_PROFILE_TEST_DEBUG: '0'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Simulate fresh merge with base branch (PR only)
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: bash scripts/simulate-fresh-merge.sh
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24.x'
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca # stable
+        with:
+          components: rustfmt, clippy
+          targets: wasm32-unknown-unknown
+
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+
+      - run: npm ci
+
+      - name: Check the shared golden translations
+        run: |
+          node examples/programs/write-translations.mjs --check
+          node examples/programs/fragments/write-fragments.mjs --check
+
+      - name: Check the controlled natural language data and texts
+        run: |
+          node scripts/build-natural-sources.mjs --check
+          node examples/programs/write-natural.mjs --check
+
+      # Test driven: fails while any requirement of issue 1 is neither done
+      # (with its evidence and check) nor reported as blocked with a reason.
+      - name: Check the requirements of issue 1
+        run: node scripts/check-requirements.mjs
+
+      - name: Check Rust formatting
+        run: cargo fmt --check
+
+      - name: Lint Rust
+        run: cargo clippy --locked --all-targets -- -D warnings
+
+      - name: Test Rust
+        run: bash scripts/run-with-budget-warning.sh 540 "Rust test suite" cargo test --locked
+
+      - name: Check that the JavaScript and Rust command lines agree
+        run: |
+          cargo build --locked --bin universal-translator
+          bash experiments/verify-syntax-exchange.sh
+          node examples/translation/dependent-meanings.mjs
+
+  native-translation:
+    name: Native translation
+    runs-on: ubuntu-24.04
+    # Typical run: about 15 minutes, mostly the Kotlin, Swift, Scala, .NET
+    # and Zig compilers, plus about ten minutes when Rocq is built without a
+    # cache. 100min bounds a stalled toolchain download while keeping every
+    # step budget below 70% of the backstop.
+    timeout-minutes: 100
+    concurrency:
+      group: check-${{ github.workflow }}-${{ github.ref }}-native-translation
+      cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+    needs: [detect-changes]
+    if: |
+      !cancelled() &&
+      (
+        needs.detect-changes.outputs.any-code-changed == 'true' ||
+        (
+          github.event_name == 'workflow_dispatch' &&
+          github.event.inputs.release_mode == 'instant'
+        )
+      )
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Simulate fresh merge with base branch (PR only)
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: bash scripts/simulate-fresh-merge.sh
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24.x'
+          cache: npm
+
+      # The translator reads its natural language data with links-notation.
+      - name: Install dependencies
+        timeout-minutes: 1
+        run: npm ci
+
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: v2.x
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install native tools
+        # Free Pascal, GNAT and Octave are the largest packages.
+        timeout-minutes: 7
+        run: |
+          # Use Ubuntu's primary archives to avoid stalled runner mirrors.
+          apt_sources="$RUNNER_TEMP/native-tools.list"
+          cat > "$apt_sources" <<'EOF'
+          deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://archive.ubuntu.com/ubuntu noble main universe
+          deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://archive.ubuntu.com/ubuntu noble-updates main universe
+          deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://security.ubuntu.com/ubuntu noble-security main universe
+          EOF
+          apt_options=(
+            -o "Dir::Etc::sourcelist=$apt_sources" -o 'Dir::Etc::sourceparts=-'
+            -o Acquire::Retries=2 -o Acquire::https::Timeout=20
+          )
+          # opam, OCaml and GMP build Rocq when its cache is cold.
+          packages=(lua5.4 nasm php-cli ruby jasmin-sable perl r-base-core gobjc gdc nim fp-compiler gnat gfortran octave opam ocaml-nox libgmp-dev)
+          sudo apt-get "${apt_options[@]}" update --error-on=any
+          sudo apt-get "${apt_options[@]}" install --yes --no-install-recommends "${packages[@]}"
+          # ILAsm ships as a NuGet package for each runtime identifier.
+          curl --fail --location --silent --show-error --retry 3 \
+            https://api.nuget.org/v3-flatcontainer/runtime.linux-x64.microsoft.netcore.ilasm/8.0.0/runtime.linux-x64.microsoft.netcore.ilasm.8.0.0.nupkg \
+            --output "$RUNNER_TEMP/ilasm.zip"
+          unzip -q "$RUNNER_TEMP/ilasm.zip" -d "$RUNNER_TEMP/ilasm"
+          chmod +x "$RUNNER_TEMP/ilasm/runtimes/linux-x64/native/ilasm"
+          echo "ILASM=$RUNNER_TEMP/ilasm/runtimes/linux-x64/native/ilasm" >> "$GITHUB_ENV"
+
+      - name: Cache Dart, Julia, Scala, Groovy and Zig archives
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/tools-archives
+          key: native-tools-dart3.6.0-julia1.11.2-scala3.3.4-groovy4.0.24-zig0.17.1
+
+      - name: Install Dart, Julia, Scala, Groovy and Zig
+        timeout-minutes: 9
+        run: |
+          # Pinned official archives, checked against their SHA-256 sums.
+          # Noble's scala (2.11) and groovy (2.4) predate the runner's JDK,
+          # and Noble has no Zig package.
+          # Archives are cached between runs, every attempt is capped at
+          # three minutes so a stalled transfer moves on, and downloads fall
+          # back to a mirror, because hosts such as Maven Central answer HTTP 429
+          # to GitHub runners from time to time.
+          tools="$RUNNER_TEMP/tools"
+          archives="$RUNNER_TEMP/tools-archives"
+          mkdir -p "$tools" "$archives"
+          fetch() {
+            local urls=$1 name=$2 sum=$3
+            if [ -f "$archives/$name" ] && echo "$sum  $archives/$name" | sha256sum --check --status; then
+              echo "Using cached $name"
+            else
+              local ok=
+              for url in $urls; do
+                if curl --fail --location --silent --show-error --retry 3 --retry-all-errors \
+                  --retry-delay 5 --connect-timeout 20 --max-time 180 "$url" --output "$archives/$name" &&
+                  echo "$sum  $archives/$name" | sha256sum --check --quiet; then
+                  ok=1
+                  break
+                fi
+                echo "Download of $name from $url failed, trying the next source"
+              done
+              [ -n "$ok" ] || { echo "::error::Could not download $name"; exit 1; }
+            fi
+            cp "$archives/$name" "$tools/$name"
+          }
+          fetch https://storage.googleapis.com/dart-archive/channels/stable/release/3.6.0/sdk/dartsdk-linux-x64-release.zip \
+            dart.zip 8e14ff436e1eec72618dabc94f421a97251f2068c9cc9ad2d3bb9d232d6155a3
+          fetch https://julialang-s3.julialang.org/bin/linux/x64/1.11/julia-1.11.2-linux-x86_64.tar.gz \
+            julia.tar.gz 8a372ad262d4d4d55a1044f4fe3bce7c9a4a3ce8c513d2470e58e8071eecd476
+          fetch https://github.com/scala/scala3/releases/download/3.3.4/scala3-3.3.4.tar.gz \
+            scala.tar.gz fd0eca29ef1f6c41874b6711e7b6514f1dc7c387c087742fb873f6e720963770
+          fetch "https://repo1.maven.org/maven2/org/apache/groovy/groovy-binary/4.0.24/groovy-binary-4.0.24.zip
+            https://maven-central.storage-download.googleapis.com/maven2/org/apache/groovy/groovy-binary/4.0.24/groovy-binary-4.0.24.zip" \
+            groovy.zip dbff36835568bec2271876f70bfcca6deb80e1b179453cca934a502ea301bb80
+          fetch "https://ziglang.org/download/0.17.1/zig-x86_64-linux-0.17.1.tar.xz
+            https://zig.linus.dev/zig/zig-x86_64-linux-0.17.1.tar.xz" \
+            zig.tar.xz 3581863e3cbcfd0fce0efc682ce7e9e93da96668a977791d356a26d2a7e9b17a
+          unzip -q "$tools/dart.zip" -d "$tools"
+          unzip -q "$tools/groovy.zip" -d "$tools"
+          tar -xzf "$tools/julia.tar.gz" -C "$tools"
+          tar -xzf "$tools/scala.tar.gz" -C "$tools"
+          tar -xJf "$tools/zig.tar.xz" -C "$tools"
+          echo "GROOVY_HOME=$tools/groovy-4.0.24" >> "$GITHUB_ENV"
+          {
+            echo "$tools/dart-sdk/bin"
+            echo "$tools/julia-1.11.2/bin"
+            echo "$tools/scala3-3.3.4/bin"
+            echo "$tools/groovy-4.0.24/bin"
+            echo "$tools/zig-x86_64-linux-0.17.1"
+          } >> "$GITHUB_PATH"
+
+      # Saved right after the install, so a cold build is kept even when a
+      # later step fails.
+      - name: Restore Lean and Rocq
+        id: provers-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.elan
+            ~/.opam
+          key: native-provers-lean4.35.0-rocq9.3.0-stdlib9.2.0-ocaml-system-noble
+
+      - name: Install Lean and Rocq
+        # A cached install takes seconds; a cold one builds Rocq and its
+        # standard library from source in about ten minutes.
+        timeout-minutes: 15
+        env:
+          CACHE_HIT: ${{ steps.provers-cache.outputs.cache-hit }}
+          OPAMYES: '1'
+          OPAMRETRIES: '3'
+        run: |
+          if [ "$CACHE_HIT" != 'true' ]; then
+            curl --fail --location --silent --show-error --retry 3 --retry-all-errors \
+              --retry-delay 5 --connect-timeout 20 --max-time 180 \
+              https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+              --output "$RUNNER_TEMP/elan-init.sh"
+            sh "$RUNNER_TEMP/elan-init.sh" -y --no-modify-path \
+              --default-toolchain leanprover/lean4:v4.35.0
+            opam init --bare --disable-sandboxing --no-setup
+            opam switch create rocq ocaml-system
+            opam install --switch rocq --jobs "$(nproc)" rocq-core.9.3.0 rocq-stdlib.9.2.0
+            opam clean --all-switches --download-cache --logs
+          fi
+          {
+            echo "$HOME/.elan/bin"
+            echo "$HOME/.opam/rocq/bin"
+          } >> "$GITHUB_PATH"
+          "$HOME/.elan/bin/lean" --version
+          "$HOME/.opam/rocq/bin/rocq" --version
+
+      - name: Save Lean and Rocq
+        if: steps.provers-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.elan
+            ~/.opam
+          key: ${{ steps.provers-cache.outputs.cache-primary-key }}
+
+      # Typical runs take about 220s and 250s; the budgets leave room for
+      # runners that are around 50% slower (330s and 360s were measured).
+      - name: Run every translation with its native toolchain
+        timeout-minutes: 10
+        env:
+          LUA: lua5.4
+        run: |
+          bash scripts/run-with-budget-warning.sh 540 "Native translations" \
+            node examples/programs/verify-native.mjs --require-all
+
+      - name: Run every common library translation with its native toolchain
+        timeout-minutes: 9
+        env:
+          LUA: lua5.4
+        run: |
+          bash scripts/run-with-budget-warning.sh 480 "Common library translations" \
+            node examples/programs/verify-native.mjs --require-all --common-library
 
   # === DOCKER IMAGE BUILD CHECK (pull requests) ===
   # Builds the Dockerfile without pushing so a broken image fails the pull
@@ -415,7 +717,7 @@ jobs:
         # it declares its deadline with a step-level timeout-minutes: an
         # exhausted step budget fails the step, while an exhausted job cap
         # only cancels the job.
-        timeout-minutes: 20
+        timeout-minutes: 18
         uses: docker/build-push-action@v7
         with:
           context: ${{ steps.docker_config.outputs.context }}
@@ -430,6 +732,25 @@ jobs:
           # the rest of the pipeline reads.
           cache-from: type=gha,scope=docker-image
           cache-to: type=gha,mode=max,scope=docker-image
+
+      - name: Smoke test the Docker image
+        if: steps.docker_config.outputs.enabled == 'true'
+        timeout-minutes: 3
+        run: |
+          # The image must translate through its CLI and answer over HTTP.
+          echo 'console.log("Hi");' |
+            docker run --rm -i "pr-check:${{ github.sha }}" translate javascript python - |
+            grep -F 'print("Hi")'
+          docker run -d --name api -p 8080:8080 "pr-check:${{ github.sha }}"
+          for _ in $(seq 1 30); do
+            curl -fsS http://localhost:8080/languages > /tmp/languages.json && break
+            sleep 1
+          done
+          grep -F '"python"' /tmp/languages.json
+          curl -fsS -H 'content-type: application/json' \
+            -d '{"source":"console.log(\"Hi\");","from":"javascript","to":"rust"}' \
+            http://localhost:8080/translate | grep -F 'println!'
+          docker rm -f api
 
   # === DOCUMENTATION VALIDATION ===
   # Validate documentation files when docs change (hive-mind principle #12)
@@ -514,6 +835,8 @@ jobs:
         changeset-check,
         lint,
         test,
+        translation,
+        native-translation,
         docker-build,
         validate-docs,
         release-preflight,
@@ -533,6 +856,8 @@ jobs:
       needs.release-preflight.result == 'success' &&
       needs.lint.result == 'success' &&
       needs.test.result == 'success' &&
+      needs.translation.result == 'success' &&
+      needs.native-translation.result == 'success' &&
       !contains(needs.*.result, 'failure') &&
       !contains(needs.*.result, 'cancelled')
     runs-on: ubuntu-24.04
@@ -665,6 +990,8 @@ jobs:
         changeset-check,
         lint,
         test,
+        translation,
+        native-translation,
         docker-build,
         validate-docs,
         release-preflight,
@@ -676,6 +1003,8 @@ jobs:
       needs.release-preflight.result == 'success' &&
       needs.lint.result == 'success' &&
       needs.test.result == 'success' &&
+      needs.translation.result == 'success' &&
+      needs.native-translation.result == 'success' &&
       !contains(needs.*.result, 'failure') &&
       !contains(needs.*.result, 'cancelled')
     runs-on: ubuntu-24.04
@@ -1043,6 +1372,8 @@ jobs:
       - changeset-check
       - lint
       - test
+      - translation
+      - native-translation
       - docker-build
       - docker-publish-config
       - docker-publish-build

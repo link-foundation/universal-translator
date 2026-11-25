@@ -1,0 +1,14 @@
+Lura: Hailstone sequence in JavaScript: count the steps to reach 1
+
+Ayyana ƙanƙara-matakai da lamba:
+  Ƙirƙiri matakai mai ƙima 0.
+  Yayin da lamba bai yi daidai da 1, maimaita wannan:
+    Idan lamba modulo 2 daidai yake da 0, yi wannan:
+      Canza lamba zuwa lamba raba da 2.
+    In ba haka ba, yi wannan:
+      Canza lamba zuwa 3 sau lamba ƙari 1.
+    Canza matakai zuwa matakai ƙari 1.
+  Mayar da matakai.
+
+Ga kowane lamba daga 1 zuwa 10, maimaita wannan:
+  Rubuta lamba sannan “ takes ” sannan ƙanƙara-matakai na (lamba) sannan “ steps” kuma ka gama layi.

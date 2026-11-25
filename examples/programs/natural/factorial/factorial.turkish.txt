@@ -1,0 +1,9 @@
+Not: Factorial in JavaScript, defined recursively
+
+Faktöriyel işlevini sayı ile tanımla:
+  Eğer sayı en fazla 1 ise şunu yap:
+    1 döndür.
+  Sayı çarpı faktöriyel (sayı eksi 1) döndür.
+
+Her sayı için 0 ile 10 arasında şunu tekrarla:
+  Sayı ardından “! = ” ardından faktöriyel (sayı) yaz ve satırı bitir.

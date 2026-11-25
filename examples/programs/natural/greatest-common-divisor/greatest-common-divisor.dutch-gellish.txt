@@ -1,0 +1,10 @@
+Opmerking: Greatest common divisor in JavaScript, using the Euclidean algorithm
+
+Grootste-gemeenschappelijk-deler is gedefinieerd als een procedure met invoer eerste en tweede:
+  Zolang tweede is ongelijk aan 0 wordt het volgende herhaald:
+    Rest is geclassificeerd als een variabele met beginwaarde eerste modulo tweede.
+    Eerste heeft als nieuwe waarde tweede.
+    Tweede heeft als nieuwe waarde rest.
+  De procedure heeft als resultaat eerste.
+
+De uitvoer heeft als volgende regel “The greatest common divisor of 1071 and 462 is ” samengevoegd met grootste-gemeenschappelijk-deler toegepast op (1071, 462).

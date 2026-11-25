@@ -1,0 +1,10 @@
+Lura: Towers of Hanoi in JavaScript, solved recursively
+
+Ayyana matsar-faifai da ƙidaya, asali, manufa da ajiya:
+  Idan ƙidaya daidai yake da 0, yi wannan:
+    Tsaya nan.
+  Gudanar da matsar-faifai na (ƙidaya ragi 1, asali, ajiya, manufa).
+  Rubuta “Move disk ” sannan ƙidaya sannan “ from ” sannan asali sannan “ to ” sannan manufa kuma ka gama layi.
+  Gudanar da matsar-faifai na (ƙidaya ragi 1, ajiya, manufa, asali).
+
+Gudanar da matsar-faifai na (4, 1, 3, 2).

@@ -1,0 +1,4 @@
+টীকা: Hello World in JavaScript
+টীকা: print "Hello World!" into console followed by new line symbol by function call
+
+“Hello World!” লেখো এবং লাইন শেষ করো।

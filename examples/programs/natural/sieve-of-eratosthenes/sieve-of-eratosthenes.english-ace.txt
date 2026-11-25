@@ -1,0 +1,13 @@
+Note: Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+There is a variable limit whose value is 100.
+There is a variable is-prime whose value is a list of (limit plus 1) copies of 1.
+The value of item 0 of is-prime becomes 0.
+The value of item 1 of is-prime becomes 0.
+For every number from 2 to limit the program does the following:
+  If item number of is-prime is equal to 1 then the program does the following:
+    The program writes a line that contains number.
+    There is a variable multiple whose value is number times number.
+    While multiple is less than or equal to limit the program repeats the following:
+      The value of item multiple of is-prime becomes 0.
+      The value of multiple becomes multiple plus number.

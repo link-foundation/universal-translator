@@ -101,7 +101,7 @@ back to signalling the direct child.
 
 ## The invariant
 
-`tests/ci-timeouts.test.js` asserts, for every job that declares budgets, that
+`js/tests/ci-timeouts.test.js` asserts, for every job that declares budgets, that
 
 - each individual budget is at most **70%** (`MAX_BUDGET_SHARE_PERCENT`) of the
   job's `timeout-minutes`, and

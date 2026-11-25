@@ -1,0 +1,7 @@
+Примечание: 99 bottles of beer in JavaScript
+
+Создать бутылки со значением 99.
+Пока бутылки больше 0, повторять это:
+  Написать бутылки затем « bottles of beer on the wall, » затем бутылки затем « bottles of beer.» и закончить строку.
+  Написать «Take one down and pass it around, » затем бутылки минус 1 затем « bottles of beer on the wall.» и закончить строку.
+  Изменить бутылки на бутылки минус 1.

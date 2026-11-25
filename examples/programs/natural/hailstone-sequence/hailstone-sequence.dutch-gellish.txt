@@ -1,0 +1,14 @@
+Opmerking: Hailstone sequence in JavaScript: count the steps to reach 1
+
+Hagelsteen-stappen is gedefinieerd als een procedure met invoer getal:
+  Stappen is geclassificeerd als een variabele met beginwaarde 0.
+  Zolang getal is ongelijk aan 1 wordt het volgende herhaald:
+    Als getal modulo 2 is gelijk aan 0 dan wordt het volgende uitgevoerd:
+      Getal heeft als nieuwe waarde getal gedeeld door 2.
+    Anders wordt het volgende uitgevoerd:
+      Getal heeft als nieuwe waarde 3 maal getal plus 1.
+    Stappen heeft als nieuwe waarde stappen plus 1.
+  De procedure heeft als resultaat stappen.
+
+Voor elke getal van 1 tot en met 10 wordt het volgende herhaald:
+  De uitvoer heeft als volgende regel getal samengevoegd met “ takes ” samengevoegd met hagelsteen-stappen toegepast op (getal) samengevoegd met “ steps”.

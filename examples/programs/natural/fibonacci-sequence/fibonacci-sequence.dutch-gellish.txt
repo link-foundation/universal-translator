@@ -1,0 +1,13 @@
+Opmerking: Fibonacci sequence in JavaScript, computed iteratively
+
+Fibonacci is gedefinieerd als een procedure met invoer aantal:
+  Vorige is geclassificeerd als een variabele met beginwaarde 0.
+  Huidig is geclassificeerd als een variabele met beginwaarde 1.
+  Voor elke stap van 0 tot en met aantal min 1 wordt het volgende herhaald:
+    Volgende_ is geclassificeerd als een variabele met beginwaarde vorige plus huidig.
+    Vorige heeft als nieuwe waarde huidig.
+    Huidig heeft als nieuwe waarde volgende_.
+  De procedure heeft als resultaat vorige.
+
+Voor elke index van 0 tot en met 20 wordt het volgende herhaald:
+  De uitvoer heeft als volgende regel “fibonacci(” samengevoegd met index samengevoegd met “) = ” samengevoegd met fibonacci toegepast op (index).

@@ -1,0 +1,13 @@
+Note: Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+Set limit to 100.
+Set is-prime to a list of (limit plus 1) items with the value 1.
+Set item 0 of is-prime to 0.
+Set item 1 of is-prime to 0.
+For each number from 2 to limit, do these steps:
+  If item number of is-prime equals 1, do these steps:
+    Write line number.
+    Set multiple to number times number.
+    While multiple is not more than limit, do these steps again:
+      Set item multiple of is-prime to 0.
+      Change multiple to multiple plus number.

@@ -141,3 +141,8 @@ vite.config.ts.timestamp-*
 
 # jscpd reports
 reports/
+
+# Cargo build outputs
+/target/
+__pycache__/
+ci-logs/

@@ -1,0 +1,9 @@
+Note: Factorial in JavaScript, defined recursively
+
+Procedure factorial with number:
+  If number is not more than 1, do these steps:
+    Return 1.
+  Return number times factorial of (number minus 1).
+
+For each number from 0 to 10, do these steps:
+  Write line number then “! = ” then factorial of (number).

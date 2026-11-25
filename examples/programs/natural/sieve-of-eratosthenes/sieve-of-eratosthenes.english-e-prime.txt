@@ -1,0 +1,13 @@
+Note: Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+Create limit with value 100.
+Create check-prime with value a list of (limit plus 1) copies of 1.
+Change item 0 of check-prime to 0.
+Change item 1 of check-prime to 0.
+For each number from 2 to limit, repeat this:
+  If item number of check-prime equals 1, do this:
+    Write number and end the line.
+    Create multiple with value number times number.
+    While multiple does not exceed limit, repeat this:
+      Change item multiple of check-prime to 0.
+      Change multiple to multiple plus number.

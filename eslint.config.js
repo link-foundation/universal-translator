@@ -105,7 +105,7 @@ export default [
   },
   {
     // Test files have different requirements
-    files: ['tests/**/*.js', '**/*.test.js'],
+    files: ['js/tests/**/*.js', '**/*.test.js'],
     rules: {
       'require-await': 'off', // Async functions without await are common in tests
     },
@@ -115,7 +115,7 @@ export default [
     // tests contain fixtures the rule is designed to flag.
     files: [
       'docs/case-studies/**/*.{js,mjs,cjs}',
-      'tests/no-changelog-comments.test.js',
+      'js/tests/no-changelog-comments.test.js',
     ],
     rules: {
       'local/no-changelog-comments': 'off',
@@ -135,6 +135,10 @@ export default [
       'reports/**',
       // Case study raw data files (downloaded from external sources)
       'docs/case-studies/*/data/**',
+      // Generated translations, compared byte for byte by the tests
+      'examples/programs/translated/**',
+      // Fragments with variables they do not declare, and their translations
+      'examples/programs/fragments/**/*.js',
     ],
   },
 ];

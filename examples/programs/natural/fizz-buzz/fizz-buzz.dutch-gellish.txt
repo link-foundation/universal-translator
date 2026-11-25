@@ -1,0 +1,11 @@
+Opmerking: FizzBuzz in JavaScript
+
+Voor elke getal van 1 tot en met 100 wordt het volgende herhaald:
+  Als getal modulo 15 is gelijk aan 0 dan wordt het volgende uitgevoerd:
+    De uitvoer heeft als volgende regel “FizzBuzz”.
+  Anders als getal modulo 3 is gelijk aan 0 dan wordt het volgende uitgevoerd:
+    De uitvoer heeft als volgende regel “Fizz”.
+  Anders als getal modulo 5 is gelijk aan 0 dan wordt het volgende uitgevoerd:
+    De uitvoer heeft als volgende regel “Buzz”.
+  Anders wordt het volgende uitgevoerd:
+    De uitvoer heeft als volgende regel getal.

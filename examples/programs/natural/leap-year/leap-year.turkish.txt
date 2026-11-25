@@ -1,0 +1,10 @@
+Not: Leap year in JavaScript
+
+Mi-artık-yıl işlevini yıl ile tanımla:
+  Yıl mod 4 ile 0 eşit ve yıl mod 100 ile 0 farklı veya yıl mod 400 ile 0 eşit döndür.
+
+Her yıl için 1896 ile 1912 arasında şunu tekrarla:
+  Eğer mi-artık-yıl (yıl) ise şunu yap:
+    Yıl ardından “ is a leap year” yaz ve satırı bitir.
+  Değilse şunu yap:
+    Yıl ardından “ is not a leap year” yaz ve satırı bitir.

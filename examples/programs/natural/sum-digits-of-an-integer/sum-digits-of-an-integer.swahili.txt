@@ -1,0 +1,10 @@
+Kumbuka: Sum digits of an integer in JavaScript
+
+Fafanua jumla-ya-tarakimu kwa nambari:
+  Unda kiasi yenye thamani 0.
+  Wakati nambari ni zaidi ya 0, rudia hivi:
+    Badilisha kiasi kuwa kiasi jumlisha nambari modulo 10.
+    Badilisha nambari kuwa nambari gawanya kwa 10.
+  Rudisha kiasi.
+
+Andika “The digits of 1234567890 sum to ” ikifuatiwa na jumla-ya-tarakimu ya (1234567890) na umalize mstari.

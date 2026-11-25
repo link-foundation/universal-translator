@@ -1,0 +1,7 @@
+Nota: 99 bottles of beer in JavaScript
+
+Criar garrafas com valor 99.
+Enquanto garrafas é maior que 0, repetir isto:
+  Escrever garrafas seguido de “ bottles of beer on the wall, ” seguido de garrafas seguido de “ bottles of beer.” e terminar a linha.
+  Escrever “Take one down and pass it around, ” seguido de garrafas menos 1 seguido de “ bottles of beer on the wall.” e terminar a linha.
+  Mudar garrafas para garrafas menos 1.

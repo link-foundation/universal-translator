@@ -1,0 +1,10 @@
+Kumbuka: Towers of Hanoi in JavaScript, solved recursively
+
+Fafanua hamisha-diski kwa hesabu, chanzo, lengo na akiba:
+  Ikiwa hesabu ni sawa na 0, fanya hivi:
+    Simama hapa.
+  Endesha hamisha-diski ya (hesabu toa 1, chanzo, akiba, lengo).
+  Andika “Move disk ” ikifuatiwa na hesabu ikifuatiwa na “ from ” ikifuatiwa na chanzo ikifuatiwa na “ to ” ikifuatiwa na lengo na umalize mstari.
+  Endesha hamisha-diski ya (hesabu toa 1, akiba, lengo, chanzo).
+
+Endesha hamisha-diski ya (4, 1, 3, 2).

@@ -1,0 +1,13 @@
+Catatan: Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+Buat batas dengan nilai 100.
+Buat apakah-prima dengan nilai daftar sepanjang (batas ditambah 1) berisi 1.
+Ubah elemen 0 pada apakah-prima menjadi 0.
+Ubah elemen 1 pada apakah-prima menjadi 0.
+Untuk setiap bilangan dari 2 sampai batas, ulangi ini:
+  Jika elemen bilangan pada apakah-prima sama dengan 1, lakukan ini:
+    Tulis bilangan dan akhiri baris.
+    Buat kelipatan dengan nilai bilangan dikali bilangan.
+    Selama kelipatan paling banyak batas, ulangi ini:
+      Ubah elemen kelipatan pada apakah-prima menjadi 0.
+      Ubah kelipatan menjadi kelipatan ditambah bilangan.

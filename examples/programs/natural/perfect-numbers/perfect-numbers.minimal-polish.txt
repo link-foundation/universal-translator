@@ -1,0 +1,16 @@
+Uwaga: Perfect numbers in JavaScript: numbers equal to the sum of their divisors
+
+Tak ktoś robi czy-doskonała z liczba:
+  Jest suma, to jest 1.
+  Jest dzielnik, to jest 2.
+  Kiedy dzielnik razy dzielnik nie jest więcej niż liczba, robić to wiele razy:
+    Jeżeli liczba modulo dzielnik jest tym samym co 0, zrobić to:
+      Po tym suma jest suma plus dzielnik.
+      Jeżeli dzielnik razy dzielnik nie jest tym samym co liczba, zrobić to:
+        Po tym suma jest suma plus liczba podzielone przez dzielnik.
+    Po tym dzielnik jest dzielnik plus 1.
+  Odpowiedzią jest liczba jest więcej niż 1 i suma jest tym samym co liczba.
+
+Dla wszystkich liczba od 1 do 10000, zrobić to:
+  Jeżeli czy-doskonała dla (liczba), zrobić to:
+    Powiedzieć liczba w jednej linii.

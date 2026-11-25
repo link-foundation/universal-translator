@@ -1,0 +1,12 @@
+Opmerking: Bubble sort in JavaScript: sort a list of numbers
+
+Maak getallen met waarde de lijst (5, 3, 8, 1, 9, 2, 7).
+Maak aantal met waarde de lengte van getallen.
+Voor elke ronde van 0 tot en met aantal min 1 min 1, herhaal dit:
+  Voor elke index van 0 tot en met aantal min 1 min ronde min 1, herhaal dit:
+    Als element index van getallen is groter dan element (index plus 1) van getallen, doe dit:
+      Maak wissel met waarde element index van getallen.
+      Verander element index van getallen in element (index plus 1) van getallen.
+      Verander element (index plus 1) van getallen in wissel.
+Voor elke positie van 0 tot en met aantal min 1, herhaal dit:
+  Schrijf element positie van getallen en beëindig de regel.

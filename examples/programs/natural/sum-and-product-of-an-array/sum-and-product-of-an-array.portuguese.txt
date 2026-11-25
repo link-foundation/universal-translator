@@ -1,0 +1,10 @@
+Nota: Sum and product of an array in JavaScript
+
+Criar números com valor a lista (1, 2, 3, 4, 5).
+Criar total com valor 0.
+Criar produto com valor 1.
+Para cada índice de 0 até o comprimento de números menos 1, repetir isto:
+  Mudar total para total mais o elemento índice de números.
+  Mudar produto para produto vezes o elemento índice de números.
+Escrever “Sum: ” seguido de total e terminar a linha.
+Escrever “Product: ” seguido de produto e terminar a linha.

@@ -1,0 +1,4 @@
+Not: Hello World in JavaScript
+Not: print "Hello World!" into console followed by new line symbol by function call
+
+“Hello World!” yaz ve satırı bitir.

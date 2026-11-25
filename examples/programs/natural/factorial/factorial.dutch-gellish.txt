@@ -1,0 +1,9 @@
+Opmerking: Factorial in JavaScript, defined recursively
+
+Faculteit is gedefinieerd als een procedure met invoer getal:
+  Als getal is hoogstens 1 dan wordt het volgende uitgevoerd:
+    De procedure heeft als resultaat 1.
+  De procedure heeft als resultaat getal maal faculteit toegepast op (getal min 1).
+
+Voor elke getal van 0 tot en met 10 wordt het volgende herhaald:
+  De uitvoer heeft als volgende regel getal samengevoegd met “! = ” samengevoegd met faculteit toegepast op (getal).

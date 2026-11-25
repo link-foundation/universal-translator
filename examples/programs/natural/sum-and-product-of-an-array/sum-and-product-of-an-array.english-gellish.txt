@@ -1,0 +1,10 @@
+Note: Sum and product of an array in JavaScript
+
+Numbers is classified as a variable with initial value the list (1, 2, 3, 4, 5).
+Total is classified as a variable with initial value 0.
+Product is classified as a variable with initial value 1.
+For each index from 0 to the length of numbers minus 1 the following is repeated:
+  Total has as new value total plus item index of numbers.
+  Product has as new value product times item index of numbers.
+The output has as next line “Sum: ” concatenated with total.
+The output has as next line “Product: ” concatenated with product.

@@ -1,0 +1,13 @@
+Kumbuka: Fibonacci sequence in JavaScript, computed iteratively
+
+Fafanua fibonacci kwa hesabu:
+  Unda iliyopita yenye thamani 0.
+  Unda sasa yenye thamani 1.
+  Kwa kila hatua kutoka 0 hadi hesabu toa 1, rudia hivi:
+    Unda ijayo yenye thamani iliyopita jumlisha sasa.
+    Badilisha iliyopita kuwa sasa.
+    Badilisha sasa kuwa ijayo.
+  Rudisha iliyopita.
+
+Kwa kila fahirisi kutoka 0 hadi 20, rudia hivi:
+  Andika “fibonacci(” ikifuatiwa na fahirisi ikifuatiwa na “) = ” ikifuatiwa na fibonacci ya (fahirisi) na umalize mstari.

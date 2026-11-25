@@ -1,0 +1,10 @@
+Ghi chú: Towers of Hanoi in JavaScript, solved recursively
+
+Định nghĩa di_chuyển-đĩa với số_lượng, nguồn, đích và phụ:
+  Nếu số_lượng bằng 0, làm điều này:
+    Dừng ở đây.
+  Thực hiện di_chuyển-đĩa của (số_lượng trừ 1, nguồn, phụ, đích).
+  Viết “Move disk ” nối với số_lượng nối với “ from ” nối với nguồn nối với “ to ” nối với đích và xuống dòng.
+  Thực hiện di_chuyển-đĩa của (số_lượng trừ 1, phụ, đích, nguồn).
+
+Thực hiện di_chuyển-đĩa của (4, 1, 3, 2).

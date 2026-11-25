@@ -1,0 +1,7 @@
+Uwaga: 99 bottles of beer in JavaScript
+
+Utwórz butelki z wartością 99.
+Dopóki butelki przekracza 0, powtarzaj to:
+  Wypisz butelki a następnie „ bottles of beer on the wall, ” a następnie butelki a następnie „ bottles of beer.” i zakończ wiersz.
+  Wypisz „Take one down and pass it around, ” a następnie butelki minus 1 a następnie „ bottles of beer on the wall.” i zakończ wiersz.
+  Zmień butelki na butelki minus 1.

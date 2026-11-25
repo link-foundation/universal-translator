@@ -1,0 +1,1 @@
+(snapshot: (array: (object: (conclusion: (string: success)) (createdAt: (string: '2026-05-01T11:14:07Z')) (databaseId: (number: 25212342558)) (headSha: (string: 2f4262c40d5f91f7357e7cac1545d09dd67b0b49)) (status: (string: completed)) (workflowName: (string: 'Checks and release')))))

@@ -1,0 +1,10 @@
+注：Greatest common divisor in JavaScript, using the Euclidean algorithm
+
+最大-共通-約数 を 第一 と 第二 で 定義 する：
+  第二 が 0 に 等しく ない の 間 次 を 繰り返す：
+    余り を 値 第一 剰余 第二 で 作る。
+    第一 を 第二 に 変える。
+    第二 を 余り に 変える。
+  第一 を 返す。
+
+「The greatest common divisor of 1071 and 462 is 」 に 続けて 最大-共通-約数 (1071、 462) を 書いて 改行 する。

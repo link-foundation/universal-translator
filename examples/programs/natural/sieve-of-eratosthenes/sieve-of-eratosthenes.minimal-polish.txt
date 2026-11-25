@@ -1,0 +1,13 @@
+Uwaga: Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+Jest limit, to jest 100.
+Jest czy-pierwsza, to jest (limit plus 1) rzeczy jak 1.
+Po tym część 0 z czy-pierwsza jest 0.
+Po tym część 1 z czy-pierwsza jest 0.
+Dla wszystkich liczba od 2 do limit, zrobić to:
+  Jeżeli część liczba z czy-pierwsza jest tym samym co 1, zrobić to:
+    Powiedzieć liczba w jednej linii.
+    Jest wielokrotność, to jest liczba razy liczba.
+    Kiedy wielokrotność nie jest więcej niż limit, robić to wiele razy:
+      Po tym część wielokrotność z czy-pierwsza jest 0.
+      Po tym wielokrotność jest wielokrotność plus liczba.

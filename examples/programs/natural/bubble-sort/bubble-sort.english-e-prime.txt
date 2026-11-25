@@ -1,0 +1,12 @@
+Note: Bubble sort in JavaScript: sort a list of numbers
+
+Create numbers with value the list (5, 3, 8, 1, 9, 2, 7).
+Create count with value the length of numbers.
+For each pass from 0 to count minus 1 minus 1, repeat this:
+  For each index from 0 to count minus 1 minus pass minus 1, repeat this:
+    If item index of numbers exceeds item (index plus 1) of numbers, do this:
+      Create swap with value item index of numbers.
+      Change item index of numbers to item (index plus 1) of numbers.
+      Change item (index plus 1) of numbers to swap.
+For each position from 0 to count minus 1, repeat this:
+  Write item position of numbers and end the line.

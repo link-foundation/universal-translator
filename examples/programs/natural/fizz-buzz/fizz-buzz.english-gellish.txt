@@ -1,0 +1,11 @@
+Note: FizzBuzz in JavaScript
+
+For each number from 1 to 100 the following is repeated:
+  If number modulo 15 is equal to 0 then the following is performed:
+    The output has as next line “FizzBuzz”.
+  Else if number modulo 3 is equal to 0 then the following is performed:
+    The output has as next line “Fizz”.
+  Else if number modulo 5 is equal to 0 then the following is performed:
+    The output has as next line “Buzz”.
+  Else the following is performed:
+    The output has as next line number.

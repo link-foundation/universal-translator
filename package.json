@@ -1,28 +1,31 @@
 {
   "name": "@link-foundation/universal-translator",
   "version": "0.11.32",
-  "description": "A JavaScript/TypeScript package template for AI-driven development",
+  "description": "Source-preserving translation for small programs through a shared meta-language",
   "type": "module",
-  "main": "src/index.js",
-  "types": "src/index.d.ts",
+  "main": "js/src/index.js",
+  "types": "js/src/index.d.ts",
   "bin": {
     "universal-translator": "./bin/universal-translator.js"
   },
   "files": [
     "bin/",
-    "src/",
+    "common-library/",
+    "js/src/",
+    "data/",
     "CHANGELOG.md",
     "LICENSE",
     "README.md"
   ],
   "exports": {
     ".": {
-      "types": "./src/index.d.ts",
-      "import": "./src/index.js"
+      "types": "./js/src/index.d.ts",
+      "import": "./js/src/index.js"
     }
   },
   "scripts": {
-    "test": "node --test --test-timeout=30000 tests/*.test.js",
+    "test": "node --test --test-timeout=30000 js/tests/*.test.js",
+    "test:coverage": "node --test --test-timeout=30000 --experimental-test-coverage --test-coverage-include='js/src/**' --test-coverage-include='bin/**' --test-coverage-lines=94 --test-coverage-branches=91 --test-coverage-functions=95 js/tests/*.test.js",
     "lint": "node scripts/lint.mjs",
     "lint:all": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -44,10 +47,12 @@
     "changeset:status": "changeset status --since=origin/main"
   },
   "keywords": [
-    "template",
     "javascript",
     "typescript",
-    "ai-driven"
+    "program-translation",
+    "meta-language",
+    "lean4",
+    "rocq"
   ],
   "author": "",
   "license": "Unlicense",
@@ -74,7 +79,9 @@
     "husky": "^9.1.7",
     "jscpd": "^5.4.0",
     "lint-staged": "^16.4.0",
+    "playwright-core": "1.59.1",
     "prettier": "^3.6.2",
+    "relative-meta-logic": "0.21.0",
     "test-anywhere": "^0.8.48"
   },
   "lint-staged": {
@@ -87,5 +94,10 @@
       "prettier --write",
       "prettier --check"
     ]
+  },
+  "dependencies": {
+    "links-notation": "0.31.8",
+    "lino-arguments": "0.4.1",
+    "meta-language": "0.46.0"
   }
 }

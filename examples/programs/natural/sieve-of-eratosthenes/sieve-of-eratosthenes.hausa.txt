@@ -1,0 +1,13 @@
+Lura: Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+Ƙirƙiri iyaka mai ƙima 100.
+Ƙirƙiri shin-tushe mai ƙima jeri mai tsawon (iyaka ƙari 1) cike da 1.
+Canza abu 0 a cikin shin-tushe zuwa 0.
+Canza abu 1 a cikin shin-tushe zuwa 0.
+Ga kowane lamba daga 2 zuwa iyaka, maimaita wannan:
+  Idan abu lamba a cikin shin-tushe daidai yake da 1, yi wannan:
+    Rubuta lamba kuma ka gama layi.
+    Ƙirƙiri ninki mai ƙima lamba sau lamba.
+    Yayin da ninki bai wuce iyaka, maimaita wannan:
+      Canza abu ninki a cikin shin-tushe zuwa 0.
+      Canza ninki zuwa ninki ƙari lamba.

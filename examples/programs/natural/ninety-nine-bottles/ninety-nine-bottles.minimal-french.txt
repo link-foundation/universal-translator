@@ -1,0 +1,7 @@
+Remarque : 99 bottles of beer in JavaScript
+
+Il y a bouteilles, c'est 99.
+Quand bouteilles est plus que 0, faire ceci beaucoup de fois:
+  Dire bouteilles puis « bottles of beer on the wall, » puis bouteilles puis « bottles of beer.» sur une ligne.
+  Dire «Take one down and pass it around, » puis bouteilles moins 1 puis « bottles of beer on the wall.» sur une ligne.
+  Après ceci, bouteilles est bouteilles moins 1.

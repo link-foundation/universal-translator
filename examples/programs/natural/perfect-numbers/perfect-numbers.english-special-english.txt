@@ -1,0 +1,16 @@
+Note: Perfect numbers in JavaScript: numbers equal to the sum of their divisors
+
+Here is how to find is-perfect from number:
+  Start sum at 1.
+  Start divisor at 2.
+  While divisor times divisor is not more than number, do this again:
+    If number modulo divisor equals 0, do this:
+      Change sum to sum plus divisor.
+      If divisor times divisor is not number, do this:
+        Change sum to sum plus number divided by divisor.
+    Change divisor to divisor plus 1.
+  Return number is more than 1 and sum equals number.
+
+For each number from 1 to 10000, do this:
+  If is-perfect of (number), do this:
+    Show number on a line.

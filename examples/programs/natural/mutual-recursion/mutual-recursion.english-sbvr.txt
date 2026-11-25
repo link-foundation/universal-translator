@@ -1,0 +1,14 @@
+Note: Mutual recursion in JavaScript: the Hofstadter Female and Male sequences
+
+Rule female with index is defined as follows:
+  If index is equal to 0 then the following applies:
+    It is obligatory that the result is 1.
+  It is obligatory that the result is index minus male of (female of (index minus 1)).
+
+Rule male with index is defined as follows:
+  If index is equal to 0 then the following applies:
+    It is obligatory that the result is 0.
+  It is obligatory that the result is index minus female of (male of (index minus 1)).
+
+For each index from 0 to 19 the following applies:
+  It is obligatory that the output shows index followed by “: ” followed by female of (index) followed by “ ” followed by male of (index) as a line.

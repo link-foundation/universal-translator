@@ -1,0 +1,13 @@
+Not: Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+Sınır değişkenini 100 değeriyle oluştur.
+Mi-asal değişkenini uzunluğu (sınır artı 1) olan 1 listesi değeriyle oluştur.
+Mi-asal listesinin 0 öğesini 0 yap.
+Mi-asal listesinin 1 öğesini 0 yap.
+Her sayı için 2 ile sınır arasında şunu tekrarla:
+  Eğer mi-asal listesinin sayı öğesi ile 1 eşit ise şunu yap:
+    Sayı yaz ve satırı bitir.
+    Kat değişkenini sayı çarpı sayı değeriyle oluştur.
+    Kat en fazla sınır olduğu sürece şunu tekrarla:
+      Mi-asal listesinin kat öğesini 0 yap.
+      Kat değerini kat artı sayı yap.

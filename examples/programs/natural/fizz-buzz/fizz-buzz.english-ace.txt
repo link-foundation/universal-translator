@@ -1,0 +1,11 @@
+Note: FizzBuzz in JavaScript
+
+For every number from 1 to 100 the program does the following:
+  If number modulo 15 is equal to 0 then the program does the following:
+    The program writes a line that contains “FizzBuzz”.
+  Else if number modulo 3 is equal to 0 then the program does the following:
+    The program writes a line that contains “Fizz”.
+  Else if number modulo 5 is equal to 0 then the program does the following:
+    The program writes a line that contains “Buzz”.
+  Else the program does the following:
+    The program writes a line that contains number.

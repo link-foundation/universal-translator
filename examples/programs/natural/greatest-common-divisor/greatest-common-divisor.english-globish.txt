@@ -1,0 +1,10 @@
+Note: Greatest common divisor in JavaScript, using the Euclidean algorithm
+
+To get greatest-common-divisor from first and second, do this:
+  While second is not 0, do this again:
+    Let remainder be first modulo second.
+    Now let first be second.
+    Now let second be remainder.
+  Return first.
+
+Say “The greatest common divisor of 1071 and 462 is ” then greatest-common-divisor of (1071, 462) on a line.

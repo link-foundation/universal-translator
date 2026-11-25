@@ -1,0 +1,10 @@
+Uwaga: Sum digits of an integer in JavaScript
+
+Zdefiniuj suma-z-cyfry używając liczba:
+  Utwórz razem z wartością 0.
+  Dopóki liczba przekracza 0, powtarzaj to:
+    Zmień razem na razem plus liczba modulo 10.
+    Zmień liczba na liczba podzielone przez 10.
+  Zwróć razem.
+
+Wypisz „The digits of 1234567890 sum to ” a następnie suma-z-cyfry dla (1234567890) i zakończ wiersz.

@@ -1,0 +1,13 @@
+Remarque : Fibonacci sequence in JavaScript, computed iteratively
+
+Définir fibonacci avec compte:
+  Créer précédent avec la valeur 0.
+  Créer courant avec la valeur 1.
+  Pour chaque pas de 0 à compte moins 1, répéter ceci:
+    Créer suivant avec la valeur précédent plus courant.
+    Changer précédent en courant.
+    Changer courant en suivant.
+  Renvoyer précédent.
+
+Pour chaque indice de 0 à 20, répéter ceci:
+  Écrire «fibonacci(» suivi de indice suivi de «) = » suivi de fibonacci de (indice) et finir la ligne.

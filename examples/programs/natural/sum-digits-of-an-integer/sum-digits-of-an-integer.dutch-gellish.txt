@@ -1,0 +1,10 @@
+Opmerking: Sum digits of an integer in JavaScript
+
+Som-van-cijfers is gedefinieerd als een procedure met invoer getal:
+  Totaal is geclassificeerd als een variabele met beginwaarde 0.
+  Zolang getal is groter dan 0 wordt het volgende herhaald:
+    Totaal heeft als nieuwe waarde totaal plus getal modulo 10.
+    Getal heeft als nieuwe waarde getal gedeeld door 10.
+  De procedure heeft als resultaat totaal.
+
+De uitvoer heeft als volgende regel “The digits of 1234567890 sum to ” samengevoegd met som-van-cijfers toegepast op (1234567890).

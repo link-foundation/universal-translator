@@ -14,7 +14,9 @@
     "**/docs/case-studies/**/data/**",
     "**/package-lock.json",
     "**/pnpm-lock.yaml",
-    "**/yarn.lock"
+    "**/yarn.lock",
+    "**/examples/programs/translated/**",
+    "**/examples/programs/fragments/translated/**"
   ],
   "format": ["javascript"],
   "reporters": ["console", "html"],

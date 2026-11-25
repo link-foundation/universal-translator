@@ -1,0 +1,4 @@
+Lura: Hello World in JavaScript
+Lura: print "Hello World!" into console followed by new line symbol by function call
+
+Rubuta “Hello World!” kuma ka gama layi.

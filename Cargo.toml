@@ -1,0 +1,59 @@
+[package]
+name = "universal-translator"
+version = "0.1.0"
+edition = "2024"
+description = "Source-preserving translation for small programs through a shared meta-language"
+license = "Unlicense"
+repository = "https://github.com/link-foundation/universal-translator"
+include = [
+    "/rust/src/**",
+    "/data/**",
+    "/rust/tests/**",
+    "/examples/translation/hello.c",
+    "/examples/translation/hello.cs",
+    "/examples/programs/**",
+    "/README.md",
+    "/LICENSE",
+]
+
+[lib]
+path = "rust/src/lib.rs"
+
+[[bin]]
+name = "universal-translator"
+path = "rust/src/main.rs"
+
+[dependencies]
+meta-language = { version = "=1.0.0", default-features = false }
+relative-meta-logic = { version = "=0.21.0", default-features = false, features = ["core"] }
+regex = "1"
+serde = { version = "1", features = ["derive"] }
+links-notation = { version = "=0.31.8", default-features = false }
+
+[[test]]
+name = "translation"
+path = "rust/tests/translation.rs"
+
+[[test]]
+name = "source_document"
+path = "rust/tests/source_document.rs"
+
+[[test]]
+name = "grammar"
+path = "rust/tests/grammar.rs"
+
+[[test]]
+name = "common_library"
+path = "rust/tests/common_library.rs"
+
+[[test]]
+name = "lifting"
+path = "rust/tests/lifting.rs"
+
+[[test]]
+name = "natural"
+path = "rust/tests/natural.rs"
+
+[[test]]
+name = "fragments"
+path = "rust/tests/fragments.rs"

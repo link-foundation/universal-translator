@@ -1,0 +1,32 @@
+natural:
+  id: english-ace
+  label: 'English (Attempto Controlled English)'
+  extends: english
+  profile: ace
+  source: 'http://attempto.ifi.uzh.ch/site/'
+  templates:
+    function: 'The procedure {name} takes {parameters}'
+    function-without-parameters: 'The procedure {name} takes nothing'
+    declare: 'There is a variable {name} whose value is {value}'
+    assign: 'The value of {name} becomes {value}'
+    print-line: 'The program writes a line that contains {value}'
+    print: 'The program writes {value}'
+    return-value: 'The procedure returns {value}'
+    return: 'The procedure stops'
+    nothing: 'The program does nothing'
+    evaluate: 'The program runs {expression}'
+    if: 'If {condition} then the program does the following'
+    else-if: 'Else if {condition} then the program does the following'
+    else: 'Else the program does the following'
+    while: 'While {condition} the program repeats the following'
+    for: 'For every {variable} from {start} to {last} the program does the following'
+    not: 'it is false that {operand}'
+    equal: '{left} is equal to {right}'
+    not-equal: '{left} is not equal to {right}'
+    less: '{left} is less than {right}'
+    less-or-equal: '{left} is less than or equal to {right}'
+    greater: '{left} is greater than {right}'
+    greater-or-equal: '{left} is greater than or equal to {right}'
+    set-element: 'The value of item {index} of {name} becomes {value}'
+  rules:
+    sentence-starts: the there if else while for

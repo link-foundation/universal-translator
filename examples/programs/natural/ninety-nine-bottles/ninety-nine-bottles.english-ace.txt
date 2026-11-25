@@ -1,0 +1,7 @@
+Note: 99 bottles of beer in JavaScript
+
+There is a variable bottles whose value is 99.
+While bottles is greater than 0 the program repeats the following:
+  The program writes a line that contains bottles followed by “ bottles of beer on the wall, ” followed by bottles followed by “ bottles of beer.”.
+  The program writes a line that contains “Take one down and pass it around, ” followed by bottles minus 1 followed by “ bottles of beer on the wall.”.
+  The value of bottles becomes bottles minus 1.

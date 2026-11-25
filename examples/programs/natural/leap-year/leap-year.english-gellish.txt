@@ -1,0 +1,10 @@
+Note: Leap year in JavaScript
+
+Is-leap-year is defined as a procedure with input year:
+  The procedure has as result year modulo 4 is equal to 0 and year modulo 100 is not equal to 0 or year modulo 400 is equal to 0.
+
+For each year from 1896 to 1912 the following is repeated:
+  If is-leap-year applied to (year) then the following is performed:
+    The output has as next line year concatenated with “ is a leap year”.
+  Else the following is performed:
+    The output has as next line year concatenated with “ is not a leap year”.

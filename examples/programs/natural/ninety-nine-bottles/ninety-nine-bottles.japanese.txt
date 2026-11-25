@@ -1,0 +1,7 @@
+注：99 bottles of beer in JavaScript
+
+瓶 を 値 99 で 作る。
+瓶 が 0 より 大きい の 間 次 を 繰り返す：
+  瓶 に 続けて 「 bottles of beer on the wall, 」 に 続けて 瓶 に 続けて 「 bottles of beer.」 を 書いて 改行 する。
+  「Take one down and pass it around, 」 に 続けて 瓶 引く 1 に 続けて 「 bottles of beer on the wall.」 を 書いて 改行 する。
+  瓶 を 瓶 引く 1 に 変える。

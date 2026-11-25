@@ -1,0 +1,10 @@
+Note: Sum and product of an array in JavaScript
+
+There is numbers, it is these things (1, 2, 3, 4, 5).
+There is total, it is 0.
+There is product, it is 1.
+For all index from 0 to how many parts numbers has minus 1, do this:
+  After this, total is total plus part index of numbers.
+  After this, product is product times part index of numbers.
+Say “Sum: ” then total on one line.
+Say “Product: ” then product on one line.

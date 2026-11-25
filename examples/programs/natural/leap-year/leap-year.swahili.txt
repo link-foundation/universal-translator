@@ -1,0 +1,10 @@
+Kumbuka: Leap year in JavaScript
+
+Fafanua je-mrefu-mwaka kwa mwaka:
+  Rudisha mwaka modulo 4 ni sawa na 0 na mwaka modulo 100 si sawa na 0 au mwaka modulo 400 ni sawa na 0.
+
+Kwa kila mwaka kutoka 1896 hadi 1912, rudia hivi:
+  Ikiwa je-mrefu-mwaka ya (mwaka), fanya hivi:
+    Andika mwaka ikifuatiwa na “ is a leap year” na umalize mstari.
+  Vinginevyo, fanya hivi:
+    Andika mwaka ikifuatiwa na “ is not a leap year” na umalize mstari.

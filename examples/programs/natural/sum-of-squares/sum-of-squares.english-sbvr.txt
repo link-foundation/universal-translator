@@ -1,0 +1,13 @@
+Note: Sum of squares in JavaScript
+
+Rule sum-of-squares with limit is defined as follows:
+  It is obligatory that total is initially 0.
+  It is obligatory that number is initially 1.
+  As long as number is at most limit the following applies repeatedly:
+    It is obligatory that total becomes total plus number times number.
+    It is obligatory that number becomes number plus 1.
+  It is obligatory that the result is total.
+
+It is obligatory that limit is initially 10.
+It is obligatory that the output shows “Sum of squares from 1 to ” followed by limit followed by “:” as a line.
+It is obligatory that the output shows sum-of-squares of (limit) as a line.

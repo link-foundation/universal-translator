@@ -1,0 +1,13 @@
+Remarque : Fibonacci sequence in JavaScript, computed iteratively
+
+Voici comment quelqu’un fait fibonacci avec compte:
+  Il y a précédent, c'est 0.
+  Il y a courant, c'est 1.
+  Pour tous les pas_ de 0 à compte moins 1, faire ceci:
+    Il y a suivant, c'est précédent plus courant.
+    Après ceci, précédent est courant.
+    Après ceci, courant est suivant.
+  La réponse est précédent.
+
+Pour tous les indice de 0 à 20, faire ceci:
+  Dire «fibonacci(» puis indice puis «) = » puis fibonacci de (indice) sur une ligne.

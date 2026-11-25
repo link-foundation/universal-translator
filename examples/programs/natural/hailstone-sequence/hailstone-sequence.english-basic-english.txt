@@ -1,0 +1,14 @@
+Note: Hailstone sequence in JavaScript: count the steps to reach 1
+
+Make hailstone-steps from number by these steps:
+  Let steps_ be 0.
+  While number is not 1, do this again and again:
+    If number modulo 2 is 0, do this:
+      Let number now be number divided by 2.
+    If not, do this:
+      Let number now be 3 times number plus 1.
+    Let steps_ now be steps_ plus 1.
+  Give back steps_.
+
+For every number from 1 till 10, do this:
+  Say number then “ takes ” then hailstone-steps of (number) then “ steps” and end the line.

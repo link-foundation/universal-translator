@@ -1,0 +1,10 @@
+Not: Towers of Hanoi in JavaScript, solved recursively
+
+Taşı-diskler işlevini sayaç, kaynak, hedef ve yedek ile tanımla:
+  Eğer sayaç ile 0 eşit ise şunu yap:
+    Burada dur.
+  Taşı-diskler (sayaç eksi 1, kaynak, yedek, hedef) çalıştır.
+  “Move disk ” ardından sayaç ardından “ from ” ardından kaynak ardından “ to ” ardından hedef yaz ve satırı bitir.
+  Taşı-diskler (sayaç eksi 1, yedek, hedef, kaynak) çalıştır.
+
+Taşı-diskler (4, 1, 3, 2) çalıştır.

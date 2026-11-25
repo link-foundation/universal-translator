@@ -1,0 +1,13 @@
+Hinweis: Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+Erzeuge Grenze mit dem Wert 100.
+Erzeuge ist-Primzahl mit dem Wert eine Liste aus (Grenze plus 1) Kopien von 1.
+Ändere das Element 0 von ist-Primzahl auf 0.
+Ändere das Element 1 von ist-Primzahl auf 0.
+Für jedes Zahl von 2 bis Grenze wiederhole dies:
+  Wenn das Element Zahl von ist-Primzahl ist gleich 1, tue dies:
+    Schreibe Zahl und beende die Zeile.
+    Erzeuge Vielfaches mit dem Wert Zahl mal Zahl.
+    Solange Vielfaches ist höchstens Grenze, wiederhole dies:
+      Ändere das Element Vielfaches von ist-Primzahl auf 0.
+      Ändere Vielfaches auf Vielfaches plus Zahl.

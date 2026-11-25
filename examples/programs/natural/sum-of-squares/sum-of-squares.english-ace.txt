@@ -1,0 +1,13 @@
+Note: Sum of squares in JavaScript
+
+The procedure sum-of-squares takes limit:
+  There is a variable total whose value is 0.
+  There is a variable number whose value is 1.
+  While number is less than or equal to limit the program repeats the following:
+    The value of total becomes total plus number times number.
+    The value of number becomes number plus 1.
+  The procedure returns total.
+
+There is a variable limit whose value is 10.
+The program writes a line that contains “Sum of squares from 1 to ” followed by limit followed by “:”.
+The program writes a line that contains sum-of-squares of (limit).

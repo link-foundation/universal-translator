@@ -1,0 +1,12 @@
+Hinweis: Ackermann function in JavaScript, defined recursively
+
+Definiere Ackermann mit erste und zweite:
+  Wenn erste ist gleich 0, tue dies:
+    Gib zweite plus 1 zurück.
+  Wenn zweite ist gleich 0, tue dies:
+    Gib Ackermann von (erste minus 1, 1) zurück.
+  Gib Ackermann von (erste minus 1, Ackermann von (erste, zweite minus 1)) zurück.
+
+Für jedes erste von 0 bis 3 wiederhole dies:
+  Für jedes zweite von 0 bis 4 wiederhole dies:
+    Schreibe „ackermann(“ gefolgt von erste gefolgt von „, “ gefolgt von zweite gefolgt von „) = “ gefolgt von Ackermann von (erste, zweite) und beende die Zeile.

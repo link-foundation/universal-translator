@@ -1,0 +1,10 @@
+Note: Sum and product of an array in JavaScript
+
+There is a variable numbers whose value is the list (1, 2, 3, 4, 5).
+There is a variable total whose value is 0.
+There is a variable product whose value is 1.
+For every index from 0 to the length of numbers minus 1 the program does the following:
+  The value of total becomes total plus item index of numbers.
+  The value of product becomes product times item index of numbers.
+The program writes a line that contains “Sum: ” followed by total.
+The program writes a line that contains “Product: ” followed by product.

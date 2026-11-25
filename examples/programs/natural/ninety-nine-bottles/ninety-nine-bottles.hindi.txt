@@ -1,0 +1,7 @@
+टिप्पणी: 99 bottles of beer in JavaScript
+
+बोतलें को मान 99 के साथ बनाएँ।
+जब तक बोतलें का मान 0 से अधिक है तब तक यह दोहराएँ:
+  बोतलें के बाद “ bottles of beer on the wall, ” के बाद बोतलें के बाद “ bottles of beer.” लिखें और पंक्ति समाप्त करें।
+  “Take one down and pass it around, ” के बाद बोतलें घटा 1 के बाद “ bottles of beer on the wall.” लिखें और पंक्ति समाप्त करें।
+  बोतलें को बोतलें घटा 1 में बदलें।

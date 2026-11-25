@@ -1,0 +1,9 @@
+.git
+.claude
+ci-logs
+node_modules
+target
+rust
+experiments
+docs
+examples

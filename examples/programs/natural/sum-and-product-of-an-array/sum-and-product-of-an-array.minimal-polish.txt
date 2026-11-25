@@ -1,0 +1,10 @@
+Uwaga: Sum and product of an array in JavaScript
+
+Jest liczby, to jest te rzeczy (1, 2, 3, 4, 5).
+Jest razem, to jest 0.
+Jest iloczyn, to jest 1.
+Dla wszystkich indeks od 0 do ile części ma liczby minus 1, zrobić to:
+  Po tym razem jest razem plus część indeks z liczby.
+  Po tym iloczyn jest iloczyn razy część indeks z liczby.
+Powiedzieć „Sum: ” potem razem w jednej linii.
+Powiedzieć „Product: ” potem iloczyn w jednej linii.

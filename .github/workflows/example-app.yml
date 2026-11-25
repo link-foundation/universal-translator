@@ -5,7 +5,8 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - 'examples/universal-app/**'
-      - 'src/**'
+      - 'js/src/**'
+      - 'data/**'
       - 'package.json'
       - 'package-lock.json'
       - 'scripts/update-preview-images.mjs'
@@ -15,7 +16,8 @@ on:
       - main
     paths:
       - 'examples/universal-app/**'
-      - 'src/**'
+      - 'js/src/**'
+      - 'data/**'
       - 'package.json'
       - 'package-lock.json'
       - 'scripts/update-preview-images.mjs'
@@ -37,6 +39,9 @@ jobs:
     name: Build web app
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: read
     concurrency:
       group: check-${{ github.workflow }}-${{ github.ref }}-web-build
       cancel-in-progress: true
@@ -52,12 +57,10 @@ jobs:
           cache: npm
           cache-dependency-path: examples/universal-app/package-lock.json
 
-      - name: Configure GitHub Pages
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/configure-pages@v6
-
       - name: Install app dependencies
-        run: npm ci --prefix examples/universal-app --no-audit --no-fund
+        run: |
+          npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+          npm ci --prefix examples/universal-app --no-audit --no-fund
 
       - name: Build app
         run: npm run example:web:build
@@ -71,6 +74,20 @@ jobs:
           name: universal-example-web
           path: examples/universal-app/dist
           if-no-files-found: error
+
+      - name: Explain GitHub Pages deployment skip
+        if: github.event_name == 'pull_request'
+        run: echo '::notice title=GitHub Pages deployment::The PR web build is available as an artifact. GitHub Pages deployment runs on pushes to main.'
+
+      - name: Configure GitHub Pages
+        id: configure-pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/configure-pages@v6
+
+      - name: Explain GitHub Pages configuration failure
+        if: failure() && steps.configure-pages.conclusion == 'failure'
+        run: |
+          echo '::error title=GitHub Pages configuration::In Settings > Pages, set the build source to GitHub Actions. If Pages is already configured, review the Configure GitHub Pages step for the reported error.'
 
       - name: Upload GitHub Pages artifact
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -102,16 +119,12 @@ jobs:
         uses: actions/deploy-pages@v5
 
   desktop-package:
-    name: Package desktop app (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
+    name: Package desktop app (Ubuntu)
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     concurrency:
-      group: check-${{ github.workflow }}-${{ github.ref }}-desktop-package-${{ matrix.os }}
+      group: check-${{ github.workflow }}-${{ github.ref }}-desktop-package
       cancel-in-progress: true
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-24.04, macos-15, windows-2025]
     steps:
       - uses: actions/checkout@v6
         with:
@@ -125,7 +138,9 @@ jobs:
           cache-dependency-path: examples/universal-app/package-lock.json
 
       - name: Install app dependencies
-        run: npm ci --prefix examples/universal-app --no-audit --no-fund
+        run: |
+          npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+          npm ci --prefix examples/universal-app --no-audit --no-fund
 
       - name: Package Electron app
         shell: bash
@@ -148,7 +163,7 @@ jobs:
       - name: Upload desktop package
         uses: actions/upload-artifact@v7
         with:
-          name: universal-example-desktop-${{ matrix.os }}
+          name: universal-example-desktop-ubuntu-24.04
           path: examples/universal-app/out
           if-no-files-found: error
 
@@ -182,7 +197,9 @@ jobs:
         uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
 
       - name: Install app dependencies
-        run: npm ci --prefix examples/universal-app --no-audit --no-fund
+        run: |
+          npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+          npm ci --prefix examples/universal-app --no-audit --no-fund
 
       - name: Add Android project
         run: npm --prefix examples/universal-app run mobile:android:add
@@ -199,34 +216,55 @@ jobs:
             examples/universal-app/android/app/build/outputs/**/*.aab
           if-no-files-found: warn
 
-  ios-build:
-    name: Build iOS app
-    if: github.event_name == 'workflow_dispatch' && vars.EXAMPLE_APP_ENABLE_IOS_BUILD == 'true'
-    runs-on: macos-15
-    timeout-minutes: 30
+  # Drive the translator demo in a real browser: languages are listed,
+  # statements, programs and sentences translate, and an incomplete
+  # fragment reports an error. The screenshot is uploaded for review.
+  web-e2e:
+    name: Web demo end-to-end
+    runs-on: ubuntu-24.04
+    container:
+      # Same digest as preview-regen; keep both in sync with playwright below.
+      image: mcr.microsoft.com/playwright@sha256:b0ab6f3cb99aa7803adbc14d9027ec1785fc6e433b97e134e0f8fe61683b6b53 # v1.59.1-noble
+    timeout-minutes: 15
+    permissions:
+      contents: read
     concurrency:
-      group: check-${{ github.workflow }}-${{ github.ref }}-ios-build
+      group: check-${{ github.workflow }}-${{ github.ref }}-web-e2e
       cancel-in-progress: true
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '24.x'
-          cache: npm
-          cache-dependency-path: examples/universal-app/package-lock.json
-
       - name: Install app dependencies
-        run: npm ci --prefix examples/universal-app --no-audit --no-fund
+        run: |
+          npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+          npm ci --prefix examples/universal-app --no-audit --no-fund
 
-      - name: Add iOS project
-        run: npm --prefix examples/universal-app run mobile:ios:add
+      # Pinned exactly and only used by this job, like preview-regen.
+      - name: Install Playwright
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+        run: npm install --no-save --package-lock=false --no-audit --no-fund playwright@1.59.1 # zizmor: ignore[adhoc-packages]
 
-      - name: Build iOS project
-        run: npm --prefix examples/universal-app run mobile:ios:build
+      - name: Build app
+        run: npm run example:web:build
+
+      - name: Translate in the browser
+        run: |
+          mkdir -p e2e-output
+          npm --prefix examples/universal-app run preview -- --port 4173 --strictPort > e2e-output/preview.log 2>&1 &
+          node examples/universal-app/e2e/translate.e2e.mjs http://127.0.0.1:4173/ e2e-output/web-demo.png
+
+      - name: Upload screenshot
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-demo-e2e
+          path: e2e-output/
+          if-no-files-found: ignore
 
   # Regenerate example-app preview screenshots (docs/screenshots/example-app/*)
   # using browser-commander + Playwright so README/site images always reflect
@@ -359,7 +397,7 @@ jobs:
       - pages-deploy
       - desktop-package
       - android-build
-      - ios-build
+      - web-e2e
       - preview-regen
     steps:
       - uses: actions/checkout@v6

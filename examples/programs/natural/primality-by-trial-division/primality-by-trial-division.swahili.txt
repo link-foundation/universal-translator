@@ -1,0 +1,15 @@
+Kumbuka: Primality by trial division in JavaScript
+
+Fafanua je-tasa kwa nambari:
+  Ikiwa nambari ni chini ya 2, fanya hivi:
+    Rudisha uongo.
+  Unda kigawanyo yenye thamani 2.
+  Wakati kigawanyo mara kigawanyo si zaidi ya nambari, rudia hivi:
+    Ikiwa nambari modulo kigawanyo ni sawa na 0, fanya hivi:
+      Rudisha uongo.
+    Badilisha kigawanyo kuwa kigawanyo jumlisha 1.
+  Rudisha kweli.
+
+Kwa kila nambari kutoka 1 hadi 50, rudia hivi:
+  Ikiwa je-tasa ya (nambari), fanya hivi:
+    Andika nambari na umalize mstari.

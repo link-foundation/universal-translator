@@ -1,0 +1,10 @@
+Hinweis: Sum and product of an array in JavaScript
+
+Erzeuge Zahlen mit dem Wert die Liste (1, 2, 3, 4, 5).
+Erzeuge Gesamt mit dem Wert 0.
+Erzeuge Produkt mit dem Wert 1.
+Für jedes Index von 0 bis die Länge von Zahlen minus 1 wiederhole dies:
+  Ändere Gesamt auf Gesamt plus das Element Index von Zahlen.
+  Ändere Produkt auf Produkt mal das Element Index von Zahlen.
+Schreibe „Sum: “ gefolgt von Gesamt und beende die Zeile.
+Schreibe „Product: “ gefolgt von Produkt und beende die Zeile.

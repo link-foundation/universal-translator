@@ -1,0 +1,13 @@
+Note: Fibonacci sequence in JavaScript, computed iteratively
+
+Fibonacci is defined as a procedure with input count:
+  Previous is classified as a variable with initial value 0.
+  Current is classified as a variable with initial value 1.
+  For each step from 0 to count minus 1 the following is repeated:
+    Next_ is classified as a variable with initial value previous plus current.
+    Previous has as new value current.
+    Current has as new value next_.
+  The procedure has as result previous.
+
+For each index from 0 to 20 the following is repeated:
+  The output has as next line “fibonacci(” concatenated with index concatenated with “) = ” concatenated with fibonacci applied to (index).

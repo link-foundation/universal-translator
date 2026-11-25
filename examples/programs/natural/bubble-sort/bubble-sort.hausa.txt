@@ -1,0 +1,12 @@
+Lura: Bubble sort in JavaScript: sort a list of numbers
+
+Ƙirƙiri adadai mai ƙima jeri (5, 3, 8, 1, 9, 2, 7).
+Ƙirƙiri ƙidaya mai ƙima tsawon adadai.
+Ga kowane zagaye daga 0 zuwa ƙidaya ragi 1 ragi 1, maimaita wannan:
+  Ga kowane fihirisa daga 0 zuwa ƙidaya ragi 1 ragi zagaye ragi 1, maimaita wannan:
+    Idan abu fihirisa a cikin adadai ya wuce abu (fihirisa ƙari 1) a cikin adadai, yi wannan:
+      Ƙirƙiri musanya mai ƙima abu fihirisa a cikin adadai.
+      Canza abu fihirisa a cikin adadai zuwa abu (fihirisa ƙari 1) a cikin adadai.
+      Canza abu (fihirisa ƙari 1) a cikin adadai zuwa musanya.
+Ga kowane matsayi daga 0 zuwa ƙidaya ragi 1, maimaita wannan:
+  Rubuta abu matsayi a cikin adadai kuma ka gama layi.

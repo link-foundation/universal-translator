@@ -1,0 +1,10 @@
+Note: Towers of Hanoi in JavaScript, solved recursively
+
+Make move-disks from count, source, target and spare by these steps:
+  If count is 0, do this:
+    Stop here.
+  Do move-disks of (count minus 1, source, spare, target).
+  Say “Move disk ” then count then “ from ” then source then “ to ” then target and end the line.
+  Do move-disks of (count minus 1, spare, target, source).
+
+Do move-disks of (4, 1, 3, 2).

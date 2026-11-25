@@ -3,7 +3,7 @@
 // bodies into `itUnless(reason)(...)`, so a test that cannot run is reported
 // as skipped, not passed vacuously or dropped from the summary.
 // Unknown conditions are left untouched and listed for a manual edit.
-// Usage: node experiments/codemod-visible-skips.mjs tests/a.test.js ...
+// Usage: node experiments/codemod-visible-skips.mjs js/tests/a.test.js ...
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const REASONS = {
@@ -30,14 +30,14 @@ const REASONS = {
 };
 // Per-file overrides where the same name means something else.
 const FILE_REASONS = {
-  'tests/check-web-archive.test.js': { '!canRunCliFixtures': ['sandboxed'] },
-  'tests/check-changesets.test.js': { canRunCliFixtures: ['sandboxed'] },
-  'tests/detect-code-changes.test.js': { canRunCliFixtures: ['sandboxed'] },
-  'tests/merge-changesets.test.js': { canRunCliFixtures: ['sandboxed'] },
-  'tests/create-github-release.test.js': {
+  'js/tests/check-web-archive.test.js': { '!canRunCliFixtures': ['sandboxed'] },
+  'js/tests/check-changesets.test.js': { canRunCliFixtures: ['sandboxed'] },
+  'js/tests/detect-code-changes.test.js': { canRunCliFixtures: ['sandboxed'] },
+  'js/tests/merge-changesets.test.js': { canRunCliFixtures: ['sandboxed'] },
+  'js/tests/create-github-release.test.js': {
     canRunCliFixtures: ['sandboxed', 'windowsNodeCmd'],
   },
-  'tests/no-changelog-comments.test.js': { isDenoRuntime: ['sandboxed'] },
+  'js/tests/no-changelog-comments.test.js': { isDenoRuntime: ['sandboxed'] },
 };
 
 const indentOf = (line) => line.length - line.trimStart().length;

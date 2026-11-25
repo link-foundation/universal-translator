@@ -1,0 +1,10 @@
+Lura: Greatest common divisor in JavaScript, using the Euclidean algorithm
+
+Ayyana babba-tarayya-rabo da farko da biyu:
+  Yayin da biyu bai yi daidai da 0, maimaita wannan:
+    Ƙirƙiri saura mai ƙima farko modulo biyu.
+    Canza farko zuwa biyu.
+    Canza biyu zuwa saura.
+  Mayar da farko.
+
+Rubuta “The greatest common divisor of 1071 and 462 is ” sannan babba-tarayya-rabo na (1071, 462) kuma ka gama layi.

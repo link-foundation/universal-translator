@@ -1,0 +1,11 @@
+Uwaga: FizzBuzz in JavaScript
+
+Dla każdego liczba od 1 do 100 powtarzaj to:
+  Jeśli liczba modulo 15 równa się 0, zrób to:
+    Wypisz „FizzBuzz” i zakończ wiersz.
+  W przeciwnym razie, jeśli liczba modulo 3 równa się 0, zrób to:
+    Wypisz „Fizz” i zakończ wiersz.
+  W przeciwnym razie, jeśli liczba modulo 5 równa się 0, zrób to:
+    Wypisz „Buzz” i zakończ wiersz.
+  W przeciwnym razie zrób to:
+    Wypisz liczba i zakończ wiersz.

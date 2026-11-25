@@ -1,0 +1,10 @@
+Note: Sum digits of an integer in JavaScript
+
+Rule sum-of-digits with number is defined as follows:
+  It is obligatory that total is initially 0.
+  As long as number is greater than 0 the following applies repeatedly:
+    It is obligatory that total becomes total plus number modulo 10.
+    It is obligatory that number becomes number divided by 10.
+  It is obligatory that the result is total.
+
+It is obligatory that the output shows “The digits of 1234567890 sum to ” followed by sum-of-digits of (1234567890) as a line.

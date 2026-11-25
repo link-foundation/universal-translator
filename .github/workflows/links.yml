@@ -11,9 +11,9 @@ on:
       - '.lycheeignore'
       - 'scripts/check-web-archive.mjs'
       - 'scripts/recheck-broken-links.mjs'
-      - 'tests/fixtures/lychee-report.md'
-      - 'tests/links-workflow.test.js'
-      - 'tests/recheck-broken-links.test.js'
+      - 'js/tests/fixtures/lychee-report.md'
+      - 'js/tests/links-workflow.test.js'
+      - 'js/tests/recheck-broken-links.test.js'
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
@@ -23,9 +23,9 @@ on:
       - '.lycheeignore'
       - 'scripts/check-web-archive.mjs'
       - 'scripts/recheck-broken-links.mjs'
-      - 'tests/fixtures/lychee-report.md'
-      - 'tests/links-workflow.test.js'
-      - 'tests/recheck-broken-links.test.js'
+      - 'js/tests/fixtures/lychee-report.md'
+      - 'js/tests/links-workflow.test.js'
+      - 'js/tests/recheck-broken-links.test.js'
   workflow_dispatch:
 
 # Least-privilege default; jobs escalate individually when needed.
@@ -66,7 +66,7 @@ jobs:
           # in this repository (similar exclusion pattern as eslint.config.js)
           # Exclude the Vite source HTML because its root-relative app asset
           # URLs are only valid when served by Vite.
-          # Exclude tests/fixtures - the captured lychee reports there contain
+          # Exclude js/tests/fixtures - the captured lychee reports there contain
           # deliberately broken links used as parser test input.
           args: >-
             --verbose
@@ -79,7 +79,7 @@ jobs:
             --extensions md,html
             --exclude-path docs/case-studies
             --exclude-path examples/universal-app/index.html
-            --exclude-path tests/fixtures
+            --exclude-path js/tests/fixtures
             .
           # Don't fail the workflow immediately - we want to check web archive first
           fail: false

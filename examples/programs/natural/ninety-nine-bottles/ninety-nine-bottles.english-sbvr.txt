@@ -1,0 +1,7 @@
+Note: 99 bottles of beer in JavaScript
+
+It is obligatory that bottles is initially 99.
+As long as bottles is greater than 0 the following applies repeatedly:
+  It is obligatory that the output shows bottles followed by “ bottles of beer on the wall, ” followed by bottles followed by “ bottles of beer.” as a line.
+  It is obligatory that the output shows “Take one down and pass it around, ” followed by bottles minus 1 followed by “ bottles of beer on the wall.” as a line.
+  It is obligatory that bottles becomes bottles minus 1.

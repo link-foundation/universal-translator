@@ -105,9 +105,9 @@ From [npm/cli#9151](https://github.com/npm/cli/issues/9151):
 ## Data Files
 
 - `ci-logs/release-24395209194.log` — CI log from this repo's failed Release job (2026-04-14)
-- `ci-logs/upstream-runner-images-13883.json` — GitHub Actions runner-images issue data
-- `ci-logs/upstream-nodejs-62430.json` — Node.js issue data
-- `ci-logs/upstream-npm-cli-9151.json` — npm CLI issue data
+- `ci-logs/upstream-runner-images-13883.lino` — GitHub Actions runner-images issue data
+- `ci-logs/upstream-nodejs-62430.lino` — Node.js issue data
+- `ci-logs/upstream-npm-cli-9151.lino` — npm CLI issue data
 
 ## References
 

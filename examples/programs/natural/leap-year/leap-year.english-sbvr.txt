@@ -1,0 +1,10 @@
+Note: Leap year in JavaScript
+
+Rule is-leap-year with year is defined as follows:
+  It is obligatory that the result is year modulo 4 is equal to 0 and year modulo 100 is not equal to 0 or year modulo 400 is equal to 0.
+
+For each year from 1896 to 1912 the following applies:
+  If is-leap-year of (year) then the following applies:
+    It is obligatory that the output shows year followed by “ is a leap year” as a line.
+  Otherwise the following applies:
+    It is obligatory that the output shows year followed by “ is not a leap year” as a line.

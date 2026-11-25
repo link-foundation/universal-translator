@@ -134,17 +134,17 @@ next investigation.
 
 | File                                                 | Purpose                                                       |
 | ---------------------------------------------------- | ------------------------------------------------------------- |
-| `data/js-template-issue-41.json`                     | Issue #41 body and metadata.                                  |
-| `data/js-template-issue-41-comments.json`            | Issue #41 follow-up comments.                                 |
+| `data/js-template-issue-41.lino`                     | Issue #41 body and metadata.                                  |
+| `data/js-template-issue-41-comments.lino`            | Issue #41 follow-up comments.                                 |
 | `data/js-template-check-file-line-limits-before.sh`  | Template script before this fix.                              |
 | `data/js-template-release.yml`                       | Template release workflow snapshot.                           |
 | `data/js-template-eslint.config.js`                  | ESLint file line-limit configuration snapshot.                |
 | `data/js-template-file-tree.txt`                     | JS template file tree snapshot.                               |
-| `data/js-template-warn-threshold-search-before.json` | Pre-fix code search for warn-threshold usage in this repo.    |
-| `data/hive-mind-issue-1593.json`                     | Downstream original concurrent-merge incident.                |
-| `data/hive-mind-issue-1593-comments.json`            | Downstream issue #1593 comments.                              |
-| `data/hive-mind-issue-1730.json`                     | Downstream repeat line-limit incident.                        |
-| `data/hive-mind-issue-1730-comments.json`            | Downstream issue #1730 comments.                              |
+| `data/js-template-warn-threshold-search-before.lino` | Pre-fix code search for warn-threshold usage in this repo.    |
+| `data/hive-mind-issue-1593.lino`                     | Downstream original concurrent-merge incident.                |
+| `data/hive-mind-issue-1593-comments.lino`            | Downstream issue #1593 comments.                              |
+| `data/hive-mind-issue-1730.lino`                     | Downstream repeat line-limit incident.                        |
+| `data/hive-mind-issue-1730-comments.lino`            | Downstream issue #1730 comments.                              |
 | `data/hive-mind-issue-1593-case-study.md`            | Downstream case study for issue #1593.                        |
 | `data/hive-mind-issue-1730-case-study.md`            | Downstream case study for issue #1730.                        |
 | `data/hive-mind-check-file-line-limits.sh`           | Best-practice script with warn band.                          |
@@ -154,10 +154,10 @@ next investigation.
 | `data/rust-template-check-file-size.rs`              | Sibling Rust template file-size check snapshot.               |
 | `data/rust-template-release.yml`                     | Rust template release workflow snapshot.                      |
 | `data/rust-template-file-tree.txt`                   | Rust template file tree snapshot.                             |
-| `data/rust-template-issues.json`                     | Existing Rust template issue search before sibling report.    |
-| `data/rust-template-max-lines-search.json`           | Rust template code search for line-limit warning support.     |
+| `data/rust-template-issues.lino`                     | Existing Rust template issue search before sibling report.    |
+| `data/rust-template-max-lines-search.lino`           | Rust template code search for line-limit warning support.     |
 | `data/rust-template-created-issue-url.txt`           | URL of the sibling Rust issue opened from this investigation. |
-| `data/rust-template-issue-40.json`                   | Created sibling Rust issue metadata.                          |
+| `data/rust-template-issue-40.lino`                   | Created sibling Rust issue metadata.                          |
 
 ## Follow-Up Options
 

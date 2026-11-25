@@ -116,7 +116,7 @@ jobs:
           config: .github/zizmor.yml
           # Low, not medium: the artipacked audit reports at Low confidence,
           # and a floor above the finding hides every checkout that forgets
-          # persist-credentials: false. tests/checkout-credentials.test.js
+          # persist-credentials: false. js/tests/checkout-credentials.test.js
           # pins the same invariant in-repo, so the floor only needs to catch
           # the workflows the test cannot see.
           min-confidence: low

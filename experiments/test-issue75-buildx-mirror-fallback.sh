@@ -11,7 +11,7 @@
 #
 # This script extracts the real pre-pull `run:` block out of the action and
 # drives it with a mock `docker` so the recovery behaviour can be exercised
-# offline. The same logic is covered in CI by tests/setup-buildx-resilient.test.js.
+# offline. The same logic is covered in CI by js/tests/setup-buildx-resilient.test.js.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

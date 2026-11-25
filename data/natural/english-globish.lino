@@ -1,0 +1,35 @@
+natural:
+  id: english-globish
+  label: 'English (Globish)'
+  extends: english
+  profile: globish
+  source: 'https://en.wikipedia.org/wiki/Globish_(Nerri%C3%A8re)'
+  templates:
+    function: 'To get {name} from {parameters}, do this'
+    function-without-parameters: 'To get {name}, do this'
+    declare: 'Let {name} be {value}'
+    assign: 'Now let {name} be {value}'
+    print-line: 'Say {value} on a line'
+    print: 'Say {value}'
+    return-value: 'Return {value}'
+    return: 'Stop'
+    evaluate: 'Do {expression}'
+    if: 'If {condition}, do this'
+    else-if: 'If not, and if {condition}, do this'
+    else: 'If not, do this'
+    while: 'While {condition}, do this again'
+    for: 'For each {variable} from {start} to {last}, do this'
+    join: '{left} then {right}'
+    negate: 'the opposite of {operand}'
+    not-equal: '{left} is not {right}'
+    less: '{left} is less than {right}'
+    less-or-equal: '{left} is not more than {right}'
+    greater: '{left} is more than {right}'
+    greater-or-equal: '{left} is not less than {right}'
+    element: 'part {index} of {array}'
+    length: 'the size of {array}'
+    set-element: 'Now let part {index} of {name} be {value}'
+  rules:
+    max-sentence-words: 20
+    vocabulary: to get from do this let be now say on a line return stop nothing if not and while again for each then of or the opposite equals is less than more true false list copies part size
+    extra-words: plus minus times divided by modulo

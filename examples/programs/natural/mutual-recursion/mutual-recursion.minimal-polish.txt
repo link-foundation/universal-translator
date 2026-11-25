@@ -1,0 +1,14 @@
+Uwaga: Mutual recursion in JavaScript: the Hofstadter Female and Male sequences
+
+Tak ktoś robi żeński z indeks:
+  Jeżeli indeks jest tym samym co 0, zrobić to:
+    Odpowiedzią jest 1.
+  Odpowiedzią jest indeks minus męski dla (żeński dla (indeks minus 1)).
+
+Tak ktoś robi męski z indeks:
+  Jeżeli indeks jest tym samym co 0, zrobić to:
+    Odpowiedzią jest 0.
+  Odpowiedzią jest indeks minus żeński dla (męski dla (indeks minus 1)).
+
+Dla wszystkich indeks od 0 do 19, zrobić to:
+  Powiedzieć indeks potem „: ” potem żeński dla (indeks) potem „ ” potem męski dla (indeks) w jednej linii.

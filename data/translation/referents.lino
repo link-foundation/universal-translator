@@ -1,0 +1,12 @@
+(valence: 0)
+(and: min)
+
+(source-frequency: source-frequency is source-frequency)
+(target-frequency: target-frequency is target-frequency)
+(fits-context: fits-context is fits-context)
+
+((source-frequency = true) has probability 0.72)
+((target-frequency = true) has probability 0.65)
+((fits-context = true) has probability 0.8)
+
+(? (((source-frequency = true) and (target-frequency = true)) and (fits-context = true)))

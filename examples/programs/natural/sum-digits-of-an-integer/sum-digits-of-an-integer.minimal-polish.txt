@@ -1,0 +1,10 @@
+Uwaga: Sum digits of an integer in JavaScript
+
+Tak ktoś robi suma-z-cyfry z liczba:
+  Jest razem, to jest 0.
+  Kiedy liczba jest więcej niż 0, robić to wiele razy:
+    Po tym razem jest razem plus liczba modulo 10.
+    Po tym liczba jest liczba podzielone przez 10.
+  Odpowiedzią jest razem.
+
+Powiedzieć „The digits of 1234567890 sum to ” potem suma-z-cyfry dla (1234567890) w jednej linii.

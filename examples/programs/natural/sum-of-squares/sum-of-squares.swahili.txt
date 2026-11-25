@@ -1,0 +1,13 @@
+Kumbuka: Sum of squares in JavaScript
+
+Fafanua jumla-ya-miraba kwa kikomo:
+  Unda kiasi yenye thamani 0.
+  Unda nambari yenye thamani 1.
+  Wakati nambari si zaidi ya kikomo, rudia hivi:
+    Badilisha kiasi kuwa kiasi jumlisha nambari mara nambari.
+    Badilisha nambari kuwa nambari jumlisha 1.
+  Rudisha kiasi.
+
+Unda kikomo yenye thamani 10.
+Andika “Sum of squares from 1 to ” ikifuatiwa na kikomo ikifuatiwa na “:” na umalize mstari.
+Andika jumla-ya-miraba ya (kikomo) na umalize mstari.

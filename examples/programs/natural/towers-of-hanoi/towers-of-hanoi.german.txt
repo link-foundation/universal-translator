@@ -1,0 +1,10 @@
+Hinweis: Towers of Hanoi in JavaScript, solved recursively
+
+Definiere bewege-Scheiben mit Anzahl, Quelle, Ziel und Hilfe:
+  Wenn Anzahl ist gleich 0, tue dies:
+    Höre hier auf.
+  Führe bewege-Scheiben von (Anzahl minus 1, Quelle, Hilfe, Ziel) aus.
+  Schreibe „Move disk “ gefolgt von Anzahl gefolgt von „ from “ gefolgt von Quelle gefolgt von „ to “ gefolgt von Ziel und beende die Zeile.
+  Führe bewege-Scheiben von (Anzahl minus 1, Hilfe, Ziel, Quelle) aus.
+
+Führe bewege-Scheiben von (4, 1, 3, 2) aus.
