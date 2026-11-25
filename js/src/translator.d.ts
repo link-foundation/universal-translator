@@ -22,6 +22,16 @@ export interface GrammarTranslatorOptions {
   trace?: (stage: string, tree: unknown) => void;
 }
 
+/** What a fragment holds: a whole program, function definitions only, or
+ * statements only. */
+export type FragmentKind = 'program' | 'functions' | 'statements';
+
+export interface Fragment {
+  kind: FragmentKind;
+  /** The meta program of the fragment. */
+  program: unknown;
+}
+
 export interface GrammarTranslator {
   languages(): { id: string; label: string }[];
   /** Controlled natural languages and profiles (base is the language a profile extends). */
@@ -38,6 +48,16 @@ export interface GrammarTranslator {
     to: string,
     options?: TranslationOptions
   ): string;
+  /** Read a complete fragment: a whole program, function definitions or
+   * statements. */
+  parseFragment(source: string, from: string): Fragment;
+  /** Translate a complete fragment into the same kind of fragment. */
+  translateFragment(
+    source: string,
+    from: string,
+    to: string,
+    options?: TranslationOptions
+  ): string;
 }
 
 export declare function createGrammarTranslator(
@@ -45,6 +65,15 @@ export declare function createGrammarTranslator(
 ): GrammarTranslator;
 
 export declare function translate(
+  source: string,
+  from: string,
+  to: string,
+  options?: TranslationOptions
+): string;
+
+export declare function parseFragment(source: string, from: string): Fragment;
+
+export declare function translateFragment(
   source: string,
   from: string,
   to: string,

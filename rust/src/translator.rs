@@ -23,6 +23,9 @@ use crate::meta::{self, GrammarError, Node, Rule, Settings, Trace, apply_rules, 
 use crate::natural;
 use std::sync::Arc;
 
+use crate::fragments;
+pub use crate::fragments::{Fragment, FragmentKind};
+
 /// How a translation is written.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Options {
@@ -146,6 +149,20 @@ impl Translator {
         from: Option<&str>,
         options: Options,
     ) -> Result<String, GrammarError> {
+        let adapted = self.adapt(meta, to, from, options)?;
+        self.write(&adapted, to)
+    }
+
+    /// Run the custom layers and the context rules for a target. A natural
+    /// target receives the transformed program, since it has no syntax to
+    /// adapt to.
+    pub fn adapt(
+        &self,
+        meta: &Node,
+        to: &str,
+        from: Option<&str>,
+        options: Options,
+    ) -> Result<Node, GrammarError> {
         let natural = natural::is_natural_language(to);
         if natural && options.common_library {
             return Err(GrammarError::new(format!(
@@ -182,15 +199,40 @@ impl Translator {
         }
         self.report("transformed", &transformed);
         if natural {
-            return natural::write_natural(&transformed, to).map_err(GrammarError::new);
+            return Ok(transformed);
         }
         let adapted = apply_rules(transformed, &self.context, &settings);
         self.report("adapted", &adapted);
-        if machine {
-            machine::emit_machine(&adapted, to)
-        } else {
-            emitter::emit_program(&adapted, to)
+        Ok(adapted)
+    }
+
+    /// Write an adapted program in a language, a machine target or words.
+    pub fn write(&self, adapted: &Node, to: &str) -> Result<String, GrammarError> {
+        if natural::is_natural_language(to) {
+            return natural::write_natural(adapted, to).map_err(GrammarError::new);
         }
+        if languages::language_syntax(to)?.machine {
+            machine::emit_machine(adapted, to)
+        } else {
+            emitter::emit_program(adapted, to)
+        }
+    }
+
+    /// Read a complete fragment: a whole program, function definitions or
+    /// statements.
+    pub fn parse_fragment(&self, source: &str, from: &str) -> Result<Fragment, GrammarError> {
+        fragments::parse_fragment(self, source, from)
+    }
+
+    /// Translate a complete fragment into the same kind of fragment.
+    pub fn translate_fragment(
+        &self,
+        source: &str,
+        from: &str,
+        to: &str,
+        options: Options,
+    ) -> Result<String, GrammarError> {
+        fragments::translate_fragment(self, source, from, to, options)
     }
 
     /// Translate a source text from one language to another.
