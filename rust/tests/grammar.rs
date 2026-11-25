@@ -357,6 +357,7 @@ fn lets_callers_remove_or_decorate_a_rule() {
         *calls.lock().unwrap(),
         [
             "copyReassignedParameters",
+            "expandArrayFills",
             "spellNames",
             "spellCommonLibrary"
         ]

@@ -122,7 +122,7 @@ pub fn rename_declared(program: Node, rename: impl Fn(&str, Role) -> String) -> 
         node
     };
     let mut renamed = rewrite(program, |current| match current.kind.as_str() {
-        "Name" | "Declaration" | "Assignment" => rename_field(current, "name"),
+        "Name" | "Declaration" | "Assignment" | "IndexAssignment" => rename_field(current, "name"),
         "Call" => rename_field(current, "callee"),
         "CountingLoop" => rename_field(current, "variable"),
         _ => current,

@@ -64,6 +64,7 @@ const CONTROL_WORDS: [&str; 8] = [
 
 const ASSIGNMENT_SYMBOLS: [&str; 8] = ["=", "+=", "-=", "*=", "/=", "%=", "++", "--"];
 
+mod arrays;
 mod loops;
 
 use loops::step_operator;
@@ -438,7 +439,7 @@ impl Parser {
     /// The number of tokens that announce a function defined later, or 0:
     /// `int male(int index);`, `proc male(index: int): int` or `local male`
     /// followed by `function male`.
-    pub(crate) fn announcement_length(&self) -> usize {
+    fn plain_announcement_length(&self) -> usize {
         match self.syntax.forward_declarations {
             ForwardDeclarations::None => 0,
             ForwardDeclarations::Prototype => {
@@ -494,7 +495,7 @@ impl Parser {
         (0..)
             .take_while(|offset| {
                 self.kind(*offset) == TokenType::Name
-                    || ["*", "::", "[", "]", "<", ">"].contains(&self.value(*offset))
+                    || ["*", "::", "[", "]"].contains(&self.value(*offset))
             })
             .take(self.tokens.len())
             .count()
@@ -795,21 +796,23 @@ impl Parser {
             || self.is("}")
     }
 
-    pub(crate) fn is_typed_declaration(&self) -> bool {
+    fn plain_is_typed_declaration(&self) -> bool {
         let offset = (0..)
             .take_while(|offset| {
                 self.kind(*offset) == TokenType::Name
-                    || ["*", "::", "[", "]"].contains(&self.value(*offset))
+                    || ["*", "::", "[", "]", "<", ">"].contains(&self.value(*offset))
             })
             .take(self.tokens.len())
             .count();
         offset >= 2
             && self.kind(offset - 1) == TokenType::Name
             && (self.is_at("=", offset) || self.is_at(";", offset))
-            && (TYPE_WORDS.contains(&self.value(0)) || self.kind(1) == TokenType::Name)
+            && (TYPE_WORDS.contains(&self.value(0))
+                || self.kind(1) == TokenType::Name
+                || self.is_at("<", 1))
     }
 
-    pub(crate) fn typed_declaration(&mut self) -> Parsed {
+    fn plain_typed_declaration(&mut self) -> Parsed {
         let mut words = self.words_until(&["=", ";"])?;
         let variable = words.pop().unwrap_or_default();
         let kind = source_type(&words.join(" "));
@@ -826,7 +829,7 @@ impl Parser {
             .with("mutable", !words.iter().any(|word| word == "const")))
     }
 
-    pub(crate) fn declaration(&mut self) -> Parsed {
+    fn plain_declaration(&mut self) -> Parsed {
         if self.syntax.unpacked_parameters && self.is_at("(", 1) {
             return self.unpacked_parameters();
         }
@@ -872,7 +875,7 @@ impl Parser {
         Ok(Node::new("Parameters").with("names", names))
     }
 
-    pub(crate) fn simple_statement(&mut self) -> Parsed {
+    fn plain_simple_statement(&mut self) -> Parsed {
         let starts_with_name = self.kind(0) == TokenType::Name;
         if starts_with_name && self.is_at(":=", 1) {
             return self.short_declaration();
@@ -1095,7 +1098,7 @@ impl Parser {
         }
     }
 
-    pub(crate) fn unary(&mut self) -> Parsed {
+    fn plain_unary(&mut self) -> Parsed {
         if self.accept("-") {
             let operand = self.unary()?;
             if operand.is("Number") {
@@ -1180,7 +1183,7 @@ impl Parser {
         dialect.primary(self)
     }
 
-    pub(crate) fn base_primary(&mut self) -> Parsed {
+    fn plain_primary(&mut self) -> Parsed {
         let token = self.next()?;
         match token.kind {
             TokenType::Number => return Ok(number(token.value.parse().unwrap_or(0.0))),
@@ -1284,12 +1287,26 @@ pub fn source_type(spelling: &str) -> Option<String> {
         | "u32" | "u64" | "usize" | "Int" | "Long" | "number" | "integer" => "integer",
         "string" | "String" | "&'static str" => "text",
         _ if is_spaced_variant(&words) => "text",
+        _ if array_pattern().is_match(&words) => "array",
         "bool" | "boolean" | "Bool" | "Boolean" => "boolean",
         "void" | "()" | "Unit" | "Void" => "nothing",
         "" | "var" | "auto" => return None,
         _ => return Some(format!("source:{words}")),
     };
     Some(meta.to_owned())
+}
+
+/// The spellings of an array of integers: `int[]`, `std::vector<int>`,
+/// `Vec<i64>`, `IntArray`, `[]int`, `[Int]`, `List<Long>`, `Array[Long]`,
+/// `seq[int]` and `[n]i64`.
+fn array_pattern() -> &'static Regex {
+    static ARRAY: OnceLock<Regex> = OnceLock::new();
+    ARRAY.get_or_init(|| {
+        Regex::new(
+            r"^((int|long|Long|number|i64) ?\[ ?\]|std ?:: ?vector ?< ?int ?>|Vec ?< ?i64 ?>|IntArray|\[ ?\] ?int|\[ ?Int ?\]|List ?< ?(int|Long) ?>|Array ?\[ ?Long ?\]|seq ?\[ ?int ?\]|\[ ?(\d+ ?)?\] ?i64)$",
+        )
+        .expect("valid pattern")
+    })
 }
 
 /// Whether `words` spells `char *`, `std::string` or `&str` with at most one

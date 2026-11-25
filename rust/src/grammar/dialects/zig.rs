@@ -8,6 +8,7 @@ use std::collections::{HashSet, VecDeque};
 
 use super::{EmitterDialect, ParserDialect};
 use crate::grammar::GrammarError;
+use crate::grammar::array_spellings::is_array_declaration;
 use crate::grammar::emitter::{Emitter, Format, Result, field};
 use crate::grammar::lexer::{Token, TokenType, decode_escapes};
 use crate::grammar::meta::{Node, add, block, number, text, walk};
@@ -262,6 +263,9 @@ impl ParserDialect for Zig {
         if p.is("out") && p.is_at(".", 1) && p.is_at("print", 2) {
             return print_statement(p);
         }
+        if p.is_at("page_allocator", 7) && p.is_at("alloc", 9) {
+            return allocation(p);
+        }
         p.base_statement()
     }
 
@@ -289,8 +293,27 @@ impl ParserDialect for Zig {
             .with("body", p.block()?))
     }
 
-    /// @divTrunc(a, b) and @rem(a, b).
+    /// @divTrunc(a, b) and @rem(a, b). @intCast(x) and @as(i64, x) only
+    /// change the integer type, and .{ a, b } is an array literal.
     fn primary(&self, p: &mut Parser) -> Parsed {
+        if p.is("@") && p.is_at("intCast", 1) && p.is_at("(", 2) {
+            p.position += 3;
+            let value = p.expression()?;
+            p.expect(")")?;
+            return Ok(value);
+        }
+        if p.is("@") && p.is_at("as", 1) && p.is_at("(", 2) {
+            p.position += 3;
+            p.expect_name()?;
+            p.expect(",")?;
+            let value = p.expression()?;
+            p.expect(")")?;
+            return Ok(value);
+        }
+        if p.is(".") && p.is_at("{", 1) {
+            p.position += 2;
+            return p.array_literal("}");
+        }
         let operator = builtin(&p.peek(1).value);
         let Some(operator) = operator.filter(|_| p.is("@") && p.is_at("(", 2)) else {
             return p.base_primary();
@@ -305,6 +328,48 @@ impl ParserDialect for Zig {
             .with("left", left)
             .with("right", right))
     }
+}
+
+/// const a = std.heap.page_allocator.alloc(i64, @intCast(n)) catch
+/// unreachable; and the lines after it that free the array and fill it with
+/// @memset(a, v): the array of n values v.
+fn allocation(p: &mut Parser) -> Parsed {
+    p.position += 1;
+    let variable = p.expect_name()?;
+    p.position += 9;
+    p.expect_name()?;
+    p.expect(",")?;
+    let length = p.expression()?;
+    for word in [")", "catch", "unreachable"] {
+        p.expect(word)?;
+    }
+    p.end_statement()?;
+    let mut fill = number(0.0);
+    let skip_lines = |p: &mut Parser| {
+        while p.kind(0) == TokenType::Newline {
+            p.position += 1;
+        }
+    };
+    skip_lines(p);
+    if p.is("defer") && p.is_at("std", 1) {
+        rest_of_line(p)?;
+        skip_lines(p);
+    }
+    if p.is("@") && p.is_at("memset", 1) && p.is_at(&variable, 3) {
+        p.position += 5;
+        fill = p.expression()?;
+        p.expect(")")?;
+        p.end_statement()?;
+    }
+    Ok(Node::new("Declaration")
+        .with("name", variable)
+        .with("type", "array")
+        .with(
+            "value",
+            Node::new("NewArray")
+                .with("length", length)
+                .with("fill", fill),
+        ))
 }
 
 /// The tokens up to the end of the line.
@@ -371,6 +436,38 @@ fn print_statement(p: &mut Parser) -> Parsed {
 
 // ---- writing ----
 
+/// Arrays of n values live as long as the function, in pages of memory.
+const ALLOCATOR: &str = "std.heap.page_allocator";
+
+/// An array of values is a Zig array of their count; an array of n values
+/// is allocated, freed when the function ends and filled.
+fn array_declaration(e: &mut Emitter, statement: &Node) -> Result<String> {
+    let name = statement.str("name").unwrap_or_default();
+    let value = field(statement, "value")?;
+    if let Some(scope) = e.state::<Writing>().scopes.last_mut() {
+        scope.insert(name.to_owned());
+    }
+    if value.is("NewArray") {
+        let length = e.expression(field(value, "length")?)?;
+        e.line(&format!(
+            "const {name} = {ALLOCATOR}.alloc(i64, @intCast({length})) catch unreachable;"
+        ));
+        e.line(&format!("defer {ALLOCATOR}.free({name});"));
+        return Ok(format!(
+            "@memset({name}, {});",
+            e.expression(field(value, "fill")?)?
+        ));
+    }
+    let changes =
+        statement.flag("mutable") == Some(true) || statement.flag("elementsAssigned") == Some(true);
+    let count = value.nodes("elements").len();
+    Ok(format!(
+        "{} {name}: [{count}]i64 = {};",
+        if changes { "var" } else { "const" },
+        e.expression(value)?
+    ))
+}
+
 /// Whether the program prints, and the names declared in each open block, so
 /// that a variable two loops share is declared once.
 #[derive(Default)]
@@ -431,6 +528,11 @@ impl EmitterDialect for Zig {
                 e.line(&format!("_ = {written};"));
                 return Ok(());
             }
+        }
+        if is_array_declaration(statement) {
+            let written = array_declaration(e, statement)?;
+            e.line(&written);
+            return Ok(());
         }
         e.base_statement(statement)
     }

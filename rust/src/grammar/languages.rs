@@ -239,6 +239,24 @@ pub struct Syntax {
     pub doubled_quotes: bool,
     /// The statement of an empty indented block, where it is not `pass`.
     pub empty_statement: Option<&'static str>,
+    /// The index of the first element of an array: 0, or 1 in Lua, Julia,
+    /// R, Fortran and MATLAB.
+    pub array_base: i64,
+    /// How a language without a filled array constructor writes one (see
+    /// `expand_array_fills` in arrays.rs).
+    pub array_fill: Option<ArrayFill>,
+}
+
+/// How an array of `n` equal values is written where no constructor fills
+/// one: the array is created and a counting loop fills it.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ArrayFill {
+    /// The new array holds no values yet (C's variable-length arrays).
+    Always,
+    /// The new array starts with zeros, so a fill of 0 needs no loop.
+    NonZero,
+    /// The array starts empty and grows as the loop fills it.
+    Empty,
 }
 
 impl Syntax {
@@ -379,6 +397,8 @@ const JAVASCRIPT: Syntax = Syntax {
     case_insensitive: false,
     doubled_quotes: false,
     empty_statement: None,
+    array_base: 0,
+    array_fill: None,
 };
 
 /// The C description, the base of the other prefix-typed languages.
@@ -463,6 +483,8 @@ pub static LANGUAGES: [Syntax; 30] = [
     },
     Syntax {
         id: "lua",
+        array_fill: Some(ArrayFill::Empty),
+        array_base: 1,
         label: "Lua",
         naming: same(Convention::Snake),
         blocks: Blocks::End,
@@ -500,7 +522,10 @@ pub static LANGUAGES: [Syntax; 30] = [
         header: Some("<?php"),
         ..JAVASCRIPT
     },
-    C,
+    Syntax {
+        array_fill: Some(ArrayFill::Always),
+        ..C
+    },
     Syntax {
         id: "cpp",
         label: "C++",
@@ -513,6 +538,7 @@ pub static LANGUAGES: [Syntax; 30] = [
     },
     Syntax {
         id: "csharp",
+        array_fill: Some(ArrayFill::NonZero),
         label: "C#",
         naming: Naming {
             function: Convention::Pascal,
@@ -534,6 +560,7 @@ pub static LANGUAGES: [Syntax; 30] = [
     },
     Syntax {
         id: "java",
+        array_fill: Some(ArrayFill::NonZero),
         label: "Java",
         naming: same(Convention::Camel),
         declarations: &["var"],
@@ -551,6 +578,7 @@ pub static LANGUAGES: [Syntax; 30] = [
     },
     Syntax {
         id: "go",
+        array_fill: Some(ArrayFill::NonZero),
         label: "Go",
         naming: same(Convention::Camel),
         declarations: &["var"],
@@ -732,6 +760,7 @@ pub static LANGUAGES: [Syntax; 30] = [
     },
     Syntax {
         id: "julia",
+        array_base: 1,
         label: "Julia",
         naming: same(Convention::Snake),
         blocks: Blocks::End,
@@ -755,6 +784,7 @@ pub static LANGUAGES: [Syntax; 30] = [
     },
     Syntax {
         id: "r",
+        array_base: 1,
         label: "R",
         naming: same(Convention::Snake),
         line_comment: "#",
@@ -810,6 +840,7 @@ pub static LANGUAGES: [Syntax; 30] = [
     },
     Syntax {
         id: "objc",
+        array_fill: Some(ArrayFill::Always),
         label: "Objective-C",
         family: Some("c"),
         naming: same(Convention::Camel),
@@ -875,6 +906,7 @@ pub static LANGUAGES: [Syntax; 30] = [
     },
     Syntax {
         id: "d",
+        array_fill: Some(ArrayFill::NonZero),
         label: "D",
         naming: same(Convention::Camel),
         quotes: C_QUOTES,
@@ -905,6 +937,7 @@ pub static LANGUAGES: [Syntax; 30] = [
     },
     Syntax {
         id: "pascal",
+        array_fill: Some(ArrayFill::NonZero),
         label: "Pascal",
         naming: same(Convention::Pascal),
         // Statements, routines and the program layout are in
@@ -956,6 +989,7 @@ pub static LANGUAGES: [Syntax; 30] = [
     },
     Syntax {
         id: "fortran",
+        array_base: 1,
         label: "Fortran",
         naming: same(Convention::Snake),
         // Statements, procedures and the program layout are in
@@ -1021,6 +1055,8 @@ pub static LANGUAGES: [Syntax; 30] = [
         block_comment: None,
         quotes: C_QUOTES,
         doubled_quotes: true,
+        // The apostrophe of an attribute: Numbers'Length.
+        symbols: &["'"],
         interpolation: &[],
         declarations: &[],
         function_keyword: None,
@@ -1052,6 +1088,7 @@ pub static LANGUAGES: [Syntax; 30] = [
     },
     Syntax {
         id: "vb",
+        array_fill: Some(ArrayFill::NonZero),
         label: "Visual Basic .NET",
         naming: Naming {
             function: Convention::Pascal,
@@ -1098,6 +1135,7 @@ pub static LANGUAGES: [Syntax; 30] = [
     },
     Syntax {
         id: "bash",
+        array_fill: Some(ArrayFill::Empty),
         label: "Bash",
         naming: same(Convention::Snake),
         // Commands, arithmetic and quoting are in dialects/bash.rs.
@@ -1119,6 +1157,7 @@ pub static LANGUAGES: [Syntax; 30] = [
     },
     Syntax {
         id: "matlab",
+        array_base: 1,
         label: "MATLAB/Octave",
         naming: same(Convention::Snake),
         // Functions, fprintf formats and the script layout are in

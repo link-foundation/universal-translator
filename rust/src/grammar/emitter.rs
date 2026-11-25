@@ -210,6 +210,11 @@ impl Emitter {
     }
 
     pub(crate) fn type_name(&mut self, meta: &str) -> String {
+        if meta == "array"
+            && let Some(written) = self.array_type_name()
+        {
+            return written;
+        }
         if meta == "text" && self.id() == "cpp" {
             self.uses.insert("string");
         }
@@ -301,6 +306,9 @@ impl Emitter {
     }
 
     pub(crate) fn base_expression_in(&mut self, expression: &Node, parent: f64) -> Result<String> {
+        if let Some(written) = self.array_expression(expression, parent) {
+            return written;
+        }
         match expression.kind.as_str() {
             "Number" => {
                 let value = expression.number("value").unwrap_or(0.0);
@@ -827,6 +835,9 @@ impl Emitter {
     }
 
     pub(crate) fn base_statement(&mut self, statement: &Node) -> Result<()> {
+        if let Some(written) = self.array_statement(statement) {
+            return written;
+        }
         let end = self.terminator();
         match statement.kind.as_str() {
             "Comment" => self.comment(statement.str("text").unwrap_or_default()),
@@ -1410,6 +1421,7 @@ impl Emitter {
                 }
             }
         }
+        self.array_prelude(&mut lines);
         lines
     }
 }

@@ -337,6 +337,10 @@ impl<'a> Lexer<'a> {
         let marker = self.syntax.line_comment;
         if !self.starts_with(marker, self.index)
             || (self.syntax.id == "lua" && self.starts_with("--[[", self.index))
+            // Bash: ${#a[@]} is the length of a, not a comment.
+            || (self.syntax.id == "bash"
+                && self.index > 0
+                && self.source[self.index - 1] == '{')
         {
             return false;
         }

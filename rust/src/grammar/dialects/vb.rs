@@ -3,6 +3,7 @@
 
 use super::shared::default_value;
 use super::{EmitterDialect, ParserDialect};
+use crate::grammar::arrays::offset;
 use crate::grammar::emitter::{Emitter, Result, field};
 use crate::grammar::lexer::TokenType;
 use crate::grammar::meta::{Node, add, block, number};
@@ -70,6 +71,9 @@ impl ParserDialect for VisualBasic {
             };
             return Ok(Node::new("Return").with_opt("value", value));
         }
+        if let Some(close) = p.is_element_assignment() {
+            return p.element_assignment(close);
+        }
         if p.kind(0) == TokenType::Name
             && let Some(assignment) = assignment(p)?
         {
@@ -116,12 +120,35 @@ fn assignment(p: &mut Parser) -> Parsed<Option<Node>> {
 }
 
 /// Dim name As Type = value: the type is kept when the value is missing.
+///
+/// Dim name(last) As Long is an array of zeros up to the index last, and
+/// Dim name As Long() = {...} an array of the values.
 fn dim(p: &mut Parser) -> Parsed {
     let name = p.expect_name()?;
+    if p.accept("(") {
+        let last = p.expression()?;
+        p.expect(")")?;
+        p.expect("as")?;
+        p.expect_name()?;
+        return Ok(Node::new("Declaration")
+            .with("name", name)
+            .with("type", "array")
+            .with(
+                "value",
+                Node::new("NewArray")
+                    .with("length", offset(last, 1))
+                    .with("fill", number(0.0)),
+            )
+            .with("mutable", true));
+    }
     let mut kind = Some("integer");
     if p.accept("as") {
         let spelled = p.expect_name()?;
         kind = p.type_of(&spelled);
+        if p.accept("(") {
+            p.expect(")")?;
+            kind = None;
+        }
     }
     let value = if p.accept("=") {
         Some(p.expression()?)

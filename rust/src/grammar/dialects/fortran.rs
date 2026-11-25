@@ -82,6 +82,9 @@ impl ParserDialect for Fortran {
         if p.accept("return") {
             return Ok(Node::new("Return"));
         }
+        if let Some(close) = p.is_element_assignment() {
+            return p.element_assignment(close);
+        }
         let name = p.expect_name()?;
         p.expect("=")?;
         let value = p.expression()?;
@@ -294,6 +297,8 @@ fn declared_type(kind: &str) -> &'static str {
     match kind {
         "boolean" => "logical",
         "text" => "character(len=:), allocatable",
+        // An array is allocated by its first assignment.
+        "array" => "integer(8), allocatable, dimension(:)",
         _ => "integer(8)",
     }
 }

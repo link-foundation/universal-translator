@@ -98,6 +98,9 @@ impl ParserDialect for Pascal {
             }
             return Ok(Node::new("Return").with_opt("value", value));
         }
+        if let Some(close) = p.is_element_assignment() {
+            return p.element_assignment(close);
+        }
         if p.kind(0) == TokenType::Name && p.is_at(":=", 1) {
             let name = p.next()?.value;
             p.position += 1;

@@ -3,6 +3,7 @@
 
 use super::shared::declared_variables;
 use super::{EmitterDialect, ParserDialect};
+use crate::grammar::arrays::offset;
 use crate::grammar::emitter::{Emitter, Result, field};
 use crate::grammar::lexer::{Token, TokenType};
 use crate::grammar::meta::{Node, add, block, later_calls, number, text};
@@ -96,6 +97,12 @@ impl ParserDialect for Ada {
         if is_output(&p.current().value) {
             return output(p);
         }
+        if p.accept("declare") {
+            return declare_block(p);
+        }
+        if let Some(close) = p.is_element_assignment() {
+            return p.element_assignment(close);
+        }
         if p.kind(0) == TokenType::Name && p.is_at(":=", 1) {
             let name = p.next()?.value;
             p.position += 1;
@@ -107,6 +114,71 @@ impl ParserDialect for Ada {
         let expression = Parser::called(p.expression()?);
         Ok(Node::new("Evaluate").with("expression", expression))
     }
+
+    /// Numbers'Length.
+    fn primary(&self, p: &mut Parser) -> Parsed {
+        let value = p.base_primary()?;
+        if value.is("Name") && p.is("'") && p.is_at("length", 1) {
+            p.position += 2;
+            return Ok(Node::new("Length").with("array", value));
+        }
+        Ok(value)
+    }
+}
+
+/// declare Name : Integer_Array (0 .. Last) := ...; begin ... end; holds
+/// arrays and the statements after them, which the meta program lists in
+/// the same block.
+fn declare_block(p: &mut Parser) -> Parsed {
+    let mut found = Vec::new();
+    p.skip_lines();
+    while !p.accept("begin") {
+        let variable = p.expect_name()?;
+        p.expect(":")?;
+        p.expect_name()?;
+        p.expect("(")?;
+        p.expression()?;
+        p.expect("..")?;
+        let last = p.expression()?;
+        p.expect(")")?;
+        p.expect(":=")?;
+        let value = aggregate(p, offset(last, 1))?;
+        found.push(
+            Node::new("Declaration")
+                .with("name", variable)
+                .with("type", "array")
+                .with("value", value),
+        );
+        p.expect(";")?;
+        p.skip_lines();
+    }
+    found.extend(statements(p, &|p| p.is("end"))?);
+    p.expect("end")?;
+    Ok(Node::new("Sequence").with("statements", found))
+}
+
+/// (others => V) is the array of n values V; (A, B) and (0 => A) list the
+/// values.
+fn aggregate(p: &mut Parser, length: Node) -> Parsed {
+    p.expect("(")?;
+    if p.accept("others") {
+        p.expect("=>")?;
+        let fill = p.expression()?;
+        p.expect(")")?;
+        return Ok(
+            if length.is("Number") && length.number("value") == Some(0.0) {
+                Node::new("ArrayLiteral").with("elements", Vec::<Node>::new())
+            } else {
+                Node::new("NewArray")
+                    .with("length", length)
+                    .with("fill", fill)
+            },
+        );
+    }
+    if p.kind(0) == TokenType::Number && p.is_at("=>", 1) {
+        p.position += 2;
+    }
+    p.array_literal(")")
 }
 
 /// Statements up to the word that ends the block; `null;` stands for a
@@ -125,7 +197,12 @@ fn statements(p: &mut Parser, done: &dyn Fn(&Parser) -> bool) -> Parsed<Vec<Node
             let comment = p.next()?.value;
             found.push(Node::new("Comment").with("text", comment));
         } else {
-            found.push(p.statement()?);
+            let statement = p.statement()?;
+            if statement.is("Sequence") {
+                found.extend(statement.node_list("statements"));
+            } else {
+                found.push(statement);
+            }
         }
         p.skip_lines();
     }
@@ -352,11 +429,33 @@ impl EmitterDialect for Ada {
             .join(" "))
     }
 
+    /// An array is declared, with its bounds, in a declare block that holds
+    /// the statements after it.
     fn body(&self, e: &mut Emitter, block: &Node) -> Result<()> {
-        if block.nodes("statements").is_empty() {
+        let all = block.node_list("statements");
+        if all.is_empty() {
             e.line("null;");
         }
-        e.base_body(block)
+        let Some(first) = all.iter().position(is_array_declaration) else {
+            return e.base_body(block);
+        };
+        let part = |statements: &[Node]| block.clone().with("statements", statements.to_vec());
+        e.base_body(&part(&all[..first]))?;
+        let mut last = first;
+        while last < all.len() && is_array_declaration(&all[last]) {
+            last += 1;
+        }
+        e.line("declare");
+        e.depth += 1;
+        for statement in &all[first..last] {
+            let written = array_declaration(e, statement)?;
+            e.line(&written);
+        }
+        e.depth -= 1;
+        e.line("begin");
+        indented(e, &part(&all[last..]))?;
+        e.line("end;");
+        Ok(())
     }
 
     fn declaration(&self, e: &mut Emitter, statement: &Node) -> Result<String> {
@@ -499,9 +598,49 @@ fn indented(e: &mut Emitter, body: &Node) -> Result<()> {
     Ok(())
 }
 
+fn is_array_declaration(statement: &Node) -> bool {
+    statement.is("Declaration")
+        && (statement.str("type") == Some("array")
+            || statement
+                .node("value")
+                .is_some_and(|value| value.is("ArrayLiteral") || value.is("NewArray")))
+}
+
+/// Name : Integer_Array (0 .. Last) := (others => V), or the values.
+fn array_declaration(e: &mut Emitter, statement: &Node) -> Result<String> {
+    e.uses.insert("array");
+    let name = statement.str("name").unwrap_or_default();
+    let value = field(statement, "value")?;
+    let elements = value.node_list("elements");
+    let length = if value.is("NewArray") {
+        field(value, "length")?.clone()
+    } else {
+        number(elements.len() as f64)
+    };
+    let bounds = format!("0 .. {}", e.expression(&offset(length, -1))?);
+    let values = if value.is("NewArray") || elements.is_empty() {
+        let fill = value.node("fill").cloned().unwrap_or_else(|| number(0.0));
+        format!("(others => {})", e.expression(&fill)?)
+    } else {
+        let written = elements
+            .iter()
+            .map(|element| e.expression(element))
+            .collect::<Result<Vec<_>>>()?;
+        if written.len() == 1 {
+            format!("(0 => {})", written[0])
+        } else {
+            format!("({})", written.join(", "))
+        }
+    };
+    Ok(format!("{name} : Integer_Array ({bounds}) := {values};"))
+}
+
 /// Name : Long_Long_Integer;
 fn variables(e: &mut Emitter, body: &Node) -> usize {
-    let variables = declared_variables(body, false);
+    let variables: Vec<_> = declared_variables(body, false)
+        .into_iter()
+        .filter(|(_, kind)| kind != "array")
+        .collect();
     for (variable, kind) in &variables {
         let written = e.type_name(kind);
         e.line(&format!("{variable} : {written};"));
@@ -550,6 +689,12 @@ fn prelude(e: &mut Emitter, program: &Node) {
     e.line("procedure Main is");
     if e.uses.contains("integer_io") {
         e.line("    package Long_IO is new Integer_IO (Long_Long_Integer); use Long_IO;");
+        e.line("");
+    }
+    if e.uses.contains("array") {
+        e.line(
+            "    type Integer_Array is array (Long_Long_Integer range <>) of Long_Long_Integer;",
+        );
         e.line("");
     }
 }

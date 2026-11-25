@@ -163,6 +163,9 @@ impl ParserDialect for Matlab {
         if p.is("fprintf") || p.is("disp") {
             return output(p);
         }
+        if let Some(close) = p.is_element_assignment() {
+            return p.element_assignment(close);
+        }
         if p.kind(0) == TokenType::Name && p.is_at("=", 1) {
             let name = p.next()?.value;
             p.position += 1;

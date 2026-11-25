@@ -1,7 +1,8 @@
 //! Type inference for the meta language. Statically typed targets need a
 //! type for every variable, parameter and result; untyped sources do not
 //! write them down, so the types are derived from literals, operators,
-//! declarations and call sites. Meta types: integer, text, boolean, nothing.
+//! declarations and call sites. Meta types: integer, text, boolean, nothing,
+//! and array (a fixed-length array of integers).
 
 use std::collections::HashMap;
 
@@ -57,6 +58,8 @@ fn expression_type(expression: &Node, scope: &Scope, signatures: &Signatures) ->
         "Call" => signatures
             .get(expression.str("callee")?)
             .and_then(|signature| signature.return_type.clone()),
+        "ArrayLiteral" | "NewArray" => Some("array".into()),
+        "Index" | "Length" => Some("integer".into()),
         _ => None,
     }
 }
@@ -122,6 +125,11 @@ impl Context<'_> {
                 statement.with("type", kind)
             }
             "Assignment" | "Print" => {
+                self.typed(&mut statement, "value", scope);
+                statement
+            }
+            "IndexAssignment" => {
+                self.typed(&mut statement, "index", scope);
                 self.typed(&mut statement, "value", scope);
                 statement
             }
@@ -191,6 +199,11 @@ fn child_order(kind: &str) -> &'static [&'static str] {
         "Binary" => &["left", "right"],
         "Unary" => &["operand"],
         "Call" => &["arguments"],
+        "IndexAssignment" => &["index", "value"],
+        "ArrayLiteral" => &["elements"],
+        "NewArray" => &["length", "fill"],
+        "Index" => &["array", "index"],
+        "Length" => &["array"],
         "Interpolation" => &["parts"],
         "Block" => &["statements"],
         _ => &[],

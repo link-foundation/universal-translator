@@ -204,6 +204,14 @@ fn substitution(p: &mut Parser) -> Parsed {
         return Ok(call);
     }
     if p.accept("{") {
+        // ${#a[@]}: the length of the array a.
+        if p.accept("#") {
+            let array = name(p.expect_name()?);
+            for symbol in ["[", "@", "]", "}"] {
+                p.expect(symbol)?;
+            }
+            return Ok(Node::new("Length").with("array", array));
+        }
         let found = name(p.expect_name()?);
         p.expect("}")?;
         return Ok(found);
@@ -228,6 +236,14 @@ fn substitution(p: &mut Parser) -> Parsed {
 
 /// One argument; a minus sign before a number belongs to it.
 fn word(p: &mut Parser) -> Parsed {
+    // (a b c): an array of the words.
+    if p.accept("(") {
+        let mut elements = Vec::new();
+        while !p.accept(")") {
+            elements.push(word(p)?);
+        }
+        return Ok(Node::new("ArrayLiteral").with("elements", elements));
+    }
     if p.is("-") && p.kind(1) == TokenType::Number {
         p.position += 1;
         let value: f64 = p.next()?.value.parse().unwrap_or(0.0);
@@ -524,6 +540,18 @@ impl ParserDialect for Bash {
                 .with("value", word(p)?)
                 .with("mutable", true));
         }
+        // a[index]=value
+        if p.is_element_assignment().is_some() {
+            let variable = p.next()?.value;
+            p.position += 1;
+            let index = p.expression()?;
+            p.expect("]")?;
+            p.expect("=")?;
+            return Ok(Node::new("IndexAssignment")
+                .with("name", variable)
+                .with("index", index)
+                .with("value", word(p)?));
+        }
         if p.kind(0) == TokenType::Name && p.is_at("=", 1) {
             let variable = p.next()?.value;
             p.position += 1;
@@ -632,6 +660,14 @@ fn word_of(e: &mut Emitter, value: &Node, nested: bool) -> Result<String> {
         }
         "Call" => quoted(e.expression(value)?),
         "Interpolation" => e.interpolation(&value.node_list("parts"))?,
+        "ArrayLiteral" => {
+            let mut words = Vec::new();
+            for element in value.nodes("elements") {
+                words.push(word_of(e, element, false)?);
+            }
+            format!("({})", words.join(" "))
+        }
+        "Length" => quoted(e.expression(value)?),
         _ => {
             // $(((a ... reads as $(( (a ..., so the inner bracket stands apart.
             let inner = e.expression(value)?;
@@ -831,6 +867,15 @@ impl EmitterDialect for Bash {
                     lifted.set("value", lift(e, value)?);
                 }
                 e.base_statement(&lifted)
+            }
+            // The index is one word: a[i+1]=value.
+            "IndexAssignment" => {
+                let value = lift(e, field(statement, "value")?)?;
+                let index = e.expression(field(statement, "index")?)?.replace(' ', "");
+                let written = word_of(e, &value, true)?;
+                let name = statement.str("name").unwrap_or_default();
+                e.line(&format!("{name}[{index}]={written}"));
+                Ok(())
             }
             "Return" => return_value(e, statement.node("value")),
             "If" => {

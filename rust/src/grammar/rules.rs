@@ -8,6 +8,7 @@
 use std::collections::HashSet;
 use std::sync::Arc;
 
+use super::arrays::{expand_array_fills, raise_array_fills, recognize_arrays};
 use super::common_library::{recognize_common_library, spell_common_library};
 use super::languages::{ImmutableParameters, IntegerDivision, Syntax, language_syntax};
 use super::lifting::counting_loops;
@@ -29,6 +30,7 @@ pub fn understanding_rules() -> Vec<Rule> {
         rule("findEntryPoint", |program, _| find_entry_point(program)),
         rule("concatenationOperator", concatenation_operator),
         rule("integerDivisionCalls", integer_division_calls),
+        rule("recognizeArrays", recognize_arrays),
         rule("recognizeCommonLibrary", |program, _| {
             recognize_common_library(program)
         }),
@@ -45,6 +47,7 @@ pub fn understanding_rules() -> Vec<Rule> {
         rule("raiseCountingLoops", |program, _| {
             raise_counting_loops(program)
         }),
+        rule("raiseArrayFills", |program, _| raise_array_fills(program)),
         rule("raiseTruthValues", raise_truth_values),
         rule("inferMutability", |program, _| infer_mutability(program)),
         rule("dropSourceDetails", |program, _| {
@@ -66,6 +69,7 @@ pub fn context_rules() -> Vec<Rule> {
     vec![
         rule("adaptComments", adapt_comments),
         rule("copyReassignedParameters", copy_reassigned_parameters),
+        rule("expandArrayFills", expand_array_fills),
         rule("spellNames", spell_names),
         rule("spellCommonLibrary", spell_common_library),
     ]
@@ -609,27 +613,32 @@ pub fn declare_on_first_assignment(program: Node) -> Node {
     program
 }
 
-fn assigned_names(tree: &Node) -> HashSet<String> {
+fn assigned_names(tree: &Node, kind: &str) -> HashSet<String> {
     let mut assigned = HashSet::new();
     walk(tree, |current| {
-        if current.is("Assignment") {
+        if current.is(kind) {
             assigned.extend(current.str("name").map(str::to_owned));
         }
     });
     assigned
 }
 
-/// A variable is mutable exactly when the program assigns it again.
+/// A variable is mutable exactly when the program assigns it again. An array
+/// whose elements the program assigns is marked too: Rust, Swift and Nim
+/// declare it like a mutable variable.
 pub fn infer_mutability(program: Node) -> Node {
-    let assigned = assigned_names(&program);
-    rewrite(program, |current| {
+    let assigned = assigned_names(&program, "Assignment");
+    let stored = assigned_names(&program, "IndexAssignment");
+    rewrite(program, |mut current| {
         if !current.is("Declaration") {
             return current;
         }
-        let mutable = current
-            .str("name")
-            .is_some_and(|name| assigned.contains(name));
-        current.with("mutable", mutable)
+        let name = current.str("name").unwrap_or_default().to_owned();
+        current.remove("elementsAssigned");
+        if stored.contains(&name) {
+            current.set("elementsAssigned", true);
+        }
+        current.with("mutable", assigned.contains(&name))
     })
 }
 
@@ -989,7 +998,7 @@ pub fn copy_reassigned_parameters(mut program: Node, settings: &Settings) -> Nod
         .into_iter()
         .map(|mut item| {
             let body = item.node("body").cloned().unwrap_or_else(|| block(vec![]));
-            let assigned = assigned_names(&body);
+            let assigned = assigned_names(&body, "Assignment");
             let source = |name: &str| {
                 if renamed && assigned.contains(name) {
                     copy_name(name)

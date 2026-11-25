@@ -15,6 +15,8 @@
 //! Every rule list is ordinary data, so callers can add, remove, reorder or
 //! decorate rules, and a trace hook sees the tree after every stage.
 
+mod array_spellings;
+mod arrays;
 pub mod common_library;
 mod dialects;
 pub mod emitter;
