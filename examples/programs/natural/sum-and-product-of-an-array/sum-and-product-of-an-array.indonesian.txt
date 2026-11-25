@@ -1,0 +1,10 @@
+Catatan: Sum and product of an array in JavaScript
+
+Buat angka dengan nilai daftar (1, 2, 3, 4, 5).
+Buat total dengan nilai 0.
+Buat hasilkali dengan nilai 1.
+Untuk setiap indeks dari 0 sampai panjang angka dikurangi 1, ulangi ini:
+  Ubah total menjadi total ditambah elemen indeks pada angka.
+  Ubah hasilkali menjadi hasilkali dikali elemen indeks pada angka.
+Tulis “Sum: ” diikuti total dan akhiri baris.
+Tulis “Product: ” diikuti hasilkali dan akhiri baris.

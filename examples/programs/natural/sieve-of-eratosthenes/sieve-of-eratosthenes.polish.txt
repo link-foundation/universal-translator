@@ -1,0 +1,13 @@
+Uwaga: Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+Utwórz limit z wartością 100.
+Utwórz czy-pierwsza z wartością lista długości (limit plus 1) wypełniona 1.
+Zmień element 0 listy czy-pierwsza na 0.
+Zmień element 1 listy czy-pierwsza na 0.
+Dla każdego liczba od 2 do limit powtarzaj to:
+  Jeśli element liczba listy czy-pierwsza równa się 1, zrób to:
+    Wypisz liczba i zakończ wiersz.
+    Utwórz wielokrotność z wartością liczba razy liczba.
+    Dopóki wielokrotność nie przekracza limit, powtarzaj to:
+      Zmień element wielokrotność listy czy-pierwsza na 0.
+      Zmień wielokrotność na wielokrotność plus liczba.

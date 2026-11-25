@@ -1,0 +1,12 @@
+Remarque : Bubble sort in JavaScript: sort a list of numbers
+
+Il y a nombres, c'est ces choses (5, 3, 8, 1, 9, 2, 7).
+Il y a compte, c'est combien de parties dans nombres.
+Pour tous les passe de 0 à compte moins 1 moins 1, faire ceci:
+  Pour tous les indice de 0 à compte moins 1 moins passe moins 1, faire ceci:
+    Si la partie indice de nombres est plus que la partie (indice plus 1) de nombres, faire ceci:
+      Il y a échange, c'est la partie indice de nombres.
+      Après ceci, la partie indice de nombres est la partie (indice plus 1) de nombres.
+      Après ceci, la partie (indice plus 1) de nombres est échange.
+Pour tous les position de 0 à compte moins 1, faire ceci:
+  Dire la partie position de nombres sur une ligne.

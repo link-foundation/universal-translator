@@ -1,0 +1,12 @@
+Not: Bubble sort in JavaScript: sort a list of numbers
+
+Sayılar değişkenini liste (5, 3, 8, 1, 9, 2, 7) değeriyle oluştur.
+Sayaç değişkenini sayılar uzunluğu değeriyle oluştur.
+Her tur için 0 ile sayaç eksi 1 eksi 1 arasında şunu tekrarla:
+  Her indeks için 0 ile sayaç eksi 1 eksi tur eksi 1 arasında şunu tekrarla:
+    Eğer sayılar listesinin indeks öğesi sayılar listesinin (indeks artı 1) öğesi değerinden büyük ise şunu yap:
+      Takas değişkenini sayılar listesinin indeks öğesi değeriyle oluştur.
+      Sayılar listesinin indeks öğesini sayılar listesinin (indeks artı 1) öğesi yap.
+      Sayılar listesinin (indeks artı 1) öğesini takas yap.
+Her konum için 0 ile sayaç eksi 1 arasında şunu tekrarla:
+  Sayılar listesinin konum öğesi yaz ve satırı bitir.

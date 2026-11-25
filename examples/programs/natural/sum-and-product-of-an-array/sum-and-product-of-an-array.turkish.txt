@@ -1,0 +1,10 @@
+Not: Sum and product of an array in JavaScript
+
+Sayılar değişkenini liste (1, 2, 3, 4, 5) değeriyle oluştur.
+Tutar değişkenini 0 değeriyle oluştur.
+Çarpım değişkenini 1 değeriyle oluştur.
+Her indeks için 0 ile sayılar uzunluğu eksi 1 arasında şunu tekrarla:
+  Tutar değerini tutar artı sayılar listesinin indeks öğesi yap.
+  Çarpım değerini çarpım çarpı sayılar listesinin indeks öğesi yap.
+“Sum: ” ardından tutar yaz ve satırı bitir.
+“Product: ” ardından çarpım yaz ve satırı bitir.

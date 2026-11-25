@@ -1,0 +1,13 @@
+Opmerking: Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+Maak limiet met waarde 100.
+Maak is-priem met waarde een lijst van (limiet plus 1) kopieën van 1.
+Verander element 0 van is-priem in 0.
+Verander element 1 van is-priem in 0.
+Voor elke getal van 2 tot en met limiet, herhaal dit:
+  Als element getal van is-priem is gelijk aan 1, doe dit:
+    Schrijf getal en beëindig de regel.
+    Maak veelvoud met waarde getal maal getal.
+    Zolang veelvoud is hoogstens limiet, herhaal dit:
+      Verander element veelvoud van is-priem in 0.
+      Verander veelvoud in veelvoud plus getal.

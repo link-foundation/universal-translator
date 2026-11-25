@@ -1,0 +1,10 @@
+Tala: Sum and product of an array in JavaScript
+
+Lumikha ng mga_numero na may halagang listahan (1, 2, 3, 4, 5).
+Lumikha ng lahat na may halagang 0.
+Lumikha ng produkto na may halagang 1.
+Para sa bawat indeks mula 0 hanggang haba ng mga_numero bawas 1, ulitin ito:
+  Palitan ang lahat ng lahat dagdag elemento indeks sa mga_numero.
+  Palitan ang produkto ng produkto beses elemento indeks sa mga_numero.
+Isulat ang “Sum: ” na sinusundan ng lahat at tapusin ang linya.
+Isulat ang “Product: ” na sinusundan ng produkto at tapusin ang linya.

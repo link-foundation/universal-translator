@@ -1,0 +1,12 @@
+Hinweis: Bubble sort in JavaScript: sort a list of numbers
+
+Erzeuge Zahlen mit dem Wert die Liste (5, 3, 8, 1, 9, 2, 7).
+Erzeuge Anzahl mit dem Wert die Länge von Zahlen.
+Für jedes Durchlauf von 0 bis Anzahl minus 1 minus 1 wiederhole dies:
+  Für jedes Index von 0 bis Anzahl minus 1 minus Durchlauf minus 1 wiederhole dies:
+    Wenn das Element Index von Zahlen ist größer als das Element (Index plus 1) von Zahlen, tue dies:
+      Erzeuge Tausch mit dem Wert das Element Index von Zahlen.
+      Ändere das Element Index von Zahlen auf das Element (Index plus 1) von Zahlen.
+      Ändere das Element (Index plus 1) von Zahlen auf Tausch.
+Für jedes Position von 0 bis Anzahl minus 1 wiederhole dies:
+  Schreibe das Element Position von Zahlen und beende die Zeile.

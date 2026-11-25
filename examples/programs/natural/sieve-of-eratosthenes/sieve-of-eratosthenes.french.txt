@@ -1,0 +1,13 @@
+Remarque : Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+Créer limite avec la valeur 100.
+Créer est-premier avec la valeur une liste de (limite plus 1) copies de 1.
+Changer l'élément 0 de est-premier en 0.
+Changer l'élément 1 de est-premier en 0.
+Pour chaque nombre de 2 à limite, répéter ceci:
+  Si l'élément nombre de est-premier est égal à 1, faire ceci:
+    Écrire nombre et finir la ligne.
+    Créer multiple avec la valeur nombre fois nombre.
+    Tant que multiple est au plus limite, répéter ceci:
+      Changer l'élément multiple de est-premier en 0.
+      Changer multiple en multiple plus nombre.

@@ -193,7 +193,11 @@ describe('rule checks catch violations', () => {
     const { checkDescription: check } = await import('../src/natural/rules.js');
     const gellish = naturalLanguage('english-gellish');
     const saved = gellish.templates;
-    gellish.templates = { ...saved, assign: ['{name} becomes {value}'] };
+    gellish.templates = {
+      ...saved,
+      assign: ['{name} becomes {value}'],
+      'set-element': ['item {index} of {name} becomes {value}'],
+    };
     try {
       expect(check('english-gellish').join()).toContain(
         'relation "has as new value"'

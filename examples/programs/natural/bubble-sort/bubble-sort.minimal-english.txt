@@ -1,0 +1,12 @@
+Note: Bubble sort in JavaScript: sort a list of numbers
+
+There is numbers, it is these things (5, 3, 8, 1, 9, 2, 7).
+There is count, it is how many parts numbers has.
+For all pass from 0 to count minus 1 minus 1, do this:
+  For all index from 0 to count minus 1 minus pass minus 1, do this:
+    If part index of numbers is more than part (index plus 1) of numbers, do this:
+      There is swap, it is part index of numbers.
+      After this, part index of numbers is part (index plus 1) of numbers.
+      After this, part (index plus 1) of numbers is swap.
+For all position from 0 to count minus 1, do this:
+  Say part position of numbers on one line.

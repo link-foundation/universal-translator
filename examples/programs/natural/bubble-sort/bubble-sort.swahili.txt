@@ -1,0 +1,12 @@
+Kumbuka: Bubble sort in JavaScript: sort a list of numbers
+
+Unda namba yenye thamani orodha (5, 3, 8, 1, 9, 2, 7).
+Unda hesabu yenye thamani urefu wa namba.
+Kwa kila mzunguko kutoka 0 hadi hesabu toa 1 toa 1, rudia hivi:
+  Kwa kila fahirisi kutoka 0 hadi hesabu toa 1 toa mzunguko toa 1, rudia hivi:
+    Ikiwa kipengele fahirisi cha namba ni zaidi ya kipengele (fahirisi jumlisha 1) cha namba, fanya hivi:
+      Unda badilishana yenye thamani kipengele fahirisi cha namba.
+      Badilisha kipengele fahirisi cha namba kuwa kipengele (fahirisi jumlisha 1) cha namba.
+      Badilisha kipengele (fahirisi jumlisha 1) cha namba kuwa badilishana.
+Kwa kila nafasi kutoka 0 hadi hesabu toa 1, rudia hivi:
+  Andika kipengele nafasi cha namba na umalize mstari.

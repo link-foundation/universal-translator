@@ -1,0 +1,10 @@
+Opmerking: Sum and product of an array in JavaScript
+
+Maak getallen met waarde de lijst (1, 2, 3, 4, 5).
+Maak totaal met waarde 0.
+Maak product met waarde 1.
+Voor elke index van 0 tot en met de lengte van getallen min 1, herhaal dit:
+  Verander totaal in totaal plus element index van getallen.
+  Verander product in product maal element index van getallen.
+Schrijf “Sum: ” gevolgd door totaal en beëindig de regel.
+Schrijf “Product: ” gevolgd door product en beëindig de regel.

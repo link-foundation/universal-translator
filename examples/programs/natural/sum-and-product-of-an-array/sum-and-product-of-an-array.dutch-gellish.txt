@@ -1,0 +1,10 @@
+Opmerking: Sum and product of an array in JavaScript
+
+Getallen is geclassificeerd als een variabele met beginwaarde de lijst (1, 2, 3, 4, 5).
+Totaal is geclassificeerd als een variabele met beginwaarde 0.
+Product is geclassificeerd als een variabele met beginwaarde 1.
+Voor elke index van 0 tot en met de lengte van getallen min 1 wordt het volgende herhaald:
+  Totaal heeft als nieuwe waarde totaal plus element index van getallen.
+  Product heeft als nieuwe waarde product maal element index van getallen.
+De uitvoer heeft als volgende regel “Sum: ” samengevoegd met totaal.
+De uitvoer heeft als volgende regel “Product: ” samengevoegd met product.

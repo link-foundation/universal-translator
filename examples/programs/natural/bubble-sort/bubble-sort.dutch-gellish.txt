@@ -1,0 +1,12 @@
+Opmerking: Bubble sort in JavaScript: sort a list of numbers
+
+Getallen is geclassificeerd als een variabele met beginwaarde de lijst (5, 3, 8, 1, 9, 2, 7).
+Aantal is geclassificeerd als een variabele met beginwaarde de lengte van getallen.
+Voor elke ronde van 0 tot en met aantal min 1 min 1 wordt het volgende herhaald:
+  Voor elke index van 0 tot en met aantal min 1 min ronde min 1 wordt het volgende herhaald:
+    Als element index van getallen is groter dan element (index plus 1) van getallen dan wordt het volgende uitgevoerd:
+      Wissel is geclassificeerd als een variabele met beginwaarde element index van getallen.
+      Element index van getallen heeft als nieuwe waarde element (index plus 1) van getallen.
+      Element (index plus 1) van getallen heeft als nieuwe waarde wissel.
+Voor elke positie van 0 tot en met aantal min 1 wordt het volgende herhaald:
+  De uitvoer heeft als volgende regel element positie van getallen.

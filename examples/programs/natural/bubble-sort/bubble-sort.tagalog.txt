@@ -1,0 +1,12 @@
+Tala: Bubble sort in JavaScript: sort a list of numbers
+
+Lumikha ng mga_numero na may halagang listahan (5, 3, 8, 1, 9, 2, 7).
+Lumikha ng bilang na may halagang haba ng mga_numero.
+Para sa bawat ikot mula 0 hanggang bilang bawas 1 bawas 1, ulitin ito:
+  Para sa bawat indeks mula 0 hanggang bilang bawas 1 bawas ikot bawas 1, ulitin ito:
+    Kung elemento indeks sa mga_numero ay mas mataas sa elemento (indeks dagdag 1) sa mga_numero, gawin ito:
+      Lumikha ng palit na may halagang elemento indeks sa mga_numero.
+      Palitan ang elemento indeks sa mga_numero ng elemento (indeks dagdag 1) sa mga_numero.
+      Palitan ang elemento (indeks dagdag 1) sa mga_numero ng palit.
+Para sa bawat posisyon mula 0 hanggang bilang bawas 1, ulitin ito:
+  Isulat ang elemento posisyon sa mga_numero at tapusin ang linya.

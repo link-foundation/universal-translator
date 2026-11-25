@@ -16,6 +16,9 @@ const tasks = [
   'greatest-common-divisor',
   'hello-world',
   'sum-of-squares',
+  'sieve-of-eratosthenes',
+  'bubble-sort',
+  'sum-and-product-of-an-array',
 ];
 const extensions = { nasm: '.asm', cil: '.il', jvm: '.j' };
 const golden = (task, extension) =>

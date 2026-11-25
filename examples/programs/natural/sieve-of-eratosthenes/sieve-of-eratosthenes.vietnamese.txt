@@ -1,0 +1,13 @@
+Ghi chú: Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+Tạo giới_hạn với giá trị 100.
+Tạo là-nguyên_tố với giá trị danh sách dài (giới_hạn cộng 1) toàn 1.
+Đổi phần tử 0 trong là-nguyên_tố thành 0.
+Đổi phần tử 1 trong là-nguyên_tố thành 0.
+Với mỗi số_ từ 2 đến giới_hạn, lặp lại điều này:
+  Nếu phần tử số_ trong là-nguyên_tố bằng 1, làm điều này:
+    Viết số_ và xuống dòng.
+    Tạo bội_số với giá trị số_ nhân số_.
+    Trong khi bội_số không lớn hơn giới_hạn, lặp lại điều này:
+      Đổi phần tử bội_số trong là-nguyên_tố thành 0.
+      Đổi bội_số thành bội_số cộng số_.

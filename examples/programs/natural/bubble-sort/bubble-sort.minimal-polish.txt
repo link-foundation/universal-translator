@@ -1,0 +1,12 @@
+Uwaga: Bubble sort in JavaScript: sort a list of numbers
+
+Jest liczby, to jest te rzeczy (5, 3, 8, 1, 9, 2, 7).
+Jest licznik, to jest ile części ma liczby.
+Dla wszystkich przebieg od 0 do licznik minus 1 minus 1, zrobić to:
+  Dla wszystkich indeks od 0 do licznik minus 1 minus przebieg minus 1, zrobić to:
+    Jeżeli część indeks z liczby jest więcej niż część (indeks plus 1) z liczby, zrobić to:
+      Jest zamiana, to jest część indeks z liczby.
+      Po tym część indeks z liczby jest część (indeks plus 1) z liczby.
+      Po tym część (indeks plus 1) z liczby jest zamiana.
+Dla wszystkich pozycja od 0 do licznik minus 1, zrobić to:
+  Powiedzieć część pozycja z liczby w jednej linii.

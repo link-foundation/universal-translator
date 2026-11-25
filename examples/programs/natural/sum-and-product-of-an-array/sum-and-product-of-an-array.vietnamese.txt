@@ -1,0 +1,10 @@
+Ghi chú: Sum and product of an array in JavaScript
+
+Tạo các_số với giá trị danh sách (1, 2, 3, 4, 5).
+Tạo tổng_cộng với giá trị 0.
+Tạo tích với giá trị 1.
+Với mỗi chỉ_số từ 0 đến độ dài các_số trừ 1, lặp lại điều này:
+  Đổi tổng_cộng thành tổng_cộng cộng phần tử chỉ_số trong các_số.
+  Đổi tích thành tích nhân phần tử chỉ_số trong các_số.
+Viết “Sum: ” nối với tổng_cộng và xuống dòng.
+Viết “Product: ” nối với tích và xuống dòng.

@@ -1,0 +1,13 @@
+Tala: Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+Lumikha ng hangganan na may halagang 100.
+Lumikha ng ba-primo na may halagang listahang may habang (hangganan dagdag 1) na puno ng 1.
+Palitan ang elemento 0 sa ba-primo ng 0.
+Palitan ang elemento 1 sa ba-primo ng 0.
+Para sa bawat numero mula 2 hanggang hangganan, ulitin ito:
+  Kung elemento numero sa ba-primo ay katumbas ng 1, gawin ito:
+    Isulat ang numero at tapusin ang linya.
+    Lumikha ng multiplo na may halagang numero beses numero.
+    Habang multiplo ay hindi hihigit sa hangganan, ulitin ito:
+      Palitan ang elemento multiplo sa ba-primo ng 0.
+      Palitan ang multiplo ng multiplo dagdag numero.

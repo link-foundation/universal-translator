@@ -1,0 +1,12 @@
+Note: Bubble sort in JavaScript: sort a list of numbers
+
+Numbers is classified as a variable with initial value the list (5, 3, 8, 1, 9, 2, 7).
+Count is classified as a variable with initial value the length of numbers.
+For each pass from 0 to count minus 1 minus 1 the following is repeated:
+  For each index from 0 to count minus 1 minus pass minus 1 the following is repeated:
+    If item index of numbers is greater than item (index plus 1) of numbers then the following is performed:
+      Swap is classified as a variable with initial value item index of numbers.
+      Item index of numbers has as new value item (index plus 1) of numbers.
+      Item (index plus 1) of numbers has as new value swap.
+For each position from 0 to count minus 1 the following is repeated:
+  The output has as next line item position of numbers.

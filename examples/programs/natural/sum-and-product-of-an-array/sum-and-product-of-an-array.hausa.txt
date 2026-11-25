@@ -1,0 +1,10 @@
+Lura: Sum and product of an array in JavaScript
+
+Ƙirƙiri adadai mai ƙima jeri (1, 2, 3, 4, 5).
+Ƙirƙiri duka mai ƙima 0.
+Ƙirƙiri sakamako mai ƙima 1.
+Ga kowane fihirisa daga 0 zuwa tsawon adadai ragi 1, maimaita wannan:
+  Canza duka zuwa duka ƙari abu fihirisa a cikin adadai.
+  Canza sakamako zuwa sakamako sau abu fihirisa a cikin adadai.
+Rubuta “Sum: ” sannan duka kuma ka gama layi.
+Rubuta “Product: ” sannan sakamako kuma ka gama layi.

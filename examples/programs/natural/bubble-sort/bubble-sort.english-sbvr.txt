@@ -1,0 +1,12 @@
+Note: Bubble sort in JavaScript: sort a list of numbers
+
+It is obligatory that numbers is initially the list (5, 3, 8, 1, 9, 2, 7).
+It is obligatory that count is initially the length of numbers.
+For each pass from 0 to count minus 1 minus 1 the following applies:
+  For each index from 0 to count minus 1 minus pass minus 1 the following applies:
+    If item index of numbers is greater than item (index plus 1) of numbers then the following applies:
+      It is obligatory that swap is initially item index of numbers.
+      It is obligatory that item index of numbers becomes item (index plus 1) of numbers.
+      It is obligatory that item (index plus 1) of numbers becomes swap.
+For each position from 0 to count minus 1 the following applies:
+  It is obligatory that the output shows item position of numbers as a line.

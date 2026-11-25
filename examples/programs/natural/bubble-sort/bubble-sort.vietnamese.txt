@@ -1,0 +1,12 @@
+Ghi chú: Bubble sort in JavaScript: sort a list of numbers
+
+Tạo các_số với giá trị danh sách (5, 3, 8, 1, 9, 2, 7).
+Tạo số_lượng với giá trị độ dài các_số.
+Với mỗi lượt từ 0 đến số_lượng trừ 1 trừ 1, lặp lại điều này:
+  Với mỗi chỉ_số từ 0 đến số_lượng trừ 1 trừ lượt trừ 1, lặp lại điều này:
+    Nếu phần tử chỉ_số trong các_số lớn hơn phần tử (chỉ_số cộng 1) trong các_số, làm điều này:
+      Tạo hoán_đổi với giá trị phần tử chỉ_số trong các_số.
+      Đổi phần tử chỉ_số trong các_số thành phần tử (chỉ_số cộng 1) trong các_số.
+      Đổi phần tử (chỉ_số cộng 1) trong các_số thành hoán_đổi.
+Với mỗi vị_trí từ 0 đến số_lượng trừ 1, lặp lại điều này:
+  Viết phần tử vị_trí trong các_số và xuống dòng.

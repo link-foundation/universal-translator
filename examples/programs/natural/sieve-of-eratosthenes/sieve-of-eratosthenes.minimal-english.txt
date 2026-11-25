@@ -1,0 +1,13 @@
+Note: Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+There is limit, it is 100.
+There is is-prime, it is (limit plus 1) things like 1.
+After this, part 0 of is-prime is 0.
+After this, part 1 of is-prime is 0.
+For all number from 2 to limit, do this:
+  If part number of is-prime is the same as 1, do this:
+    Say number on one line.
+    There is multiple, it is number times number.
+    When multiple is not more than limit, do this many times:
+      After this, part multiple of is-prime is 0.
+      After this, multiple is multiple plus number.

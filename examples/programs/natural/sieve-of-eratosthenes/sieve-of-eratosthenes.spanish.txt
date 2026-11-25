@@ -1,0 +1,13 @@
+Nota: Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+Crear límite con valor 100.
+Crear es-primo con valor una lista de (límite más 1) copias de 1.
+Cambiar el elemento 0 de es-primo a 0.
+Cambiar el elemento 1 de es-primo a 0.
+Para cada número desde 2 hasta límite, repetir esto:
+  Si el elemento número de es-primo es igual a 1, hacer esto:
+    Escribir número y terminar la línea.
+    Crear múltiplo con valor número por número.
+    Mientras múltiplo es como mucho límite, repetir esto:
+      Cambiar el elemento múltiplo de es-primo a 0.
+      Cambiar múltiplo a múltiplo más número.

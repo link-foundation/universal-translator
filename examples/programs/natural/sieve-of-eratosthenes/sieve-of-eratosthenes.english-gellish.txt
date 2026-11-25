@@ -1,0 +1,13 @@
+Note: Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+Limit is classified as a variable with initial value 100.
+Is-prime is classified as a variable with initial value a list of (limit plus 1) copies of 1.
+Item 0 of is-prime has as new value 0.
+Item 1 of is-prime has as new value 0.
+For each number from 2 to limit the following is repeated:
+  If item number of is-prime is equal to 1 then the following is performed:
+    The output has as next line number.
+    Multiple is classified as a variable with initial value number times number.
+    While multiple is at most limit the following is repeated:
+      Item multiple of is-prime has as new value 0.
+      Multiple has as new value multiple plus number.

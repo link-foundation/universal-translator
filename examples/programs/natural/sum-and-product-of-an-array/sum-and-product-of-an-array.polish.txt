@@ -1,0 +1,10 @@
+Uwaga: Sum and product of an array in JavaScript
+
+Utwórz liczby z wartością lista (1, 2, 3, 4, 5).
+Utwórz razem z wartością 0.
+Utwórz iloczyn z wartością 1.
+Dla każdego indeks od 0 do długość liczby minus 1 powtarzaj to:
+  Zmień razem na razem plus element indeks listy liczby.
+  Zmień iloczyn na iloczyn razy element indeks listy liczby.
+Wypisz „Sum: ” a następnie razem i zakończ wiersz.
+Wypisz „Product: ” a następnie iloczyn i zakończ wiersz.
