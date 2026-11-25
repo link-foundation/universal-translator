@@ -61,7 +61,7 @@ en
     definition "Definition"
     add "Add"
     define "Define from Wikidata"
-    defined "{count} words were added"
+    defined "Words added: {count}"
     missing "Not reached: {words}"
     composite "Composite words"
   settings
@@ -255,7 +255,7 @@ de
     definition "Definition"
     add "Hinzufügen"
     define "Aus Wikidata definieren"
-    defined "{count} Wörter hinzugefügt"
+    defined "Hinzugefügte Wörter: {count}"
     missing "Nicht erreicht: {words}"
     composite "Zusammengesetzte Wörter"
   settings
@@ -352,7 +352,7 @@ fr
     definition "Définition"
     add "Ajouter"
     define "Définir depuis Wikidata"
-    defined "{count} mots ajoutés"
+    defined "Mots ajoutés : {count}"
     missing "Non atteints : {words}"
     composite "Mots composés"
   settings
@@ -449,7 +449,7 @@ es
     definition "Definición"
     add "Añadir"
     define "Definir desde Wikidata"
-    defined "Se añadieron {count} palabras"
+    defined "Palabras añadidas: {count}"
     missing "Sin alcanzar: {words}"
     composite "Palabras compuestas"
   settings
@@ -643,7 +643,7 @@ hi
     definition "परिभाषा"
     add "जोड़ें"
     define "विकिडेटा से परिभाषित करें"
-    defined "{count} शब्द जोड़े गए"
+    defined "जोड़े गए शब्द: {count}"
     missing "परिभाषित नहीं: {words}"
     composite "संयुक्त शब्द"
   settings
