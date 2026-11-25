@@ -9,7 +9,7 @@ Pull request: https://github.com/link-foundation/universal-translator/pull/11
 | --- | ----------------------------------------------------------------------------------- | -------------------------------------------------------- |
 | R1  | Fix the failing `Example app` run on `main` (run 45623028339)                        | 6b3b57e, 2a1bb83                                         |
 | R2  | Find and fix every false positive (red without a real problem)                       | 6897d89, 150e131, 1088b33, 738132c, ca695ee, e674adc, e4364a2 |
-| R3  | Find and fix every false negative (green while something is broken)                  | 6b3b57e, 13780da, f96e27f, 9cf89c5, cfa3ab1, fb74d84, 26ab768, 09789a0, 4aab2bf, 727f3bf |
+| R3  | Find and fix every false negative (green while something is broken)                  | 6b3b57e, 13780da, f96e27f, 9cf89c5, cfa3ab1, fb74d84, 26ab768, 09789a0, 4aab2bf, 727f3bf, 822375b, ce6ea41 |
 | R4  | Fix every warning printed by CI                                                      | f367b67, c60ff67, 908917b, 3b015c9, 2a65e53, 4aab2bf, e674adc |
 | R5  | Use the best practices of the pipeline templates (compare the full file tree)        | see "Template comparison"                                |
 | R6  | Report problems that also exist in the templates                                     | see "Upstream reports"                                   |
@@ -38,8 +38,10 @@ Pull request: https://github.com/link-foundation/universal-translator/pull/11
 | 15:45 | 4aab2bf: Vite warnings revealed broken desktop skins on `file://`; build split; warnings fail the build. |
 | 15:48 | e674adc: common library native step gets the same budget as its sibling.                                 |
 | 15:49 | 9e800cf: the gate found a CodeQL alert in its own new test; fixed, and failures now name `path:line`.     |
-| 15:56 | f1e873e: first run in which the test jobs got past lint. ShellCheck 0.9 on the runner reports SC2015; one Deno flake; both CodeQL uploads fail during a GitHub outage. |
+| 15:56 | f1e873e: first run in which the test jobs got past lint. ShellCheck 0.9 on the runner reports SC2015; Deno reports a syntax fixture as clean; both CodeQL uploads fail during a GitHub outage. |
 | 16:19 | e4364a2, 727f3bf: trace helpers clean under ShellCheck 0.9 and 0.11; the syntax gate fixture checks git. |
+| 16:22 | 9542e1a: the new assertion shows the gate listed the fixture; Node 22's `node --check` passed it.          |
+| 16:32 | 822375b, ce6ea41: untyped `.js` files checked as CommonJS or ES module; the Deno leg pins Node 24.         |
 
 ## Root causes and solutions
 
@@ -108,15 +110,23 @@ Pull request: https://github.com/link-foundation/universal-translator/pull/11
    0.9 exits 123, 0.11 exits 0. Fix: both helpers use an `if` statement, which both versions accept
    (e4364a2). The template pins 0.11 in its job and lint-staged and has no unpinned test, so it is
    not affected.
-6. **Deno syntax gate flake.** In the same run, Deno once saw the gate exit 0 for
-   `js/tests/nested/check.test.js`. Node and Bun passed the same test, and 15 local
-   `deno test -A --parallel` runs of the files that ran beside it all passed. A signal is ruled out:
-   Deno reports a signal-killed child as `status: null`, like Node
-   (`experiments/issue-10/deno-spawnsync-signal.mjs`). The fixture ignored the exit status of
-   `git init` and `git add`, and an untracked fixture is the only way the gate passes with that file
-   present. Fix: git errors now fail the fixture, and the test first asserts that the gate listed the
-   file, so a repeat prints what the gate saw (727f3bf). The root cause of the one failure is not
-   proven.
+6. **Syntax gate blind to untyped ESM on Node 20 and 22.** The Deno test job failed
+   `rejects a syntax error in js/tests/nested/check.test.js` on every run that reached it (runs
+   45646051898 to 45652861265), first read as a flake. With the 727f3bf assertion, run 45652861265
+   showed that the gate did list the file and `node --check` still exited 0
+   (`ci-logs/checks-and-release-45652861265-test-deno.log`). The Deno leg skipped `setup-node`, so
+   the gate ran on the runner's preinstalled Node. On Node 20 and 22, `node --check` passes a `.js`
+   file that uses `import` or `export` when no `package.json` sets `"type"`, even with a syntax
+   error; Node 24 reports it (`experiments/issue-10/node-check-untyped-esm.sh`: exit 0 on 20.20.2
+   and 22.23.5, exit 1 on 24.22.3). The repository supports Node 20 and later, so this is a false
+   negative of the gate itself, which the fixture caught. Every tracked `.js` file is under a typed
+   `package.json` today, so no real error was hidden. Fix: the gate checks untyped `.js` files
+   through stdin as CommonJS and then as an ES module (822375b), which Node 20, 22 and 24 all get
+   right; with the old gate and Node 22 first on PATH, the test fails exactly as in CI. The Deno leg
+   now pins Node 24 as well, as the JS template does (ce6ea41). A signal was ruled out first
+   (`experiments/issue-10/deno-spawnsync-signal.mjs`), and git failures in the fixture now fail the
+   test (727f3bf). The template has the same checker and also declares Node 20 and later, so this is
+   reported upstream (link-foundation/js-ai-driven-development-pipeline-template#321).
 7. **CodeQL upload during a GitHub outage.** In Security run 45649687987, both `Analyze` steps stopped
    at "Uploading results" with no error printed, while GitHub returned HTTP 500 to a push at the same
    minute. The code scanning API has no analysis for f1e873e. The result gate itself passed and
@@ -171,6 +181,9 @@ in the JS template.
   their file and line (`upstream/js-template-codeql-gate-dismissed-alerts.md`).
 - https://github.com/link-foundation/js-ai-driven-development-pipeline-template/issues/320: the
   versioning dry run fails lint when no changeset is pending (`upstream/js-template-dry-run-without-changesets.md`).
+- https://github.com/link-foundation/js-ai-driven-development-pipeline-template/issues/321: the
+  syntax gate passes untyped `.js` files with ESM syntax errors on Node 20 and 22
+  (`upstream/js-template-syntax-gate-untyped-esm.md`).
 
 The template already contains the fixes for the other root causes above: `shell: bash` in container
 jobs, correct preview upload paths, `HEAD_REF`, the budget wrapper, and lockfile helpers. This
