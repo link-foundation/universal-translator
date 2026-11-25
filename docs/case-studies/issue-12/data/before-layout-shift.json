@@ -1,0 +1,12 @@
+{
+  "note": "Boxes [x, y, width, height] in CSS pixels of the web demo before issue 12, 1280x900 viewport, ?seed=7, light scheme; measured with Playwright after each action.",
+  "start": {"#source-language": [111, 300, 322, 44], "#target-language": [503, 300, 188, 44], "#source-text": [111, 536, 349, 260], "#target-text": [476, 536, 349, 260], "#example-note": null},
+  "Program": {"#source-language": [111, 300, 322, 44], "#target-language": [503, 300, 188, 44], "#source-text": [111, 593, 349, 318], "#target-text": [476, 536, 349, 375], "#example-note": [548, 223, 261, 24]},
+  "Function": {"#source-language": [111, 332, 188, 44], "#target-language": [503, 332, 322, 44], "#source-text": [111, 669, 349, 362], "#target-text": [476, 568, 349, 464], "#example-note": [111, 261, 292, 24]},
+  "Statement": {"#source-language": [111, 300, 188, 44], "#target-language": [503, 300, 188, 44], "#source-text": [111, 560, 349, 285], "#target-text": [476, 536, 349, 309]},
+  "findings": [
+    "The language pickers move down 32px when the example note wraps onto its own line (Function).",
+    "A picker changes width (188 <-> 322) when its version select appears or disappears.",
+    "The source and the translation panes start at different heights (593 vs 536) and have different heights (318 vs 375): the panes grow with their own content."
+  ]
+}
