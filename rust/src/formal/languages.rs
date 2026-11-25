@@ -5,6 +5,7 @@
 //! means describing it here.
 
 use super::rocq_runtime::ROCQ_RUNTIME;
+use super::versions::{split_version, with_version};
 use crate::meta::GrammarError;
 
 /// How a language spells the neutral words of a declared name.
@@ -193,8 +194,19 @@ pub struct Syntax {
     pub compound_assignment: bool,
     /// Whether a function unpacks its arguments from `@_`, as Perl does.
     pub unpacked_parameters: bool,
-    /// Whether calls may leave out their parentheses: `puts "Hello"`.
-    pub command_calls: bool,
+    /// Which calls may leave out their parentheses: `puts "Hello"`.
+    pub command_calls: CommandCalls,
+    /// Calls that convert a value to text, such as Python's `str`. Printing
+    /// and joining text already convert, so reading drops them there.
+    pub text_conversions: &'static [&'static str],
+    /// Whether text with computed parts is joined with `+` and the
+    /// conversion call instead of interpolated (Python 2).
+    pub text_join_concatenation: bool,
+    /// Whether print is a statement: `print x` (Python 2).
+    pub print_statement: bool,
+    /// The version of the language the description is for, such as "2" for
+    /// `python@2` (none for the default version).
+    pub version: Option<&'static str>,
     /// The symbol between a function head and its body, such as Scala's `=`.
     pub body_after: Option<&'static str>,
     pub operators: Operators,
@@ -246,6 +258,17 @@ pub struct Syntax {
     /// How a language without a filled array constructor writes one (see
     /// `expand_array_fills` in arrays.rs).
     pub array_fill: Option<ArrayFill>,
+}
+
+/// Which calls may be written without parentheses.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CommandCalls {
+    No,
+    /// Any call: Ruby's `puts "Hello"`.
+    Any,
+    /// Only the named calls, which may also have no values: Python 2's
+    /// `print x` and a bare `print`.
+    Only(&'static [&'static str]),
 }
 
 /// How an array of `n` equal values is written where no constructor fills
@@ -369,7 +392,11 @@ const JAVASCRIPT: Syntax = Syntax {
     assignment: None,
     compound_assignment: true,
     unpacked_parameters: false,
-    command_calls: false,
+    command_calls: CommandCalls::No,
+    text_conversions: &[],
+    text_join_concatenation: false,
+    print_statement: false,
+    version: None,
     body_after: None,
     operators: SCRIPT_OPERATORS,
     // Every other language starts from this description, so the JavaScript
@@ -428,11 +455,13 @@ const C: Syntax = Syntax {
 pub static LANGUAGES: [Syntax; 32] = [
     Syntax {
         integer_division: SCRIPT_DIVISION,
+        text_conversions: &["String"],
         ..JAVASCRIPT
     },
     Syntax {
         id: "typescript",
         integer_division: SCRIPT_DIVISION,
+        text_conversions: &["String"],
         label: "TypeScript",
         typed: Typed::Annotation,
         types: Some(Types {
@@ -462,6 +491,9 @@ pub static LANGUAGES: [Syntax; 32] = [
         operators: WORD_OPERATORS,
         words: Some(("True", "False")),
         print_line: "print",
+        // Python 2 prints with a statement: `print x`, a bare `print`.
+        command_calls: CommandCalls::Only(&["print"]),
+        text_conversions: &["str"],
         ..JAVASCRIPT
     },
     Syntax {
@@ -475,7 +507,7 @@ pub static LANGUAGES: [Syntax; 32] = [
         interpolation: &[embeds('"', InterpolationStyle::HashBraces)],
         declarations: &[],
         function_keyword: Some("def"),
-        command_calls: true,
+        command_calls: CommandCalls::Any,
         operators: BRACE_OPERATORS,
         else_if: Some("elsif"),
         print_line: "puts",
@@ -671,7 +703,7 @@ pub static LANGUAGES: [Syntax; 32] = [
         variable_sigil: Some('$'),
         function_keyword: Some("sub"),
         unpacked_parameters: true,
-        command_calls: true,
+        command_calls: CommandCalls::Any,
         operators: Operators {
             concatenate: Some("."),
             ..BRACE_OPERATORS
@@ -886,7 +918,7 @@ pub static LANGUAGES: [Syntax; 32] = [
             remainder: Some("mod"),
         },
         else_if: Some("elif"),
-        command_calls: true,
+        command_calls: CommandCalls::Any,
         print_line: "echo",
         print_calls: Some(PrintCalls {
             line: &["echo"],
@@ -1331,17 +1363,22 @@ pub fn machine_target_ids() -> Vec<&'static str> {
 }
 
 /// The description of a language by its identifier.
+///
+/// A language id may name a version after "@": `python@2` is Python with
+/// the changes of Python 2 (see [`super::versions`]).
 pub fn language_syntax(identifier: &str) -> Result<Syntax, GrammarError> {
-    LANGUAGES
+    let (id, version) = split_version(identifier);
+    let syntax = LANGUAGES
         .iter()
         .chain(MACHINE_TARGETS.iter())
-        .find(|syntax| syntax.id == identifier)
+        .find(|syntax| syntax.id == id)
         .cloned()
         .ok_or_else(|| {
             GrammarError::new(format!(
                 "The grammar translator does not describe \"{identifier}\""
             ))
-        })
+        })?;
+    with_version(syntax, version)
 }
 
 /// The identifiers of every described language, in listing order.

@@ -280,6 +280,7 @@ fn translates_between_words_and_programming_languages() {
             universal_translator::Options {
                 mode: Mode::default(),
                 common_library: true,
+                ..Default::default()
             },
         )
         .unwrap_err();

@@ -24,7 +24,7 @@ requirements:
     text: 'Versions of each language: major versions and grammar variations of programming languages, the biggest vocabulary by default with variations and downgrades for natural languages'
     from: 'issue 6'
     status: done
-    evidence: js/src/formal/versions.js js/src/natural/variants.js js/tests/versions.test.js data/natural/english-british.lino
+    evidence: js/src/formal/versions.js js/src/natural/variants.js js/tests/versions.test.js data/natural/english-british.lino rust/src/formal/versions.rs rust/src/natural/variants.rs rust/tests/issue_6.rs
   one-entry-per-language:
     text: 'Only one entry per language in the pickers; British or American English follows the browser languages'
     from: 'issue 6'
@@ -45,7 +45,7 @@ requirements:
     text: 'Choose the language of comments apart from the language of the code, also for the same code language'
     from: 'issue 6'
     status: done
-    evidence: js/src/translation/comment-language.js js/tests/comments.test.js examples/universal-app/e2e/translate.e2e.mjs
+    evidence: js/src/translation/comment-language.js js/tests/comments.test.js examples/universal-app/e2e/translate.e2e.mjs rust/src/comment_language.rs rust/src/natural/comments.rs rust/tests/issue_6.rs
   symmetric-features:
     text: 'Every feature works the same across all languages, in both directions, including edge cases'
     from: 'issue 6'
@@ -82,7 +82,7 @@ requirements:
     text: 'Resolve the conflicts with main: comment languages and versions work with partial translation, the source language auto and rules as data in the library, the command line, the server and the web demo, whose new parts are localized and themed'
     from: 'PR 7 review'
     status: done
-    evidence: js/tests/issue-6-with-8.test.js js/tests/universal-app.test.js examples/universal-app/src/RulesEditor.js examples/universal-app/src/locales/app.lino examples/universal-app/e2e/translate.e2e.mjs docs/screenshots/issue-6/rules-editor.png docs/screenshots/issue-6/russian-dark-rules.png
+    evidence: js/tests/issue-6-with-8.test.js rust/tests/issue_6.rs js/tests/universal-app.test.js examples/universal-app/src/RulesEditor.js examples/universal-app/src/locales/app.lino examples/universal-app/e2e/translate.e2e.mjs docs/screenshots/issue-6/rules-editor.png docs/screenshots/issue-6/russian-dark-rules.png
   issue-6-case-study:
     text: 'Collect the issue data in docs/case-studies/issue-6 with a deep case study, every requirement and the proposed solutions'
     from: 'issue 6'

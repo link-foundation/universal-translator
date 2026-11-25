@@ -60,6 +60,9 @@ pub struct Token {
     pub trailing: Option<String>,
     /// Comments written as block comments.
     pub block: bool,
+    /// Comments: where the comment text starts and stops in the source, in
+    /// characters (the comment markers are outside).
+    pub span: Option<(usize, usize)>,
 }
 
 impl Token {
@@ -298,6 +301,7 @@ impl<'a> Lexer<'a> {
             blank: 0,
             trailing: None,
             block: false,
+            span: None,
         });
     }
 
@@ -420,14 +424,15 @@ impl<'a> Lexer<'a> {
             return false;
         }
         let stop = self.until_line_end();
-        let text = self.slice(self.index + marker.chars().count(), stop);
-        self.push_comment(&comment_text(&text), false);
+        let start = self.index + marker.chars().count();
+        let text = self.slice(start, stop);
+        self.push_comment(&comment_text(&text), false, (start, stop));
         self.index = stop;
         true
     }
 
     /// A comment after code on the same line stays a trailing comment.
-    fn push_comment(&mut self, text: &str, block: bool) {
+    fn push_comment(&mut self, text: &str, block: bool, span: (usize, usize)) {
         let trailing = self.tokens.last().is_some_and(|last| {
             last.line == self.line
                 && !matches!(
@@ -444,6 +449,7 @@ impl<'a> Lexer<'a> {
         self.push(TokenType::Comment, text);
         let token = self.tokens.last_mut().expect("pushed");
         token.block = block;
+        token.span = Some(span);
         if trailing {
             token.trailing = Some(if gap.is_empty() { " ".into() } else { gap });
         }
@@ -470,7 +476,7 @@ impl<'a> Lexer<'a> {
             .find(|position| self.starts_with(close, *position))
             .ok_or_else(|| GrammarError::syntax("Unterminated comment", self.line))?;
         let text = self.slice(from, end);
-        self.push_comment(&block_comment_text(&text, self.column()), true);
+        self.push_comment(&block_comment_text(&text, self.column()), true, (from, end));
         self.line += text.matches('\n').count();
         self.index = end + close.chars().count();
         Ok(true)

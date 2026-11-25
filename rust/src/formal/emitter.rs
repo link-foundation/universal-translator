@@ -128,7 +128,8 @@ pub(crate) struct Emitter {
 
 /// The import lines a used feature needs, before and after the common
 /// library imports.
-const IMPORTS_BEFORE_LIBRARY: [(&str, &str); 3] = [
+const IMPORTS_BEFORE_LIBRARY: [(&str, &str); 4] = [
+    ("sys", "import sys"),
     ("strformat", "import std/strformat"),
     ("std.conv", "import std.conv;"),
     ("dart:io", "import 'dart:io';"),
@@ -509,7 +510,34 @@ impl Emitter {
         dialect.interpolation(self, parts)
     }
 
+    /// Text joined with `+`, computed parts converted with the language's
+    /// conversion (Python 2: `str(value)`).
+    pub(crate) fn concatenation(&mut self, parts: &[Node]) -> Result<String> {
+        let convert = self
+            .syntax
+            .text_conversions
+            .first()
+            .copied()
+            .unwrap_or("str");
+        let pieces = parts
+            .iter()
+            .map(|part| {
+                if part.is("Text") {
+                    Ok(self.quote(part.str("value").unwrap_or_default()))
+                } else if part.str("type") == Some("text") {
+                    self.expression_in(part, 6.0)
+                } else {
+                    Ok(format!("{convert}({})", self.expression(part)?))
+                }
+            })
+            .collect::<Result<Vec<_>>>()?;
+        Ok(pieces.join(" + "))
+    }
+
     pub(crate) fn base_interpolation(&mut self, parts: &[Node]) -> Result<String> {
+        if self.syntax.text_join_concatenation {
+            return self.concatenation(parts);
+        }
         if let Some((prefix, open, close, format)) = embedding(self.id()) {
             if self.id() == "nim" {
                 self.uses.insert("strformat");
@@ -665,12 +693,28 @@ impl Emitter {
                     format!("process.stdout.write(String({single}));")
                 }
             }
-            "python" => {
+            "python" if !self.syntax.print_statement => {
                 let single = self.expression(value)?;
                 if newline {
                     format!("print({single})")
                 } else {
                     format!("print({single}, end=\"\")")
+                }
+            }
+            // Python 2: print is a statement.
+            "python" => {
+                if newline && value.is("Text") && value.str("value") == Some("") {
+                    "print".to_owned()
+                } else if newline {
+                    format!("print {}", self.expression(value)?)
+                } else {
+                    self.uses.insert("sys");
+                    let single = self.expression(value)?;
+                    if value.str("type") == Some("text") {
+                        format!("sys.stdout.write({single})")
+                    } else {
+                        format!("sys.stdout.write(str({single}))")
+                    }
                 }
             }
             "ruby" => format!("{} {}", pick("puts", "print"), self.expression(value)?),

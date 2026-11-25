@@ -11,7 +11,7 @@ use regex::Regex;
 use super::dialects::shared::comment_node;
 use super::dialects::{ParserDialect, parser_dialect, rocq_comparison};
 use super::interpolation::{Piece, split_interpolation};
-use super::languages::{Blocks, ForwardDeclarations, Syntax, Typed};
+use super::languages::{Blocks, CommandCalls, ForwardDeclarations, Syntax, Typed};
 use super::lexer::{InterpolationStyle, Token, TokenType, decode_escapes, tokenize};
 use crate::meta::GrammarError;
 use crate::meta::{Node, binary, block, name, number, text};
@@ -981,9 +981,14 @@ impl Parser {
     pub(crate) fn command_call(&mut self, callee: Option<&str>) -> Parsed {
         let written = self.next_value()?;
         let callee = callee.map_or(written, str::to_owned);
-        let mut values = vec![self.expression()?];
-        while self.accept(",") {
+        // A bare `print` (Python 2) has no values.
+        let ends = matches!(self.kind(0), TokenType::Newline | TokenType::End);
+        let mut values = Vec::new();
+        if !ends {
             values.push(self.expression()?);
+            while self.accept(",") {
+                values.push(self.expression()?);
+            }
         }
         self.end_statement()?;
         Ok(Node::new("Evaluate").with(
@@ -996,8 +1001,21 @@ impl Parser {
 
     /// Ruby allows calls without parentheses, such as `puts "Hello"`.
     pub(crate) fn is_command_call(&self) -> bool {
-        if !self.syntax.command_calls || self.kind(0) != TokenType::Name {
+        if self.kind(0) != TokenType::Name {
             return false;
+        }
+        match self.syntax.command_calls {
+            CommandCalls::No => return false,
+            CommandCalls::Only(names) if !names.contains(&self.current().value.as_str()) => {
+                return false;
+            }
+            // A bare `print` prints an empty line.
+            CommandCalls::Only(_)
+                if matches!(self.kind(1), TokenType::Newline | TokenType::End) =>
+            {
+                return true;
+            }
+            _ => {}
         }
         let following = self.peek(1);
         matches!(

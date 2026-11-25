@@ -22,3 +22,5 @@ Language versions, standards of one's own, a comment language and concrete synta
   - translates the right text into a newly chosen left language instead of failing;
   - generates random Program, Function and Statement examples;
   - has a Standards tab and a settings panel built on link-foundation/ui with themes, skins and seven interface languages.
+- Comment languages and language versions work with partial translation, the source language `auto`, `--all-or-nothing` and rules as data. A comment language that does not exist is refused before reading, and reading a version such as `python@2` uses the rules of its language.
+- The Rust crate has the same language versions, natural language versions, comment languages and `--comment-language`/`--comment-from` flags.
