@@ -215,3 +215,119 @@ for (const field of ['message', 'ruleId', 'level', 'diagnostic']) {
     assert.match(result.stderr, /spoof/);
   });
 }
+
+describe('CodeQL accepted findings', () => {
+  const alert =
+    'https://github.com/link-foundation/universal-translator/security/code-scanning/5';
+  const entry = {
+    ruleId: 'js/regex-injection',
+    path: 'js/src/translation/custom-rules.js',
+    primaryLocationLineHash: 'abc:1',
+    alert,
+    reason: 'reviewed and dismissed',
+  };
+  const finding = (
+    path = entry.path,
+    hash = entry.primaryLocationLineHash
+  ) => ({
+    ruleId: entry.ruleId,
+    message: { text: 'regular expression from a command-line argument' },
+    locations: [{ physicalLocation: { artifactLocation: { uri: path } } }],
+    partialFingerprints: { primaryLocationLineHash: hash },
+  });
+  const withRule = (results) => {
+    const data = report(results);
+    data.runs[0].tool.extensions = [
+      { name: 'codeql/javascript-queries', rules: [{ id: entry.ruleId }] },
+    ];
+    return data;
+  };
+  async function run(reports, accepted) {
+    const { checkCodeqlResults } =
+      await import('../../scripts/check-codeql-results.mjs');
+    const root = mkdtempSync(join(tmpdir(), 'sarif-accepted-'));
+    const errors = [];
+    const notices = [];
+    try {
+      for (const [index, data] of reports.entries()) {
+        writeFileSync(join(root, `${index}.sarif`), JSON.stringify(data));
+      }
+      const acceptedFile = join(root, 'accepted.json');
+      writeFileSync(acceptedFile, JSON.stringify(accepted));
+      try {
+        checkCodeqlResults(
+          root,
+          (line) => errors.push(line),
+          acceptedFile,
+          (line) => notices.push(line)
+        );
+        return { ok: true, errors, notices };
+      } catch (error) {
+        return { ok: false, errors, notices, message: error.message };
+      }
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  }
+
+  it('passes a reviewed finding and names its dismissed alert', async () => {
+    const result = await run([withRule([finding()])], [entry]);
+    assert.equal(result.ok, true, result.errors.join('\n'));
+    assert.equal(result.notices.length, 1);
+    assert.match(
+      result.notices[0],
+      /^::notice title=Accepted CodeQL finding::/
+    );
+    assert.ok(result.notices[0].includes(alert));
+  });
+
+  it('still fails other findings of the same rule', async () => {
+    for (const other of [
+      finding('js/src/other.js'),
+      finding(entry.path, 'changed-line:1'),
+    ]) {
+      const result = await run([withRule([finding(), other])], [entry]);
+      assert.equal(result.ok, false);
+      assert.equal(result.errors.length, 1, result.errors.join('\n'));
+    }
+  });
+
+  it('fails a stale entry once the rule stops reporting it', async () => {
+    const result = await run([withRule([])], [entry]);
+    assert.equal(result.ok, false);
+    assert.match(result.errors[0], /stale accepted finding/);
+  });
+
+  it('ignores the entry in reports that did not run the rule', async () => {
+    const result = await run([report()], [entry]);
+    assert.equal(result.ok, true, result.errors.join('\n'));
+  });
+
+  for (const accepted of [
+    {},
+    [{ ...entry, reason: ' ' }],
+    [{ ...entry, alert: 'https://example.com/alert' }],
+    [{ ...entry, primaryLocationLineHash: undefined }],
+    [entry, entry],
+  ]) {
+    it(`rejects an unreviewable accepted list ${JSON.stringify(accepted)}`, async () => {
+      const result = await run([withRule([finding()])], accepted);
+      assert.equal(result.ok, false);
+      assert.match(result.message, /accepted\.json|accepted findings/);
+    });
+  }
+
+  it('keeps every committed entry tied to a dismissed alert', () => {
+    const committed = JSON.parse(
+      readFileSync('.github/codeql/accepted-findings.json', 'utf8')
+    );
+    assert.ok(Array.isArray(committed));
+    for (const item of committed) {
+      assert.match(
+        item.alert,
+        /^https:\/\/github\.com\/link-foundation\/universal-translator\/security\/code-scanning\/\d+$/
+      );
+      assert.ok(item.reason.length > 20);
+    }
+  });
+});

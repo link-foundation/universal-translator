@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -76,7 +76,72 @@ function invocationDiagnostics(invocation, file, runIndex) {
   return failures;
 }
 
-function checkRun(run, index, file) {
+export const DEFAULT_ACCEPTED_FILE = '.github/codeql/accepted-findings.json';
+const ACCEPTED_KEYS = ['ruleId', 'path', 'primaryLocationLineHash'];
+
+// A finding the maintainers reviewed and dismissed on GitHub stays in every
+// SARIF report, because dismissal is stored by code scanning, not in the
+// code. Each accepted entry names one finding exactly (rule, file and the
+// line-content hash), the dismissed alert and the reason, so editing that
+// line or adding a second finding fails the gate again.
+export function loadAcceptedFindings(file) {
+  if (!file || !existsSync(file)) {
+    return [];
+  }
+  const entries = JSON.parse(readFileSync(file, 'utf8'));
+  if (!Array.isArray(entries)) {
+    throw new Error(`${file}: expected a JSON array of accepted findings`);
+  }
+  const seen = new Set();
+  return entries.map((entry, index) => {
+    const fields = [...ACCEPTED_KEYS, 'alert', 'reason'];
+    if (
+      !entry ||
+      typeof entry !== 'object' ||
+      fields.some(
+        (key) => typeof entry[key] !== 'string' || !entry[key].trim()
+      ) ||
+      !/^https:\/\/github\.com\/[^/]+\/[^/]+\/security\/code-scanning\/\d+$/.test(
+        entry.alert
+      )
+    ) {
+      throw new Error(
+        `${file} entry ${index}: needs non-empty ${fields.join(', ')} and a code-scanning alert URL`
+      );
+    }
+    const key = findingKey(entry);
+    if (seen.has(key)) {
+      throw new Error(`${file} entry ${index}: duplicate accepted finding`);
+    }
+    seen.add(key);
+    return { ...entry, key };
+  });
+}
+
+function findingKey({ ruleId, path, primaryLocationLineHash }) {
+  return JSON.stringify([ruleId, path, primaryLocationLineHash]);
+}
+
+function resultKey(finding) {
+  return findingKey({
+    ruleId: finding?.ruleId,
+    path: finding?.locations?.[0]?.physicalLocation?.artifactLocation?.uri,
+    primaryLocationLineHash:
+      finding?.partialFingerprints?.primaryLocationLineHash,
+  });
+}
+
+function runRules(run) {
+  return new Set(
+    [run.tool.driver, ...(run.tool.extensions ?? [])].flatMap((component) =>
+      Array.isArray(component?.rules)
+        ? component.rules.map((rule) => rule?.id)
+        : []
+    )
+  );
+}
+
+function checkRun(run, index, file, accepted = [], state = undefined) {
   if (
     typeof run?.tool?.driver?.name !== 'string' ||
     !run.tool.driver.name.trim() ||
@@ -95,14 +160,33 @@ function checkRun(run, index, file) {
     ...(run.invocations ?? []).flatMap((invocation) =>
       invocationDiagnostics(invocation, file, index)
     ),
-    ...run.results.map(
-      (finding) =>
-        `${file} run ${index}: ${finding?.ruleId ?? 'unknown rule'} [${finding?.level ?? 'unspecified severity'}] ${finding?.message?.text ?? 'CodeQL finding'}`
-    ),
+    ...checkFindings(run, index, file, accepted, state),
   ];
 }
 
-function checkReport(file) {
+function checkFindings(run, index, file, accepted, state) {
+  const rules = runRules(run);
+  for (const entry of accepted) {
+    if (rules.has(entry.ruleId)) {
+      state?.checked.add(entry.key);
+    }
+  }
+  return run.results.flatMap((finding) => {
+    const entry = accepted.find(({ key }) => key === resultKey(finding));
+    if (entry) {
+      state?.matched.add(entry.key);
+      state?.notes.push(
+        `${file} run ${index}: accepted ${entry.ruleId} in ${entry.path} (${entry.alert}): ${entry.reason}`
+      );
+      return [];
+    }
+    return [
+      `${file} run ${index}: ${finding?.ruleId ?? 'unknown rule'} [${finding?.level ?? 'unspecified severity'}] ${finding?.message?.text ?? 'CodeQL finding'}`,
+    ];
+  });
+}
+
+function checkReport(file, accepted, state) {
   const report = JSON.parse(readFileSync(file, 'utf8'));
   if (
     report?.version !== '2.1.0' ||
@@ -113,25 +197,44 @@ function checkReport(file) {
   }
   return report.runs.flatMap((run, index) => {
     try {
-      return checkRun(run, index, file);
+      return checkRun(run, index, file, accepted, state);
     } catch (error) {
       return [`${file}: ${error.message}`];
     }
   });
 }
 
-export function checkCodeqlResults(directory, log = console.error) {
+export function checkCodeqlResults(
+  directory,
+  log = console.error,
+  acceptedFile = DEFAULT_ACCEPTED_FILE,
+  notice = console.log
+) {
   const files = reportsIn(directory);
   if (!files.length) {
     throw new Error(`Missing CodeQL SARIF reports: ${directory}`);
   }
+  const accepted = loadAcceptedFindings(acceptedFile);
+  const state = { checked: new Set(), matched: new Set(), notes: [] };
   const failures = [];
   for (const file of files) {
     try {
-      failures.push(...checkReport(file));
+      failures.push(...checkReport(file, accepted, state));
     } catch (error) {
       failures.push(`${file}: ${error.message}`);
     }
+  }
+  // An entry whose rule ran but found nothing is stale: the code changed, so
+  // the old review no longer applies to whatever CodeQL reports there next.
+  for (const entry of accepted) {
+    if (state.checked.has(entry.key) && !state.matched.has(entry.key)) {
+      failures.push(
+        `${acceptedFile}: stale accepted finding ${entry.ruleId} in ${entry.path} (${entry.alert}); remove the entry`
+      );
+    }
+  }
+  for (const note of state.notes) {
+    notice(`::notice title=Accepted CodeQL finding::${quote(note)}`);
   }
   for (const failure of failures) {
     log(quote(failure));
@@ -150,7 +253,11 @@ if (
 ) {
   try {
     console.log(
-      `CodeQL result gate: ${checkCodeqlResults(process.argv[2] || 'codeql-results')} clean report(s)`
+      `CodeQL result gate: ${checkCodeqlResults(
+        process.argv[2] || 'codeql-results',
+        console.error,
+        process.argv[3] || DEFAULT_ACCEPTED_FILE
+      )} clean report(s)`
     );
   } catch (error) {
     console.error(quote(error.message));

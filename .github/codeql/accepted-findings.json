@@ -1,0 +1,9 @@
+[
+  {
+    "ruleId": "js/regex-injection",
+    "path": "js/src/translation/custom-rules.js",
+    "primaryLocationLineHash": "67f145791c9dd969:1",
+    "alert": "https://github.com/link-foundation/universal-translator/security/code-scanning/5",
+    "reason": "Dismissed as won't fix: regex rules are user-authored patterns from the user's own CLI/config; the server refuses them unless allowRegexRules is set, and plain rules never build a RegExp."
+  }
+]

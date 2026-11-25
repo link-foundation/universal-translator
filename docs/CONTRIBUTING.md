@@ -255,6 +255,15 @@ warning. The SARIF reports are kept as the `codeql-results-*` artifacts. The
 shipped examples are scanned; translated test fixtures, case-study archives and
 development logs are excluded in `.github/codeql/codeql-config.yml`.
 
+Dismissing an alert in the Security tab does not remove it from the SARIF
+report, so a finding the maintainers reviewed and dismissed is listed in
+`.github/codeql/accepted-findings.json` with its rule, file, the
+`primaryLocationLineHash` from the report, the dismissed alert URL and the
+reason. Only that exact finding passes: another finding of the same rule, or
+an edit to the accepted line, fails the gate, and an entry that no longer
+matches anything fails as stale until it is removed. Accepted findings are
+printed as notices in the run.
+
 ## Questions?
 
 If you have questions about contributing, feel free to open an issue for discussion.
