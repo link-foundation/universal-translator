@@ -490,8 +490,10 @@ const emitter = (Base) =>
 
     program(program) {
       this.writes = false;
+      this.allocates = false;
       walk(program, (current) => {
         this.writes ||= current.kind === 'Print';
+        this.allocates ||= current.kind === 'NewArray';
       });
       return super.program(program);
     }
@@ -514,13 +516,13 @@ const emitter = (Base) =>
     }
 
     prelude(program) {
-      const lines = this.writes
-        ? [
-            'const std = @import("std");',
-            '',
-            'var out: *std.Io.Writer = undefined;',
-          ]
-        : [];
+      // Printing and the allocator of filled arrays need the standard
+      // library.
+      const lines =
+        this.writes || this.allocates ? ['const std = @import("std");'] : [];
+      if (this.writes) {
+        lines.push('', 'var out: *std.Io.Writer = undefined;');
+      }
       lines.push(...(program.libraryImports ?? []));
       return lines.length ? [...lines, ''] : lines;
     }

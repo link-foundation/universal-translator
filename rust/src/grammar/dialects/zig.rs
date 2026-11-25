@@ -468,11 +468,12 @@ fn array_declaration(e: &mut Emitter, statement: &Node) -> Result<String> {
     ))
 }
 
-/// Whether the program prints, and the names declared in each open block, so
-/// that a variable two loops share is declared once.
+/// Whether the program prints and allocates arrays, and the names declared
+/// in each open block, so that a variable two loops share is declared once.
 #[derive(Default)]
 struct Writing {
     writes: bool,
+    allocates: bool,
     scopes: Vec<HashSet<String>>,
 }
 
@@ -642,9 +643,13 @@ impl EmitterDialect for Zig {
     }
 
     fn program(&self, e: &mut Emitter, program: &Node) -> Result<String> {
-        let mut writes = false;
-        walk(program, |current| writes |= current.is("Print"));
+        let (mut writes, mut allocates) = (false, false);
+        walk(program, |current| {
+            writes |= current.is("Print");
+            allocates |= current.is("NewArray");
+        });
         e.state::<Writing>().writes = writes;
+        e.state::<Writing>().allocates = allocates;
         e.base_program(program)
     }
 
@@ -670,15 +675,19 @@ impl EmitterDialect for Zig {
     }
 
     fn prelude(&self, e: &mut Emitter, program: &Node) -> Vec<String> {
-        let mut lines: Vec<String> = if e.state::<Writing>().writes {
-            vec![
-                "const std = @import(\"std\");".to_owned(),
-                String::new(),
-                "var out: *std.Io.Writer = undefined;".to_owned(),
-            ]
-        } else {
-            Vec::new()
-        };
+        // Printing and the allocator of filled arrays need the standard
+        // library.
+        let Writing {
+            writes, allocates, ..
+        } = *e.state::<Writing>();
+        let mut lines = Vec::new();
+        if writes || allocates {
+            lines.push("const std = @import(\"std\");".to_owned());
+        }
+        if writes {
+            lines.push(String::new());
+            lines.push("var out: *std.Io.Writer = undefined;".to_owned());
+        }
         lines.extend(program.texts("libraryImports"));
         if !lines.is_empty() {
             lines.push(String::new());

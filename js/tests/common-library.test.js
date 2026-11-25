@@ -32,6 +32,15 @@ describe('common library route', () => {
     expect(csharp).toContain('CommonLibrary.PrintLine("Hello World!");');
   });
 
+  it('keeps the Zig standard library for arrays without prints', () => {
+    const zig = translate(read('sieve-of-eratosthenes'), 'javascript', 'zig', {
+      commonLibrary: true,
+    });
+    expect(zig).toContain('const std = @import("std");');
+    expect(zig).toContain('std.heap.page_allocator');
+    expect(zig).not.toContain('var out: *std.Io.Writer');
+  });
+
   it('reads library calls back as the same program in every language', () => {
     for (const name of programs) {
       for (const language of Object.keys(commonLibraryAccess)) {
