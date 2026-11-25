@@ -316,6 +316,22 @@ export declare function createTranslationServer(
   options?: TranslationServerOptions
 ): import('node:http').Server;
 
+/** Translation rules as indented Links Notation (JSON text is read too):
+ * "source:", "templates:", "names:" and "output:", one rule per line. */
+export declare function readRules(
+  text: string
+): import('./translator.js').TranslationRules;
+/** Translation rules written as indented Links Notation ('' for none). */
+export declare function formatRules(
+  rules: import('./translator.js').TranslationRules
+): string;
+export declare const ruleStages: readonly [
+  'source',
+  'templates',
+  'names',
+  'output',
+];
+
 /** A meta program (or fragment) as indented Links Notation: one line per
  * node, its kind and plain fields first, child nodes indented below. */
 export declare function formatMeta(program: unknown): string;

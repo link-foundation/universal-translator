@@ -14,6 +14,7 @@ import {
   createTranslator,
   formatMeta,
   multiply,
+  readRules,
   readSourceDocument,
   writeSourceDocument,
 } from '../js/src/index.js';
@@ -57,7 +58,8 @@ function usage() {
     '            Parts that cannot be translated become comments and are listed',
     '            on standard error; --all-or-nothing fails instead',
     '            The source language may be "auto" to detect it',
-    '            --rules <file.json> adds source, templates, names and output rules',
+    '            --rules <file.lino> adds source, templates, names and output rules',
+    '            (indented Links Notation; JSON files are read too)',
     '  translate-program <from|cst> <to> [file|-]  Translate a checked JavaScript or Rust program',
     '  meta <language> [file|-] [--json]  Print the typed meta program as indented Links Notation',
     '            --json prints it as JSON instead',
@@ -137,7 +139,7 @@ function translationArguments(args) {
       if (!value || options.rules !== undefined) {
         throw new Error('Expected a single rules file for --rules');
       }
-      options.rules = JSON.parse(readFileSync(value, 'utf8'));
+      options.rules = readRules(readFileSync(value, 'utf8'));
     } else if (valueOptions[argument]) {
       const key = valueOptions[argument];
       const value = args[++index];

@@ -4,6 +4,7 @@ import { createServer } from 'node:http';
 import { URL } from 'node:url';
 
 import { createGrammarTranslator } from './translator.js';
+import { readRules } from './translation/rules-notation.js';
 
 const MODES = ['context-dependent', 'literal', 'same-effect'];
 const LIMIT = 1024 * 1024;
@@ -46,19 +47,22 @@ const hasRegexRule = (rules) =>
 const isObject = (value) =>
   Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 
-// Rules are an object; regular expressions in them only when allowed.
-function checkRules(rules, allowRegexRules) {
-  if (rules === undefined) {
-    return;
+// Rules are Links Notation text or an object; regular expressions in them
+// only when allowed.
+function checkRules(given, allowRegexRules) {
+  if (given === undefined) {
+    return undefined;
   }
+  const rules = typeof given === 'string' ? readRules(given) : given;
   if (!isObject(rules)) {
-    throw new Error('"rules" must be an object');
+    throw new Error('"rules" must be Links Notation text or an object');
   }
   if (!allowRegexRules && hasRegexRule(rules)) {
     throw new Error(
       'This server accepts only plain text rules (start it with allowRegexRules to accept regular expressions)'
     );
   }
+  return rules;
 }
 
 function checkRequest(body, { allowRegexRules = false } = {}) {
@@ -78,14 +82,14 @@ function checkRequest(body, { allowRegexRules = false } = {}) {
       throw new Error(`"${key}" must be a string`);
     }
   }
-  checkRules(body.rules, allowRegexRules);
+  const rules = checkRules(body.rules, allowRegexRules);
   return {
     source: body.source,
     from: body.from,
     to: body.to,
     fragment: body.fragment === true,
     allOrNothing: body.allOrNothing === true,
-    rules: body.rules,
+    rules,
     options: {
       mode: body.mode,
       commonLibrary: body.commonLibrary === true,
@@ -145,8 +149,9 @@ function runTranslation(
  * GET /languages lists the programming and natural languages;
  * POST /translate takes {source, from (or "auto"), to, fragment?, mode?,
  * commonLibrary?, commentLanguage?, commentFrom?, allOrNothing?, rules?} and
- * answers {output, complete, errors, coverage?, detected?} or {error}. Rules
- * with regular expressions are refused unless `allowRegexRules` is true.
+ * answers {output, complete, errors, coverage?, detected?} or {error}. The
+ * rules are Links Notation text (or an object). Rules with regular
+ * expressions are refused unless `allowRegexRules` is true.
  */
 export function createTranslationServer({
   translator = createGrammarTranslator(),

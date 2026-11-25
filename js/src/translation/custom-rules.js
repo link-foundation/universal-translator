@@ -1,6 +1,7 @@
 // Rules a user adds to the translation without writing code: plain data
-// (JSON) that the command line, the server and the web demo's rule editor
-// all accept. Each list belongs to one stage of the pipeline:
+// that the command line, the server and the web demo's rule editor all
+// accept, written as indented Links Notation (see rules-notation.js) or
+// given as an object. Each list belongs to one stage of the pipeline:
 //
 //   source     text -> text before the source is read
 //   templates  more wordings a natural language reads, per template key
@@ -17,6 +18,7 @@
 
 import { withTemplates } from '../natural/catalog.js';
 import { rewrite } from '../meta/tree.js';
+import { readRules } from './rules-notation.js';
 
 const stages = ['source', 'templates', 'names', 'output'];
 
@@ -94,8 +96,10 @@ function renameLayer(names) {
   return [[(program) => rewrite(program, renameNode)]];
 }
 
-// Check a rule set and turn it into the hooks the translator calls.
-export function compileCustomRules(rules = {}) {
+// Check a rule set (an object, or Links Notation text) and turn it into
+// the hooks the translator calls.
+export function compileCustomRules(given = {}) {
+  const rules = typeof given === 'string' ? readRules(given) : given;
   if (!rules || typeof rules !== 'object' || Array.isArray(rules)) {
     throw new Error('Rules must be an object');
   }

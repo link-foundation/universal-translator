@@ -141,3 +141,8 @@ export {
   writeSourceDocument,
 } from './translation/source-document.js';
 export { createTranslationServer } from './server.js';
+export {
+  formatRules,
+  readRules,
+  ruleStages,
+} from './translation/rules-notation.js';
