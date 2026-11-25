@@ -509,6 +509,11 @@ button.link {
   gap: 8px;
 }
 
+/* No browser margin, so a check box lines up with the labels above it. */
+.check input {
+  margin: 0;
+}
+
 .code-grid.meta {
   margin-top: 16px;
 }

@@ -245,6 +245,15 @@ async function keepsTheLayoutStill() {
     assert.deepEqual(await box('#translator-title'), title);
     assert.equal((await box('#target-language')).y, picker.y);
   }
+  // The first control of every row starts at the same left edge.
+  const left = (await box('#source-text')).x;
+  for (const selector of ['#source-language', '#mode', '#show-meta']) {
+    const { x } = await box(selector);
+    assert.ok(
+      Math.abs(x - left) < 1,
+      `${selector} starts at ${x}, not ${left}`
+    );
+  }
 }
 
 // Word wrap is a check beside the options and a setting.
