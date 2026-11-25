@@ -190,7 +190,8 @@ const lengthCalls = new Set(['len', 'length', 'count', 'numel', 'scalar']);
 // Properties and methods that return the length of their receiver.
 const lengthMembers = new Set(['length', 'Length', 'size', 'count', 'len']);
 
-// The names a program declares with an array value or type.
+// The names a program declares with an array value or type, or indexes (a
+// fragment may use an array it does not declare).
 function arrayNames(program) {
   const names = new Set();
   walk(program, (current) => {
@@ -199,6 +200,21 @@ function arrayNames(program) {
       (isArrayValue(current.value) || current.type === 'array')
     ) {
       names.add(current.name);
+    }
+    if (current.kind === 'Index' && current.array?.kind === 'Name') {
+      names.add(current.array.name);
+    }
+    if (current.kind === 'IndexAssignment') {
+      names.add(current.name);
+    }
+    // Fortran: size(a, kind=8) only measures arrays.
+    const [first, second] = current.kind === 'Call' ? current.arguments : [];
+    if (
+      current.callee === 'size' &&
+      first?.kind === 'Name' &&
+      second?.kind === 'NamedArgument'
+    ) {
+      names.add(first.name);
     }
   });
   return names;
@@ -306,18 +322,35 @@ export function recognizeArrays(program, { from } = {}) {
 // The loop `for i in 0..n: a[i] = v` right after `a = NewArray(n, 0)` (or
 // after `a = []` where an array grows as it is filled) is the array
 // `NewArray(n, v)` written at a lower level.
+function isFillLoop(loop) {
+  return (
+    loop?.kind === 'CountingLoop' &&
+    isNumber(loop.start, 0) &&
+    loop.body.statements.length === 1
+  );
+}
+
+// `a[i] = v` with v free of both the array and the loop variable.
+function storesEachSlot(store, array, variable) {
+  return (
+    store.kind === 'IndexAssignment' &&
+    store.name === array &&
+    store.index.kind === 'Name' &&
+    store.index.name === variable &&
+    !mentions(store.value, variable) &&
+    !mentions(store.value, array)
+  );
+}
+
 function filledArray(declaration, loop) {
   const created = declaration?.value;
   const empty =
     created?.kind === 'ArrayLiteral' && created.elements.length === 0;
   const zero = created?.kind === 'NewArray' && isNumber(created.fill, 0);
-  if (
-    declaration?.kind !== 'Declaration' ||
-    !(empty || zero) ||
-    loop?.kind !== 'CountingLoop' ||
-    !isNumber(loop.start, 0) ||
-    loop.body.statements.length !== 1
-  ) {
+  if (declaration?.kind !== 'Declaration' || !(empty || zero)) {
+    return undefined;
+  }
+  if (!isFillLoop(loop)) {
     return undefined;
   }
   const [store] = loop.body.statements;
@@ -326,15 +359,7 @@ function filledArray(declaration, loop) {
     (end.kind === 'Length' && end.array.name === array) ||
     (zero && sameExpression(end, created.length)) ||
     (empty && !mentions(end, array));
-  if (
-    store.kind !== 'IndexAssignment' ||
-    store.name !== array ||
-    store.index.kind !== 'Name' ||
-    store.index.name !== loop.variable ||
-    mentions(store.value, loop.variable) ||
-    mentions(store.value, array) ||
-    !ends(loop.end)
-  ) {
+  if (!storesEachSlot(store, array, loop.variable) || !ends(loop.end)) {
     return undefined;
   }
   return {

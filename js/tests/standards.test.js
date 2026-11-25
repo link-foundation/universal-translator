@@ -14,6 +14,7 @@ import {
   loadLanguageVersion,
   naturalLanguageIds,
   naturalLanguageSource,
+  naturalStandardSource,
   naturalVocabulary,
   primitiveWords,
   readDefinitionCache,
@@ -162,6 +163,58 @@ describe('standards of natural languages', () => {
     expect(naturalLanguageIds()).not.toContain('english-terse');
     expect(() =>
       registerNaturalLanguage(naturalLanguageSource('english'))
+    ).toThrow();
+  });
+});
+
+describe('natural standards crafted in an editor', () => {
+  it('writes only the changed entries over the closest language', () => {
+    const entries = naturalVocabulary('english').map((entry) => {
+      if (entry.concept === 'template:print-line') {
+        return { ...entry, words: ['Show {value}'] };
+      }
+      return entry.concept === 'value:true'
+        ? { ...entry, words: ['yes'] }
+        : entry;
+    });
+    const source = naturalStandardSource({
+      id: 'english-mine',
+      label: 'My English',
+      base: 'english',
+      entries,
+    });
+    expect(source).toBe(
+      [
+        'natural:',
+        '  id: english-mine',
+        "  label: 'My English'",
+        '  extends: english',
+        "  true: 'yes'",
+        '  templates:',
+        "    print-line: 'Show {value}'",
+        '',
+      ].join('\n')
+    );
+    registerNaturalLanguage(source);
+    try {
+      const words = translate(
+        'console.log(true);\n',
+        'javascript',
+        'english-mine'
+      );
+      expect(words).toBe('Show yes.\n');
+      expect(translate(words, 'english-mine', 'javascript')).toBe(
+        'console.log(true);\n'
+      );
+    } finally {
+      unregisterNaturalLanguage('english-mine');
+    }
+    expect(() =>
+      naturalStandardSource({
+        id: 'x',
+        base: 'english',
+        entries: [{ concept: 'template:teleport', words: ['Go'] }],
+      })
     ).toThrow();
   });
 });

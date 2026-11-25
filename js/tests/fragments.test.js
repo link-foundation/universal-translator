@@ -171,3 +171,18 @@ describe('fragments on the command line', () => {
     expect(output.join('')).toBe('x := x + 1;\n');
   });
 });
+
+describe('fragments that use an array they do not declare', () => {
+  const loop =
+    'for (let index = 0; index < numbers.length; index++) {\n    total += numbers[index];\n}\n';
+
+  it('reads the length of an indexed array in every language', () => {
+    expect(translateFragment(loop, 'javascript', 'python')).toBe(
+      'for index in range(len(numbers)):\n    total += numbers[index]\n'
+    );
+    for (const to of ['english', 'arabic', 'fortran', 'minimal-english']) {
+      const written = translateFragment(loop, 'javascript', to);
+      expect(translateFragment(written, to, 'javascript')).toBe(loop);
+    }
+  });
+});

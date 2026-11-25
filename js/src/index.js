@@ -77,6 +77,7 @@ export {
   knownForm,
   lemmaCandidates,
   lexemeGlosses,
+  naturalStandardSource,
   naturalVocabulary,
   primitiveWords,
   readDefinitionCache,

@@ -316,3 +316,11 @@ export declare function createTranslationServer(
 /** A meta program (or fragment) as indented Links Notation: one line per
  * node, its kind and plain fields first, child nodes indented below. */
 export declare function formatMeta(program: unknown): string;
+/** A natural language standard of one's own (Links Notation for
+ * registerNaturalLanguage) from the changed entries of a vocabulary. */
+export declare function naturalStandardSource(options: {
+  id: string;
+  label?: string;
+  base: string;
+  entries: readonly { concept: string; words: string[] }[];
+}): string;

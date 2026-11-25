@@ -518,3 +518,53 @@ export function readStandard(source) {
   }
   return standard;
 }
+
+// A natural language standard of one's own, as Links Notation for
+// registerNaturalLanguage: the closest language it extends and the entries
+// of its vocabulary (see naturalVocabulary) that differ. Semantic primes keep
+// the exponents of the language they extend.
+export function naturalStandardSource({ id, label, base, entries }) {
+  const known = new Map(
+    naturalVocabulary(base).map((entry) => [entry.concept, entry.words])
+  );
+  const templates = [];
+  const words = [];
+  const values = [];
+  for (const { concept, words: spelled } of entries) {
+    const before = known.get(concept);
+    const [kind, key] = [
+      concept.slice(0, concept.indexOf(':')),
+      concept.slice(concept.indexOf(':') + 1),
+    ];
+    if (!before || kind === 'prime') {
+      if (!before) {
+        throw new Error(`${base} has no concept "${concept}"`);
+      }
+      continue;
+    }
+    if (before.join('\u0000') === spelled.join('\u0000')) {
+      continue;
+    }
+    if (spelled.length === 0 || spelled.some((word) => !word.trim())) {
+      throw new Error(`"${concept}" needs words`);
+    }
+    const line = `    ${key}: ${spelled.map(quote).join(' ')}`;
+    if (kind === 'template') {
+      templates.push(line);
+    } else if (kind === 'word') {
+      words.push(line);
+    } else {
+      values.push(`  ${key}: ${quote(spelled[0])}`);
+    }
+  }
+  const lines = [
+    'natural:',
+    `  id: ${id}`,
+    `  label: ${quote(label ?? id)}`,
+    `  extends: ${base}`,
+    ...values,
+    ...(templates.length ? ['  templates:', ...templates] : []),
+    ...(words.length ? ['  words:', ...words] : []),
+  ];
+  return `${lines.join('\n')}\n`;
+}
