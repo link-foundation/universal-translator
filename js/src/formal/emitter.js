@@ -446,6 +446,14 @@ class BaseEmitter {
     }
   }
 
+  // An empty line after a function unless the source had none before the
+  // next function; the last one is always set apart from the main program.
+  spacedAfter(functions, index) {
+    return (
+      functions[index].blankAfter !== false || index === functions.length - 1
+    );
+  }
+
   // Empty lines kept from the source, never two runs in a row.
   blank(lines = 1) {
     let missing = lines;
@@ -794,10 +802,16 @@ class BaseEmitter {
         this.line();
       }
     }
-    for (const item of program.functions) {
+    program.functions.forEach((item, index) => {
       this.functionDefinition(item);
-      this.line();
-    }
+      // A main procedure of its own is set apart from the functions.
+      if (
+        item.blankAfter !== false ||
+        (index === program.functions.length - 1 && this.mainHeader())
+      ) {
+        this.line();
+      }
+    });
     this.main(program);
     if (insideClass) {
       this.closeBlock();

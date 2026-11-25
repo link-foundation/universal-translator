@@ -4,7 +4,7 @@
 use super::shared::{comment_node, declared_variables};
 use super::{EmitterDialect, ParserDialect};
 use crate::formal::arrays::offset;
-use crate::formal::emitter::{Emitter, Result, field};
+use crate::formal::emitter::{Emitter, Result, field, spaced_after};
 use crate::formal::lexer::{Token, TokenType};
 use crate::formal::parser::{Parsed, Parser};
 use crate::meta::{Node, add, block, later_calls, number, text, walk};
@@ -546,9 +546,11 @@ impl EmitterDialect for Ada {
         if !announced.is_empty() {
             announced.push(String::new());
         }
-        for item in &functions {
+        for (index, item) in functions.iter().enumerate() {
             e.function_definition(item)?;
-            e.line("");
+            if spaced_after(&functions, index) {
+                e.line("");
+            }
         }
         let main = field(program, "main")?;
         if variables(e, main) > 0 {

@@ -1426,9 +1426,15 @@ impl Emitter {
                 self.line("");
             }
         }
-        for item in program.nodes("functions") {
+        let functions = program.nodes("functions");
+        for (index, item) in functions.iter().enumerate() {
             self.function_definition(item)?;
-            self.line("");
+            // A main procedure of its own is set apart from the functions.
+            if item.flag("blankAfter") != Some(false)
+                || (index + 1 == functions.len() && self.main_header().is_some())
+            {
+                self.line("");
+            }
         }
         self.main(program)?;
         if inside_class {
@@ -1495,6 +1501,12 @@ impl Emitter {
 }
 
 /// Render a typed, adapted meta program in a language.
+/// An empty line after a function unless the source had none before the
+/// next function; the last one is always set apart from the main program.
+pub fn spaced_after<N: std::borrow::Borrow<Node>>(functions: &[N], index: usize) -> bool {
+    functions[index].borrow().flag("blankAfter") != Some(false) || index + 1 == functions.len()
+}
+
 pub fn emit_program(program: &Node, language: &str) -> Result<String> {
     Emitter::new(language_syntax(language)?).program(program)
 }

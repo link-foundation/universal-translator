@@ -92,23 +92,33 @@ fn used_otherwise(program: &Node) -> HashSet<String> {
         .collect()
 }
 
-fn returns_bits_or_truth(body: &Node, truth_functions: &HashSet<String>) -> bool {
+/// Every returned value is 0, 1 or a truth value; a function nobody calls
+/// must also return at least one truth value besides 0 and 1.
+fn returns_bits_or_truth(body: &Node, truth_functions: &HashSet<String>, called: bool) -> bool {
     let mut values = 0;
     let mut all = true;
+    let mut truth = false;
     walk(body, |current| {
         if current.is("Return") {
             values += 1;
-            all &= current.node("value").is_some_and(|value| {
-                is_number(Some(value), &[0.0, 1.0]) || is_truth_value(value, truth_functions)
-            });
+            let value = current.node("value");
+            let is_truth = value.is_some_and(|value| is_truth_value(value, truth_functions));
+            truth |= is_truth;
+            all &= is_truth || is_number(value, &[0.0, 1.0]);
         }
     });
-    values > 0 && all
+    values > 0 && all && (called || truth)
 }
 
 pub fn raise_truth_functions(program: Node) -> Node {
     let functions = program.node_list("functions");
     let otherwise = used_otherwise(&program);
+    let mut called = HashSet::new();
+    walk(&program, |current| {
+        if current.is("Call") {
+            called.insert(callee(current).to_owned());
+        }
+    });
     let candidates: Vec<&Node> = functions
         .iter()
         .filter(|item| {
@@ -129,7 +139,11 @@ pub fn raise_truth_functions(program: Node) -> Node {
             .map(|item| (item.str("name").unwrap_or_default(), item))
             .filter(|(name, item)| {
                 truth_functions.contains(*name)
-                    && returns_bits_or_truth(item.node("body").unwrap_or(item), &truth_functions)
+                    && returns_bits_or_truth(
+                        item.node("body").unwrap_or(item),
+                        &truth_functions,
+                        called.contains(*name),
+                    )
             })
             .map(|(name, _)| name.to_owned())
             .collect();

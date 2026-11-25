@@ -8,7 +8,7 @@ use std::collections::VecDeque;
 
 use super::shared::each_statement;
 use super::{EmitterDialect, ParserDialect};
-use crate::formal::emitter::{Emitter, Result, field};
+use crate::formal::emitter::{Emitter, Result, field, spaced_after};
 use crate::formal::lexer::TokenType;
 use crate::formal::parser::{Parsed, Parser};
 use crate::meta::GrammarError;
@@ -109,7 +109,7 @@ impl ParserDialect for Matlab {
             } else {
                 items.push(p.statement()?);
             }
-            p.skip_lines();
+            p.skip_lines_keeping(&mut items);
         }
         Ok(Node::new("SourceProgram")
             .with("language", p.syntax.id)
@@ -458,8 +458,11 @@ impl EmitterDialect for Matlab {
         for line in program.texts("libraryImports") {
             e.line(&line);
         }
-        for item in program.nodes("functions") {
-            e.line("");
+        let functions = program.nodes("functions");
+        for (index, item) in functions.iter().enumerate() {
+            if index == 0 || spaced_after(&functions, index - 1) {
+                e.line("");
+            }
             e.function_definition(item)?;
         }
         e.line("");

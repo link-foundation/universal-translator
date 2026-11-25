@@ -160,16 +160,25 @@ fn collect_items(items: Vec<Node>) -> Node {
         }
         if imports.len() + functions.len() + statements.len() == 0 {
             // Comments before the last empty line describe the file; the
-            // ones after it describe the first item.
-            let split = pending.iter().rposition(|trivia| trivia.is("Blank"));
-            let rest = match split {
-                Some(split) => pending.split_off(split + 1),
-                None => Vec::new(),
-            };
-            comments.extend(comment_texts(&pending));
-            pending = rest;
+            // ones after it (all of them without an empty line) describe
+            // the first item.
+            if let Some(split) = pending.iter().rposition(|trivia| trivia.is("Blank")) {
+                let rest = pending.split_off(split + 1);
+                comments.extend(comment_texts(&pending));
+                pending = rest;
+            }
+        }
+        // An empty line after a function is kept only where the source has one.
+        if let Some(previous) = functions.last_mut() {
+            let previous: &mut Node = previous;
+            if previous.get("blankAfter").is_none() {
+                let blank = pending.iter().any(|trivia| trivia.is("Blank"));
+                previous.set("blankAfter", blank);
+            }
         }
         if item.is("Import") {
+            // An import keeps no comments: the ones above it describe the file.
+            comments.extend(comment_texts(&pending));
             imports.push(item.str("text").unwrap_or_default().to_owned());
         } else if item.is("Function") {
             let texts = comment_texts(&pending);

@@ -86,7 +86,7 @@ describe('standards of programming languages', () => {
       });
       const written = translate(program, 'javascript', id);
       expect(written).toBe(
-        'fn both(a, b):\n    return a && b\n\nprint(both(True, False))\n'
+        'fn both(a, b):\n    return a && b\nprint(both(True, False))\n'
       );
       // The other operators and words of Python stay.
       expect(translate(written, id, 'javascript')).toBe(
@@ -126,7 +126,7 @@ describe('standards of programming languages', () => {
     try {
       // Python 2 prints with a statement and keeps the changed operator.
       expect(translate(program, 'javascript', id)).toBe(
-        'def both(a, b):\n    return a && b\n\nprint both(True, False)\n'
+        'def both(a, b):\n    return a && b\nprint both(True, False)\n'
       );
     } finally {
       unregisterLanguageVersion('python', 'old-and');

@@ -180,10 +180,10 @@ fn array_names(program: &Node) -> HashSet<String> {
         {
             names.extend(current.str("name").map(str::to_owned));
         }
-        if let Some(array) = current.node("array").filter(|_| current.is("Index")) {
-            if array.is("Name") {
-                names.extend(array.str("name").map(str::to_owned));
-            }
+        if let Some(array) = current.node("array").filter(|_| current.is("Index"))
+            && array.is("Name")
+        {
+            names.extend(array.str("name").map(str::to_owned));
         }
         if current.is("IndexAssignment") {
             names.extend(current.str("name").map(str::to_owned));
@@ -193,10 +193,9 @@ fn array_names(program: &Node) -> HashSet<String> {
         if current.is("Call")
             && current.str("callee") == Some("size")
             && arguments.get(1).is_some_and(|it| it.is("NamedArgument"))
+            && let Some(first) = arguments.first().filter(|it| it.is("Name"))
         {
-            if let Some(first) = arguments.first().filter(|it| it.is("Name")) {
-                names.extend(first.str("name").map(str::to_owned));
-            }
+            names.extend(first.str("name").map(str::to_owned));
         }
     });
     names

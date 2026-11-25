@@ -21,7 +21,10 @@ describe('meta view', () => {
   const translator = createTranslator();
 
   it('shows the meta program as Links Notation', () => {
-    const meta = translator.toMeta("# hi\nx = 'a b'\nprint(x * 3)\n", 'python');
+    const meta = translator.toMeta(
+      "# hi\n\nx = 'a b'\nprint(x * 3)\n",
+      'python'
+    );
     const text = formatMeta(meta);
     expect(text).toBe(expected);
     expect(parseLinks(text).length > 0).toBe(true);

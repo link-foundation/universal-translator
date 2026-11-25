@@ -8,6 +8,7 @@ import {
   translateCommentText,
   translateComments,
 } from '../src/index.js';
+import { grammarLanguageIds as languageIds } from '../src/formal/languages.js';
 
 const read = (task) => readFileSync(`examples/programs/${task}.js`, 'utf8');
 const codeOf = (source, marker) =>
@@ -113,11 +114,44 @@ describe('comments inside indented blocks', () => {
       'def sq(n):\n    return n * n\n    # inside\n# outside\nprint(sq(2))\n';
     const javascript = translate(python, 'python', 'javascript');
     expect(javascript).toBe(
-      'function sq(n) {\n    return n * n;\n    // inside\n}\n\n// outside\nconsole.log(sq(2));\n'
+      'function sq(n) {\n    return n * n;\n    // inside\n}\n// outside\nconsole.log(sq(2));\n'
     );
-    expect(translate(javascript, 'javascript', 'python')).toBe(
-      'def sq(n):\n    return n * n\n    # inside\n\n# outside\nprint(sq(2))\n'
-    );
+    expect(translate(javascript, 'javascript', 'python')).toBe(python);
     expect(translate('// only\n', 'javascript', 'python')).toBe('# only\n');
+  });
+});
+
+describe('empty lines around functions', () => {
+  const tight =
+    'function one(n) {\n    return n + 1;\n}\nfunction two(n) {\n    return n + 2;\n}\n\nconsole.log(one(two(1)));\n';
+
+  it('keeps a comment right above a function with that function', () => {
+    const python =
+      '# square it\ndef sq(n):\n    return n * n\n\nprint(sq(2))\n';
+    expect(translate(python, 'python', 'javascript')).toBe(
+      '// square it\nfunction sq(n) {\n    return n * n;\n}\n\nconsole.log(sq(2));\n'
+    );
+  });
+
+  it('keeps a comment right above an import as a file comment', () => {
+    const c =
+      '/* Hello World in C */\n#include <stdio.h>\n\nint main(void)\n{\n    printf("Hi\\n");\n    return 0;\n}\n';
+    expect(translate(c, 'c', 'python')).toBe(
+      '# Hello World in Python\n\nprint("Hi")\n'
+    );
+  });
+
+  for (const language of languageIds.filter((id) => id !== 'javascript')) {
+    it(`${language}: keeps functions without an empty line between them`, () => {
+      const text = translate(tight, 'javascript', language);
+      expect(translate(text, language, 'javascript')).toBe(tight);
+    });
+  }
+
+  it('reads a lone return 1 back as a number', () => {
+    const perl = 'sub one {\n    return 1;\n}\n\nprint 2 . "\\n";\n';
+    expect(translate(perl, 'perl', 'javascript')).toBe(
+      'function one() {\n    return 1;\n}\n\nconsole.log(2);\n'
+    );
   });
 });

@@ -81,13 +81,19 @@ function collectItems(items) {
       0;
     if (isFirstCode) {
       // Comments before the last empty line describe the file; the ones
-      // after it describe the first item.
+      // after it (all of them without an empty line) describe the first item.
       const split = pending.findLastIndex(({ kind }) => kind === 'Blank');
-      const header = split < 0 ? pending : pending.slice(0, split);
-      program.comments.push(...texts(header));
-      pending = split < 0 ? [] : pending.slice(split + 1);
+      program.comments.push(...texts(pending.slice(0, Math.max(split, 0))));
+      pending = pending.slice(split + 1);
+    }
+    // An empty line after a function is kept only where the source has one.
+    const previous = program.functions.at(-1);
+    if (previous && previous.blankAfter === undefined) {
+      previous.blankAfter = pending.some(({ kind }) => kind === 'Blank');
     }
     if (item.kind === 'Import') {
+      // An import keeps no comments: the ones above it describe the file.
+      program.comments.push(...texts(pending));
       program.imports.push(item.text);
     } else if (item.kind === 'Function') {
       program.functions.push({

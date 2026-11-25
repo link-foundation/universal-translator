@@ -421,10 +421,12 @@ const emitter = (Base) =>
         this.line();
         this.line('contains');
         this.depth += 1;
-        for (const item of program.functions) {
-          this.line();
+        program.functions.forEach((item, index) => {
+          if (index === 0 || this.spacedAfter(program.functions, index - 1)) {
+            this.line();
+          }
           this.functionDefinition(item);
-        }
+        });
       }
       this.depth -= 1;
       this.line('end program main');

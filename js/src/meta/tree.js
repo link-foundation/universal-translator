@@ -157,6 +157,7 @@ const ignoredKeys = new Set([
   'imports',
   'mutable',
   'elementsAssigned',
+  'blankAfter',
 ]);
 
 // The meaning of a program, without details that do not change behaviour:

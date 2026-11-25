@@ -494,13 +494,52 @@ fn keeps_comments_that_close_an_indented_block() {
     let javascript = translate(python, "python", "javascript");
     assert_eq!(
         javascript,
-        "function sq(n) {\n    return n * n;\n    // inside\n}\n\n// outside\nconsole.log(sq(2));\n"
+        "function sq(n) {\n    return n * n;\n    // inside\n}\n// outside\nconsole.log(sq(2));\n"
     );
-    assert_eq!(
-        translate(&javascript, "javascript", "python"),
-        "def sq(n):\n    return n * n\n    # inside\n\n# outside\nprint(sq(2))\n"
-    );
+    assert_eq!(translate(&javascript, "javascript", "python"), python);
     assert_eq!(translate("// only\n", "javascript", "python"), "# only\n");
+}
+
+// ---- empty lines around functions ----
+
+#[test]
+fn keeps_a_comment_right_above_a_function_with_that_function() {
+    let python = "# square it\ndef sq(n):\n    return n * n\n\nprint(sq(2))\n";
+    assert_eq!(
+        translate(python, "python", "javascript"),
+        "// square it\nfunction sq(n) {\n    return n * n;\n}\n\nconsole.log(sq(2));\n"
+    );
+}
+
+#[test]
+fn keeps_a_comment_right_above_an_import_as_a_file_comment() {
+    let c = "/* Hello World in C */\n#include <stdio.h>\n\nint main(void)\n{\n    printf(\"Hi\\n\");\n    return 0;\n}\n";
+    assert_eq!(
+        translate(c, "c", "python"),
+        "# Hello World in Python\n\nprint(\"Hi\")\n"
+    );
+}
+
+#[test]
+fn keeps_functions_without_an_empty_line_between_them_in_every_language() {
+    let tight = "function one(n) {\n    return n + 1;\n}\nfunction two(n) {\n    return n + 2;\n}\n\nconsole.log(one(two(1)));\n";
+    for language in universal_translator::formal::languages::language_ids() {
+        let text = translate(tight, "javascript", language);
+        assert_eq!(
+            translate(&text, language, "javascript"),
+            tight,
+            "{language}"
+        );
+    }
+}
+
+#[test]
+fn reads_a_lone_return_1_back_as_a_number() {
+    let perl = "sub one {\n    return 1;\n}\n\nprint 2 . \"\\n\";\n";
+    assert_eq!(
+        translate(perl, "perl", "javascript"),
+        "function one() {\n    return 1;\n}\n\nconsole.log(2);\n"
+    );
 }
 
 // ---- the meta view ----
@@ -508,7 +547,7 @@ fn keeps_comments_that_close_an_indented_block() {
 #[test]
 fn shows_the_meta_program_as_links_notation() {
     let meta = Translator::new()
-        .to_meta("# hi\nx = 'a b'\nprint(x * 3)\n", "python")
+        .to_meta("# hi\n\nx = 'a b'\nprint(x * 3)\n", "python")
         .expect("python");
     assert_eq!(
         universal_translator::meta::notation::format_meta(&meta),

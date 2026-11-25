@@ -88,35 +88,6 @@ const statements = (Base) =>
       return node('Sequence', { statements });
     }
 
-    // [others => V] is the array of n values V; [A, B] and [0 => A] list
-    // the values. Ada 2022 writes array aggregates in square brackets;
-    // the older parentheses are read too.
-    aggregate(length) {
-      const close = this.accept('[') ? ']' : (this.expect('('), ')');
-      if (this.accept('others')) {
-        this.expect('=>');
-        const fill = this.expression();
-        this.expect(close);
-        return length.kind === 'Number' && length.value === 0
-          ? node('ArrayLiteral', { elements: [] })
-          : node('NewArray', { length, fill });
-      }
-      if (this.peek().type === 'number' && this.is('=>', 1)) {
-        this.position += 2;
-      }
-      return this.literal(close);
-    }
-
-    // Numbers'Length.
-    primary() {
-      const value = super.primary();
-      if (value.kind === 'Name' && this.is("'") && this.is('length', 1)) {
-        this.position += 2;
-        return node('Length', { array: value });
-      }
-      return value;
-    }
-
     // Put (A, 0); Put (": "); Put_Line (B); on one line print one line.
     output() {
       const parts = [];
@@ -198,8 +169,41 @@ const statements = (Base) =>
     }
   };
 
+// Expressions: array aggregates and attributes.
+const expressions = (Base) =>
+  class AdaExpressions extends Base {
+    // [others => V] is the array of n values V; [A, B] and [0 => A] list
+    // the values. Ada 2022 writes array aggregates in square brackets;
+    // the older parentheses are read too.
+    aggregate(length) {
+      const close = this.accept('[') ? ']' : (this.expect('('), ')');
+      if (this.accept('others')) {
+        this.expect('=>');
+        const fill = this.expression();
+        this.expect(close);
+        return length.kind === 'Number' && length.value === 0
+          ? node('ArrayLiteral', { elements: [] })
+          : node('NewArray', { length, fill });
+      }
+      if (this.peek().type === 'number' && this.is('=>', 1)) {
+        this.position += 2;
+      }
+      return this.literal(close);
+    }
+
+    // Numbers'Length.
+    primary() {
+      const value = super.primary();
+      if (value.kind === 'Name' && this.is("'") && this.is('length', 1)) {
+        this.position += 2;
+        return node('Length', { array: value });
+      }
+      return value;
+    }
+  };
+
 const parser = (Base) =>
-  class AdaParser extends statements(keywordParser(Base)) {
+  class AdaParser extends statements(expressions(keywordParser(Base))) {
     // `null;` stands for a block without statements.
     statementsUntil(done) {
       return super
@@ -545,10 +549,12 @@ const emitter = (Base) =>
     program(program) {
       this.depth = 1;
       const announced = this.announcements(program.functions);
-      for (const item of program.functions) {
+      program.functions.forEach((item, index) => {
         this.functionDefinition(item);
-        this.line();
-      }
+        if (this.spacedAfter(program.functions, index)) {
+          this.line();
+        }
+      });
       if (this.variables(program.main)) {
         this.line();
       }
