@@ -63,6 +63,17 @@ export {
   naturalLanguage,
   naturalLanguageIds,
 } from './natural/catalog.js';
+export {
+  baseNaturalLanguageIds,
+  naturalLanguageVersions,
+  preferredNaturalVersion,
+  primesVersion,
+} from './natural/variants.js';
+export {
+  languageVersions,
+  splitVersion,
+  versionsOf,
+} from './formal/versions.js';
 export { readNatural } from './natural/reader.js';
 export { writeNatural } from './natural/writer.js';
 export {

@@ -68,6 +68,7 @@ const profiles = {
   'english-basic-english': 'Basic English',
   'english-special-english': 'VOA Special English',
   'english-globish': 'Globish',
+  'english-british': 'English (British)',
 };
 
 describe('controlled natural languages', () => {

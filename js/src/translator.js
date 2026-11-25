@@ -21,6 +21,7 @@ import { emitMachine, machineTargetIds } from './formal/machine.js';
 import { machineReaders } from './formal/machine-reader.js';
 import { liftProgram } from './formal/lifting.js';
 import { useCommonLibrary } from './formal/common-library.js';
+import { splitVersion, versionsOf } from './formal/versions.js';
 import {
   isNaturalLanguage,
   naturalLanguage,
@@ -101,7 +102,12 @@ export function createGrammarTranslator({
     }
     // Words carry no syntax of their own, so a program read from words is
     // adapted as if it had been written in the target language.
-    const settings = { from: isNaturalLanguage(from) ? to : from, to, mode };
+    // The rules adapt to the language; only writing depends on its version.
+    const settings = {
+      from: splitVersion(isNaturalLanguage(from) ? to : from).id,
+      to: splitVersion(to).id,
+      mode,
+    };
     // Custom layers are meta -> meta transformations, so they see the target
     // independent program; context rules then adapt it to the target.
     // The common library route is one more meta layer, run last.
@@ -137,7 +143,14 @@ export function createGrammarTranslator({
 
   return {
     languages: () =>
-      grammarLanguageIds.map((id) => ({ id, label: languageSyntax(id).label })),
+      grammarLanguageIds.map((id) => {
+        const versions = versionsOf(id);
+        return {
+          id,
+          label: languageSyntax(id).label,
+          ...(versions.length ? { versions } : {}),
+        };
+      }),
     naturalLanguages: () =>
       naturalLanguageIds().map((id) => {
         const { label, base } = naturalLanguage(id);

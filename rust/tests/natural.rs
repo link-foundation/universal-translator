@@ -120,6 +120,7 @@ fn every_language_and_standard_is_described() {
         ("english-basic-english", "Basic English"),
         ("english-special-english", "VOA Special English"),
         ("english-globish", "Globish"),
+        ("english-british", "English (British)"),
     ] {
         let language = natural_language(id).unwrap();
         assert!(language.label.contains(label), "{id}: {}", language.label);

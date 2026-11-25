@@ -50,6 +50,10 @@ pub const SOURCES: &[(&str, &str)] = &[
         include_str!("../../../data/natural/english-basic-english.lino"),
     ),
     (
+        "english-british.lino",
+        include_str!("../../../data/natural/english-british.lino"),
+    ),
+    (
         "english-e-prime.lino",
         include_str!("../../../data/natural/english-e-prime.lino"),
     ),

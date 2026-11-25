@@ -12,6 +12,7 @@ import {
   number,
 } from '../meta/tree.js';
 import { languageSyntax } from './languages.js';
+import { splitVersion } from './versions.js';
 import { dialects } from './dialects/index.js';
 import { withArrays } from './array-spellings.js';
 
@@ -79,6 +80,7 @@ const blockCommentLanguages = new Set(['c', 'csharp']);
 // The import lines a used feature needs, before and after the common
 // library imports.
 const importsBeforeLibrary = [
+  ['sys', 'import sys'],
   ['strformat', 'import std/strformat'],
   ['std.conv', 'import std.conv;'],
   ['dart:io', "import 'dart:io';"],
@@ -272,6 +274,21 @@ class BaseEmitter {
     return level < parent ? `(${result})` : result;
   }
 
+  // Text joined with +, computed parts converted with the language's
+  // conversion (Python 2: str(value)).
+  concatenation(parts) {
+    const [convert] = this.syntax.textConversions;
+    return parts
+      .map((part) =>
+        part.kind === 'Text'
+          ? this.quote(part.value)
+          : part.type === 'text'
+            ? this.expression(part, 6)
+            : `${convert}(${this.expression(part)})`
+      )
+      .join(' + ');
+  }
+
   // Text with the computed parts embedded between delimiters.
   embedded(parts, { prefix = '', open, close, format }) {
     if (this.id === 'nim') {
@@ -282,6 +299,9 @@ class BaseEmitter {
 
   // Text built from literal and computed parts, outside of output calls.
   interpolation(parts) {
+    if (this.syntax.textJoin === 'concatenation') {
+      return this.concatenation(parts);
+    }
     if (embeddings[this.id]) {
       return this.embedded(parts, embeddings[this.id]);
     }
@@ -860,14 +880,14 @@ export function emitProgram(program, languageId) {
 // dialects/.
 const dialectEmitters = new Map();
 function emitterFor(languageId) {
-  const extend = dialects[languageId]?.emitter;
+  const extend = dialects[splitVersion(languageId).id]?.emitter;
   if (!extend) {
     return Emitter;
   }
-  if (!dialectEmitters.has(languageId)) {
-    dialectEmitters.set(languageId, extend(Emitter));
+  if (!dialectEmitters.has(extend)) {
+    dialectEmitters.set(extend, extend(Emitter));
   }
-  return dialectEmitters.get(languageId);
+  return dialectEmitters.get(extend);
 }
 
 // How each language writes a value to standard output. C, Go and Rust use
@@ -877,8 +897,18 @@ const printers = {
     newline
       ? `console.log(${single()});`
       : `process.stdout.write(${value.type === 'text' ? single() : `String(${single()})`});`,
-  python: (emitter, { newline, single }) =>
-    newline ? `print(${single()})` : `print(${single()}, end="")`,
+  python: (emitter, { value, newline, single }) => {
+    if (!emitter.syntax.printStatement) {
+      return newline ? `print(${single()})` : `print(${single()}, end="")`;
+    }
+    if (newline) {
+      return value.kind === 'Text' && value.value === ''
+        ? 'print'
+        : `print ${single()}`;
+    }
+    emitter.uses.add('sys');
+    return `sys.stdout.write(${value.type === 'text' ? single() : `str(${single()})`})`;
+  },
   ruby: (emitter, { newline, single }) =>
     `${newline ? 'puts' : 'print'} ${single()}`,
   lua: (emitter, { newline, single }) =>

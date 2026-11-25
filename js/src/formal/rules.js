@@ -152,6 +152,7 @@ const textCalls = new Set([
   'System.out.print',
   'fmt.Print',
   'process.stdout.write',
+  'sys.stdout.write',
   'io.write',
 ]);
 const formatCalls = {
@@ -326,6 +327,46 @@ export function recognizePrint(program, { from } = {}) {
         );
         return node('Print', { value: partsToValue(parts), newline });
       }
+    }
+    return current;
+  });
+}
+
+// `str(total)` printed or joined to a text converts only what printing and
+// interpolation already convert, so the conversion is dropped there.
+export function dropTextConversions(program, { from } = {}) {
+  const conversions = from ? languageSyntax(from).textConversions : undefined;
+  if (!conversions) {
+    return program;
+  }
+  const unwrap = (value) =>
+    value.kind === 'Call' &&
+    conversions.includes(value.callee) &&
+    value.arguments.length === 1
+      ? value.arguments[0]
+      : value;
+  const isText = (value) =>
+    ['Text', 'Interpolation'].includes(value.kind) ||
+    (value.kind === 'Binary' &&
+      value.operator === 'add' &&
+      (isText(value.left) || isText(value.right)));
+  return rewrite(program, (current) => {
+    if (current.kind === 'Print') {
+      return { ...current, value: unwrap(current.value) };
+    }
+    if (current.kind === 'Interpolation') {
+      return { ...current, parts: current.parts.map(unwrap) };
+    }
+    if (
+      current.kind === 'Binary' &&
+      current.operator === 'add' &&
+      (isText(current.left) || isText(current.right))
+    ) {
+      return {
+        ...current,
+        left: unwrap(current.left),
+        right: unwrap(current.right),
+      };
     }
     return current;
   });
@@ -629,6 +670,7 @@ export const understandingRules = [
   recognizeArrays,
   recognizeCommonLibrary,
   recognizePrint,
+  dropTextConversions,
   expandCompoundAssignment,
   dropParameterCopies,
   declareOnFirstAssignment,

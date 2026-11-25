@@ -830,8 +830,9 @@ class BaseParser {
   // Calls written without parentheses: puts value, print value
   commandCall() {
     const callee = this.next().value;
-    const values = [this.expression()];
-    while (this.accept(',')) {
+    const ends = ['newline', 'end'].includes(this.peek().type);
+    const values = ends ? [] : [this.expression()];
+    while (!ends && this.accept(',')) {
       values.push(this.expression());
     }
     this.endStatement();
@@ -842,10 +843,22 @@ class BaseParser {
 
   // Ruby allows calls without parentheses, such as `puts "Hello"`.
   isCommandCall() {
-    if (!this.syntax.commandCalls || this.peek().type !== 'name') {
+    const { commandCalls } = this.syntax;
+    if (
+      !commandCalls ||
+      this.peek().type !== 'name' ||
+      (Array.isArray(commandCalls) && !commandCalls.includes(this.peek().value))
+    ) {
       return false;
     }
     const following = this.peek(1);
+    // A bare `print` prints an empty line.
+    if (
+      Array.isArray(commandCalls) &&
+      ['newline', 'end'].includes(following.type)
+    ) {
+      return true;
+    }
     return (
       ['text', 'number', 'name'].includes(following.type) &&
       following.line === this.peek().line &&

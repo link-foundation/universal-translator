@@ -1,0 +1,10 @@
+Note: Sum digits of an integer in JavaScript
+
+Define sum-of-digits using number:
+  Create total with value 0.
+  While number exceeds 0, repeat this:
+    Change total to total plus number modulo 10.
+    Change number to number divided by 10.
+  Give back total.
+
+Write ‘The digits of 1234567890 sum to ’ followed by sum-of-digits of (1234567890) and end the line.

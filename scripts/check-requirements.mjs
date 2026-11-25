@@ -110,6 +110,7 @@ const standards = [
   'english-basic-english',
   'english-special-english',
   'english-globish',
+  'english-british',
 ];
 
 // Each check returns undefined when it passes, or what is missing.
