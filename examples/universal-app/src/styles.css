@@ -54,7 +54,11 @@
   --line: var(--color-outline);
   --page: var(--color-surface);
   --card: color-mix(in srgb, var(--color-surface) 82%, white 18%);
-  --code: color-mix(in srgb, var(--color-surface) 88%, var(--color-primary) 12%);
+  --code: color-mix(
+    in srgb,
+    var(--color-surface) 88%,
+    var(--color-primary) 12%
+  );
   --error: var(--color-error, #8a2219);
   --error-bg: var(--color-error-container, #fbe9e6);
   color: var(--ink);
