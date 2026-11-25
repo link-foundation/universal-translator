@@ -13,6 +13,8 @@ mod shared;
 mod vb;
 mod zig;
 
+pub(crate) use shared::declared_variables;
+
 use super::emitter::{Emitter, Result};
 use super::lexer::Token;
 use super::parser::{Parsed, Parser};

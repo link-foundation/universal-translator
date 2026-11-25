@@ -11,4 +11,5 @@ CLAUDE.md
 docs/case-studies/*/data/
 # Generated translations, compared byte for byte by the tests
 examples/programs/translated/
+examples/programs/fragments/translated/
 js/src/natural/sources.js

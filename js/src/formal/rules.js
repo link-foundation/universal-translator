@@ -9,7 +9,7 @@ import {
   recognizeCommonLibrary,
   spellCommonLibrary,
 } from './common-library.js';
-import { block, node, rewrite, text } from '../meta/tree.js';
+import { block, node, rewrite, text, walk } from '../meta/tree.js';
 import { countingLoops } from './lifting.js';
 import { raiseTruthFunctions } from '../meta/truth.js';
 import { languageSyntax, namingConvention } from './languages.js';
@@ -324,50 +324,69 @@ export function recognizePrint(program, { from } = {}) {
   });
 }
 
+// Add the names a tree reads to a set.
+function addReadNames(tree, names) {
+  walk(tree, (current) => {
+    if (current.kind === 'Name') {
+      names.add(current.name);
+    }
+  });
+}
+
 // Languages without declarations (Python, Ruby, PHP) declare a variable by
-// assigning it for the first time.
+// assigning it for the first time. A variable read before its first
+// assignment (`x = x + 1`, or `if x > 0` above `x = 0`) is not declared
+// there: it comes from outside, as in a statement translated on its own.
 export function declareOnFirstAssignment(program) {
   const declareIn = (body, known) => {
     const scope = new Set(known);
+    const read = new Set();
     const visitBlock = (current) => ({
       ...current,
-      statements: current.statements.map((statement) => {
-        if (
-          statement.kind === 'Assignment' &&
-          statement.operator === '=' &&
-          !scope.has(statement.name)
-        ) {
-          scope.add(statement.name);
-          return node('Declaration', {
-            name: statement.name,
-            value: statement.value,
-            mutable: true,
-          });
-        }
-        if (statement.kind === 'Declaration') {
-          scope.add(statement.name);
-        }
-        if (statement.kind === 'If') {
-          return {
-            ...statement,
-            then: visitBlock(statement.then),
-            otherwise:
-              statement.otherwise &&
-              (statement.otherwise.kind === 'Block'
-                ? visitBlock(statement.otherwise)
-                : visitBlock(block([statement.otherwise])).statements[0]),
-          };
-        }
-        if (statement.kind === 'While') {
-          return { ...statement, body: visitBlock(statement.body) };
-        }
-        if (statement.kind === 'CountingLoop') {
-          scope.add(statement.variable);
-          return { ...statement, body: visitBlock(statement.body) };
-        }
-        return statement;
-      }),
+      statements: current.statements.map(visitStatement),
     });
+    const visitStatement = (statement) => {
+      if (statement.kind === 'If') {
+        addReadNames(statement.condition, read);
+        return {
+          ...statement,
+          then: visitBlock(statement.then),
+          otherwise:
+            statement.otherwise &&
+            (statement.otherwise.kind === 'Block'
+              ? visitBlock(statement.otherwise)
+              : visitStatement(statement.otherwise)),
+        };
+      }
+      if (statement.kind === 'While') {
+        addReadNames(statement.condition, read);
+        return { ...statement, body: visitBlock(statement.body) };
+      }
+      if (statement.kind === 'CountingLoop') {
+        addReadNames([statement.start, statement.end], read);
+        scope.add(statement.variable);
+        return { ...statement, body: visitBlock(statement.body) };
+      }
+      // The value is read before the variable is assigned.
+      addReadNames(statement, read);
+      if (
+        statement.kind === 'Assignment' &&
+        statement.operator === '=' &&
+        !scope.has(statement.name) &&
+        !read.has(statement.name)
+      ) {
+        scope.add(statement.name);
+        return node('Declaration', {
+          name: statement.name,
+          value: statement.value,
+          mutable: true,
+        });
+      }
+      if (statement.kind === 'Declaration') {
+        scope.add(statement.name);
+      }
+      return statement;
+    };
     return visitBlock(body);
   };
   return {

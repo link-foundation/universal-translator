@@ -7,7 +7,7 @@ use universal_translator::translator::{Translator, language_ids, natural_languag
 use universal_translator::{Mode, Options, SourceDocument, translate_program};
 
 const USAGE: &str = "Usage:
-  universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library]
+  universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment]
   universal-translator meta <language> [file|-]
   universal-translator translate-program <from|cst> <to> [file|-]
   universal-translator encode-source <language> [file|-]
@@ -26,6 +26,7 @@ against the rules of a controlled language.
 Modes: context-dependent (default), literal, same-effect
 --trace writes every pipeline stage to standard error as \"[stage] <json>\".
 --common-library prints through common-library/ calls.
+--fragment translates statements or functions on their own.
 Omit the file or pass - to read standard input.";
 
 fn source(file: Option<&str>) -> Result<String, String> {
@@ -45,11 +46,13 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
     let mut mode = None;
     let mut trace = false;
     let mut common_library = false;
+    let mut fragment = false;
     let mut arguments = arguments.iter().copied();
     while let Some(argument) = arguments.next() {
         match argument {
             "--trace" => trace = true,
             "--common-library" => common_library = true,
+            "--fragment" => fragment = true,
             "--mode" if mode.is_none() => {
                 mode = Some(
                     arguments
@@ -70,17 +73,19 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
             eprintln!("[{stage}] {}", to_json(Some(&tree.clone().into())));
         });
     }
-    translator
-        .translate_with(
-            &source(file)?,
-            from,
-            to,
-            Options {
-                mode: mode.unwrap_or_default(),
-                common_library,
-            },
-        )
-        .map_err(|error| error.to_string())
+    let options = Options {
+        mode: mode.unwrap_or_default(),
+        common_library,
+    };
+    let source = source(file)?;
+    // --fragment translates a single statement, function definitions or a
+    // whole program into the same kind of fragment.
+    if fragment {
+        translator.translate_fragment(&source, from, to, options)
+    } else {
+        translator.translate_with(&source, from, to, options)
+    }
+    .map_err(|error| error.to_string())
 }
 
 fn run(arguments: &[String]) -> Result<String, String> {

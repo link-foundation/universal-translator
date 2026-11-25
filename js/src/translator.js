@@ -28,6 +28,7 @@ import {
 } from './natural/catalog.js';
 import { readNatural } from './natural/reader.js';
 import { writeNatural } from './natural/writer.js';
+import { createFragmentTranslator } from './translation/fragments.js';
 
 const readMachine = (source, from) => machineReaders[from](source);
 
@@ -77,7 +78,10 @@ export function createGrammarTranslator({
     return typed;
   }
 
-  function fromMeta(
+  // Run the custom layers and the context rules for a target. A natural
+  // target receives the transformed program, since it has no syntax to
+  // adapt to.
+  function adapt(
     meta,
     to,
     { from = to, mode = 'context-dependent', commonLibrary = false } = {}
@@ -108,14 +112,28 @@ export function createGrammarTranslator({
     );
     trace('transformed', transformed);
     if (natural) {
-      return writeNatural(transformed, to);
+      return transformed;
     }
     const adapted = applyRules(transformed, context, settings);
     trace('adapted', adapted);
+    return adapted;
+  }
+
+  // Write an adapted program in a language, a machine target or words.
+  function write(adapted, to) {
+    if (isNaturalLanguage(to)) {
+      return writeNatural(adapted, to);
+    }
     return machineTargetIds.includes(to)
       ? emitMachineCode(adapted, to)
       : emit(adapted, to);
   }
+
+  function fromMeta(meta, to, options = {}) {
+    return write(adapt(meta, to, options), to);
+  }
+
+  const fragments = createFragmentTranslator({ toMeta, adapt, write, emit });
 
   return {
     languages: () =>
@@ -129,6 +147,8 @@ export function createGrammarTranslator({
     fromMeta,
     translate: (source, from, to, options = {}) =>
       fromMeta(toMeta(source, from), to, { ...options, from }),
+    parseFragment: fragments.parseFragment,
+    translateFragment: fragments.translateFragment,
   };
 }
 
@@ -138,4 +158,17 @@ let defaultTranslator;
 export function translate(source, from, to, options) {
   defaultTranslator ??= createGrammarTranslator();
   return defaultTranslator.translate(source, from, to, options);
+}
+
+// Read a fragment (a whole program, function definitions or statements)
+// with the default rule layers.
+export function parseFragment(source, from) {
+  defaultTranslator ??= createGrammarTranslator();
+  return defaultTranslator.parseFragment(source, from);
+}
+
+// Translate a fragment with the default rule layers.
+export function translateFragment(source, from, to, options) {
+  defaultTranslator ??= createGrammarTranslator();
+  return defaultTranslator.translateFragment(source, from, to, options);
 }

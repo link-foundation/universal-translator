@@ -34,10 +34,14 @@ export function expectedTranslations() {
     );
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const check = process.argv.includes('--check');
+/**
+ * Write every expected file, or with --check only report the files that
+ * differ. Sets the exit code to 1 when a file drifted.
+ */
+export function writeOrCheck(files, argv = process.argv) {
+  const check = argv.includes('--check');
   let drift = 0;
-  for (const { path, text } of expectedTranslations()) {
+  for (const { path, text } of files) {
     if (check) {
       if (!existsSync(path) || readFileSync(path, 'utf8') !== text) {
         drift += 1;
@@ -49,4 +53,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     writeFileSync(path, text);
   }
   process.exitCode = drift ? 1 : 0;
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  writeOrCheck(expectedTranslations());
 }

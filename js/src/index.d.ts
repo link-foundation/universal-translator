@@ -28,14 +28,20 @@ export declare const delay: (ms: number) => Promise<void>;
 
 export {
   createGrammarTranslator as createTranslator,
+  parseFragment,
   translate,
+  translateFragment,
 } from './translator.js';
+export declare const fragmentKinds: FragmentKind[];
 export type {
+  Fragment,
+  FragmentKind,
   GrammarTranslator,
   GrammarTranslatorOptions,
   TranslationMode,
   TranslationOptions,
 } from './translator.js';
+import type { FragmentKind } from './translator.js';
 export * from './formal/languages.js';
 export declare const machineTargetIds: string[];
 export declare const machineTargets: Record<string, Record<string, unknown>>;

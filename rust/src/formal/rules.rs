@@ -531,12 +531,31 @@ fn parameter_names(item: &Node) -> Vec<String> {
         .collect()
 }
 
+/// Add the names a tree reads to a set.
+fn add_read_names(tree: &Node, names: &mut HashSet<String>) {
+    walk(tree, |current| {
+        if current.is("Name") {
+            names.extend(current.str("name").map(str::to_owned));
+        }
+    });
+}
+
 /// Declares variables in one function body; the scope spans nested blocks.
+/// `read` holds the names read so far: a variable read before its first
+/// assignment comes from outside and is not declared there.
 struct Declarer {
     scope: HashSet<String>,
+    read: HashSet<String>,
 }
 
 impl Declarer {
+    fn new(scope: HashSet<String>) -> Self {
+        Declarer {
+            scope,
+            read: HashSet::new(),
+        }
+    }
+
     fn visit_block(&mut self, mut current: Node) -> Node {
         let statements: Vec<Node> = current
             .node_list("statements")
@@ -554,23 +573,16 @@ impl Declarer {
         }
     }
 
-    fn visit_statement(&mut self, mut statement: Node) -> Node {
-        let name = statement.str("name").unwrap_or_default().to_owned();
-        if statement.is("Assignment")
-            && statement.str("operator") == Some("=")
-            && !self.scope.contains(&name)
-        {
-            self.scope.insert(name.clone());
-            return Node::new("Declaration")
-                .with("name", name)
-                .with_opt("value", statement.node("value").cloned())
-                .with("mutable", true);
+    fn read_field(&mut self, statement: &Node, field: &str) {
+        if let Some(expression) = statement.node(field) {
+            add_read_names(expression, &mut self.read);
         }
+    }
+
+    fn visit_statement(&mut self, mut statement: Node) -> Node {
         match statement.kind.as_str() {
-            "Declaration" => {
-                self.scope.insert(name);
-            }
             "If" => {
+                self.read_field(&statement, "condition");
                 self.visit_field(&mut statement, "then");
                 if let Some(otherwise) = statement.node("otherwise").cloned() {
                     let visited = if otherwise.is("Block") {
@@ -580,34 +592,55 @@ impl Declarer {
                     };
                     statement.set("otherwise", visited);
                 }
+                return statement;
             }
-            "While" => self.visit_field(&mut statement, "body"),
+            "While" => {
+                self.read_field(&statement, "condition");
+                self.visit_field(&mut statement, "body");
+                return statement;
+            }
             "CountingLoop" => {
+                self.read_field(&statement, "start");
+                self.read_field(&statement, "end");
                 if let Some(variable) = statement.str("variable") {
                     self.scope.insert(variable.to_owned());
                 }
                 self.visit_field(&mut statement, "body");
+                return statement;
             }
             _ => {}
+        }
+        // The value is read before the variable is assigned.
+        add_read_names(&statement, &mut self.read);
+        let name = statement.str("name").unwrap_or_default().to_owned();
+        if statement.is("Assignment")
+            && statement.str("operator") == Some("=")
+            && !self.scope.contains(&name)
+            && !self.read.contains(&name)
+        {
+            self.scope.insert(name.clone());
+            return Node::new("Declaration")
+                .with("name", name)
+                .with_opt("value", statement.node("value").cloned())
+                .with("mutable", true);
+        }
+        if statement.is("Declaration") {
+            self.scope.insert(name);
         }
         statement
     }
 }
 
 /// Languages without declarations (Python, Ruby, PHP) declare a variable by
-/// assigning it for the first time.
+/// assigning it for the first time. A variable read before its first
+/// assignment (`x = x + 1`, or `if x > 0` above `x = 0`) is not declared
+/// there: it comes from outside, as in a statement translated on its own.
 pub fn declare_on_first_assignment(program: Node) -> Node {
     let mut program = map_bodies(program, |item, body| {
-        Declarer {
-            scope: parameter_names(item).into_iter().collect(),
-        }
-        .visit_block(body)
+        Declarer::new(parameter_names(item).into_iter().collect()).visit_block(body)
     });
     if let Some(main) = program.node("main").cloned() {
-        let main = Declarer {
-            scope: HashSet::new(),
-        }
-        .visit_block(main);
+        let main = Declarer::new(HashSet::new()).visit_block(main);
         program.set("main", main);
     }
     program

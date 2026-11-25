@@ -204,6 +204,7 @@ const parser = (Base) =>
       this.expect('begin');
       const body = this.statementsUntil(() => this.is('end'));
       this.expect('end');
+      this.accept(';');
       return node('Function', {
         name,
         parameters,

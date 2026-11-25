@@ -98,7 +98,7 @@ requirements:
   fragments:
     text: 'Parse and translate a single statement, function or whole program on its own; a fragment must be complete, so a function ends with its closing'
     from: 'PR 5 review'
-    status: pending
+    status: done
     check: fragments
     evidence: js/tests/fragments.test.js rust/tests/fragments.rs
   class-fragments:
