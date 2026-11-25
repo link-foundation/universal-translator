@@ -94,6 +94,7 @@
   },
   "dependencies": {
     "links-notation": "0.31.8",
+    "lino-arguments": "0.4.1",
     "meta-language": "0.46.0"
   }
 }

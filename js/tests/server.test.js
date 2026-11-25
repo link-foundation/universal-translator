@@ -1,7 +1,10 @@
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, expect, it } from 'test-anywhere';
 
 import { createTranslationServer, translate } from '../../js/src/index.js';
-import { runCli } from '../../bin/universal-translator.js';
+import { runCli, serveConfiguration } from '../../bin/universal-translator.js';
 
 async function withServer(check) {
   const server = createTranslationServer();
@@ -67,15 +70,34 @@ describe('translation server', () => {
   });
 
   it('is started by the serve command', () => {
-    const ports = [];
+    const started = [];
     const quiet = () => {};
-    expect(runCli(['serve'], { serve: (port) => ports.push(port) })).toBe(0);
-    expect(
-      runCli(['serve', '--port', '9090'], {
-        serve: (port) => ports.push(port),
-      })
-    ).toBe(0);
-    expect(ports).toEqual([8080, 9090]);
+    const serve = (configuration) => started.push(configuration.port);
+    expect(runCli(['serve'], { serve })).toBe(0);
+    expect(runCli(['serve', '--port', '9090'], { serve })).toBe(0);
+    expect(started[1]).toBe(9090);
     expect(runCli(['serve', '--port', 'x'], { stderr: quiet })).toBe(1);
+    expect(runCli(['serve', '--bogus'], { stderr: quiet })).toBe(1);
+  });
+
+  it('reads its port from options, the environment and .lenv', () => {
+    const empty = { env: {}, cwd: tmpdir() };
+    expect(serveConfiguration([], empty)).toEqual({
+      port: 8080,
+      host: '0.0.0.0',
+    });
+    expect(serveConfiguration([], { ...empty, env: { PORT: '9000' } })).toEqual(
+      { port: 9000, host: '0.0.0.0' }
+    );
+    expect(
+      serveConfiguration(['--port', '7000', '--host', '127.0.0.1'], {
+        ...empty,
+        env: { PORT: '9000' },
+      })
+    ).toEqual({ port: 7000, host: '127.0.0.1' });
+    const directory = mkdtempSync(join(tmpdir(), 'serve-'));
+    writeFileSync(join(directory, '.lenv'), 'PORT: 6000\n');
+    expect(serveConfiguration([], { env: {}, cwd: directory }).port).toBe(6000);
+    rmSync(directory, { recursive: true });
   });
 });

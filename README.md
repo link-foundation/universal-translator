@@ -135,7 +135,7 @@ createTranslationServer().listen(8080); // GET /languages, POST /translate
 
 ```bash
 universal-translator translate javascript python app.js
-universal-translator serve --port 8080
+universal-translator serve --port 8080   # or PORT=8080, or PORT: 8080 in .lenv
 curl -d '{"source":"console.log(\"Hi\");","from":"javascript","to":"rust"}' \
   -H 'content-type: application/json' http://localhost:8080/translate
 docker build -t universal-translator .

@@ -3,6 +3,8 @@
 import { readFileSync, realpathSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL, URL } from 'node:url';
 
+import { makeConfig } from 'lino-arguments';
+
 import {
   add,
   checkText,
@@ -48,7 +50,8 @@ function usage() {
     '  decode-cst [file|-]  Restore source from a Meta Language CST',
     '  languages  List language identifiers (programming, then controlled natural)',
     '  check-words <natural> [file|-]  Check text against the rules of a controlled language',
-    '  serve [--port <port>]  Serve GET /languages and POST /translate as JSON (default port 8080)',
+    '  serve [--port <port>] [--host <host>]  Serve GET /languages and POST /translate as JSON',
+    '            PORT, HOST or a .lenv file set the defaults (8080, 0.0.0.0)',
     '',
     'A language may be a controlled natural language (english, russian,',
     'english-asd-ste100, minimal-english, ...): translate reads and writes',
@@ -163,28 +166,38 @@ function runTranslation(command, args, read, write, stderr) {
   }
 }
 
-function servePort(args) {
-  if (args.length === 0) {
-    return 8080;
+// The server is configured like the other link-foundation tools: an
+// option wins over the PORT and HOST variables, which win over a .lenv file.
+export function serveConfiguration(
+  args,
+  { env = process.env, cwd = process.cwd() } = {}
+) {
+  const { port, host } = makeConfig({
+    argv: ['node', 'universal-translator', ...args],
+    env: { values: { ...env }, autoMap: true },
+    cwd,
+    yargs: ({ yargs }) =>
+      yargs
+        .exitProcess(false)
+        .help(false)
+        .version(false)
+        .strict()
+        .fail((message, error) => {
+          throw error ?? new Error(message);
+        })
+        .option('port', { type: 'number', default: 8080 })
+        .option('host', { type: 'string', default: '0.0.0.0' }),
+  });
+  if (!Number.isInteger(port) || port < 0 || port > 65535) {
+    throw new Error('The port must be an integer from 0 to 65535');
   }
-  const [flag, value] = args;
-  const port = Number(value);
-  if (
-    flag !== '--port' ||
-    args.length !== 2 ||
-    !Number.isInteger(port) ||
-    port < 0 ||
-    port > 65535
-  ) {
-    throw new Error('Usage: universal-translator serve [--port <port>]');
-  }
-  return port;
+  return { port, host };
 }
 
-function startServer(port, stdout) {
+function startServer({ port, host }, stdout) {
   const server = createTranslationServer();
-  server.listen(port, () => {
-    stdout(`Listening on http://localhost:${server.address().port}`);
+  server.listen(port, host, () => {
+    stdout(`Listening on http://${host}:${server.address().port}`);
   });
   return server;
 }
@@ -271,7 +284,7 @@ export function runCli(
 
   try {
     if (command === 'serve') {
-      serve(servePort(argv.slice(1)), stdout);
+      serve(serveConfiguration(argv.slice(1)), stdout);
       return 0;
     }
     if (SOURCE_COMMANDS.includes(command)) {
