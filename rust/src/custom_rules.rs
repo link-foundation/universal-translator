@@ -1,6 +1,6 @@
 //! Rules a user adds to the translation without writing code: plain data
-//! (JSON) that the command line accepts. Each list belongs to one stage of
-//! the pipeline:
+//! that the command line accepts, written as indented Links Notation (JSON
+//! is still read). Each list belongs to one stage of the pipeline:
 //!
 //! ```text
 //! source     text -> text before the source is read
@@ -14,18 +14,276 @@
 //! source (source rules) or target (output rules) language. A name rule is
 //! `{ find, replace }`. Templates map a language to `{ key: [templates] }`.
 //!
-//! The JavaScript twin is js/src/translation/custom-rules.js.
+//! As Links Notation a stage, a natural language and a template key are
+//! unique, so each is written as `name:`; the rules of a stage are a list,
+//! one rule per line, each a few `(field value)` links:
+//!
+//! ```text
+//! source:
+//!   (find colour) (replace color) (language english)
+//! templates:
+//!   english:
+//!     print: 'Say {value}.'
+//! names:
+//!   (find x) (replace count)
+//! ```
+//!
+//! The JavaScript twins are js/src/translation/custom-rules.js and
+//! js/src/translation/rules-notation.js.
 
 use std::collections::HashMap;
-use std::sync::Arc;
+use std::sync::{Arc, LazyLock};
 
+use links_notation::LiNo;
 use regex::{NoExpand, Regex};
-use serde_json::Value as Json;
+use serde_json::{Map, Value as Json};
 
 use crate::meta::{Node, Rule, rewrite};
 use crate::natural::{Language, with_templates};
 
-const STAGES: [&str; 4] = ["source", "templates", "names", "output"];
+/// The stages of the rules, in the order they are written.
+pub const STAGES: [&str; 4] = ["source", "templates", "names", "output"];
+
+type Link = LiNo<String>;
+
+fn rule_fields(stage: &str) -> &'static [&'static str] {
+    if stage == "names" {
+        &["find", "replace"]
+    } else {
+        &["find", "replace", "regex", "language"]
+    }
+}
+
+static PLAIN_WORD: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^[\p{L}\p{N}_.+*/<>=!?-]+$").expect("a valid pattern"));
+
+/// A value as Links Notation: plain words stay plain, anything else is
+/// quoted with ' (a ' inside is doubled).
+pub fn lino_value(text: &str) -> String {
+    if PLAIN_WORD.is_match(text) {
+        text.to_owned()
+    } else {
+        format!("'{}'", text.replace('\'', "''"))
+    }
+}
+
+fn word(link: &Link) -> Result<String, String> {
+    match link {
+        LiNo::Ref(text) => Ok(text.clone()),
+        LiNo::Link { id, values } if values.is_empty() => Ok(id.clone().unwrap_or_default()),
+        LiNo::Link { .. } => Err("Expected a word or a quoted text".into()),
+    }
+}
+
+fn words(values: &[Link]) -> Result<Vec<String>, String> {
+    values.iter().map(word).collect()
+}
+
+fn is_compound(link: &Link) -> bool {
+    matches!(link, LiNo::Link { values, .. } if !values.is_empty())
+}
+
+/// One rule line: (find x) (replace y) ... A line of one link is read by
+/// links-notation as that link itself.
+fn read_rule(line: &Link, stage: &str, index: usize) -> Result<Json, String> {
+    let place = format!("{stage} rule {}", index + 1);
+    let links: Vec<&Link> = match line {
+        LiNo::Link { values, .. } if values.iter().any(is_compound) => values.iter().collect(),
+        _ => vec![line],
+    };
+    let allowed = rule_fields(stage);
+    let mut rule = Map::new();
+    for link in links {
+        let mut parts = match link {
+            LiNo::Link {
+                id: Some(id),
+                values,
+            } => {
+                let mut parts = vec![id.clone()];
+                parts.extend(words(values)?);
+                parts
+            }
+            LiNo::Link { id: None, values } => words(values)?,
+            LiNo::Ref(text) => vec![text.clone()],
+        }
+        .into_iter();
+        let field = parts.next().unwrap_or_default();
+        let rest: Vec<String> = parts.collect();
+        if !allowed.contains(&field.as_str()) {
+            return Err(format!(
+                "The {place} has no field \"{field}\"; use {}",
+                allowed.join(", ")
+            ));
+        }
+        if rule.contains_key(&field) {
+            return Err(format!("The {place} has \"{field}\" twice"));
+        }
+        let [value] = rest.as_slice() else {
+            return Err(format!("The {place} needs one value for \"{field}\""));
+        };
+        let value = if field == "regex" {
+            match value.as_str() {
+                "true" => Json::Bool(true),
+                "false" => Json::Bool(false),
+                other => {
+                    return Err(format!(
+                        "The {place} has \"regex\" {other}; use true or false"
+                    ));
+                }
+            }
+        } else {
+            Json::String(value.clone())
+        };
+        rule.insert(field, value);
+    }
+    Ok(Json::Object(rule))
+}
+
+fn read_templates(values: &[Link]) -> Result<Json, String> {
+    let mut templates = Map::new();
+    for language in values {
+        let (Some(id), keys) = (match language {
+            LiNo::Link { id, values } => (id.as_ref(), values.as_slice()),
+            LiNo::Ref(_) => (None, &[][..]),
+        }) else {
+            return Err("Templates are given once per natural language: \"english:\"".into());
+        };
+        if templates.contains_key(id) {
+            return Err("Templates are given once per natural language: \"english:\"".into());
+        }
+        let mut variants = Map::new();
+        for key in keys {
+            let (Some(name), texts) = (match key {
+                LiNo::Link { id, values } => (id.as_ref(), values.as_slice()),
+                LiNo::Ref(_) => (None, &[][..]),
+            }) else {
+                return Err(format!(
+                    "Templates of {id} are given once per key: \"print:\""
+                ));
+            };
+            if variants.contains_key(name) {
+                return Err(format!(
+                    "Templates of {id} are given once per key: \"print:\""
+                ));
+            }
+            let texts = words(texts)?.into_iter().map(Json::String).collect();
+            variants.insert(name.clone(), Json::Array(texts));
+        }
+        templates.insert(id.clone(), Json::Object(variants));
+    }
+    Ok(Json::Object(templates))
+}
+
+/// Links Notation (or JSON) text -> the rules as data, as
+/// `readRules` of the JavaScript library reads it.
+pub fn read_rules(text: &str) -> Result<Json, String> {
+    let source = text.trim();
+    if source.is_empty() {
+        return Ok(Json::Object(Map::new()));
+    }
+    if source.starts_with('{') {
+        return serde_json::from_str(source).map_err(|error| error.to_string());
+    }
+    let links = links_notation::parse_lino_to_links(source).map_err(|error| error.to_string())?;
+    let mut rules = Map::new();
+    for link in &links {
+        let (id, values) = match link {
+            LiNo::Link { id, values } => (id.as_deref(), values.as_slice()),
+            LiNo::Ref(id) => (Some(id.as_str()), &[][..]),
+        };
+        let Some(stage) = id.filter(|id| STAGES.contains(id)) else {
+            let stages: Vec<String> = STAGES.iter().map(|stage| format!("{stage}:")).collect();
+            return Err(format!(
+                "Unknown rule stage \"{}\"; use {}",
+                id.unwrap_or("(…)"),
+                stages.join(", ")
+            ));
+        };
+        if rules.contains_key(stage) {
+            return Err(format!("The stage \"{stage}\" is given twice"));
+        }
+        let read = if stage == "templates" {
+            read_templates(values)?
+        } else {
+            Json::Array(
+                values
+                    .iter()
+                    .enumerate()
+                    .map(|(index, line)| read_rule(line, stage, index))
+                    .collect::<Result<_, _>>()?,
+            )
+        };
+        rules.insert(stage.to_owned(), read);
+    }
+    Ok(Json::Object(rules))
+}
+
+fn rule_line(rule: &Json, stage: &str) -> String {
+    let mut fields = vec![("find", rule.get("find").map(spelled).unwrap_or_default())];
+    if let Some(replace) = rule.get("replace").filter(|replace| !replace.is_null()) {
+        fields.push(("replace", spelled(replace)));
+    }
+    if stage != "names" && truthy(rule.get("regex")) {
+        fields.push(("regex", "true".into()));
+    }
+    if stage != "names" && truthy(rule.get("language")) {
+        fields.push((
+            "language",
+            rule.get("language").map(spelled).unwrap_or_default(),
+        ));
+    }
+    let links: Vec<String> = fields
+        .iter()
+        .map(|(field, value)| format!("({field} {})", lino_value(value)))
+        .collect();
+    format!("  {}", links.join(" "))
+}
+
+/// The rules as data -> Links Notation text (empty when there are no
+/// rules), as `formatRules` of the JavaScript library writes it.
+pub fn format_rules(rules: &Json) -> String {
+    let mut lines = Vec::new();
+    for stage in STAGES {
+        if stage == "templates" {
+            let languages: Vec<(&String, &Map<String, Json>)> = rules
+                .get("templates")
+                .and_then(Json::as_object)
+                .into_iter()
+                .flatten()
+                .filter_map(|(language, keys)| Some((language, keys.as_object()?)))
+                .filter(|(_, keys)| !keys.is_empty())
+                .collect();
+            if !languages.is_empty() {
+                lines.push("templates:".to_owned());
+            }
+            for (language, keys) in languages {
+                lines.push(format!("  {language}:"));
+                for (key, texts) in keys {
+                    let texts: Vec<String> = match texts {
+                        Json::Array(items) => items
+                            .iter()
+                            .map(|item| lino_value(&spelled(item)))
+                            .collect(),
+                        other => vec![lino_value(&spelled(other))],
+                    };
+                    lines.push(format!("    {key}: {}", texts.join(" ")));
+                }
+            }
+        } else if let Some(list) = rules
+            .get(stage)
+            .and_then(Json::as_array)
+            .filter(|list| !list.is_empty())
+        {
+            lines.push(format!("{stage}:"));
+            lines.extend(list.iter().map(|rule| rule_line(rule, stage)));
+        }
+    }
+    if lines.is_empty() {
+        String::new()
+    } else {
+        format!("{}\n", lines.join("\n"))
+    }
+}
 
 /// A JavaScript regular expression (with the `u` flag) for the regex
 /// crate: `\b`, `\w` and `\d` stay ASCII as they are in JavaScript.
@@ -211,6 +469,11 @@ impl CustomRules {
     pub fn from_json(text: &str) -> Result<Self, String> {
         let value: Json = serde_json::from_str(text).map_err(|error| error.to_string())?;
         Self::from_value(&value)
+    }
+
+    /// Check rules written as indented Links Notation (or JSON) text.
+    pub fn from_text(text: &str) -> Result<Self, String> {
+        Self::from_value(&read_rules(text)?)
     }
 
     /// Check a rule set and compile it.

@@ -207,7 +207,7 @@ universal-translator translate auto javascript app.py   # detect the source
 universal-translator translate python go app.py --all-or-nothing
 universal-translator coverage python app.py   # {lines, readLines, coverage, errors}
 universal-translator detect app.py            # the likeliest languages first
-universal-translator translate russian python a.txt --rules rules.json
+universal-translator translate russian python a.txt --rules examples/rules/russian-at-most.lino
 ```
 
 ```js
@@ -237,6 +237,29 @@ createTranslator({
   },
 });
 ```
+
+A rule file is indented Links Notation. A stage, a natural language and a
+template key are unique, so each is written as `name:`. The rules of a
+stage are a list with one rule per line, each made of a few `(field value)`
+links. `readRules` and `formatRules` (Rust: `custom_rules::read_rules` and
+`format_rules`) turn the text into the object above and back, and JSON rule
+files are still read. This is
+[examples/rules/russian-at-most.lino](examples/rules/russian-at-most.lino):
+
+```
+source:
+  (find ничего) (replace Ничего) (language russian)
+templates:
+  russian:
+    less-or-equal: '{left} самое большее {right}'
+names:
+  (find n) (replace count)
+output:
+  (find pass) (replace 'pass  # ничего') (language python)
+  (find '(\d+)') (replace '[$1]') (regex true) (language javascript)
+```
+
+`POST /translate` takes `rules` as this text or as the object.
 
 ### Language versions, comment languages and the meta view
 

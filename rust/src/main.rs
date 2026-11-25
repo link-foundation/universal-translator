@@ -10,7 +10,7 @@ use universal_translator::{
 };
 
 const USAGE: &str = "Usage:
-  universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment] [--all-or-nothing] [--rules <file.json>] [--comment-language <natural>] [--comment-from <natural>]
+  universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment] [--all-or-nothing] [--rules <file.lino>] [--comment-language <natural>] [--comment-from <natural>]
   universal-translator meta <language> [file|-] [--json]
   universal-translator coverage <language> [file|-]
   universal-translator detect [file|-]
@@ -35,7 +35,8 @@ Modes: context-dependent (default), literal, same-effect
 Parts that cannot be translated become comments and are listed on
 standard error; --all-or-nothing fails instead.
 The source language may be \"auto\" to detect it.
---rules <file.json> adds source, templates, names and output rules.
+--rules <file.lino> adds source, templates, names and output rules
+(indented Links Notation; JSON files are read too).
 --comment-language <natural> translates the comments too (only them when
 <from> is <to>); --comment-from <natural> names the language of the
 comments (detected otherwise).
@@ -226,7 +227,7 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
                     .ok_or("Expected a single rules file for --rules")?;
                 let text =
                     fs::read_to_string(value).map_err(|error| format!("{value}: {error}"))?;
-                rules = Some(CustomRules::from_json(&text)?);
+                rules = Some(CustomRules::from_text(&text)?);
             }
             "--mode" => {
                 mode = Some(value(argument, mode.is_some(), &mut arguments)?.parse::<Mode>()?);
