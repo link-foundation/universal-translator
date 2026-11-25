@@ -41,6 +41,12 @@ Pick a mode with `--mode`:
 - `literal` keeps names and comment text as written.
 - `same-effect` keeps only what the program does and may restructure it.
 
+The meta language has integers, text, booleans and integer arrays. Arrays
+are indexed from 0 in the meta language, and languages that count from 1
+shift every index. In C an array is a local variable-length array, so its
+length is `sizeof a / sizeof a[0]`. The sieve, bubble sort and sum and
+product examples use arrays. The case study lists the other compromises.
+
 `createTranslator({ layers })` takes rule layers that can be replaced or
 decorated. The common library in `common-library/` only hides differences
 between standard libraries, such as printing. `--common-library` translates

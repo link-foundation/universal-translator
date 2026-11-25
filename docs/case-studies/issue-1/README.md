@@ -112,7 +112,26 @@ NASM / CIL / Jasmin ──machine reader──▶ stack machine ──lifting─
    program, function, block, declaration, assignment, if, while, counting
    loop, return, print, evaluate, call, binary, unary, interpolation, name,
    number, text, boolean and comment. Type inference (`types.js`) assigns
-   `integer`, `text`, `boolean` or `nothing` to every expression.
+   `integer`, `text`, `boolean`, `array` (`int[]`) or `nothing` to every
+   expression.
+   Integer arrays add five node kinds: an array literal, a new array of n
+   equal values, an element read, an element assignment and the length.
+   Indexes are counted from 0 in the meta language. Languages that count
+   from 1 (Lua, Julia, R, MATLAB, Fortran) add 1 when they write an index
+   and subtract 1 when they read one. Some languages need a compromise
+   (`arrays.js`, `array-spellings.js`):
+   - C has no array that knows its length, so an array is a local
+     variable-length array (`int a[n];`) and its length is
+     `sizeof a / sizeof a[0]`. Arrays are therefore never returned or kept
+     outside the function that declares them.
+   - Languages without a constructor that fills a new array get the array
+     and a fill loop (`expandArrayFills`).
+   - Groovy writes `List<Long>`, Ada declares each array with its bounds in
+     a `declare` block that holds the statements after it, Zig allocates n
+     values with the page allocator, Bash writes `(a b)` and `${#a[@]}`.
+   - NASM allocates an array with `malloc` and keeps its length before the
+     first element. CIL and JVM use `int64[]` and `long[]` with a private
+     helper that creates and fills them.
 3. **Rules are functions from a meta program to a meta program.** Each of
    the three ordered lists does one kind of work:
    - Understanding rules turn source-specific forms into meaning. Examples:
