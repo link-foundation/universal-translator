@@ -274,6 +274,11 @@ jobs:
           npm --prefix examples/universal-app run preview -- --port 4173 --strictPort > e2e-output/preview.log 2>&1 &
           node examples/universal-app/e2e/translate.e2e.mjs http://127.0.0.1:4173/ e2e-output/web-demo.png
 
+      # The desktop app opens dist/index.html from file://, where a skin once
+      # failed to load; check it the same way.
+      - name: Load a skin from file:// like the desktop app
+        run: node examples/universal-app/e2e/file-protocol.e2e.mjs examples/universal-app/dist/index.html
+
       - name: Upload screenshot
         if: always()
         uses: actions/upload-artifact@v7

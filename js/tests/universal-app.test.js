@@ -66,6 +66,23 @@ describe('universal React example app', () => {
     expect(appSource).toContain('h(RulesEditor');
     expect(workflow).toContain('web-e2e:');
     expect(workflow).toContain('examples/universal-app/e2e/translate.e2e.mjs');
+    expect(workflow).toContain(
+      'examples/universal-app/e2e/file-protocol.e2e.mjs'
+    );
+  });
+
+  it('bundles skin data and fails the build on any warning', () => {
+    const viteConfig = readText(viteConfigPath);
+    // node:fs/promises is an empty module in the browser build, which broke
+    // every skin of the desktop app (file://).
+    expect(viteConfig).toContain('bundleThemeFiles()');
+    expect(readText(`${exampleRoot}/src/theme-files.js`)).toContain(
+      'import.meta.glob('
+    );
+    expect(viteConfig).toContain('failOnWarnings()');
+    expect(viteConfig).toContain('customLogger: logger');
+    expect(viteConfig).toContain('manualChunks: chunkFor');
+    expect(viteConfig).not.toContain('chunkSizeWarningLimit');
   });
 
   it('shares the Vite build output with Capacitor and GitHub Pages', () => {
