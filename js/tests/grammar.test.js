@@ -157,6 +157,13 @@ describe('grammar translator: target conventions', () => {
       'printf("%d! = %d\\n", number, factorial(number));'
     );
   });
+
+  it('escapes backslashes before braces in Lean interpolated text', () => {
+    const program = 'const name = "x";\nconsole.log(`a\\\\b {c} ${name}`);\n';
+    expect(translator.translate(program, 'javascript', 'lean')).toContain(
+      'IO.println s!"a\\\\b \\{c} {name}"'
+    );
+  });
 });
 
 describe('grammar translator: replaceable rule layers', () => {

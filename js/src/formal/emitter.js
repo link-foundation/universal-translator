@@ -129,6 +129,9 @@ class BaseEmitter {
     if (format === 'braces') {
       result = result.replace(/\{/g, '{{').replace(/\}/g, '}}');
     }
+    if (format === 'escaped-braces') {
+      result = result.replace(/\{/g, '\\{');
+    }
     return result;
   }
 

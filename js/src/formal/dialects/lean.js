@@ -529,7 +529,7 @@ const emitter = (Base) =>
       const written = parts
         .map((part) =>
           part.kind === 'Text'
-            ? this.escape(part.value).replace(/\{/g, '\\{')
+            ? this.escape(part.value, { format: 'escaped-braces' })
             : `{${this.expression(part)}}`
         )
         .join('');
