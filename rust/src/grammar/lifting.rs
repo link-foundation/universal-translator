@@ -166,6 +166,9 @@ struct BlockLifting {
     statements: Vec<Node>,
     stack: Vec<Node>,
     prints: Vec<Node>,
+    /// Array literals whose elements are still being stored: their places
+    /// on the stack and their lengths.
+    building: Vec<(usize, usize)>,
 }
 
 impl BlockLifting {
@@ -175,6 +178,7 @@ impl BlockLifting {
             statements: Vec::new(),
             stack: Vec::new(),
             prints: Vec::new(),
+            building: Vec::new(),
         }
     }
 
@@ -227,6 +231,71 @@ impl BlockLifting {
         }
     }
 
+    /// An array literal is lowered as a new array of zeros whose elements are
+    /// stored one by one, each after a dup of the array.
+    fn duplicate(&mut self) -> Result<()> {
+        let size = self.stack.len();
+        self.building.retain(|&(at, _)| at < size);
+        let Some(top) = self.stack.last() else {
+            return Err(lift_error("a dup that does not build an array literal"));
+        };
+        let at = size - 1;
+        if self.building.iter().any(|&(place, _)| place == at) && top.is("ArrayLiteral") {
+            self.stack.push(building(at));
+            return Ok(());
+        }
+        let length = top.node("length");
+        let length = match (length, top.node("fill")) {
+            (Some(length), Some(fill))
+                if top.is("NewArray") && length.is("Number") && fill.is_number(0.0) =>
+            {
+                length.number("value").unwrap_or_default()
+            }
+            _ => return Err(lift_error("a dup that does not build an array literal")),
+        };
+        self.stack[at] = Node::new("ArrayLiteral").with("elements", Vec::<Node>::new());
+        if length > 0.0 {
+            self.building.push((at, length as usize));
+        }
+        self.stack.push(building(at));
+        Ok(())
+    }
+
+    fn store_element(&mut self) -> Result<()> {
+        let value = self.pop()?;
+        let index = self.pop()?;
+        let array = self.pop()?;
+        if array.is("Building") {
+            let at = array.number("at").unwrap_or_default() as usize;
+            let literal = self
+                .stack
+                .get_mut(at)
+                .filter(|literal| literal.is("ArrayLiteral"))
+                .ok_or_else(|| lift_error("array literal elements out of order"))?;
+            let count = literal.nodes("elements").len();
+            if !index.is_number(count as f64) {
+                return Err(lift_error("array literal elements out of order"));
+            }
+            if let Some(Value::List(elements)) = literal.fields.get_mut("elements") {
+                elements.push(Value::Node(value));
+            }
+            // A full literal is no longer being built.
+            self.building
+                .retain(|&(place, length)| place != at || count + 1 < length);
+            return Ok(());
+        }
+        if !array.is("Name") {
+            return Err(lift_error("an element stored into an unnamed array"));
+        }
+        self.add(
+            Node::new("IndexAssignment")
+                .with("name", array.str("name").unwrap_or_default())
+                .with("index", index)
+                .with("value", value),
+        );
+        Ok(())
+    }
+
     fn print_text(&mut self, value: &str) {
         if let Some(last) = self.prints.last_mut()
             && last.is("Text")
@@ -262,6 +331,8 @@ impl BlockLifting {
             }
             Instruction::PrintText(value) => self.print_text(value),
             Instruction::PrintNewline => self.flush(true),
+            Instruction::Dup => self.duplicate()?,
+            Instruction::StoreElement => self.store_element()?,
             Instruction::Jump(label) => {
                 return Err(lift_error(format!("an unexpected jump to \"{label}\"")));
             }
@@ -365,7 +436,10 @@ impl<'a> FunctionLifting<'a> {
                     instruction @ (Instruction::Push(_)
                     | Instruction::Load(_)
                     | Instruction::Arithmetic(_)
-                    | Instruction::Negate),
+                    | Instruction::Negate
+                    | Instruction::ElementIndex
+                    | Instruction::LoadElement
+                    | Instruction::ArrayLength),
                 ) => self.expression(&mut values, instruction)?,
                 Some(instruction @ Instruction::Call(callee, _)) if self.returns(callee) => {
                     self.expression(&mut values, instruction)?
@@ -479,6 +553,27 @@ impl<'a> FunctionLifting<'a> {
                         .with("operator", "negate")
                         .with("operand", operand),
                 );
+            }
+            Instruction::ElementIndex => {}
+            Instruction::NewArray => {
+                let fill = pop(stack)?;
+                let length = pop(stack)?;
+                stack.push(if length.is_number(0.0) {
+                    Node::new("ArrayLiteral").with("elements", Vec::<Node>::new())
+                } else {
+                    Node::new("NewArray")
+                        .with("length", length)
+                        .with("fill", fill)
+                });
+            }
+            Instruction::LoadElement => {
+                let index = pop(stack)?;
+                let array = pop(stack)?;
+                stack.push(Node::new("Index").with("array", array).with("index", index));
+            }
+            Instruction::ArrayLength => {
+                let array = pop(stack)?;
+                stack.push(Node::new("Length").with("array", array));
             }
             Instruction::Call(callee, count) => {
                 if stack.len() < *count {
@@ -656,6 +751,12 @@ fn rebuild(steps: &[Step], false_label: &str) -> Result<Node> {
     Ok(cond_node(&next))
 }
 
+/// The marker a dup leaves on the stack while an array literal is built:
+/// it stands for the literal at the place `at`.
+fn building(at: usize) -> Node {
+    Node::new("Building").with("at", at as f64)
+}
+
 fn operation_name(instruction: &Instruction) -> &'static str {
     match instruction {
         Instruction::Comment(_) => "comment",
@@ -674,6 +775,12 @@ fn operation_name(instruction: &Instruction) -> &'static str {
         Instruction::PrintInteger => "print-integer",
         Instruction::PrintText(_) => "print-text",
         Instruction::PrintNewline => "print-newline",
+        Instruction::NewArray => "new-array",
+        Instruction::Dup => "dup",
+        Instruction::ElementIndex => "element-index",
+        Instruction::LoadElement => "load-element",
+        Instruction::StoreElement => "store-element",
+        Instruction::ArrayLength => "array-length",
     }
 }
 

@@ -156,6 +156,7 @@ fn procedure(
         name,
         parameter_count,
         slot_count: slot_names.len(),
+        slot_arrays: vec![false; slot_names.len()],
         slot_names,
         returns,
         max_depth: 0,
@@ -253,6 +254,38 @@ fn nasm_rules<'a>(
         fixed(
             &[r"^pop rax$", r"^leave$", r"^ret$"],
             vec![Instruction::Return],
+        ),
+        // Arrays: new_array(length, fill) and the elements after the address.
+        fixed(
+            &[
+                r"^pop rsi$",
+                r"^pop rdi$",
+                r"^call new_array$",
+                r"^push rax$",
+            ],
+            vec![Instruction::NewArray],
+        ),
+        fixed(&[r"^push qword \[rsp\]$"], vec![Instruction::Dup]),
+        fixed(
+            &[
+                r"^pop rcx$",
+                r"^pop rax$",
+                r"^push qword \[rax \+ rcx \* 8\]$",
+            ],
+            vec![Instruction::ElementIndex, Instruction::LoadElement],
+        ),
+        fixed(
+            &[
+                r"^pop rdx$",
+                r"^pop rcx$",
+                r"^pop rax$",
+                r"^mov \[rax \+ rcx \* 8\], rdx$",
+            ],
+            vec![Instruction::StoreElement],
+        ),
+        fixed(
+            &[r"^pop rax$", r"^push qword \[rax - 8\]$"],
+            vec![Instruction::ArrayLength],
         ),
         fixed(&[r"^add rsp, 8$"], vec![Instruction::Pop]),
     ];
@@ -508,6 +541,15 @@ fn cil_rules<'a>(parameter_count: usize, returns: bool) -> Vec<ReadRule<'a>> {
             Ok(Some(vec![Some(Instruction::Store(slot))]))
         }),
         fixed(&[r"^pop$"], vec![Instruction::Pop]),
+        fixed(&[r"^dup$"], vec![Instruction::Dup]),
+        fixed(&[r"^conv\.ovf\.i$"], vec![Instruction::ElementIndex]),
+        fixed(&[r"^ldelem\.i8$"], vec![Instruction::LoadElement]),
+        fixed(&[r"^stelem\.i8$"], vec![Instruction::StoreElement]),
+        fixed(&[r"^ldlen$", r"^conv\.i8$"], vec![Instruction::ArrayLength]),
+        fixed(
+            &[r"^call int64\[\] Program::NewArray\(int64, int64\)$"],
+            vec![Instruction::NewArray],
+        ),
         rule(&[r"^(add|sub|mul|div|rem)$"], |m| {
             Ok(arithmetic(group(&m[0], 1))
                 .map(|operation| vec![Some(Instruction::Arithmetic(operation))]))
@@ -684,16 +726,28 @@ fn jvm_rules<'a>(base: usize) -> Vec<ReadRule<'a>> {
                 &m[0], 1,
             ))?))]))
         }),
-        rule(&[r"^lload (\d+)$"], move |m| {
+        rule(&[r"^[la]load (\d+)$"], move |m| {
             Ok(Some(vec![Some(Instruction::Load(slot_of(group(
                 &m[0], 1,
             ))))]))
         }),
-        rule(&[r"^lstore (\d+)$"], move |m| {
+        rule(&[r"^[la]store (\d+)$"], move |m| {
             Ok(Some(vec![Some(Instruction::Store(slot_of(group(
                 &m[0], 1,
             ))))]))
         }),
+        fixed(&[r"^dup$"], vec![Instruction::Dup]),
+        fixed(&[r"^l2i$"], vec![Instruction::ElementIndex]),
+        fixed(&[r"^laload$"], vec![Instruction::LoadElement]),
+        fixed(&[r"^lastore$"], vec![Instruction::StoreElement]),
+        fixed(
+            &[r"^arraylength$", r"^i2l$"],
+            vec![Instruction::ArrayLength],
+        ),
+        fixed(
+            &[r"^invokestatic Program/newArray\(JJ\)\[J$"],
+            vec![Instruction::NewArray],
+        ),
         fixed(&[r"^pop2$"], vec![Instruction::Pop]),
         rule(&[r"^(ladd|lsub|lmul|ldiv|lrem)$"], |m| {
             Ok(arithmetic(group(&m[0], 1))
@@ -755,7 +809,7 @@ pub fn read_jvm(source: &str) -> Result<LoweredProgram> {
     let lines = trimmed_lines(source);
     let (comments, rest) = leading_comments(&lines, ";", r"^\.class");
     let header = pattern_regex(r"^\.method public static (\w+)\(([^)]*)\)([JV])$");
-    let variable = pattern_regex(r"^\.var (\d+) is (\w+) J$");
+    let variable = pattern_regex(r"^\.var (\d+) is (\w+) \[?J$");
     let mut items = Vec::new();
     let mut pending: Vec<String> = Vec::new();
     let mut index = 0;

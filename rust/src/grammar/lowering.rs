@@ -11,11 +11,17 @@
 //! call name count return           return-nothing
 //! print-integer   print-text value print-newline
 //! comment text
+//! new-array       (length, fill → array)       dup
+//! element-index   (makes the integer on top an element index)
+//! load-element    (array, index → value)       store-element (array,
+//! array-length    (array → length)                 index, value → )
 //! ```
 //!
 //! Integers are 64-bit. Text exists only as literal parts of printed values,
 //! so every program that prints text, integers and their interpolations and
 //! computes with integer functions, loops and conditions can be lowered.
+//! Arrays of integers live in local slots; an array literal is a new array
+//! of zeros whose elements are stored one by one.
 
 use std::collections::HashMap;
 
@@ -41,6 +47,12 @@ pub enum Instruction {
     PrintInteger,
     PrintText(String),
     PrintNewline,
+    NewArray,
+    Dup,
+    ElementIndex,
+    LoadElement,
+    StoreElement,
+    ArrayLength,
 }
 
 /// The stack machine code of one function (or of the main program).
@@ -51,6 +63,8 @@ pub struct Procedure {
     pub slot_count: usize,
     /// The variable name of each slot, in slot order.
     pub slot_names: Vec<String>,
+    /// Whether each slot holds an array, in slot order.
+    pub slot_arrays: Vec<bool>,
     pub returns: bool,
     pub max_depth: i64,
     pub comments: Vec<String>,
@@ -122,6 +136,10 @@ fn compound(operator: &str) -> Option<&'static str> {
     }
 }
 
+fn is_array_value(value: &Node) -> bool {
+    value.is("ArrayLiteral") || value.is("NewArray")
+}
+
 fn field<'a>(node: &'a Node, key: &str) -> Result<&'a Node> {
     node.node(key)
         .ok_or_else(|| unsupported(&format!("a {} without {key}", node.kind)))
@@ -133,6 +151,7 @@ struct FunctionLowering<'a> {
     functions: &'a HashMap<String, bool>,
     slots: HashMap<String, usize>,
     parameter_count: usize,
+    arrays: std::collections::HashSet<String>,
     code: Vec<Instruction>,
     labels: usize,
     depth: i64,
@@ -156,6 +175,7 @@ impl<'a> FunctionLowering<'a> {
             functions,
             parameter_count: parameters.len(),
             slots,
+            arrays: std::collections::HashSet::new(),
             code: Vec::new(),
             labels: 0,
             depth: 0,
@@ -165,13 +185,16 @@ impl<'a> FunctionLowering<'a> {
 
     fn emit(&mut self, instruction: Instruction) {
         let effect = match &instruction {
-            Instruction::Push(_) | Instruction::Load(_) => 1,
+            Instruction::Push(_) | Instruction::Load(_) | Instruction::Dup => 1,
             Instruction::Store(_)
             | Instruction::Pop
             | Instruction::Arithmetic(_)
             | Instruction::Return
-            | Instruction::PrintInteger => -1,
+            | Instruction::PrintInteger
+            | Instruction::NewArray
+            | Instruction::LoadElement => -1,
             Instruction::CompareJump(..) => -2,
+            Instruction::StoreElement => -3,
             Instruction::Call(callee, count) => {
                 let returns = self.functions.get(callee).copied().unwrap_or(false);
                 1 - *count as i64 - if returns { 0 } else { 1 }
@@ -215,11 +238,24 @@ impl<'a> FunctionLowering<'a> {
                 ));
             }
             "Declaration" => {
-                self.value(field(node, "value")?)?;
-                let slot = self.slot(node.str("name").unwrap_or_default());
+                let value = field(node, "value")?;
+                let name = node.str("name").unwrap_or_default();
+                self.value(value)?;
+                if node.str("type") == Some("array") || is_array_value(value) {
+                    self.arrays.insert(name.to_owned());
+                }
+                let slot = self.slot(name);
                 self.emit(Instruction::Store(slot));
             }
             "Assignment" => self.assignment(node)?,
+            "IndexAssignment" => {
+                let slot = self.known(node.str("name").unwrap_or_default())?;
+                self.emit(Instruction::Load(slot));
+                self.value(field(node, "index")?)?;
+                self.emit(Instruction::ElementIndex);
+                self.value(field(node, "value")?)?;
+                self.emit(Instruction::StoreElement);
+            }
             "If" => {
                 let otherwise = self.label();
                 let done = self.label();
@@ -279,6 +315,22 @@ impl<'a> FunctionLowering<'a> {
             return Err(unsupported(&format!("the {operator} assignment")));
         }
         self.emit(Instruction::Store(slot));
+        Ok(())
+    }
+
+    /// `[a, b]` is a new array of two zeros whose elements become a and b.
+    fn array_literal(&mut self, node: &Node) -> Result<()> {
+        let elements = node.nodes("elements");
+        self.emit(Instruction::Push(elements.len() as f64));
+        self.emit(Instruction::Push(0.0));
+        self.emit(Instruction::NewArray);
+        for (index, element) in elements.into_iter().enumerate() {
+            self.emit(Instruction::Dup);
+            self.emit(Instruction::Push(index as f64));
+            self.emit(Instruction::ElementIndex);
+            self.value(element)?;
+            self.emit(Instruction::StoreElement);
+        }
         Ok(())
     }
 
@@ -390,6 +442,22 @@ impl<'a> FunctionLowering<'a> {
                 }
                 None => self.boolean_value(node)?,
             },
+            "ArrayLiteral" => self.array_literal(node)?,
+            "NewArray" => {
+                self.value(field(node, "length")?)?;
+                self.value(field(node, "fill")?)?;
+                self.emit(Instruction::NewArray);
+            }
+            "Index" => {
+                self.value(field(node, "array")?)?;
+                self.value(field(node, "index")?)?;
+                self.emit(Instruction::ElementIndex);
+                self.emit(Instruction::LoadElement);
+            }
+            "Length" => {
+                self.value(field(node, "array")?)?;
+                self.emit(Instruction::ArrayLength);
+            }
             kind => return Err(unsupported(&format!("a {kind} value"))),
         }
         Ok(())
@@ -460,11 +528,16 @@ impl<'a> FunctionLowering<'a> {
             .collect();
         named.sort();
         let slot_names: Vec<String> = named.into_iter().map(|(_, name)| name).collect();
+        let slot_arrays = slot_names
+            .iter()
+            .map(|name| self.arrays.contains(name))
+            .collect();
         Procedure {
             name: self.name,
             parameter_count: self.parameter_count,
             slot_count: slot_names.len(),
             slot_names,
+            slot_arrays,
             returns: self.returns,
             max_depth: self.max_depth,
             comments,
@@ -487,6 +560,12 @@ pub fn lower_program(program: &Node) -> Result<LoweredProgram> {
         })
         .collect();
     for item in &items {
+        if item.str("returnType") == Some("array") {
+            return Err(unsupported(&format!(
+                "the array returned by \"{}\"",
+                item.str("name").unwrap_or_default()
+            )));
+        }
         for parameter in item.nodes("parameters") {
             if let Some(kind) = parameter.str("type")
                 && !kind.is_empty()

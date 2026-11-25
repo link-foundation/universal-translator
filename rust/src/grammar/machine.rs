@@ -11,6 +11,16 @@ use super::meta::{Node, format_number};
 
 type Result<T> = std::result::Result<T, GrammarError>;
 
+/// Whether a lowered program creates arrays, and so needs the helper that
+/// allocates and fills them.
+fn creates_arrays(program: &LoweredProgram) -> bool {
+    program
+        .functions
+        .iter()
+        .chain([&program.main])
+        .any(|item| item.code.contains(&Instruction::NewArray))
+}
+
 fn comments(prefix: &str, texts: &[String], indent: &str) -> Vec<String> {
     texts
         .iter()
@@ -181,6 +191,22 @@ fn nasm_procedure(
                 body.push("call print_text".into());
             }
             Instruction::PrintNewline => body.push("call print_newline".into()),
+            // An array is a pointer to its first element, with its length
+            // stored in the eight bytes before it.
+            Instruction::NewArray => {
+                body.extend(["pop rsi", "pop rdi", "call new_array", "push rax"].map(String::from))
+            }
+            Instruction::Dup => body.push("push qword [rsp]".into()),
+            Instruction::ElementIndex => {}
+            Instruction::LoadElement => {
+                body.extend(["pop rcx", "pop rax", "push qword [rax + rcx * 8]"].map(String::from))
+            }
+            Instruction::StoreElement => body.extend(
+                ["pop rdx", "pop rcx", "pop rax", "mov [rax + rcx * 8], rdx"].map(String::from),
+            ),
+            Instruction::ArrayLength => {
+                body.extend(["pop rax", "push qword [rax - 8]"].map(String::from))
+            }
         }
     }
     body.push("%pop".into());
@@ -212,7 +238,35 @@ fn nasm_helper(name: &str, format: &str, load: &[&str]) -> Vec<String> {
     lines
 }
 
+/// new_array(length, fill): malloc room for the length and the elements,
+/// then fill them. The memory lives until the program ends.
+const NASM_NEW_ARRAY: [&str; 22] = [
+    "new_array:",
+    "    push rbp",
+    "    mov rbp, rsp",
+    "    and rsp, -16",
+    "    push rdi",
+    "    push rsi",
+    "    lea rdi, [rdi * 8 + 8]",
+    "    call malloc wrt ..plt",
+    "    pop rsi",
+    "    pop rdi",
+    "    mov [rax], rdi",
+    "    add rax, 8",
+    "    xor ecx, ecx",
+    ".fill:",
+    "    cmp rcx, rdi",
+    "    jge .done",
+    "    mov [rax + rcx * 8], rsi",
+    "    inc rcx",
+    "    jmp .fill",
+    ".done:",
+    "    leave",
+    "    ret",
+];
+
 fn write_nasm(program: &LoweredProgram) -> Result<String> {
+    let arrays = creates_arrays(program);
     let mut texts = Vec::new();
     let returns: HashMap<String, bool> = program
         .functions
@@ -227,10 +281,13 @@ fn write_nasm(program: &LoweredProgram) -> Result<String> {
     if !program.comments.is_empty() {
         lines.push(String::new());
     }
+    lines.push("default rel".into());
+    lines.push("extern printf".into());
+    if arrays {
+        lines.push("extern malloc".into());
+    }
     lines.extend(
         [
-            "default rel",
-            "extern printf",
             "global main",
             "",
             "section .data",
@@ -247,6 +304,10 @@ fn write_nasm(program: &LoweredProgram) -> Result<String> {
     lines.push("section .text".into());
     for procedure in procedures {
         lines.extend(procedure);
+        lines.push(String::new());
+    }
+    if arrays {
+        lines.extend(NASM_NEW_ARRAY.map(String::from));
         lines.push(String::new());
     }
     lines.extend(nasm_helper(
@@ -323,7 +384,20 @@ fn cil_method(
             .collect::<Vec<_>>()
             .join(", ")
     };
-    let locals = &item.slot_names[item.parameter_count..];
+    let locals: Vec<String> = item
+        .slot_names
+        .iter()
+        .enumerate()
+        .skip(item.parameter_count)
+        .map(|(slot, name)| {
+            let kind = if item.slot_arrays.get(slot) == Some(&true) {
+                "int64[]"
+            } else {
+                "int64"
+            };
+            format!("{kind} {name}")
+        })
+        .collect();
     let access = |slot: usize, argument: &str, local: &str| {
         if slot < item.parameter_count {
             format!("{argument} {slot}")
@@ -337,7 +411,7 @@ fn cil_method(
     }
     body.push(format!(".maxstack {}", item.max_depth.max(1)));
     if !locals.is_empty() {
-        body.push(format!(".locals init ({})", named(locals)));
+        body.push(format!(".locals init ({})", locals.join(", ")));
     }
     for instruction in &item.code {
         match instruction {
@@ -370,6 +444,16 @@ fn cil_method(
             Instruction::PrintNewline => {
                 body.push("call void [System.Console]System.Console::WriteLine()".into());
             }
+            Instruction::NewArray => {
+                body.push(format!(
+                    "call int64[] Program::{CIL_NEW_ARRAY}(int64, int64)"
+                ));
+            }
+            Instruction::Dup => body.push("dup".into()),
+            Instruction::ElementIndex => body.push("conv.ovf.i".into()),
+            Instruction::LoadElement => body.push("ldelem.i8".into()),
+            Instruction::StoreElement => body.push("stelem.i8".into()),
+            Instruction::ArrayLength => body.extend(["ldlen", "conv.i8"].map(String::from)),
         }
     }
     let mut lines = comments("//", &item.comments, "    ");
@@ -391,6 +475,34 @@ fn cil_method(
 }
 
 const FRAMEWORK_KEY: &str = "(B0 3F 5F 7F 11 D5 0A 3A)";
+
+/// NewArray(length, fill): a new array filled by Array.Fill.
+const CIL_NEW_ARRAY: &str = "NewArray";
+
+fn cil_new_array_method() -> Vec<String> {
+    let mut lines = vec![
+        String::new(),
+        format!(
+            "    .method private static int64[] {CIL_NEW_ARRAY}(int64 length, int64 fill) cil managed"
+        ),
+    ];
+    lines.extend(
+        [
+            "    {",
+            "        .maxstack 3",
+            "        ldarg 0",
+            "        conv.ovf.i",
+            "        newarr [System.Runtime]System.Int64",
+            "        dup",
+            "        ldarg 1",
+            "        call void [System.Runtime]System.Array::Fill<int64>(!!0[], !!0)",
+            "        ret",
+            "    }",
+        ]
+        .map(String::from),
+    );
+    lines
+}
 
 fn write_cil(program: &LoweredProgram) -> String {
     let signatures: HashMap<String, String> = program
@@ -431,6 +543,9 @@ fn write_cil(program: &LoweredProgram) -> String {
             lines.push(String::new());
         }
         lines.extend(cil_method(item, &signatures, "Main"));
+    }
+    if creates_arrays(program) {
+        lines.extend(cil_new_array_method());
     }
     lines.push("}".into());
     lines.push(String::new());
@@ -487,16 +602,17 @@ fn jvm_method(item: &Procedure, descriptors: &HashMap<String, String>) -> Vec<St
     let is_main = item.name == "main";
     let base = usize::from(is_main);
     let slot = |index: usize| base + 2 * index;
+    // Arrays are references, loaded with aload; integers are longs.
+    let is_array = |index: usize| item.slot_arrays.get(index) == Some(&true);
+    let prefix = |index: usize| if is_array(index) { "a" } else { "l" };
     let mut body = vec![
         format!(".limit stack {}", 2 * item.max_depth + 3),
         format!(".limit locals {}", base + 2 * item.slot_count),
     ];
-    body.extend(
-        item.slot_names
-            .iter()
-            .enumerate()
-            .map(|(index, name)| format!(".var {} is {name} J", slot(index))),
-    );
+    body.extend(item.slot_names.iter().enumerate().map(|(index, name)| {
+        let kind = if is_array(index) { "[J" } else { "J" };
+        format!(".var {} is {name} {kind}", slot(index))
+    }));
     let descriptor = |callee: &str| {
         descriptors
             .get(callee)
@@ -509,8 +625,12 @@ fn jvm_method(item: &Procedure, descriptors: &HashMap<String, String>) -> Vec<St
                 body.extend(comments(";", std::slice::from_ref(text), ""))
             }
             Instruction::Push(value) => body.push(format!("ldc2_w {}", format_number(*value))),
-            Instruction::Load(index) => body.push(format!("lload {}", slot(*index))),
-            Instruction::Store(index) => body.push(format!("lstore {}", slot(*index))),
+            Instruction::Load(index) => {
+                body.push(format!("{}load {}", prefix(*index), slot(*index)));
+            }
+            Instruction::Store(index) => {
+                body.push(format!("{}store {}", prefix(*index), slot(*index)));
+            }
             Instruction::Pop => body.push("pop2".into()),
             Instruction::Arithmetic(operation) => body.push(jvm_arithmetic(operation).into()),
             Instruction::Negate => body.push("lneg".into()),
@@ -540,6 +660,12 @@ fn jvm_method(item: &Procedure, descriptors: &HashMap<String, String>) -> Vec<St
                 format!("getstatic {PRINT_STREAM}"),
                 "invokevirtual java/io/PrintStream/println()V".into(),
             ]),
+            Instruction::NewArray => body.push("invokestatic Program/newArray(JJ)[J".into()),
+            Instruction::Dup => body.push("dup".into()),
+            Instruction::ElementIndex => body.push("l2i".into()),
+            Instruction::LoadElement => body.push("laload".into()),
+            Instruction::StoreElement => body.push("lastore".into()),
+            Instruction::ArrayLength => body.extend(["arraylength", "i2l"].map(String::from)),
         }
     }
     let mut lines = comments(";", &item.comments, "");
@@ -561,6 +687,22 @@ fn jvm_method(item: &Procedure, descriptors: &HashMap<String, String>) -> Vec<St
     lines.push(".end method".into());
     lines
 }
+
+/// newArray(length, fill): a new array filled by Arrays.fill.
+const JVM_NEW_ARRAY_METHOD: [&str; 12] = [
+    ".method private static newArray(JJ)[J",
+    "    .limit stack 5",
+    "    .limit locals 4",
+    "    lload 0",
+    "    l2i",
+    "    newarray long",
+    "    dup",
+    "    lload 2",
+    "    invokestatic java/util/Arrays/fill([JJ)V",
+    "    areturn",
+    ".end method",
+    "",
+];
 
 fn write_jvm(program: &LoweredProgram) -> String {
     let descriptors: HashMap<String, String> = program
@@ -584,6 +726,9 @@ fn write_jvm(program: &LoweredProgram) -> String {
     for item in program.functions.iter().chain([&program.main]) {
         lines.extend(jvm_method(item, &descriptors));
         lines.push(String::new());
+    }
+    if creates_arrays(program) {
+        lines.extend(JVM_NEW_ARRAY_METHOD.map(String::from));
     }
     lines.join("\n")
 }
