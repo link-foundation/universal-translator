@@ -13,7 +13,7 @@ verbose="${PIPELINE_STATUS_VERBOSE:-0}"
 head_ref="${HEAD_REF:-refs/heads/${branch_name}}"
 
 # ShellCheck 0.9 (preinstalled on ubuntu-24.04) reports SC2015 for the
-# `[ ] && echo || true` form; an if statement is clean in every version.
+# `[ ] && echo || true` form; 0.9 and 0.11 both accept an if statement.
 trace() {
   if [ "${verbose}" = "1" ]; then
     echo "[pipeline-status] $*" >&2
