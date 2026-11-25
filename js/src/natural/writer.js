@@ -94,6 +94,20 @@ function binarySlots(expression, language, level) {
   };
 }
 
+// Tokens of an expression written where only a primary fits (an index, an
+// array or the length and fill of a new array).
+const operand = (expression, language) =>
+  writeExpression(expression, language, levelIndex.primary);
+
+// Expressions separated by the list separator, as call arguments are.
+function separated(expressions, language) {
+  const separator = { type: 'separator', value: language.listSeparator };
+  return expressions.flatMap((expression, index) => [
+    ...(index ? [separator] : []),
+    ...writeExpression(expression, language, 0),
+  ]);
+}
+
 function primary(expression, language) {
   switch (expression.kind) {
     case 'Number':
@@ -109,15 +123,35 @@ function primary(expression, language) {
       if (!expression.arguments.length) {
         return fill(language, 'call-without-arguments', { callee });
       }
-      const separator = { type: 'separator', value: language.listSeparator };
-      const argumentsTokens = expression.arguments.flatMap(
-        (argument, index) => [
-          ...(index ? [separator] : []),
-          ...writeExpression(argument, language, 0),
-        ]
-      );
-      return fill(language, 'call', { callee, arguments: argumentsTokens });
+      return fill(language, 'call', {
+        callee,
+        arguments: separated(expression.arguments, language),
+      });
     }
+    // An empty array is a new array of no zeros: no template lists nothing.
+    case 'ArrayLiteral':
+      return expression.elements.length
+        ? fill(language, 'array', {
+            elements: separated(expression.elements, language),
+          })
+        : fill(language, 'new-array', {
+            length: [{ type: 'number', value: 0 }],
+            fill: [{ type: 'number', value: 0 }],
+          });
+    case 'NewArray':
+      return fill(language, 'new-array', {
+        length: operand(expression.length, language),
+        fill: operand(expression.fill, language),
+      });
+    case 'Index':
+      return fill(language, 'element', {
+        index: operand(expression.index, language),
+        array: operand(expression.array, language),
+      });
+    case 'Length':
+      return fill(language, 'length', {
+        array: operand(expression.array, language),
+      });
     default:
       throw new Error(`Cannot write a ${expression.kind} expression in words`);
   }
@@ -241,6 +275,12 @@ class Writer {
           name: name(statement.name),
           value: this.expression(statement.value),
         });
+      case 'IndexAssignment':
+        return this.sentence(depth, 'set-element', {
+          name: name(statement.name),
+          index: this.expression(statement.index, levelIndex.primary),
+          value: this.expression(statement.value),
+        });
       case 'Print':
         return this.sentence(
           depth,
@@ -250,11 +290,7 @@ class Writer {
           }
         );
       case 'Return':
-        return statement.value
-          ? this.sentence(depth, 'return-value', {
-              value: this.expression(statement.value),
-            })
-          : this.sentence(depth, 'return', {});
+        return this.giveBack(statement, depth);
       case 'Evaluate':
         return this.sentence(depth, 'evaluate', {
           expression: this.expression(statement.expression),
@@ -262,31 +298,45 @@ class Writer {
       case 'If':
         return this.conditional(statement, depth);
       case 'While':
-        this.sentence(
-          depth,
-          'while',
-          { condition: this.expression(statement.condition) },
-          true
-        );
-        return this.block(statement.body, depth + 1);
       case 'CountingLoop':
-        // Natural languages count up to the last value, not past it.
-        this.sentence(
-          depth,
-          'for',
-          {
-            variable: name(statement.variable),
-            start: this.expression(statement.start),
-            last: this.expression(subtract(statement.end, number(1))),
-          },
-          true
-        );
-        return this.block(statement.body, depth + 1);
+        return this.loop(statement, depth);
       case 'Block':
         return this.block(statement, depth);
       default:
         throw new Error(`Cannot write a ${statement.kind} statement in words`);
     }
+  }
+
+  giveBack(statement, depth) {
+    return statement.value
+      ? this.sentence(depth, 'return-value', {
+          value: this.expression(statement.value),
+        })
+      : this.sentence(depth, 'return', {});
+  }
+
+  loop(statement, depth) {
+    if (statement.kind === 'While') {
+      this.sentence(
+        depth,
+        'while',
+        { condition: this.expression(statement.condition) },
+        true
+      );
+    } else {
+      // Natural languages count up to the last value, not past it.
+      this.sentence(
+        depth,
+        'for',
+        {
+          variable: [word(writeName(statement.variable, this.language))],
+          start: this.expression(statement.start),
+          last: this.expression(subtract(statement.end, number(1))),
+        },
+        true
+      );
+    }
+    return this.block(statement.body, depth + 1);
   }
 
   function(item) {

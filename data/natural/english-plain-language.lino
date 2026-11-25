@@ -24,6 +24,7 @@ natural:
     less-or-equal: '{left} is at most {right}'
     greater: '{left} is more than {right}'
     greater-or-equal: '{left} is at least {right}'
+    set-element: 'Set item {index} of {name} to {value}'
   rules:
     max-sentence-words: 25
     average-sentence-words: 20

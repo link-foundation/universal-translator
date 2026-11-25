@@ -9,9 +9,13 @@
 import { add, block, name, node, number } from '../grammar/meta.js';
 import { naturalLanguage } from './catalog.js';
 import { tokenize } from './tokens.js';
-import { levels, operatorOfTemplate } from './levels.js';
+import { levelIndex, levels, operatorOfTemplate } from './levels.js';
 
 const nameSlots = new Set(['name', 'variable', 'callee']);
+// Slots the writer fills with a primary expression (parenthesized unless
+// it is one already).
+const primarySlots = new Set(['index', 'array', 'length', 'fill']);
+const arrayKeys = ['array', 'new-array', 'element', 'length'];
 
 // Depth of parentheses before each token, so literals only match at depth 0.
 function depths(tokens) {
@@ -224,6 +228,20 @@ export class SentenceReader {
         }
       }
     }
+    for (const key of arrayKeys) {
+      for (const template of this.language.compiled[key]) {
+        const slots = this.match(
+          template,
+          tokens,
+          start,
+          end,
+          (slot, from, to) => this.slot(tokens, slot, from, to)
+        );
+        if (slots) {
+          return arrayNode(key, slots);
+        }
+      }
+    }
     return undefined;
   }
 
@@ -290,6 +308,12 @@ export class SentenceReader {
     if (slot === 'parameters') {
       return this.names(tokens, from, to);
     }
+    if (slot === 'elements') {
+      return this.arguments(tokens, from, to);
+    }
+    if (primarySlots.has(slot)) {
+      return this.expression(tokens, from, to, levelIndex.primary);
+    }
     return this.expression(tokens, from, to, 0);
   }
 
@@ -315,9 +339,26 @@ export class SentenceReader {
   }
 }
 
+// A new array of no elements is the empty array literal.
+function arrayNode(key, slots) {
+  switch (key) {
+    case 'array':
+      return node('ArrayLiteral', { elements: slots.elements });
+    case 'new-array':
+      return slots.length.kind === 'Number' && slots.length.value === 0
+        ? node('ArrayLiteral', { elements: [] })
+        : node('NewArray', { length: slots.length, fill: slots.fill });
+    case 'element':
+      return node('Index', { array: slots.array, index: slots.index });
+    default:
+      return node('Length', { array: slots.array });
+  }
+}
+
 const statementKeys = [
   'print-line',
   'print',
+  'set-element',
   'declare',
   'assign',
   'return-value',
@@ -346,6 +387,12 @@ function statementFromSentence({ key, slots }) {
       return node('Assignment', {
         name: slots.name,
         operator: '=',
+        value: slots.value,
+      });
+    case 'set-element':
+      return node('IndexAssignment', {
+        name: slots.name,
+        index: slots.index,
         value: slots.value,
       });
     case 'return-value':

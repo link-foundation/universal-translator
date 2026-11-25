@@ -31,6 +31,11 @@ natural:
     less-or-equal: '{left} nie jest więcej niż {right}'
     greater: '{left} jest więcej niż {right}'
     greater-or-equal: '{left} nie jest mniej niż {right}'
+    array: 'te rzeczy ({elements})'
+    new-array: '{length} rzeczy jak {fill}'
+    element: 'część {index} z {array}'
+    length: 'ile części ma {array}'
+    set-element: 'Po tym część {index} z {name} jest {value}'
   rules:
     primes: polish
-    extra-words: tak z w jednej linii odpowiedzią przestać nic zrobić robić wiele razy dla od do potem lub i przeciwieństwo tym samym co niż mniej plus minus podzielone przez modulo prawda nieprawda
+    extra-words: tak z w jednej linii odpowiedzią przestać nic zrobić robić wiele razy dla od do potem lub i przeciwieństwo tym samym co niż mniej plus minus podzielone przez modulo prawda nieprawda te rzeczy ile części ma

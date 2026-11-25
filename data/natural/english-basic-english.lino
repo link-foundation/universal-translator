@@ -28,7 +28,10 @@ natural:
     less-or-equal: '{left} is not over {right}'
     greater: '{left} is over {right}'
     greater-or-equal: '{left} is not under {right}'
+    element: 'part {index} of {array}'
+    length: 'the size of {array}'
+    set-element: 'Let part {index} of {name} now be {value}'
   rules:
     max-sentence-words: 25
-    vocabulary: make from by these steps let be now say and end the line give back stop here do no work if not but this while again for every till of then or opposite is under over true false
+    vocabulary: make from by these steps let be now say and end the line give back stop here do no work if not but this while again for every till of then or opposite is under over true false list a copies part size
     extra-words: plus minus times divided modulo

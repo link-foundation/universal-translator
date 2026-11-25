@@ -31,6 +31,11 @@ natural:
     less-or-equal: '{left} is not more than {right}'
     greater: '{left} is more than {right}'
     greater-or-equal: '{left} is not less than {right}'
+    array: 'these things ({elements})'
+    new-array: '{length} things like {fill}'
+    element: 'part {index} of {array}'
+    length: 'how many parts {array} has'
+    set-element: 'After this, part {index} of {name} is {value}'
   rules:
     primes: english
-    extra-words: it the on line answer stop with of from to then for or and plus minus times divided by modulo opposite untrue less than as anything
+    extra-words: it the on line answer stop with of from to then for or and plus minus times divided by modulo opposite untrue less than as anything things has

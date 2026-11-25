@@ -30,6 +30,11 @@ natural:
     less-or-equal: "{left} n'est pas plus que {right}"
     greater: '{left} est plus que {right}'
     greater-or-equal: "{left} n'est pas moins que {right}"
+    array: 'ces choses ({elements})'
+    new-array: '{length} choses comme {fill}'
+    element: 'la partie {index} de {array}'
+    length: 'combien de parties dans {array}'
+    set-element: 'Après ceci, la partie {index} de {name} est {value}'
   rules:
     primes: french
-    extra-words: voici comment avec c'est après est sur une ligne réponse la arrêter rien ne faire sinon de fois pour les à puis ou et l'opposé n'est le que plus moins fois divisé par modulo vrai faux
+    extra-words: voici comment avec c'est après est sur une ligne réponse la arrêter rien ne faire sinon de fois pour les à puis ou et l'opposé n'est le que plus moins fois divisé par modulo vrai faux ces choses combien parties dans

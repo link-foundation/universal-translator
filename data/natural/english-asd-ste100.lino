@@ -27,7 +27,9 @@ natural:
     less-or-equal: '{left} is not more than {right}'
     greater: '{left} is more than {right}'
     greater-or-equal: '{left} is not less than {right}'
+    new-array: 'a list of {length} items with the value {fill}'
+    set-element: 'Set item {index} of {name} to {value}'
   rules:
     max-sentence-words: 20
     sentence-starts: procedure set change write return stop do if while for
-    vocabulary: procedure with set to change write line return stop do nothing if not and these steps while again for each from then of or the negative equals is less than more plus minus times divided by modulo true false
+    vocabulary: procedure with set to change write line return stop do nothing if not and these steps while again for each from then of or the negative equals is less than more plus minus times divided by modulo true false list a item items value length

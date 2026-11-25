@@ -45,3 +45,8 @@ natural:
     multiply: '{left} times {right}'
     divide: '{left} divided by {right}'
     remainder: '{left} modulo {right}'
+    array: 'the list ({elements})'
+    new-array: 'a list of {length} copies of {fill}'
+    element: 'item {index} of {array}'
+    length: 'the length of {array}'
+    set-element: 'Change item {index} of {name} to {value}'

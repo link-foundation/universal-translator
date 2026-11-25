@@ -26,5 +26,6 @@ natural:
     less-or-equal: '{left} is at most {right}'
     greater: '{left} is greater than {right}'
     greater-or-equal: '{left} is at least {right}'
+    set-element: 'It is obligatory that item {index} of {name} becomes {value}'
   rules:
     sentence-starts: rule it if otherwise as for

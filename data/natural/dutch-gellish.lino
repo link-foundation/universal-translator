@@ -23,5 +23,6 @@ natural:
     call: '{callee} toegepast op ({arguments})'
     call-without-arguments: '{callee} toegepast op niets'
     join: '{left} samengevoegd met {right}'
+    set-element: 'element {index} van {name} heeft als nieuwe waarde {value}'
   rules:
     relations: 'is gedefinieerd als' 'is geclassificeerd als' 'heeft als nieuwe waarde' 'heeft als volgende regel' 'heeft als volgend deel' 'heeft als resultaat' 'toegepast op' 'samengevoegd met' 'is gelijk aan'
