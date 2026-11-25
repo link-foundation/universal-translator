@@ -82,7 +82,9 @@ describe('universal React example app', () => {
     expect(viteConfig).toContain('failOnWarnings()');
     expect(viteConfig).toContain('customLogger: logger');
     expect(viteConfig).toContain('manualChunks: chunkFor');
-    expect(viteConfig).not.toContain('chunkSizeWarningLimit');
+    // Vite's chunk limit is raised above Monaco's editor core only;
+    // limitChunkSizes keeps 500 kB for every other chunk.
+    expect(viteConfig).toContain('limitChunkSizes()');
   });
 
   it('shares the Vite build output with Capacitor and GitHub Pages', () => {
@@ -184,5 +186,32 @@ describe('universal React example app', () => {
       expect(`${selector} ${rendered}`).toBe(`${selector} true`);
     }
     expect(script).not.toContain('calculator');
+  });
+});
+
+describe('the web build of the example app', () => {
+  it('keeps every chunk but Monaco below 500 kB', async () => {
+    const { chunkLimit, oversizedChunks } = await import(
+      `../../${exampleRoot}/chunk-limits.js`
+    );
+    const chunk = (fileName, size, moduleIds) => ({
+      type: 'chunk',
+      fileName,
+      code: 'x'.repeat(size),
+      moduleIds,
+    });
+    const monaco =
+      '/app/node_modules/monaco-editor/esm/vs/editor/editor.api.js';
+    const bundle = {
+      editor: chunk('editor.js', 3 * chunkLimit, [monaco]),
+      app: chunk('app.js', chunkLimit + 1, ['/app/src/App.js']),
+      mixed: chunk('mixed.js', chunkLimit + 1, [monaco, '/app/src/monaco.js']),
+      small: chunk('small.js', chunkLimit, ['/app/src/main.js']),
+      style: { type: 'asset', fileName: 'big.css', source: 'x' },
+    };
+    expect(oversizedChunks(bundle)).toEqual([
+      'app.js (500 kB)',
+      'mixed.js (500 kB)',
+    ]);
   });
 });

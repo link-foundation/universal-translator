@@ -18,7 +18,7 @@ for file in examples/programs/*/*.*; do
     *) continue;;
   esac
   for flag in "" --json; do
-    norm=cat
+    norm='cat'
     [ -n "$flag" ] && norm=sorted
     a=$(node bin/universal-translator.js meta "$lang" "$file" $flag 2>&1 | $norm)
     b=$("$rust" meta "$lang" "$file" $flag 2>&1 | $norm)
