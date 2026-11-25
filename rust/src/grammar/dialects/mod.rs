@@ -4,6 +4,7 @@
 //! expressions, names and token helpers; a step it does not override, or
 //! calls back as `base_...`, behaves as in every other language.
 
+mod fortran;
 mod pascal;
 mod shared;
 
@@ -156,6 +157,7 @@ impl ParserDialect for Plain {}
 /// The emitter steps of a language.
 pub(crate) fn emitter_dialect(language: &str) -> &'static dyn EmitterDialect {
     match language {
+        "fortran" => &fortran::Fortran,
         "pascal" => &pascal::Pascal,
         _ => &Plain,
     }
@@ -164,6 +166,7 @@ pub(crate) fn emitter_dialect(language: &str) -> &'static dyn EmitterDialect {
 /// The parser steps of a language.
 pub(crate) fn parser_dialect(language: &str) -> &'static dyn ParserDialect {
     match language {
+        "fortran" => &fortran::Fortran,
         "pascal" => &pascal::Pascal,
         _ => &Plain,
     }
