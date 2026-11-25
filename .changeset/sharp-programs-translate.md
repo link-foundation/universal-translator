@@ -17,3 +17,6 @@ Add a grammar- and rule-based translator between programming, machine and contro
 - Profiles for ASD-STE100, Attempto Controlled English, Gellish (English and Dutch), SBVR Structured English, plain language (ISO 24495-1), E-Prime, Basic English, Special English, Globish and Minimal English, French and Polish built on the 65 semantic primes of Natural Semantic Metalanguage. `checkText` and the `check-words` command enforce each standard's rules.
 - Every example program is written in every natural language and profile under `examples/programs/natural`, and both implementations check those texts.
 - `scripts/check-requirements.mjs` fails CI while a requirement of issue 1 is neither done nor reported as blocked.
+- `universal-translator serve` starts an HTTP API (`GET /languages`, `POST /translate`) configured through lino-arguments (`--port`, `PORT` or `.lenv`). `createTranslationServer` exposes the same server in the library, and a Docker image runs it.
+- The example app is a translator demo for every programming and natural language, checked end to end in a browser.
+- Sources are split into `meta`, `formal` and `natural` layers in both implementations.
