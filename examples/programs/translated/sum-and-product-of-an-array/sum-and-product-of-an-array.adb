@@ -12,7 +12,7 @@ procedure Main is
 
 begin
     declare
-        Numbers : Integer_Array (0 .. 4) := [1, 2, 3, 4, 5];
+        Numbers : constant Integer_Array (0 .. 4) := [1, 2, 3, 4, 5];
     begin
         Total := 0;
         Product := 1;

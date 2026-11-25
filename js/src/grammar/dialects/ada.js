@@ -1,7 +1,7 @@
 // Ada (GNAT): a main procedure whose declarative part holds the
 // subprograms and variables, and whose statements follow begin.
 
-import { add, block, laterCalls, node, number, text } from '../meta.js';
+import { add, block, laterCalls, node, number, text, walk } from '../meta.js';
 import { offset } from '../arrays.js';
 import { declaredVariables, keywordParser } from './shared.js';
 
@@ -57,6 +57,7 @@ const statements = (Base) =>
       while (!this.accept('begin')) {
         const variable = this.expectName();
         this.expect(':');
+        this.accept('constant');
         this.expectName();
         this.expect('(');
         this.expression();
@@ -352,6 +353,21 @@ const outputEmitter = (Base) =>
     }
   };
 
+// Whether a statement after an array's declaration stores into it. GNAT
+// (-gnatwk) asks for an array that is never changed to be constant.
+const changes = (statements, name) => {
+  let found = false;
+  walk({ kind: 'Block', statements }, (current) => {
+    if (
+      (current.kind === 'IndexAssignment' || current.kind === 'Assignment') &&
+      current.name === name
+    ) {
+      found = true;
+    }
+  });
+  return found;
+};
+
 const isArrayDeclaration = (statement) =>
   statement.kind === 'Declaration' &&
   (statement.type === 'array' ||
@@ -398,7 +414,12 @@ const statementEmitter = (Base) =>
       this.line('declare');
       this.depth += 1;
       all.slice(first, last).forEach((statement) => {
-        this.line(this.arrayDeclaration(statement));
+        this.line(
+          this.arrayDeclaration(
+            statement,
+            !changes(all.slice(last), statement.name)
+          )
+        );
       });
       this.depth -= 1;
       this.line('begin');
@@ -407,7 +428,7 @@ const statementEmitter = (Base) =>
     }
 
     // Name : Integer_Array (0 .. Last) := [others => V], or the values.
-    arrayDeclaration({ name, value }) {
+    arrayDeclaration({ name, value }, constant = false) {
       this.uses.add('array');
       const length =
         value.kind === 'NewArray'
@@ -426,7 +447,8 @@ const statementEmitter = (Base) =>
             ? `[0 => ${elements[0]}]`
             : `[${elements.join(', ')}]`;
       }
-      return `${name} : Integer_Array (${bounds}) := ${values};`;
+      const type = constant ? 'constant Integer_Array' : 'Integer_Array';
+      return `${name} : ${type} (${bounds}) := ${values};`;
     }
 
     declaration({ name, value }) {

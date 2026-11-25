@@ -6,7 +6,7 @@ use super::{EmitterDialect, ParserDialect};
 use crate::grammar::arrays::offset;
 use crate::grammar::emitter::{Emitter, Result, field};
 use crate::grammar::lexer::{Token, TokenType};
-use crate::grammar::meta::{Node, add, block, later_calls, number, text};
+use crate::grammar::meta::{Node, add, block, later_calls, number, text, walk};
 use crate::grammar::parser::{Parsed, Parser};
 
 pub(crate) struct Ada;
@@ -135,6 +135,7 @@ fn declare_block(p: &mut Parser) -> Parsed {
     while !p.accept("begin") {
         let variable = p.expect_name()?;
         p.expect(":")?;
+        p.accept("constant");
         p.expect_name()?;
         p.expect("(")?;
         p.expression()?;
@@ -454,7 +455,9 @@ impl EmitterDialect for Ada {
         e.line("declare");
         e.depth += 1;
         for statement in &all[first..last] {
-            let written = array_declaration(e, statement)?;
+            let name = statement.str("name").unwrap_or_default();
+            let constant = !changes(&all[last..], name);
+            let written = array_declaration(e, statement, constant)?;
             e.line(&written);
         }
         e.depth -= 1;
@@ -612,8 +615,23 @@ fn is_array_declaration(statement: &Node) -> bool {
                 .is_some_and(|value| value.is("ArrayLiteral") || value.is("NewArray")))
 }
 
+/// Whether a statement after an array's declaration stores into it. GNAT
+/// (-gnatwk) asks for an array that is never changed to be constant.
+fn changes(statements: &[Node], name: &str) -> bool {
+    let mut found = false;
+    let tree = Node::new("Block").with("statements", statements.to_vec());
+    walk(&tree, |current| {
+        if (current.is("IndexAssignment") || current.is("Assignment"))
+            && current.str("name") == Some(name)
+        {
+            found = true;
+        }
+    });
+    found
+}
+
 /// Name : Integer_Array (0 .. Last) := [others => V], or the values.
-fn array_declaration(e: &mut Emitter, statement: &Node) -> Result<String> {
+fn array_declaration(e: &mut Emitter, statement: &Node, constant: bool) -> Result<String> {
     e.uses.insert("array");
     let name = statement.str("name").unwrap_or_default();
     let value = field(statement, "value")?;
@@ -638,7 +656,12 @@ fn array_declaration(e: &mut Emitter, statement: &Node) -> Result<String> {
             format!("[{}]", written.join(", "))
         }
     };
-    Ok(format!("{name} : Integer_Array ({bounds}) := {values};"))
+    let kind = if constant {
+        "constant Integer_Array"
+    } else {
+        "Integer_Array"
+    };
+    Ok(format!("{name} : {kind} ({bounds}) := {values};"))
 }
 
 /// Name : Long_Long_Integer;
