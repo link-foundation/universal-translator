@@ -8,8 +8,8 @@ Pull request: https://github.com/link-foundation/universal-translator/pull/11
 | #   | Requirement (from the issue)                                                        | Where it is addressed                                    |
 | --- | ----------------------------------------------------------------------------------- | -------------------------------------------------------- |
 | R1  | Fix the failing `Example app` run on `main` (run 45623028339)                        | 6b3b57e, 2a1bb83                                         |
-| R2  | Find and fix every false positive (red without a real problem)                       | 6897d89, 150e131, 1088b33, 738132c, ca695ee, e674adc     |
-| R3  | Find and fix every false negative (green while something is broken)                  | 6b3b57e, 13780da, f96e27f, 9cf89c5, cfa3ab1, fb74d84, 26ab768, 09789a0, 4aab2bf |
+| R2  | Find and fix every false positive (red without a real problem)                       | 6897d89, 150e131, 1088b33, 738132c, ca695ee, e674adc, e4364a2 |
+| R3  | Find and fix every false negative (green while something is broken)                  | 6b3b57e, 13780da, f96e27f, 9cf89c5, cfa3ab1, fb74d84, 26ab768, 09789a0, 4aab2bf, 727f3bf |
 | R4  | Fix every warning printed by CI                                                      | f367b67, c60ff67, 908917b, 3b015c9, 2a65e53, 4aab2bf, e674adc |
 | R5  | Use the best practices of the pipeline templates (compare the full file tree)        | see "Template comparison"                                |
 | R6  | Report problems that also exist in the templates                                     | see "Upstream reports"                                   |
@@ -38,6 +38,8 @@ Pull request: https://github.com/link-foundation/universal-translator/pull/11
 | 15:45 | 4aab2bf: Vite warnings revealed broken desktop skins on `file://`; build split; warnings fail the build. |
 | 15:48 | e674adc: common library native step gets the same budget as its sibling.                                 |
 | 15:49 | 9e800cf: the gate found a CodeQL alert in its own new test; fixed, and failures now name `path:line`.     |
+| 15:56 | f1e873e: first run in which the test jobs got past lint. ShellCheck 0.9 on the runner reports SC2015; one Deno flake; both CodeQL uploads fail during a GitHub outage. |
+| 16:19 | e4364a2, 727f3bf: trace helpers clean under ShellCheck 0.9 and 0.11; the syntax gate fixture checks git. |
 
 ## Root causes and solutions
 
@@ -96,6 +98,32 @@ Pull request: https://github.com/link-foundation/universal-translator/pull/11
   (540 s). Its 70% warning fired at 336 s on ordinary slow runners (369 s measured in run
   45623028403). Both steps now have 540 s (e674adc).
 
+5. **ShellCheck version skew.** The `shellcheck` job pins shellcheck-py 0.11.0.1, but the test
+   `finds nothing in the tracked scripts and hooks` runs the ShellCheck on the runner's PATH, which is
+   0.9.0 on ubuntu-24.04. 0.9 reports SC2015 (info) for
+   `trace() { [ "${verbose}" = "1" ] && echo … >&2 || true; }` in `check-pipeline-status.sh` and
+   `run-with-budget-warning.sh`; 0.11 accepts it. Earlier runs never reached the test, because they
+   were cancelled by newer pushes or stopped at the dry run, so run 45649688140 was the first to show
+   it (`ci-logs/checks-and-release-45649688140-failed.log`). Reproduced locally with both wheels:
+   0.9 exits 123, 0.11 exits 0. Fix: both helpers use an `if` statement, which both versions accept
+   (e4364a2). The template pins 0.11 in its job and lint-staged and has no unpinned test, so it is
+   not affected.
+6. **Deno syntax gate flake.** In the same run, Deno once saw the gate exit 0 for
+   `js/tests/nested/check.test.js`. Node and Bun passed the same test, and 15 local
+   `deno test -A --parallel` runs of the files that ran beside it all passed. A signal is ruled out:
+   Deno reports a signal-killed child as `status: null`, like Node
+   (`experiments/issue-10/deno-spawnsync-signal.mjs`). The fixture ignored the exit status of
+   `git init` and `git add`, and an untracked fixture is the only way the gate passes with that file
+   present. Fix: git errors now fail the fixture, and the test first asserts that the gate listed the
+   file, so a repeat prints what the gate saw (727f3bf). The root cause of the one failure is not
+   proven.
+7. **CodeQL upload during a GitHub outage.** In Security run 45649687987, both `Analyze` steps stopped
+   at "Uploading results" with no error printed, while GitHub returned HTTP 500 to a push at the same
+   minute. The code scanning API has no analysis for f1e873e. The result gate itself passed and
+   accepted only alert #5, and Pipeline Status correctly failed the run
+   (`ci-logs/security-45649687987-*.log`). Nothing in the repository caused it; the next push ran the
+   job again.
+
 ### Warnings
 
 | Warning (log)                                                             | Fix                                            |
@@ -127,7 +155,8 @@ this JavaScript repository. These parts were ported from it:
 - lockfile-installed release helpers;
 - the example app overrides.
 
-`scripts/run-with-budget-warning.sh` is now byte-identical to the template.
+`scripts/run-with-budget-warning.sh` matches the template except for the `trace` helper, which this
+repository writes as an `if` statement so that ShellCheck 0.9 accepts it as well.
 `scripts/check-pipeline-status.sh` differs only in the template's unacquired-runner report, which
 needs `rerun-unacquired.mjs`, and that file is not in this repository.
 
@@ -152,6 +181,7 @@ repository had fallen behind it.
 All debug output is off by default:
 
 - `DEBUG=1` prints stack traces from the release scripts (`scripts/debug-print.mjs`).
+- `BUDGET_VERBOSE=1` traces the budget wrapper, and `PIPELINE_STATUS_VERBOSE=1` traces the status gate.
 - `VITE_ALLOW_WARNINGS=true` lets a local Vite build finish despite warnings; CI never sets it.
 - `CHROMIUM_EXECUTABLE` selects the browser for the `file://` e2e.
 
