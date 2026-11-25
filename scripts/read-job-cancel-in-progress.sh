@@ -5,6 +5,7 @@ set -euo pipefail
 
 : "${WORKFLOW_FILE:?WORKFLOW_FILE is required}"
 
+# shellcheck disable=SC2016 # The single-quoted program is Python, not shell.
 WORKFLOW_FILE="$WORKFLOW_FILE" JOB_NAMES="${JOB_NAMES:-}" python3 -c '
 import os
 import re

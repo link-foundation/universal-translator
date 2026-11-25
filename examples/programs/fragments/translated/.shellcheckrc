@@ -1,0 +1,5 @@
+# The Bash fragments are translator output: pieces of a program that are
+# not run on their own, so they have no shebang and read variables that
+# the surrounding program assigns.
+shell=bash
+disable=SC2154
