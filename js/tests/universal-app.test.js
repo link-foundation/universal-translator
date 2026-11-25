@@ -149,4 +149,23 @@ describe('universal React example app', () => {
     expect(rootReadme).toContain('Auto-regenerated preview screenshots');
     expect(rootReadme).toContain('npm run example:web:preview-images');
   });
+
+  // The preview job runs only on main; a selector from another app (the
+  // template's #calculator-title) timed out there after every merge.
+  it('waits for preview selectors that the app renders', () => {
+    const script = readText('scripts/update-preview-images.mjs');
+    const listed = script.match(/const READY_SELECTORS = \[([^\]]*)\]/);
+    expect(Boolean(listed)).toBe(true);
+    const selectors = [...listed[1].matchAll(/'([^']+)'/g)].map((m) => m[1]);
+    expect(selectors.length > 0).toBe(true);
+    const app = readText(appSourcePath);
+    for (const selector of selectors) {
+      const name = selector.slice(1);
+      const rendered = selector.startsWith('#')
+        ? app.includes(`id: '${name}'`)
+        : app.includes(`className: '${name}'`);
+      expect(`${selector} ${rendered}`).toBe(`${selector} true`);
+    }
+    expect(script).not.toContain('calculator');
+  });
 });

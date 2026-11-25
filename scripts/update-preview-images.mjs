@@ -48,6 +48,12 @@ const VERBOSE =
 
 const VIEWPORT = { width: 1280, height: 800 };
 
+// The app is ready for a screenshot when these are visible. Each one must
+// exist in examples/universal-app/src (a test checks it): a selector left
+// over from another app waits out its timeout and fails the job on main.
+const READY_SELECTORS = ['.app-shell', '#translator-title'];
+const READY_TIMEOUT_MS = 10000;
+
 const LOCALES = [
   { locale: 'en', contextLocale: 'en-US' },
   { locale: 'ru', contextLocale: 'ru-RU' },
@@ -252,11 +258,10 @@ async function captureTile({ browser, locale, theme, contextLocale, url }) {
       );
     }
 
-    await commander.waitForSelector({ selector: '.app-shell', timeout: 10000 });
-    await commander.waitForSelector({
-      selector: '#calculator-title',
-      timeout: 10000,
-    });
+    for (const selector of READY_SELECTORS) {
+      verbose(`waiting for ${selector} (${locale}/${theme})`);
+      await commander.waitForSelector({ selector, timeout: READY_TIMEOUT_MS });
+    }
     await page.waitForLoadState('networkidle');
 
     if (VERBOSE) {
