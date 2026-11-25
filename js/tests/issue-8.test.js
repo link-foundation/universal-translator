@@ -259,3 +259,14 @@ describe('translation server (issue #8)', () => {
     ).toBe(400);
   });
 });
+
+describe('cut texts (issue #8)', () => {
+  it('end a dialect read instead of looping', () => {
+    // Before the fix the Ada reader skipped declarations past the end of
+    // the text forever; partial reading of Rosetta Code hung on it.
+    const started = Date.now();
+    const reading = parsePartial('procedure P is\n   x : Integer;\n', 'ada');
+    expect(reading.lines).toBe(2);
+    expect(Date.now() - started < 5000).toBe(true);
+  });
+});

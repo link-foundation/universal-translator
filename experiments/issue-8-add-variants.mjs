@@ -1,4 +1,4 @@
-// Adds accepted template variants (issue #8) to data/natural/*.lino.
+// Adds accepted template variants to data/natural/*.lino.
 //
 // The first template of a key stays the one the writer uses; every later
 // template is an alternative the reader also accepts. The script is
@@ -8,7 +8,7 @@
 
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 
-const dir = new URL('../data/natural/', import.meta.url);
+const dir = new globalThis.URL('../data/natural/', import.meta.url);
 
 // Every language (and profile) also reads the usual mathematical symbols.
 const symbols = {
@@ -149,7 +149,7 @@ for (const file of readdirSync(dir).filter((name) => name.endsWith('.lino'))) {
   if (id === 'semantic-primes') {
     continue;
   }
-  const path = new URL(file, dir);
+  const path = new globalThis.URL(file, dir);
   const lines = readFileSync(path, 'utf8').split('\n');
   const extra = { ...symbols };
   for (const [key, list] of Object.entries(words[id] ?? {})) {
