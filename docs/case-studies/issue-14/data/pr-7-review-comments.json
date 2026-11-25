@@ -1,0 +1,74 @@
+[
+  {
+    "url": "https://api.github.com/repos/link-foundation/universal-translator/pulls/comments/4692567416",
+    "pull_request_review_id": 6054580678,
+    "id": 4692567416,
+    "node_id": "PRRC_kwDOVJ4SV88AAAABF7LleA",
+    "diff_hunk": "@@ -0,0 +1,132 @@\n+// The words of a programming language and the meta language concepts they\n+// stand for, as one flat list a standards editor can show and change.\n+//\n+// Each entry is a concept path into the syntax description (\"operators.and\",\n+// \"functionKeyword\", \"print.line\") with the words the language spells it\n+// with. Changed entries turn back into the syntax changes of a version of\n+// one's own (see registerLanguageVersion).\n+\n+import { parseLinks } from '../meta/links.js';\n+import { languageSyntax } from './languages.js';\n+import { registerLanguageVersion } from './versions.js';\n+\n+// Fields that name the language; they spell no concept.\n+const notWords = new Set(['id', 'label', 'version', 'custom']);\n+\n+const isWords = (value) =>\n+  typeof value === 'string' ||\n+  (Array.isArray(value) && value.every((item) => typeof item === 'string'));\n+\n+function collect(table, prefix, entries) {\n+  for (const [key, value] of Object.entries(table)) {\n+    const concept = prefix ? `${prefix}.${key}` : key;\n+    if (!prefix && notWords.has(key)) {\n+      continue;\n+    }\n+    if (isWords(value)) {\n+      entries.push({\n+        concept,\n+        words: Array.isArray(value) ? value : [value],\n+        list: Array.isArray(value),\n+      });\n+    } else if (value && typeof value === 'object' && !Array.isArray(value)) {\n+      collect(value, concept, entries);\n+    }\n+  }\n+  return entries;\n+}\n+\n+// [{ concept: 'operators.and', words: ['and'], list: false }, ...]\n+export function languageVocabulary(id) {\n+  return collect(languageSyntax(id), '', []);\n+}\n+\n+// Entries -> the syntax changes they make to a language.\n+export function vocabularyChanges(id, entries) {\n+  const known = new Map(\n+    languageVocabulary(id).map((entry) => [entry.concept, entry])\n+  );\n+  const changes = {};\n+  for (const { concept, words } of entries) {\n+    const entry = known.get(concept);\n+    if (!entry) {\n+      throw new Error(`${id} has no concept \"${concept}\"`);\n+    }\n+    if (entry.words.join('\\^@') === words.join('\\^@')) {\n+      continue;\n+    }\n+    if (!entry.list && words.length !== 1) {\n+      throw new Error(`\"${concept}\" of ${id} is spelled with one word`);\n+    }\n+    const path = concept.split('.');\n+    let table = changes;\n+    for (const key of path.slice(0, -1)) {\n+      table[key] ??= {};\n+      table = table[key];\n+    }\n+    table[path.at(-1)] = entry.list ? [...words] : words[0];",
+    "path": "js/src/formal/vocabulary.js",
+    "commit_id": "fd34547e2c5c621841c03e127c95df1b354ca63b",
+    "original_commit_id": "039ba6dc7124d547196a02ce598e88692a986e91",
+    "user": {
+      "login": "github-advanced-security[bot]",
+      "id": 62310815,
+      "node_id": "MDM6Qm90NjIzMTA4MTU=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/57789?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-advanced-security%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-advanced-security",
+      "followers_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "## CodeQL / Prototype-polluting assignment\n\nThis assignment may alter Object.prototype if a malicious '__proto__' string is injected from [library input](1).\n\n[Show more details](https://github.com/link-foundation/universal-translator/security/code-scanning/3)",
+    "created_at": "2026-11-25T09:03:28Z",
+    "updated_at": "2026-11-25T09:03:29Z",
+    "html_url": "https://github.com/link-foundation/universal-translator/pull/7#discussion_r4692567416",
+    "pull_request_url": "https://api.github.com/repos/link-foundation/universal-translator/pulls/7",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/link-foundation/universal-translator/pulls/comments/4692567416"
+      },
+      "html": {
+        "href": "https://github.com/link-foundation/universal-translator/pull/7#discussion_r4692567416"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/link-foundation/universal-translator/pulls/7"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/link-foundation/universal-translator/pulls/comments/4692567416/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 100,
+    "original_line": 67,
+    "side": "RIGHT",
+    "author_association": "NONE",
+    "original_position": 67,
+    "position": 100,
+    "subject_type": "line",
+    "is_copilot_code_review": false,
+    "copilot_code_review_severity": null,
+    "copilot_code_review_sources": []
+  }
+]

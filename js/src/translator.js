@@ -37,6 +37,7 @@ import { createFragmentTranslator } from './translation/fragments.js';
 import { createPartialTranslator } from './translation/partial.js';
 import { createLanguageDetector } from './translation/detect.js';
 import { compileCustomRules } from './translation/custom-rules.js';
+import { transferLayout } from './translation/layout.js';
 
 const readMachine = (source, from) => machineReaders[from](source);
 
@@ -108,6 +109,51 @@ function completeResult(text, source) {
     lines,
     readLines: lines,
     coverage: 1,
+  };
+}
+
+// Two programming languages share a layout: the target keeps the spaces and
+// the blank lines around the code of the source (layout 'source', the
+// default) or is written as its emitter lays it out (layout 'target'). Both
+// map the lines of the target to the lines of the source.
+function withLayout(result, source, from, to, options) {
+  const programming = (id) =>
+    !isNaturalLanguage(id) && !languageSyntax(id).machine;
+  if (!programming(from) || !programming(to)) {
+    return result;
+  }
+  const { text, lines } = transferLayout(
+    source,
+    result.text,
+    languageSyntax(from),
+    languageSyntax(to),
+    {
+      respace: options.layout !== 'target',
+      language: splitVersion(to).id,
+    }
+  );
+  return { ...result, text, lineMap: lines };
+}
+
+// Partial translation (the default of the command line, the server and the
+// web demo) keeps every part it can translate and marks the rest;
+// all-or-nothing translation throws at the first part it cannot read.
+function partialTranslator(translate, fragments, partial) {
+  function readAll(source, from, to, options) {
+    const whole = options.fragment ? fragments.translateFragment : translate;
+    try {
+      return completeResult(whole(source, from, to, options), source);
+    } catch (error) {
+      if (involvesMachineCode(from, to)) {
+        throw error;
+      }
+      return partial.translatePartial(source, from, to, options);
+    }
+  }
+  return (source, from, to, options = {}) => {
+    checkCommentLanguages(options);
+    const result = readAll(source, from, to, options);
+    return withLayout(result, source, from, to, options);
   };
 }
 
@@ -243,21 +289,7 @@ export function createGrammarTranslator(settings = {}) {
   });
   const partial = createPartialTranslator(fragments);
 
-  // Partial translation (the default of the command line, the server and
-  // the web demo) keeps every part it can translate and marks the rest;
-  // all-or-nothing translation throws at the first part it cannot read.
-  function translatePartial(source, from, to, options = {}) {
-    const whole = options.fragment ? fragments.translateFragment : translate;
-    checkCommentLanguages(options);
-    try {
-      return completeResult(whole(source, from, to, options), source);
-    } catch (error) {
-      if (involvesMachineCode(from, to)) {
-        throw error;
-      }
-      return partial.translatePartial(source, from, to, options);
-    }
-  }
+  const translatePartial = partialTranslator(translate, fragments, partial);
 
   return {
     languages: () =>

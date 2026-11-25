@@ -1,0 +1,74 @@
+[
+  {
+    "url": "https://api.github.com/repos/link-foundation/universal-translator/pulls/comments/4697268530",
+    "pull_request_review_id": 6060638049,
+    "id": 4697268530,
+    "node_id": "PRRC_kwDOVJ4SV88AAAABF_qhMg",
+    "diff_hunk": "@@ -0,0 +1,333 @@\n+import assert from 'node:assert/strict';\n+import { spawnSync } from 'node:child_process';\n+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';\n+import { tmpdir } from 'node:os';\n+import { join, resolve } from 'node:path';\n+import { describe, it } from 'test-anywhere';\n+import { itUnless, sandboxed } from './helpers/skip.js';\n+\n+const report = (results = []) => ({\n+  version: '2.1.0',\n+  runs: [\n+    {\n+      tool: { driver: { name: 'CodeQL' } },\n+      invocations: [{ executionSuccessful: true }],\n+      results,\n+    },\n+  ],\n+});\n+function check(reports) {\n+  const root = mkdtempSync(join(tmpdir(), 'sarif-gate-'));\n+  try {\n+    for (const [index, data] of reports.entries()) {\n+      writeFileSync(\n+        join(root, `${index}.sarif`),\n+        typeof data === 'string' ? data : JSON.stringify(data)\n+      );\n+    }\n+    return spawnSync(\n+      'node',\n+      [resolve('scripts/check-codeql-results.mjs'), root],\n+      { encoding: 'utf8' }\n+    );\n+  } finally {\n+    rmSync(root, { recursive: true, force: true });\n+  }\n+}\n+describe('CodeQL local result gate', () => {\n+  itUnless(sandboxed)(\n+    'accepts explicit clean reports from every language',\n+    () => {\n+      const result = check([report(), report()]);\n+      assert.equal(result.status, 0, result.stdout + result.stderr);\n+    }\n+  );\n+  for (const data of [\n+    [],\n+    ['{'],\n+    [{}],\n+    [{ version: '2.1.0', runs: [] }],\n+    [{ version: '2.1.0', runs: [{}] }],\n+    [\n+      {\n+        version: '2.1.0',\n+        runs: [\n+          {\n+            ...report().runs[0],\n+            invocations: [{ executionSuccessful: false }],\n+          },\n+        ],\n+      },\n+    ],\n+  ]) {\n+    itUnless(sandboxed)(\n+      `rejects missing, malformed, or unsuccessful evidence ${JSON.stringify(data)}`,\n+      () => {\n+        assert.notEqual(check(data).status, 0);\n+      }\n+    );\n+  }\n+  for (const level of ['error', 'warning', 'note', 'none', undefined]) {\n+    itUnless(sandboxed)(\n+      `rejects a finding with severity ${level} in a later run/file`,\n+      () => {\n+        const data = report();\n+        data.runs.push(\n+          report([\n+            {\n+              ruleId: 'test/finding',\n+              level,\n+              message: { text: 'regression finding' },\n+            },\n+          ]).runs[0]\n+        );\n+        const result = check([report(), data]);\n+        assert.notEqual(result.status, 0);\n+        assert.match(result.stdout + result.stderr, /test\\/finding/);\n+      }\n+    );\n+  }\n+  it('makes full analysis and the strict result gate prerequisites of terminal success', () => {\n+    const workflow = readFileSync('.github/workflows/security.yml', 'utf8');\n+    assert.match(workflow, /CODEQL_ACTION_DIFF_INFORMED_QUERIES: 'false'/);\n+    assert.match(workflow, /output: codeql-results/);\n+    assert.ok(\n+      workflow.indexOf('scripts/check-codeql-results.mjs') >\n+        workflow.indexOf('github/codeql-action/analyze@v4')\n+    );\n+    assert.match(workflow, /path: codeql-results/);\n+  });\n+});\n+\n+describe('CodeQL extraction diagnostics', () => {\n+  for (const key of [\n+    'toolExecutionNotifications',\n+    'toolConfigurationNotifications',\n+  ]) {\n+    for (const level of ['error', 'warning', undefined, 'note', 'none']) {\n+      itUnless(sandboxed)(\n+        `${key} enforces ${level ?? 'default warning'} even without findings`,\n+        () => {\n+          const data = report();\n+          data.runs[0].invocations[0][key] = [\n+            {\n+              level,\n+              descriptor: { id: 'extractor/failure' },\n+              message: { text: 'Extraction diagnostic' },\n+              locations: [\n+                {\n+                  physicalLocation: {\n+                    artifactLocation: { uri: 'src/example.js' },\n+                    region: { startLine: 42 },\n+                  },\n+                },\n+              ],\n+            },\n+          ];\n+          const result = check([data]);\n+          assert.equal(\n+            result.status,\n+            ['note', 'none'].includes(level) ? 0 : 1,\n+            result.stderr\n+          );\n+          if (result.status) {\n+            for (const text of [\n+              'extractor/failure',\n+              'src/example.js:42',\n+              'Extraction diagnostic',\n+            ]) {\n+              assert.ok(result.stderr.includes(text), result.stderr);\n+            }\n+          }\n+        }\n+      );\n+    }\n+    itUnless(sandboxed)(\n+      `${key} accepts CodeQL's empty success diagnostic`,\n+      () => {\n+        const data = report();\n+        data.runs[0].invocations[0][key] = [\n+          {\n+            level: 'none',\n+            descriptor: { id: 'js/diagnostics/successfully-extracted-files' },\n+            message: { text: '' },\n+            locations: [\n+              {\n+                physicalLocation: { artifactLocation: { uri: 'src/index.js' } },\n+              },\n+            ],\n+          },\n+        ];\n+        const result = check([data]);\n+        assert.equal(result.status, 0, result.stderr);\n+      }\n+    );\n+    for (const value of [\n+      null,\n+      {},\n+      'broken',\n+      [null],\n+      [{}],\n+      [{ level: 'invalid', message: { text: 'bad' } }],\n+      [{ level: 'none' }],\n+    ]) {\n+      itUnless(sandboxed)(\n+        `${key} rejects malformed evidence ${JSON.stringify(value)}`,\n+        () => {\n+          const data = report();\n+          data.runs[0].invocations[0][key] = value;\n+          assert.notEqual(check([data]).status, 0);\n+        }\n+      );\n+    }\n+  }\n+});\n+\n+for (const field of ['message', 'ruleId', 'level', 'diagnostic']) {\n+  itUnless(sandboxed)(`quotes workflow commands from SARIF ${field}`, () => {\n+    const injected =\n+      'x\\n::error title=spoof::forged\\r::add-mask::secret\\n::stop-commands::token ##[error]legacy';\n+    const data = report([\n+      {\n+        ruleId: field === 'ruleId' ? injected : 'rule',\n+        level: field === 'level' ? injected : 'error',\n+        message: { text: field === 'message' ? injected : 'finding' },\n+      },\n+    ]);\n+    if (field === 'diagnostic') {\n+      data.runs[0].invocations[0].toolExecutionNotifications = [\n+        {\n+          level: 'warning',\n+          descriptor: { id: injected },\n+          message: { text: injected },\n+          locations: [\n+            { physicalLocation: { artifactLocation: { uri: injected } } },\n+          ],\n+        },\n+      ];\n+    }\n+    const result = check([data]);\n+    assert.equal(result.status, 1);\n+    assert.doesNotMatch(\n+      result.stderr,\n+      /::(?:error|add-mask|stop-commands)|##\\[error\\]/\n+    );\n+    assert.match(result.stderr, /spoof/);\n+  });\n+}\n+\n+describe('CodeQL accepted findings', () => {\n+  const alert =\n+    'https://github.com/link-foundation/universal-translator/security/code-scanning/5';\n+  const entry = {\n+    ruleId: 'js/regex-injection',\n+    path: 'js/src/translation/custom-rules.js',\n+    primaryLocationLineHash: 'abc:1',\n+    alert,\n+    reason: 'reviewed and dismissed',\n+  };\n+  const finding = (\n+    path = entry.path,\n+    hash = entry.primaryLocationLineHash\n+  ) => ({\n+    ruleId: entry.ruleId,\n+    message: { text: 'regular expression from a command-line argument' },\n+    locations: [{ physicalLocation: { artifactLocation: { uri: path } } }],\n+    partialFingerprints: { primaryLocationLineHash: hash },\n+  });\n+  const withRule = (results) => {\n+    const data = report(results);\n+    data.runs[0].tool.extensions = [\n+      { name: 'codeql/javascript-queries', rules: [{ id: entry.ruleId }] },\n+    ];\n+    return data;\n+  };\n+  async function run(reports, accepted) {\n+    const { checkCodeqlResults } =\n+      await import('../../scripts/check-codeql-results.mjs');\n+    const root = mkdtempSync(join(tmpdir(), 'sarif-accepted-'));\n+    const errors = [];\n+    const notices = [];\n+    try {\n+      for (const [index, data] of reports.entries()) {\n+        writeFileSync(join(root, `${index}.sarif`), JSON.stringify(data));\n+      }\n+      const acceptedFile = join(root, 'accepted.json');\n+      writeFileSync(acceptedFile, JSON.stringify(accepted));\n+      try {\n+        checkCodeqlResults(\n+          root,\n+          (line) => errors.push(line),\n+          acceptedFile,\n+          (line) => notices.push(line)\n+        );\n+        return { ok: true, errors, notices };\n+      } catch (error) {\n+        return { ok: false, errors, notices, message: error.message };\n+      }\n+    } finally {\n+      rmSync(root, { recursive: true, force: true });\n+    }\n+  }\n+\n+  it('passes a reviewed finding and names its dismissed alert', async () => {\n+    const result = await run([withRule([finding()])], [entry]);\n+    assert.equal(result.ok, true, result.errors.join('\\n'));\n+    assert.equal(result.notices.length, 1);\n+    assert.match(\n+      result.notices[0],\n+      /^::notice title=Accepted CodeQL finding::/\n+    );\n+    assert.ok(result.notices[0].includes(alert));",
+    "path": "js/tests/codeql-results.test.js",
+    "commit_id": "e674adc8527c35f768bd74de76686d97d5e69ae4",
+    "original_commit_id": "ca695ee396d94168051926a163d2c245fe747c52",
+    "user": {
+      "login": "github-advanced-security[bot]",
+      "id": 62310815,
+      "node_id": "MDM6Qm90NjIzMTA4MTU=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/57789?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-advanced-security%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-advanced-security",
+      "followers_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "## CodeQL / Incomplete URL substring sanitization\n\n'[https://github.com/link-foundation/universal-translator/security/code-scanning/5](1)' can be anywhere in the URL, and arbitrary hosts may come before or after it.\n\n[Show more details](https://github.com/link-foundation/universal-translator/security/code-scanning/6)",
+    "created_at": "2026-11-25T15:37:07Z",
+    "updated_at": "2026-11-25T15:37:08Z",
+    "html_url": "https://github.com/link-foundation/universal-translator/pull/11#discussion_r4697268530",
+    "pull_request_url": "https://api.github.com/repos/link-foundation/universal-translator/pulls/11",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/link-foundation/universal-translator/pulls/comments/4697268530"
+      },
+      "html": {
+        "href": "https://github.com/link-foundation/universal-translator/pull/11#discussion_r4697268530"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/link-foundation/universal-translator/pulls/11"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/link-foundation/universal-translator/pulls/comments/4697268530/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": null,
+    "original_line": 281,
+    "side": "RIGHT",
+    "author_association": "NONE",
+    "original_position": 281,
+    "position": 1,
+    "subject_type": "line",
+    "is_copilot_code_review": false,
+    "copilot_code_review_severity": null,
+    "copilot_code_review_sources": []
+  }
+]

@@ -15,3 +15,5 @@ dev/log/
 examples/programs/translated/
 examples/programs/fragments/translated/
 js/src/natural/sources.js
+# Sources whose spacing is the point of the experiment
+experiments/issue-14/*.js
