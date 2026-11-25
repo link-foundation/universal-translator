@@ -616,7 +616,7 @@ fn is_array_declaration(statement: &Node) -> bool {
 }
 
 /// Whether a statement after an array's declaration stores into it. GNAT
-/// (-gnatwk) asks for an array that is never changed to be constant.
+/// (-gnatwk) wants an array that nothing stores into to be constant.
 fn changes(statements: &[Node], name: &str) -> bool {
     let mut found = false;
     let tree = Node::new("Block").with("statements", statements.to_vec());

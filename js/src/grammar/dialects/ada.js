@@ -354,7 +354,7 @@ const outputEmitter = (Base) =>
   };
 
 // Whether a statement after an array's declaration stores into it. GNAT
-// (-gnatwk) asks for an array that is never changed to be constant.
+// (-gnatwk) wants an array that nothing stores into to be constant.
 const changes = (statements, name) => {
   let found = false;
   walk({ kind: 'Block', statements }, (current) => {
