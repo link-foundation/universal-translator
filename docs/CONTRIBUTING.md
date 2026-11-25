@@ -211,6 +211,35 @@ git merge origin/main
 git push
 ```
 
+## Dependency advisories
+
+The Security workflow audits every committed npm lock with
+`scripts/npm-audit-report.mjs`. Every advisory, at any severity, becomes an
+annotation and a row in the step summary, so a green run states what it
+accepted. Pull requests and pushes fail at `high`, the same level as
+`dependency-review`: a moderate advisory with no patched release would
+otherwise block every contributor. The weekly scheduled run also fails on a
+moderate advisory that `npm audit fix` resolves without `--force`. Fix it with
+`npm update <package>` or an `overrides` entry. When only a breaking upgrade
+would remove an advisory, the run stays green and keeps reporting it.
+
+The same audit matrix looks up each locked package version in the npm registry,
+including optional and development dependencies. Live deprecations produce
+annotations on pull requests and fail the weekly run. Registry lookup failures
+fail every run. Use `DEPRECATED_FAIL=true node scripts/check-deprecated-packages.mjs package-lock.json`
+locally to apply the scheduled policy to the current directory's lock.
+`js/tests/deprecated-packages.test.js` also fails when a committed lock records
+a deprecated package. Deprecated dependencies are not allowlisted: replace or
+override them. The desktop overrides and their probe are documented in
+[universal-app/compat](../examples/universal-app/compat/README.md).
+
+Every dependency with an install script needs an explicit `allowScripts`
+decision in its owning package manifest. Approvals pin the exact locked version
+(`"esbuild@0.25.12": true`), so a new release needs a new review; denials name
+the package (`"some-package": false`). `js/tests/issue-228-regressions.test.js`
+checks every entry of the example app's lock, including optional
+platform-specific packages.
+
 ## Questions?
 
 If you have questions about contributing, feel free to open an issue for discussion.

@@ -108,8 +108,24 @@ describe('security workflow', () => {
     expect(audit).toContain('uses: actions/setup-node@v7');
     expect(audit).toContain('node-version: 24');
     expect(audit).toContain('working-directory: ${{ matrix.directory }}');
+    expect(audit).toContain('AUDIT_LEVEL: high');
     expect(audit).toContain(
-      'run: npm audit --package-lock-only --audit-level=high'
+      "AUDIT_FIXABLE_LEVEL: ${{ github.event_name == 'schedule' && 'moderate' || '' }}"
+    );
+    expect(audit).toContain('scripts/npm-audit-report.mjs');
+    // A bare `npm audit --audit-level=high` passes moderate advisories
+    // without a word, which hid the open minimatch and fast-uri alerts.
+    expect(audit).not.toContain('run: npm audit');
+  });
+
+  it('asks the registry about deprecations in every npm lock', () => {
+    const audit = getJobBlock('npm-audit');
+    expect(audit).toContain('- name: Check live npm deprecations');
+    expect(audit).toContain(
+      "DEPRECATED_FAIL: ${{ github.event_name == 'schedule' && 'true' || 'false' }}"
+    );
+    expect(audit).toContain(
+      'scripts/check-deprecated-packages.mjs" package-lock.json'
     );
   });
 });
