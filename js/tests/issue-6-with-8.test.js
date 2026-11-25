@@ -81,6 +81,28 @@ describe('comment languages and versions with partial translation', () => {
     expect(result.output).toBe('// число\nlet x = 1;\nconsole.log(x);\n');
   });
 
+  it('refuses a comment language that does not exist before reading', () => {
+    expect(() =>
+      translatePartial(commented, 'javascript', 'python', {
+        commentLanguage: 'klingon',
+      })
+    ).toThrow('No controlled natural language "klingon"');
+    const result = cli(
+      ['translate', 'javascript', 'python', '--comment-language', 'klingon'],
+      commented
+    );
+    expect(result.status).toBe(1);
+    expect(result.output).toBe('');
+  });
+
+  it('reads a version of a language with the rules of the language', () => {
+    const source = 'flags = [1] * (n + 1)\n';
+    const read = (from) =>
+      translatePartial(source, from, 'javascript', { fragment: true }).text;
+    expect(read('python@2')).toBe(read('python'));
+    expect(read('python@2')).toContain('new Array(n + 1).fill(1)');
+  });
+
   it('serves comment languages with detection and rules', async () => {
     const server = createTranslationServer();
     await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));

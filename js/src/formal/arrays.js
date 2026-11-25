@@ -281,7 +281,8 @@ export function recognizeArrays(program, { from } = {}) {
     return program;
   }
   const syntax = languageSyntax(from);
-  const construct = constructors[syntax.family ?? from];
+  // A version of a language (python@2) builds arrays like the language.
+  const construct = constructors[syntax.family ?? syntax.id];
   const constructed = construct
     ? rewrite(program, (current) => construct(current) ?? current)
     : program;

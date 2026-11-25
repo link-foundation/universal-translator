@@ -60,6 +60,23 @@ function inCommentLanguage(
 }
 
 // A mode, a target and the common library must go together.
+// A comment language that does not exist is a wrong option, not a part of
+// the text that could not be read. A translator of one's own may know more.
+function checkCommentLanguages({
+  commentLanguage,
+  commentFrom,
+  translateComment,
+}) {
+  if (translateComment) {
+    return;
+  }
+  for (const id of [commentLanguage, commentFrom]) {
+    if (id) {
+      naturalLanguage(id);
+    }
+  }
+}
+
 function checkTarget(to, mode, commonLibrary) {
   if (!modes.includes(mode)) {
     throw new Error(`Unsupported mode "${mode}"`);
@@ -231,11 +248,11 @@ export function createGrammarTranslator(settings = {}) {
   // all-or-nothing translation throws at the first part it cannot read.
   function translatePartial(source, from, to, options = {}) {
     const whole = options.fragment ? fragments.translateFragment : translate;
-    const machine = involvesMachineCode(from, to);
+    checkCommentLanguages(options);
     try {
       return completeResult(whole(source, from, to, options), source);
     } catch (error) {
-      if (machine) {
+      if (involvesMachineCode(from, to)) {
         throw error;
       }
       return partial.translatePartial(source, from, to, options);

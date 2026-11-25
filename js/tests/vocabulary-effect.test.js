@@ -70,6 +70,7 @@ const unshown = {
   go: ['types.nothing'],
   rust: ['types.nothing'],
   swift: ['types.nothing'],
+  kotlin: ['types.nothing'],
   objc: ['lineComment', 'types.text'],
   nim: ['types.nothing'],
   d: ['operators.concatenate'],
