@@ -31,6 +31,13 @@ export const machineTargets = {
 
 export const machineTargetIds = Object.keys(machineTargets);
 
+// Whether a lowered program creates arrays, and so needs the helper that
+// allocates and fills them.
+const createsArrays = (program) =>
+  [...program.functions, program.main].some((item) =>
+    item.code.some(([operation]) => operation === 'new-array')
+  );
+
 const comments = (prefix, texts, indent = '') =>
   texts.flatMap((text) =>
     text.split('\n').map((line) => `${indent}${prefix} ${line}`.trimEnd())
@@ -138,6 +145,19 @@ function nasmProcedure(item, texts) {
     'print-integer': () => ['pop rdi', 'call print_integer'],
     'print-text': (text) => [`lea rdi, [${texts(text)}]`, 'call print_text'],
     'print-newline': () => ['call print_newline'],
+    // An array is a pointer to its first element, with its length stored
+    // in the eight bytes before it.
+    'new-array': () => ['pop rsi', 'pop rdi', 'call new_array', 'push rax'],
+    dup: () => ['push qword [rsp]'],
+    'element-index': () => [],
+    'load-element': () => ['pop rcx', 'pop rax', 'push qword [rax + rcx * 8]'],
+    'store-element': () => [
+      'pop rdx',
+      'pop rcx',
+      'pop rax',
+      'mov [rax + rcx * 8], rdx',
+    ],
+    'array-length': () => ['pop rax', 'push qword [rax - 8]'],
   };
   for (const [operation, ...operands] of item.code) {
     body.push(...instructions[operation](...operands));
@@ -151,7 +171,36 @@ function nasmProcedure(item, texts) {
   ];
 }
 
+// new_array(length, fill): malloc room for the length and the elements,
+// then fill them. The memory lives until the program ends.
+const nasmNewArray = [
+  'new_array:',
+  '    push rbp',
+  '    mov rbp, rsp',
+  '    and rsp, -16',
+  '    push rdi',
+  '    push rsi',
+  '    lea rdi, [rdi * 8 + 8]',
+  '    call malloc wrt ..plt',
+  '    pop rsi',
+  '    pop rdi',
+  '    mov [rax], rdi',
+  '    add rax, 8',
+  '    xor ecx, ecx',
+  '.fill:',
+  '    cmp rcx, rdi',
+  '    jge .done',
+  '    mov [rax + rcx * 8], rsi',
+  '    inc rcx',
+  '    jmp .fill',
+  '.done:',
+  '    leave',
+  '    ret',
+  '',
+];
+
 function writeNasm(program) {
+  const arrays = createsArrays(program);
   const texts = new Map();
   const textLabel = (text) => {
     if (!texts.has(text)) {
@@ -182,6 +231,7 @@ function writeNasm(program) {
     ...(program.comments.length ? [''] : []),
     'default rel',
     'extern printf',
+    ...(arrays ? ['extern malloc'] : []),
     'global main',
     '',
     'section .data',
@@ -192,6 +242,7 @@ function writeNasm(program) {
     '',
     'section .text',
     ...procedures.flatMap((lines) => [...lines, '']),
+    ...(arrays ? nasmNewArray : []),
     ...helper('print_integer', 'integer_format', ['mov rsi, rdi']),
     '',
     ...helper('print_text', 'text_format', ['mov rsi, rdi']),
@@ -245,7 +296,9 @@ function cilMethod(item, signatures, entryName) {
     .slice(0, item.parameterCount)
     .map((slotName) => `int64 ${slotName}`)
     .join(', ');
-  const locals = item.slotNames.slice(item.parameterCount);
+  const local = (slotName, slot) =>
+    `${item.slotTypes?.[slot] === 'array' ? 'int64[]' : 'int64'} ${slotName}`;
+  const locals = item.slotNames.map(local).slice(item.parameterCount);
   const access = (slot, argument, local) =>
     slot < item.parameterCount
       ? `${argument} ${slot}`
@@ -274,15 +327,17 @@ function cilMethod(item, signatures, entryName) {
     'print-newline': () => [
       'call void [System.Console]System.Console::WriteLine()',
     ],
+    'new-array': () => [`call int64[] Program::${cilNewArray}(int64, int64)`],
+    dup: () => ['dup'],
+    'element-index': () => ['conv.ovf.i'],
+    'load-element': () => ['ldelem.i8'],
+    'store-element': () => ['stelem.i8'],
+    'array-length': () => ['ldlen', 'conv.i8'],
   };
   const body = [
     ...(isMain ? ['.entrypoint'] : []),
     `.maxstack ${Math.max(item.maxDepth, 1)}`,
-    ...(locals.length
-      ? [
-          `.locals init (${locals.map((slotName) => `int64 ${slotName}`).join(', ')})`,
-        ]
-      : []),
+    ...(locals.length ? [`.locals init (${locals.join(', ')})`] : []),
   ];
   for (const [operation, ...operands] of item.code) {
     body.push(...write[operation](...operands));
@@ -299,6 +354,23 @@ function cilMethod(item, signatures, entryName) {
 }
 
 const frameworkKey = '(B0 3F 5F 7F 11 D5 0A 3A)';
+
+// NewArray(length, fill): a new array filled by Array.Fill.
+const cilNewArray = 'NewArray';
+const cilNewArrayMethod = [
+  '',
+  `    .method private static int64[] ${cilNewArray}(int64 length, int64 fill) cil managed`,
+  '    {',
+  '        .maxstack 3',
+  '        ldarg 0',
+  '        conv.ovf.i',
+  '        newarr [System.Runtime]System.Int64',
+  '        dup',
+  '        ldarg 1',
+  '        call void [System.Runtime]System.Array::Fill<int64>(!!0[], !!0)',
+  '        ret',
+  '    }',
+];
 
 function writeCil(program) {
   const signatures = new Map(
@@ -321,6 +393,7 @@ function writeCil(program) {
       ...(index ? [''] : []),
       ...cilMethod(item, signatures, 'Main'),
     ]),
+    ...(createsArrays(program) ? cilNewArrayMethod : []),
     '}',
     '',
   ].join('\n');
@@ -368,11 +441,14 @@ function jvmMethod(item, descriptors) {
   const isMain = item.name === 'main';
   const base = isMain ? 1 : 0;
   const slot = (index) => base + 2 * index;
+  // Arrays are references, loaded with aload; integers are longs.
+  const isArray = (index) => item.slotTypes?.[index] === 'array';
+  const prefix = (index) => (isArray(index) ? 'a' : 'l');
   const write = {
     comment: (text) => comments(';', [text]),
     push: (value) => [`ldc2_w ${value}`],
-    load: (index) => [`lload ${slot(index)}`],
-    store: (index) => [`lstore ${slot(index)}`],
+    load: (index) => [`${prefix(index)}load ${slot(index)}`],
+    store: (index) => [`${prefix(index)}store ${slot(index)}`],
     pop: () => ['pop2'],
     arithmetic: (operation) => [jvmArithmetic[operation]],
     negate: () => ['lneg'],
@@ -400,12 +476,19 @@ function jvmMethod(item, descriptors) {
       `getstatic ${printStream}`,
       'invokevirtual java/io/PrintStream/println()V',
     ],
+    'new-array': () => ['invokestatic Program/newArray(JJ)[J'],
+    dup: () => ['dup'],
+    'element-index': () => ['l2i'],
+    'load-element': () => ['laload'],
+    'store-element': () => ['lastore'],
+    'array-length': () => ['arraylength', 'i2l'],
   };
   const body = [
     `.limit stack ${2 * item.maxDepth + 3}`,
     `.limit locals ${base + 2 * item.slotCount}`,
     ...item.slotNames.map(
-      (slotName, index) => `.var ${slot(index)} is ${slotName} J`
+      (slotName, index) =>
+        `.var ${slot(index)} is ${slotName} ${isArray(index) ? '[J' : 'J'}`
     ),
   ];
   for (const [operation, ...operands] of item.code) {
@@ -418,6 +501,22 @@ function jvmMethod(item, descriptors) {
     '.end method',
   ];
 }
+
+// newArray(length, fill): a new array filled by Arrays.fill.
+const jvmNewArrayMethod = [
+  '.method private static newArray(JJ)[J',
+  '    .limit stack 5',
+  '    .limit locals 4',
+  '    lload 0',
+  '    l2i',
+  '    newarray long',
+  '    dup',
+  '    lload 2',
+  '    invokestatic java/util/Arrays/fill([JJ)V',
+  '    areturn',
+  '.end method',
+  '',
+];
 
 function writeJvm(program) {
   const descriptors = new Map(
@@ -436,6 +535,7 @@ function writeJvm(program) {
       ...jvmMethod(item, descriptors),
       '',
     ]),
+    ...(createsArrays(program) ? jvmNewArrayMethod : []),
   ].join('\n');
 }
 

@@ -10,10 +10,16 @@
 //   call name count return           return-nothing
 //   print-integer   print-text value print-newline
 //   comment text
+//   new-array       (length, fill → array)       dup
+//   element-index   (makes the integer on top an element index)
+//   load-element    (array, index → value)       store-element (array,
+//   array-length    (array → length)                 index, value → )
 //
 // Integers are 64-bit. Text exists only as literal parts of printed values,
 // so every program that prints text, integers and their interpolations and
 // computes with integer functions, loops and conditions can be lowered.
+// Arrays of integers live in local slots; an array literal is a new array
+// of zeros whose elements are stored one by one.
 
 const relations = [
   'equal',
@@ -61,6 +67,10 @@ const stackEffect = {
   'compare-jump': -2,
   return: -1,
   'print-integer': -1,
+  'new-array': -1,
+  dup: 1,
+  'load-element': -1,
+  'store-element': -3,
 };
 
 function unsupported(what) {
@@ -76,6 +86,7 @@ class FunctionLowering {
       parameters.map(({ name: item }, index) => [item, index])
     );
     this.parameterCount = parameters.length;
+    this.arrays = new Set();
     this.code = [];
     this.labels = 0;
     this.depth = 0;
@@ -130,8 +141,36 @@ class FunctionLowering {
   }
 
   lowerDeclaration(node) {
+    const isArray =
+      node.type === 'array' ||
+      ['ArrayLiteral', 'NewArray'].includes(node.value?.kind);
     this.value(node.value);
+    if (isArray) {
+      this.arrays.add(node.name);
+    }
     this.emit('store', this.slot(node.name));
+  }
+
+  lowerIndexAssignment(node) {
+    this.emit('load', this.known(node.name));
+    this.value(node.index);
+    this.emit('element-index');
+    this.value(node.value);
+    this.emit('store-element');
+  }
+
+  // [a, b] is a new array of two zeros whose elements become a and b.
+  arrayLiteral(node) {
+    this.emit('push', node.elements.length);
+    this.emit('push', 0);
+    this.emit('new-array');
+    node.elements.forEach((element, index) => {
+      this.emit('dup');
+      this.emit('push', index);
+      this.emit('element-index');
+      this.value(element);
+      this.emit('store-element');
+    });
   }
 
   lowerAssignment(node) {
@@ -260,6 +299,23 @@ class FunctionLowering {
         return this.unary(node);
       case 'Binary':
         return this.binary(node);
+      case 'ArrayLiteral':
+        return this.arrayLiteral(node);
+      case 'NewArray':
+        this.value(node.length);
+        this.value(node.fill);
+        this.emit('new-array');
+        return;
+      case 'Index':
+        this.value(node.array);
+        this.value(node.index);
+        this.emit('element-index');
+        this.emit('load-element');
+        return;
+      case 'Length':
+        this.value(node.array);
+        this.emit('array-length');
+        return;
       default:
         throw unsupported(`a ${node.kind} value`);
     }
@@ -357,6 +413,9 @@ class FunctionLowering {
       parameterCount: this.parameterCount,
       slotCount: this.slots.size,
       slotNames: [...this.slots.keys()],
+      slotTypes: [...this.slots.keys()].map((name) =>
+        this.arrays.has(name) ? 'array' : 'integer'
+      ),
       returns: this.returns,
       maxDepth: this.maxDepth,
       comments,
@@ -374,6 +433,9 @@ export function lowerProgram(program) {
     ])
   );
   for (const item of program.functions) {
+    if (item.returnType === 'array') {
+      throw unsupported(`the array returned by "${item.name}"`);
+    }
     for (const parameter of item.parameters) {
       if (parameter.type && parameter.type !== 'integer') {
         throw unsupported(

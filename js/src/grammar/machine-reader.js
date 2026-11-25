@@ -188,6 +188,21 @@ function nasmRules(texts, slots) {
       (_, [, name]) => [['store', slot(name)]],
     ],
     [[/^pop rax$/, /^leave$/, /^ret$/], () => [['return']]],
+    // Arrays: new_array(length, fill) and the elements after the address.
+    [
+      [/^pop rsi$/, /^pop rdi$/, /^call new_array$/, /^push rax$/],
+      () => [['new-array']],
+    ],
+    [[/^push qword \[rsp\]$/], () => [['dup']]],
+    [
+      [/^pop rcx$/, /^pop rax$/, /^push qword \[rax \+ rcx \* 8\]$/],
+      () => [['element-index'], ['load-element']],
+    ],
+    [
+      [/^pop rdx$/, /^pop rcx$/, /^pop rax$/, /^mov \[rax \+ rcx \* 8\], rdx$/],
+      () => [['store-element']],
+    ],
+    [[/^pop rax$/, /^push qword \[rax - 8\]$/], () => [['array-length']]],
     [[/^add rsp, 8$/], () => [['pop']]],
     ...nasmArithmetic.map(([lines, operation]) => [
       [
@@ -347,6 +362,15 @@ function cilRules(parameterCount) {
       ([, kind, index]) => [['store', access(kind, index)]],
     ],
     [[/^pop$/], () => [['pop']]],
+    [[/^dup$/], () => [['dup']]],
+    [[/^conv\.ovf\.i$/], () => [['element-index']]],
+    [[/^ldelem\.i8$/], () => [['load-element']]],
+    [[/^stelem\.i8$/], () => [['store-element']]],
+    [[/^ldlen$/, /^conv\.i8$/], () => [['array-length']]],
+    [
+      [/^call int64\[\] Program::NewArray\(int64, int64\)$/],
+      () => [['new-array']],
+    ],
     [
       [/^(add|sub|mul|div|rem)$/],
       ([, operation]) => [['arithmetic', cilArithmetic[operation]]],
@@ -443,8 +467,14 @@ function jvmRules(slotOf) {
   return [
     [[/^; ?(.*)$/], ([, text]) => [['comment', text]]],
     [[/^ldc2_w (-?\d+)$/], ([, value]) => [['push', integer(value)]]],
-    [[/^lload (\d+)$/], ([, index]) => [['load', slotOf(index)]]],
-    [[/^lstore (\d+)$/], ([, index]) => [['store', slotOf(index)]]],
+    [[/^[la]load (\d+)$/], ([, index]) => [['load', slotOf(index)]]],
+    [[/^[la]store (\d+)$/], ([, index]) => [['store', slotOf(index)]]],
+    [[/^dup$/], () => [['dup']]],
+    [[/^l2i$/], () => [['element-index']]],
+    [[/^laload$/], () => [['load-element']]],
+    [[/^lastore$/], () => [['store-element']]],
+    [[/^arraylength$/, /^i2l$/], () => [['array-length']]],
+    [[/^invokestatic Program\/newArray\(JJ\)\[J$/], () => [['new-array']]],
     [[/^pop2$/], () => [['pop']]],
     [
       [/^(ladd|lsub|lmul|ldiv|lrem)$/],
@@ -516,7 +546,7 @@ export function readJvm(source) {
     while (body[0]?.startsWith('.var')) {
       const [, number, slotName] = body
         .shift()
-        .match(/^\.var (\d+) is (\w+) J$/);
+        .match(/^\.var (\d+) is (\w+) \[?J$/);
       slotNames[(Number(number) - base) / 2] = slotName;
     }
     const slotOf = (number) => (Number(number) - base) / 2;

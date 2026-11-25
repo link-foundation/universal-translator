@@ -28,7 +28,15 @@ const opposite = {
 };
 
 // Instructions that compute a value without any other effect.
-const pure = new Set(['push', 'load', 'arithmetic', 'negate']);
+const pure = new Set([
+  'push',
+  'load',
+  'arithmetic',
+  'negate',
+  'element-index',
+  'load-element',
+  'array-length',
+]);
 
 const ALWAYS = { kind: 'Always' };
 
@@ -109,6 +117,9 @@ class BlockLifting {
     this.statements = [];
     this.stack = [];
     this.prints = [];
+    // Array literals whose elements are still being stored, with their
+    // lengths.
+    this.building = new Map();
   }
 
   pop() {
@@ -150,6 +161,47 @@ class BlockLifting {
     }
   }
 
+  // An array literal is lowered as a new array of zeros whose elements are
+  // stored one by one, each after a dup of the array.
+  duplicate() {
+    const top = this.stack.at(-1);
+    const built = this.building.get(top);
+    if (built && top.elements.length < built) {
+      this.stack.push({ kind: 'Building', literal: top });
+      return;
+    }
+    if (
+      top?.kind !== 'NewArray' ||
+      top.length.kind !== 'Number' ||
+      top.fill.kind !== 'Number' ||
+      top.fill.value !== 0
+    ) {
+      throw liftError('a dup that does not build an array literal');
+    }
+    const literal = { kind: 'ArrayLiteral', elements: [] };
+    this.building.set(literal, top.length.value);
+    this.stack[this.stack.length - 1] = literal;
+    this.stack.push({ kind: 'Building', literal });
+  }
+
+  storeElement() {
+    const value = this.pop();
+    const index = this.pop();
+    const array = this.pop();
+    if (array.kind === 'Building') {
+      const { elements } = array.literal;
+      if (index.kind !== 'Number' || index.value !== elements.length) {
+        throw liftError('array literal elements out of order');
+      }
+      elements.push(value);
+      return;
+    }
+    if (array.kind !== 'Name') {
+      throw liftError('an element stored into an unnamed array');
+    }
+    this.add({ kind: 'IndexAssignment', name: array.name, index, value });
+  }
+
   printText(value) {
     const last = this.prints.at(-1);
     if (last?.kind === 'Text') {
@@ -173,6 +225,8 @@ class BlockLifting {
       'print-integer': () => this.prints.push(this.pop()),
       'print-text': () => this.printText(operands[0]),
       'print-newline': () => this.flush(true),
+      dup: () => this.duplicate(),
+      'store-element': () => this.storeElement(),
       jump: () => {
         throw liftError(`an unexpected jump to "${operands[0]}"`);
       },
@@ -361,6 +415,26 @@ class FunctionLifting {
       }
       case 'negate':
         stack.push({ kind: 'Unary', operator: 'negate', operand: pop() });
+        return;
+      case 'element-index':
+        return;
+      case 'new-array': {
+        const fill = pop();
+        const length = pop();
+        stack.push(
+          length.kind === 'Number' && length.value === 0
+            ? { kind: 'ArrayLiteral', elements: [] }
+            : { kind: 'NewArray', length, fill }
+        );
+        return;
+      }
+      case 'load-element': {
+        const index = pop();
+        stack.push({ kind: 'Index', array: pop(), index });
+        return;
+      }
+      case 'array-length':
+        stack.push({ kind: 'Length', array: pop() });
         return;
       case 'call': {
         const [callee, count] = operands;
