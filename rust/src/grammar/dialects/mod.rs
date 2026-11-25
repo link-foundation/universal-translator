@@ -10,6 +10,7 @@ mod matlab;
 mod pascal;
 mod shared;
 mod vb;
+mod zig;
 
 use super::emitter::{Emitter, Result};
 use super::lexer::Token;
@@ -165,6 +166,7 @@ pub(crate) fn emitter_dialect(language: &str) -> &'static dyn EmitterDialect {
         "matlab" => &matlab::Matlab,
         "pascal" => &pascal::Pascal,
         "vb" => &vb::VisualBasic,
+        "zig" => &zig::Zig,
         _ => &Plain,
     }
 }
@@ -177,6 +179,7 @@ pub(crate) fn parser_dialect(language: &str) -> &'static dyn ParserDialect {
         "matlab" => &matlab::Matlab,
         "pascal" => &pascal::Pascal,
         "vb" => &vb::VisualBasic,
+        "zig" => &zig::Zig,
         _ => &Plain,
     }
 }

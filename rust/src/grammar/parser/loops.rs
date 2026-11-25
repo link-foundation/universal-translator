@@ -23,10 +23,10 @@ struct Range {
 }
 
 /// The step of a C-style loop update such as `i++` or `i += 1`.
-struct Update {
-    name: String,
-    operator: String,
-    value: Node,
+pub(crate) struct Update {
+    pub(crate) name: String,
+    pub(crate) operator: String,
+    pub(crate) value: Node,
 }
 
 impl Parser {
@@ -142,7 +142,7 @@ impl Parser {
             })
     }
 
-    fn for_update(&mut self) -> Parsed<Update> {
+    pub(crate) fn for_update(&mut self) -> Parsed<Update> {
         let name = self.expect_name()?;
         let written = self.next_value()?;
         if let Some(operator) = step_operator(&written) {
