@@ -13,16 +13,32 @@ import { itUnless, noPosixShell, sandboxed } from './helpers/skip.js';
 
 const gate = resolve('scripts/check-mjs-syntax.sh');
 
+// A failed git call would leave the fixture untracked, and the gate would
+// then pass because it never saw the file under test.
+function git(args, cwd) {
+  const result = spawnSync('git', args, { cwd, encoding: 'utf8' });
+  if (result.error || result.status !== 0) {
+    throw new Error(
+      `git ${args.join(' ')} failed (${result.status ?? result.signal}): ${result.error?.message ?? result.stderr}`
+    );
+  }
+  return result.stdout;
+}
+
 // Commits the files to a fresh repository and runs the gate there.
 function runGate(files) {
   const root = mkdtempSync(join(tmpdir(), 'syntax-gate-'));
   try {
-    spawnSync('git', ['init', '-q'], { cwd: root });
+    git(['init', '-q'], root);
     for (const [file, source] of Object.entries(files)) {
       mkdirSync(dirname(join(root, file)), { recursive: true });
       writeFileSync(join(root, file), source);
     }
-    spawnSync('git', ['add', '.'], { cwd: root });
+    git(['add', '.'], root);
+    const tracked = git(['ls-files'], root).split('\n').filter(Boolean);
+    if (tracked.length !== Object.keys(files).length) {
+      throw new Error(`git tracks ${tracked.join(', ')}, not every fixture`);
+    }
     return spawnSync('bash', [gate], {
       cwd: root,
       encoding: 'utf8',
@@ -48,6 +64,9 @@ describe('JavaScript syntax gate', () => {
           'scripts/valid.mjs': 'export const ready = true;',
           ...files,
         });
+        // Shows what the gate checked if it ever passes again (Deno, run
+        // 45649688140, reported exit 0 once without showing its output).
+        expect(result.stdout).toContain(`Checking ${file}...`);
         expect(result.status).toBe(1);
         expect(result.stderr).toContain(`::error file=${file}::`);
       }
