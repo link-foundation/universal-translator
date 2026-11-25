@@ -94,6 +94,12 @@ jobs:
         uses: actions/dependency-review-action@v5
         with:
           fail-on-severity: high
+          # As in the JS template: the scorecard of every new dependency is
+          # listed in the summary, but a low score is not a vulnerability, so
+          # it does not raise a warning annotation. human-signals (through
+          # command-stream and execa) scores 2.8 against the default 3.
+          show-openssf-scorecard: true
+          warn-on-openssf-scorecard-level: 0
           comment-summary-in-pr: on-failure
 
   npm-audit:

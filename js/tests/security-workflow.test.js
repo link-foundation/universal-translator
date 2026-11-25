@@ -87,6 +87,13 @@ describe('security workflow', () => {
     expect(dependencyReview).toContain(
       '          comment-summary-in-pr: on-failure'
     );
+    // Scorecards stay in the summary; a low one is not a warning (template).
+    expect(dependencyReview).toContain(
+      '          show-openssf-scorecard: true'
+    );
+    expect(dependencyReview).toContain(
+      '          warn-on-openssf-scorecard-level: 0'
+    );
   });
 
   it('fails closed on high-severity advisories in every npm lock', () => {
