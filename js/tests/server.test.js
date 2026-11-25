@@ -13,6 +13,9 @@ async function withServer(check) {
   try {
     await check(base);
   } finally {
+    // Deno's fetch keeps connections alive and its server.close() waits for
+    // them, so drop them first (experiments/deno-server-close.mjs).
+    server.closeAllConnections();
     await new Promise((resolve) => server.close(resolve));
   }
 }
