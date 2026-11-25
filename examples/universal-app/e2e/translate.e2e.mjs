@@ -196,7 +196,8 @@ async function showsTheMetaLanguage() {
   const source = await page.locator('#source-meta').textContent();
   const target = await page.locator('#target-meta').textContent();
   assert.match(source, /^program/);
-  assert.match(source, /\(value Hi\)/);
+  assert.match(source, /^    text Hi \(type text\)$/m);
+  assert.doesNotMatch(source, /\bblock\b|\w:/, 'plain nesting, no labels');
   assert.equal(target, source, 'one meaning on both sides');
   await page.uncheck('#show-meta');
 }

@@ -1,6 +1,7 @@
 use std::fs;
 use std::io::{self, Read, Write};
 use universal_translator::formal::languages::language_syntax;
+use universal_translator::meta::notation::format_meta;
 use universal_translator::meta::{format_number, to_json};
 use universal_translator::natural::check_text;
 use universal_translator::translator::{Translator, language_ids, natural_languages};
@@ -10,7 +11,7 @@ use universal_translator::{
 
 const USAGE: &str = "Usage:
   universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment] [--all-or-nothing] [--rules <file.json>] [--comment-language <natural>] [--comment-from <natural>]
-  universal-translator meta <language> [file|-]
+  universal-translator meta <language> [file|-] [--json]
   universal-translator coverage <language> [file|-]
   universal-translator detect [file|-]
   universal-translator translate-program <from|cst> <to> [file|-]
@@ -39,9 +40,22 @@ The source language may be \"auto\" to detect it.
 <from> is <to>); --comment-from <natural> names the language of the
 comments (detected otherwise).
 <to> may name a version: python@2.
+meta prints the meta program as indented Links Notation; --json prints JSON.
 coverage prints which parts of a text can be read, as JSON.
 detect prints the most likely languages of a text, as JSON.
 Omit the file or pass - to read standard input.";
+
+/// The file of `meta <language> [file|-] [--json]`: `Some(None)` reads
+/// standard input, `None` means the arguments are wrong.
+fn meta_file<'a>(trailing: &[&'a str]) -> Option<Option<&'a str>> {
+    let files: Vec<&str> = trailing
+        .iter()
+        .copied()
+        .filter(|argument| *argument != "--json")
+        .collect();
+    let flags = trailing.len() - files.len();
+    (files.len() <= 1 && flags <= 1).then(|| files.first().copied())
+}
 
 fn source(file: Option<&str>) -> Result<String, String> {
     if let Some(file) = file.filter(|file| *file != "-") {
@@ -318,11 +332,21 @@ fn run(arguments: &[String]) -> Result<String, String> {
                 Err(problems.join("\n"))
             }
         }
-        ["meta", language, trailing @ ..] if trailing.len() <= 1 => {
+        ["meta", language, trailing @ ..] if meta_file(trailing).is_some() => {
+            let json = trailing.contains(&"--json");
             let meta = Translator::new()
-                .to_meta(&source(trailing.first().copied())?, language)
+                .to_meta(&source(meta_file(trailing).flatten())?, language)
                 .map_err(|error| error.to_string())?;
-            Ok(to_json(Some(&meta.into())) + "\n")
+            Ok(if json {
+                // Indented like the JavaScript CLI; the fields are in name order.
+                let compact = to_json(Some(&meta.into()));
+                serde_json::from_str::<serde_json::Value>(&compact)
+                    .and_then(|value| serde_json::to_string_pretty(&value))
+                    .unwrap_or(compact)
+                    + "\n"
+            } else {
+                format_meta(&meta)
+            })
         }
         ["coverage", language, trailing @ ..] if trailing.len() <= 1 => {
             let reading = Translator::new()

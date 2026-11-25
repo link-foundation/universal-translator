@@ -249,6 +249,30 @@ own. When `--comment-from` is left out, the comment language is detected:
 universal-translator translate javascript python@2 app.js --comment-language russian
 universal-translator translate python python app.py --comment-language german  # comments only
 universal-translator meta python app.py   # the meta language as an indented tree
+universal-translator meta python app.py --json   # the same program as JSON
+```
+
+The meta view is indented Links Notation: one line per node with its kind,
+its main value and its other plain fields as `(name value)` links, and its
+child nodes nested below it with no field labels and no block markers. A
+field that follows a block, such as the `else` branch, is introduced by one
+plain word (`otherwise`):
+
+```
+program
+  function twice (blank-after true) (return-type integer)
+    parameter n (type integer)
+    if
+      binary greater (type boolean)
+        name n (type integer)
+        number 1 (type integer)
+      return
+        binary multiply (type integer)
+          name n (type integer)
+          number 2 (type integer)
+      otherwise
+        return
+          number 0 (type integer)
 ```
 
 ```js

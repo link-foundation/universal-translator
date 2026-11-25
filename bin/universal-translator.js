@@ -12,6 +12,7 @@ import {
   createSourceSyntaxCodec,
   createTranslationServer,
   createTranslator,
+  formatMeta,
   multiply,
   readSourceDocument,
   writeSourceDocument,
@@ -58,7 +59,8 @@ function usage() {
     '            The source language may be "auto" to detect it',
     '            --rules <file.json> adds source, templates, names and output rules',
     '  translate-program <from|cst> <to> [file|-]  Translate a checked JavaScript or Rust program',
-    '  meta <language> [file|-]  Print the typed meta program as JSON',
+    '  meta <language> [file|-] [--json]  Print the typed meta program as indented Links Notation',
+    '            --json prints it as JSON instead',
     '  coverage <language> [file|-]  Print which parts of a text can be read, as JSON',
     '  detect [file|-]  Print the most likely languages of a text, as JSON',
     '  encode-source <language> [file|-]  Write a Links Notation source document',
@@ -234,8 +236,10 @@ function coverageReport({ parts, ...summary }) {
 // The commands that read a text in a language: what each one writes.
 const textCommands = {
   'check-words': (translator, text, from) => checkWords(text, from),
-  meta: (translator, text, from) =>
-    `${JSON.stringify(translator.toMeta(text, from), null, 2)}\n`,
+  meta: (translator, text, from, { json }) =>
+    json
+      ? `${JSON.stringify(translator.toMeta(text, from), null, 2)}\n`
+      : formatMeta(translator.toMeta(text, from)),
   coverage: (translator, text, from) =>
     coverageReport(translator.parsePartial(text, from)),
 };
@@ -250,7 +254,10 @@ const translatorFor = ({ trace, rules = {} }, stderr) =>
     rules,
   });
 
-function runTranslation(command, args, read, write, stderr) {
+function runTranslation(command, allArgs, read, write, stderr) {
+  // Only "meta" takes --json; every other command reads it as a file name.
+  const json = command === 'meta' && allArgs.includes('--json');
+  const args = json ? allArgs.filter((arg) => arg !== '--json') : allArgs;
   const [from, to, ...trailing] = args;
   const { file, options = {} } =
     command === 'translate' ? translationArguments(trailing) : {};
@@ -259,7 +266,7 @@ function runTranslation(command, args, read, write, stderr) {
   if (command === 'languages' && args.length === 0) {
     write(languageList(translator));
   } else if (textCommand && from && args.length <= 2) {
-    write(textCommand(translator, read(to), from));
+    write(textCommand(translator, read(to), from, { json }));
   } else if (command === 'detect' && args.length <= 1) {
     write(
       `${JSON.stringify(translator.detectLanguage(read(from)), null, 2)}\n`
