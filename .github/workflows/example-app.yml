@@ -14,6 +14,7 @@ on:
       - 'scripts/check-preview-tools.sh'
       - 'scripts/push-main-with-rebase-retry.mjs'
       - 'scripts/run-with-budget-warning.sh'
+      - 'scripts/check-desktop-compat.mjs'
       - '.github/workflows/example-app.yml'
   push:
     branches:
@@ -29,6 +30,7 @@ on:
       - 'scripts/check-preview-tools.sh'
       - 'scripts/push-main-with-rebase-retry.mjs'
       - 'scripts/run-with-budget-warning.sh'
+      - 'scripts/check-desktop-compat.mjs'
       - '.github/workflows/example-app.yml'
   workflow_dispatch:
 
@@ -149,6 +151,12 @@ jobs:
         run: |
           npm ci --omit=dev --ignore-scripts --no-audit --no-fund
           npm ci --prefix examples/universal-app --no-audit --no-fund
+
+      # The overrides in examples/universal-app/package.json swap in
+      # @electron/asar 4 and a native fs.rm adapter for temp's rimraf 2 (see
+      # examples/universal-app/compat/README.md). Run the real consumers.
+      - name: Verify desktop compatibility APIs
+        run: node --pending-deprecation --throw-deprecation scripts/check-desktop-compat.mjs
 
       - name: Package Electron app
         shell: bash

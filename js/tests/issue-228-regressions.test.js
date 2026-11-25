@@ -86,15 +86,23 @@ describe('Deno lock and npm install script policies', () => {
     const lock = JSON.parse(read(`${root}package-lock.json`));
     const scripts = Object.entries(lock.packages)
       .filter(([, info]) => info.hasInstallScript)
-      .map(([entry, info]) => info.name ?? entry.split('node_modules/').at(-1));
+      .map(
+        ([entry, info]) =>
+          `${info.name ?? entry.split('node_modules/').at(-1)}@${info.version}`
+      );
     expect(scripts.length).toBeGreaterThan(0);
-    for (const name of scripts) {
-      expect(typeof pkg.allowScripts?.[name]).toBe('boolean');
+    // An approval names the exact locked version, so a new release of the
+    // package needs a new review; a denial may name the package alone.
+    for (const id of scripts) {
+      const name = id.slice(0, id.lastIndexOf('@'));
+      expect(
+        pkg.allowScripts?.[id] === true || pkg.allowScripts?.[name] === false
+      ).toBe(true);
     }
     expect(pkg.allowScripts).toEqual({
-      'electron-winstaller': true,
-      esbuild: true,
-      fsevents: true,
+      'electron-winstaller@5.4.0': true,
+      'esbuild@0.25.12': true,
+      'fsevents@2.3.3': true,
     });
   });
 });
