@@ -1,5 +1,5 @@
-// One select of languages (one entry per language) and, when the language
-// has more than one, a select of its versions: Python 3 or 2, American or
+// One select of languages (one entry per language) and a select of its
+// versions: Python 3 or 2, American or
 // British English down to the semantic primes, standards of one's own.
 // With `auto` the first choice is to detect the language of the text.
 
@@ -57,22 +57,26 @@ export function LanguagePicker({
         )
       )
     ),
-    entry?.versions.length > 1 &&
+    // The version select is always there (disabled when there is nothing
+    // to choose), so the pickers keep their width and place.
+    h(
+      'label',
+      { className: 'field version', htmlFor: `${id}-version` },
+      h('span', null, t('picker.version')),
       h(
-        'label',
-        { className: 'field version', htmlFor: `${id}-version` },
-        h('span', null, t('picker.version')),
-        h(
-          'select',
-          {
-            id: `${id}-version`,
-            value,
-            onChange: (event) => onChange(event.target.value),
-          },
-          entry.versions.map((version) =>
-            h('option', { key: version.id, value: version.id }, version.label)
-          )
-        )
+        'select',
+        {
+          id: `${id}-version`,
+          value: entry ? value : '',
+          disabled: !entry || entry.versions.length < 2,
+          onChange: (event) => onChange(event.target.value),
+        },
+        entry
+          ? entry.versions.map((version) =>
+              h('option', { key: version.id, value: version.id }, version.label)
+            )
+          : h('option', { value: '' }, '—')
       )
+    )
   );
 }

@@ -104,7 +104,9 @@ function readStored(storage, key, fromLino, fallback) {
     if (!text) {
       return fallback;
     }
-    return /^[[{]/u.test(text) ? (JSON.parse(text) ?? fallback) : fromLino(text);
+    return /^[[{]/u.test(text)
+      ? (JSON.parse(text) ?? fallback)
+      : fromLino(text);
   } catch {
     return fallback;
   }

@@ -1,5 +1,5 @@
-// Syntax highlighting taken from the meta language rather than from a
-// grammar of each language. A text is read into a meta program by the
+// Syntax highlighting taken from the meta language, with no grammar of
+// each language. A text is read into a meta program by the
 // translator; the words that program keeps as names of variables or
 // functions are coloured as such, its texts and numbers as values, and
 // every other word of the text is spelled by the language itself (a
@@ -17,13 +17,15 @@
 // text. Types: keyword, variable, function, string, number, comment,
 // delimiter, attribute, type and '' (plain).
 
+import { writeName } from '../../../js/src/natural/writer.js';
+
 const kebab = (word) =>
   word
     .replace(/([\p{Ll}\p{N}])(\p{Lu})/gu, '$1-$2')
     .replace(/_/gu, '-')
     .toLowerCase();
 
-const wordPattern = /^[\p{L}_$][\p{L}\p{N}_$]*/u;
+const wordPattern = /^[\p{L}_$][\p{L}\p{M}\p{N}_$]*/u;
 const numberPattern = /^\d[\d_]*(\.\d+)?([eE][+-]?\d+)?/u;
 const spacePattern = /^\s+/u;
 
@@ -41,13 +43,13 @@ export function metaWords(program) {
     }
     const add = (set, value) => {
       if (typeof value === 'string') {
-        for (const part of value.split(/[\s-]+/u)) {
-          set.add(kebab(part));
-        }
+        // "my value", "myValue" and "my_value" are one name: my-value.
+        set.add(kebab(value.trim()).replace(/\s+/gu, '-'));
       }
     };
     if (node.kind === 'Function' || node.kind === 'Call') {
-      add(functions, node.name ?? node.callee);
+      // A method (System.out.println) is coloured at its last word.
+      add(functions, (node.name ?? node.callee)?.split?.('.').at(-1));
     }
     if (
       ['Name', 'Declaration', 'Assignment', 'IndexAssignment'].includes(
@@ -75,28 +77,73 @@ export function metaWords(program) {
 // one (naturalLanguage); words come from metaWords.
 export function sourceLexicon(syntax = {}, words = {}) {
   const natural = Boolean(syntax.templates);
-  const quotes = natural
-    ? [
-        [syntax.quotes?.[0] ?? '“', syntax.quotes?.[1] ?? '”'],
-        ['"', '"'],
-      ]
-    : (syntax.quotes ?? ['"', "'"]).map((quote) => [quote, quote]);
-  const note = natural ? syntax.note?.split('{text}')[0]?.trim() : undefined;
-  const doubled = !natural && Boolean(syntax.doubledQuotes);
+  const names = words.names ?? new Set();
+  const functions = words.functions ?? new Set();
   return {
     kind: 'source',
-    lineComments: [syntax.lineComment, note].filter(Boolean),
-    blockComment: natural ? undefined : syntax.blockComment,
-    quotes,
-    doubled,
-    names: words.names ?? new Set(),
-    functions: words.functions ?? new Set(),
+    ...(natural ? naturalMarks(syntax) : formalMarks(syntax)),
+    names,
+    functions,
+    phrases: natural ? writtenNames(syntax, names, functions) : [],
+  };
+}
+
+// A natural language writes a name in its own words ("first" is "birinci"
+// in Turkish, "gcd-of" is "gcd-из" in Russian): the written forms, the
+// longest first, so that a name of several words is one piece.
+function writtenNames(language, names, functions) {
+  const spell = (name) => {
+    try {
+      return writeName(name, language).toLowerCase();
+    } catch {
+      return name;
+    }
+  };
+  return [
+    ...[...functions].map((name) => ({ text: spell(name), type: 'function' })),
+    ...[...names].map((name) => ({ text: spell(name), type: 'variable' })),
+  ]
+    .filter(({ text }) => text)
+    .sort((a, b) => b.text.length - a.text.length);
+}
+
+const letter = /[\p{L}\p{M}\p{N}_]/u;
+
+// The written name that starts at `at`, as a whole word.
+function phraseAt(line, at, lexicon) {
+  if (at > 0 && letter.test(line[at - 1])) {
+    return undefined;
+  }
+  return lexicon.phrases?.find(
+    ({ text }) =>
+      line.slice(at, at + text.length).toLowerCase() === text &&
+      !letter.test(line[at + text.length] ?? '')
+  );
+}
+
+// A natural language quotes with its own marks (and "…"); a note, its
+// comment, starts with a word such as "Note:".
+function naturalMarks({ quotes = ['“', '”'], note = '' }) {
+  return {
+    lineComments: [note.split('{text}')[0].trim()].filter(Boolean),
+    quotes: [quotes, ['"', '"']],
+    doubled: false,
+  };
+}
+
+function formalMarks({ lineComment, blockComment, quotes, doubledQuotes }) {
+  return {
+    lineComments: [lineComment].filter(Boolean),
+    blockComment,
+    quotes: (quotes ?? ['"', "'"]).map((quote) => [quote, quote]),
+    doubled: Boolean(doubledQuotes),
   };
 }
 
 export const linoLexicon = { kind: 'lino' };
 
-const startsWith = (line, at, text) => Boolean(text) && line.startsWith(text, at);
+const startsWith = (line, at, text) =>
+  Boolean(text) && line.startsWith(text, at);
 
 // The rest of a quoted text or a block comment from `at`: where it ends on
 // this line, or -1 when it goes on.
@@ -115,15 +162,15 @@ function closeAt(line, at, close, { escapes = true, doubled = false } = {}) {
   return -1;
 }
 
-function wordType(word, lexicon, next) {
+// The meta program knows every function a text defines or calls (a call
+// of print is a Call of "print"), so a word before "(" that it does not
+// know, such as "if", is a keyword.
+function wordType(word, lexicon) {
   const key = kebab(word);
   if (lexicon.functions.has(key)) {
     return 'function';
   }
-  if (lexicon.names.has(key)) {
-    return 'variable';
-  }
-  return next === '(' ? 'function' : 'keyword';
+  return lexicon.names.has(key) ? 'variable' : 'keyword';
 }
 
 function sourceLine(line, state, lexicon) {
@@ -151,6 +198,7 @@ function sourceLine(line, state, lexicon) {
     );
     const [open, close] = lexicon.blockComment ?? [];
     const quote = lexicon.quotes.find(([start]) => startsWith(line, at, start));
+    const phrase = phraseAt(line, at, lexicon);
     if (startsWith(line, at, open)) {
       push('comment');
       const end = closeAt(line, at + open.length, close, { escapes: false });
@@ -178,6 +226,9 @@ function sourceLine(line, state, lexicon) {
         };
       }
       at = end;
+    } else if (phrase) {
+      push(phrase.type);
+      at += phrase.text.length;
     } else if (spacePattern.test(rest)) {
       at += rest.match(spacePattern)[0].length;
     } else if (numberPattern.test(rest)) {
@@ -185,8 +236,7 @@ function sourceLine(line, state, lexicon) {
       at += rest.match(numberPattern)[0].length;
     } else if (wordPattern.test(rest)) {
       const [word] = rest.match(wordPattern);
-      const next = line.slice(at + word.length).trimStart()[0];
-      push(wordType(word, lexicon, next));
+      push(wordType(word, lexicon));
       at += word.length;
     } else {
       push('delimiter');
@@ -209,6 +259,40 @@ const linoFunctions = new Set(['function', 'call']);
 
 const linoWord = /^[^\s()'":]+/u;
 
+// A word of Links Notation: "name:" defines a name, (field …) starts with a
+// field, the first word of a line is the kind of a meta node and the word
+// after it is its main value.
+function linoWordType(word, { after, opensLink, first, depth, kind }) {
+  if (after === ':') {
+    return 'type';
+  }
+  if (opensLink) {
+    return 'attribute';
+  }
+  if (/^-?\d/u.test(word)) {
+    return 'number';
+  }
+  if (depth !== 0) {
+    return '';
+  }
+  if (first) {
+    return 'keyword';
+  }
+  if (linoFunctions.has(kind)) {
+    return 'function';
+  }
+  if (linoNames.has(kind)) {
+    return 'variable';
+  }
+  return kind === 'text' ? 'string' : '';
+}
+
+const nesting = { '(': 1, ')': -1 };
+
+// Links Notation doubles a quote inside a quoted text.
+const linoQuoteEnd = (line, at, close) =>
+  closeAt(line, at, close, { escapes: false, doubled: true });
+
 function linoLine(line, state) {
   const tokens = [];
   let at = 0;
@@ -222,14 +306,10 @@ function linoLine(line, state) {
   };
   if (state.inside) {
     push('string');
-    const end = closeAt(line, 0, state.inside.close, {
-      escapes: false,
-      doubled: true,
-    });
-    if (end === -1) {
+    at = linoQuoteEnd(line, 0, state.inside.close);
+    if (at === -1) {
       return { tokens, state };
     }
-    at = end;
     first = false;
     state = { inside: null };
   }
@@ -238,13 +318,13 @@ function linoLine(line, state) {
     const char = line[at];
     if (spacePattern.test(rest)) {
       at += rest.match(spacePattern)[0].length;
-    } else if (char === '(' || char === ')' || char === ':') {
+    } else if ('():'.includes(char)) {
       push('delimiter');
-      depth += char === '(' ? 1 : char === ')' ? -1 : 0;
+      depth += nesting[char] ?? 0;
       at += 1;
-    } else if (char === "'" || char === '"' || char === '`') {
+    } else if ('\'"`'.includes(char)) {
       push('string');
-      const end = closeAt(line, at + 1, char, { escapes: false, doubled: true });
+      const end = linoQuoteEnd(line, at + 1, char);
       if (end === -1) {
         return { tokens, state: { inside: { close: char } } };
       }
@@ -252,25 +332,14 @@ function linoLine(line, state) {
       first = false;
     } else {
       const [word] = rest.match(linoWord);
-      const after = line[at + word.length];
-      const previous = tokens.at(-1);
-      let type = '';
-      if (after === ':') {
-        type = 'type';
-      } else if (previous?.type === 'delimiter' && line[at - 1] === '(') {
-        type = 'attribute';
-      } else if (/^-?\d/u.test(word)) {
-        type = 'number';
-      } else if (first && depth === 0) {
-        type = 'keyword';
-        kind = word;
-      } else if (depth === 0 && linoFunctions.has(kind)) {
-        type = 'function';
-      } else if (depth === 0 && linoNames.has(kind)) {
-        type = 'variable';
-      } else if (depth === 0 && kind === 'text') {
-        type = 'string';
-      }
+      const type = linoWordType(word, {
+        after: line[at + word.length],
+        opensLink: line[at - 1] === '(',
+        first,
+        depth,
+        kind,
+      });
+      kind = first && type === 'keyword' ? word : kind;
       push(type);
       at += word.length;
       first = false;
@@ -298,9 +367,14 @@ export function highlightText(text, lexicon) {
 }
 
 // One line as [text, type] pieces, for tests and debugging.
+// The text before the first token (the indentation) is a plain piece.
 export function pieces(line, tokens) {
-  return tokens.map(({ from, type }, index) => [
-    line.slice(from, tokens[index + 1]?.from ?? line.length),
+  const all =
+    (tokens[0]?.from ?? line.length) > 0
+      ? [{ from: 0, type: '' }, ...tokens]
+      : tokens;
+  return all.map(({ from, type }, index) => [
+    line.slice(from, all[index + 1]?.from ?? line.length),
     type,
   ]);
 }

@@ -1,6 +1,7 @@
 // The settings behind the small link at the bottom: skin (a theme of
 // @link-foundation/ui-themes), light or dark scheme, contrast, motion, text
-// size and the interface language. The schema is Links Notation for
+// size, the editor (plain or Monaco), word wrap and the interface language.
+// The schema is Links Notation for
 // @link-foundation/ui-settings; the values are kept in the browser storage,
 // can be shared with a "#settings=…" link and are painted on the root
 // element as data attributes and CSS variables.
@@ -100,6 +101,22 @@ export function settingsSchemaText(t) {
       `(label ${quote(t('settings.textSize'))})`,
       '(comfort)',
       '(apply (css-var --text-size))',
+    ]),
+    field('editor', [
+      '(type choice)',
+      '(default plain)',
+      '(options plain monaco)',
+      choices('plain', 'monaco'),
+      '(section text)',
+      `(label ${quote(t('settings.editor'))})`,
+      '(apply (data-attr editor))',
+    ]),
+    field('wrap', [
+      '(type toggle)',
+      '(default true)',
+      '(section text)',
+      `(label ${quote(t('settings.wrap'))})`,
+      '(apply (data-attr wrap))',
     ]),
     field('locale', [
       '(type choice)',

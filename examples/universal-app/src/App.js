@@ -8,16 +8,28 @@ import {
 } from 'react';
 import { createGrammarTranslator as createTranslator } from '../../../js/src/translator.js';
 import { formatMeta } from '../../../js/src/meta/notation.js';
+import { languageSyntax } from '../../../js/src/formal/languages.js';
+import {
+  isNaturalLanguage,
+  naturalLanguage,
+} from '../../../js/src/natural/catalog.js';
+import {
+  formatRules,
+  readRules,
+} from '../../../js/src/translation/rules-notation.js';
 import catalogText from './locales/app.lino?raw';
 import { createInterfaceText, interfaceLocale } from './i18n.js';
 import { defaultChoices, languageEntries } from './languages.js';
 import { exampleKinds, randomExample } from './examples.js';
 import { LanguagePicker } from './LanguagePicker.js';
-import { RulesEditor, toRules, toRows } from './RulesEditor.js';
+import { RulesEditor, ruleCount, toRules, toRows } from './RulesEditor.js';
 import { SettingsLink } from './SettingsLink.js';
 import { StandardsView } from './StandardsView.js';
 import { defaultStorage } from './saved-standards.js';
 import { applySettings, saveSettings, settingsSchema } from './settings.js';
+import { CodeEditor } from './CodeEditor.js';
+import { debug, timed } from './debug.js';
+import { linoLexicon, metaWords, sourceLexicon } from './highlight.js';
 
 const repositoryUrl =
   import.meta.env.VITE_REPOSITORY_URL ??
@@ -45,7 +57,13 @@ const browserLanguages = () => globalThis.navigator?.languages ?? [];
 // all-or-nothing shows only the first error. translateFragment accepts a
 // program, functions or statements; translate needs a whole program.
 // Rules given as data make a translator of their own.
-export function translateText(
+export function translateText(source, from, to, options) {
+  return timed('translate', `${from} -> ${to}`, () =>
+    translateWith(source, from, to, options)
+  );
+}
+
+function translateWith(
   source,
   from,
   to,
@@ -89,6 +107,15 @@ export function translateText(
   }
 }
 
+// The meta program of a text, or undefined when it cannot be read.
+function metaProgram(source, language) {
+  try {
+    return translator.parseFragment(source, language).program;
+  } catch {
+    return undefined;
+  }
+}
+
 // The meta language of a text, as indented Links Notation.
 function metaText(source, language) {
   try {
@@ -100,12 +127,53 @@ function metaText(source, language) {
   }
 }
 
-// Rules edited in the browser are kept in it.
+// Comment markers and quotes of a language (or of the language a version
+// of one's own is based on).
+function syntaxOf(language) {
+  try {
+    return isNaturalLanguage(language)
+      ? naturalLanguage(language)
+      : languageSyntax(language);
+  } catch {
+    try {
+      return languageSyntax(language.split('@')[0]);
+    } catch {
+      return {};
+    }
+  }
+}
+
+// The words of the last text of each language that could be read: while a
+// text is typed it is often incomplete, and its names keep their colours.
+const lastWords = new Map();
+
+// How a text is coloured: the names and functions its meta program keeps
+// and the comment markers and quotes of its language (highlight.js).
+export function lexiconOf(text, language) {
+  if (!language) {
+    return undefined;
+  }
+  const program = metaProgram(text, language);
+  if (program) {
+    lastWords.set(language, metaWords(program));
+  }
+  const lexicon = sourceLexicon(
+    syntaxOf(language),
+    lastWords.get(language) ?? {}
+  );
+  debug('highlight', language, {
+    names: [...lexicon.names],
+    functions: [...lexicon.functions],
+  });
+  return lexicon;
+}
+
+// Rules edited in the browser are kept in it, as indented Links Notation
+// (rules saved as JSON by earlier versions are still read).
+const rulesKey = 'rules';
 const storedRules = () => {
   try {
-    return toRows(
-      JSON.parse(globalThis.localStorage?.getItem('rules') ?? '{}')
-    );
+    return toRows(readRules(globalThis.localStorage?.getItem(rulesKey) ?? ''));
   } catch {
     return toRows({});
   }
@@ -147,31 +215,40 @@ export function sourceIn(next, { source, from, to, output }) {
   return source;
 }
 
-function TextPane({ id, label, result, editable, onChange, t }) {
-  if (editable) {
-    return h(
-      'label',
-      { className: 'field', htmlFor: id },
-      h('span', null, label),
-      h('textarea', {
-        id,
-        spellCheck: false,
-        value: result.output,
-        onChange: (event) => onChange(event.target.value),
-      })
-    );
-  }
+function TextPane({
+  id,
+  label,
+  result,
+  editable,
+  onChange,
+  lexicon,
+  editor,
+  t,
+}) {
+  const failed = result.error !== undefined;
   return h(
     'div',
-    { className: 'field', 'aria-live': 'polite' },
-    h('span', null, label),
-    result.error === undefined
-      ? h('pre', { id }, result.output)
-      : h(
+    {
+      className: 'field pane',
+      ...(editable ? {} : { 'aria-live': 'polite' }),
+    },
+    h('label', { htmlFor: id, id: `${id}-label` }, label),
+    failed
+      ? h(
           'pre',
           { id: `${id}-error`, role: 'alert', className: 'error' },
           result.undetected ? t('text.undetected') : result.error
         )
+      : h(CodeEditor, {
+          id,
+          engine: editor.engine,
+          wrap: editor.wrap,
+          label,
+          value: result.output ?? '',
+          readOnly: !editable,
+          onChange,
+          lexicon,
+        })
   );
 }
 
@@ -242,11 +319,17 @@ function Examples({ onExample, t }) {
         t(`examples.${kind}`)
       )
     ),
-    note && h('span', { id: 'example-note', className: 'muted' }, note)
+    // Always there, on one line: a long task name does not push the
+    // pickers down.
+    h(
+      'span',
+      { id: 'example-note', className: 'muted example-note', title: note },
+      note
+    )
   );
 }
 
-function Options({ state, update, natural, t }) {
+function Options({ state, update, natural, wrap, onWrap, t }) {
   const { mode, fragment, showMeta, commentLanguage, allOrNothing } = state;
   return h(
     'div',
@@ -314,6 +397,17 @@ function Options({ state, update, natural, t }) {
         onChange: (event) => update({ showMeta: event.target.checked }),
       }),
       h('span', null, t('options.meta'))
+    ),
+    h(
+      'label',
+      { className: 'check', htmlFor: 'word-wrap' },
+      h('input', {
+        id: 'word-wrap',
+        type: 'checkbox',
+        checked: wrap,
+        onChange: (event) => onWrap(event.target.checked),
+      }),
+      h('span', null, t('options.wrap'))
     )
   );
 }
@@ -323,7 +417,7 @@ function About({ entries, t }) {
     entries.filter((entry) => entry.group === group).length;
   return h(
     'aside',
-    { className: 'distribution-panel', 'aria-labelledby': 'about-title' },
+    { className: 'about-panel panel', 'aria-labelledby': 'about-title' },
     h('h2', { id: 'about-title' }, t('about.title')),
     h(
       'p',
@@ -353,8 +447,22 @@ function useRules(entries) {
   const [ruleRows, setRuleRows] = useState(storedRules);
   const rules = useMemo(() => toRules(ruleRows), [ruleRows]);
   useEffect(() => {
-    globalThis.localStorage?.setItem('rules', JSON.stringify(rules));
+    try {
+      globalThis.localStorage?.setItem(rulesKey, formatRules(rules));
+    } catch {
+      // The rules last for this visit only.
+    }
   }, [rules]);
+  // Rules that cannot make a translator, with the reason.
+  const rulesError = useMemo(() => {
+    try {
+      translator.withRules(rules);
+      return '';
+    } catch (error) {
+      return error.message;
+    }
+  }, [rules]);
+  const count = ruleCount(ruleRows);
   const ruleLanguages = useMemo(
     () =>
       entries.map(({ id, label, group }) => ({
@@ -364,10 +472,101 @@ function useRules(entries) {
       })),
     [entries]
   );
-  return { ruleRows, setRuleRows, rules, ruleLanguages };
+  return { ruleRows, setRuleRows, rules, rulesError, count, ruleLanguages };
 }
 
-function Translate({ entries, state, update, t }) {
+// The rules on the Rules tab apply here: how many, and their problem.
+function RulesNote({ count, error, onOpen, t }) {
+  return h(
+    'p',
+    { id: 'rules-note', className: error ? 'rules-note error' : 'rules-note' },
+    h(
+      'span',
+      { role: error ? 'alert' : undefined },
+      error ? t('rules.noteError', { error }) : t('rules.note', { count })
+    ),
+    ' ',
+    h(
+      'button',
+      { type: 'button', className: 'link', onClick: onOpen },
+      t('rules.open')
+    )
+  );
+}
+
+// The languages on either side, and the swap button between them.
+function Pickers({ entries, from, to, detected, onFrom, onSwap, onTo, t }) {
+  const detectedLabel =
+    entries.find(
+      (entry) =>
+        entry.id === detected ||
+        entry.versions.some((version) => version.id === detected)
+    )?.label ?? detected;
+  return h(
+    'div',
+    { className: 'input-grid' },
+    h(LanguagePicker, {
+      id: 'source',
+      label: t('picker.from'),
+      value: from,
+      entries,
+      onChange: onFrom,
+      auto:
+        from === 'auto' && detected
+          ? t('picker.autoDetected', { language: detectedLabel })
+          : t('picker.auto'),
+      t,
+    }),
+    h(
+      'button',
+      {
+        type: 'button',
+        className: 'swap',
+        onClick: onSwap,
+        'aria-label': t('picker.swap'),
+        title: t('picker.swap'),
+      },
+      '⇄'
+    ),
+    h(LanguagePicker, {
+      id: 'target',
+      label: t('picker.to'),
+      value: to,
+      entries,
+      onChange: onTo,
+      t,
+    })
+  );
+}
+
+// The meta language of both texts, side by side.
+function MetaPanes({ source, reading, result, to, editor, t }) {
+  return h(
+    'div',
+    { className: 'code-grid meta' },
+    h(TextPane, {
+      id: 'source-meta',
+      label: t('text.sourceMeta'),
+      result: reading ? metaText(source, reading) : { output: '' },
+      lexicon: linoLexicon,
+      editor,
+      t,
+    }),
+    h(TextPane, {
+      id: 'target-meta',
+      label: t('text.targetMeta'),
+      result:
+        result.error === undefined
+          ? metaText(result.output, to)
+          : { output: '' },
+      lexicon: linoLexicon,
+      editor,
+      t,
+    })
+  );
+}
+
+function Translate({ entries, state, update, rules, editor, onWrap, t }) {
   const {
     source,
     from,
@@ -378,21 +577,39 @@ function Translate({ entries, state, update, t }) {
     commentLanguage,
     allOrNothing,
   } = state;
-  const { ruleRows, setRuleRows, rules, ruleLanguages } = useRules(entries);
   const result = useMemo(
     () =>
       translateText(source, from, to, {
         fragment,
         mode,
         allOrNothing,
-        rules,
+        rules: rules.rules,
         ...(commentLanguage ? { commentLanguage } : {}),
       }),
-    [source, from, to, fragment, mode, allOrNothing, rules, commentLanguage]
+    [
+      source,
+      from,
+      to,
+      fragment,
+      mode,
+      allOrNothing,
+      rules.rules,
+      commentLanguage,
+    ]
   );
   const natural = entries.filter((entry) => entry.group === 'natural');
   // The language the text is read in: the one chosen, or the detected one.
   const reading = from === 'auto' ? result.detected : from;
+  const failed = result.error !== undefined;
+  // How each pane is coloured (highlight.js).
+  const sourceLexicon = useMemo(
+    () => lexiconOf(source, reading),
+    [source, reading]
+  );
+  const targetLexicon = useMemo(
+    () => (failed ? undefined : lexiconOf(result.output, to)),
+    [failed, result.output, to]
+  );
   // The left language changes: the text is said in it (from the
   // translation on the right when there is one).
   const changeFrom = (next) =>
@@ -426,51 +643,25 @@ function Translate({ entries, state, update, t }) {
     'div',
     { className: 'translator-panel' },
     h(Examples, { onExample, t }),
-    h(
-      'div',
-      { className: 'input-grid' },
-      h(LanguagePicker, {
-        id: 'source',
-        label: t('picker.from'),
-        value: from,
-        entries,
-        onChange: changeFrom,
-        auto:
-          from === 'auto' && result.detected
-            ? t('picker.autoDetected', {
-                language:
-                  entries.find(
-                    (entry) =>
-                      entry.id === result.detected ||
-                      entry.versions.some(
-                        (version) => version.id === result.detected
-                      )
-                  )?.label ?? result.detected,
-              })
-            : t('picker.auto'),
-        t,
-      }),
-      h(
-        'button',
-        {
-          type: 'button',
-          className: 'swap',
-          onClick: swap,
-          'aria-label': t('picker.swap'),
-          title: t('picker.swap'),
-        },
-        '⇄'
-      ),
-      h(LanguagePicker, {
-        id: 'target',
-        label: t('picker.to'),
-        value: to,
-        entries,
-        onChange: (next) => update({ to: next }),
-        t,
-      })
-    ),
-    h(Options, { state, update, natural, t }),
+    h(Pickers, {
+      entries,
+      from,
+      to,
+      detected: result.detected,
+      onFrom: changeFrom,
+      onSwap: swap,
+      onTo: (next) => update({ to: next }),
+      t,
+    }),
+    h(Options, { state, update, natural, wrap: editor.wrap, onWrap, t }),
+    rules.count || rules.rulesError
+      ? h(RulesNote, {
+          count: rules.count,
+          error: rules.rulesError,
+          onOpen: rules.open,
+          t,
+        })
+      : null,
     h(
       'div',
       { className: 'code-grid' },
@@ -480,45 +671,23 @@ function Translate({ entries, state, update, t }) {
         result: { output: source },
         editable: true,
         onChange: (text) => update({ source: text }),
+        lexicon: sourceLexicon,
+        editor,
         t,
       }),
       h(TextPane, {
         id: 'target-text',
         label: t('text.translation'),
         result,
+        lexicon: targetLexicon,
+        editor,
         t,
       })
     ),
     result.errors?.length
       ? h(Untranslated, { errors: result.errors, coverage: result.coverage, t })
       : null,
-    showMeta &&
-      h(
-        'div',
-        { className: 'code-grid meta' },
-        h(TextPane, {
-          id: 'source-meta',
-          label: t('text.sourceMeta'),
-          result: reading ? metaText(source, reading) : { output: '' },
-          t,
-        }),
-        h(TextPane, {
-          id: 'target-meta',
-          label: t('text.targetMeta'),
-          result:
-            result.error === undefined
-              ? metaText(result.output, to)
-              : { output: '' },
-          t,
-        })
-      ),
-    h(RulesEditor, {
-      rows: ruleRows,
-      onChange: setRuleRows,
-      languages: ruleLanguages,
-      error: result.rulesError,
-      t,
-    })
+    showMeta && h(MetaPanes, { source, reading, result, to, editor, t })
   );
 }
 
@@ -548,6 +717,12 @@ export function App({ initialSettings }) {
   const schema = useMemo(() => settingsSchema(t), [t]);
   // Saved standards are new versions: the pickers list them after saving.
   const entries = useMemo(() => languageEntries(translator), [revision]);
+  const rules = useRules(entries);
+  rules.open = () => setTab('rules');
+  const editor = {
+    engine: settings.editor ?? 'plain',
+    wrap: settings.wrap ?? true,
+  };
   const update = useCallback(
     (changes) => setState((current) => ({ ...current, ...changes })),
     []
@@ -560,14 +735,70 @@ export function App({ initialSettings }) {
   }, [text, t]);
 
   const changeSettings = (values) => {
+    debug('settings', values);
     setSettings(values);
     saveSettings(schema, values, storage);
     applySettings(schema, values).catch((error) => console.warn(error));
   };
   const tabs = [
     ['translate', t('tabs.translate')],
+    ['rules', t('tabs.rules')],
     ['standards', t('tabs.standards')],
   ];
+  const panels = {
+    translate: () =>
+      h(
+        'section',
+        {
+          className: 'workspace',
+          role: 'tabpanel',
+          'aria-labelledby': 'tab-translate',
+        },
+        h(Translate, {
+          entries,
+          state,
+          update,
+          rules,
+          editor,
+          onWrap: (wrap) => changeSettings({ ...settings, wrap }),
+          t,
+        }),
+        h(About, { entries, t })
+      ),
+    rules: () =>
+      h(
+        'section',
+        {
+          className: 'panel',
+          role: 'tabpanel',
+          'aria-labelledby': 'tab-rules',
+        },
+        h(RulesEditor, {
+          rows: rules.ruleRows,
+          onChange: rules.setRuleRows,
+          languages: rules.ruleLanguages,
+          error: rules.rulesError,
+          engine: editor.engine,
+          wrap: editor.wrap,
+          t,
+        })
+      ),
+    standards: () =>
+      h(
+        'section',
+        { role: 'tabpanel', 'aria-labelledby': 'tab-standards' },
+        h(StandardsView, {
+          entries,
+          storage,
+          t,
+          onSaved: () => setRevision((value) => value + 1),
+          onUse: (id) => {
+            update({ from: id, source: sourceIn(id, state) });
+            setTab('translate');
+          },
+        })
+      ),
+  };
 
   return h(
     'main',
@@ -596,31 +827,7 @@ export function App({ initialSettings }) {
         )
       )
     ),
-    tab === 'translate'
-      ? h(
-          'section',
-          {
-            className: 'workspace',
-            role: 'tabpanel',
-            'aria-labelledby': 'tab-translate',
-          },
-          h(Translate, { entries, state, update, t }),
-          h(About, { entries, t })
-        )
-      : h(
-          'section',
-          { role: 'tabpanel', 'aria-labelledby': 'tab-standards' },
-          h(StandardsView, {
-            entries,
-            storage,
-            t,
-            onSaved: () => setRevision((value) => value + 1),
-            onUse: (id) => {
-              update({ from: id, source: sourceIn(id, state) });
-              setTab('translate');
-            },
-          })
-        ),
+    panels[tab](),
     h(
       'footer',
       { className: 'app-footer' },
