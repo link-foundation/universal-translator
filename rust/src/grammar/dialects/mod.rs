@@ -8,6 +8,7 @@ mod ada;
 mod fortran;
 mod pascal;
 mod shared;
+mod vb;
 
 use super::emitter::{Emitter, Result};
 use super::lexer::Token;
@@ -161,6 +162,7 @@ pub(crate) fn emitter_dialect(language: &str) -> &'static dyn EmitterDialect {
         "ada" => &ada::Ada,
         "fortran" => &fortran::Fortran,
         "pascal" => &pascal::Pascal,
+        "vb" => &vb::VisualBasic,
         _ => &Plain,
     }
 }
@@ -171,6 +173,7 @@ pub(crate) fn parser_dialect(language: &str) -> &'static dyn ParserDialect {
         "ada" => &ada::Ada,
         "fortran" => &fortran::Fortran,
         "pascal" => &pascal::Pascal,
+        "vb" => &vb::VisualBasic,
         _ => &Plain,
     }
 }
