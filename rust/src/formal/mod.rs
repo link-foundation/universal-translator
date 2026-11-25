@@ -17,4 +17,5 @@ pub mod machine;
 pub mod machine_reader;
 pub mod names;
 pub mod parser;
+pub mod rocq_runtime;
 pub mod rules;

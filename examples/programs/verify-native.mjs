@@ -67,6 +67,7 @@ export const libraryFiles = {
   matlab: 'common_library.m',
   zig: 'common_library.zig',
   lean: 'CommonLibrary.lean',
+  rocq: 'common_library.v',
 };
 const libraryFolder = join(folder, '..', '..', 'common-library');
 
@@ -103,6 +104,7 @@ export const extensions = {
   matlab: '.matlab',
   zig: '.zig',
   lean: '.lean',
+  rocq: '.v',
   nasm: '.asm',
   cil: '.il',
   jvm: '.j',
@@ -120,6 +122,7 @@ const objc = process.env.OBJC_CC || 'gcc';
 const octave = process.env.OCTAVE || 'octave';
 const zig = process.env.ZIG || 'zig';
 const lean = process.env.LEAN || 'lean';
+const rocq = process.env.ROCQ || 'rocq';
 const objcFlags = (process.env.OBJC_FLAGS ?? '').split(' ').filter(Boolean);
 
 const run = (command, args, options = {}) => {
@@ -141,6 +144,17 @@ function available(command) {
     return available('java');
   }
   return spawnSync('sh', ['-c', `command -v "${command}"`]).status === 0;
+}
+
+// The string that `Eval vm_compute in run main.` prints, with its doubled
+// quotes undone.
+function rocqOutput(printed) {
+  const start = printed.indexOf('= "');
+  const end = printed.lastIndexOf('"\n');
+  if (start < 0 || end < start) {
+    throw new Error(`Rocq printed no output string:\n${printed}`);
+  }
+  return printed.slice(start + 3, end).replace(/""/g, '"');
 }
 
 const dotnetFramework = () =>
@@ -409,6 +423,13 @@ const runners = {
         options
       );
     },
+  },
+  // ROCQ names the Rocq prover when it is not on PATH. A program computes
+  // its output as a string, which the last command evaluates and prints.
+  rocq: {
+    tool: rocq,
+    run: (file) =>
+      rocqOutput(run(rocq, ['compile', file], { cwd: dirname(file) })),
   },
   nasm: {
     tool: 'nasm',

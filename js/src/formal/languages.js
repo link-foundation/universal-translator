@@ -1,4 +1,5 @@
 import { machineTargets } from './machine.js';
+import { rocqRuntime } from './rocq-runtime.js';
 
 // Surface syntax descriptions for the grammar-based translator.
 //
@@ -752,6 +753,39 @@ export const languages = {
       text: 'String',
       boolean: 'Bool',
       nothing: 'Unit',
+    },
+    terms: { call: 'function call', routine: 'function' },
+  },
+  rocq: {
+    naming: 'snake',
+    label: 'Rocq',
+    // Fixpoints, actions and applications are in dialects/rocq.js. Every
+    // program opens with the runtime that gives its statements a meaning.
+    header: rocqRuntime,
+    blocks: 'keywords',
+    lineComment: '(*',
+    blockComment: ['(*', '*)'],
+    quotes: ['"'],
+    doubledQuotes: true,
+    declarations: ['let'],
+    symbols: ['<=?', '>=?', '=?', '<?', '>?', ';;', '<-', "'"],
+    assignment: ':=',
+    compoundAssignment: false,
+    operators: {
+      ...braceOperators,
+      and: '&&',
+      or: '||',
+      not: 'negb',
+      equal: '=?',
+      concatenate: '++',
+    },
+    entryPoint: 'main-function',
+    typed: 'annotation',
+    types: {
+      integer: 'Z',
+      text: 'string',
+      boolean: 'bool',
+      nothing: 'unit',
     },
     terms: { call: 'function call', routine: 'function' },
   },

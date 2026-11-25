@@ -263,6 +263,10 @@ const RESERVED_WORDS: &[(&str, &str)] = &[
         "abbrev at axiom by calc class deriving do else end example export extends false for from fun have if import in inductive instance let local macro match mut mutual namespace notation open partial private protected pure return section show structure syntax then theorem this true universe variable where while with default main commonlibrary",
     ),
     (
+        "rocq",
+        "as at cofix definition else end eval exists fix fixpoint for forall fun if in let load match mod module return set struct then type where with pure stop bind loop_while for_range print print_line line_end digits show value call run item with_item with_item_at filled size default outcome going returned action tt unit negb andb orb list nil cons string bool true false nat length commonlibrary common_library main no_arguments",
+    ),
+    (
         "bash",
         "case coproc dirname do done echo elif else esac fi for function if in local printf return select then time until while",
     ),

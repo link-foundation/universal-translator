@@ -5,6 +5,7 @@
 
 use super::{Parsed, Parser};
 use crate::formal::arrays::offset;
+use crate::formal::dialects::rocq_not_equal;
 use crate::formal::lexer::TokenType;
 use crate::meta::GrammarError;
 use crate::meta::{Node, name, number};
@@ -248,6 +249,10 @@ impl Parser {
             return Ok(Node::new("Length").with("array", array));
         }
         let value = self.plain_unary()?;
+        // Rocq: negb (a =? b) is a != b.
+        if self.syntax.id == "rocq" {
+            return Ok(rocq_not_equal(value));
+        }
         // Rust: value as i64. The conversion only changes the integer width.
         if self.syntax.id == "rust" && self.accept("as") {
             self.expect_name()?;

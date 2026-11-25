@@ -137,6 +137,7 @@ fn array_type(id: &str) -> Option<&'static str> {
         "pascal" => "array of Int64",
         "vb" => "Long()",
         "lean" => "Array Int",
+        "rocq" => "list Z",
         _ => return None,
     })
 }

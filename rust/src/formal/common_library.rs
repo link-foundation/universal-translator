@@ -23,7 +23,7 @@ pub const COMMON_LIBRARY_OPERATIONS: [&str; 4] =
     ["print-line", "write-text", "write-integer", "end-line"];
 
 /// The languages with a common library implementation, in listing order.
-pub const COMMON_LIBRARY_LANGUAGES: [&str; 31] = [
+pub const COMMON_LIBRARY_LANGUAGES: [&str; 32] = [
     "javascript",
     "typescript",
     "python",
@@ -55,6 +55,7 @@ pub const COMMON_LIBRARY_LANGUAGES: [&str; 31] = [
     "matlab",
     "zig",
     "lean",
+    "rocq",
 ];
 
 /// The lines that make the library available in a language, given the
@@ -84,6 +85,7 @@ pub fn library_imports(language: &str, names: &[String]) -> Vec<String> {
         "matlab" => vec!["source('common_library.m');".into()],
         "zig" => vec!["const common_library = @import(\"common_library.zig\");".into()],
         "lean" => vec!["import CommonLibrary".into()],
+        "rocq" => vec!["Load common_library.".into()],
         "rust" => vec![
             "mod common_library;".into(),
             format!("use common_library::{{{names}}};"),
@@ -96,7 +98,7 @@ pub fn library_imports(language: &str, names: &[String]) -> Vec<String> {
 pub fn library_prefix(language: &str) -> &'static str {
     match language {
         "lua" | "zig" => "common_library.",
-        "csharp" | "java" | "scala" | "groovy" | "vb" | "lean" => "CommonLibrary.",
+        "csharp" | "java" | "scala" | "groovy" | "vb" | "lean" | "rocq" => "CommonLibrary.",
         _ => "",
     }
 }

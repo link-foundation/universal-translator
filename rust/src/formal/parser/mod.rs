@@ -8,7 +8,7 @@ use std::sync::OnceLock;
 
 use regex::Regex;
 
-use super::dialects::{ParserDialect, parser_dialect};
+use super::dialects::{ParserDialect, parser_dialect, rocq_comparison};
 use super::interpolation::{Piece, split_interpolation};
 use super::languages::{Blocks, ForwardDeclarations, Syntax, Typed};
 use super::lexer::{InterpolationStyle, Token, TokenType, decode_escapes, tokenize};
@@ -113,7 +113,17 @@ impl Parser {
                             _ => None,
                         }
                         .filter(|extra| !surfaces.contains(extra));
-                        (*operator, surfaces.iter().copied().chain(extra).collect())
+                        // Rocq spells comparisons with a question mark: <?.
+                        let question = rocq_comparison(operator).filter(|_| syntax.id == "rocq");
+                        (
+                            *operator,
+                            surfaces
+                                .iter()
+                                .copied()
+                                .chain(extra)
+                                .chain(question)
+                                .collect(),
+                        )
                     })
                     .collect()
             })

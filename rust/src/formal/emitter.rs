@@ -756,6 +756,8 @@ impl Emitter {
     pub(crate) fn comment(&mut self, text: &str) {
         if matches!(self.id(), "c" | "csharp") {
             self.line(&format!("/* {text} */"));
+        } else if self.id() == "rocq" {
+            self.line(&format!("(* {text} *)"));
         } else {
             self.line(&format!("{} {text}", self.syntax.line_comment));
         }

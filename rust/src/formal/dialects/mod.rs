@@ -10,9 +10,12 @@ mod fortran;
 mod lean;
 mod matlab;
 mod pascal;
+mod rocq;
 mod shared;
 mod vb;
 mod zig;
+
+pub(crate) use rocq::{comparison as rocq_comparison, not_equal as rocq_not_equal};
 
 use super::emitter::{Emitter, Result};
 use super::lexer::Token;
@@ -169,6 +172,7 @@ pub(crate) fn emitter_dialect(language: &str) -> &'static dyn EmitterDialect {
         "lean" => &lean::Lean,
         "matlab" => &matlab::Matlab,
         "pascal" => &pascal::Pascal,
+        "rocq" => &rocq::Rocq,
         "vb" => &vb::VisualBasic,
         "zig" => &zig::Zig,
         _ => &Plain,
@@ -184,6 +188,7 @@ pub(crate) fn parser_dialect(language: &str) -> &'static dyn ParserDialect {
         "lean" => &lean::Lean,
         "matlab" => &matlab::Matlab,
         "pascal" => &pascal::Pascal,
+        "rocq" => &rocq::Rocq,
         "vb" => &vb::VisualBasic,
         "zig" => &zig::Zig,
         _ => &Plain,

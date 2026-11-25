@@ -4,6 +4,7 @@
 //! tables, so supporting another language (or a project-specific dialect)
 //! means describing it here.
 
+use super::rocq_runtime::ROCQ_RUNTIME;
 use crate::meta::GrammarError;
 
 /// How a language spells the neutral words of a declared name.
@@ -424,7 +425,7 @@ const C: Syntax = Syntax {
 };
 
 /// Every language the grammar translator describes, in listing order.
-pub static LANGUAGES: [Syntax; 31] = [
+pub static LANGUAGES: [Syntax; 32] = [
     Syntax {
         integer_division: SCRIPT_DIVISION,
         ..JAVASCRIPT
@@ -1243,6 +1244,40 @@ pub static LANGUAGES: [Syntax; 31] = [
             text: "String",
             boolean: "Bool",
             nothing: "Unit",
+        }),
+        ..JAVASCRIPT
+    },
+    Syntax {
+        id: "rocq",
+        label: "Rocq",
+        naming: same(Convention::Snake),
+        // Fixpoints, actions and applications are in dialects/rocq.rs. Every
+        // program opens with the runtime that gives its statements a meaning.
+        header: Some(ROCQ_RUNTIME),
+        blocks: Blocks::Keywords,
+        line_comment: "(*",
+        block_comment: Some(("(*", "*)")),
+        quotes: C_QUOTES,
+        doubled_quotes: true,
+        interpolation: &[],
+        declarations: &["let"],
+        symbols: &["<=?", ">=?", "=?", "<?", ">?", ";;", "<-", "'"],
+        function_keyword: None,
+        assignment: Some(":="),
+        compound_assignment: false,
+        operators: Operators {
+            not: "negb",
+            equal: Some("=?"),
+            concatenate: Some("++"),
+            ..BRACE_OPERATORS
+        },
+        entry_point: EntryPoint::MainFunction,
+        typed: Typed::Annotation,
+        types: Some(Types {
+            integer: "Z",
+            text: "string",
+            boolean: "bool",
+            nothing: "unit",
         }),
         ..JAVASCRIPT
     },
