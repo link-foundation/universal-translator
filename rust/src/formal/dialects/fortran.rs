@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 use super::shared::declared_variables;
 use super::{EmitterDialect, ParserDialect};
-use crate::formal::emitter::{Emitter, Result, field};
+use crate::formal::emitter::{Emitter, Result, field, spaced_after};
 use crate::formal::lexer::TokenType;
 use crate::formal::parser::{Parsed, Parser};
 use crate::meta::{Node, add, block, format_number, number};
@@ -515,8 +515,10 @@ impl EmitterDialect for Fortran {
             e.line("");
             e.line("contains");
             e.depth += 1;
-            for item in functions {
-                e.line("");
+            for (index, item) in functions.iter().enumerate() {
+                if index == 0 || spaced_after(&functions, index - 1) {
+                    e.line("");
+                }
                 e.function_definition(item)?;
             }
         }

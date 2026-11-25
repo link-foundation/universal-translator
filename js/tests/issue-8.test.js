@@ -27,7 +27,7 @@ const cli = (argv, input = '') => {
   return { status, output: output.join(''), errors: errors.join('\n') };
 };
 
-describe('comparison wordings (issue #8)', () => {
+describe('comparison wordings', () => {
   it('reads the Russian examples of the issue', () => {
     for (const [words, operator] of [
       ['меньше или равно', '<='],
@@ -66,7 +66,7 @@ describe('comparison wordings (issue #8)', () => {
   });
 });
 
-describe('partial translation (issue #8)', () => {
+describe('partial translation', () => {
   const source = 'x = 1\nwith open(f) as g:\n    y = 2\nprint(x)\n';
 
   it('translates what it can and marks the rest', () => {
@@ -120,7 +120,7 @@ describe('partial translation (issue #8)', () => {
   });
 });
 
-describe('language detection (issue #8)', () => {
+describe('language detection', () => {
   const cases = [
     ['console.log("hi");\n', 'javascript'],
     ['def f(x):\n    return x\nprint(f(1))\n', 'python'],
@@ -152,7 +152,7 @@ describe('language detection (issue #8)', () => {
   });
 });
 
-describe('rules as data (issue #8)', () => {
+describe('rules as data', () => {
   const rules = {
     source: [{ language: 'russian', find: 'ничего', replace: 'Ничего' }],
     templates: {
@@ -208,7 +208,7 @@ describe('rules as data (issue #8)', () => {
   });
 });
 
-describe('translation server (issue #8)', () => {
+describe('translation server', () => {
   const post = async (body, settings) => {
     const server = createTranslationServer(settings);
     await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
@@ -274,8 +274,8 @@ describe('translation server (issue #8)', () => {
   });
 });
 
-describe('cut texts (issue #8)', () => {
-  it('end a dialect read instead of looping', () => {
+describe('cut texts', () => {
+  it('stop a dialect read at the end of the text', () => {
     // Before the fix the Ada reader skipped declarations past the end of
     // the text forever; partial reading of Rosetta Code hung on it.
     const started = Date.now();

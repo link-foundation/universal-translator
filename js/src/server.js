@@ -43,8 +43,26 @@ const hasRegexRule = (rules) =>
       Array.isArray(rules[stage]) && rules[stage].some((rule) => rule?.regex)
   );
 
+const isObject = (value) =>
+  Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+
+// Rules are an object; regular expressions in them only when allowed.
+function checkRules(rules, allowRegexRules) {
+  if (rules === undefined) {
+    return;
+  }
+  if (!isObject(rules)) {
+    throw new Error('"rules" must be an object');
+  }
+  if (!allowRegexRules && hasRegexRule(rules)) {
+    throw new Error(
+      'This server accepts only plain text rules (start it with allowRegexRules to accept regular expressions)'
+    );
+  }
+}
+
 function checkRequest(body, { allowRegexRules = false } = {}) {
-  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+  if (!isObject(body)) {
     throw new Error('Send a JSON object');
   }
   for (const key of ['source', 'from', 'to']) {
@@ -55,17 +73,12 @@ function checkRequest(body, { allowRegexRules = false } = {}) {
   if (body.mode !== undefined && !MODES.includes(body.mode)) {
     throw new Error(`"mode" must be one of ${MODES.join(', ')}`);
   }
-  if (
-    body.rules !== undefined &&
-    (!body.rules || typeof body.rules !== 'object' || Array.isArray(body.rules))
-  ) {
-    throw new Error('"rules" must be an object');
+  for (const key of ['commentLanguage', 'commentFrom']) {
+    if (body[key] !== undefined && typeof body[key] !== 'string') {
+      throw new Error(`"${key}" must be a string`);
+    }
   }
-  if (body.rules && !allowRegexRules && hasRegexRule(body.rules)) {
-    throw new Error(
-      'This server accepts only plain text rules (start it with allowRegexRules to accept regular expressions)'
-    );
-  }
+  checkRules(body.rules, allowRegexRules);
   return {
     source: body.source,
     from: body.from,
@@ -73,7 +86,12 @@ function checkRequest(body, { allowRegexRules = false } = {}) {
     fragment: body.fragment === true,
     allOrNothing: body.allOrNothing === true,
     rules: body.rules,
-    options: { mode: body.mode, commonLibrary: body.commonLibrary === true },
+    options: {
+      mode: body.mode,
+      commonLibrary: body.commonLibrary === true,
+      commentLanguage: body.commentLanguage,
+      commentFrom: body.commentFrom,
+    },
   };
 }
 
@@ -126,9 +144,9 @@ function runTranslation(
  * Create an HTTP server with two routes:
  * GET /languages lists the programming and natural languages;
  * POST /translate takes {source, from (or "auto"), to, fragment?, mode?,
- * commonLibrary?, allOrNothing?, rules?} and answers {output, complete,
- * errors, coverage?, detected?} or {error}. Rules with regular expressions
- * are refused unless `allowRegexRules` is true.
+ * commonLibrary?, commentLanguage?, commentFrom?, allOrNothing?, rules?} and
+ * answers {output, complete, errors, coverage?, detected?} or {error}. Rules
+ * with regular expressions are refused unless `allowRegexRules` is true.
  */
 export function createTranslationServer({
   translator = createGrammarTranslator(),

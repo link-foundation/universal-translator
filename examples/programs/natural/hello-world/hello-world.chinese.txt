@@ -1,4 +1,4 @@
 注：Hello World in JavaScript
-注：print "Hello World!" into console followed by new line symbol by function call
 
+注：print "Hello World!" into console followed by new line symbol by function call
 输出 “Hello World!” 并 换行。

@@ -1,0 +1,11 @@
+Hinweis: FizzBuzz in JavaScript
+
+Für alle Zahl von 1 bis 100, tue dies:
+  Wenn Zahl modulo 15 ist dasselbe wie 0, tue dies:
+    Sage „FizzBuzz“ auf einer Zeile.
+  Wenn nicht, wenn Zahl modulo 3 ist dasselbe wie 0, tue dies:
+    Sage „Fizz“ auf einer Zeile.
+  Wenn nicht, wenn Zahl modulo 5 ist dasselbe wie 0, tue dies:
+    Sage „Buzz“ auf einer Zeile.
+  Wenn nicht, tue dies:
+    Sage Zahl auf einer Zeile.

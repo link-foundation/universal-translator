@@ -1,0 +1,13 @@
+Ghi chú: Fibonacci sequence in JavaScript, computed iteratively
+
+Đây là cách ai đó làm fibonacci với số_lượng:
+  Có trước_đó, nó là 0.
+  Có hiện_tại, nó là 1.
+  Với mọi bước từ 0 đến số_lượng trừ 1, làm điều này:
+    Có tiếp_theo, nó là trước_đó cộng hiện_tại.
+    Sau đó, trước_đó là hiện_tại.
+    Sau đó, hiện_tại là tiếp_theo.
+  Câu trả lời là trước_đó.
+
+Với mọi chỉ_số từ 0 đến 20, làm điều này:
+  Nói “fibonacci(” rồi chỉ_số rồi “) = ” rồi fibonacci của (chỉ_số) trên một dòng.

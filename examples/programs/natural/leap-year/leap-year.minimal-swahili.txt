@@ -1,0 +1,10 @@
+Kumbuka: Leap year in JavaScript
+
+Hivi ndivyo mtu anavyofanya je-mrefu-mwaka kwa mwaka:
+  Jibu ni mwaka modulo 4 ni sawa na 0 na mwaka modulo 100 si sawa na 0 au mwaka modulo 400 ni sawa na 0.
+
+Kwa kila mwaka kutoka 1896 hadi 1912, fanya hivi:
+  Kama je-mrefu-mwaka ya (mwaka), fanya hivi:
+    Sema mwaka kisha “ is a leap year” kwenye mstari mmoja.
+  Kama sivyo, fanya hivi:
+    Sema mwaka kisha “ is not a leap year” kwenye mstari mmoja.

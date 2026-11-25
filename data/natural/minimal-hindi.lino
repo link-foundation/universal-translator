@@ -1,0 +1,39 @@
+natural:
+  id: minimal-hindi
+  label: 'Minimal Hindi (NSM semantic primes)'
+  extends: hindi
+  profile: minimal-english
+  source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  true: सच
+  false: झूठ
+  templates:
+    function: 'कोई {parameters} के साथ {name} ऐसे करता है'
+    function-without-parameters: 'कोई {name} ऐसे करता है'
+    declare: 'एक {name} है, यह है {value}'
+    assign: 'इसके बाद {name} अब {value} है'
+    print-line: '{value} एक पंक्ति में कहें'
+    print: '{value} कहें'
+    return-value: 'जवाब है {value}'
+    return: 'यहाँ रुकें'
+    nothing: 'कुछ न करें'
+    evaluate: '{expression} करें'
+    if: 'अगर {condition} तो यह करें'
+    else-if: 'अगर ऐसा नहीं है तो अगर {condition} तो यह करें'
+    else: 'अगर ऐसा नहीं है तो यह करें'
+    while: 'जब {condition} तब यह बहुत बार करें'
+    for: 'हर {variable} के लिए {start} से {last} तक यह करें'
+    join: '{left} फिर {right}'
+    equal: '{left} वही है जो {right} है'
+    not-equal: '{left} वही नहीं है जो {right} है'
+    less: '{left} {right} से कम है'
+    less-or-equal: '{left} {right} से ज़्यादा नहीं है'
+    greater: '{left} {right} से ज़्यादा है'
+    greater-or-equal: '{left} {right} से कम नहीं है'
+    array: 'ये चीज़ें ({elements})'
+    new-array: '{length} चीज़ें {fill} जैसी'
+    element: '{array} का हिस्सा {index}'
+    length: '{array} में कितने हिस्से हैं'
+    set-element: 'इसके बाद {name} का हिस्सा {index} अब {value} है'
+  rules:
+    primes: hindi
+    extra-words: के साथ जो में पंक्ति जवाब रुकें तो बार तब लिए से तक फिर का कितने या और जमा घटा गुणा भाग मॉड्यूलो ऋण झूठ

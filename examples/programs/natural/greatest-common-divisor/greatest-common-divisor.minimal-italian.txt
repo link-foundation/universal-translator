@@ -1,0 +1,10 @@
+Nota: Greatest common divisor in JavaScript, using the Euclidean algorithm
+
+Ecco come qualcuno fa massimo-comune-divisore con iniziale e secondo:
+  Quando secondo non è lo stesso di 0, fare questo molte volte:
+    C'è resto, è iniziale modulo secondo.
+    Dopo questo, iniziale è secondo.
+    Dopo questo, secondo è resto.
+  La risposta è iniziale.
+
+Dire «The greatest common divisor of 1071 and 462 is » poi massimo-comune-divisore di (1071, 462) su una riga.

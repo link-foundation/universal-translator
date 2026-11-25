@@ -1,0 +1,37 @@
+natural:
+  id: minimal-gujarati
+  label: 'Minimal Gujarati (NSM semantic primes)'
+  extends: gujarati
+  profile: minimal-english
+  source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  templates:
+    function: 'કોઈ {name} ને {parameters} સાથે આમ કરે છે'
+    function-without-parameters: 'કોઈ {name} ને આમ કરે છે'
+    declare: '{name} છે, તે {value} છે'
+    assign: 'આ પછી {name} {value} છે'
+    print-line: '{value} એક લીટીમાં કહો'
+    print: '{value} કહો'
+    return-value: 'જવાબ {value} છે'
+    return: 'અહીં અટકો'
+    nothing: 'કંઈ ન કરો'
+    evaluate: '{expression} કરો'
+    if: 'જો {condition} તો આ કરો'
+    else-if: 'નહીંતર જો {condition} તો આ કરો'
+    else: 'નહીંતર આ કરો'
+    while: 'જ્યારે {condition} ત્યારે આ ઘણી વાર કરો'
+    for: 'દરેક {variable} માટે {start} થી {last} સુધી આ કરો'
+    call-without-arguments: '{callee} ( )'
+    equal: '{left} એ {right} જેવું જ છે'
+    not-equal: '{left} એ {right} જેવું નથી'
+    less: '{left} એ {right} કરતાં ઓછું છે'
+    less-or-equal: '{left} એ {right} કરતાં વધુ નથી'
+    greater: '{left} એ {right} કરતાં વધુ છે'
+    greater-or-equal: '{left} એ {right} કરતાં ઓછું નથી'
+    array: 'આ વસ્તુઓ ({elements})'
+    new-array: '{fill} જેવી {length} વસ્તુઓ'
+    element: '{array} માં ભાગ {index}'
+    length: '{array} માં કેટલા ભાગ'
+    set-element: 'આ પછી {name} માં ભાગ {index} {value} છે'
+  rules:
+    primes: gujarati
+    extra-words: ને સાથે એ જ લીટીમાં જવાબ અટકો તો નહીંતર ત્યારે વાર માટે થી સુધી અથવા અને ઋણ કરતાં વત્તા ઓછા ગુણ્યા ભાગ્યા મોડ્યુલો ખોટું માં કેટલા

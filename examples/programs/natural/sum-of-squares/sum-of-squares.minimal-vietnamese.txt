@@ -1,0 +1,13 @@
+Ghi chú: Sum of squares in JavaScript
+
+Đây là cách ai đó làm tổng-của-bình_phương với giới_hạn:
+  Có tổng_cộng, nó là 0.
+  Có số, nó là 1.
+  Khi số không nhiều hơn giới_hạn, làm điều này nhiều lần:
+    Sau đó, tổng_cộng là tổng_cộng cộng số nhân số.
+    Sau đó, số là số cộng 1.
+  Câu trả lời là tổng_cộng.
+
+Có giới_hạn, nó là 10.
+Nói “Sum of squares from 1 to ” rồi giới_hạn rồi “:” trên một dòng.
+Nói tổng-của-bình_phương của (giới_hạn) trên một dòng.

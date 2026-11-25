@@ -1,0 +1,13 @@
+Nota: Fibonacci sequence in JavaScript, computed iteratively
+
+Ecco come qualcuno fa fibonacci con conteggio:
+  C'è precedente, è 0.
+  C'è corrente, è 1.
+  Per ogni passo da 0 a conteggio meno 1, fare questo:
+    C'è successivo, è precedente più corrente.
+    Dopo questo, precedente è corrente.
+    Dopo questo, corrente è successivo.
+  La risposta è precedente.
+
+Per ogni indice da 0 a 20, fare questo:
+  Dire «fibonacci(» poi indice poi «) = » poi fibonacci di (indice) su una riga.

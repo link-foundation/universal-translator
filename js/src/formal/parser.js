@@ -115,8 +115,7 @@ class BaseParser {
       Math.min(this.position + offset, this.tokens.length - 1)
     ];
   }
-  // Reading past the end is a syntax error (as in the Rust parser), so a
-  // dialect loop that skips to a token can not run forever on a cut text.
+  // Reading past the end is a syntax error, so no loop runs on forever.
   next() {
     if (this.position >= this.tokens.length) {
       throw new SyntaxError('Unexpected end of program', this.peek().line);
@@ -170,6 +169,7 @@ class BaseParser {
       return;
     }
     if (
+      this.peek().trailing ||
       this.is('}') ||
       this.peek().type === 'end' ||
       this.peek().type === 'dedent' ||
@@ -193,6 +193,11 @@ class BaseParser {
     const items = [];
     this.skipSeparators();
     while (!done()) {
+      // Concrete syntax: empty lines between two items are kept.
+      const blank = this.blankLinesBefore();
+      if (blank && items.length) {
+        items.push(node('Blank', { lines: blank }));
+      }
       // A C-style loop that is not a counting loop becomes several statements.
       const item = this.item();
       items.push(...(item.kind === 'Statements' ? item.statements : [item]));
@@ -201,11 +206,28 @@ class BaseParser {
     return items;
   }
 
+  // Empty lines right before the current token.
+  blankLinesBefore() {
+    const skipped = (token) =>
+      ['indent', 'dedent', ';'].includes(token.value) ||
+      ['indent', 'dedent'].includes(token.type);
+    let index = this.position - 1;
+    while (index >= 0 && skipped(this.tokens[index])) {
+      index -= 1;
+    }
+    const token = this.tokens[index];
+    return token?.type === 'newline' ? (token.blank ?? 0) : 0;
+  }
+
   item() {
     const token = this.peek();
     if (token.type === 'comment') {
       this.next();
-      return node('Comment', { text: token.value });
+      return node('Comment', {
+        text: token.value,
+        ...(token.trailing ? { trailing: token.trailing } : {}),
+        ...(token.block ? { block: true } : {}),
+      });
     }
     if (token.type === 'directive') {
       this.next();
@@ -434,32 +456,41 @@ class BaseParser {
     return undefined;
   }
 
+  // The name of a function, and the return type written before it.
+  functionHead() {
+    if (this.syntax.functionForm === 'assigned') {
+      const functionName = this.expectName();
+      this.expect(this.syntax.assignment);
+      this.expect('function');
+      return { functionName };
+    }
+    if (this.syntax.functionKeyword) {
+      this.expect(this.syntax.functionKeyword);
+      return { functionName: this.expectName() };
+    }
+    const words = [];
+    while (!this.is('(')) {
+      words.push(this.next().value);
+    }
+    const functionName = words.pop();
+    return {
+      functionName,
+      returnType: words.length ? sourceType(words.join(' ')) : undefined,
+    };
+  }
+
   functionDefinition() {
     while (modifiers.has(this.peek().value)) {
       this.next();
     }
-    let returnType;
-    let functionName;
-    if (this.syntax.functionForm === 'assigned') {
-      functionName = this.expectName();
-      this.expect(this.syntax.assignment);
-      this.expect('function');
-    } else if (this.syntax.functionKeyword) {
-      this.expect(this.syntax.functionKeyword);
-      functionName = this.expectName();
-    } else {
-      const words = [];
-      while (!this.is('(')) {
-        words.push(this.next().value);
-      }
-      functionName = words.pop();
-      returnType = words.length ? sourceType(words.join(' ')) : undefined;
-    }
+    const head = this.functionHead();
+    const { functionName } = head;
+    let { returnType } = head;
     // Ruby and Perl may leave out the parentheses of a parameter list.
     let parameters = this.is('(') ? this.parameterList() : [];
     if (
       this.accept('->') ||
-      (this.syntax.returnArrow === ':' && this.accept(':'))
+      (this.syntax.returnArrow && this.accept(this.syntax.returnArrow))
     ) {
       returnType = this.typeExpression();
     } else if (this.syntax.typed === 'suffix' && !this.is('{')) {
@@ -586,9 +617,7 @@ class BaseParser {
     // Keyword-delimited blocks (Ruby, Lua) stop at end / else / elsif.
     this.accept('then');
     this.accept('do');
-    const statements = this.items(() =>
-      ['end', 'else', 'elsif', 'elseif'].some((word) => this.is(word))
-    );
+    const statements = this.items(() => this.is('end') || startsElse(this));
     return block(statements);
   }
 
@@ -799,8 +828,9 @@ class BaseParser {
   // Calls written without parentheses: puts value, print value
   commandCall() {
     const callee = this.next().value;
-    const values = [this.expression()];
-    while (this.accept(',')) {
+    const ends = ['newline', 'end'].includes(this.peek().type);
+    const values = ends ? [] : [this.expression()];
+    while (!ends && this.accept(',')) {
       values.push(this.expression());
     }
     this.endStatement();
@@ -811,10 +841,22 @@ class BaseParser {
 
   // Ruby allows calls without parentheses, such as `puts "Hello"`.
   isCommandCall() {
-    if (!this.syntax.commandCalls || this.peek().type !== 'name') {
+    const { commandCalls } = this.syntax;
+    if (
+      !commandCalls ||
+      this.peek().type !== 'name' ||
+      (Array.isArray(commandCalls) && !commandCalls.includes(this.peek().value))
+    ) {
       return false;
     }
     const following = this.peek(1);
+    // A bare `print` prints an empty line.
+    if (
+      Array.isArray(commandCalls) &&
+      ['newline', 'end'].includes(following.type)
+    ) {
+      return true;
+    }
     return (
       ['text', 'number', 'name'].includes(following.type) &&
       following.line === this.peek().line &&
@@ -874,9 +916,7 @@ class BaseParser {
     while (this.peek(offset).type === 'newline') {
       offset += 1;
     }
-    if (
-      ['else', 'elif', 'elsif', 'elseif'].some((word) => this.is(word, offset))
-    ) {
+    if (startsElse(this, offset)) {
       this.position += offset;
     }
   }
@@ -1449,5 +1489,10 @@ export function sourceType(spelling) {
   return `source:${words}`;
 }
 
+const elseWords = ['else', 'elif', 'elsif', 'elseif'];
+const startsElse = (parser, offset = 0) =>
+  [...elseWords, parser.syntax.elseIf ?? 'else'].some((word) =>
+    parser.is(word, offset)
+  );
 const assignmentSymbols = ['=', '+=', '-=', '*=', '/=', '%=', '++', '--'];
 const stepOperators = { '++': '+=', '--': '-=' };

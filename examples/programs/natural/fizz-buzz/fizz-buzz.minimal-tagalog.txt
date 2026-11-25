@@ -1,0 +1,11 @@
+Tala: FizzBuzz in JavaScript
+
+Para sa bawat numero mula 1 hanggang 100, gawin ito:
+  Kung numero modulo 15 ay pareho sa 0, gawin ito:
+    Sabihin ang “FizzBuzz” sa isang linya.
+  Kung hindi, kung numero modulo 3 ay pareho sa 0, gawin ito:
+    Sabihin ang “Fizz” sa isang linya.
+  Kung hindi, kung numero modulo 5 ay pareho sa 0, gawin ito:
+    Sabihin ang “Buzz” sa isang linya.
+  Kung hindi, gawin ito:
+    Sabihin ang numero sa isang linya.

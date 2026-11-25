@@ -1,0 +1,7 @@
+টীকা: 99 bottles of beer in JavaScript
+
+একটি বোতল আছে যা 99।
+যখন বোতল 0 এর চেয়ে বেশি তখন এটা অনেক বার করো:
+  বোতল তারপর “ bottles of beer on the wall, ” তারপর বোতল তারপর “ bottles of beer.” এক লাইনে বলো।
+  “Take one down and pass it around, ” তারপর বোতল বিয়োগ 1 তারপর “ bottles of beer on the wall.” এক লাইনে বলো।
+  এর পরে বোতল এখন বোতল বিয়োগ 1।

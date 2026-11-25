@@ -1,0 +1,37 @@
+natural:
+  id: minimal-japanese
+  label: 'Minimal Japanese (NSM semantic primes)'
+  extends: japanese
+  profile: minimal-english
+  source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  templates:
+    function: '誰か が {name} を {parameters} で こう する'
+    function-without-parameters: '誰か が {name} を こう する'
+    declare: '{name} が ある 、 それ は {value} だ'
+    assign: 'この 後 {name} は {value} だ'
+    print-line: '{value} を 一つ の 行 に 言う'
+    print: '{value} を 言う'
+    return-value: '答え は {value} だ'
+    return: 'ここ で 止める'
+    nothing: '何も しない'
+    evaluate: '{expression} を する'
+    if: 'もし {condition} なら これ を する'
+    else-if: 'そう で ない なら もし {condition} なら これ を する'
+    else: 'そう で ない なら これ を する'
+    while: '{condition} の 間 これ を 何度 も する'
+    for: '全て の {variable} について {start} から {last} まで これ を する'
+    join: '{left} それから {right}'
+    equal: '{left} が {right} と 同じ'
+    not-equal: '{left} が {right} と 違う'
+    less: '{left} が {right} より 少ない'
+    less-or-equal: '{left} が {right} より 多く ない'
+    greater: '{left} が {right} より 多い'
+    greater-or-equal: '{left} が {right} より 少なく ない'
+    array: 'これら の もの ({elements})'
+    new-array: '{fill} の よう な もの {length} 個'
+    element: '{array} の 部分 {index}'
+    length: '{array} の 部分 の 数'
+    set-element: 'この 後 {name} の 部分 {index} は {value} だ'
+  rules:
+    primes: japanese
+    extra-words: が を で は の 行 に 答え 止める 何度 も について まで それから と より な 個 数 または かつ マイナス 足す 引く 掛ける 割る 剰余 真 偽

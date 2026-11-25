@@ -1,0 +1,72 @@
+requirements:
+  russian-comparisons:
+    text: 'Read the Russian comparisons of the issue: меньше или равно, больше или равно'
+    from: 'issue 8'
+    status: done
+    evidence: data/natural/russian.lino js/tests/issue-8.test.js
+  comparison-variations:
+    text: 'Read the other obvious variations of comparisons (либо, не больше, <=, ≤, at most, ...) in every natural language'
+    from: 'issue 8'
+    status: done
+    evidence: data/natural/english.lino experiments/issue-8-add-variants.mjs js/tests/issue-8.test.js
+  rosetta-download:
+    text: 'Load every Rosetta Code task automatically'
+    from: 'issue 8'
+    status: done
+    evidence: scripts/rosetta-code.mjs js/tests/rosetta-code.test.js docs/case-studies/issue-8/data/rosetta-code/README.md
+  rosetta-sorting:
+    text: 'Sort the Rosetta Code tasks by the simplest meaning'
+    from: 'issue 8'
+    status: done
+    evidence: scripts/rosetta-code.mjs js/tests/rosetta-code.test.js
+  partial-parsing:
+    text: 'A parsing mode that reads all it can and counts the missing parts'
+    from: 'issue 8'
+    status: done
+    evidence: js/src/translation/partial.js rust/src/partial.rs js/tests/issue-8.test.js rust/tests/issue_8.rs
+  partial-by-default:
+    text: 'Translate partially by default and mark the untranslated parts with their errors'
+    from: 'issue 8'
+    status: done
+    evidence: js/src/translation/partial.js bin/universal-translator.js js/src/server.js examples/universal-app/src/App.js docs/screenshots/issue-8/partial-translation.png
+  all-or-nothing:
+    text: 'Keep all-or-nothing translation as an option'
+    from: 'issue 8'
+    status: done
+    evidence: bin/universal-translator.js js/src/server.js examples/universal-app/src/App.js examples/universal-app/e2e/translate.e2e.mjs
+  rules-as-data:
+    text: 'Configurable translation rules at each stage'
+    from: 'issue 8'
+    status: done
+    evidence: js/src/translation/custom-rules.js rust/src/custom_rules.rs js/tests/issue-8.test.js
+  rules-editor:
+    text: 'A visual rules editor in the web demo'
+    from: 'issue 8'
+    status: done
+    evidence: examples/universal-app/src/RulesEditor.js examples/universal-app/e2e/translate.e2e.mjs docs/screenshots/issue-8/rules-editor.png
+  auto-detect:
+    text: 'Detect the source language automatically by default in the user interface'
+    from: 'issue 8'
+    status: done
+    evidence: js/src/translation/detect.js rust/src/detect.rs examples/universal-app/src/App.js examples/universal-app/e2e/translate.e2e.mjs
+  issue-8-case-study:
+    text: 'Collect the issue data in docs/case-studies/issue-8 with a case study'
+    from: 'issue 8'
+    status: done
+    evidence: docs/case-studies/issue-8/README.md docs/case-studies/issue-8/data/issue.json
+  debug-output:
+    text: 'Add debug output where root causes are not clear'
+    from: 'issue 8'
+    status: done
+    evidence: scripts/rosetta-code.mjs experiments/issue-8-rosetta-timing.mjs
+  upstream-reports:
+    text: 'Report problems found in other projects'
+    from: 'issue 8'
+    status: done
+    reason: 'None were found: every root cause was in this repository'
+    evidence: docs/case-studies/issue-8/README.md
+  whole-codebase:
+    text: 'Apply every fix to the whole codebase, JavaScript and Rust'
+    from: 'issue 8'
+    status: done
+    evidence: rust/src/partial.rs rust/src/detect.rs rust/src/custom_rules.rs rust/src/main.rs rust/tests/issue_8.rs

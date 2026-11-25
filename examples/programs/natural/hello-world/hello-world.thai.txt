@@ -1,4 +1,4 @@
 หมายเหตุ: Hello World in JavaScript
-หมายเหตุ: print "Hello World!" into console followed by new line symbol by function call
 
+หมายเหตุ: print "Hello World!" into console followed by new line symbol by function call
 เขียน “Hello World!” แล้ว ขึ้น บรรทัด ใหม่.

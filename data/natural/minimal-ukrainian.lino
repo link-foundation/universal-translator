@@ -1,0 +1,39 @@
+natural:
+  id: minimal-ukrainian
+  label: 'Minimal Ukrainian (NSM semantic primes)'
+  extends: ukrainian
+  profile: minimal-english
+  source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  true: правда
+  false: неправда
+  templates:
+    function: 'Так хтось робить {name} з {parameters}'
+    function-without-parameters: 'Так хтось робить {name}'
+    declare: 'Є {name}, це {value}'
+    assign: 'Після цього {name} є {value}'
+    print-line: 'Сказати {value} в одному рядку'
+    print: 'Сказати {value}'
+    return-value: 'Відповіддю є {value}'
+    return: 'Зупинитися тут'
+    nothing: 'Нічого не робити'
+    evaluate: 'Зробити {expression}'
+    if: 'Якщо {condition}, зробити це'
+    else-if: 'Якщо ні, якщо {condition}, зробити це'
+    else: 'Якщо ні, зробити це'
+    while: 'Коли {condition}, робити це багато разів'
+    for: 'Для всіх {variable} від {start} до {last}, зробити це'
+    call-without-arguments: '{callee} ( )'
+    equal: '{left} є тим самим що {right}'
+    not-equal: '{left} не є тим самим що {right}'
+    less: '{left} менше ніж {right}'
+    less-or-equal: '{left} не більше ніж {right}'
+    greater: '{left} більше ніж {right}'
+    greater-or-equal: '{left} не менше ніж {right}'
+    array: 'ці речі ({elements})'
+    new-array: '{length} речей як {fill}'
+    element: 'частина {index} з {array}'
+    length: 'скільки частин має {array}'
+    set-element: 'Після цього частина {index} з {name} є {value}'
+  rules:
+    primes: ukrainian
+    extra-words: з в рядку відповіддю зупинитися нічого ні разів для від і або протилежне ніж менше плюс мінус помножити поділити на за модулем неправда скільки має

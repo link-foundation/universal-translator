@@ -1,0 +1,12 @@
+Nota: Ackermann function in JavaScript, defined recursively
+
+É assim que alguém faz ackermann com primeiro e segundo:
+  Se primeiro é o mesmo que 0, fazer isto:
+    A resposta é segundo mais 1.
+  Se segundo é o mesmo que 0, fazer isto:
+    A resposta é ackermann de (primeiro menos 1, 1).
+  A resposta é ackermann de (primeiro menos 1, ackermann de (primeiro, segundo menos 1)).
+
+Para todos os primeiro de 0 até 3, fazer isto:
+  Para todos os segundo de 0 até 4, fazer isto:
+    Dizer “ackermann(” depois primeiro depois “, ” depois segundo depois “) = ” depois ackermann de (primeiro, segundo) em uma linha.

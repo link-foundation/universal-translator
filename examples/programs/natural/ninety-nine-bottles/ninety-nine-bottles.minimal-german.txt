@@ -1,0 +1,7 @@
+Hinweis: 99 bottles of beer in JavaScript
+
+Es gibt Flaschen, es ist 99.
+Solange Flaschen ist mehr als 0, tue dies viele Male:
+  Sage Flaschen dann „ bottles of beer on the wall, “ dann Flaschen dann „ bottles of beer.“ auf einer Zeile.
+  Sage „Take one down and pass it around, “ dann Flaschen minus 1 dann „ bottles of beer on the wall.“ auf einer Zeile.
+  Danach ist Flaschen jetzt Flaschen minus 1.

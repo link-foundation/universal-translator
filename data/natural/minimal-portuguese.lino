@@ -1,0 +1,38 @@
+natural:
+  id: minimal-portuguese
+  label: 'Minimal Portuguese (NSM semantic primes)'
+  extends: portuguese
+  profile: minimal-english
+  source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  templates:
+    function: 'É assim que alguém faz {name} com {parameters}'
+    function-without-parameters: 'É assim que alguém faz {name}'
+    declare: 'Há {name}, é {value}'
+    assign: 'Depois disto, {name} é {value}'
+    print-line: 'Dizer {value} em uma linha'
+    print: 'Dizer {value}'
+    return-value: 'A resposta é {value}'
+    return: 'Parar aqui'
+    nothing: 'Não fazer nada'
+    evaluate: 'Fazer {expression}'
+    if: 'Se {condition}, fazer isto'
+    else-if: 'Se não, se {condition}, fazer isto'
+    else: 'Se não, fazer isto'
+    while: 'Quando {condition}, fazer isto muitas vezes'
+    for: 'Para todos os {variable} de {start} até {last}, fazer isto'
+    call-without-arguments: '{callee} ( )'
+    join: '{left} depois {right}'
+    equal: '{left} é o mesmo que {right}'
+    not-equal: '{left} não é o mesmo que {right}'
+    less: '{left} é menos que {right}'
+    less-or-equal: '{left} não é mais que {right}'
+    greater: '{left} é mais que {right}'
+    greater-or-equal: '{left} não é menos que {right}'
+    array: 'estas coisas ({elements})'
+    new-array: '{length} coisas como {fill}'
+    element: 'a parte {index} de {array}'
+    length: 'quantas partes há em {array}'
+    set-element: 'Depois disto, a parte {index} de {name} é {value}'
+  rules:
+    primes: portuguese
+    extra-words: que com de em linha a resposta parar nada vezes para os até o oposto ou e menos dividido por módulo falso quantas

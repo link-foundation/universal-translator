@@ -1,0 +1,14 @@
+Opmerking: Mutual recursion in JavaScript: the Hofstadter Female and Male sequences
+
+Zo doet iemand vrouwelijk met index:
+  Als index is hetzelfde als 0, doe dit:
+    Het antwoord is 1.
+  Het antwoord is index min mannelijk van (vrouwelijk van (index min 1)).
+
+Zo doet iemand mannelijk met index:
+  Als index is hetzelfde als 0, doe dit:
+    Het antwoord is 0.
+  Het antwoord is index min vrouwelijk van (mannelijk van (index min 1)).
+
+Voor alle index van 0 tot en met 19, doe dit:
+  Zeg index daarna “: ” daarna vrouwelijk van (index) daarna “ ” daarna mannelijk van (index) op één regel.

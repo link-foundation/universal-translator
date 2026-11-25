@@ -1,5 +1,4 @@
 ; Hello World in x86-64 assembly
-; print "Hello World!" into console followed by new line symbol by call instruction
 
 default rel
 extern printf
@@ -16,6 +15,7 @@ main:
     %push main
     push rbp
     mov rbp, rsp
+; print "Hello World!" into console followed by new line symbol by call instruction
     lea rdi, [text_0]
     call print_text
     call print_newline

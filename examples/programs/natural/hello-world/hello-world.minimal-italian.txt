@@ -1,0 +1,4 @@
+Nota: Hello World in JavaScript
+
+Nota: print "Hello World!" into console followed by new line symbol by function call
+Dire «Hello World!» su una riga.

@@ -1,0 +1,4 @@
+نوٹ: Hello World in JavaScript
+
+نوٹ: print "Hello World!" into console followed by new line symbol by function call
+“Hello World!” ایک سطر میں کہیں۔

@@ -1,0 +1,10 @@
+Nota: Sum and product of an array in JavaScript
+
+C'è numeri, è queste cose (1, 2, 3, 4, 5).
+C'è totale, è 0.
+C'è prodotto, è 1.
+Per ogni indice da 0 a quante parti ha numeri meno 1, fare questo:
+  Dopo questo, totale è totale più la parte indice di numeri.
+  Dopo questo, prodotto è prodotto per la parte indice di numeri.
+Dire «Sum: » poi totale su una riga.
+Dire «Product: » poi prodotto su una riga.

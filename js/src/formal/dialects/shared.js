@@ -4,13 +4,31 @@
 
 import { node } from '../../meta/tree.js';
 
+// A comment token as a Comment node, keeping where it stood (after code on
+// the same line) and whether it was a block comment.
+export function commentNode(token) {
+  return node('Comment', {
+    text: token.value,
+    ...(token.trailing ? { trailing: token.trailing } : {}),
+    ...(token.block ? { block: true } : {}),
+  });
+}
+
+// Empty lines of a newline token as a Blank node, or nothing.
+export const blankNode = (token, items) =>
+  token.type === 'newline' && token.blank && items.length
+    ? [node('Blank', { lines: token.blank })]
+    : [];
+
 // Parser helpers for keyword-delimited statements.
 export const keywordParser = (Base) =>
   class KeywordParser extends Base {
     // Skip line ends and statement separators.
-    skipLines() {
+    // With `items`, empty lines between them are kept as Blank nodes.
+    skipLines(items) {
       while (this.peek().type === 'newline' || this.is(';')) {
-        this.next();
+        const token = this.next();
+        items?.push(...blankNode(token, items));
       }
     }
 
@@ -20,11 +38,11 @@ export const keywordParser = (Base) =>
       this.skipLines();
       while (!done() && this.peek().type !== 'end') {
         if (this.peek().type === 'comment') {
-          statements.push(node('Comment', { text: this.next().value }));
+          statements.push(commentNode(this.next()));
         } else {
           statements.push(this.statement());
         }
-        this.skipLines();
+        this.skipLines(statements);
       }
       return statements;
     }
@@ -34,7 +52,9 @@ export const keywordParser = (Base) =>
       while (this.peek().type === 'newline' || this.peek().type === 'comment') {
         const token = this.next();
         if (token.type === 'comment') {
-          items.push(node('Comment', { text: token.value }));
+          items.push(commentNode(token));
+        } else {
+          items.push(...blankNode(token, items));
         }
       }
     }

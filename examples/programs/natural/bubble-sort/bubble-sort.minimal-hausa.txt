@@ -1,0 +1,12 @@
+Lura: Bubble sort in JavaScript: sort a list of numbers
+
+Akwai adadai, shi ne waɗannan abubuwa (5, 3, 8, 1, 9, 2, 7).
+Akwai ƙidaya, shi ne yawan sassan adadai.
+Ga kowane zagaye daga 0 zuwa ƙidaya ragi 1 ragi 1, yi wannan:
+  Ga kowane fihirisa daga 0 zuwa ƙidaya ragi 1 ragi zagaye ragi 1, yi wannan:
+    Idan sashe fihirisa na adadai ya fi sashe (fihirisa ƙari 1) na adadai, yi wannan:
+      Akwai musanya, shi ne sashe fihirisa na adadai.
+      Bayan wannan, sashe fihirisa na adadai ya zama sashe (fihirisa ƙari 1) na adadai.
+      Bayan wannan, sashe (fihirisa ƙari 1) na adadai ya zama musanya.
+Ga kowane matsayi daga 0 zuwa ƙidaya ragi 1, yi wannan:
+  Faɗi sashe matsayi na adadai a layi ɗaya.

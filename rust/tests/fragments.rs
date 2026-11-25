@@ -234,3 +234,21 @@ fn ends_every_rocq_function_group_with_its_period() {
     assert!(functions.trim_end().ends_with('.'), "{functions}");
     assert!(!functions.contains("fragmentEnd"), "{functions}");
 }
+
+#[test]
+fn reads_the_length_of_an_array_the_fragment_only_indexes() {
+    let fragment = |source: &str, from: &str, to: &str| {
+        translate_fragment(source, from, to, Options::default())
+            .unwrap_or_else(|error| panic!("{from} -> {to}: {error}"))
+    };
+    let looped =
+        "for (let index = 0; index < numbers.length; index++) {\n    total += numbers[index];\n}\n";
+    assert_eq!(
+        fragment(looped, "javascript", "python"),
+        "for index in range(len(numbers)):\n    total += numbers[index]\n"
+    );
+    for to in ["english", "arabic", "fortran", "minimal-english"] {
+        let written = fragment(looped, "javascript", to);
+        assert_eq!(fragment(&written, to, "javascript"), looped, "{to}");
+    }
+}

@@ -1,7 +1,9 @@
 // Languages without a boolean type (Perl, and machine code) return truth
 // values as the integers 0 and 1. A function reads as returning a boolean
 // when every value it returns is 0, 1 or a truth value and every call to it
-// is used as a condition. Its literal returns then become false and true.
+// is used as a condition. A function nobody calls must return at least one
+// truth value besides 0 and 1: `return 1` alone is a number. Its literal
+// returns then become false and true.
 
 import { node, rewrite, walk } from './tree.js';
 
@@ -93,6 +95,12 @@ function returnedValues(body) {
 export function raiseTruthFunctions(program) {
   const functions = program.functions ?? [];
   const usedOtherwise = callUses(program);
+  const called = new Set();
+  walk(program, (current) => {
+    if (current.kind === 'Call') {
+      called.add(current.callee);
+    }
+  });
   const candidates = functions.filter(
     (item) =>
       !usedOtherwise.has(item.name) &&
@@ -107,11 +115,11 @@ export function raiseTruthFunctions(program) {
         .filter((item) => truthFunctions.has(item.name))
         .filter((item) => {
           const values = returnedValues(item.body);
+          const truth = (value) => isTruthValue(value, truthFunctions);
           return (
             values.length > 0 &&
-            values.every(
-              (value) => isBit(value) || isTruthValue(value, truthFunctions)
-            )
+            values.every((value) => isBit(value) || truth(value)) &&
+            (called.has(item.name) || values.some(truth))
           );
         })
         .map((item) => item.name)

@@ -229,7 +229,7 @@ const emitter = (Base) =>
     binary({ operator, left, right }, parent) {
       const level = levels[operator];
       const inner = operator === 'or' ? levels.and + 1 : level;
-      const result = `${this.expression(left, inner)} ${spellings[operator]} ${this.expression(right, Math.max(inner, level + 1))}`;
+      const result = `${this.expression(left, inner)} ${this.syntax.operators?.[operator] ?? spellings[operator]} ${this.expression(right, Math.max(inner, level + 1))}`;
       return level < parent ? `(${result})` : result;
     }
 

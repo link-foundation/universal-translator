@@ -23,8 +23,10 @@ use crate::meta::{self, GrammarError, Node, Rule, Settings, Trace, apply_rules, 
 use crate::natural;
 use std::sync::Arc;
 
+use crate::comment_language::{self, CommentTranslator};
 use crate::custom_rules::CustomRules;
 pub use crate::detect::Detection;
+use crate::formal::versions::{Version, split_version, versions_of};
 use crate::fragments;
 pub use crate::fragments::{Fragment, FragmentKind};
 pub use crate::partial::{PartError, PartStatus, PartialReading, PartialTranslation};
@@ -35,6 +37,32 @@ pub struct Options {
     pub mode: Mode,
     /// Print through the calls of the common library in `common-library/`.
     pub common_library: bool,
+    /// The natural language to translate the comments to. When the source
+    /// and the target are the same programming language, only the comments
+    /// change, in place. Set it with [`Options::with_comment_language`].
+    pub comment_language: Option<&'static str>,
+    /// The natural language the comments are written in (detected when
+    /// absent).
+    pub comment_from: Option<&'static str>,
+}
+
+impl Options {
+    /// The options that also translate the comments to the natural language
+    /// `to`, from `from` (detected when `None`).
+    pub fn with_comment_language(
+        mut self,
+        to: &str,
+        from: Option<&str>,
+    ) -> Result<Self, GrammarError> {
+        let known = |id: &str| {
+            natural::natural_language(id)
+                .map(|language| language.id.as_str())
+                .map_err(GrammarError::new)
+        };
+        self.comment_language = Some(known(to)?);
+        self.comment_from = from.map(known).transpose()?;
+        Ok(self)
+    }
 }
 
 /// The grammar translator with its rule layers.
@@ -48,6 +76,9 @@ pub struct Translator {
     pub trace: Option<Trace>,
     /// Rules given as data (see [`crate::custom_rules`]).
     pub rules: Arc<CustomRules>,
+    /// Translates comments to a comment language (the comment dictionary
+    /// when absent).
+    pub comment_translator: Option<CommentTranslator>,
 }
 
 impl Default for Translator {
@@ -59,6 +90,7 @@ impl Default for Translator {
             layers: Vec::new(),
             trace: None,
             rules: Arc::default(),
+            comment_translator: None,
         }
     }
 }
@@ -85,6 +117,53 @@ impl Translator {
     pub fn with_rules(mut self, rules: CustomRules) -> Self {
         self.rules = Arc::new(rules);
         self
+    }
+
+    /// The same translator with another comment translator, such as a
+    /// machine translation service: `(text, from, to) -> text`.
+    pub fn with_comment_translator(
+        mut self,
+        translate: impl Fn(&str, &str, &str) -> Result<String, String> + Send + Sync + 'static,
+    ) -> Self {
+        self.comment_translator = Some(Arc::new(translate));
+        self
+    }
+
+    fn comment_translator(&self) -> CommentTranslator {
+        self.comment_translator
+            .clone()
+            .unwrap_or_else(comment_language::dictionary_translator)
+    }
+
+    /// The comments can be in a natural language of their own.
+    fn in_comment_language(&self, program: Node, options: Options) -> Result<Node, GrammarError> {
+        match options.comment_language {
+            Some(to) => comment_language::translate_program_comments(
+                program,
+                options.comment_from,
+                to,
+                &self.comment_translator(),
+            ),
+            None => Ok(program),
+        }
+    }
+
+    /// Translate the comments of a source text in place, keeping every
+    /// other character. `from` is detected when absent.
+    pub fn translate_comments(
+        &self,
+        source: &str,
+        language: &str,
+        from: Option<&str>,
+        to: &str,
+    ) -> Result<String, GrammarError> {
+        comment_language::translate_comments_with(
+            source,
+            language,
+            from,
+            to,
+            &self.comment_translator(),
+        )
     }
 
     fn report(&self, stage: &str, tree: &Node) {
@@ -117,9 +196,12 @@ impl Translator {
             return Ok(typed);
         }
         let syntax = languages::language_syntax(from)?;
+        // Reading accepts every version of a language: `python@2` reads
+        // Python.
+        let id = split_version(from).0;
         let settings = Settings {
-            from: from.to_owned(),
-            to: from.to_owned(),
+            from: id.to_owned(),
+            to: id.to_owned(),
             mode: Mode::default(),
         };
         if syntax.machine {
@@ -200,9 +282,11 @@ impl Translator {
         // Words carry no syntax of their own, so a program read from words
         // is adapted as if it had been written in the target language.
         let from = from.filter(|from| !natural::is_natural_language(from));
+        // The rules adapt to the language; only writing depends on its
+        // version.
         let settings = Settings {
-            from: from.unwrap_or(to).to_owned(),
-            to: to.to_owned(),
+            from: split_version(from.unwrap_or(to)).0.to_owned(),
+            to: split_version(to).0.to_owned(),
             mode: options.mode,
         };
         // Custom layers are meta -> meta transformations, so they see the
@@ -220,11 +304,11 @@ impl Translator {
         }
         self.report("transformed", &transformed);
         if natural {
-            return Ok(transformed);
+            return self.in_comment_language(transformed, options);
         }
         let adapted = apply_rules(transformed, &self.context, &settings);
         self.report("adapted", &adapted);
-        Ok(adapted)
+        self.in_comment_language(adapted, options)
     }
 
     /// Write an adapted program in a language, a machine target or words.
@@ -340,6 +424,15 @@ impl Translator {
         to: &str,
         options: Options,
     ) -> Result<String, GrammarError> {
+        // Same code, other comment language: change only the comments, in
+        // place, so every character of the code stays.
+        if let Some(comment_language) = options.comment_language
+            && from == to
+            && !natural::is_natural_language(from)
+            && !languages::language_syntax(from)?.machine
+        {
+            return self.translate_comments(source, from, options.comment_from, comment_language);
+        }
         let meta = self.to_meta(source, from)?;
         self.from_meta_with(&meta, to, Some(from), options)
     }
@@ -349,6 +442,30 @@ impl Translator {
 /// listing order.
 pub fn language_ids() -> Vec<&'static str> {
     languages::language_ids()
+}
+
+/// A programming language the grammar translator reads and writes, with
+/// its versions (the default first), as the JavaScript `languages()` lists
+/// it.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct LanguageListing {
+    pub id: &'static str,
+    pub label: &'static str,
+    pub versions: Vec<Version>,
+}
+
+/// The programming languages with their labels and versions, in listing
+/// order.
+pub fn languages() -> Vec<LanguageListing> {
+    language_ids()
+        .into_iter()
+        .filter_map(|id| languages::language_syntax(id).ok())
+        .map(|syntax| LanguageListing {
+            id: syntax.id,
+            label: syntax.label,
+            versions: versions_of(syntax.id),
+        })
+        .collect()
 }
 
 /// A controlled natural language the translator reads and writes.

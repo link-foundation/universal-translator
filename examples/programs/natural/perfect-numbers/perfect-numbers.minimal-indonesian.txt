@@ -1,0 +1,16 @@
+Catatan: Perfect numbers in JavaScript: numbers equal to the sum of their divisors
+
+Begini seseorang melakukan apakah-sempurna dengan bilangan:
+  Ada jumlah, yaitu 1.
+  Ada pembagi, yaitu 2.
+  Ketika pembagi dikali pembagi tidak lebih banyak dari bilangan, lakukan ini banyak kali:
+    Jika bilangan modulo pembagi sama dengan 0, lakukan ini:
+      Setelah ini, jumlah adalah jumlah ditambah pembagi.
+      Jika pembagi dikali pembagi tidak sama dengan bilangan, lakukan ini:
+        Setelah ini, jumlah adalah jumlah ditambah bilangan dibagi pembagi.
+    Setelah ini, pembagi adalah pembagi ditambah 1.
+  Jawabannya adalah bilangan lebih banyak dari 1 dan jumlah sama dengan bilangan.
+
+Untuk semua bilangan dari 1 sampai 10000, lakukan ini:
+  Jika apakah-sempurna dari (bilangan), lakukan ini:
+    Katakan bilangan pada satu baris.

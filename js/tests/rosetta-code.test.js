@@ -22,7 +22,7 @@ with (x) {}
 <syntaxhighlight lang="11l">print('hi')</syntaxhighlight>
 `;
 
-describe('Rosetta Code coverage (issue #8)', () => {
+describe('Rosetta Code coverage', () => {
   it('keeps the solutions of the languages it reads', () => {
     const solutions = extractSolutions(page);
     expect(Object.keys(solutions)).toEqual(['python', 'javascript']);

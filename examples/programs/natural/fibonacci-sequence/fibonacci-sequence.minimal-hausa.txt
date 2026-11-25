@@ -1,0 +1,13 @@
+Lura: Fibonacci sequence in JavaScript, computed iteratively
+
+Haka wani yake yin fibonacci da ƙidaya:
+  Akwai baya, shi ne 0.
+  Akwai yanzu, shi ne 1.
+  Ga kowane mataki daga 0 zuwa ƙidaya ragi 1, yi wannan:
+    Akwai gaba, shi ne baya ƙari yanzu.
+    Bayan wannan, baya ya zama yanzu.
+    Bayan wannan, yanzu ya zama gaba.
+  Amsar ita ce baya.
+
+Ga kowane fihirisa daga 0 zuwa 20, yi wannan:
+  Faɗi “fibonacci(” sannan fihirisa sannan “) = ” sannan fibonacci na (fihirisa) a layi ɗaya.

@@ -1,0 +1,12 @@
+Kumbuka: Ackermann function in JavaScript, defined recursively
+
+Hivi ndivyo mtu anavyofanya ackermann kwa kwanza na pili:
+  Kama kwanza ni sawa na 0, fanya hivi:
+    Jibu ni pili jumlisha 1.
+  Kama pili ni sawa na 0, fanya hivi:
+    Jibu ni ackermann ya (kwanza toa 1, 1).
+  Jibu ni ackermann ya (kwanza toa 1, ackermann ya (kwanza, pili toa 1)).
+
+Kwa kila kwanza kutoka 0 hadi 3, fanya hivi:
+  Kwa kila pili kutoka 0 hadi 4, fanya hivi:
+    Sema “ackermann(” kisha kwanza kisha “, ” kisha pili kisha “) = ” kisha ackermann ya (kwanza, pili) kwenye mstari mmoja.

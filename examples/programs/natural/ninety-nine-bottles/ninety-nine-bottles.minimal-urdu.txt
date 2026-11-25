@@ -1,0 +1,7 @@
+نوٹ: 99 bottles of beer in JavaScript
+
+ایک بوتلیں ہے، یہ ہے 99۔
+جب بوتلیں 0 سے زیادہ ہے تب یہ بہت بار کریں:
+  بوتلیں پھر “ bottles of beer on the wall, ” پھر بوتلیں پھر “ bottles of beer.” ایک سطر میں کہیں۔
+  “Take one down and pass it around, ” پھر بوتلیں تفریق 1 پھر “ bottles of beer on the wall.” ایک سطر میں کہیں۔
+  اس کے بعد بوتلیں اب بوتلیں تفریق 1 ہے۔

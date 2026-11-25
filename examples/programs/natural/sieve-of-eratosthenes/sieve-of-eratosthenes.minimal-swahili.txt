@@ -1,0 +1,13 @@
+Kumbuka: Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+Kuna kikomo, ni 100.
+Kuna je-tasa, ni vitu (kikomo jumlisha 1) kama 1.
+Baada ya hii, sehemu 0 ya je-tasa ni 0.
+Baada ya hii, sehemu 1 ya je-tasa ni 0.
+Kwa kila nambari kutoka 2 hadi kikomo, fanya hivi:
+  Kama sehemu nambari ya je-tasa ni sawa na 1, fanya hivi:
+    Sema nambari kwenye mstari mmoja.
+    Kuna kigawe, ni nambari mara nambari.
+    Wakati kigawe si zaidi ya kikomo, fanya hivi mara nyingi:
+      Baada ya hii, sehemu kigawe ya je-tasa ni 0.
+      Baada ya hii, kigawe ni kigawe jumlisha nambari.

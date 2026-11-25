@@ -1,0 +1,39 @@
+natural:
+  id: minimal-italian
+  label: 'Minimal Italian (NSM semantic primes)'
+  extends: italian
+  profile: minimal-english
+  source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  templates:
+    function: 'Ecco come qualcuno fa {name} con {parameters}'
+    function-without-parameters: 'Ecco come qualcuno fa {name}'
+    declare: "C'è {name}, è {value}"
+    assign: 'Dopo questo, {name} è {value}'
+    print-line: 'Dire {value} su una riga'
+    print: 'Dire {value}'
+    return-value: 'La risposta è {value}'
+    return: 'Fermarsi qui'
+    nothing: 'Non fare niente'
+    evaluate: 'Fare {expression}'
+    if: 'Se {condition}, fare questo'
+    else-if: 'Se no, se {condition}, fare questo'
+    else: 'Se no, fare questo'
+    while: 'Quando {condition}, fare questo molte volte'
+    for: 'Per ogni {variable} da {start} a {last}, fare questo'
+    call-without-arguments: '{callee} ( )'
+    join: '{left} poi {right}'
+    negate: "l'opposto di {operand}"
+    equal: '{left} è lo stesso di {right}'
+    not-equal: '{left} non è lo stesso di {right}'
+    less: '{left} è meno di {right}'
+    less-or-equal: '{left} non è più di {right}'
+    greater: '{left} è più di {right}'
+    greater-or-equal: '{left} non è meno di {right}'
+    array: 'queste cose ({elements})'
+    new-array: '{length} cose come {fill}'
+    element: 'la parte {index} di {array}'
+    length: 'quante parti ha {array}'
+    set-element: 'Dopo questo, la parte {index} di {name} è {value}'
+  rules:
+    primes: italian
+    extra-words: ecco con su riga la risposta fermarsi niente no volte per da a poi l'opposto di lo meno o e per diviso modulo falso quante ha

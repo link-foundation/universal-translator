@@ -1,0 +1,7 @@
+Note: 99 bottles of beer in JavaScript
+
+Create bottles with value 99.
+While bottles exceeds 0, repeat this:
+  Write bottles followed by ‘ bottles of beer on the wall, ’ followed by bottles followed by ‘ bottles of beer.’ and end the line.
+  Write ‘Take one down and pass it around, ’ followed by bottles minus 1 followed by ‘ bottles of beer on the wall.’ and end the line.
+  Change bottles to bottles minus 1.

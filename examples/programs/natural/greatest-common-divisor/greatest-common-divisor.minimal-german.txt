@@ -1,0 +1,10 @@
+Hinweis: Greatest common divisor in JavaScript, using the Euclidean algorithm
+
+So tut jemand größte-gemeinsam-Teiler mit erste und zweite:
+  Solange zweite ist nicht dasselbe wie 0, tue dies viele Male:
+    Es gibt Rest, es ist erste modulo zweite.
+    Danach ist erste jetzt zweite.
+    Danach ist zweite jetzt Rest.
+  Die Antwort ist erste.
+
+Sage „The greatest common divisor of 1071 and 462 is “ dann größte-gemeinsam-Teiler von (1071, 462) auf einer Zeile.

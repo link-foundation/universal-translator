@@ -1,0 +1,7 @@
+یادداشت: 99 bottles of beer in JavaScript
+
+بطری‌ها هست، آن 99 است.
+وقتی بطری‌ها بیشتر از 0 است، این را بارها بکن:
+  بطری‌ها سپس « bottles of beer on the wall, » سپس بطری‌ها سپس « bottles of beer.» را در یک سطر بگو.
+  «Take one down and pass it around, » سپس بطری‌ها منهای 1 سپس « bottles of beer on the wall.» را در یک سطر بگو.
+  بعد از این، بطری‌ها بطری‌ها منهای 1 است.

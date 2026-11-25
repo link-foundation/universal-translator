@@ -48,6 +48,7 @@ export {
 } from './formal/common-library.js';
 export { lowerProgram } from './formal/lowering.js';
 export { liftProgram } from './formal/lifting.js';
+export { formatMeta } from './meta/notation.js';
 export {
   machineReaders,
   readCil,
@@ -63,9 +64,67 @@ export {
 } from './formal/rules.js';
 export {
   isNaturalLanguage,
+  isOwnNaturalLanguage,
   naturalLanguage,
   naturalLanguageIds,
+  naturalLanguageSource,
+  registerNaturalLanguage,
+  unregisterNaturalLanguage,
 } from './natural/catalog.js';
+export {
+  addDefinition,
+  cachedLookup,
+  createStandard,
+  defineWord,
+  expandWord,
+  knownForm,
+  lemmaCandidates,
+  lexemeGlosses,
+  naturalStandardSource,
+  naturalVocabulary,
+  primitiveWords,
+  readDefinitionCache,
+  readStandard,
+  standardEntries,
+  standardSize,
+  standardWordLimit,
+  unknownWords,
+  wikidataLanguageCodes,
+  wikidataLookup,
+  wordsOfText,
+  writeDefinitionCache,
+  writeStandard,
+} from './natural/standards.js';
+export {
+  languageVocabulary,
+  loadLanguageVersion,
+  readLanguageVersion,
+  vocabularyChanges,
+  writeLanguageVersion,
+} from './formal/vocabulary.js';
+export {
+  baseNaturalLanguageIds,
+  naturalLanguageVersions,
+  preferredNaturalVersion,
+  primesVersion,
+} from './natural/variants.js';
+export {
+  languageVersions,
+  mergeSyntax,
+  registerLanguageVersion,
+  splitVersion,
+  unregisterLanguageVersion,
+  versionsOf,
+} from './formal/versions.js';
+export {
+  commentDictionary,
+  detectCommentLanguage,
+  translateCommentText,
+} from './natural/comments.js';
+export {
+  translateComments,
+  translateProgramComments,
+} from './translation/comment-language.js';
 export { readNatural } from './natural/reader.js';
 export { writeNatural } from './natural/writer.js';
 export {

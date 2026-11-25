@@ -1,0 +1,16 @@
+Kumbuka: Perfect numbers in JavaScript: numbers equal to the sum of their divisors
+
+Hivi ndivyo mtu anavyofanya je-kamili kwa nambari:
+  Kuna jumla, ni 1.
+  Kuna kigawanyo, ni 2.
+  Wakati kigawanyo mara kigawanyo si zaidi ya nambari, fanya hivi mara nyingi:
+    Kama nambari modulo kigawanyo ni sawa na 0, fanya hivi:
+      Baada ya hii, jumla ni jumla jumlisha kigawanyo.
+      Kama kigawanyo mara kigawanyo si sawa na nambari, fanya hivi:
+        Baada ya hii, jumla ni jumla jumlisha nambari gawanya kwa kigawanyo.
+    Baada ya hii, kigawanyo ni kigawanyo jumlisha 1.
+  Jibu ni nambari ni zaidi ya 1 na jumla ni sawa na nambari.
+
+Kwa kila nambari kutoka 1 hadi 10000, fanya hivi:
+  Kama je-kamili ya (nambari), fanya hivi:
+    Sema nambari kwenye mstari mmoja.

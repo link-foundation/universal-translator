@@ -432,7 +432,7 @@ const parser = (Base) =>
         } else {
           items.push(this.statement());
         }
-        this.skipLines();
+        this.skipLines(items);
       }
       // The #! line names the interpreter; it is not a comment.
       const program = joinReplies(items).filter(

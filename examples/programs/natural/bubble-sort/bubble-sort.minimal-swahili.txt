@@ -1,0 +1,12 @@
+Kumbuka: Bubble sort in JavaScript: sort a list of numbers
+
+Kuna namba, ni vitu hivi (5, 3, 8, 1, 9, 2, 7).
+Kuna hesabu, ni idadi ya sehemu za namba.
+Kwa kila mzunguko kutoka 0 hadi hesabu toa 1 toa 1, fanya hivi:
+  Kwa kila fahirisi kutoka 0 hadi hesabu toa 1 toa mzunguko toa 1, fanya hivi:
+    Kama sehemu fahirisi ya namba ni zaidi ya sehemu (fahirisi jumlisha 1) ya namba, fanya hivi:
+      Kuna badilishana, ni sehemu fahirisi ya namba.
+      Baada ya hii, sehemu fahirisi ya namba ni sehemu (fahirisi jumlisha 1) ya namba.
+      Baada ya hii, sehemu (fahirisi jumlisha 1) ya namba ni badilishana.
+Kwa kila nafasi kutoka 0 hadi hesabu toa 1, fanya hivi:
+  Sema sehemu nafasi ya namba kwenye mstari mmoja.

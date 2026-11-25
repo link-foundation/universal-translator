@@ -1,0 +1,70 @@
+definitions:
+  'en:accuracy':
+  'en:again': 'another time; once more'
+  'en:an':
+  'en:approach': 'physically getting closer to something' 'treat, deal with' 'move towards, movement towards something' 'phase of a flight between cruise and landing' 'process of dealing with a situation'
+  'en:approximate': 'to make an estimate; to approach accuracy' 'to be close or similar, cause to come near to or approach again' 'close or roughly similar'
+  'en:approximately': 'nearly, approaching a value in accuracy (in an approximate manner)'
+  'en:attempt': 'try' 'action whose success is not guaranteed' 'occurs if a criminal has an intent to commit a crime and takes a substantial step toward completing the crime'
+  'en:ball': 'dance party' 'round object' 'elastic round object used in sports or for playing' 'knowledge about a specific topic' 'form into a ball shape' 'to play basketball' 'to enjoy oneself; to have a ball'
+  'en:bump': 'hit gently'
+  'en:bumps':
+  'en:cas':
+  'en:case':
+  'en:cases':
+  'en:cause': 'to make something happen or bring about an effect' 'entity which forms causality for an event'
+  'en:close':
+  'en:club': 'short staff or stick, usually made of wood, wielded as a weapon' 'voluntary association' 'association of people united by a common interest or goal'
+  'en:come': 'move from further away to nearer' 'physically getting closer to something' 'arise (from)' 'become, arrive at a certain state of being' 'come to: speaking of' 'pursue (often with after), pursuing' 'pertaining to inclusion in a purchase' 'ring up at a certain monetary value' 'serial verb construction' 'spatial extension (fictive motion)' 'to move toward or to reach either the speaker, the person spoken to, or the subject of the speaker''s narrative'
+  'en:cruel':
+  'en:difficult': 'hard, not easy, requiring much effort'
+  'en:double': 'being twice as much as something else' 'consisting of two members/things/sets/parts' 'acting in (two) different ways at different times' 'counterpart (person/thing resembling another)' 'hit that allows a runner to advance to second base' 'multiply by two' 'become increased twofold' 'to fold/bend over (bringing distant parts closer together)' 'to act as a double/substitute for something/someone else' 'twice (over)' 'duplicitously/deceitfully'
+  'en:easy': 'requiring little effort' 'easily: in an easy manner : without difficulty' 'without undue speed or excitement' 'without worry or care' 'without a severe penalty' 'without violent movement' 'easily: without question : by far' 'easily: at the minimum : at least'
+  'en:effort': 'quantity of exertion' 'an attempt to do something'
+  'en:equal': 'two or more subjects being the same' 'In mathematics, two quantities having the same value' 'be up to the task' 'be the same as'
+  'en:estimate': 'guess' 'value reached by estimating; rough calculation or informed guess'
+  'en:even': 'having the same level, amount, or features; being equal or balanced' 'divisible by 2' 'exactly, just, fully' 'in reality; implying an extreme example in the case mentioned' 'equalize, make uniform, equal, without variation'
+  'en:find': 'encounter or discover by accident; to happen upon' 'to get or discover (something or someone that you are looking for)' 'software feature'
+  'en:flat': 'even, uniform, extending mainly in two dimensions (often horizontal)' 'lacking fizz' 'lowered slightly in pitch' 'not shiny (as a surface)' 'a semitone lower than a note' 'relatively level surface of land within a region of greater relief' 'apartment' 'field area in gridiron football' 'having a surface without significant curvature or inclination'
+  'en:free': 'without impediments, unconstrained' 'obtainable without cost, particularly monetary cost' 'without a certain ingredient or element' 'cause to be available' 'release from bondage' 'South Korean pro gamer'
+  'en:goal': 'element of a sport field, rink, etc.' 'method of scoring in many sports' 'desired result or outcome' 'goal scored in ice hockey'
+  'en:golf': 'sport in which players attempt to hit a ball with a club into a goal using a minimum number of shots'
+  'en:half': 'one of two usually roughly equal parts into which anything may be divided, or considered as divided' '50%' 'in equal part or degree' 'partially' 'at all, by any means'
+  'en:hard': 'strong, sturdy, dense, resistant to damage' 'difficult' 'hard of hearing (or similar)'
+  'en:harsh': 'unpleasantly rough, severe or cruel'
+  'en:hit': 'strike with force' 'reach, encounter' 'go to, turn to' 'request to a web server for a file' 'an action that strikes something' 'murder'
+  'en:hymenophore':
+  'en:in': 'located within' 'moving into' 'expressed using a particular language (natural or artificial), or some other formal representation'
+  'en:interior': 'inside part of a three-dimensional object' 'what is hidden beneath the surface'
+  'en:into': 'to move inside of (something)' 'be enthusiastic to be involved in/with'
+  'en:locate': '(cause to) be located in' 'to find'
+  'en:located':
+  'en:make': 'build, construct' 'produce, create' 'create; cause to become' 'create or manufacture a man-made product' 'create, planned or otherwise' 'earn cash or wages, earning' 'arrive at, achieve' 'to seem, succeed at being something' '"make one''s way": to make one''s way, travel, progress' '"make way (for)": to make room or space for an entity or action; to move purposefully' 'interpret, have an understanding of' 'create'
+  'en:manner': 'mode of action'
+  'en:most':
+  'en:opposed': 'oppose, object to, being against, being in an opposite position, against an issue'
+  'en:physically': 'with physical material or force'
+  'en:player': 'person who plays a game'
+  'en:players':
+  'en:require': 'state that the object is necessary'
+  'en:requiring':
+  'en:rough': 'Not smooth; uneven' 'Approximate' 'Turbulent' 'Difficult' 'difficult, harsh' 'part of golf course' 'do without (eg. camping)'
+  'en:roughly': 'in a rough manner' 'approximately'
+  'en:roughness': 'surface texture' 'sound quality'
+  'en:severe': 'of great (negative) significance; to an extreme (negative) degree' 'of a strict, stern, or harsh bearing or manner' 'aesthetically harsh, austere'
+  'en:similar': 'that which is similar to, or resembles, something else, as in quality, form, etc'
+  'en:smooth': 'surface free of bumps and roughness' 'suave' 'to make smooth, smoothen' 'hymenophore type'
+  'en:spatial':
+  'en:spatially':
+  'en:sport': 'competitive event' 'Something diverting, mirthful; pastime; amusement.'
+  'en:suave':
+  'en:surface': 'overside or up-side of a flat object such as a table, or of a liquid' 'outermost or uppermost layer of a physical object or space' 'come to the top of a body of water' 'appear, as from underwater' 'put atop, apply a surface to'
+  'en:turbulent':
+  'en:twice': 'two times'
+  'en:type': 'grouping based on shared characteristics; a class.' 'anchoring point (of a name) in taxonomy' 'term in model theory and related areas of mathematics' 'in computer science, simplified denomination for the data type' 'process of writing or inputting text by pressing keys on a typewriter, keyboard, cell phone, or a calculator' 'identify as belonging to a certain category, determining type of (e.g. blood type)'
+  'en:uneven': 'something not even, opposed to flat'
+  'en:unpleasant':
+  'en:unpleasantly':
+  'en:usually': 'most of the time, in most cases'
+  'en:which': 'quality of object' 'interrogative word' 'of a kind' '(introduces defining relative clause)'
+  'en:within': 'in or into the interior; inside' 'in the inner part, spatially; physically inside'

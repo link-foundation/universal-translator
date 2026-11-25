@@ -1,4 +1,4 @@
-// Language detection (issue #8): the web demo and the command line can
+// Language detection: the web demo and the command line can
 // translate without being told the source language.
 //
 // Every language the translator reads is a candidate. A candidate whose

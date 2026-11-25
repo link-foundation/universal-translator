@@ -1,0 +1,10 @@
+Nota: Greatest common divisor in JavaScript, using the Euclidean algorithm
+
+É assim que alguém faz maior-comum-divisor com primeiro e segundo:
+  Quando segundo não é o mesmo que 0, fazer isto muitas vezes:
+    Há resto, é primeiro módulo segundo.
+    Depois disto, primeiro é segundo.
+    Depois disto, segundo é resto.
+  A resposta é primeiro.
+
+Dizer “The greatest common divisor of 1071 and 462 is ” depois maior-comum-divisor de (1071, 462) em uma linha.

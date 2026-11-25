@@ -1,0 +1,7 @@
+નોંધ: 99 bottles of beer in JavaScript
+
+બોટલો છે, તે 99 છે.
+જ્યારે બોટલો એ 0 કરતાં વધુ છે ત્યારે આ ઘણી વાર કરો:
+  બોટલો પછી “ bottles of beer on the wall, ” પછી બોટલો પછી “ bottles of beer.” એક લીટીમાં કહો.
+  “Take one down and pass it around, ” પછી બોટલો ઓછા 1 પછી “ bottles of beer on the wall.” એક લીટીમાં કહો.
+  આ પછી બોટલો બોટલો ઓછા 1 છે.

@@ -4,6 +4,7 @@
 //! rule and error types that every stage uses.
 
 pub mod links;
+pub mod notation;
 pub mod tree;
 pub mod truth;
 pub mod types;

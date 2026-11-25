@@ -1,0 +1,7 @@
+Tala: 99 bottles of beer in JavaScript
+
+May bote, ito ay 99.
+Kapag bote ay higit sa 0, gawin ito nang maraming beses:
+  Sabihin ang bote saka “ bottles of beer on the wall, ” saka bote saka “ bottles of beer.” sa isang linya.
+  Sabihin ang “Take one down and pass it around, ” saka bote bawas 1 saka “ bottles of beer on the wall.” sa isang linya.
+  Pagkatapos nito, ang bote ay bote bawas 1.

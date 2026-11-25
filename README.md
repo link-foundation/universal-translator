@@ -238,6 +238,47 @@ createTranslator({
 });
 ```
 
+### Language versions, comment languages and the meta view
+
+A target may name a version of a language (`python@2`, `english-british`,
+`minimal-russian`). Comments are kept with their spacing, as in a concrete
+syntax tree, and may be translated to another natural language on their
+own. When `--comment-from` is left out, the comment language is detected:
+
+```bash
+universal-translator translate javascript python@2 app.js --comment-language russian
+universal-translator translate python python app.py --comment-language german  # comments only
+universal-translator meta python app.py   # the meta language as an indented tree
+```
+
+```js
+import {
+  createTranslator,
+  formatMeta,
+  translateComments,
+  versionsOf,
+  naturalLanguageVersions,
+} from '@link-foundation/universal-translator';
+
+const translator = createTranslator();
+translator.translate('// number\nlet x = 1;\n', 'javascript', 'python@2', {
+  commentLanguage: 'russian',
+}); // '# число\nx = 1\n'
+translateComments('# number\nx = 1\n', 'python', { to: 'russian' });
+formatMeta(translator.toMeta('x = 1\n', 'python'));
+versionsOf('python'); // [{ version: '3', default: true }, { version: '2' }]
+naturalLanguageVersions('english'); // regions, standards and minimal-english
+```
+
+Every natural language has a `minimal-<id>` version restricted to the 65
+semantic primes of Natural Semantic Metalanguage. `createStandard`,
+`defineWord` and `wikidataLookup` build a standard of at most 1024 words
+whose other words are defined recursively through it. The web demo edits
+standards and settings, and switches between the languages on both sides.
+The Rust crate has the same versions, comment languages and
+`--comment-language`/`--comment-from` flags. See the
+[issue 6 case study](docs/case-studies/issue-6/README.md).
+
 The web demo detects the source language by default, lists the untranslated
 parts and edits the same rules visually. `node scripts/rosetta-code.mjs all`
 measures coverage over every Rosetta Code task; see the

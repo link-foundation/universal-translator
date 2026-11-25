@@ -1,0 +1,14 @@
+Nota: Mutual recursion in JavaScript: the Hofstadter Female and Male sequences
+
+É assim que alguém faz feminino com índice:
+  Se índice é o mesmo que 0, fazer isto:
+    A resposta é 1.
+  A resposta é índice menos masculino de (feminino de (índice menos 1)).
+
+É assim que alguém faz masculino com índice:
+  Se índice é o mesmo que 0, fazer isto:
+    A resposta é 0.
+  A resposta é índice menos feminino de (masculino de (índice menos 1)).
+
+Para todos os índice de 0 até 19, fazer isto:
+  Dizer índice depois “: ” depois feminino de (índice) depois “ ” depois masculino de (índice) em uma linha.

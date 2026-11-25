@@ -4,7 +4,7 @@
 use super::shared::default_value;
 use super::{EmitterDialect, ParserDialect};
 use crate::formal::arrays::offset;
-use crate::formal::emitter::{Emitter, Result, field};
+use crate::formal::emitter::{Emitter, Result, field, spaced_after};
 use crate::formal::lexer::TokenType;
 use crate::formal::parser::{Parsed, Parser};
 use crate::meta::{Node, add, block, number};
@@ -427,9 +427,12 @@ impl EmitterDialect for VisualBasic {
         }
         e.line("Module Program");
         e.depth = 1;
-        for item in program.nodes("functions") {
+        let functions = program.nodes("functions");
+        for (index, item) in functions.iter().enumerate() {
             e.function_definition(item)?;
-            e.line("");
+            if spaced_after(&functions, index) {
+                e.line("");
+            }
         }
         for text in program.texts("mainComments") {
             e.comment(&text);

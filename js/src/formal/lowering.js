@@ -137,8 +137,13 @@ class FunctionLowering {
   }
 
   lowerComment(node) {
-    this.emit('comment', node.text);
+    for (const line of node.text.split('\n')) {
+      this.emit('comment', line);
+    }
   }
+
+  // Machine code has no layout to keep.
+  lowerBlank() {}
 
   lowerDeclaration(node) {
     const isArray =

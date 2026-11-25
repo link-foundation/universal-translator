@@ -50,12 +50,17 @@ describe('universal React example app', () => {
     const workflow = readText(workflowPath);
 
     expect(appSource).toContain("from '../../../js/src/translator.js'");
-    expect(appSource).toContain('translator.languages()');
-    expect(appSource).toContain('translator.naturalLanguages()');
+    expect(readText(`${exampleRoot}/src/languages.js`)).toContain(
+      'translator.languages()'
+    );
+    expect(readText(`${exampleRoot}/src/languages.js`)).toContain(
+      'baseNaturalLanguageIds()'
+    );
+    expect(appSource).toContain('languageEntries(translator)');
     expect(appSource).toContain('current.translateFragment');
     expect(appSource).toContain("role: 'alert'");
-    // Issue #8: auto-detection, partial translation and the rules editor.
-    expect(appSource).toContain("useState('auto')");
+    // Auto-detection, partial translation and the rules editor.
+    expect(appSource).toContain("from: 'auto'");
     expect(appSource).toContain('translatePartial');
     expect(appSource).toContain("id: 'all-or-nothing'");
     expect(appSource).toContain('h(RulesEditor');

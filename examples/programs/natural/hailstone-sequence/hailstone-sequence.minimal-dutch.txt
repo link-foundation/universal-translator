@@ -1,0 +1,14 @@
+Opmerking: Hailstone sequence in JavaScript: count the steps to reach 1
+
+Zo doet iemand hagelsteen-stappen met getal:
+  Er is stappen, het is 0.
+  Wanneer getal is niet hetzelfde als 1, doe dit veel keren:
+    Als getal modulo 2 is hetzelfde als 0, doe dit:
+      Hierna is getal getal gedeeld door 2.
+    Zo niet, doe dit:
+      Hierna is getal 3 maal getal plus 1.
+    Hierna is stappen stappen plus 1.
+  Het antwoord is stappen.
+
+Voor alle getal van 1 tot en met 10, doe dit:
+  Zeg getal daarna “ takes ” daarna hagelsteen-stappen van (getal) daarna “ steps” op één regel.

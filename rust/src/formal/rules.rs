@@ -15,7 +15,7 @@ use super::lifting::counting_loops;
 use super::names::{avoid_reserved, name_words, neutral_name, rename_declared, spell_name};
 use crate::meta::truth::raise_truth_functions;
 use crate::meta::{Mode, Rule, Settings};
-use crate::meta::{Node, binary, block, rewrite, rewrite_opt, text, walk};
+use crate::meta::{Node, binary, block, layout, rewrite, rewrite_opt, text, walk};
 
 fn rule(name: &str, apply: impl Fn(Node, &Settings) -> Node + Send + Sync + 'static) -> Rule {
     Rule {
@@ -35,6 +35,7 @@ pub fn understanding_rules() -> Vec<Rule> {
             recognize_common_library(program)
         }),
         rule("recognizePrint", recognize_print),
+        rule("dropTextConversions", drop_text_conversions),
         rule("dropEmptyStatements", drop_empty_statements),
         rule("expandCompoundAssignment", |program, _| {
             expand_compound_assignment(program)
@@ -141,6 +142,7 @@ fn is_python_main_guard(statement: &Node) -> bool {
 fn comment_texts(comments: &[Node]) -> Vec<String> {
     comments
         .iter()
+        .filter(|comment| comment.is("Comment"))
         .map(|comment| comment.str("text").unwrap_or_default().to_owned())
         .collect()
 }
@@ -154,15 +156,31 @@ fn collect_items(items: Vec<Node>) -> Node {
     let mut statements = Vec::new();
     let mut pending: Vec<Node> = Vec::new();
     for item in items {
-        if item.is("Comment") {
+        if item.is("Comment") || item.is("Blank") {
             pending.push(item);
             continue;
         }
         if imports.len() + functions.len() + statements.len() == 0 {
-            comments.extend(comment_texts(&pending));
-            pending.clear();
+            // Comments before the last empty line describe the file; the
+            // ones after it (all of them without an empty line) describe
+            // the first item.
+            if let Some(split) = pending.iter().rposition(|trivia| trivia.is("Blank")) {
+                let rest = pending.split_off(split + 1);
+                comments.extend(comment_texts(&pending));
+                pending = rest;
+            }
+        }
+        // An empty line after a function is kept only where the source has one.
+        if let Some(previous) = functions.last_mut() {
+            let previous: &mut Node = previous;
+            if previous.get("blankAfter").is_none() {
+                let blank = pending.iter().any(|trivia| trivia.is("Blank"));
+                previous.set("blankAfter", blank);
+            }
         }
         if item.is("Import") {
+            // An import keeps no comments: the ones above it describe the file.
+            comments.extend(comment_texts(&pending));
             imports.push(item.str("text").unwrap_or_default().to_owned());
         } else if item.is("Function") {
             let texts = comment_texts(&pending);
@@ -178,7 +196,7 @@ fn collect_items(items: Vec<Node>) -> Node {
         .with("comments", comments)
         .with("imports", imports)
         .with("functions", functions)
-        .with("main", block(statements))
+        .with("main", block(layout(statements)))
 }
 
 fn is_exit_success(statement: Option<&Node>) -> bool {
@@ -237,12 +255,13 @@ const LINE_CALLS: [&str; 9] = [
     "Console.Out.WriteLine",
 ];
 
-const TEXT_CALLS: [&str; 6] = [
+const TEXT_CALLS: [&str; 7] = [
     "System.Console.Write",
     "Console.Write",
     "System.out.print",
     "fmt.Print",
     "process.stdout.write",
+    "sys.stdout.write",
     "io.write",
 ];
 
@@ -525,6 +544,61 @@ pub fn recognize_print(program: Node, settings: &Settings) -> Node {
                 let (parts, newline) = without_trailing_newline(values);
                 return print(parts_to_value(parts), newline);
             }
+        }
+        current
+    })
+}
+
+/// `str(total)` printed or joined to a text converts only what printing and
+/// interpolation already convert, so the conversion is dropped there.
+pub fn drop_text_conversions(program: Node, settings: &Settings) -> Node {
+    let Ok(syntax) = language_syntax(&settings.from) else {
+        return program;
+    };
+    let conversions = syntax.text_conversions;
+    if conversions.is_empty() {
+        return program;
+    }
+    let unwrap = |value: Node| -> Node {
+        if value.is("Call")
+            && value
+                .str("callee")
+                .is_some_and(|callee| conversions.contains(&callee))
+        {
+            let arguments = value.node_list("arguments");
+            if let [only] = arguments.as_slice() {
+                return only.clone();
+            }
+        }
+        value
+    };
+    fn is_text(value: &Node) -> bool {
+        value.is("Text")
+            || value.is("Interpolation")
+            || (value.is("Binary")
+                && value.str("operator") == Some("add")
+                && (value.node("left").is_some_and(is_text)
+                    || value.node("right").is_some_and(is_text)))
+    }
+    rewrite(program, |current| {
+        if current.is("Print") {
+            return match current.node("value").cloned() {
+                Some(value) => current.with("value", unwrap(value)),
+                None => current,
+            };
+        }
+        if current.is("Interpolation") {
+            let parts: Vec<Node> = current.node_list("parts").into_iter().map(unwrap).collect();
+            return current.with("parts", parts);
+        }
+        if current.is("Binary") && current.str("operator") == Some("add") && is_text(&current) {
+            let mut changed = current;
+            for side in ["left", "right"] {
+                if let Some(value) = changed.node(side).cloned() {
+                    changed.set(side, unwrap(value));
+                }
+            }
+            return changed;
         }
         current
     })
@@ -987,6 +1061,37 @@ fn adapt_function_comments(program: &mut Node, adapt: impl Fn(&str) -> String) {
         })
         .collect();
     program.set("functions", functions);
+}
+
+/// Change the text of every comment of a program: comment statements, the
+/// comments before the program and its main function, and the comments of
+/// each function.
+pub fn map_comments(program: Node, mut change: impl FnMut(&str) -> String) -> Node {
+    let mut adapted = rewrite(program, |current| {
+        if !current.is("Comment") {
+            return current;
+        }
+        let changed = change(current.str("text").unwrap_or_default());
+        current.with("text", changed)
+    });
+    for key in ["comments", "mainComments"] {
+        let texts: Vec<String> = adapted.texts(key).iter().map(|text| change(text)).collect();
+        adapted.set(key, texts);
+    }
+    let functions: Vec<Node> = adapted
+        .node_list("functions")
+        .into_iter()
+        .map(|item| {
+            let comments: Vec<String> = item
+                .texts("comments")
+                .iter()
+                .map(|text| change(text))
+                .collect();
+            item.with("comments", comments)
+        })
+        .collect();
+    adapted.set("functions", functions);
+    adapted
 }
 
 pub fn adapt_comments(program: Node, settings: &Settings) -> Node {

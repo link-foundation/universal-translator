@@ -1,0 +1,7 @@
+Ghi chú: 99 bottles of beer in JavaScript
+
+Có chai, nó là 99.
+Khi chai nhiều hơn 0, làm điều này nhiều lần:
+  Nói chai rồi “ bottles of beer on the wall, ” rồi chai rồi “ bottles of beer.” trên một dòng.
+  Nói “Take one down and pass it around, ” rồi chai trừ 1 rồi “ bottles of beer on the wall.” trên một dòng.
+  Sau đó, chai là chai trừ 1.

@@ -7,7 +7,7 @@
 //! Int, so division and remainder truncate with Int.tdiv and Int.tmod, and
 //! an array index becomes a natural number with Int.toNat.
 
-use super::shared::default_value;
+use super::shared::{comment_node, default_value};
 use super::{EmitterDialect, ParserDialect};
 use crate::formal::emitter::{Emitter, Format, Result, field};
 use crate::formal::lexer::TokenType;
@@ -290,7 +290,7 @@ impl ParserDialect for Lean {
     fn item(&self, p: &mut Parser) -> Parsed {
         if p.kind(0) == TokenType::Comment {
             let token = p.next()?;
-            return Ok(Node::new("Comment").with("text", token.value));
+            return Ok(comment_node(&token));
         }
         if p.accept("import") {
             let mut words = Vec::new();

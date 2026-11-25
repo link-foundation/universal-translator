@@ -1,10 +1,10 @@
 //! Ada (GNAT): a main procedure whose declarative part holds the
 //! subprograms and variables, and whose statements follow begin.
 
-use super::shared::declared_variables;
+use super::shared::{comment_node, declared_variables};
 use super::{EmitterDialect, ParserDialect};
 use crate::formal::arrays::offset;
-use crate::formal::emitter::{Emitter, Result, field};
+use crate::formal::emitter::{Emitter, Result, field, spaced_after};
 use crate::formal::lexer::{Token, TokenType};
 use crate::formal::parser::{Parsed, Parser};
 use crate::meta::{Node, add, block, later_calls, number, text, walk};
@@ -201,8 +201,8 @@ fn statements(p: &mut Parser, done: &dyn Fn(&Parser) -> bool) -> Parsed<Vec<Node
             return Ok(found);
         }
         if p.kind(0) == TokenType::Comment {
-            let comment = p.next()?.value;
-            found.push(Node::new("Comment").with("text", comment));
+            let comment = p.next()?;
+            found.push(comment_node(&comment));
         } else {
             let statement = p.statement()?;
             if statement.is("Sequence") {
@@ -211,7 +211,7 @@ fn statements(p: &mut Parser, done: &dyn Fn(&Parser) -> bool) -> Parsed<Vec<Node
                 found.push(statement);
             }
         }
-        p.skip_lines();
+        p.skip_lines_keeping(&mut found);
     }
 }
 
@@ -546,9 +546,11 @@ impl EmitterDialect for Ada {
         if !announced.is_empty() {
             announced.push(String::new());
         }
-        for item in &functions {
+        for (index, item) in functions.iter().enumerate() {
             e.function_definition(item)?;
-            e.line("");
+            if spaced_after(&functions, index) {
+                e.line("");
+            }
         }
         let main = field(program, "main")?;
         if variables(e, main) > 0 {

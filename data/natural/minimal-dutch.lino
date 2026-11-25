@@ -1,0 +1,38 @@
+natural:
+  id: minimal-dutch
+  label: 'Minimal Dutch (NSM semantic primes)'
+  extends: dutch
+  profile: minimal-english
+  source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  templates:
+    function: 'Zo doet iemand {name} met {parameters}'
+    function-without-parameters: 'Zo doet iemand {name}'
+    declare: 'Er is {name}, het is {value}'
+    assign: 'Hierna is {name} {value}'
+    print-line: 'Zeg {value} op één regel'
+    print: 'Zeg {value}'
+    return-value: 'Het antwoord is {value}'
+    return: 'Stop hier'
+    nothing: 'Doe niets'
+    evaluate: 'Doe {expression}'
+    if: 'Als {condition}, doe dit'
+    else-if: 'Zo niet, als {condition}, doe dit'
+    else: 'Zo niet, doe dit'
+    while: 'Wanneer {condition}, doe dit veel keren'
+    for: 'Voor alle {variable} van {start} tot en met {last}, doe dit'
+    call-without-arguments: '{callee} ( )'
+    join: '{left} daarna {right}'
+    equal: '{left} is hetzelfde als {right}'
+    not-equal: '{left} is niet hetzelfde als {right}'
+    less: '{left} is minder dan {right}'
+    less-or-equal: '{left} is niet meer dan {right}'
+    greater: '{left} is meer dan {right}'
+    greater-or-equal: '{left} is niet minder dan {right}'
+    array: 'deze dingen ({elements})'
+    new-array: '{length} dingen zoals {fill}'
+    element: 'deel {index} van {array}'
+    length: 'hoeveel delen {array} heeft'
+    set-element: 'Hierna is deel {index} van {name} {value}'
+  rules:
+    primes: dutch
+    extra-words: het met op regel antwoord stop niets keren van tot en daarna of plus min maal gedeeld door modulo tegengestelde onwaar minder dan hoeveel heeft hierna

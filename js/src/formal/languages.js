@@ -1,5 +1,6 @@
 import { machineTargets } from './machine.js';
 import { rocqRuntime } from './rocq-runtime.js';
+import { mergeSyntax, splitVersion, versionSyntax } from './versions.js';
 
 // Surface syntax descriptions for the grammar-based translator.
 //
@@ -35,6 +36,7 @@ export const languages = {
     functionKeyword: 'function',
     operators: { ...braceOperators, equal: '===', notEqual: '!==' },
     print: { line: 'console.log' },
+    textConversions: ['String'],
     entryPoint: 'top-level',
     typed: false,
     terms: { call: 'function call', routine: 'function' },
@@ -52,6 +54,7 @@ export const languages = {
     functionKeyword: 'function',
     operators: { ...braceOperators, equal: '===', notEqual: '!==' },
     print: { line: 'console.log' },
+    textConversions: ['String'],
     entryPoint: 'top-level',
     typed: 'annotation',
     types: {
@@ -81,8 +84,12 @@ export const languages = {
     },
     words: { true: 'True', false: 'False' },
     print: { line: 'print' },
+    // Python 2's print statement: print "Hi", name
+    commandCalls: ['print'],
     entryPoint: 'top-level',
     typed: false,
+    // str(value) in a text only converts what interpolation converts.
+    textConversions: ['str'],
     terms: { call: 'function call', routine: 'function' },
   },
   ruby: {
@@ -798,12 +805,14 @@ export function namingConvention(syntax, role) {
     : syntax.naming[role];
 }
 
+// The syntax of a language, or of one version of it ("python@2").
 export function languageSyntax(identifier) {
-  const syntax = languages[identifier] ?? machineTargets[identifier];
+  const { id, version } = splitVersion(identifier);
+  const syntax = languages[id] ?? machineTargets[id];
   if (!syntax) {
     throw new Error(`The grammar translator does not describe "${identifier}"`);
   }
-  return { id: identifier, ...syntax };
+  return mergeSyntax({ id, ...syntax }, versionSyntax(id, version));
 }
 
 export const grammarLanguageIds = Object.keys(languages);

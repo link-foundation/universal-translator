@@ -1,0 +1,7 @@
+గమనిక: 99 bottles of beer in JavaScript
+
+సీసాలు ఉంది, అది 99.
+సీసాలు అనేది 0 కంటే ఎక్కువ అయినప్పుడు ఇది చాలా సార్లు చేయి:
+  సీసాలు తర్వాత “ bottles of beer on the wall, ” తర్వాత సీసాలు తర్వాత “ bottles of beer.” ను ఒక పంక్తిలో చెప్పు.
+  “Take one down and pass it around, ” తర్వాత సీసాలు తీసివేత 1 తర్వాత “ bottles of beer on the wall.” ను ఒక పంక్తిలో చెప్పు.
+  దీని తర్వాత సీసాలు ఇప్పుడు సీసాలు తీసివేత 1.

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Requirements gate for issue 1 (test driven): every requirement listed in
-// docs/case-studies/issue-1/requirements.lino must be "done" with all its
-// evidence present and its check passing, or "blocked" with a stated
+// Requirements gate (test driven): every requirement listed in the
+// requirements.lino of a case study (issues 1, 6 and 8) must be "done" with
+// all its evidence present and its check passing, or "blocked" with a stated
 // reason. Anything else (for example "pending") fails CI, so the work cannot
 // be called finished while a requirement is still open.
 //
@@ -14,7 +14,9 @@ import { fileURLToPath } from 'node:url';
 import { parseLinks } from '../js/src/meta/links.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const caseStudy = join(root, 'docs/case-studies/issue-1');
+const caseStudies = ['issue-1', 'issue-6', 'issue-8'].map((issue) =>
+  join(root, 'docs/case-studies', issue)
+);
 
 // Read "name: field: values" entries into plain objects.
 export function readEntries(file) {
@@ -42,7 +44,11 @@ async function load() {
     .filter((file) => file.endsWith('.js'))
     .map((file) => file.slice(0, -3));
   const naturalIds = natural.naturalLanguageIds();
+  const variants = await import('../js/src/natural/variants.js');
+  const standards = await import('../js/src/natural/standards.js');
   return {
+    variants,
+    standards,
     grammarLanguageIds,
     machineTargetIds,
     naturalIds,
@@ -106,10 +112,38 @@ const standards = [
   'minimal-english',
   'minimal-polish',
   'minimal-french',
+  'minimal-arabic',
+  'minimal-bengali',
+  'minimal-chinese',
+  'minimal-dutch',
+  'minimal-german',
+  'minimal-gujarati',
+  'minimal-hausa',
+  'minimal-hindi',
+  'minimal-indonesian',
+  'minimal-italian',
+  'minimal-japanese',
+  'minimal-korean',
+  'minimal-marathi',
+  'minimal-persian',
+  'minimal-portuguese',
+  'minimal-punjabi',
+  'minimal-russian',
+  'minimal-spanish',
+  'minimal-swahili',
+  'minimal-tagalog',
+  'minimal-tamil',
+  'minimal-telugu',
+  'minimal-thai',
+  'minimal-turkish',
+  'minimal-ukrainian',
+  'minimal-urdu',
+  'minimal-vietnamese',
   'english-e-prime',
   'english-basic-english',
   'english-special-english',
   'english-globish',
+  'english-british',
 ];
 
 // Each check returns undefined when it passes, or what is missing.
@@ -142,10 +176,19 @@ const checks = {
     ['english', 'russian'].every((id) => naturalIds.includes(id))
       ? undefined
       : 'English or Russian is missing',
-  'semantic-primes': ({ semanticPrimes }) =>
-    semanticPrimes().length === 65
-      ? undefined
-      : `${semanticPrimes().length} semantic primes (need 65)`,
+  // Every natural language has a word for each prime (issue 6: semantic
+  // primes as a dictionary modifier for every human language).
+  'semantic-primes': ({ semanticPrimes, baseNatural }) => {
+    if (semanticPrimes().length !== 65) {
+      return `${semanticPrimes().length} semantic primes (need 65)`;
+    }
+    const short = baseNatural.filter((id) =>
+      semanticPrimes().some(({ exponents }) => !exponents[id]?.length)
+    );
+    return short.length
+      ? `no prime exponents in ${short.join(', ')}`
+      : undefined;
+  },
   'controlled-standards': ({ naturalIds, checkDescription }) => {
     const missing = standards.filter((id) => !naturalIds.includes(id));
     const broken = naturalIds.filter((id) => checkDescription(id).length);
@@ -173,7 +216,7 @@ const checks = {
       : undefined;
   },
   'rosetta-algorithm-types': ({ tasks }) => {
-    const problems = readEntries(join(caseStudy, 'rosetta-coverage.lino'))
+    const problems = readEntries(join(caseStudies[0], 'rosetta-coverage.lino'))
       .filter(
         ({ status, tasks: covered = '', reason }) =>
           !(
@@ -275,6 +318,25 @@ const checks = {
       ? `depend on an outer layer: ${inward.join(', ')}`
       : undefined;
   },
+  // Issue 6: one entry per natural language, each with its semantic primes.
+  'one-entry-per-language': ({ variants, baseNatural }) => {
+    const listed = variants.baseNaturalLanguageIds();
+    const apart = listed.filter((id) => !baseNatural.includes(id));
+    return apart.length ? `versions listed as languages: ${apart}` : undefined;
+  },
+  'primes-everywhere': ({ variants, baseNatural }) => {
+    const missing = baseNatural.filter((id) => !variants.primesVersion(id));
+    return missing.length ? `no semantic primes for ${missing}` : undefined;
+  },
+  'small-standards': ({ standards, naturalIds }) => {
+    const large = naturalIds.filter(
+      (id) =>
+        standards.naturalVocabulary(id).length > standards.standardWordLimit
+    );
+    return standards.standardWordLimit !== 1024 || large.length
+      ? `standards over 1024 words: ${large}`
+      : undefined;
+  },
   'requirements-gate': () =>
     readFileSync(join(root, '.github/workflows/release.yml'), 'utf8').includes(
       'node scripts/check-requirements.mjs'
@@ -285,35 +347,36 @@ const checks = {
 
 export async function checkRequirements({ strict = false } = {}) {
   const data = await load();
-  return readEntries(join(caseStudy, 'requirements.lino')).map(
-    (requirement) => {
-      const problems = [];
-      const evidence = (requirement.evidence ?? '').split(' ').filter(Boolean);
-      for (const path of evidence) {
-        if (!existsSync(join(root, path))) {
-          problems.push(`no ${path}`);
-        }
-      }
-      const check = requirement.check && checks[requirement.check];
-      if (requirement.check && !check) {
-        problems.push(`unknown check ${requirement.check}`);
-      }
-      const failure = check?.(data);
-      if (failure) {
-        problems.push(failure);
-      }
-      if (requirement.status === 'blocked') {
-        if (!requirement.reason) {
-          problems.push('blocked without a reason');
-        } else if (strict) {
-          problems.push(`blocked: ${requirement.reason}`);
-        }
-      } else if (requirement.status !== 'done') {
-        problems.push(`status is "${requirement.status}"`);
-      }
-      return { ...requirement, problems };
-    }
+  const requirements = caseStudies.flatMap((caseStudy) =>
+    readEntries(join(caseStudy, 'requirements.lino'))
   );
+  return requirements.map((requirement) => {
+    const problems = [];
+    const evidence = (requirement.evidence ?? '').split(' ').filter(Boolean);
+    for (const path of evidence) {
+      if (!existsSync(join(root, path))) {
+        problems.push(`no ${path}`);
+      }
+    }
+    const check = requirement.check && checks[requirement.check];
+    if (requirement.check && !check) {
+      problems.push(`unknown check ${requirement.check}`);
+    }
+    const failure = check?.(data);
+    if (failure) {
+      problems.push(failure);
+    }
+    if (requirement.status === 'blocked') {
+      if (!requirement.reason) {
+        problems.push('blocked without a reason');
+      } else if (strict) {
+        problems.push(`blocked: ${requirement.reason}`);
+      }
+    } else if (requirement.status !== 'done') {
+      problems.push(`status is "${requirement.status}"`);
+    }
+    return { ...requirement, problems };
+  });
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

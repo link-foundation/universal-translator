@@ -9,7 +9,7 @@ use universal_translator::{
 };
 
 const USAGE: &str = "Usage:
-  universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment] [--all-or-nothing] [--rules <file.json>]
+  universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment] [--all-or-nothing] [--rules <file.json>] [--comment-language <natural>] [--comment-from <natural>]
   universal-translator meta <language> [file|-]
   universal-translator coverage <language> [file|-]
   universal-translator detect [file|-]
@@ -35,6 +35,10 @@ Parts that cannot be translated become comments and are listed on
 standard error; --all-or-nothing fails instead.
 The source language may be \"auto\" to detect it.
 --rules <file.json> adds source, templates, names and output rules.
+--comment-language <natural> translates the comments too (only them when
+<from> is <to>); --comment-from <natural> names the language of the
+comments (detected otherwise).
+<to> may name a version: python@2.
 coverage prints which parts of a text can be read, as JSON.
 detect prints the most likely languages of a text, as JSON.
 Omit the file or pass - to read standard input.";
@@ -181,7 +185,20 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
     let mut fragment = false;
     let mut all_or_nothing = false;
     let mut rules = None;
+    let mut comment_language = None;
+    let mut comment_from = None;
     let mut arguments = arguments.iter().copied();
+    // An option with a value takes one value, given once.
+    fn value<'a>(
+        argument: &str,
+        set: bool,
+        arguments: &mut impl Iterator<Item = &'a str>,
+    ) -> Result<&'a str, String> {
+        arguments
+            .next()
+            .filter(|value| !set && !value.is_empty() && !value.starts_with('-'))
+            .ok_or_else(|| format!("Expected a single value for {argument}"))
+    }
     while let Some(argument) = arguments.next() {
         match argument {
             "--trace" => trace = true,
@@ -197,13 +214,15 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
                     fs::read_to_string(value).map_err(|error| format!("{value}: {error}"))?;
                 rules = Some(CustomRules::from_json(&text)?);
             }
-            "--mode" if mode.is_none() => {
-                mode = Some(
-                    arguments
-                        .next()
-                        .ok_or("Missing --mode value")?
-                        .parse::<Mode>()?,
-                );
+            "--mode" => {
+                mode = Some(value(argument, mode.is_some(), &mut arguments)?.parse::<Mode>()?);
+            }
+            "--comment-language" => {
+                comment_language =
+                    Some(value(argument, comment_language.is_some(), &mut arguments)?);
+            }
+            "--comment-from" => {
+                comment_from = Some(value(argument, comment_from.is_some(), &mut arguments)?);
             }
             part if (part == "-" || !part.starts_with('-')) && file.is_none() => file = Some(part),
             _ => return Err(format!("Unexpected argument {argument}")),
@@ -217,10 +236,17 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
             eprintln!("[{stage}] {}", to_json(Some(&tree.clone().into())));
         });
     }
-    let options = Options {
+    let mut options = Options {
         mode: mode.unwrap_or_default(),
         common_library,
+        ..Options::default()
     };
+    // --comment-from only matters with --comment-language.
+    if let Some(comment_language) = comment_language {
+        options = options
+            .with_comment_language(comment_language, comment_from)
+            .map_err(|error| error.to_string())?;
+    }
     let source = source(file)?;
     let language = if from == "auto" {
         let detected = translator

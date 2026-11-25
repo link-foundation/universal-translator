@@ -1,0 +1,9 @@
+Lura: Factorial in JavaScript, defined recursively
+
+Haka wani yake yin fakitoriyal da lamba:
+  Idan lamba bai fi 1 ba, yi wannan:
+    Amsar ita ce 1.
+  Amsar ita ce lamba sau fakitoriyal na (lamba ragi 1).
+
+Ga kowane lamba daga 0 zuwa 10, yi wannan:
+  Faɗi lamba sannan “! = ” sannan fakitoriyal na (lamba) a layi ɗaya.

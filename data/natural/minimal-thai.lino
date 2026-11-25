@@ -1,0 +1,38 @@
+natural:
+  id: minimal-thai
+  label: 'Minimal Thai (NSM semantic primes)'
+  extends: thai
+  profile: minimal-english
+  source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  templates:
+    function: 'นี่ คือ วิธี ที่ คน ทำ {name} ด้วย {parameters}'
+    function-without-parameters: 'นี่ คือ วิธี ที่ คน ทำ {name}'
+    declare: 'มี {name} ซึ่ง เป็น {value}'
+    assign: 'หลัง จาก นี้ {name} เป็น {value}'
+    print-line: 'พูด {value} ใน บรรทัด เดียว'
+    print: 'พูด {value}'
+    return-value: 'คำตอบ คือ {value}'
+    return: 'หยุด ที่นี่'
+    nothing: 'ไม่ ทำ อะไร'
+    evaluate: 'ทำ {expression}'
+    if: 'ถ้า {condition} ทำ อย่าง นี้'
+    else-if: 'ไม่ อย่าง นั้น ถ้า {condition} ทำ อย่าง นี้'
+    else: 'ไม่ อย่าง นั้น ทำ อย่าง นี้'
+    while: 'เมื่อ {condition} ทำ อย่าง นี้ หลาย ครั้ง'
+    for: 'สำหรับ ทุก {variable} จาก {start} ถึง {last} ทำ อย่าง นี้'
+    call-without-arguments: '{callee} ( )'
+    join: '{left} แล้ว {right}'
+    equal: '{left} เหมือน กับ {right}'
+    not-equal: '{left} ไม่ เหมือน กับ {right}'
+    less: '{left} น้อย กว่า {right}'
+    less-or-equal: '{left} ไม่ มาก กว่า {right}'
+    greater: '{left} มาก กว่า {right}'
+    greater-or-equal: '{left} ไม่ น้อย กว่า {right}'
+    array: 'สิ่ง เหล่า นี้ ({elements})'
+    new-array: 'สิ่ง {length} อย่าง เหมือน {fill}'
+    element: 'ส่วน {index} ของ {array}'
+    length: 'กี่ ส่วน ใน {array}'
+    set-element: 'หลัง จาก นี้ ส่วน {index} ของ {name} เป็น {value}'
+  rules:
+    primes: thai
+    extra-words: วิธี ด้วย ซึ่ง จาก บรรทัด คำตอบ หยุด ครั้ง สำหรับ ถึง แล้ว หรือ และ ค่าลบ ของ กับ บวก ลบ คูณ หาร มอดุโล เท็จ เหล่า กี่

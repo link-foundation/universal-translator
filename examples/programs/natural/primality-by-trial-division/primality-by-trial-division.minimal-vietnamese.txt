@@ -1,0 +1,15 @@
+Ghi chú: Primality by trial division in JavaScript
+
+Đây là cách ai đó làm là-nguyên_tố với số:
+  Nếu số ít hơn 2, làm điều này:
+    Câu trả lời là sai.
+  Có ước, nó là 2.
+  Khi ước nhân ước không nhiều hơn số, làm điều này nhiều lần:
+    Nếu số chia lấy dư ước giống 0, làm điều này:
+      Câu trả lời là sai.
+    Sau đó, ước là ước cộng 1.
+  Câu trả lời là đúng.
+
+Với mọi số từ 1 đến 50, làm điều này:
+  Nếu là-nguyên_tố của (số), làm điều này:
+    Nói số trên một dòng.

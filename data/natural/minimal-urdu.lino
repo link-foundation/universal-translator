@@ -1,0 +1,37 @@
+natural:
+  id: minimal-urdu
+  label: 'Minimal Urdu (NSM semantic primes)'
+  extends: urdu
+  profile: minimal-english
+  source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  templates:
+    function: 'کوئی {parameters} کے ساتھ {name} ایسے کرتا ہے'
+    function-without-parameters: 'کوئی {name} ایسے کرتا ہے'
+    declare: 'ایک {name} ہے، یہ ہے {value}'
+    assign: 'اس کے بعد {name} اب {value} ہے'
+    print-line: '{value} ایک سطر میں کہیں'
+    print: '{value} کہیں'
+    return-value: 'جواب ہے {value}'
+    return: 'یہاں رکیں'
+    nothing: 'کچھ نہ کریں'
+    evaluate: '{expression} کریں'
+    if: 'اگر {condition} تو یہ کریں'
+    else-if: 'اگر ایسا نہیں ہے تو اگر {condition} تو یہ کریں'
+    else: 'اگر ایسا نہیں ہے تو یہ کریں'
+    while: 'جب {condition} تب یہ بہت بار کریں'
+    for: 'ہر {variable} کے لیے {start} سے {last} تک یہ کریں'
+    join: '{left} پھر {right}'
+    equal: '{left} وہی ہے جو {right} ہے'
+    not-equal: '{left} وہی نہیں ہے جو {right} ہے'
+    less: '{left} {right} سے کم ہے'
+    less-or-equal: '{left} {right} سے زیادہ نہیں ہے'
+    greater: '{left} {right} سے زیادہ ہے'
+    greater-or-equal: '{left} {right} سے کم نہیں ہے'
+    array: 'یہ چیزیں ({elements})'
+    new-array: '{length} چیزیں {fill} جیسی'
+    element: '{array} کا حصہ {index}'
+    length: '{array} میں کتنے حصے ہیں'
+    set-element: 'اس کے بعد {name} کا حصہ {index} اب {value} ہے'
+  rules:
+    primes: urdu
+    extra-words: کے ساتھ جو میں سطر جواب رکیں تو بار تب لیے سے تک پھر کا کتنے یا اور جمع تفریق ضرب تقسیم ماڈیولو منفی جھوٹ

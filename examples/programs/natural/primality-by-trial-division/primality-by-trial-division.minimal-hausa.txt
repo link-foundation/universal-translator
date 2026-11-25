@@ -1,0 +1,15 @@
+Lura: Primality by trial division in JavaScript
+
+Haka wani yake yin shin-tushe da lamba:
+  Idan lamba ya gaza 2, yi wannan:
+    Amsar ita ce ƙarya.
+  Akwai rabo, shi ne 2.
+  Lokacin da rabo sau rabo bai fi lamba ba, yi wannan sau da yawa:
+    Idan lamba modulo rabo daidai yake da 0, yi wannan:
+      Amsar ita ce ƙarya.
+    Bayan wannan, rabo ya zama rabo ƙari 1.
+  Amsar ita ce gaskiya.
+
+Ga kowane lamba daga 1 zuwa 50, yi wannan:
+  Idan shin-tushe na (lamba), yi wannan:
+    Faɗi lamba a layi ɗaya.

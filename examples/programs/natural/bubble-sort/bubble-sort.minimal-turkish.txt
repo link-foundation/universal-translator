@@ -1,0 +1,12 @@
+Not: Bubble sort in JavaScript: sort a list of numbers
+
+Sayılar var, bu şu şeyler (5, 3, 8, 1, 9, 2, 7).
+Sayaç var, bu sayılar şeyinin kaç parçası var.
+Her tur için 0 ile sayaç eksi 1 eksi 1 arasında bunu yap:
+  Her indeks için 0 ile sayaç eksi 1 eksi tur eksi 1 arasında bunu yap:
+    Eğer sayılar şeyinin indeks parçası sayılar şeyinin (indeks artı 1) parçası değerinden daha çok ise bunu yap:
+      Takas var, bu sayılar şeyinin indeks parçası.
+      Bundan sonra sayılar şeyinin indeks parçası şimdi sayılar şeyinin (indeks artı 1) parçası olur.
+      Bundan sonra sayılar şeyinin (indeks artı 1) parçası şimdi takas olur.
+Her konum için 0 ile sayaç eksi 1 arasında bunu yap:
+  Sayılar şeyinin konum parçası bir satırda söyle.

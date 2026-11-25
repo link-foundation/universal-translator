@@ -351,10 +351,12 @@ const emitter = (Base) =>
       }
       this.line('Module Program');
       this.depth = 1;
-      for (const item of program.functions) {
+      program.functions.forEach((item, index) => {
         this.functionDefinition(item);
-        this.line();
-      }
+        if (this.spacedAfter(program.functions, index)) {
+          this.line();
+        }
+      });
       for (const text of program.mainComments ?? []) {
         this.comment(text);
       }

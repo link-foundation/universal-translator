@@ -1,0 +1,9 @@
+Kumbuka: Factorial in JavaScript, defined recursively
+
+Hivi ndivyo mtu anavyofanya faktoria kwa nambari:
+  Kama nambari si zaidi ya 1, fanya hivi:
+    Jibu ni 1.
+  Jibu ni nambari mara faktoria ya (nambari toa 1).
+
+Kwa kila nambari kutoka 0 hadi 10, fanya hivi:
+  Sema nambari kisha “! = ” kisha faktoria ya (nambari) kwenye mstari mmoja.

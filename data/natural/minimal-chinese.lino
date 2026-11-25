@@ -1,0 +1,38 @@
+natural:
+  id: minimal-chinese
+  label: 'Minimal Chinese (NSM semantic primes)'
+  extends: chinese
+  profile: minimal-english
+  source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  templates:
+    function: '某人 这样 用 {parameters} 做 {name}'
+    function-without-parameters: '某人 这样 做 {name}'
+    declare: '有 {name} 它 是 {value}'
+    assign: '这 以后 {name} 是 {value}'
+    print-line: '说 {value} 在 一 行 上'
+    print: '说 {value}'
+    return-value: '答案 是 {value}'
+    return: '在 这里 停'
+    nothing: '什么 也 不 做'
+    evaluate: '做 {expression}'
+    if: '如果 {condition} 就 做 这个'
+    else-if: '如果 不 是 这样 那么 如果 {condition} 就 做 这个'
+    else: '如果 不 是 这样 就 做 这个'
+    while: '当 {condition} 时 做 这个 很多 次'
+    for: '对 所有 {variable} 从 {start} 到 {last} 做 这个'
+    join: '{left} 然后 {right}'
+    not: '不 {operand}'
+    equal: '{left} 跟 {right} 一样'
+    not-equal: '{left} 跟 {right} 不 一样'
+    less: '{left} 比 {right} 少'
+    less-or-equal: '{left} 不 比 {right} 多'
+    greater: '{left} 比 {right} 多'
+    greater-or-equal: '{left} 不 比 {right} 少'
+    array: '这些 东西 ({elements})'
+    new-array: '{length} 个 像 {fill} 的 东西'
+    element: '{array} 的 第 {index} 部分'
+    length: '{array} 有 多少 部分'
+    set-element: '这 以后 {name} 的 第 {index} 部分 是 {value}'
+  rules:
+    primes: chinese
+    extra-words: 用 它 行 答案 停 也 就 那么 当 次 对 从 到 然后 跟 比 个 的 第 多少 或 并且 加 减 乘 除以 模 负 假 和

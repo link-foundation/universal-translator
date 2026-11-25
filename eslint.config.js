@@ -32,6 +32,8 @@ export default [
         module: 'readonly',
         // Node.js 18+ globals
         fetch: 'readonly',
+        URL: 'readonly',
+        URLSearchParams: 'readonly',
         AbortController: 'readonly',
         AbortSignal: 'readonly',
         setTimeout: 'readonly',
@@ -111,11 +113,13 @@ export default [
     },
   },
   {
-    // Case studies preserve historical wording on purpose, and the rule's own
-    // tests contain fixtures the rule is designed to flag.
+    // Case studies preserve historical wording on purpose, the rule's own
+    // tests contain fixtures the rule is designed to flag, and the generated
+    // natural language sources hold words of 30 languages as data.
     files: [
       'docs/case-studies/**/*.{js,mjs,cjs}',
       'js/tests/no-changelog-comments.test.js',
+      'js/src/natural/sources.js',
     ],
     rules: {
       'local/no-changelog-comments': 'off',

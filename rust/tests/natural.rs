@@ -116,10 +116,38 @@ fn every_language_and_standard_is_described() {
         ("minimal-english", "Minimal English"),
         ("minimal-french", "Minimal French"),
         ("minimal-polish", "Minimal Polish"),
+        ("minimal-arabic", "Minimal Arabic"),
+        ("minimal-bengali", "Minimal Bengali"),
+        ("minimal-chinese", "Minimal Chinese"),
+        ("minimal-dutch", "Minimal Dutch"),
+        ("minimal-german", "Minimal German"),
+        ("minimal-gujarati", "Minimal Gujarati"),
+        ("minimal-hausa", "Minimal Hausa"),
+        ("minimal-hindi", "Minimal Hindi"),
+        ("minimal-indonesian", "Minimal Indonesian"),
+        ("minimal-italian", "Minimal Italian"),
+        ("minimal-japanese", "Minimal Japanese"),
+        ("minimal-korean", "Minimal Korean"),
+        ("minimal-marathi", "Minimal Marathi"),
+        ("minimal-persian", "Minimal Persian"),
+        ("minimal-portuguese", "Minimal Portuguese"),
+        ("minimal-punjabi", "Minimal Punjabi"),
+        ("minimal-russian", "Minimal Russian"),
+        ("minimal-spanish", "Minimal Spanish"),
+        ("minimal-swahili", "Minimal Swahili"),
+        ("minimal-tagalog", "Minimal Tagalog"),
+        ("minimal-tamil", "Minimal Tamil"),
+        ("minimal-telugu", "Minimal Telugu"),
+        ("minimal-thai", "Minimal Thai"),
+        ("minimal-turkish", "Minimal Turkish"),
+        ("minimal-ukrainian", "Minimal Ukrainian"),
+        ("minimal-urdu", "Minimal Urdu"),
+        ("minimal-vietnamese", "Minimal Vietnamese"),
         ("english-e-prime", "E-Prime"),
         ("english-basic-english", "Basic English"),
         ("english-special-english", "VOA Special English"),
         ("english-globish", "Globish"),
+        ("english-british", "English (British)"),
     ] {
         let language = natural_language(id).unwrap();
         assert!(language.label.contains(label), "{id}: {}", language.label);
@@ -252,6 +280,7 @@ fn translates_between_words_and_programming_languages() {
             universal_translator::Options {
                 mode: Mode::default(),
                 common_library: true,
+                ..Default::default()
             },
         )
         .unwrap_err();

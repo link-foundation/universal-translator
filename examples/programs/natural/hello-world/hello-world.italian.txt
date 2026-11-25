@@ -1,4 +1,4 @@
 Nota: Hello World in JavaScript
-Nota: print "Hello World!" into console followed by new line symbol by function call
 
+Nota: print "Hello World!" into console followed by new line symbol by function call
 Scrivi «Hello World!» e termina la riga.

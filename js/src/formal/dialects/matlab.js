@@ -213,7 +213,7 @@ const parser = (Base) =>
         } else {
           items.push(this.statement());
         }
-        this.skipLines();
+        this.skipLines(items);
       }
       return node('SourceProgram', { language: this.syntax.id, items });
     }
@@ -367,10 +367,12 @@ const emitter = (Base) =>
       for (const line of program.libraryImports ?? []) {
         this.line(line);
       }
-      for (const item of program.functions) {
-        this.line();
+      program.functions.forEach((item, index) => {
+        if (index === 0 || this.spacedAfter(program.functions, index - 1)) {
+          this.line();
+        }
         this.functionDefinition(item);
-      }
+      });
       this.line();
       for (const comment of program.mainComments ?? []) {
         this.comment(comment);

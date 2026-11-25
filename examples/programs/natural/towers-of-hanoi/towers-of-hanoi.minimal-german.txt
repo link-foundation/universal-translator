@@ -1,0 +1,10 @@
+Hinweis: Towers of Hanoi in JavaScript, solved recursively
+
+So tut jemand bewege-Scheiben mit Anzahl, Quelle, Ziel und Hilfe:
+  Wenn Anzahl ist dasselbe wie 0, tue dies:
+    Höre hier auf.
+  Tue bewege-Scheiben von (Anzahl minus 1, Quelle, Hilfe, Ziel).
+  Sage „Move disk “ dann Anzahl dann „ from “ dann Quelle dann „ to “ dann Ziel auf einer Zeile.
+  Tue bewege-Scheiben von (Anzahl minus 1, Hilfe, Ziel, Quelle).
+
+Tue bewege-Scheiben von (4, 1, 3, 2).

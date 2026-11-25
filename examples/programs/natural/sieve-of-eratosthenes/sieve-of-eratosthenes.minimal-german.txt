@@ -1,0 +1,13 @@
+Hinweis: Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+Es gibt Grenze, es ist 100.
+Es gibt ist-Primzahl, es ist (Grenze plus 1) Dinge wie 1.
+Danach ist Teil 0 von ist-Primzahl jetzt 0.
+Danach ist Teil 1 von ist-Primzahl jetzt 0.
+Für alle Zahl von 2 bis Grenze, tue dies:
+  Wenn Teil Zahl von ist-Primzahl ist dasselbe wie 1, tue dies:
+    Sage Zahl auf einer Zeile.
+    Es gibt Vielfaches, es ist Zahl mal Zahl.
+    Solange Vielfaches ist nicht mehr als Grenze, tue dies viele Male:
+      Danach ist Teil Vielfaches von ist-Primzahl jetzt 0.
+      Danach ist Vielfaches jetzt Vielfaches plus Zahl.

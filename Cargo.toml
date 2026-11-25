@@ -60,5 +60,9 @@ name = "fragments"
 path = "rust/tests/fragments.rs"
 
 [[test]]
+name = "issue_6"
+path = "rust/tests/issue_6.rs"
+
+[[test]]
 name = "issue_8"
 path = "rust/tests/issue_8.rs"

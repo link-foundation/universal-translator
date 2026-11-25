@@ -128,8 +128,9 @@ function joinLoops(items) {
   return joined;
 }
 
-const parser = (Base) =>
-  class ZigParser extends Base {
+// Items, function heads and types.
+const headParser = (Base) =>
+  class ZigHeadParser extends Base {
     items(done) {
       return joinLoops(super.items(done));
     }
@@ -203,7 +204,11 @@ const parser = (Base) =>
       );
       return found ? found[0] : sourceType(words.join(' '));
     }
+  };
 
+// Statements: allocations, tuples, prints and while loops.
+const parser = (Base) =>
+  class ZigParser extends headParser(Base) {
     statement() {
       // `_ = f(x);` drops a result, and `_ = x;` marks an unused parameter.
       if (this.is('_') && this.is('=', 1)) {
@@ -470,7 +475,7 @@ const emitter = (Base) =>
         .map(({ name, type }) => `${name}: ${this.type(type)}`)
         .join(', ');
       const returns = this.type(item.returnType ?? 'nothing');
-      return `fn ${item.name}(${list}) ${returns}`;
+      return `${this.syntax.functionKeyword ?? 'fn'} ${item.name}(${list}) ${returns}`;
     }
 
     // Zig rejects a parameter that is never read, so it is discarded.

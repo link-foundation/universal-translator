@@ -1,0 +1,7 @@
+टिप्पणी: 99 bottles of beer in JavaScript
+
+एक बोतलें है, यह है 99।
+जब बोतलें 0 से ज़्यादा है तब यह बहुत बार करें:
+  बोतलें फिर “ bottles of beer on the wall, ” फिर बोतलें फिर “ bottles of beer.” एक पंक्ति में कहें।
+  “Take one down and pass it around, ” फिर बोतलें घटा 1 फिर “ bottles of beer on the wall.” एक पंक्ति में कहें।
+  इसके बाद बोतलें अब बोतलें घटा 1 है।

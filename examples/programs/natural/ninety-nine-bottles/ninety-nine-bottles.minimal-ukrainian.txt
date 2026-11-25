@@ -1,0 +1,7 @@
+Примітка: 99 bottles of beer in JavaScript
+
+Є пляшки, це 99.
+Коли пляшки більше ніж 0, робити це багато разів:
+  Сказати пляшки потім « bottles of beer on the wall, » потім пляшки потім « bottles of beer.» в одному рядку.
+  Сказати «Take one down and pass it around, » потім пляшки мінус 1 потім « bottles of beer on the wall.» в одному рядку.
+  Після цього пляшки є пляшки мінус 1.

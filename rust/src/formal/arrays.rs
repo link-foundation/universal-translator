@@ -170,7 +170,8 @@ const LENGTH_CALLS: [&str; 5] = ["len", "length", "count", "numel", "scalar"];
 /// Properties and methods that return the length of their receiver.
 const LENGTH_MEMBERS: [&str; 5] = ["length", "Length", "size", "count", "len"];
 
-/// The names a program declares with an array value or type.
+/// The names a program declares with an array value or type, or indexes (a
+/// fragment may use an array it does not declare).
 fn array_names(program: &Node) -> HashSet<String> {
     let mut names = HashSet::new();
     walk(program, |current| {
@@ -178,6 +179,23 @@ fn array_names(program: &Node) -> HashSet<String> {
             && (is_array_value(current.node("value")) || current.str("type") == Some("array"))
         {
             names.extend(current.str("name").map(str::to_owned));
+        }
+        if let Some(array) = current.node("array").filter(|_| current.is("Index"))
+            && array.is("Name")
+        {
+            names.extend(array.str("name").map(str::to_owned));
+        }
+        if current.is("IndexAssignment") {
+            names.extend(current.str("name").map(str::to_owned));
+        }
+        // Fortran: size(a, kind=8) only measures arrays.
+        let arguments = current.nodes("arguments");
+        if current.is("Call")
+            && current.str("callee") == Some("size")
+            && arguments.get(1).is_some_and(|it| it.is("NamedArgument"))
+            && let Some(first) = arguments.first().filter(|it| it.is("Name"))
+        {
+            names.extend(first.str("name").map(str::to_owned));
         }
     });
     names

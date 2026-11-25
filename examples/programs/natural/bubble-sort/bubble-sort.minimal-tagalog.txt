@@ -1,0 +1,12 @@
+Tala: Bubble sort in JavaScript: sort a list of numbers
+
+May mga_numero, ito ay itong mga bagay (5, 3, 8, 1, 9, 2, 7).
+May bilang, ito ay ang dami ng bahagi ng mga_numero.
+Para sa bawat ikot mula 0 hanggang bilang bawas 1 bawas 1, gawin ito:
+  Para sa bawat indeks mula 0 hanggang bilang bawas 1 bawas ikot bawas 1, gawin ito:
+    Kung bahagi indeks ng mga_numero ay higit sa bahagi (indeks dagdag 1) ng mga_numero, gawin ito:
+      May palit, ito ay bahagi indeks ng mga_numero.
+      Pagkatapos nito, ang bahagi indeks ng mga_numero ay bahagi (indeks dagdag 1) ng mga_numero.
+      Pagkatapos nito, ang bahagi (indeks dagdag 1) ng mga_numero ay palit.
+Para sa bawat posisyon mula 0 hanggang bilang bawas 1, gawin ito:
+  Sabihin ang bahagi posisyon ng mga_numero sa isang linya.

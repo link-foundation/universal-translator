@@ -1,0 +1,7 @@
+Nota: 99 bottles of beer in JavaScript
+
+C'è bottiglie, è 99.
+Quando bottiglie è più di 0, fare questo molte volte:
+  Dire bottiglie poi « bottles of beer on the wall, » poi bottiglie poi « bottles of beer.» su una riga.
+  Dire «Take one down and pass it around, » poi bottiglie meno 1 poi « bottles of beer on the wall.» su una riga.
+  Dopo questo, bottiglie è bottiglie meno 1.

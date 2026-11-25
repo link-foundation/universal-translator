@@ -1,0 +1,16 @@
+Ghi chú: Perfect numbers in JavaScript: numbers equal to the sum of their divisors
+
+Đây là cách ai đó làm là-hoànhảo với số:
+  Có tổng, nó là 1.
+  Có ước, nó là 2.
+  Khi ước nhân ước không nhiều hơn số, làm điều này nhiều lần:
+    Nếu số chia lấy dư ước giống 0, làm điều này:
+      Sau đó, tổng là tổng cộng ước.
+      Nếu ước nhân ước khác số, làm điều này:
+        Sau đó, tổng là tổng cộng số chia ước.
+    Sau đó, ước là ước cộng 1.
+  Câu trả lời là số nhiều hơn 1 và tổng giống số.
+
+Với mọi số từ 1 đến 10000, làm điều này:
+  Nếu là-hoànhảo của (số), làm điều này:
+    Nói số trên một dòng.

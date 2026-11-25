@@ -1,0 +1,7 @@
+ਨੋਟ: 99 bottles of beer in JavaScript
+
+ਬੋਤਲਾਂ ਹੈ, ਉਹ 99 ਹੈ।
+ਜਦੋਂ ਬੋਤਲਾਂ 0 ਤੋਂ ਵੱਧ ਹੈ ਤਦ ਇਹ ਕਈ ਵਾਰ ਕਰੋ:
+  ਬੋਤਲਾਂ ਤੋਂ ਬਾਅਦ “ bottles of beer on the wall, ” ਤੋਂ ਬਾਅਦ ਬੋਤਲਾਂ ਤੋਂ ਬਾਅਦ “ bottles of beer.” ਇੱਕ ਸਤਰ ਵਿੱਚ ਕਹੋ।
+  “Take one down and pass it around, ” ਤੋਂ ਬਾਅਦ ਬੋਤਲਾਂ ਘਟਾਓ 1 ਤੋਂ ਬਾਅਦ “ bottles of beer on the wall.” ਇੱਕ ਸਤਰ ਵਿੱਚ ਕਹੋ।
+  ਇਸ ਤੋਂ ਬਾਅਦ ਬੋਤਲਾਂ ਬੋਤਲਾਂ ਘਟਾਓ 1 ਹੈ।

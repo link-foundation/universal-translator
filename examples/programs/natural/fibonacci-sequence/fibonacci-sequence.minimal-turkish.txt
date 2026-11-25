@@ -1,0 +1,13 @@
+Not: Fibonacci sequence in JavaScript, computed iteratively
+
+Biri fibonacci şeyini sayaç ile şöyle yapar:
+  Önceki var, bu 0.
+  Mevcut var, bu 1.
+  Her adım için 0 ile sayaç eksi 1 arasında bunu yap:
+    Sonraki var, bu önceki artı mevcut.
+    Bundan sonra önceki şimdi mevcut olur.
+    Bundan sonra mevcut şimdi sonraki olur.
+  Cevap önceki.
+
+Her indeks için 0 ile 20 arasında bunu yap:
+  “fibonacci(” sonra indeks sonra “) = ” sonra fibonacci (indeks) bir satırda söyle.

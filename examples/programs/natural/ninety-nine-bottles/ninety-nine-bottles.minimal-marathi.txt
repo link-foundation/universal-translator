@@ -1,0 +1,7 @@
+टीप: 99 bottles of beer in JavaScript
+
+बाटल्या आहे, ते 99 आहे.
+जेव्हा बाटल्या हे 0 पेक्षा जास्त आहे तेव्हा हे खूप वेळा करा:
+  बाटल्या नंतर “ bottles of beer on the wall, ” नंतर बाटल्या नंतर “ bottles of beer.” एका ओळीवर म्हणा.
+  “Take one down and pass it around, ” नंतर बाटल्या वजा 1 नंतर “ bottles of beer on the wall.” एका ओळीवर म्हणा.
+  यानंतर बाटल्या हे बाटल्या वजा 1 आहे.

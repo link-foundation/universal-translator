@@ -24,6 +24,7 @@ fn translate(source: &str, from: &str, to: &str, common_library: bool) -> String
     let options = Options {
         mode: Mode::ContextDependent,
         common_library,
+        ..Default::default()
     };
     Translator::new()
         .translate_with(source, from, to, options)
@@ -75,6 +76,7 @@ fn is_rejected_for_machine_targets() {
     let options = Options {
         mode: Mode::ContextDependent,
         common_library: true,
+        ..Default::default()
     };
     let error = Translator::new()
         .translate_with(&read("hello-world"), "javascript", "nasm", options)

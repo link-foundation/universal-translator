@@ -50,6 +50,10 @@ pub const SOURCES: &[(&str, &str)] = &[
         include_str!("../../../data/natural/english-basic-english.lino"),
     ),
     (
+        "english-british.lino",
+        include_str!("../../../data/natural/english-british.lino"),
+    ),
+    (
         "english-e-prime.lino",
         include_str!("../../../data/natural/english-e-prime.lino"),
     ),
@@ -118,6 +122,22 @@ pub const SOURCES: &[(&str, &str)] = &[
         include_str!("../../../data/natural/marathi.lino"),
     ),
     (
+        "minimal-arabic.lino",
+        include_str!("../../../data/natural/minimal-arabic.lino"),
+    ),
+    (
+        "minimal-bengali.lino",
+        include_str!("../../../data/natural/minimal-bengali.lino"),
+    ),
+    (
+        "minimal-chinese.lino",
+        include_str!("../../../data/natural/minimal-chinese.lino"),
+    ),
+    (
+        "minimal-dutch.lino",
+        include_str!("../../../data/natural/minimal-dutch.lino"),
+    ),
+    (
         "minimal-english.lino",
         include_str!("../../../data/natural/minimal-english.lino"),
     ),
@@ -126,8 +146,100 @@ pub const SOURCES: &[(&str, &str)] = &[
         include_str!("../../../data/natural/minimal-french.lino"),
     ),
     (
+        "minimal-german.lino",
+        include_str!("../../../data/natural/minimal-german.lino"),
+    ),
+    (
+        "minimal-gujarati.lino",
+        include_str!("../../../data/natural/minimal-gujarati.lino"),
+    ),
+    (
+        "minimal-hausa.lino",
+        include_str!("../../../data/natural/minimal-hausa.lino"),
+    ),
+    (
+        "minimal-hindi.lino",
+        include_str!("../../../data/natural/minimal-hindi.lino"),
+    ),
+    (
+        "minimal-indonesian.lino",
+        include_str!("../../../data/natural/minimal-indonesian.lino"),
+    ),
+    (
+        "minimal-italian.lino",
+        include_str!("../../../data/natural/minimal-italian.lino"),
+    ),
+    (
+        "minimal-japanese.lino",
+        include_str!("../../../data/natural/minimal-japanese.lino"),
+    ),
+    (
+        "minimal-korean.lino",
+        include_str!("../../../data/natural/minimal-korean.lino"),
+    ),
+    (
+        "minimal-marathi.lino",
+        include_str!("../../../data/natural/minimal-marathi.lino"),
+    ),
+    (
+        "minimal-persian.lino",
+        include_str!("../../../data/natural/minimal-persian.lino"),
+    ),
+    (
         "minimal-polish.lino",
         include_str!("../../../data/natural/minimal-polish.lino"),
+    ),
+    (
+        "minimal-portuguese.lino",
+        include_str!("../../../data/natural/minimal-portuguese.lino"),
+    ),
+    (
+        "minimal-punjabi.lino",
+        include_str!("../../../data/natural/minimal-punjabi.lino"),
+    ),
+    (
+        "minimal-russian.lino",
+        include_str!("../../../data/natural/minimal-russian.lino"),
+    ),
+    (
+        "minimal-spanish.lino",
+        include_str!("../../../data/natural/minimal-spanish.lino"),
+    ),
+    (
+        "minimal-swahili.lino",
+        include_str!("../../../data/natural/minimal-swahili.lino"),
+    ),
+    (
+        "minimal-tagalog.lino",
+        include_str!("../../../data/natural/minimal-tagalog.lino"),
+    ),
+    (
+        "minimal-tamil.lino",
+        include_str!("../../../data/natural/minimal-tamil.lino"),
+    ),
+    (
+        "minimal-telugu.lino",
+        include_str!("../../../data/natural/minimal-telugu.lino"),
+    ),
+    (
+        "minimal-thai.lino",
+        include_str!("../../../data/natural/minimal-thai.lino"),
+    ),
+    (
+        "minimal-turkish.lino",
+        include_str!("../../../data/natural/minimal-turkish.lino"),
+    ),
+    (
+        "minimal-ukrainian.lino",
+        include_str!("../../../data/natural/minimal-ukrainian.lino"),
+    ),
+    (
+        "minimal-urdu.lino",
+        include_str!("../../../data/natural/minimal-urdu.lino"),
+    ),
+    (
+        "minimal-vietnamese.lino",
+        include_str!("../../../data/natural/minimal-vietnamese.lino"),
     ),
     (
         "persian.lino",

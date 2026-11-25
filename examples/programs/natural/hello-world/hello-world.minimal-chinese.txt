@@ -1,0 +1,4 @@
+注：Hello World in JavaScript
+
+注：print "Hello World!" into console followed by new line symbol by function call
+说 “Hello World!” 在 一 行 上。

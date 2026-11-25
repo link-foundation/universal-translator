@@ -1,0 +1,13 @@
+Not: Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+Sınır var, bu 100.
+Mi-asal var, bu 1 gibi (sınır artı 1) şey.
+Bundan sonra mi-asal şeyinin 0 parçası şimdi 0 olur.
+Bundan sonra mi-asal şeyinin 1 parçası şimdi 0 olur.
+Her sayı için 2 ile sınır arasında bunu yap:
+  Eğer mi-asal şeyinin sayı parçası ile 1 aynı ise bunu yap:
+    Sayı bir satırda söyle.
+    Kat var, bu sayı çarpı sayı.
+    Kat en çok sınır olduğu zaman bunu çok kez yap:
+      Bundan sonra mi-asal şeyinin kat parçası şimdi 0 olur.
+      Bundan sonra kat şimdi kat artı sayı olur.

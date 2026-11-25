@@ -4,29 +4,9 @@ import { templateKeys } from '../../../js/src/natural/catalog.js';
 // A visual editor for translation rules given as data: one table per stage
 // of the pipeline. The rules are the same JSON the library, the command
 // line (--rules) and the server accept, and the JSON view edits them as
-// text.
-export const stages = [
-  {
-    id: 'source',
-    title: 'Before reading (source text)',
-    hint: 'Replace text in the source before it is read.',
-  },
-  {
-    id: 'templates',
-    title: 'Natural language wordings',
-    hint: 'More wordings a natural language reads for a template.',
-  },
-  {
-    id: 'names',
-    title: 'Meta program (names)',
-    hint: 'Rename variables and functions in the meta program.',
-  },
-  {
-    id: 'output',
-    title: 'After writing (target text)',
-    hint: 'Replace text in the translation after it is written.',
-  },
-];
+// text. Every label is in the interface language (rules.* in
+// locales/app.lino); each stage has a title and a hint there.
+export const stages = ['source', 'templates', 'names', 'output'];
 
 // The editor keeps templates as rows; the translator wants
 // { language: { key: [templates] } }.
@@ -87,7 +67,7 @@ function select(props, options) {
   );
 }
 
-function RuleRow({ stage, row, index, update, remove, languages }) {
+function RuleRow({ stage, row, index, update, remove, languages, t }) {
   const id = `rule-${stage}-${index}`;
   const set = (field) => (event) =>
     update({
@@ -97,36 +77,39 @@ function RuleRow({ stage, row, index, update, remove, languages }) {
           ? event.target.checked
           : event.target.value,
     });
-  const anyLanguage = [{ value: '', label: 'Any language' }, ...languages];
+  const anyLanguage = [
+    { value: '', label: t('rules.anyLanguage') },
+    ...languages,
+  ];
   const cells =
     stage === 'templates'
       ? [
           select(
             {
-              'aria-label': 'Natural language',
+              'aria-label': t('rules.naturalLanguage'),
               id: `${id}-language`,
               value: row.language ?? '',
               onChange: set('language'),
             },
             [
-              { value: '', label: 'Language…' },
+              { value: '', label: t('rules.chooseLanguage') },
               ...languages.filter((language) => language.natural),
             ]
           ),
           select(
             {
-              'aria-label': 'Template',
+              'aria-label': t('rules.template'),
               id: `${id}-key`,
               value: row.key ?? '',
               onChange: set('key'),
             },
             [
-              { value: '', label: 'Template…' },
+              { value: '', label: t('rules.chooseTemplate') },
               ...templateKeys.map((key) => ({ value: key, label: key })),
             ]
           ),
           input({
-            'aria-label': 'Wording',
+            'aria-label': t('rules.wording'),
             id: `${id}-text`,
             placeholder: '{left} is not above {right}',
             value: row.text ?? '',
@@ -138,7 +121,7 @@ function RuleRow({ stage, row, index, update, remove, languages }) {
             ? null
             : select(
                 {
-                  'aria-label': 'Language',
+                  'aria-label': t('rules.language'),
                   id: `${id}-language`,
                   value: row.language ?? '',
                   onChange: set('language'),
@@ -146,16 +129,18 @@ function RuleRow({ stage, row, index, update, remove, languages }) {
                 anyLanguage
               ),
           input({
-            'aria-label': 'Find',
+            'aria-label': t('rules.find'),
             id: `${id}-find`,
-            placeholder: stage === 'names' ? 'name' : 'find',
+            placeholder: t(stage === 'names' ? 'rules.name' : 'rules.findText'),
             value: row.find ?? '',
             onChange: set('find'),
           }),
           input({
-            'aria-label': 'Replace',
+            'aria-label': t('rules.replace'),
             id: `${id}-replace`,
-            placeholder: stage === 'names' ? 'new name' : 'replace with',
+            placeholder: t(
+              stage === 'names' ? 'rules.newName' : 'rules.replaceText'
+            ),
             value: row.replace ?? '',
             onChange: set('replace'),
           }),
@@ -170,7 +155,7 @@ function RuleRow({ stage, row, index, update, remove, languages }) {
                   checked: Boolean(row.regex),
                   onChange: set('regex'),
                 }),
-                h('span', null, 'Regex')
+                h('span', null, t('rules.regex'))
               ),
         ];
   return h(
@@ -182,7 +167,8 @@ function RuleRow({ stage, row, index, update, remove, languages }) {
       {
         type: 'button',
         className: 'remove',
-        'aria-label': 'Remove rule',
+        'aria-label': t('rules.remove'),
+        'data-action': 'remove-rule',
         onClick: remove,
       },
       '×'
@@ -190,18 +176,14 @@ function RuleRow({ stage, row, index, update, remove, languages }) {
   );
 }
 
-function JsonView({ rows, onChange }) {
+function JsonView({ rows, onChange, t }) {
   const current = JSON.stringify(toRules(rows), null, 2);
   const [draft, setDraft] = useState(current);
   const [problem, setProblem] = useState('');
   return h(
     'details',
     { className: 'rules-json' },
-    h(
-      'summary',
-      { onClick: () => setDraft(current) },
-      'Rules as JSON (import and export)'
-    ),
+    h('summary', { onClick: () => setDraft(current) }, t('rules.json')),
     h('textarea', {
       id: 'rules-json',
       spellCheck: false,
@@ -222,29 +204,25 @@ function JsonView({ rows, onChange }) {
           }
         },
       },
-      'Apply JSON'
+      t('rules.applyJson')
     ),
     problem ? h('p', { className: 'error', role: 'alert' }, problem) : null
   );
 }
 
-export function RulesEditor({ rows, onChange, languages, error }) {
+export function RulesEditor({ rows, onChange, languages, error, t }) {
   const setStage = (stage, list) => onChange({ ...rows, [stage]: list });
   return h(
     'section',
     { className: 'rules-editor', 'aria-labelledby': 'rules-title' },
-    h('h2', { id: 'rules-title' }, 'Translation rules'),
-    h(
-      'p',
-      null,
-      'Rules added here apply at their stage of every translation. They are kept in this browser.'
-    ),
-    stages.map(({ id, title, hint }) =>
+    h('h2', { id: 'rules-title' }, t('rules.title')),
+    h('p', null, t('rules.intro')),
+    stages.map((id) =>
       h(
         'fieldset',
         { key: id, className: 'rule-stage', id: `stage-${id}` },
-        h('legend', null, title),
-        h('p', { className: 'hint' }, hint),
+        h('legend', null, t(`rules.${id}.title`)),
+        h('p', { className: 'hint' }, t(`rules.${id}.hint`)),
         (rows[id] ?? []).map((row, index) =>
           h(RuleRow, {
             key: index,
@@ -252,6 +230,7 @@ export function RulesEditor({ rows, onChange, languages, error }) {
             row,
             index,
             languages,
+            t,
             update: (next) =>
               setStage(
                 id,
@@ -272,11 +251,11 @@ export function RulesEditor({ rows, onChange, languages, error }) {
             id: `add-${id}`,
             onClick: () => setStage(id, [...(rows[id] ?? []), {}]),
           },
-          '+ Add rule'
+          `+ ${t('rules.add')}`
         )
       )
     ),
-    h(JsonView, { rows, onChange }),
+    h(JsonView, { rows, onChange, t }),
     error
       ? h('p', { id: 'rules-error', role: 'alert', className: 'error' }, error)
       : null

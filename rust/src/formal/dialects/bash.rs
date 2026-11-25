@@ -471,7 +471,7 @@ impl ParserDialect for Bash {
             } else {
                 items.push(p.statement()?);
             }
-            p.skip_lines();
+            p.skip_lines_keeping(&mut items);
         }
         // The #! line names the interpreter; it is not a comment.
         let items: Vec<Node> = join_replies(items)

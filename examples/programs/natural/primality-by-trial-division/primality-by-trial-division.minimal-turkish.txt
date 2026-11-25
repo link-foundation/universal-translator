@@ -1,0 +1,15 @@
+Not: Primality by trial division in JavaScript
+
+Biri mi-asal şeyini sayı ile şöyle yapar:
+  Eğer sayı 2 değerinden daha az ise bunu yap:
+    Cevap yanlış.
+  Bölen var, bu 2.
+  Bölen çarpı bölen en çok sayı olduğu zaman bunu çok kez yap:
+    Eğer sayı mod bölen ile 0 aynı ise bunu yap:
+      Cevap yanlış.
+    Bundan sonra bölen şimdi bölen artı 1 olur.
+  Cevap doğru.
+
+Her sayı için 1 ile 50 arasında bunu yap:
+  Eğer mi-asal (sayı) ise bunu yap:
+    Sayı bir satırda söyle.

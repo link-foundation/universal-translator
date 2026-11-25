@@ -1,0 +1,9 @@
+Ghi chú: Factorial in JavaScript, defined recursively
+
+Đây là cách ai đó làm giai_thừa với số:
+  Nếu số không nhiều hơn 1, làm điều này:
+    Câu trả lời là 1.
+  Câu trả lời là số nhân giai_thừa của (số trừ 1).
+
+Với mọi số từ 0 đến 10, làm điều này:
+  Nói số rồi “! = ” rồi giai_thừa của (số) trên một dòng.

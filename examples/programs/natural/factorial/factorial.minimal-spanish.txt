@@ -1,0 +1,9 @@
+Nota: Factorial in JavaScript, defined recursively
+
+Así es como alguien hace factorial con número:
+  Si número no es más que 1, hacer esto:
+    La respuesta es 1.
+  La respuesta es número por factorial de (número menos 1).
+
+Para todos los número desde 0 hasta 10, hacer esto:
+  Decir número después «! = » después factorial de (número) en una línea.

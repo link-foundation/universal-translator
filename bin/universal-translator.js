@@ -50,6 +50,9 @@ function usage() {
     '  translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment]  Translate through the meta language',
     '            --common-library prints through common-library/ calls',
     '            --fragment translates statements or functions on their own',
+    '            --comment-language <natural> translates the comments too (only them when <from> is <to>)',
+    '            --comment-from <natural> names the language of the comments (detected otherwise)',
+    '            <to> may name a version: python@2',
     '            Parts that cannot be translated become comments and are listed',
     '            on standard error; --all-or-nothing fails instead',
     '            The source language may be "auto" to detect it',
@@ -105,27 +108,36 @@ function readSource(file) {
   }).decode(input);
 }
 
+// Options with a value, and the translation option each one sets.
+const valueOptions = {
+  '--mode': 'mode',
+  '--comment-language': 'commentLanguage',
+  '--comment-from': 'commentFrom',
+};
+
+// Options without a value, and the translation option each one turns on.
+const flagOptions = {
+  '--trace': 'trace',
+  '--common-library': 'commonLibrary',
+  '--fragment': 'fragment',
+  '--all-or-nothing': 'allOrNothing',
+};
+
 function translationArguments(args) {
   const options = {};
   let file;
   for (let index = 0; index < args.length; index++) {
     const argument = args[index];
-    if (argument === '--trace') {
-      options.trace = true;
-    } else if (argument === '--common-library') {
-      options.commonLibrary = true;
-    } else if (argument === '--fragment') {
-      options.fragment = true;
-    } else if (argument === '--all-or-nothing') {
-      options.allOrNothing = true;
+    if (flagOptions[argument]) {
+      options[flagOptions[argument]] = true;
     } else if (argument === '--rules') {
       const value = args[++index];
       if (!value || options.rules !== undefined) {
         throw new Error('Expected a single rules file for --rules');
       }
       options.rules = JSON.parse(readFileSync(value, 'utf8'));
-    } else if (argument === '--mode') {
-      const key = argument.slice(2);
+    } else if (valueOptions[argument]) {
+      const key = valueOptions[argument];
       const value = args[++index];
       if (!value || value.startsWith('-') || options[key] !== undefined) {
         throw new Error(`Expected a single value for ${argument}`);
@@ -185,6 +197,8 @@ function translateCommand(
     mode: options.mode,
     commonLibrary: options.commonLibrary,
     fragment: options.fragment,
+    commentLanguage: options.commentLanguage,
+    commentFrom: options.commentFrom,
   };
   if (options.allOrNothing) {
     const translation = options.fragment
@@ -217,26 +231,35 @@ function coverageReport({ parts, ...summary }) {
   return `${JSON.stringify({ ...summary, parts: located }, null, 2)}\n`;
 }
 
-function runTranslation(command, args, read, write, stderr) {
-  const [from, to, ...trailing] = args;
-  const { file, options } =
-    command === 'translate' ? translationArguments(trailing) : {};
-  const translator = createTranslator({
-    // --trace reports every pipeline stage as JSON, so a translation can
-    // be followed rule layer by rule layer.
-    ...(options?.trace
+// The commands that read a text in a language: what each one writes.
+const textCommands = {
+  'check-words': (translator, text, from) => checkWords(text, from),
+  meta: (translator, text, from) =>
+    `${JSON.stringify(translator.toMeta(text, from), null, 2)}\n`,
+  coverage: (translator, text, from) =>
+    coverageReport(translator.parsePartial(text, from)),
+};
+
+// --trace reports every pipeline stage as JSON, so a translation can be
+// followed rule layer by rule layer.
+const translatorFor = ({ trace, rules = {} }, stderr) =>
+  createTranslator({
+    ...(trace
       ? { trace: (stage, tree) => stderr(`[${stage}] ${JSON.stringify(tree)}`) }
       : {}),
-    rules: options?.rules ?? {},
+    rules,
   });
+
+function runTranslation(command, args, read, write, stderr) {
+  const [from, to, ...trailing] = args;
+  const { file, options = {} } =
+    command === 'translate' ? translationArguments(trailing) : {};
+  const translator = translatorFor(options, stderr);
+  const textCommand = textCommands[command];
   if (command === 'languages' && args.length === 0) {
     write(languageList(translator));
-  } else if (command === 'check-words' && from && args.length <= 2) {
-    write(checkWords(read(to), from));
-  } else if (command === 'meta' && from && args.length <= 2) {
-    write(`${JSON.stringify(translator.toMeta(read(to), from), null, 2)}\n`);
-  } else if (command === 'coverage' && from && args.length <= 2) {
-    write(coverageReport(translator.parsePartial(read(to), from)));
+  } else if (textCommand && from && args.length <= 2) {
+    write(textCommand(translator, read(to), from));
   } else if (command === 'detect' && args.length <= 1) {
     write(
       `${JSON.stringify(translator.detectLanguage(read(from)), null, 2)}\n`

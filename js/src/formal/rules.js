@@ -9,7 +9,7 @@ import {
   recognizeCommonLibrary,
   spellCommonLibrary,
 } from './common-library.js';
-import { block, node, rewrite, text, walk } from '../meta/tree.js';
+import { block, layout, node, rewrite, text, walk } from '../meta/tree.js';
 import { countingLoops } from './lifting.js';
 import { raiseTruthFunctions } from '../meta/truth.js';
 import { languageSyntax, namingConvention } from './languages.js';
@@ -67,8 +67,10 @@ function collectItems(items) {
     main: block(),
   });
   let pending = [];
+  const texts = (trivia) =>
+    trivia.filter(({ kind }) => kind === 'Comment').map(({ text }) => text);
   for (const item of items) {
-    if (item.kind === 'Comment') {
+    if (item.kind === 'Comment' || item.kind === 'Blank') {
       pending.push(item);
       continue;
     }
@@ -78,15 +80,25 @@ function collectItems(items) {
         program.main.statements.length ===
       0;
     if (isFirstCode) {
-      program.comments.push(...pending.map((comment) => comment.text));
-      pending = [];
+      // Comments before the last empty line describe the file; the ones
+      // after it (all of them without an empty line) describe the first item.
+      const split = pending.findLastIndex(({ kind }) => kind === 'Blank');
+      program.comments.push(...texts(pending.slice(0, Math.max(split, 0))));
+      pending = pending.slice(split + 1);
+    }
+    // An empty line after a function is kept only where the source has one.
+    const previous = program.functions.at(-1);
+    if (previous && previous.blankAfter === undefined) {
+      previous.blankAfter = pending.some(({ kind }) => kind === 'Blank');
     }
     if (item.kind === 'Import') {
+      // An import keeps no comments: the ones above it describe the file.
+      program.comments.push(...texts(pending));
       program.imports.push(item.text);
     } else if (item.kind === 'Function') {
       program.functions.push({
         ...item,
-        comments: pending.map((comment) => comment.text),
+        comments: texts(pending),
       });
     } else {
       program.main.statements.push(...pending, item);
@@ -94,6 +106,7 @@ function collectItems(items) {
     pending = [];
   }
   program.main.statements.push(...pending);
+  program.main = block(layout(program.main.statements));
   return program;
 }
 
@@ -104,9 +117,12 @@ const isExitSuccess = (statement) =>
 
 // Collect functions, the entry point and file comments into a Program. The
 // body of `main` becomes the program's main block.
-export function findEntryPoint(source) {
+export function findEntryPoint(source, { from } = {}) {
   const program = collectItems(flattenClasses(source.items));
-  const entry = program.functions.find((item) => entryNames.has(item.name));
+  const own = from && languageSyntax(from).mainName;
+  const entry = program.functions.find(
+    (item) => entryNames.has(item.name) || item.name === own
+  );
   if (!entry) {
     return program;
   }
@@ -145,6 +161,7 @@ const textCalls = new Set([
   'System.out.print',
   'fmt.Print',
   'process.stdout.write',
+  'sys.stdout.write',
   'io.write',
 ]);
 const formatCalls = {
@@ -232,9 +249,19 @@ function streamParts(expression) {
   return [expression];
 }
 
+const knownPrint = (callee) =>
+  lineCalls.has(callee) ||
+  textCalls.has(callee) ||
+  Object.hasOwn(formatCalls, callee) ||
+  callee === 'echo';
+
 // Which kind of output procedure a call names: 'line' when it ends the line,
 // 'text' when the text carries its own line ends.
-function printKind(callee, { printCalls: own }) {
+function printKind(callee, { printCalls: own, print: renamed }) {
+  // A version of one's own may give the line output another name.
+  if (renamed?.line === callee && !knownPrint(callee)) {
+    return 'line';
+  }
   if (own) {
     return own.line.includes(callee)
       ? 'line'
@@ -319,6 +346,46 @@ export function recognizePrint(program, { from } = {}) {
         );
         return node('Print', { value: partsToValue(parts), newline });
       }
+    }
+    return current;
+  });
+}
+
+// `str(total)` printed or joined to a text converts only what printing and
+// interpolation already convert, so the conversion is dropped there.
+export function dropTextConversions(program, { from } = {}) {
+  const conversions = from ? languageSyntax(from).textConversions : undefined;
+  if (!conversions) {
+    return program;
+  }
+  const unwrap = (value) =>
+    value.kind === 'Call' &&
+    conversions.includes(value.callee) &&
+    value.arguments.length === 1
+      ? value.arguments[0]
+      : value;
+  const isText = (value) =>
+    ['Text', 'Interpolation'].includes(value.kind) ||
+    (value.kind === 'Binary' &&
+      value.operator === 'add' &&
+      (isText(value.left) || isText(value.right)));
+  return rewrite(program, (current) => {
+    if (current.kind === 'Print') {
+      return { ...current, value: unwrap(current.value) };
+    }
+    if (current.kind === 'Interpolation') {
+      return { ...current, parts: current.parts.map(unwrap) };
+    }
+    if (
+      current.kind === 'Binary' &&
+      current.operator === 'add' &&
+      (isText(current.left) || isText(current.right))
+    ) {
+      return {
+        ...current,
+        left: unwrap(current.left),
+        right: unwrap(current.right),
+      };
     }
     return current;
   });
@@ -640,6 +707,7 @@ export const understandingRules = [
   recognizeArrays,
   recognizeCommonLibrary,
   recognizePrint,
+  dropTextConversions,
   dropEmptyStatements,
   expandCompoundAssignment,
   dropParameterCopies,

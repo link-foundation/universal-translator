@@ -1,0 +1,13 @@
+Opmerking: Sum of squares in JavaScript
+
+Zo doet iemand som-van-kwadraten met limiet:
+  Er is totaal, het is 0.
+  Er is getal, het is 1.
+  Wanneer getal is niet meer dan limiet, doe dit veel keren:
+    Hierna is totaal totaal plus getal maal getal.
+    Hierna is getal getal plus 1.
+  Het antwoord is totaal.
+
+Er is limiet, het is 10.
+Zeg “Sum of squares from 1 to ” daarna limiet daarna “:” op één regel.
+Zeg som-van-kwadraten van (limiet) op één regel.

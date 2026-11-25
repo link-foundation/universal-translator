@@ -1,0 +1,14 @@
+Nota: Hailstone sequence in JavaScript: count the steps to reach 1
+
+É assim que alguém faz granizo-passos com número:
+  Há passos, é 0.
+  Quando número não é o mesmo que 1, fazer isto muitas vezes:
+    Se número módulo 2 é o mesmo que 0, fazer isto:
+      Depois disto, número é número dividido por 2.
+    Se não, fazer isto:
+      Depois disto, número é 3 vezes número mais 1.
+    Depois disto, passos é passos mais 1.
+  A resposta é passos.
+
+Para todos os número de 1 até 10, fazer isto:
+  Dizer número depois “ takes ” depois granizo-passos de (número) depois “ steps” em uma linha.

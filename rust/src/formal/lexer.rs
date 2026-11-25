@@ -54,6 +54,15 @@ pub struct Token {
     pub style: InterpolationStyle,
     /// Whether a text value is already decoded, as doubled quotes are.
     pub decoded: bool,
+    /// Newlines: the empty lines that follow this line end.
+    pub blank: usize,
+    /// Comments after code on the same line: the spaces before them.
+    pub trailing: Option<String>,
+    /// Comments written as block comments.
+    pub block: bool,
+    /// Comments: where the comment text starts and stops in the source, in
+    /// characters (the comment markers are outside).
+    pub span: Option<(usize, usize)>,
 }
 
 impl Token {
@@ -153,6 +162,37 @@ fn unicode_escape(rest: &[char]) -> Option<(char, usize)> {
     Some((decoded, digits.len() + 3))
 }
 
+/// Concrete syntax: the text of a comment keeps its inner whitespace. Only
+/// the one space that usually follows the marker and the spaces before the
+/// line end are dropped.
+pub fn comment_text(raw: &str) -> String {
+    raw.strip_prefix(' ').unwrap_or(raw).trim_end().to_owned()
+}
+
+/// A block comment keeps its lines. Continuation lines lose the indentation
+/// of the comment itself, so they keep their place relative to it.
+pub fn block_comment_text(raw: &str, column: usize) -> String {
+    let lines: Vec<&str> = raw.split('\n').collect();
+    let outdent = |line: &str| -> String {
+        let width = line
+            .chars()
+            .take(column)
+            .take_while(|c| *c == ' ' || *c == '\t')
+            .count();
+        line.chars().skip(width).collect()
+    };
+    let mut text = lines[0].to_owned();
+    for line in &lines[1..] {
+        text.push('\n');
+        text.push_str(&outdent(line));
+    }
+    if lines.len() > 1 {
+        comment_text(&text)
+    } else {
+        text.trim().to_owned()
+    }
+}
+
 pub fn tokenize(source: &str, syntax: &Syntax) -> Result<Vec<Token>, GrammarError> {
     Lexer::new(source, syntax).run()
 }
@@ -177,6 +217,9 @@ struct Lexer<'a> {
     indentation: Vec<usize>,
     /// Open brackets; newlines inside them are not significant.
     depth: usize,
+    /// Comment lines waiting for the next code line to show their block:
+    /// (index of their first token, width).
+    pending: Vec<(usize, usize)>,
 }
 
 type Reader<'a> = fn(&mut Lexer<'a>) -> Result<bool, GrammarError>;
@@ -196,6 +239,7 @@ impl<'a> Lexer<'a> {
             line_start: true,
             indentation: vec![0],
             depth: 0,
+            pending: Vec::new(),
         }
     }
 
@@ -229,9 +273,8 @@ impl<'a> Lexer<'a> {
         {
             self.push(TokenType::Newline, "\n");
         }
-        while self.indentation.len() > 1 {
-            self.indentation.pop();
-            self.push(TokenType::Dedent, "0");
+        if self.syntax.blocks == Blocks::Indentation {
+            self.place_blocks(0);
         }
         self.push(TokenType::End, "");
         Ok(self.tokens)
@@ -255,6 +298,10 @@ impl<'a> Lexer<'a> {
             quote,
             style,
             decoded: false,
+            blank: 0,
+            trailing: None,
+            block: false,
+            span: None,
         });
     }
 
@@ -280,36 +327,68 @@ impl<'a> Lexer<'a> {
             .take_while(|c| **c == ' ' || **c == '\t')
             .count();
         match self.at(width) {
-            None | Some('\r' | '\n' | '#') => return Ok(()),
+            None | Some('\r' | '\n') => return Ok(()),
             _ if self.depth > 0 => return Ok(()),
             _ => {}
         }
+        if self.starts_comment(self.index + width) {
+            self.pending.push((self.tokens.len(), width));
+            return Ok(());
+        }
+        self.place_blocks(width);
+        if Some(&width) != self.indentation.last() {
+            return Err(GrammarError::syntax("Inconsistent indentation", self.line));
+        }
+        Ok(())
+    }
+
+    fn starts_comment(&self, index: usize) -> bool {
+        let open = self.syntax.block_comment.map(|(open, _)| open);
+        [Some(self.syntax.line_comment), open]
+            .into_iter()
+            .flatten()
+            .any(|marker| !marker.is_empty() && self.starts_with(marker, index))
+    }
+
+    /// Open or close blocks up to a code line of this width. Comment lines
+    /// before it go into the new block when it opens one; when it closes
+    /// blocks, the comments indented deeper than it stay in the block they
+    /// follow, and the others go after the closed blocks.
+    fn place_blocks(&mut self, width: usize) {
+        let pending = std::mem::take(&mut self.pending);
+        let start = pending.first().map_or(self.tokens.len(), |(at, _)| *at);
+        let comments = self.tokens.split_off(start);
         let current = |lexer: &Self| *lexer.indentation.last().unwrap_or(&0);
+        let mut inside = pending
+            .iter()
+            .find(|(_, comment)| *comment <= width)
+            .map_or(comments.len(), |(at, _)| at - start);
         if width > current(self) {
             self.indentation.push(width);
             self.push(TokenType::Indent, &width.to_string());
+            inside = 0;
         }
+        let mut comments = comments.into_iter();
+        self.tokens.extend(comments.by_ref().take(inside));
         while width < current(self) {
             self.indentation.pop();
             self.push(TokenType::Dedent, &width.to_string());
         }
-        if width != current(self) {
-            return Err(GrammarError::syntax("Inconsistent indentation", self.line));
-        }
-        Ok(())
+        self.tokens.extend(comments);
     }
 
     fn newline(&mut self) -> Result<bool, GrammarError> {
         if self.at(0) != Some('\n') {
             return Ok(false);
         }
-        if self.depth == 0
-            && self
-                .tokens
-                .last()
-                .is_some_and(|token| token.kind != TokenType::Newline)
-        {
-            self.push(TokenType::Newline, "\n");
+        if self.depth == 0 {
+            match self.tokens.last_mut() {
+                // Concrete syntax: count the empty lines between two
+                // statements.
+                Some(last) if last.kind == TokenType::Newline => last.blank += 1,
+                Some(_) => self.push(TokenType::Newline, "\n"),
+                None => {}
+            }
         }
         self.line += 1;
         self.index += 1;
@@ -345,10 +424,44 @@ impl<'a> Lexer<'a> {
             return false;
         }
         let stop = self.until_line_end();
-        let text = self.slice(self.index + marker.chars().count(), stop);
-        self.push(TokenType::Comment, text.trim());
+        let start = self.index + marker.chars().count();
+        let text = self.slice(start, stop);
+        self.push_comment(&comment_text(&text), false, (start, stop));
         self.index = stop;
         true
+    }
+
+    /// A comment after code on the same line stays a trailing comment.
+    fn push_comment(&mut self, text: &str, block: bool, span: (usize, usize)) {
+        let trailing = self.tokens.last().is_some_and(|last| {
+            last.line == self.line
+                && !matches!(
+                    last.kind,
+                    TokenType::Newline | TokenType::Indent | TokenType::Dedent
+                )
+        });
+        // A trailing comment keeps the spaces that separate it from the code.
+        let gap_start = self.source[..self.index]
+            .iter()
+            .rposition(|c| *c != ' ' && *c != '\t')
+            .map_or(0, |position| position + 1);
+        let gap = self.slice(gap_start, self.index);
+        self.push(TokenType::Comment, text);
+        let token = self.tokens.last_mut().expect("pushed");
+        token.block = block;
+        token.span = Some(span);
+        if trailing {
+            token.trailing = Some(if gap.is_empty() { " ".into() } else { gap });
+        }
+    }
+
+    /// Columns from the start of the current line.
+    fn column(&self) -> usize {
+        let start = self.source[..self.index]
+            .iter()
+            .rposition(|c| *c == '\n')
+            .map_or(0, |position| position + 1);
+        self.index - start
     }
 
     fn block_comment(&mut self) -> Result<bool, GrammarError> {
@@ -363,7 +476,7 @@ impl<'a> Lexer<'a> {
             .find(|position| self.starts_with(close, *position))
             .ok_or_else(|| GrammarError::syntax("Unterminated comment", self.line))?;
         let text = self.slice(from, end);
-        self.push(TokenType::Comment, text.trim());
+        self.push_comment(&block_comment_text(&text, self.column()), true, (from, end));
         self.line += text.matches('\n').count();
         self.index = end + close.chars().count();
         Ok(true)

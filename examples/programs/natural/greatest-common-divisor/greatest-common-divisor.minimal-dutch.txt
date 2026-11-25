@@ -1,0 +1,10 @@
+Opmerking: Greatest common divisor in JavaScript, using the Euclidean algorithm
+
+Zo doet iemand grootste-gemeenschappelijk-deler met eerste en tweede:
+  Wanneer tweede is niet hetzelfde als 0, doe dit veel keren:
+    Er is rest, het is eerste modulo tweede.
+    Hierna is eerste tweede.
+    Hierna is tweede rest.
+  Het antwoord is eerste.
+
+Zeg “The greatest common divisor of 1071 and 462 is ” daarna grootste-gemeenschappelijk-deler van (1071, 462) op één regel.

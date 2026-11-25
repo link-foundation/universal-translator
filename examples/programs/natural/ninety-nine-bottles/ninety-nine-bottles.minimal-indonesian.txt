@@ -1,0 +1,7 @@
+Catatan: 99 bottles of beer in JavaScript
+
+Ada botol, yaitu 99.
+Ketika botol lebih banyak dari 0, lakukan ini banyak kali:
+  Katakan botol lalu “ bottles of beer on the wall, ” lalu botol lalu “ bottles of beer.” pada satu baris.
+  Katakan “Take one down and pass it around, ” lalu botol dikurangi 1 lalu “ bottles of beer on the wall.” pada satu baris.
+  Setelah ini, botol adalah botol dikurangi 1.

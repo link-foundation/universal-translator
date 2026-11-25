@@ -1,0 +1,13 @@
+Kumbuka: Sum of squares in JavaScript
+
+Hivi ndivyo mtu anavyofanya jumla-ya-miraba kwa kikomo:
+  Kuna kiasi, ni 0.
+  Kuna nambari, ni 1.
+  Wakati nambari si zaidi ya kikomo, fanya hivi mara nyingi:
+    Baada ya hii, kiasi ni kiasi jumlisha nambari mara nambari.
+    Baada ya hii, nambari ni nambari jumlisha 1.
+  Jibu ni kiasi.
+
+Kuna kikomo, ni 10.
+Sema “Sum of squares from 1 to ” kisha kikomo kisha “:” kwenye mstari mmoja.
+Sema jumla-ya-miraba ya (kikomo) kwenye mstari mmoja.

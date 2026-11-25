@@ -1,0 +1,14 @@
+Nota: Hailstone sequence in JavaScript: count the steps to reach 1
+
+Ecco come qualcuno fa grandine-passi con numero:
+  C'è passi, è 0.
+  Quando numero non è lo stesso di 1, fare questo molte volte:
+    Se numero modulo 2 è lo stesso di 0, fare questo:
+      Dopo questo, numero è numero diviso 2.
+    Se no, fare questo:
+      Dopo questo, numero è 3 per numero più 1.
+    Dopo questo, passi è passi più 1.
+  La risposta è passi.
+
+Per ogni numero da 1 a 10, fare questo:
+  Dire numero poi « takes » poi grandine-passi di (numero) poi « steps» su una riga.

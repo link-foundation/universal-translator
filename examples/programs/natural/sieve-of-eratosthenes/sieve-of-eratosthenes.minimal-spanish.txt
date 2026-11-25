@@ -1,0 +1,13 @@
+Nota: Sieve of Eratosthenes in JavaScript: the primes up to 100
+
+Hay límite, es 100.
+Hay es-primo, es (límite más 1) cosas como 1.
+Después de esto, la parte 0 de es-primo es 0.
+Después de esto, la parte 1 de es-primo es 0.
+Para todos los número desde 2 hasta límite, hacer esto:
+  Si la parte número de es-primo es lo mismo que 1, hacer esto:
+    Decir número en una línea.
+    Hay múltiplo, es número por número.
+    Cuando múltiplo no es más que límite, hacer esto muchas veces:
+      Después de esto, la parte múltiplo de es-primo es 0.
+      Después de esto, múltiplo es múltiplo más número.

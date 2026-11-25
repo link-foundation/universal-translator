@@ -1,0 +1,7 @@
+注：99 bottles of beer in JavaScript
+
+有 瓶子 它 是 99。
+当 瓶子 比 0 多 时 做 这个 很多 次：
+  说 瓶子 然后 “ bottles of beer on the wall, ” 然后 瓶子 然后 “ bottles of beer.” 在 一 行 上。
+  说 “Take one down and pass it around, ” 然后 瓶子 减 1 然后 “ bottles of beer on the wall.” 在 一 行 上。
+  这 以后 瓶子 是 瓶子 减 1。

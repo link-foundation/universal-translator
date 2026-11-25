@@ -1,0 +1,10 @@
+Ghi chú: Sum and product of an array in JavaScript
+
+Có các_số, nó là những thứ này (1, 2, 3, 4, 5).
+Có tổng_cộng, nó là 0.
+Có tích, nó là 1.
+Với mọi chỉ_số từ 0 đến các_số có bao nhiêu phần trừ 1, làm điều này:
+  Sau đó, tổng_cộng là tổng_cộng cộng phần chỉ_số của các_số.
+  Sau đó, tích là tích nhân phần chỉ_số của các_số.
+Nói “Sum: ” rồi tổng_cộng trên một dòng.
+Nói “Product: ” rồi tích trên một dòng.

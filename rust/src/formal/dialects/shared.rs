@@ -2,9 +2,28 @@
 //! with keywords (begin ... end, if ... end if) and a declaration section,
 //! which the braces and indentation of the shared grammar do not cover.
 
-use crate::formal::lexer::TokenType;
+use crate::formal::lexer::{Token, TokenType};
 use crate::formal::parser::{Parsed, Parser};
 use crate::meta::{Node, number, text};
+
+/// A comment token as a Comment node, keeping where it stood (after code on
+/// the same line) and whether it was a block comment.
+pub(crate) fn comment_node(token: &Token) -> Node {
+    let node = Node::new("Comment")
+        .with("text", token.value.as_str())
+        .with_opt("trailing", token.trailing.clone());
+    if token.block {
+        node.with("block", true)
+    } else {
+        node
+    }
+}
+
+/// Empty lines of a newline token as a Blank node, when they follow items.
+pub(crate) fn blank_node(token: &Token, items: &[Node]) -> Option<Node> {
+    (token.kind == TokenType::Newline && token.blank > 0 && !items.is_empty())
+        .then(|| Node::new("Blank").with("lines", token.blank as f64))
+}
 
 /// Parser helpers for keyword-delimited statements.
 impl Parser {
@@ -15,18 +34,28 @@ impl Parser {
         }
     }
 
+    /// Skip line ends and statement separators, keeping the empty lines
+    /// between `items` as Blank nodes.
+    pub(crate) fn skip_lines_keeping(&mut self, items: &mut Vec<Node>) {
+        while self.kind(0) == TokenType::Newline || self.is(";") {
+            let token = self.current().clone();
+            self.position += 1;
+            items.extend(blank_node(&token, items));
+        }
+    }
+
     /// Statements and comments up to the word that ends the block.
     pub(crate) fn statements_until(&mut self, done: &dyn Fn(&Parser) -> bool) -> Parsed<Vec<Node>> {
         let mut statements = Vec::new();
         self.skip_lines();
         while !done(self) && self.kind(0) != TokenType::End {
             if self.kind(0) == TokenType::Comment {
-                let comment = self.next()?.value;
-                statements.push(Node::new("Comment").with("text", comment));
+                let comment = self.next()?;
+                statements.push(comment_node(&comment));
             } else {
                 statements.push(self.statement()?);
             }
-            self.skip_lines();
+            self.skip_lines_keeping(&mut statements);
         }
         Ok(statements)
     }
@@ -37,7 +66,9 @@ impl Parser {
             let token = self.current().clone();
             self.position += 1;
             if token.kind == TokenType::Comment {
-                items.push(Node::new("Comment").with("text", token.value));
+                items.push(comment_node(&token));
+            } else {
+                items.extend(blank_node(&token, items));
             }
         }
     }

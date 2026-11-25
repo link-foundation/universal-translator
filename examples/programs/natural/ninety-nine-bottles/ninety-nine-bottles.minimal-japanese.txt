@@ -1,0 +1,7 @@
+注：99 bottles of beer in JavaScript
+
+瓶 が ある、 それ は 99 だ。
+瓶 が 0 より 多い の 間 これ を 何度 も する：
+  瓶 それから 「 bottles of beer on the wall, 」 それから 瓶 それから 「 bottles of beer.」 を 一つ の 行 に 言う。
+  「Take one down and pass it around, 」 それから 瓶 引く 1 それから 「 bottles of beer on the wall.」 を 一つ の 行 に 言う。
+  この 後 瓶 は 瓶 引く 1 だ。

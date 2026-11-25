@@ -1,0 +1,15 @@
+Hinweis: Primality by trial division in JavaScript
+
+So tut jemand ist-Primzahl mit Zahl:
+  Wenn Zahl ist weniger als 2, tue dies:
+    Die Antwort ist unwahr.
+  Es gibt Teiler, es ist 2.
+  Solange Teiler mal Teiler ist nicht mehr als Zahl, tue dies viele Male:
+    Wenn Zahl modulo Teiler ist dasselbe wie 0, tue dies:
+      Die Antwort ist unwahr.
+    Danach ist Teiler jetzt Teiler plus 1.
+  Die Antwort ist wahr.
+
+Für alle Zahl von 1 bis 50, tue dies:
+  Wenn ist-Primzahl von (Zahl), tue dies:
+    Sage Zahl auf einer Zeile.

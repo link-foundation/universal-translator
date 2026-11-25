@@ -2,8 +2,17 @@
 // language-specific spelling comes from languages.js or from the small
 // tables below; the structure of the output follows the meta tree.
 
-import { add, block, laterCalls, name, node, number } from '../meta/tree.js';
+import {
+  add,
+  block,
+  laterCalls,
+  layout,
+  name,
+  node,
+  number,
+} from '../meta/tree.js';
 import { languageSyntax } from './languages.js';
+import { splitVersion } from './versions.js';
 import { dialects } from './dialects/index.js';
 import { withArrays } from './array-spellings.js';
 
@@ -65,6 +74,49 @@ const withoutTerminator = new Set([
   'groovy',
 ]);
 const blockCommentLanguages = new Set(['c', 'csharp']);
+
+// The lines of a comment in a language: a block comment where the language
+// prefers one (or has no line comment), otherwise one line comment per line.
+// The import lines a used feature needs, before and after the common
+// library imports.
+const importsBeforeLibrary = [
+  ['sys', 'import sys'],
+  ['strformat', 'import std/strformat'],
+  ['std.conv', 'import std.conv;'],
+  ['dart:io', "import 'dart:io';"],
+];
+const importsAfterLibrary = [
+  ['objc', '#import <objc/objc.h>'],
+  ['stdbool', '#include <stdbool.h>'],
+  ['stdio', '#include <stdio.h>'],
+  ['iostream', '#include <iostream>'],
+  ['string', '#include <string>'],
+  ['fmt', 'import "fmt"'],
+];
+
+export function commentLines(syntax, id, text, { block: preferred } = {}) {
+  const [open, close] = syntax.blockComment ?? [];
+  const lines = text.split('\n');
+  const block =
+    open &&
+    !text.includes(close) &&
+    (blockCommentLanguages.has(id) ||
+      (preferred && lines.length > 1) ||
+      syntax.lineComment === open ||
+      (lines.length > 1 && !syntax.lineComment));
+  if (block) {
+    const body = [...lines];
+    body[0] = `${open}${body[0] ? ` ${body[0]}` : ''}`;
+    body[body.length - 1] += ` ${close}`;
+    return body;
+  }
+  return lines.map((line) =>
+    line ? `${syntax.lineComment} ${line}` : syntax.lineComment
+  );
+}
+
+const isTrivia = (statement) =>
+  statement.kind === 'Comment' || statement.kind === 'Blank';
 
 class BaseEmitter {
   constructor(syntax) {
@@ -222,15 +274,36 @@ class BaseEmitter {
     return level < parent ? `(${result})` : result;
   }
 
+  // Text joined with +, computed parts converted with the language's
+  // conversion (Python 2: str(value)).
+  concatenation(parts) {
+    const [convert] = this.syntax.textConversions;
+    return parts
+      .map((part) =>
+        part.kind === 'Text'
+          ? this.quote(part.value)
+          : part.type === 'text'
+            ? this.expression(part, 6)
+            : `${convert}(${this.expression(part)})`
+      )
+      .join(' + ');
+  }
+
+  // Text with the computed parts embedded between delimiters.
+  embedded(parts, { prefix = '', open, close, format }) {
+    if (this.id === 'nim') {
+      this.uses.add('strformat');
+    }
+    return `${prefix}"${parts.map((part) => (part.kind === 'Text' ? this.escape(part.value, { format }) : `${open}${this.expression(part)}${close}`)).join('')}"`;
+  }
+
   // Text built from literal and computed parts, outside of output calls.
   interpolation(parts) {
-    const delimited = embeddings[this.id];
-    if (delimited) {
-      const { prefix = '', open, close, format } = delimited;
-      if (this.id === 'nim') {
-        this.uses.add('strformat');
-      }
-      return `${prefix}"${parts.map((part) => (part.kind === 'Text' ? this.escape(part.value, { format }) : `${open}${this.expression(part)}${close}`)).join('')}"`;
+    if (this.syntax.textJoin === 'concatenation') {
+      return this.concatenation(parts);
+    }
+    if (embeddings[this.id]) {
+      return this.embedded(parts, embeddings[this.id]);
     }
     switch (this.id) {
       case 'javascript':
@@ -323,13 +396,33 @@ class BaseEmitter {
       throw new Error(`No output procedure for ${this.syntax.label}`);
     }
     const parts = value.kind === 'Interpolation' ? value.parts : [value];
-    return printer(this, {
-      value,
-      newline,
-      parts,
-      lineParts: newline ? [...parts, { kind: 'Text', value: '\n' }] : parts,
-      single: () => this.expression(value),
-    });
+    return this.ownSpelling(
+      'print.line',
+      printer(this, {
+        value,
+        newline,
+        parts,
+        lineParts: newline ? [...parts, { kind: 'Text', value: '\n' }] : parts,
+        single: () => this.expression(value),
+      })
+    );
+  }
+
+  // A version of one's own may spell a word of its language differently
+  // (print.line, returnArrow, mainName, ...): the usual spelling a writer
+  // put down is replaced by its own.
+  ownSpelling(concept, written) {
+    const spelling = (syntax) =>
+      concept.split('.').reduce((table, key) => table?.[key], syntax);
+    const own = spelling(this.syntax);
+    const usual = spelling(languageSyntax(this.syntax.id));
+    return typeof own === 'string' &&
+      typeof usual === 'string' &&
+      usual &&
+      own !== usual &&
+      written.includes(usual)
+      ? written.replace(usual, own)
+      : written;
   }
 
   interpolationOrText(parts) {
@@ -339,11 +432,39 @@ class BaseEmitter {
       : this.interpolation(merged);
   }
 
-  comment(text) {
-    if (blockCommentLanguages.has(this.id)) {
-      this.line(`/* ${text} */`);
-    } else {
-      this.line(`${this.syntax.lineComment} ${text}`);
+  // Concrete syntax: a comment keeps its text, its lines and, after code,
+  // its place at the end of the line.
+  comment(text, { trailing, block } = {}) {
+    const lines = commentLines(this.syntax, this.id, text, { block });
+    const last = this.lines.length - 1;
+    if (trailing && lines.length === 1 && this.lines[last]) {
+      this.lines[last] += `${trailing}${lines[0]}`;
+      return;
+    }
+    for (const line of lines) {
+      this.line(line);
+    }
+  }
+
+  // An empty line after a function unless the source had none before the
+  // next function; the last one is always set apart from the main program.
+  spacedAfter(functions, index) {
+    return (
+      functions[index].blankAfter !== false || index === functions.length - 1
+    );
+  }
+
+  // Empty lines kept from the source, never two runs in a row.
+  blank(lines = 1) {
+    let missing = lines;
+    for (let index = this.lines.length - 1; index >= 0; index -= 1) {
+      if (this.lines[index] !== '' || missing === 0) {
+        break;
+      }
+      missing -= 1;
+    }
+    for (let count = 0; count < missing; count += 1) {
+      this.line();
     }
   }
 
@@ -369,7 +490,7 @@ class BaseEmitter {
         this.line(`${header} {`);
         break;
       case 'indentation':
-        // Nim's procedure heads end with "=" instead of ":".
+        // Nim's procedure heads end with "=", not ":".
         this.line(header.endsWith('=') ? header : `${header}:`);
         break;
       default:
@@ -389,11 +510,17 @@ class BaseEmitter {
   }
 
   body(block) {
-    if (block.statements.length === 0 && this.syntax.blocks === 'indentation') {
-      this.line(this.syntax.emptyStatement ?? 'pass');
-    }
-    for (const statement of block.statements) {
+    const statements = layout(block.statements);
+    for (const statement of statements) {
       this.statement(statement);
+    }
+    // A block that only holds comments still needs a statement.
+    if (
+      statements.every(isTrivia) &&
+      this.syntax.blocks === 'indentation' &&
+      this.depth > 0
+    ) {
+      this.line(this.syntax.emptyStatement ?? 'pass');
     }
   }
 
@@ -401,7 +528,9 @@ class BaseEmitter {
     const end = this.terminator();
     switch (statement.kind) {
       case 'Comment':
-        return this.comment(statement.text);
+        return this.comment(statement.text, statement);
+      case 'Blank':
+        return this.blank(statement.lines);
       case 'Print':
         return this.line(this.print(statement));
       case 'Evaluate':
@@ -487,7 +616,7 @@ class BaseEmitter {
       return `${this.syntax.elseIf ?? 'elif'} ${condition}:`;
     }
     if (this.id === 'lua') {
-      return `elseif ${condition} then`;
+      return `${this.syntax.elseIf ?? 'elseif'} ${condition} then`;
     }
     return `${this.syntax.elseIf} ${condition}`;
   }
@@ -581,14 +710,22 @@ class BaseEmitter {
     const names = item.parameters.map((parameter) => parameter.name).join(', ');
     const returns = item.returnType;
     const after = (arrow) =>
-      returns === 'nothing' ? '' : `${arrow}${this.type(returns)}`;
-    return write({
+      returns === 'nothing'
+        ? ''
+        : `${this.ownSpelling('returnArrow', arrow)}${this.type(returns)}`;
+    const head = write({
       name: item.name,
       typed,
       names,
       after,
       returns: this.type(returns),
     });
+    // A version of one's own may spell the function keyword differently.
+    const own = this.syntax.functionKeyword;
+    const usual = languageSyntax(this.syntax.id).functionKeyword;
+    return own && usual && own !== usual
+      ? head.replace(new RegExp(`(^|\\s)${usual}(?=\\s)`), `$1${own}`)
+      : head;
   }
 
   // `int male(int index);` in C, `proc male(index: int): int` in Nim and
@@ -629,7 +766,7 @@ class BaseEmitter {
   }
 
   mainHeader() {
-    return {
+    const header = {
       c: 'int main(void)',
       cpp: 'int main()',
       go: 'func main()',
@@ -642,6 +779,7 @@ class BaseEmitter {
       julia: 'function main()',
       d: 'void main()',
     }[this.id];
+    return header && this.ownSpelling('mainName', header);
   }
 
   program(program) {
@@ -664,10 +802,16 @@ class BaseEmitter {
         this.line();
       }
     }
-    for (const item of program.functions) {
+    program.functions.forEach((item, index) => {
       this.functionDefinition(item);
-      this.line();
-    }
+      // A main procedure of its own is set apart from the functions.
+      if (
+        item.blankAfter !== false ||
+        (index === program.functions.length - 1 && this.mainHeader())
+      ) {
+        this.line();
+      }
+    });
     this.main(program);
     if (insideClass) {
       this.closeBlock();
@@ -679,7 +823,7 @@ class BaseEmitter {
     this.lines = [];
     // File comments come first, except where a header must open the file.
     if (this.id === 'php') {
-      this.lines.push('<?php', '');
+      this.lines.push(this.syntax.header ?? '<?php', '');
     }
     for (const text of program.comments) {
       this.comment(text);
@@ -716,34 +860,11 @@ class BaseEmitter {
       lines.push('package main', '');
     }
     lines.push(...(this.syntax.prelude ?? []));
-    if (this.uses.has('strformat')) {
-      lines.push('import std/strformat');
-    }
-    if (this.uses.has('std.conv')) {
-      lines.push('import std.conv;');
-    }
-    if (this.uses.has('dart:io')) {
-      lines.push("import 'dart:io';");
-    }
+    const used = (headers) =>
+      headers.filter(([use]) => this.uses.has(use)).map(([, line]) => line);
+    lines.push(...used(importsBeforeLibrary));
     lines.push(...(program.libraryImports ?? []));
-    if (this.uses.has('objc')) {
-      lines.push('#import <objc/objc.h>');
-    }
-    if (this.uses.has('stdbool')) {
-      lines.push('#include <stdbool.h>');
-    }
-    if (this.uses.has('stdio')) {
-      lines.push('#include <stdio.h>');
-    }
-    if (this.uses.has('iostream')) {
-      lines.push('#include <iostream>');
-    }
-    if (this.uses.has('string')) {
-      lines.push('#include <string>');
-    }
-    if (this.uses.has('fmt')) {
-      lines.push('import "fmt"');
-    }
+    lines.push(...used(importsAfterLibrary));
     if (lines.length && lines.at(-1) !== '') {
       lines.push('');
     }
@@ -806,14 +927,14 @@ export function emitProgram(program, languageId) {
 // dialects/.
 const dialectEmitters = new Map();
 function emitterFor(languageId) {
-  const extend = dialects[languageId]?.emitter;
+  const extend = dialects[splitVersion(languageId).id]?.emitter;
   if (!extend) {
     return Emitter;
   }
-  if (!dialectEmitters.has(languageId)) {
-    dialectEmitters.set(languageId, extend(Emitter));
+  if (!dialectEmitters.has(extend)) {
+    dialectEmitters.set(extend, extend(Emitter));
   }
-  return dialectEmitters.get(languageId);
+  return dialectEmitters.get(extend);
 }
 
 // How each language writes a value to standard output. C, Go and Rust use
@@ -823,8 +944,18 @@ const printers = {
     newline
       ? `console.log(${single()});`
       : `process.stdout.write(${value.type === 'text' ? single() : `String(${single()})`});`,
-  python: (emitter, { newline, single }) =>
-    newline ? `print(${single()})` : `print(${single()}, end="")`,
+  python: (emitter, { value, newline, single }) => {
+    if (!emitter.syntax.printStatement) {
+      return newline ? `print(${single()})` : `print(${single()}, end="")`;
+    }
+    if (newline) {
+      return value.kind === 'Text' && value.value === ''
+        ? 'print'
+        : `print ${single()}`;
+    }
+    emitter.uses.add('sys');
+    return `sys.stdout.write(${value.type === 'text' ? single() : `str(${single()})`})`;
+  },
   ruby: (emitter, { newline, single }) =>
     `${newline ? 'puts' : 'print'} ${single()}`,
   lua: (emitter, { newline, single }) =>

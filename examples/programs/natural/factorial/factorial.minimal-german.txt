@@ -1,0 +1,9 @@
+Hinweis: Factorial in JavaScript, defined recursively
+
+So tut jemand Fakultät mit Zahl:
+  Wenn Zahl ist nicht mehr als 1, tue dies:
+    Die Antwort ist 1.
+  Die Antwort ist Zahl mal Fakultät von (Zahl minus 1).
+
+Für alle Zahl von 0 bis 10, tue dies:
+  Sage Zahl dann „! = “ dann Fakultät von (Zahl) auf einer Zeile.

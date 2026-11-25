@@ -1,0 +1,10 @@
+注：Greatest common divisor in JavaScript, using the Euclidean algorithm
+
+誰か が 最大-共通-約数 を 第一 と 第二 で こう する：
+  第二 が 0 と 違う の 間 これ を 何度 も する：
+    余り が ある、 それ は 第一 剰余 第二 だ。
+    この 後 第一 は 第二 だ。
+    この 後 第二 は 余り だ。
+  答え は 第一 だ。
+
+「The greatest common divisor of 1071 and 462 is 」 それから 最大-共通-約数 (1071、 462) を 一つ の 行 に 言う。

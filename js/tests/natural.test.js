@@ -64,10 +64,38 @@ const profiles = {
   'minimal-english': 'Minimal English',
   'minimal-french': 'Minimal French',
   'minimal-polish': 'Minimal Polish',
+  'minimal-arabic': 'Minimal Arabic',
+  'minimal-bengali': 'Minimal Bengali',
+  'minimal-chinese': 'Minimal Chinese',
+  'minimal-dutch': 'Minimal Dutch',
+  'minimal-german': 'Minimal German',
+  'minimal-gujarati': 'Minimal Gujarati',
+  'minimal-hausa': 'Minimal Hausa',
+  'minimal-hindi': 'Minimal Hindi',
+  'minimal-indonesian': 'Minimal Indonesian',
+  'minimal-italian': 'Minimal Italian',
+  'minimal-japanese': 'Minimal Japanese',
+  'minimal-korean': 'Minimal Korean',
+  'minimal-marathi': 'Minimal Marathi',
+  'minimal-persian': 'Minimal Persian',
+  'minimal-portuguese': 'Minimal Portuguese',
+  'minimal-punjabi': 'Minimal Punjabi',
+  'minimal-russian': 'Minimal Russian',
+  'minimal-spanish': 'Minimal Spanish',
+  'minimal-swahili': 'Minimal Swahili',
+  'minimal-tagalog': 'Minimal Tagalog',
+  'minimal-tamil': 'Minimal Tamil',
+  'minimal-telugu': 'Minimal Telugu',
+  'minimal-thai': 'Minimal Thai',
+  'minimal-turkish': 'Minimal Turkish',
+  'minimal-ukrainian': 'Minimal Ukrainian',
+  'minimal-urdu': 'Minimal Urdu',
+  'minimal-vietnamese': 'Minimal Vietnamese',
   'english-e-prime': 'E-Prime',
   'english-basic-english': 'Basic English',
   'english-special-english': 'VOA Special English',
   'english-globish': 'Globish',
+  'english-british': 'English (British)',
 };
 
 describe('controlled natural languages', () => {
@@ -88,6 +116,16 @@ describe('controlled natural languages', () => {
     expect(primes.length).toBe(65);
     for (const { exponents } of primes) {
       expect(exponents.english?.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('has the semantic primes and a minimal version in every language', () => {
+    for (const id of languages) {
+      const missing = semanticPrimes()
+        .filter(({ exponents }) => !exponents[id]?.length)
+        .map(({ prime }) => prime);
+      expect([id, ...missing]).toEqual([id]);
+      expect(naturalLanguage(`minimal-${id}`).base).toBe(id);
     }
   });
 

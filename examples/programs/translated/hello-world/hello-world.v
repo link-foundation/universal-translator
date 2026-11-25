@@ -84,9 +84,9 @@ Definition size (array : list Z) : Z := Z.of_nat (List.length array).
 Set Warnings "-non-recursive".
 
 (* Hello World in Rocq *)
-(* print "Hello World!" into console followed by new line symbol by function call *)
 
 Definition main : Action unit unit := (
+  (* print "Hello World!" into console followed by new line symbol by function call *)
   print_line "Hello World!" ;;
   pure tt).
 

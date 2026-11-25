@@ -1,4 +1,4 @@
-// Partial reading and translation (issue #8).
+// Partial reading and translation.
 //
 // A text often holds a part the grammar does not cover yet: one statement
 // with an unknown library call, a sentence outside the controlled
@@ -95,6 +95,28 @@ function bodyEnd(lines, start, end) {
   }
   return last;
 }
+
+// The parts that could not be read or written, with their reasons.
+const errorsOf = (parts) =>
+  parts
+    .filter((part) => part.status === 'failed')
+    .map(({ line, endLine, message, source }) => ({
+      line,
+      endLine,
+      message,
+      source,
+    }));
+
+// How many written lines the read parts hold.
+const linesRead = (lines, parts) =>
+  parts
+    .filter((part) => part.status === 'read')
+    .reduce(
+      (sum, part) =>
+        sum +
+        lines.slice(part.start, part.end).filter((line) => !blank(line)).length,
+      0
+    );
 
 export function createPartialTranslator({
   parseFragment,
@@ -194,15 +216,7 @@ export function createPartialTranslator({
         throw error;
       }
     }
-    const readLines = parts
-      .filter((part) => part.status === 'read')
-      .reduce(
-        (sum, part) =>
-          sum +
-          lines.slice(part.start, part.end).filter((line) => !blank(line))
-            .length,
-        0
-      );
+    const readLines = linesRead(lines, parts);
     const located = parts.map((part) => ({
       ...part,
       line: part.start + 1,
@@ -215,14 +229,7 @@ export function createPartialTranslator({
       lines: written,
       readLines,
       coverage: written ? readLines / written : 1,
-      errors: located
-        .filter((part) => part.status === 'failed')
-        .map(({ line, endLine, message, source: text }) => ({
-          line,
-          endLine,
-          message,
-          source: text,
-        })),
+      errors: errorsOf(located),
     };
   }
 
@@ -252,14 +259,7 @@ export function createPartialTranslator({
         to
       );
     });
-    const errors = reading.parts
-      .filter((part) => part.status === 'failed')
-      .map(({ line, endLine, message, source: text }) => ({
-        line,
-        endLine,
-        message,
-        source: text,
-      }));
+    const errors = errorsOf(reading.parts);
     return {
       text: pieces.join(''),
       complete: errors.length === 0,

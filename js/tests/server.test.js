@@ -13,6 +13,9 @@ async function withServer(check) {
   try {
     await check(base);
   } finally {
+    // Deno's fetch keeps connections alive and its server.close() waits for
+    // them, so drop them first (experiments/deno-server-close.mjs).
+    server.closeAllConnections();
     await new Promise((resolve) => server.close(resolve));
   }
 }
@@ -46,6 +49,27 @@ describe('translation server', () => {
       expect(response.status).toBe(200);
       expect((await response.json()).output).toBe(
         translate(source, 'javascript', 'python')
+      );
+    });
+  });
+
+  it('translates only the comments to a comment language', async () => {
+    await withServer(async (base) => {
+      const response = await post(base, {
+        source: '// number\nlet x = 1;\n',
+        from: 'javascript',
+        to: 'javascript',
+        commentLanguage: 'russian',
+      });
+      expect((await response.json()).output).toBe('// число\nlet x = 1;\n');
+      const wrong = await post(base, {
+        source: '',
+        from: 'javascript',
+        to: 'python',
+        commentLanguage: 1,
+      });
+      expect((await wrong.json()).error).toBe(
+        '"commentLanguage" must be a string'
       );
     });
   });

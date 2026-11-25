@@ -1,0 +1,32 @@
+natural:
+  id: minimal-swahili
+  label: 'Minimal Swahili (NSM semantic primes)'
+  extends: swahili
+  profile: minimal-english
+  source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  templates:
+    function: 'Hivi ndivyo mtu anavyofanya {name} kwa {parameters}'
+    function-without-parameters: 'Hivi ndivyo mtu anavyofanya {name}'
+    declare: 'Kuna {name}, ni {value}'
+    assign: 'Baada ya hii, {name} ni {value}'
+    print-line: 'Sema {value} kwenye mstari mmoja'
+    print: 'Sema {value}'
+    return-value: 'Jibu ni {value}'
+    return: 'Simama hapa'
+    nothing: 'Usifanye chochote'
+    evaluate: 'Fanya {expression}'
+    if: 'Kama {condition}, fanya hivi'
+    else-if: 'Kama sivyo, kama {condition}, fanya hivi'
+    else: 'Kama sivyo, fanya hivi'
+    while: 'Wakati {condition}, fanya hivi mara nyingi'
+    for: 'Kwa kila {variable} kutoka {start} hadi {last}, fanya hivi'
+    call-without-arguments: '{callee} ( )'
+    join: '{left} kisha {right}'
+    array: 'vitu hivi ({elements})'
+    new-array: 'vitu {length} kama {fill}'
+    element: 'sehemu {index} ya {array}'
+    length: 'idadi ya sehemu za {array}'
+    set-element: 'Baada ya hii, sehemu {index} ya {name} ni {value}'
+  rules:
+    primes: swahili
+    extra-words: ndivyo kwa ya za kwenye mstari jibu simama mara kutoka hadi kisha au na jumlisha toa gawanya modulo hasi uongo idadi

@@ -1,0 +1,13 @@
+Nota: Sum of squares in JavaScript
+
+Ecco come qualcuno fa somma-di-quadrati con limite:
+  C'è totale, è 0.
+  C'è numero, è 1.
+  Quando numero non è più di limite, fare questo molte volte:
+    Dopo questo, totale è totale più numero per numero.
+    Dopo questo, numero è numero più 1.
+  La risposta è totale.
+
+C'è limite, è 10.
+Dire «Sum of squares from 1 to » poi limite poi «:» su una riga.
+Dire somma-di-quadrati di (limite) su una riga.
