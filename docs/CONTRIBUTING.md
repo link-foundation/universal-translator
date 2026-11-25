@@ -236,9 +236,18 @@ override them. The desktop overrides and their probe are documented in
 Every dependency with an install script needs an explicit `allowScripts`
 decision in its owning package manifest. Approvals pin the exact locked version
 (`"esbuild@0.25.12": true`), so a new release needs a new review; denials name
-the package (`"some-package": false`). `js/tests/issue-228-regressions.test.js`
-checks every entry of the example app's lock, including optional
-platform-specific packages.
+the package (`"node-pty": false`). The root denies command-stream's optional
+node-pty adapter, because the release scripts only use its ordinary process
+API; Deno reads its own policy from `deno.json`, which denies it as well.
+`js/tests/issue-228-regressions.test.js` checks every entry of both npm locks,
+including optional platform-specific packages.
+
+Release scripts load `command-stream` and `lino-arguments` from installed,
+lockfile-pinned development dependencies. Run `npm ci` before invoking them;
+they do not download helpers at runtime, so the pull request's offline
+versioning dry run exercises the same code as the release. Versioning changes
+only the version fields of `package.json` and `package-lock.json`
+(`scripts/version-lock.mjs`) and does not run `npm install`.
 
 CodeQL analyses every file, not only the lines a pull request changes, and
 `scripts/check-codeql-results.mjs` fails the run on any finding or extractor

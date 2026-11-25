@@ -11,3 +11,6 @@ CI reports every failure and warning, and no longer passes or fails for the wron
 - Every tracked JavaScript file is syntax checked, and a change to any non-documentation file runs the checks.
 - The pipeline status gate compares fork pull requests with their pull head, and step budgets no longer stop commands that finish in time.
 - The versioning dry run skips pull requests without a changeset instead of hiding the lint results.
+- Release scripts load `command-stream` and `lino-arguments` from the lockfile, so the offline versioning dry run works, and versioning no longer runs `npm install`.
+- The example app no longer installs deprecated packages, and its moderate `minimatch` and `fast-uri` advisories are fixed.
+- The Security run lists every npm advisory and live deprecation, and fails on CodeQL findings.

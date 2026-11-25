@@ -80,30 +80,50 @@ describe('Deno lock and npm install script policies', () => {
     }
   });
 
-  it('requires an explicit decision for every install script, including optional OS packages', () => {
-    const root = 'examples/universal-app/';
-    const pkg = JSON.parse(read(`${root}package.json`));
-    const lock = JSON.parse(read(`${root}package-lock.json`));
-    const scripts = Object.entries(lock.packages)
+  const installScripts = (root) =>
+    Object.entries(JSON.parse(read(`${root}package-lock.json`)).packages)
       .filter(([, info]) => info.hasInstallScript)
-      .map(
-        ([entry, info]) =>
-          `${info.name ?? entry.split('node_modules/').at(-1)}@${info.version}`
-      );
-    expect(scripts.length).toBeGreaterThan(0);
-    // An approval names the exact locked version, so a new release of the
-    // package needs a new review; a denial may name the package alone.
-    for (const id of scripts) {
-      const name = id.slice(0, id.lastIndexOf('@'));
-      expect(
-        pkg.allowScripts?.[id] === true || pkg.allowScripts?.[name] === false
-      ).toBe(true);
-    }
-    expect(pkg.allowScripts).toEqual({
-      'electron-winstaller@5.4.0': true,
-      'esbuild@0.25.12': true,
-      'fsevents@2.3.3': true,
+      .map(([entry, info]) => [
+        info.name ?? entry.split('node_modules/').at(-1),
+        info.version,
+      ]);
+
+  for (const [root, expected] of [
+    ['', { 'node-pty': false }],
+    [
+      'examples/universal-app/',
+      {
+        'electron-winstaller@5.4.0': true,
+        'esbuild@0.25.12': true,
+        'fsevents@2.3.3': true,
+      },
+    ],
+  ]) {
+    it(`requires an explicit decision for every install script in ${root || 'the root'} lock, including optional OS packages`, () => {
+      const pkg = JSON.parse(read(`${root}package.json`));
+      const scripts = installScripts(root);
+      expect(scripts.length).toBeGreaterThan(0);
+      // An approval names the exact locked version, so a new release of the
+      // package needs a new review; a denial may name the package alone.
+      for (const [name, version] of scripts) {
+        expect(
+          pkg.allowScripts?.[`${name}@${version}`] === true ||
+            pkg.allowScripts?.[name] === false
+        ).toBe(true);
+      }
+      expect(pkg.allowScripts).toEqual(expected);
     });
+  }
+
+  it('records Deno install-script decisions separately from npm', () => {
+    const { allowScripts } = JSON.parse(read('deno.json'));
+    const npmPolicy = JSON.parse(read('package.json')).allowScripts ?? {};
+    for (const [name, version] of installScripts('')) {
+      const decision = npmPolicy[name] === false ? 'deny' : 'allow';
+      expect(allowScripts?.[decision] ?? []).toContain(
+        `npm:${name}@${version}`
+      );
+    }
   });
 });
 
