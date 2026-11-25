@@ -44,6 +44,64 @@ pub struct Options {
     /// The natural language the comments are written in (detected when
     /// absent).
     pub comment_from: Option<&'static str>,
+    /// Whose layout a partial translation between programming languages
+    /// keeps (see [`crate::layout`]).
+    pub layout: TextLayout,
+}
+
+/// The layout of a translation between programming languages.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum TextLayout {
+    /// The spaces, blank lines, indentation step and line ends of the
+    /// source, where the target has the same tokens (the default).
+    #[default]
+    Source,
+    /// The layout the emitter of the target writes.
+    Target,
+}
+
+impl std::str::FromStr for TextLayout {
+    type Err = String;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        match value {
+            "source" => Ok(Self::Source),
+            "target" => Ok(Self::Target),
+            _ => Err(format!(r#"Unsupported layout "{value}""#)),
+        }
+    }
+}
+
+/// Give a partial translation between programming languages the layout of
+/// its source and the map of its lines.
+fn with_layout(
+    mut result: PartialTranslation,
+    source: &str,
+    from: &str,
+    to: &str,
+    options: Options,
+) -> Result<PartialTranslation, GrammarError> {
+    if natural::is_natural_language(from) || natural::is_natural_language(to) {
+        return Ok(result);
+    }
+    let (from_syntax, to_syntax) = (
+        languages::language_syntax(from)?,
+        languages::language_syntax(to)?,
+    );
+    if from_syntax.machine || to_syntax.machine {
+        return Ok(result);
+    }
+    let layout = crate::layout::transfer_layout(
+        source,
+        &result.text,
+        &crate::layout::Marks::of(&from_syntax),
+        &crate::layout::Marks::of(&to_syntax),
+        options.layout == TextLayout::Source,
+        split_version(to).0,
+    );
+    result.text = layout.text;
+    result.line_map = layout.lines;
+    Ok(result)
 }
 
 impl Options {
@@ -358,24 +416,26 @@ impl Translator {
         } else {
             self.translate_with(source, from, to, options)
         };
-        match whole {
+        let result = match whole {
             Ok(text) => {
                 let lines = source
                     .split('\n')
                     .filter(|line| !line.trim().is_empty())
                     .count();
-                Ok(PartialTranslation {
+                PartialTranslation {
                     text,
+                    line_map: Vec::new(),
                     complete: true,
                     errors: Vec::new(),
                     lines,
                     read_lines: lines,
                     coverage: 1.0,
-                })
+                }
             }
-            Err(error) if machine => Err(error),
-            Err(_) => crate::partial::translate_partial(self, source, from, to, options),
-        }
+            Err(error) if machine => return Err(error),
+            Err(_) => crate::partial::translate_partial(self, source, from, to, options)?,
+        };
+        with_layout(result, source, from, to, options)
     }
 
     /// Rank the languages a text may be written in, likeliest first, and

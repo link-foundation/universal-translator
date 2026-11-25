@@ -82,6 +82,12 @@ function checkRequest(body, { allowRegexRules = false } = {}) {
       throw new Error(`"${key}" must be a string`);
     }
   }
+  if (
+    body.layout !== undefined &&
+    !['source', 'target'].includes(body.layout)
+  ) {
+    throw new Error('"layout" must be one of source, target');
+  }
   const rules = checkRules(body.rules, allowRegexRules);
   return {
     source: body.source,
@@ -95,6 +101,7 @@ function checkRequest(body, { allowRegexRules = false } = {}) {
       commonLibrary: body.commonLibrary === true,
       commentLanguage: body.commentLanguage,
       commentFrom: body.commentFrom,
+      layout: body.layout,
     },
   };
 }
@@ -140,6 +147,7 @@ function runTranslation(
       message,
     })),
     coverage: result.coverage,
+    ...(result.lineMap ? { lineMap: result.lineMap } : {}),
     ...extra,
   };
 }
@@ -148,8 +156,9 @@ function runTranslation(
  * Create an HTTP server with two routes:
  * GET /languages lists the programming and natural languages;
  * POST /translate takes {source, from (or "auto"), to, fragment?, mode?,
- * commonLibrary?, commentLanguage?, commentFrom?, allOrNothing?, rules?} and
- * answers {output, complete, errors, coverage?, detected?} or {error}. The
+ * commonLibrary?, commentLanguage?, commentFrom?, layout?, allOrNothing?,
+ * rules?} and answers {output, complete, errors, coverage?, lineMap?,
+ * detected?} or {error}. lineMap pairs 0-based source and target lines. The
  * rules are Links Notation text (or an object). Rules with regular
  * expressions are refused unless `allowRegexRules` is true.
  */

@@ -53,6 +53,35 @@ describe('translation server', () => {
     });
   });
 
+  it('keeps the layout of the source and maps the lines', async () => {
+    const source = '\nconsole.log( "Hi");\n';
+    await withServer(async (base) => {
+      const kept = await (
+        await post(base, { source, from: 'javascript', to: 'python' })
+      ).json();
+      expect(kept.output).toBe('\nprint( "Hi")\n');
+      expect(kept.lineMap).toEqual([[1, 1]]);
+      const written = await (
+        await post(base, {
+          source,
+          from: 'javascript',
+          to: 'python',
+          layout: 'target',
+        })
+      ).json();
+      expect(written.output).toBe('print("Hi")\n');
+      const wrong = await post(base, {
+        source,
+        from: 'javascript',
+        to: 'python',
+        layout: 'both',
+      });
+      expect((await wrong.json()).error).toBe(
+        '"layout" must be one of source, target'
+      );
+    });
+  });
+
   it('translates only the comments to a comment language', async () => {
     await withServer(async (base) => {
       const response = await post(base, {

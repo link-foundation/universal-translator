@@ -534,7 +534,7 @@ export function transferLayout(source, target, from, to, options = {}) {
   let body = respacedBody(targetSide, targetStart, gaps).split('\n');
   // Blank lines between two target lines that hold the tokens of two
   // source lines with only blank lines between them: as many as the source.
-  const sourceLines = source.split('\n');
+  const sourceLines = source.split('\n').map((line) => line.replace(/\r$/, ''));
   const spans = lineSpans(pairs, sourceSide.tokens, targetSide.tokens);
   const insideSource = insideLines(sourceSide.tokens);
   const insideTarget = insideLines(targetSide.tokens);
@@ -566,9 +566,7 @@ export function transferLayout(source, target, from, to, options = {}) {
         return undefined;
       }
     }
-    return between.every(blankLine)
-      ? between.map((line) => line.replace(/\r$/, ''))
-      : undefined;
+    return between.every(blankLine) ? between : undefined;
   };
   const lines = [];
   const placed = [];

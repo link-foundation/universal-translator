@@ -116,6 +116,8 @@ function completeResult(text, source) {
 // the blank lines around the code of the source (layout 'source', the
 // default) or is written as its emitter lays it out (layout 'target'). Both
 // map the lines of the target to the lines of the source.
+const layouts = ['source', 'target'];
+
 function withLayout(result, source, from, to, options) {
   const programming = (id) =>
     !isNaturalLanguage(id) && !languageSyntax(id).machine;
@@ -152,6 +154,9 @@ function partialTranslator(translate, fragments, partial) {
   }
   return (source, from, to, options = {}) => {
     checkCommentLanguages(options);
+    if (options.layout !== undefined && !layouts.includes(options.layout)) {
+      throw new Error(`Unsupported layout "${options.layout}"`);
+    }
     const result = readAll(source, from, to, options);
     return withLayout(result, source, from, to, options);
   };

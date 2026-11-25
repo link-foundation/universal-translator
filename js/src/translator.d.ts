@@ -12,6 +12,11 @@ export interface TranslationOptions {
   commentFrom?: string;
   /** Translator for one comment text; a dictionary is the default. */
   translateComment?: CommentTranslator;
+  /** Partial translation between programming languages keeps the spaces,
+   * blank lines, indentation step and line ends of the source ('source',
+   * the default) or the layout its emitter writes ('target'); both return
+   * a `lineMap` of [source line, target line] pairs (0-based). */
+  layout?: 'source' | 'target';
 }
 
 export type CommentTranslator = (

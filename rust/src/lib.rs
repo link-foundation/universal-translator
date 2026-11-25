@@ -7,6 +7,7 @@ pub mod custom_rules;
 mod detect;
 pub mod formal;
 pub mod fragments;
+pub mod layout;
 pub mod meta;
 pub mod natural;
 mod partial;
@@ -27,7 +28,7 @@ pub use referents::{
 pub use source_document::SourceDocument;
 pub use translator::{
     Detection, LanguageListing, Options, PartError, PartStatus, PartialReading, PartialTranslation,
-    Translator,
+    TextLayout, Translator,
 };
 
 /// How closely a translation follows the source.

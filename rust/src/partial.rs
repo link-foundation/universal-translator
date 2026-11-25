@@ -98,6 +98,10 @@ pub struct PartialReading {
 #[derive(Clone, Debug, PartialEq)]
 pub struct PartialTranslation {
     pub text: String,
+    /// Pairs of 0-based (source line, target line) that hold the same
+    /// tokens, for programming languages on both sides (see
+    /// [`crate::layout`]); empty otherwise.
+    pub line_map: Vec<(usize, usize)>,
     pub complete: bool,
     pub errors: Vec<PartError>,
     pub lines: usize,
@@ -398,6 +402,7 @@ pub fn translate_partial(
     let errors = errors_of(&reading.parts);
     Ok(PartialTranslation {
         text,
+        line_map: Vec::new(),
         complete: errors.is_empty(),
         errors,
         lines: reading.lines,

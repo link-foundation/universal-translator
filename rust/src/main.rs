@@ -11,7 +11,7 @@ use universal_translator::{
 };
 
 const USAGE: &str = "Usage:
-  universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment] [--all-or-nothing] [--rules <file.lino>] [--comment-language <natural>] [--comment-from <natural>]
+  universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment] [--all-or-nothing] [--rules <file.lino>] [--comment-language <natural>] [--comment-from <natural>] [--layout source|target]
   universal-translator meta <language> [file|-] [--json]
   universal-translator coverage <language> [file|-] [--json]
   universal-translator detect [file|-] [--json]
@@ -41,6 +41,9 @@ The source language may be \"auto\" to detect it.
 --comment-language <natural> translates the comments too (only them when
 <from> is <to>); --comment-from <natural> names the language of the
 comments (detected otherwise).
+--layout source (the default) keeps the spaces and blank lines of the
+source between programming languages; --layout target writes the layout
+of the target.
 <to> may name a version: python@2.
 meta prints the meta program as indented Links Notation; --json prints JSON.
 coverage prints which parts of a text can be read as indented Links
@@ -253,6 +256,7 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
     let mut rules = None;
     let mut comment_language = None;
     let mut comment_from = None;
+    let mut layout = None;
     let mut arguments = arguments.iter().copied();
     // An option with a value takes one value, given once.
     fn value<'a>(
@@ -287,6 +291,12 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
                 comment_language =
                     Some(value(argument, comment_language.is_some(), &mut arguments)?);
             }
+            "--layout" => {
+                layout = Some(
+                    value(argument, layout.is_some(), &mut arguments)?
+                        .parse::<universal_translator::TextLayout>()?,
+                );
+            }
             "--comment-from" => {
                 comment_from = Some(value(argument, comment_from.is_some(), &mut arguments)?);
             }
@@ -305,6 +315,7 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
     let mut options = Options {
         mode: mode.unwrap_or_default(),
         common_library,
+        layout: layout.unwrap_or_default(),
         ..Options::default()
     };
     // --comment-from only matters with --comment-language.

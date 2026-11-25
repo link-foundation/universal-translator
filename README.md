@@ -262,6 +262,32 @@ output:
 
 `POST /translate` takes `rules` as this text or as the object.
 
+### Layout: the source's whitespace, by default
+
+Partial translation (the default of the command line, the server and the
+web demo) keeps the concrete layout of the source wherever the target has
+the same tokens: the spaces inside a line, the step of indentation, the
+blank lines, the blank lines around the code and the line ends. It also
+returns `lineMap`, the 0-based `[source line, target line]` pairs that the
+web demo uses to keep both editors in step. `--layout target` (`layout:
+'target'`) writes the layout of the target's emitter instead:
+
+```bash
+printf '\nconsole.log( "Hello World!");\n\nconsole.log(1+ 2);\n' > hello.js
+universal-translator translate javascript python hello.js
+# (blank line)
+# print( "Hello World!")
+# (blank line)
+# print(1+ 2)
+universal-translator translate javascript python hello.js --layout target
+```
+
+Spaces that would join two tokens (`u "x"`), make a call a grouping
+(`f (x)`), or sit next to `.`, `:` and the like are left as the target
+writes them, and Bash keeps its own spacing. `examples/layout/` holds the
+examples both implementations are checked against; see the
+[issue 14 case study](docs/case-studies/issue-14/README.md).
+
 ### Language versions, comment languages and the meta view
 
 A target may name a version of a language (`python@2`, `english-british`,

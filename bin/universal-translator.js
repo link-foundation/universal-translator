@@ -50,11 +50,13 @@ function usage() {
     'Commands:',
     '  add       Add two numbers',
     '  multiply  Multiply two numbers',
-    '  translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment]  Translate through the meta language',
+    '  translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment] [--layout source|target]  Translate through the meta language',
     '            --common-library prints through common-library/ calls',
     '            --fragment translates statements or functions on their own',
     '            --comment-language <natural> translates the comments too (only them when <from> is <to>)',
     '            --comment-from <natural> names the language of the comments (detected otherwise)',
+    '            --layout source|target keeps the spaces and blank lines of the source',
+    '            (source, the default) or writes the layout of the target',
     '            <to> may name a version: python@2',
     '            Parts that cannot be translated become comments and are listed',
     '            on standard error; --all-or-nothing fails instead',
@@ -152,6 +154,7 @@ const valueOptions = {
   '--mode': 'mode',
   '--comment-language': 'commentLanguage',
   '--comment-from': 'commentFrom',
+  '--layout': 'layout',
 };
 
 // Options without a value, and the translation option each one turns on.
@@ -238,6 +241,7 @@ function translateCommand(
     fragment: options.fragment,
     commentLanguage: options.commentLanguage,
     commentFrom: options.commentFrom,
+    layout: options.layout,
   };
   if (options.allOrNothing) {
     const translation = options.fragment

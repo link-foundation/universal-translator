@@ -12,6 +12,7 @@ include = [
     "/examples/translation/hello.c",
     "/examples/translation/hello.cs",
     "/examples/programs/**",
+    "/examples/layout/**",
     "/examples/rules/**",
     "/README.md",
     "/LICENSE",
@@ -71,3 +72,7 @@ path = "rust/tests/issue_8.rs"
 [[test]]
 name = "issue_12"
 path = "rust/tests/issue_12.rs"
+
+[[test]]
+name = "layout"
+path = "rust/tests/layout.rs"

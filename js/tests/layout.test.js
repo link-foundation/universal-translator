@@ -44,6 +44,9 @@ describe('layout of the source (issue 14)', () => {
     });
     expect(text).toBe('print("Hello World!")\n');
     expect(lineMap).toEqual([[1, 0]]);
+    expect(() =>
+      translatePartial(source, 'javascript', 'python', { layout: 'x' })
+    ).toThrow('Unsupported layout "x"');
   });
 
   it('matches every example under examples/layout', () => {
@@ -135,6 +138,16 @@ describe('layout of the source (issue 14)', () => {
       language: 'c',
     });
     expect(text).toBe('\r\nf(1);\r\n\r\n');
+    const between = transferLayout(
+      'f(1);\r\n\r\nf(2);\r\n',
+      'f(1);\nf(2);\n',
+      c,
+      c,
+      {
+        language: 'c',
+      }
+    );
+    expect(between.text).toBe('f(1);\r\n\r\nf(2);\r\n');
   });
 
   it('indents in the steps of the source', () => {
