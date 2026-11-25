@@ -461,8 +461,17 @@ jobs:
       - name: Check Rust formatting
         run: cargo fmt --check
 
+      # -D warnings covers rustc and Clippy lints; the wrapper also fails on
+      # Cargo's own warnings, such as an unused manifest key.
       - name: Lint Rust
-        run: cargo clippy --locked --all-targets -- -D warnings
+        run: bash scripts/check-cargo-warnings.sh cargo clippy --locked --all-targets -- -D warnings
+
+      # rustdoc lints such as broken intra-doc links are not reported by
+      # Clippy or the tests.
+      - name: Check Rust documentation
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: cargo doc --locked --no-deps
 
       - name: Test Rust
         run: bash scripts/run-with-budget-warning.sh 540 "Rust test suite" cargo test --locked

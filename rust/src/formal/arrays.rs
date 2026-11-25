@@ -11,7 +11,8 @@ use crate::meta::{Node, block, essence, name, number, rewrite, walk};
 
 /// `index + delta` with the constants folded, so that adding 1 for a
 /// language that counts from 1 and subtracting it again gives back the
-/// original index: a[i] <-> a[i + 1], a[i + 1] <-> a[i + 2], a[i - 1] <-> a[i].
+/// original index: `a[i] <-> a[i + 1]`, `a[i + 1] <-> a[i + 2]`,
+/// `a[i - 1] <-> a[i]`.
 pub fn offset(expression: Node, delta: i64) -> Node {
     if delta == 0 {
         return expression;
