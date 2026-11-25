@@ -1,7 +1,8 @@
 // Verbose output for finding out what the demo does, off by default: open
 // the page with "?debug" (or set localStorage "universal-translator.debug"
-// to "1") and every translation, detection, highlighting, skin and editor
-// step is written to the console with its timing.
+// to "1") and every translation (with its timing), the words the
+// highlighter took from the meta program, the settings applied and Monaco's
+// loading and skin colours are written to the console.
 
 const enabled = (() => {
   try {
