@@ -21,7 +21,12 @@ const signatures = {
     /\b(?:let|const)\s+\w+\s*:\s*\w+/u,
     /\):\s*(?:number|string|void)\b/u,
   ],
-  python: [/^\s*def\s+\w+\(.*\)\s*:/mu, /^\s*(?:elif|pass)\b/mu, /\bprint\(/u],
+  python: [
+    /^\s*(?:with|for|while|if)\b[^{]*:\s*$/mu,
+    /^\s*def\s+\w+\(.*\)\s*:/mu,
+    /^\s*(?:elif|pass)\b/mu,
+    /\bprint\(/u,
+  ],
   ruby: [/^\s*puts\b/mu, /^\s*def\s+\w+(?:\(.*\))?\s*$/mu, /\.each\b/u],
   lua: [/^\s*local\s+\w+/mu, /\bthen\s*$/mu, /~=/u],
   php: [/<\?php/u, /\$\w+\s*=/u, /\becho\b/u],
@@ -155,11 +160,17 @@ export function createLanguageDetector({ parseFragment, parsePartial }) {
       candidate.reads = candidate.evidence > -1 && reads(source, candidate.id);
       candidate.coverage = candidate.reads ? 1 : 0;
     }
-    // Read the best of the rest partially.
-    const unread = candidates
-      .filter((candidate) => !candidate.reads && candidate.evidence > 0)
-      .sort((a, b) => b.evidence - a.evidence)
-      .slice(0, limit);
+    // Read the best of the rest partially: the likeliest programming and
+    // natural languages by evidence, so a text no grammar reads whole still
+    // finds its language.
+    const best = (natural) =>
+      candidates
+        .filter(
+          (candidate) => candidate.natural === natural && !candidate.reads
+        )
+        .sort((a, b) => b.evidence - a.evidence)
+        .slice(0, limit);
+    const unread = [...best(false), ...best(true)];
     for (const candidate of unread) {
       try {
         candidate.coverage = parsePartial(source, candidate.id).coverage;

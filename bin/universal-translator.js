@@ -53,6 +53,7 @@ function usage() {
     '            Parts that cannot be translated become comments and are listed',
     '            on standard error; --all-or-nothing fails instead',
     '            The source language may be "auto" to detect it',
+    '            --rules <file.json> adds source, templates, names and output rules',
     '  translate-program <from|cst> <to> [file|-]  Translate a checked JavaScript or Rust program',
     '  meta <language> [file|-]  Print the typed meta program as JSON',
     '  coverage <language> [file|-]  Print which parts of a text can be read, as JSON',
@@ -117,6 +118,12 @@ function translationArguments(args) {
       options.fragment = true;
     } else if (argument === '--all-or-nothing') {
       options.allOrNothing = true;
+    } else if (argument === '--rules') {
+      const value = args[++index];
+      if (!value || options.rules !== undefined) {
+        throw new Error('Expected a single rules file for --rules');
+      }
+      options.rules = JSON.parse(readFileSync(value, 'utf8'));
     } else if (argument === '--mode') {
       const key = argument.slice(2);
       const value = args[++index];
@@ -214,13 +221,14 @@ function runTranslation(command, args, read, write, stderr) {
   const [from, to, ...trailing] = args;
   const { file, options } =
     command === 'translate' ? translationArguments(trailing) : {};
-  const translator = createTranslator(
+  const translator = createTranslator({
     // --trace reports every pipeline stage as JSON, so a translation can
     // be followed rule layer by rule layer.
-    options?.trace
+    ...(options?.trace
       ? { trace: (stage, tree) => stderr(`[${stage}] ${JSON.stringify(tree)}`) }
-      : {}
-  );
+      : {}),
+    rules: options?.rules ?? {},
+  });
   if (command === 'languages' && args.length === 0) {
     write(languageList(translator));
   } else if (command === 'check-words' && from && args.length <= 2) {

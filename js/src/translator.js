@@ -31,6 +31,7 @@ import { writeNatural } from './natural/writer.js';
 import { createFragmentTranslator } from './translation/fragments.js';
 import { createPartialTranslator } from './translation/partial.js';
 import { createLanguageDetector } from './translation/detect.js';
+import { compileCustomRules } from './translation/custom-rules.js';
 
 const readMachine = (source, from) => machineReaders[from](source);
 
@@ -39,23 +40,32 @@ const modes = ['context-dependent', 'literal', 'same-effect'];
 const applyRules = (tree, rules, context) =>
   rules.reduce((current, rule) => rule(current, context), tree);
 
-export function createGrammarTranslator({
-  parse = parseProgram,
-  understanding = understandingRules,
-  infer = inferTypes,
-  meaning = meaningRules,
-  context = contextRules,
-  layers = [],
-  emit = emitProgram,
-  emitMachineCode = emitMachine,
-  lift = liftProgram,
-  trace = () => {},
-} = {}) {
-  function toMeta(source, from) {
+export function createGrammarTranslator(settings = {}) {
+  const {
+    parse = parseProgram,
+    understanding = understandingRules,
+    infer = inferTypes,
+    meaning = meaningRules,
+    context = contextRules,
+    layers = [],
+    emit = emitProgram,
+    emitMachineCode = emitMachine,
+    lift = liftProgram,
+    trace = () => {},
+    rules = {},
+  } = settings;
+  // Rules given as data (see translation/custom-rules.js).
+  const custom = compileCustomRules(rules);
+  const metaLayers = [...layers, ...custom.layers];
+
+  function toMeta(text, from) {
+    const source = custom.source(text, from);
     if (isNaturalLanguage(from)) {
       // A controlled natural language is read sentence by sentence straight
       // into the meta language; it has no source details to understand.
-      const read = inferMutability(readNatural(source, from));
+      const read = inferMutability(
+        readNatural(source, from, custom.naturalLanguage(from))
+      );
       trace('read', read);
       const typed = applyRules(infer(read), meaning, {});
       trace('typed', typed);
@@ -107,7 +117,9 @@ export function createGrammarTranslator({
     // Custom layers are meta -> meta transformations, so they see the target
     // independent program; context rules then adapt it to the target.
     // The common library route is one more meta layer, run last.
-    const allLayers = commonLibrary ? [...layers, [useCommonLibrary]] : layers;
+    const allLayers = commonLibrary
+      ? [...metaLayers, [useCommonLibrary]]
+      : metaLayers;
     const transformed = allLayers.reduce(
       (current, layer) => applyRules(current, layer, settings),
       meta
@@ -122,7 +134,10 @@ export function createGrammarTranslator({
   }
 
   // Write an adapted program in a language, a machine target or words.
-  function write(adapted, to) {
+  const write = (adapted, to) => custom.output(writeTarget(adapted, to), to);
+  const emitText = (adapted, to) => custom.output(emit(adapted, to), to);
+
+  function writeTarget(adapted, to) {
     if (isNaturalLanguage(to)) {
       return writeNatural(adapted, to);
     }
@@ -135,7 +150,12 @@ export function createGrammarTranslator({
     return write(adapt(meta, to, options), to);
   }
 
-  const fragments = createFragmentTranslator({ toMeta, adapt, write, emit });
+  const fragments = createFragmentTranslator({
+    toMeta,
+    adapt,
+    write,
+    emit: emitText,
+  });
   const partial = createPartialTranslator(fragments);
 
   const translate = (source, from, to, options = {}) =>
@@ -182,6 +202,9 @@ export function createGrammarTranslator({
     translate,
     translatePartial,
     parsePartial: partial.parsePartial,
+    // The same translator with other data rules.
+    withRules: (other) =>
+      createGrammarTranslator({ ...settings, rules: other }),
     detectLanguage: createLanguageDetector({
       parseFragment: fragments.parseFragment,
       parsePartial: partial.parsePartial,
