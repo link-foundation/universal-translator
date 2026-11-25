@@ -8,6 +8,7 @@ import {
   checkText,
   createProgramTranslator,
   createSourceSyntaxCodec,
+  createTranslationServer,
   createTranslator,
   multiply,
   readSourceDocument,
@@ -47,6 +48,7 @@ function usage() {
     '  decode-cst [file|-]  Restore source from a Meta Language CST',
     '  languages  List language identifiers (programming, then controlled natural)',
     '  check-words <natural> [file|-]  Check text against the rules of a controlled language',
+    '  serve [--port <port>]  Serve GET /languages and POST /translate as JSON (default port 8080)',
     '',
     'A language may be a controlled natural language (english, russian,',
     'english-asd-ste100, minimal-english, ...): translate reads and writes',
@@ -161,6 +163,32 @@ function runTranslation(command, args, read, write, stderr) {
   }
 }
 
+function servePort(args) {
+  if (args.length === 0) {
+    return 8080;
+  }
+  const [flag, value] = args;
+  const port = Number(value);
+  if (
+    flag !== '--port' ||
+    args.length !== 2 ||
+    !Number.isInteger(port) ||
+    port < 0 ||
+    port > 65535
+  ) {
+    throw new Error('Usage: universal-translator serve [--port <port>]');
+  }
+  return port;
+}
+
+function startServer(port, stdout) {
+  const server = createTranslationServer();
+  server.listen(port, () => {
+    stdout(`Listening on http://localhost:${server.address().port}`);
+  });
+  return server;
+}
+
 function runGrammarCommand(command, args, read, write, grammarEngine) {
   if (!grammarEngine) {
     throw new Error(GRAMMAR_ENGINE);
@@ -205,6 +233,19 @@ function runSourceCommand(
   }
 }
 
+function runArithmetic(command, left, right, { stdout, stderr }) {
+  if (!Object.hasOwn(COMMANDS, command)) {
+    stderr(`Unknown command: ${command}`);
+    stderr(usage());
+    return 1;
+  }
+  const operation = COMMANDS[command];
+  const leftNumber = parseNumber(left, 'left');
+  const rightNumber = parseNumber(right, 'right');
+  stdout(String(operation(leftNumber, rightNumber)));
+  return 0;
+}
+
 export function runCli(
   argv,
   {
@@ -213,6 +254,7 @@ export function runCli(
     read = readSource,
     write = stdout,
     grammarEngine,
+    serve = startServer,
   } = {}
 ) {
   const [command, left, right] = argv;
@@ -228,6 +270,10 @@ export function runCli(
   }
 
   try {
+    if (command === 'serve') {
+      serve(servePort(argv.slice(1)), stdout);
+      return 0;
+    }
     if (SOURCE_COMMANDS.includes(command)) {
       runSourceCommand(command, argv.slice(1), {
         read,
@@ -237,16 +283,7 @@ export function runCli(
       });
       return 0;
     }
-    if (!Object.hasOwn(COMMANDS, command)) {
-      stderr(`Unknown command: ${command}`);
-      stderr(usage());
-      return 1;
-    }
-    const operation = COMMANDS[command];
-    const leftNumber = parseNumber(left, 'left');
-    const rightNumber = parseNumber(right, 'right');
-    stdout(String(operation(leftNumber, rightNumber)));
-    return 0;
+    return runArithmetic(command, left, right, { stdout, stderr });
   } catch (error) {
     stderr(error.message);
     return 1;

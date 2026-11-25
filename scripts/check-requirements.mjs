@@ -204,7 +204,10 @@ const checks = {
     mentionsAll('js/src/index.js', ['createTranslationServer']) ??
     mentionsAll('bin/universal-translator.js', ['serve']) ??
     mentionsAll('Dockerfile', ['universal-translator']) ??
-    mentionsAll('.github/workflows/release.yml', ['docker build']),
+    mentionsAll('.github/workflows/release.yml', [
+      'docker/build-push-action',
+      'docker run',
+    ]),
   'best-practices': () => {
     const review = 'docs/case-studies/issue-1/best-practices.md';
     const missing = mentionsAll(review, [

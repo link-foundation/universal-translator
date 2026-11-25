@@ -115,9 +115,9 @@ requirements:
   cli-library-api-docker:
     text: 'Extensible CLI, library, HTTP API and Docker image'
     from: 'PR 5 review'
-    status: pending
+    status: done
     check: cli-library-api-docker
-    evidence: bin/universal-translator.js js/src/index.js rust/src/lib.rs Dockerfile
+    evidence: bin/universal-translator.js js/src/index.js js/src/server.js js/tests/server.test.js rust/src/lib.rs Dockerfile .github/workflows/release.yml
   best-practices:
     text: 'Use the associative technology stack, the code architecture principles and the CI/CD best practices'
     from: 'PR 5 review'

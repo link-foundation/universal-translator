@@ -119,6 +119,34 @@ of them is neither done nor reported as blocked.
 See the [runnable examples](examples/translation/README.md) and the
 [issue 1 case study](docs/case-studies/issue-1/README.md).
 
+## Library, CLI, HTTP API and Docker
+
+The same translator is available four ways:
+
+```js
+import {
+  createTranslator,
+  createTranslationServer,
+} from '@link-foundation/universal-translator';
+
+createTranslator().translate('console.log("Hi");', 'javascript', 'python');
+createTranslationServer().listen(8080); // GET /languages, POST /translate
+```
+
+```bash
+universal-translator translate javascript python app.js
+universal-translator serve --port 8080
+curl -d '{"source":"console.log(\"Hi\");","from":"javascript","to":"rust"}' \
+  -H 'content-type: application/json' http://localhost:8080/translate
+docker build -t universal-translator .
+docker run --rm -p 8080:8080 universal-translator          # the HTTP API
+docker run --rm -i universal-translator translate javascript go - < app.js
+```
+
+`POST /translate` takes `{source, from, to, fragment?, mode?, commonLibrary?}`
+and answers `{output}` or `{error}` with status 400. Pull requests build the
+image and smoke test both the CLI and the API inside it.
+
 ## Features
 
 - **Multi-runtime support**: Works with Bun, Node.js, and Deno

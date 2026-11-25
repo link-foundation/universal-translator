@@ -90,3 +90,13 @@ export declare function useCommonLibrary<T>(program: T): T;
 export declare const recognizeCommonLibrary: Rule;
 export declare const spellCommonLibrary: Rule;
 export * as commonLibrary from './common-library.mjs';
+
+export interface TranslationServerOptions {
+  translator?: import('./translator.js').GrammarTranslator;
+}
+
+/** HTTP API: GET /languages and POST /translate
+ * {source, from, to, fragment?, mode?, commonLibrary?} → {output} | {error}. */
+export declare function createTranslationServer(
+  options?: TranslationServerOptions
+): import('node:http').Server;

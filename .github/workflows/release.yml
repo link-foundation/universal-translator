@@ -675,6 +675,25 @@ jobs:
           cache-from: type=gha,scope=docker-image
           cache-to: type=gha,mode=max,scope=docker-image
 
+      - name: Smoke test the Docker image
+        if: steps.docker_config.outputs.enabled == 'true'
+        timeout-minutes: 5
+        run: |
+          # The image must translate through its CLI and answer over HTTP.
+          echo 'console.log("Hi");' |
+            docker run --rm -i "pr-check:${{ github.sha }}" translate javascript python - |
+            grep -F 'print("Hi")'
+          docker run -d --name api -p 8080:8080 "pr-check:${{ github.sha }}"
+          for attempt in $(seq 1 30); do
+            curl -fsS http://localhost:8080/languages > /tmp/languages.json && break
+            sleep 1
+          done
+          grep -F '"python"' /tmp/languages.json
+          curl -fsS -H 'content-type: application/json' \
+            -d '{"source":"console.log(\"Hi\");","from":"javascript","to":"rust"}' \
+            http://localhost:8080/translate | grep -F 'println!'
+          docker rm -f api
+
   # === DOCUMENTATION VALIDATION ===
   # Validate documentation files when docs change (hive-mind principle #12)
   validate-docs:

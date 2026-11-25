@@ -75,3 +75,4 @@ export {
   readSourceDocument,
   writeSourceDocument,
 } from './translation/source-document.js';
+export { createTranslationServer } from './server.js';
