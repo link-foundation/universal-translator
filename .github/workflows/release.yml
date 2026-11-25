@@ -264,6 +264,8 @@ jobs:
           git status --short
 
       - name: Run ESLint
+        env:
+          LINT_ALL_WARNINGS: ${{ github.event_name != 'pull_request' && '1' || '0' }}
         run: npm run lint
 
       - name: Check formatting
