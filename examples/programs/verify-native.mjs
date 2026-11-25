@@ -372,22 +372,20 @@ const runners = {
         cwd: dirname(file),
       }),
   },
-  // ZIG names the Zig compiler when it is not on PATH. Each run keeps its
-  // compiler cache in its own folder; @import finds the common library
-  // beside the program.
+  // ZIG names the Zig compiler when it is not on PATH. The programs of a
+  // shard share one global cache, so its runtime support is built once;
+  // @import finds the common library beside the program.
   zig: {
     tool: zig,
-    run: (file) => {
-      const cache = join(dirname(file), 'zig-cache');
-      return run(zig, [
+    run: (file) =>
+      run(zig, [
         'run',
         file,
         '--cache-dir',
-        cache,
+        join(dirname(file), 'zig-cache'),
         '--global-cache-dir',
-        cache,
-      ]);
-    },
+        join(dirname(dirname(file)), 'zig-global-cache'),
+      ]),
   },
   nasm: {
     tool: 'nasm',

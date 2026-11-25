@@ -467,9 +467,9 @@ jobs:
   native-translation:
     name: Native translation
     runs-on: ubuntu-24.04
-    # Typical run: about 15 minutes, mostly the Kotlin, Swift, Scala and .NET
-    # compilers. 50min bounds a stalled toolchain download.
-    timeout-minutes: 50
+    # Typical run: about 15 minutes, mostly the Kotlin, Swift, Scala, .NET
+    # and Zig compilers. 60min bounds a stalled toolchain download.
+    timeout-minutes: 60
     concurrency:
       group: check-${{ github.workflow }}-${{ github.ref }}-native-translation
       cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
@@ -514,8 +514,8 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Install native tools
-        # Free Pascal and GNAT are the largest packages.
-        timeout-minutes: 6
+        # Free Pascal, GNAT and Octave are the largest packages.
+        timeout-minutes: 7
         run: |
           # Use Ubuntu's primary archives to avoid stalled runner mirrors.
           apt_sources="$RUNNER_TEMP/native-tools.list"
@@ -528,7 +528,7 @@ jobs:
             -o "Dir::Etc::sourcelist=$apt_sources" -o 'Dir::Etc::sourceparts=-'
             -o Acquire::Retries=2 -o Acquire::https::Timeout=20
           )
-          packages=(lua5.4 nasm php-cli ruby jasmin-sable perl r-base-core gobjc gdc nim fp-compiler gnat gfortran)
+          packages=(lua5.4 nasm php-cli ruby jasmin-sable perl r-base-core gobjc gdc nim fp-compiler gnat gfortran octave)
           sudo apt-get "${apt_options[@]}" update --error-on=any
           sudo apt-get "${apt_options[@]}" install --yes --no-install-recommends "${packages[@]}"
           # ILAsm ships as a NuGet package for each runtime identifier.
@@ -539,17 +539,18 @@ jobs:
           chmod +x "$RUNNER_TEMP/ilasm/runtimes/linux-x64/native/ilasm"
           echo "ILASM=$RUNNER_TEMP/ilasm/runtimes/linux-x64/native/ilasm" >> "$GITHUB_ENV"
 
-      - name: Cache Dart, Julia, Scala and Groovy archives
+      - name: Cache Dart, Julia, Scala, Groovy and Zig archives
         uses: actions/cache@v4
         with:
           path: ${{ runner.temp }}/tools-archives
-          key: native-tools-dart3.6.0-julia1.11.2-scala3.3.4-groovy4.0.24
+          key: native-tools-dart3.6.0-julia1.11.2-scala3.3.4-groovy4.0.24-zig0.17.1
 
-      - name: Install Dart, Julia, Scala and Groovy
-        timeout-minutes: 3
+      - name: Install Dart, Julia, Scala, Groovy and Zig
+        timeout-minutes: 4
         run: |
           # Pinned official archives, checked against their SHA-256 sums.
-          # Noble's scala (2.11) and groovy (2.4) predate the runner's JDK.
+          # Noble's scala (2.11) and groovy (2.4) predate the runner's JDK,
+          # and Noble has no Zig package.
           # Archives are cached between runs, and every download falls back
           # to a mirror, because hosts such as Maven Central answer HTTP 429
           # to GitHub runners from time to time.
@@ -584,32 +585,36 @@ jobs:
           fetch "https://repo1.maven.org/maven2/org/apache/groovy/groovy-binary/4.0.24/groovy-binary-4.0.24.zip
             https://maven-central.storage-download.googleapis.com/maven2/org/apache/groovy/groovy-binary/4.0.24/groovy-binary-4.0.24.zip" \
             groovy.zip dbff36835568bec2271876f70bfcca6deb80e1b179453cca934a502ea301bb80
+          fetch https://ziglang.org/download/0.17.1/zig-x86_64-linux-0.17.1.tar.xz \
+            zig.tar.xz 3581863e3cbcfd0fce0efc682ce7e9e93da96668a977791d356a26d2a7e9b17a
           unzip -q "$tools/dart.zip" -d "$tools"
           unzip -q "$tools/groovy.zip" -d "$tools"
           tar -xzf "$tools/julia.tar.gz" -C "$tools"
           tar -xzf "$tools/scala.tar.gz" -C "$tools"
+          tar -xJf "$tools/zig.tar.xz" -C "$tools"
           echo "GROOVY_HOME=$tools/groovy-4.0.24" >> "$GITHUB_ENV"
           {
             echo "$tools/dart-sdk/bin"
             echo "$tools/julia-1.11.2/bin"
             echo "$tools/scala3-3.3.4/bin"
             echo "$tools/groovy-4.0.24/bin"
+            echo "$tools/zig-x86_64-linux-0.17.1"
           } >> "$GITHUB_PATH"
 
       - name: Run every translation with its native toolchain
+        timeout-minutes: 8
+        env:
+          LUA: lua5.4
+        run: |
+          bash scripts/run-with-budget-warning.sh 420 "Native translations" \
+            node examples/programs/verify-native.mjs --require-all
+
+      - name: Run every common library translation with its native toolchain
         timeout-minutes: 7
         env:
           LUA: lua5.4
         run: |
-          bash scripts/run-with-budget-warning.sh 360 "Native translations" \
-            node examples/programs/verify-native.mjs --require-all
-
-      - name: Run every common library translation with its native toolchain
-        timeout-minutes: 6
-        env:
-          LUA: lua5.4
-        run: |
-          bash scripts/run-with-budget-warning.sh 300 "Common library translations" \
+          bash scripts/run-with-budget-warning.sh 360 "Common library translations" \
             node examples/programs/verify-native.mjs --require-all --common-library
 
   # === DOCKER IMAGE BUILD CHECK (pull requests) ===
