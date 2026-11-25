@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { readFileSync, realpathSync } from 'node:fs';
+import { readFileSync, readSync, realpathSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL, URL } from 'node:url';
 
 import { makeConfig } from 'lino-arguments';
@@ -104,8 +104,40 @@ function parseNumber(value, label) {
   return parsed;
 }
 
+// Standard input read to its end. A pipe may be non-blocking, so a read
+// can fail with EAGAIN before the writer has written: wait a little and
+// read again (readFileSync(0) gives up there).
+export function readStandardInput(read = readSync) {
+  const chunks = [];
+  const buffer = Buffer.alloc(1 << 16);
+  const pause = new Int32Array(new SharedArrayBuffer(4));
+  for (;;) {
+    let count;
+    try {
+      count = read(0, buffer, 0, buffer.length, null);
+    } catch (error) {
+      if (error.code === 'EAGAIN') {
+        Atomics.wait(pause, 0, 0, 10);
+        continue;
+      }
+      if (error.code === 'EOF') {
+        break;
+      }
+      throw error;
+    }
+    if (count === 0) {
+      break;
+    }
+    chunks.push(Buffer.from(buffer.subarray(0, count)));
+  }
+  return Buffer.concat(chunks);
+}
+
 function readSource(file) {
-  const input = readFileSync(file === '-' || file === undefined ? 0 : file);
+  const input =
+    file === '-' || file === undefined
+      ? readStandardInput()
+      : readFileSync(file);
   return new globalThis.TextDecoder('utf-8', {
     fatal: true,
     ignoreBOM: true,
@@ -439,6 +471,14 @@ function isCliEntryPoint() {
 }
 
 if (isCliEntryPoint()) {
+  // A reader that stops early (`| head`) closes the pipe: stop quietly, as
+  // other command line tools do.
+  process.stdout.on('error', (error) => {
+    if (error.code === 'EPIPE') {
+      process.exit(process.exitCode ?? 0);
+    }
+    throw error;
+  });
   try {
     const moduleFile = process.env.UNIVERSAL_TRANSLATOR_META_LANGUAGE;
     const grammarEngine =
