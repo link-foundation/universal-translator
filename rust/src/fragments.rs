@@ -594,17 +594,22 @@ fn with_fields(adapted: &Node, functions: Vec<Node>, main: Vec<Node>) -> Node {
 
 /// The lines before the start marker of the same program without its
 /// statements.
-fn empty_lines(shape: &Node, to: &str) -> Result<Vec<String>, GrammarError> {
+fn empty_lines(
+    translator: &Translator,
+    shape: &Node,
+    to: &str,
+) -> Result<Vec<String>, GrammarError> {
     let empty = shape
         .clone()
         .with("main", block(vec![comment(START_MARKER)]));
-    let lines = source_lines(&emitter::emit_program(&empty, to)?);
+    let lines = source_lines(&translator.emit_text(&empty, to)?);
     let start = marker_line(&lines, START_MARKER).unwrap_or(0);
     Ok(lines[..start].to_vec())
 }
 
 /// The adapted fragment written in the target, between marker comments.
 fn write_between_markers(
+    translator: &Translator,
     adapted: &Node,
     kind: FragmentKind,
     to: &str,
@@ -636,7 +641,7 @@ fn write_between_markers(
         written.push(closing_function(vec![END_MARKER.to_owned()]));
         with_fields(adapted, written, Vec::new())
     };
-    let lines = source_lines(&emitter::emit_program(&shape, to)?);
+    let lines = source_lines(&translator.emit_text(&shape, to)?);
     let (Some(start), Some(end)) = (
         marker_line(&lines, START_MARKER),
         marker_line(&lines, END_MARKER),
@@ -661,7 +666,11 @@ fn write_between_markers(
                     .collect()
             })
             .unwrap_or_default();
-        declaration_lines(&lines[..start], &empty_lines(&shape, to)?, &declared)
+        declaration_lines(
+            &lines[..start],
+            &empty_lines(translator, &shape, to)?,
+            &declared,
+        )
     } else {
         // Languages that read from top to bottom announce a function called
         // before its definition; the announcements belong to the fragment.
@@ -708,5 +717,30 @@ pub fn translate_fragment(
             "Machine targets hold whole programs only, not {kind} on their own ({to})"
         )));
     }
-    write_between_markers(&adapted, kind, to)
+    write_between_markers(translator, &adapted, kind, to)
+}
+
+/// Comments that stand on their own as statements of the target (notes in
+/// a natural language). Partial translation marks what it cannot translate
+/// with them. The texts are kept as written (literal mode).
+pub fn write_notes(
+    translator: &Translator,
+    texts: &[String],
+    to: &str,
+) -> Result<String, GrammarError> {
+    // A comment must not close a block comment early.
+    let notes = texts
+        .iter()
+        .map(|text| comment(&text.replace("*/", "* /")))
+        .collect();
+    let meta = program(Vec::new(), notes, Vec::new());
+    let options = Options {
+        mode: crate::Mode::Literal,
+        ..Options::default()
+    };
+    let adapted = translator.adapt(&meta, to, Some(to), options)?;
+    if natural::is_natural_language(to) || is_machine_target(to) {
+        return translator.write(&adapted, to);
+    }
+    write_between_markers(translator, &adapted, FragmentKind::Statements, to)
 }

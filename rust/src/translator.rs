@@ -23,8 +23,11 @@ use crate::meta::{self, GrammarError, Node, Rule, Settings, Trace, apply_rules, 
 use crate::natural;
 use std::sync::Arc;
 
+use crate::custom_rules::CustomRules;
+pub use crate::detect::Detection;
 use crate::fragments;
 pub use crate::fragments::{Fragment, FragmentKind};
+pub use crate::partial::{PartError, PartStatus, PartialReading, PartialTranslation};
 
 /// How a translation is written.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -43,6 +46,8 @@ pub struct Translator {
     /// Custom meta-to-meta layers that run before the context rules.
     pub layers: Vec<Vec<Rule>>,
     pub trace: Option<Trace>,
+    /// Rules given as data (see [`crate::custom_rules`]).
+    pub rules: Arc<CustomRules>,
 }
 
 impl Default for Translator {
@@ -53,6 +58,7 @@ impl Default for Translator {
             context: rules::context_rules(),
             layers: Vec::new(),
             trace: None,
+            rules: Arc::default(),
         }
     }
 }
@@ -75,6 +81,12 @@ impl Translator {
         self
     }
 
+    /// The same translator with other data rules.
+    pub fn with_rules(mut self, rules: CustomRules) -> Self {
+        self.rules = Arc::new(rules);
+        self
+    }
+
     fn report(&self, stage: &str, tree: &Node) {
         if let Some(trace) = &self.trace {
             trace(stage, tree);
@@ -82,12 +94,17 @@ impl Translator {
     }
 
     /// Read a source text into a typed meta program.
-    pub fn to_meta(&self, source: &str, from: &str) -> Result<Node, GrammarError> {
+    pub fn to_meta(&self, text: &str, from: &str) -> Result<Node, GrammarError> {
+        let source = &self.rules.source(text, from);
         if natural::is_natural_language(from) {
             // A controlled natural language is read sentence by sentence
             // straight into the meta language; it has no source details to
             // understand.
-            let read = natural::read_natural(source, from).map_err(GrammarError::new)?;
+            let read = match self.rules.natural_language(from) {
+                Some(language) => natural::read_natural_with(source, language),
+                None => natural::read_natural(source, from),
+            }
+            .map_err(GrammarError::new)?;
             let read = rules::infer_mutability(read);
             self.report("read", &read);
             let settings = Settings {
@@ -190,9 +207,13 @@ impl Translator {
         };
         // Custom layers are meta -> meta transformations, so they see the
         // target independent program; context rules then adapt it.
-        let mut transformed = self.layers.iter().fold(meta.clone(), |current, layer| {
-            apply_rules(current, layer, &settings)
-        });
+        let mut transformed = self
+            .layers
+            .iter()
+            .chain(&self.rules.layers())
+            .fold(meta.clone(), |current, layer| {
+                apply_rules(current, layer, &settings)
+            });
         // The common library route is one more meta layer, run last.
         if options.common_library {
             transformed = common_library::use_common_library(transformed)?;
@@ -208,14 +229,75 @@ impl Translator {
 
     /// Write an adapted program in a language, a machine target or words.
     pub fn write(&self, adapted: &Node, to: &str) -> Result<String, GrammarError> {
-        if natural::is_natural_language(to) {
-            return natural::write_natural(adapted, to).map_err(GrammarError::new);
-        }
-        if languages::language_syntax(to)?.machine {
-            machine::emit_machine(adapted, to)
+        let written = if natural::is_natural_language(to) {
+            natural::write_natural(adapted, to).map_err(GrammarError::new)?
+        } else if languages::language_syntax(to)?.machine {
+            machine::emit_machine(adapted, to)?
         } else {
-            emitter::emit_program(adapted, to)
+            emitter::emit_program(adapted, to)?
+        };
+        Ok(self.rules.output(&written, to))
+    }
+
+    /// Emit an adapted program in a programming language, with the output
+    /// rules.
+    pub fn emit_text(&self, adapted: &Node, to: &str) -> Result<String, GrammarError> {
+        Ok(self.rules.output(&emitter::emit_program(adapted, to)?, to))
+    }
+
+    /// Comments that stand on their own as statements of the target.
+    pub fn write_notes(&self, texts: &[String], to: &str) -> Result<String, GrammarError> {
+        fragments::write_notes(self, texts, to)
+    }
+
+    /// Read as much of a text as the grammar covers.
+    pub fn parse_partial(&self, source: &str, from: &str) -> Result<PartialReading, GrammarError> {
+        crate::partial::parse_partial(self, source, from)
+    }
+
+    /// Translate every part that can be translated and mark the rest as
+    /// comments of the target. `fragment` reads the whole text as a
+    /// fragment first. Machine code is read and written as whole programs
+    /// only.
+    pub fn translate_partial(
+        &self,
+        source: &str,
+        from: &str,
+        to: &str,
+        options: Options,
+        fragment: bool,
+    ) -> Result<PartialTranslation, GrammarError> {
+        let machine = machine_target_ids().contains(&to)
+            || (!natural::is_natural_language(from) && languages::language_syntax(from)?.machine);
+        let whole = if fragment {
+            self.translate_fragment(source, from, to, options)
+        } else {
+            self.translate_with(source, from, to, options)
+        };
+        match whole {
+            Ok(text) => {
+                let lines = source
+                    .split('\n')
+                    .filter(|line| !line.trim().is_empty())
+                    .count();
+                Ok(PartialTranslation {
+                    text,
+                    complete: true,
+                    errors: Vec::new(),
+                    lines,
+                    read_lines: lines,
+                    coverage: 1.0,
+                })
+            }
+            Err(error) if machine => Err(error),
+            Err(_) => crate::partial::translate_partial(self, source, from, to, options),
         }
+    }
+
+    /// Rank the languages a text may be written in, likeliest first, and
+    /// keep the best `limit` partial reads (5 by default in JavaScript).
+    pub fn detect_language(&self, source: &str, limit: usize) -> Vec<Detection> {
+        crate::detect::detect_language(self, source, limit)
     }
 
     /// Read a complete fragment: a whole program, function definitions or

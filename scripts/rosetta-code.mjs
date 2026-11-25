@@ -359,9 +359,12 @@ async function coverage({ cache, out, limit, maxLines, verbose }) {
   }
   const summary = summarize(results);
   mkdirSync(out, { recursive: true });
+  // One task per line keeps the file small and its diffs readable.
   writeFileSync(
     join(out, 'coverage.json'),
-    `${JSON.stringify({ summary, tasks: results }, null, 1)}\n`
+    `{"summary": ${JSON.stringify(summary)},\n"tasks": [\n${results
+      .map((result) => JSON.stringify(result))
+      .join(',\n')}\n]}\n`
   );
   writeFileSync(join(out, 'README.md'), markdownReport(summary, results));
   console.error(
@@ -372,7 +375,7 @@ async function coverage({ cache, out, limit, maxLines, verbose }) {
 function options(argv) {
   const result = {
     cache: '.cache/rosetta-code',
-    out: 'docs/case-studies/issue-8/rosetta-code',
+    out: 'docs/case-studies/issue-8/data/rosetta-code',
     limit: undefined,
     maxLines: 400,
     verbose: false,

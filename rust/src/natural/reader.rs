@@ -817,7 +817,12 @@ impl ProgramReader<'_> {
 
 /// A program written in a controlled natural language, as a meta program.
 pub fn read_natural(source: &str, id: &str) -> Result<Node, String> {
-    let language = natural_language(id)?;
+    read_natural_with(source, natural_language(id)?)
+}
+
+/// [`read_natural`] with a compiled language, such as one with more
+/// template variants (see [`super::catalog::with_templates`]).
+pub fn read_natural_with(source: &str, language: &Language) -> Result<Node, String> {
     ProgramReader {
         language,
         sentences: SentenceReader::new(language),
