@@ -20,7 +20,8 @@ The [data directory](data/) holds Links Notation snapshots (made with
 GitHub JSON) of:
 
 - [issue 6](data/issue-6.lino) and its comments (none at the time of writing);
-- [PR 7](data/pr-7.lino), the pull request for this issue;
+- [PR 7](data/pr-7.lino), the pull request for this issue, and
+  [its comments and reviews](data/pr-7-comments.lino);
 - [issue 1](data/issue-1.lino), whose requirements are re-checked here.
 
 ## Observations before the change
@@ -104,3 +105,24 @@ every profile of English as its own language, and had no settings.
 
 See [requirements.md](requirements.md) for the per-requirement plan and
 the evidence that each one is delivered.
+
+## Working together with issue 8
+
+Issue 8 (partial translation by default, `--all-or-nothing`, the source
+language `auto` and rules as data) was merged into `main` while this pull
+request was open. After the merge, comment languages and language versions
+go through every path of issue 8: partial translation keeps the translated
+comments in the parts that read, the command line passes
+`--comment-language` and `--comment-from` to the partial default and to
+`--all-or-nothing`, a detected source language still translates only the
+comments when it equals the target, and `POST /translate` accepts
+`commentLanguage` together with `rules` and `from: "auto"`
+(`js/tests/issue-6-with-8.test.js`, `rust/tests/issue_6.rs`). The web demo
+shows the rules editor in all 7 interface languages and both themes
+([rules editor](../../screenshots/issue-6/rules-editor.png),
+[Russian, dark](../../screenshots/issue-6/russian-dark-rules.png),
+[partial translation](../../screenshots/issue-6/partial-translation.png)).
+
+The requirements of issue 8 are listed in
+[issue-8/requirements.lino](../issue-8/requirements.lino), so
+`scripts/check-requirements.mjs` checks issues 1, 6 and 8 together.

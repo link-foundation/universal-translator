@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Requirements gate (test driven): every requirement listed in the
-// requirements.lino of a case study (issue 1, issue 6) must be "done" with all its
-// evidence present and its check passing, or "blocked" with a stated
+// requirements.lino of a case study (issues 1, 6 and 8) must be "done" with
+// all its evidence present and its check passing, or "blocked" with a stated
 // reason. Anything else (for example "pending") fails CI, so the work cannot
 // be called finished while a requirement is still open.
 //
@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { parseLinks } from '../js/src/meta/links.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const caseStudies = ['issue-1', 'issue-6'].map((issue) =>
+const caseStudies = ['issue-1', 'issue-6', 'issue-8'].map((issue) =>
   join(root, 'docs/case-studies', issue)
 );
 

@@ -78,6 +78,11 @@ requirements:
     status: blocked
     reason: 'Every issue 1 requirement is done except two that stay blocked in docs/case-studies/issue-1/requirements.lino: the Rosetta Code algorithm types that need floating point, strings, higher-order functions, data structures, input and output, objects or concurrency, and classes as fragments (the meta language has no objects yet)'
     evidence: docs/case-studies/issue-1/requirements.lino docs/case-studies/issue-1/rosetta-coverage.lino scripts/check-requirements.mjs
+  with-partial-translation:
+    text: 'Resolve the conflicts with main: comment languages and versions work with partial translation, the source language auto and rules as data in the library, the command line, the server and the web demo, whose new parts are localized and themed'
+    from: 'PR 7 review'
+    status: done
+    evidence: js/tests/issue-6-with-8.test.js js/tests/universal-app.test.js examples/universal-app/src/RulesEditor.js examples/universal-app/src/locales/app.lino examples/universal-app/e2e/translate.e2e.mjs docs/screenshots/issue-6/rules-editor.png docs/screenshots/issue-6/russian-dark-rules.png
   issue-6-case-study:
     text: 'Collect the issue data in docs/case-studies/issue-6 with a deep case study, every requirement and the proposed solutions'
     from: 'issue 6'
