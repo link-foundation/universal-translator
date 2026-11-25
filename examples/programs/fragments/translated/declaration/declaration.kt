@@ -1,0 +1,5 @@
+var total = 0
+for (i in 0 until 10) {
+    total += i
+}
+println(total)

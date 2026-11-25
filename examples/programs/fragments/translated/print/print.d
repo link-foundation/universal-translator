@@ -1,0 +1,1 @@
+writeln("total ", x);

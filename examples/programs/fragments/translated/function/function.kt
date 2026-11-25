@@ -1,0 +1,3 @@
+fun square(value: Int): Int {
+    return value * value
+}

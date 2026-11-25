@@ -137,6 +137,8 @@ export default [
       'docs/case-studies/*/data/**',
       // Generated translations, compared byte for byte by the tests
       'examples/programs/translated/**',
+      // Fragments with variables they do not declare, and their translations
+      'examples/programs/fragments/**/*.js',
     ],
   },
 ];
