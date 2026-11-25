@@ -18,6 +18,7 @@ import {
   readSourceDocument,
   writeSourceDocument,
 } from '../js/src/index.js';
+import { linoValue } from '../js/src/translation/rules-notation.js';
 
 const COMMANDS = {
   add,
@@ -63,8 +64,10 @@ function usage() {
     '  translate-program <from|cst> <to> [file|-]  Translate a checked JavaScript or Rust program',
     '  meta <language> [file|-] [--json]  Print the typed meta program as indented Links Notation',
     '            --json prints it as JSON instead',
-    '  coverage <language> [file|-]  Print which parts of a text can be read, as JSON',
-    '  detect [file|-]  Print the most likely languages of a text, as JSON',
+    '  coverage <language> [file|-] [--json]  Print which parts of a text can be read',
+    '            as indented Links Notation; --json prints JSON',
+    '  detect [file|-] [--json]  Print the most likely languages of a text, one per line',
+    '            as Links Notation; --json prints JSON',
     '  encode-source <language> [file|-]  Write a Links Notation source document',
     '  decode-source [file|-]  Restore source from a Links Notation document',
     '  encode-cst <language> [file|-]  Parse source into a Meta Language CST',
@@ -257,25 +260,55 @@ function translateCommand(
   }
 }
 
+// A record as one line of links: (field value) (field value) ...
+const linoLinks = (record) =>
+  Object.entries(record)
+    .map(([field, value]) => `(${field} ${linoValue(value)})`)
+    .join(' ');
+
+// A report as indented Links Notation: every field is unique, so it is
+// "name: value"; a list gets one record per line under its name, and an
+// empty list writes nothing.
+function linoReport(report) {
+  const lines = [];
+  for (const [field, value] of Object.entries(report)) {
+    if (!Array.isArray(value)) {
+      lines.push(`${field}: ${linoValue(value)}`);
+    } else if (value.length) {
+      lines.push(`${field}:`, ...value.map((item) => `  ${linoLinks(item)}`));
+    }
+  }
+  return lines.length ? `${lines.join('\n')}\n` : '';
+}
+
+const jsonReport = (value) => `${JSON.stringify(value, null, 2)}\n`;
+
 // What `coverage` prints: the summary and where each part starts and ends.
-function coverageReport({ parts, ...summary }) {
+function coverageReport({ parts, ...summary }, { json }) {
   const located = parts.map((part) => {
     const rest = { ...part };
     delete rest.source;
     return rest;
   });
-  return `${JSON.stringify({ ...summary, parts: located }, null, 2)}\n`;
+  const report = { ...summary, parts: located };
+  return json ? jsonReport(report) : linoReport(report);
 }
+
+// What `detect` prints: the likeliest languages first, one per line.
+const detectionReport = (detections, { json }) =>
+  json
+    ? jsonReport(detections)
+    : detections.map((detection) => `${linoLinks(detection)}\n`).join('');
 
 // The commands that read a text in a language: what each one writes.
 const textCommands = {
   'check-words': (translator, text, from) => checkWords(text, from),
   meta: (translator, text, from, { json }) =>
     json
-      ? `${JSON.stringify(translator.toMeta(text, from), null, 2)}\n`
+      ? jsonReport(translator.toMeta(text, from))
       : formatMeta(translator.toMeta(text, from)),
-  coverage: (translator, text, from) =>
-    coverageReport(translator.parsePartial(text, from)),
+  coverage: (translator, text, from, { json }) =>
+    coverageReport(translator.parsePartial(text, from), { json }),
 };
 
 // --trace reports every pipeline stage as JSON, so a translation can be
@@ -289,8 +322,11 @@ const translatorFor = ({ trace, rules = {} }, stderr) =>
   });
 
 function runTranslation(command, allArgs, read, write, stderr) {
-  // Only "meta" takes --json; every other command reads it as a file name.
-  const json = command === 'meta' && allArgs.includes('--json');
+  // Only the reports take --json; every other command reads it as a file
+  // name.
+  const json =
+    ['meta', 'coverage', 'detect'].includes(command) &&
+    allArgs.includes('--json');
   const args = json ? allArgs.filter((arg) => arg !== '--json') : allArgs;
   const [from, to, ...trailing] = args;
   const { file, options = {} } =
@@ -302,9 +338,7 @@ function runTranslation(command, allArgs, read, write, stderr) {
   } else if (textCommand && from && args.length <= 2) {
     write(textCommand(translator, read(to), from, { json }));
   } else if (command === 'detect' && args.length <= 1) {
-    write(
-      `${JSON.stringify(translator.detectLanguage(read(from)), null, 2)}\n`
-    );
+    write(detectionReport(translator.detectLanguage(read(from)), { json }));
   } else if (command === 'translate' && from && to) {
     translateCommand(
       translator,

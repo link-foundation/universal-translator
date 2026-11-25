@@ -205,8 +205,9 @@ part that does not is kept as a comment with its error:
 ```bash
 universal-translator translate auto javascript app.py   # detect the source
 universal-translator translate python go app.py --all-or-nothing
-universal-translator coverage python app.py   # {lines, readLines, coverage, errors}
-universal-translator detect app.py            # the likeliest languages first
+universal-translator coverage python app.py   # lines:, readLines:, coverage:, errors:, parts:
+universal-translator detect app.py            # the likeliest languages first, one per line
+universal-translator detect app.py --json     # either report as JSON
 universal-translator translate russian python a.txt --rules examples/rules/russian-at-most.lino
 ```
 

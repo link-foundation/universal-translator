@@ -1,5 +1,6 @@
 use std::fs;
 use std::io::{self, Read, Write};
+use universal_translator::custom_rules::lino_value;
 use universal_translator::formal::languages::language_syntax;
 use universal_translator::meta::notation::format_meta;
 use universal_translator::meta::{format_number, to_json};
@@ -12,8 +13,8 @@ use universal_translator::{
 const USAGE: &str = "Usage:
   universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment] [--all-or-nothing] [--rules <file.lino>] [--comment-language <natural>] [--comment-from <natural>]
   universal-translator meta <language> [file|-] [--json]
-  universal-translator coverage <language> [file|-]
-  universal-translator detect [file|-]
+  universal-translator coverage <language> [file|-] [--json]
+  universal-translator detect [file|-] [--json]
   universal-translator translate-program <from|cst> <to> [file|-]
   universal-translator encode-source <language> [file|-]
   universal-translator decode-source [file|-]
@@ -42,13 +43,14 @@ The source language may be \"auto\" to detect it.
 comments (detected otherwise).
 <to> may name a version: python@2.
 meta prints the meta program as indented Links Notation; --json prints JSON.
-coverage prints which parts of a text can be read, as JSON.
-detect prints the most likely languages of a text, as JSON.
+coverage prints which parts of a text can be read as indented Links
+Notation; detect prints the most likely languages of a text, one per
+line. --json prints either as JSON.
 Omit the file or pass - to read standard input.";
 
-/// The file of `meta <language> [file|-] [--json]`: `Some(None)` reads
-/// standard input, `None` means the arguments are wrong.
-fn meta_file<'a>(trailing: &[&'a str]) -> Option<Option<&'a str>> {
+/// The file of `meta`, `coverage` or `detect` (`[file|-] [--json]`):
+/// `Some(None)` reads standard input, `None` means the arguments are wrong.
+fn report_file<'a>(trailing: &[&'a str]) -> Option<Option<&'a str>> {
     let files: Vec<&str> = trailing
         .iter()
         .copied()
@@ -122,6 +124,55 @@ impl Json {
         self.write(0, &mut out);
         out + "\n"
     }
+
+    /// A plain value as Links Notation (a list or a record is not one).
+    fn lino_value(&self) -> String {
+        match self {
+            Json::Bool(flag) => flag.to_string(),
+            Json::Number(value) => format_number(*value),
+            Json::Text(text) => lino_value(text),
+            Json::List(_) | Json::Object(_) => String::new(),
+        }
+    }
+
+    /// A record as one line of links: (field value) (field value) ...
+    fn lino_links(&self) -> String {
+        match self {
+            Json::Object(entries) => entries
+                .iter()
+                .map(|(field, value)| format!("({field} {})", value.lino_value()))
+                .collect::<Vec<_>>()
+                .join(" "),
+            other => other.lino_value(),
+        }
+    }
+
+    /// A report as indented Links Notation, as the JavaScript CLI writes it:
+    /// every field is unique, so it is "name: value"; a list gets one record
+    /// per line under its name, and an empty list writes nothing. A list on
+    /// its own is one record per line.
+    fn lino(&self) -> String {
+        let lines: Vec<String> = match self {
+            Json::Object(entries) => entries
+                .iter()
+                .flat_map(|(field, value)| match value {
+                    Json::List(items) if items.is_empty() => Vec::new(),
+                    Json::List(items) => std::iter::once(format!("{field}:"))
+                        .chain(items.iter().map(|item| format!("  {}", item.lino_links())))
+                        .collect(),
+                    value => vec![format!("{field}: {}", value.lino_value())],
+                })
+                .collect(),
+            Json::List(items) => items.iter().map(Json::lino_links).collect(),
+            other => vec![other.lino_value()],
+        };
+        lines.iter().map(|line| format!("{line}\n")).collect()
+    }
+
+    /// The report as JSON with `--json`, as Links Notation otherwise.
+    fn report(&self, json: bool) -> String {
+        if json { self.pretty() } else { self.lino() }
+    }
 }
 
 fn count(value: usize) -> Json {
@@ -129,7 +180,7 @@ fn count(value: usize) -> Json {
 }
 
 /// What `coverage` prints: the summary and where each part starts and ends.
-fn coverage_report(reading: &PartialReading) -> String {
+fn coverage_report(reading: &PartialReading, json: bool) -> String {
     let errors = reading
         .errors
         .iter()
@@ -170,11 +221,11 @@ fn coverage_report(reading: &PartialReading) -> String {
         ("errors", Json::List(errors)),
         ("parts", Json::List(parts)),
     ])
-    .pretty()
+    .report(json)
 }
 
 /// What `detect` prints: the likeliest languages first.
-fn detection_report(detections: &[Detection]) -> String {
+fn detection_report(detections: &[Detection], json: bool) -> String {
     Json::List(
         detections
             .iter()
@@ -189,7 +240,7 @@ fn detection_report(detections: &[Detection]) -> String {
             })
             .collect(),
     )
-    .pretty()
+    .report(json)
 }
 
 fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String> {
@@ -333,10 +384,10 @@ fn run(arguments: &[String]) -> Result<String, String> {
                 Err(problems.join("\n"))
             }
         }
-        ["meta", language, trailing @ ..] if meta_file(trailing).is_some() => {
+        ["meta", language, trailing @ ..] if report_file(trailing).is_some() => {
             let json = trailing.contains(&"--json");
             let meta = Translator::new()
-                .to_meta(&source(meta_file(trailing).flatten())?, language)
+                .to_meta(&source(report_file(trailing).flatten())?, language)
                 .map_err(|error| error.to_string())?;
             Ok(if json {
                 // Indented like the JavaScript CLI; the fields are in name order.
@@ -349,14 +400,15 @@ fn run(arguments: &[String]) -> Result<String, String> {
                 format_meta(&meta)
             })
         }
-        ["coverage", language, trailing @ ..] if trailing.len() <= 1 => {
+        ["coverage", language, trailing @ ..] if report_file(trailing).is_some() => {
             let reading = Translator::new()
-                .parse_partial(&source(trailing.first().copied())?, language)
+                .parse_partial(&source(report_file(trailing).flatten())?, language)
                 .map_err(|error| error.to_string())?;
-            Ok(coverage_report(&reading))
+            Ok(coverage_report(&reading, trailing.contains(&"--json")))
         }
-        ["detect", trailing @ ..] if trailing.len() <= 1 => Ok(detection_report(
-            &Translator::new().detect_language(&source(trailing.first().copied())?, 5),
+        ["detect", trailing @ ..] if report_file(trailing).is_some() => Ok(detection_report(
+            &Translator::new().detect_language(&source(report_file(trailing).flatten())?, 5),
+            trailing.contains(&"--json"),
         )),
         ["encode-source", language, trailing @ ..] if trailing.len() <= 1 => {
             let document = SourceDocument {
