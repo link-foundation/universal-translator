@@ -92,9 +92,9 @@ requirements:
   lean-and-rocq:
     text: 'Lean and Rocq among the programming languages, with every task translated and checked by their compilers'
     from: 'PR 5 review'
-    status: pending
+    status: done
     check: lean-and-rocq
-    evidence: js/src/formal/languages.js rust/src/formal/languages.rs
+    evidence: js/src/formal/dialects/lean.js js/src/formal/dialects/rocq.js rust/src/formal/dialects/lean.rs rust/src/formal/dialects/rocq.rs examples/programs/verify-native.mjs
   fragments:
     text: 'Parse and translate a single statement, function or whole program on its own; a fragment must be complete, so a function ends with its closing'
     from: 'PR 5 review'

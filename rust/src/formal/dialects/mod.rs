@@ -1,18 +1,21 @@
 //! Languages whose statements and program layout follow a grammar of their
-//! own (Pascal, Fortran, Ada, Visual Basic, Bash, MATLAB, Zig). Each dialect
-//! overrides some steps of the shared parser and emitter and keeps their
-//! expressions, names and token helpers; a step it does not override, or
-//! calls back as `base_...`, behaves as in every other language.
+//! own (Pascal, Fortran, Ada, Visual Basic, Bash, MATLAB, Zig, Lean, Rocq).
+//! Each dialect overrides some steps of the shared parser and emitter and
+//! keeps their expressions, names and token helpers; a step it does not
+//! override, or calls back as `base_...`, behaves as in every other language.
 
 mod ada;
 mod bash;
 mod fortran;
+mod lean;
 mod matlab;
 mod pascal;
+mod rocq;
 mod shared;
 mod vb;
 mod zig;
 
+pub(crate) use rocq::{comparison as rocq_comparison, not_equal as rocq_not_equal};
 pub(crate) use shared::declared_variables;
 
 use super::emitter::{Emitter, Result};
@@ -167,8 +170,10 @@ pub(crate) fn emitter_dialect(language: &str) -> &'static dyn EmitterDialect {
         "ada" => &ada::Ada,
         "bash" => &bash::Bash,
         "fortran" => &fortran::Fortran,
+        "lean" => &lean::Lean,
         "matlab" => &matlab::Matlab,
         "pascal" => &pascal::Pascal,
+        "rocq" => &rocq::Rocq,
         "vb" => &vb::VisualBasic,
         "zig" => &zig::Zig,
         _ => &Plain,
@@ -181,8 +186,10 @@ pub(crate) fn parser_dialect(language: &str) -> &'static dyn ParserDialect {
         "ada" => &ada::Ada,
         "bash" => &bash::Bash,
         "fortran" => &fortran::Fortran,
+        "lean" => &lean::Lean,
         "matlab" => &matlab::Matlab,
         "pascal" => &pascal::Pascal,
+        "rocq" => &rocq::Rocq,
         "vb" => &vb::VisualBasic,
         "zig" => &zig::Zig,
         _ => &Plain,

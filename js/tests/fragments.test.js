@@ -88,6 +88,16 @@ describe('fragments in every language', () => {
     const targets = new Set(expected.map(({ target }) => target));
     expect([...targets].sort()).toEqual([...grammarLanguageIds].sort());
   });
+
+  it('end every Rocq function group with its period', () => {
+    const functions = translator.translateFragment(
+      sources.functions,
+      'javascript',
+      'rocq'
+    );
+    expect(functions.trimEnd().endsWith('.')).toBe(true);
+    expect(functions).not.toContain('fragmentEnd');
+  });
 });
 
 describe('incomplete fragments', () => {

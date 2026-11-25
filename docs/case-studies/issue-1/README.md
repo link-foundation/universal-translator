@@ -72,15 +72,16 @@ languages (Scratch), product-bound dialects (ABAP, PL/SQL) and markup or
 query languages (HTML, SQL) have no standard-output program to compare, so
 they are not on the list.
 
-The 30 languages are JavaScript, TypeScript, Python, Ruby, Lua, PHP, C, C++,
+The 32 languages are JavaScript, TypeScript, Python, Ruby, Lua, PHP, C, C++,
 C#, Java, Go, Rust, Kotlin, Swift, Perl, Dart, Scala, Julia, R, Groovy,
 Objective-C, Nim, D, Pascal, Fortran, Ada, Visual Basic .NET, Bash,
-MATLAB/Octave and Zig, plus the machine targets NASM, CIL and JVM bytecode.
-Pascal, Fortran, Ada, Visual Basic, Bash, MATLAB/Octave and Zig lay out
+MATLAB/Octave, Zig, Lean 4 and Rocq, plus the machine targets NASM, CIL and
+JVM bytecode. Pascal, Fortran, Ada, Visual Basic, Bash, MATLAB/Octave, Zig,
+Lean and Rocq lay out
 their programs in ways the shared brace and indentation grammar does not
 cover, so each has a dialect in `js/src/formal/dialects/` and
 `rust/src/formal/dialects/` that extends the shared parser and emitter.
-The JavaScript and Rust implementations both cover all 30.
+The JavaScript and Rust implementations both cover all 32.
 `node bin/universal-translator.js languages` lists them.
 Assembly (NASM x86-64), CIL (ILAsm) and JVM bytecode (Jasmin) are machine
 targets, and they can be both translated from and translated to.

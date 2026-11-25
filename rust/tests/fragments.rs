@@ -65,6 +65,8 @@ fn extension(target: &str) -> &'static str {
         "bash" => "sh",
         "matlab" => "matlab",
         "zig" => "zig",
+        "lean" => "lean",
+        "rocq" => "v",
         other => panic!("no extension for {other}"),
     }
 }
@@ -223,4 +225,12 @@ fn rejects_statements_and_functions_for_machine_targets() {
             )
         );
     }
+}
+
+#[test]
+fn ends_every_rocq_function_group_with_its_period() {
+    let source = read(fragments().join("functions.js"));
+    let functions = translate(&source, "javascript", "rocq");
+    assert!(functions.trim_end().ends_with('.'), "{functions}");
+    assert!(!functions.contains("fragmentEnd"), "{functions}");
 }

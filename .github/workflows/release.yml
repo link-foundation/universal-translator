@@ -473,8 +473,9 @@ jobs:
     name: Native translation
     runs-on: ubuntu-24.04
     # Typical run: about 15 minutes, mostly the Kotlin, Swift, Scala, .NET
-    # and Zig compilers. 65min bounds a stalled toolchain download.
-    timeout-minutes: 65
+    # and Zig compilers, plus about ten minutes when Rocq is built without a
+    # cache. 90min bounds a stalled toolchain download.
+    timeout-minutes: 90
     concurrency:
       group: check-${{ github.workflow }}-${{ github.ref }}-native-translation
       cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
@@ -533,7 +534,8 @@ jobs:
             -o "Dir::Etc::sourcelist=$apt_sources" -o 'Dir::Etc::sourceparts=-'
             -o Acquire::Retries=2 -o Acquire::https::Timeout=20
           )
-          packages=(lua5.4 nasm php-cli ruby jasmin-sable perl r-base-core gobjc gdc nim fp-compiler gnat gfortran octave)
+          # opam, OCaml and GMP build Rocq when its cache is cold.
+          packages=(lua5.4 nasm php-cli ruby jasmin-sable perl r-base-core gobjc gdc nim fp-compiler gnat gfortran octave opam ocaml-nox libgmp-dev)
           sudo apt-get "${apt_options[@]}" update --error-on=any
           sudo apt-get "${apt_options[@]}" install --yes --no-install-recommends "${packages[@]}"
           # ILAsm ships as a NuGet package for each runtime identifier.
@@ -607,6 +609,54 @@ jobs:
             echo "$tools/groovy-4.0.24/bin"
             echo "$tools/zig-x86_64-linux-0.17.1"
           } >> "$GITHUB_PATH"
+
+      # Saved right after the install, so a cold build is kept even when a
+      # later step fails.
+      - name: Restore Lean and Rocq
+        id: provers-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.elan
+            ~/.opam
+          key: native-provers-lean4.35.0-rocq9.3.0-stdlib9.2.0-ocaml-system-noble
+
+      - name: Install Lean and Rocq
+        # A cached install takes seconds; a cold one builds Rocq and its
+        # standard library from source in about ten minutes.
+        timeout-minutes: 15
+        env:
+          CACHE_HIT: ${{ steps.provers-cache.outputs.cache-hit }}
+          OPAMYES: '1'
+          OPAMRETRIES: '3'
+        run: |
+          if [ "$CACHE_HIT" != 'true' ]; then
+            curl --fail --location --silent --show-error --retry 3 --retry-all-errors \
+              --retry-delay 5 --connect-timeout 20 --max-time 180 \
+              https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+              --output "$RUNNER_TEMP/elan-init.sh"
+            sh "$RUNNER_TEMP/elan-init.sh" -y --no-modify-path \
+              --default-toolchain leanprover/lean4:v4.35.0
+            opam init --bare --disable-sandboxing --no-setup
+            opam switch create rocq ocaml-system
+            opam install --switch rocq --jobs "$(nproc)" rocq-core.9.3.0 rocq-stdlib.9.2.0
+            opam clean --all-switches --download-cache --logs
+          fi
+          {
+            echo "$HOME/.elan/bin"
+            echo "$HOME/.opam/rocq/bin"
+          } >> "$GITHUB_PATH"
+          "$HOME/.elan/bin/lean" --version
+          "$HOME/.opam/rocq/bin/rocq" --version
+
+      - name: Save Lean and Rocq
+        if: steps.provers-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.elan
+            ~/.opam
+          key: ${{ steps.provers-cache.outputs.cache-primary-key }}
 
       - name: Run every translation with its native toolchain
         timeout-minutes: 8

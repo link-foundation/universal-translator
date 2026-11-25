@@ -75,6 +75,8 @@ export const commonLibraryAccess = {
     imports: () => ['const common_library = @import("common_library.zig");'],
     prefix: 'common_library.',
   },
+  lean: { imports: () => ['import CommonLibrary'], prefix: 'CommonLibrary.' },
+  rocq: { imports: () => ['Load common_library.'], prefix: 'CommonLibrary.' },
 };
 
 const call = (operation, argument) =>
