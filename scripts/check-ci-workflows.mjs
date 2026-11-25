@@ -8,6 +8,34 @@ import { pathToFileURL } from 'node:url';
 // https://github.com/zizmorcore/zizmor-action/blob/v0.6.4/support/versions
 const supportedZizmor = { 'v0.6.4': '1.30.1' };
 
+// First major of each action whose action.yml declares `using: node24`;
+// every earlier major declares node20, checked at each tag. GitHub runs those
+// on Node 24 with a "Node.js 20 is deprecated" warning on every job.
+const firstNode24Major = {
+  'actions/cache': 5,
+  'actions/cache/restore': 5,
+  'actions/cache/save': 5,
+  'actions/checkout': 5,
+  'actions/setup-node': 5,
+  'actions/upload-artifact': 6,
+  'actions/download-artifact': 7,
+  'actions/setup-java': 5,
+  'actions/setup-python': 6,
+  'actions/configure-pages': 6,
+  'actions/deploy-pages': 5,
+  'actions/github-script': 8,
+  'docker/login-action': 4,
+  'github/codeql-action/init': 4,
+  'github/codeql-action/analyze': 4,
+  'github/codeql-action/autobuild': 4,
+};
+
+function deprecatedRuntime(action, ref) {
+  const fixed = firstNode24Major[action];
+  const major = Number(ref.match(/^v(\d+)/)?.[1]);
+  return fixed && major < fixed ? `v${fixed}` : undefined;
+}
+
 export function checkWorkflowPolicy(text) {
   const errors = [];
   const shellText = text.replace(/\\\r?\n\s*/g, ' ');
@@ -15,6 +43,15 @@ export function checkWorkflowPolicy(text) {
     const code = line.replace(/\s*#.*$/, '');
     if (/\b(?:ubuntu|windows|macos)-latest\b/.test(code)) {
       errors.push('Pin hosted runners to an explicit image');
+    }
+    const uses = code.match(/\buses:\s*([\w.-]+\/[\w./-]+)@(v\d[\w.]*)/);
+    if (uses) {
+      const fixed = deprecatedRuntime(uses[1], uses[2]);
+      if (fixed) {
+        errors.push(
+          `${uses[1]}@${uses[2]} runs on deprecated Node.js 20; use ${fixed} or later`
+        );
+      }
     }
     if (/\bnpx\b/.test(code)) {
       for (const match of code.matchAll(
@@ -74,6 +111,8 @@ if (
     }
   }
   if (!process.exitCode) {
-    console.log('Workflow package, zizmor, and hosted runner pins verified');
+    console.log(
+      'Workflow package, zizmor, action runtime, and hosted runner pins verified'
+    );
   }
 }

@@ -66,6 +66,23 @@ describe('universal React example app', () => {
     expect(appSource).toContain('h(RulesEditor');
     expect(workflow).toContain('web-e2e:');
     expect(workflow).toContain('examples/universal-app/e2e/translate.e2e.mjs');
+    expect(workflow).toContain(
+      'examples/universal-app/e2e/file-protocol.e2e.mjs'
+    );
+  });
+
+  it('bundles skin data and fails the build on any warning', () => {
+    const viteConfig = readText(viteConfigPath);
+    // node:fs/promises is an empty module in the browser build, which broke
+    // every skin of the desktop app (file://).
+    expect(viteConfig).toContain('bundleThemeFiles()');
+    expect(readText(`${exampleRoot}/src/theme-files.js`)).toContain(
+      'import.meta.glob('
+    );
+    expect(viteConfig).toContain('failOnWarnings()');
+    expect(viteConfig).toContain('customLogger: logger');
+    expect(viteConfig).toContain('manualChunks: chunkFor');
+    expect(viteConfig).not.toContain('chunkSizeWarningLimit');
   });
 
   it('shares the Vite build output with Capacitor and GitHub Pages', () => {
@@ -148,5 +165,24 @@ describe('universal React example app', () => {
 
     expect(rootReadme).toContain('Auto-regenerated preview screenshots');
     expect(rootReadme).toContain('npm run example:web:preview-images');
+  });
+
+  // The preview job runs only on main; a selector from another app (the
+  // template's #calculator-title) timed out there after every merge.
+  it('waits for preview selectors that the app renders', () => {
+    const script = readText('scripts/update-preview-images.mjs');
+    const listed = script.match(/const READY_SELECTORS = \[([^\]]*)\]/);
+    expect(Boolean(listed)).toBe(true);
+    const selectors = [...listed[1].matchAll(/'([^']+)'/g)].map((m) => m[1]);
+    expect(selectors.length > 0).toBe(true);
+    const app = readText(appSourcePath);
+    for (const selector of selectors) {
+      const name = selector.slice(1);
+      const rendered = selector.startsWith('#')
+        ? app.includes(`id: '${name}'`)
+        : app.includes(`className: '${name}'`);
+      expect(`${selector} ${rendered}`).toBe(`${selector} true`);
+    }
+    expect(script).not.toContain('calculator');
   });
 });

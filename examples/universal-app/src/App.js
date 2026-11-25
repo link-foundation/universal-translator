@@ -51,7 +51,7 @@ export function translateText(
   to,
   { fragment, allOrNothing, rules, ...options }
 ) {
-  let current = translator;
+  let current;
   try {
     current = rules ? translator.withRules(rules) : translator;
   } catch (error) {

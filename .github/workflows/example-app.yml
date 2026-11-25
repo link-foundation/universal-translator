@@ -10,6 +10,11 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'scripts/update-preview-images.mjs'
+      - 'scripts/setup-preview-gh.sh'
+      - 'scripts/check-preview-tools.sh'
+      - 'scripts/push-main-with-rebase-retry.mjs'
+      - 'scripts/run-with-budget-warning.sh'
+      - 'scripts/check-desktop-compat.mjs'
       - '.github/workflows/example-app.yml'
   push:
     branches:
@@ -21,6 +26,11 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'scripts/update-preview-images.mjs'
+      - 'scripts/setup-preview-gh.sh'
+      - 'scripts/check-preview-tools.sh'
+      - 'scripts/push-main-with-rebase-retry.mjs'
+      - 'scripts/run-with-budget-warning.sh'
+      - 'scripts/check-desktop-compat.mjs'
       - '.github/workflows/example-app.yml'
   workflow_dispatch:
 
@@ -46,12 +56,12 @@ jobs:
       group: check-${{ github.workflow }}-${{ github.ref }}-web-build
       cancel-in-progress: true
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '24.x'
           cache: npm
@@ -126,12 +136,12 @@ jobs:
       group: check-${{ github.workflow }}-${{ github.ref }}-desktop-package
       cancel-in-progress: true
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '24.x'
           cache: npm
@@ -141,6 +151,12 @@ jobs:
         run: |
           npm ci --omit=dev --ignore-scripts --no-audit --no-fund
           npm ci --prefix examples/universal-app --no-audit --no-fund
+
+      # The overrides in examples/universal-app/package.json swap in
+      # @electron/asar 4 and a native fs.rm adapter for temp's rimraf 2 (see
+      # examples/universal-app/compat/README.md). Run the real consumers.
+      - name: Verify desktop compatibility APIs
+        run: node --pending-deprecation --throw-deprecation scripts/check-desktop-compat.mjs
 
       - name: Package Electron app
         shell: bash
@@ -176,12 +192,12 @@ jobs:
       group: check-${{ github.workflow }}-${{ github.ref }}-android-build
       cancel-in-progress: true
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '24.x'
           cache: npm
@@ -234,7 +250,7 @@ jobs:
     env:
       PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -258,6 +274,11 @@ jobs:
           npm --prefix examples/universal-app run preview -- --port 4173 --strictPort > e2e-output/preview.log 2>&1 &
           node examples/universal-app/e2e/translate.e2e.mjs http://127.0.0.1:4173/ e2e-output/web-demo.png
 
+      # The desktop app opens dist/index.html from file://, where a skin once
+      # failed to load; check it the same way.
+      - name: Load a skin from file:// like the desktop app
+        run: node examples/universal-app/e2e/file-protocol.e2e.mjs examples/universal-app/dist/index.html
+
       - name: Upload screenshot
         if: always()
         uses: actions/upload-artifact@v7
@@ -266,9 +287,86 @@ jobs:
           path: e2e-output/
           if-no-files-found: ignore
 
+  # Render the preview screenshots on pull requests in the same container
+  # the main-branch writer uses. The writer runs only on main, so before this
+  # job a broken page selector (the template's #calculator-title) merged
+  # green and failed every later push to main. Nothing is committed here:
+  # the rendered images are uploaded for review.
+  preview-check:
+    name: Check Preview Images
+    runs-on: ubuntu-24.04
+    container:
+      # Same digest as preview-regen; keep both in sync with playwright below.
+      image: mcr.microsoft.com/playwright@sha256:b0ab6f3cb99aa7803adbc14d9027ec1785fc6e433b97e134e0f8fe61683b6b53 # v1.59.1-noble
+    timeout-minutes: 15
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    concurrency:
+      group: check-${{ github.workflow }}-${{ github.ref }}-preview-check
+      cancel-in-progress: true
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+    # Container jobs run `run:` blocks with sh, which has no [[ ]].
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # The container user (root) does not own the runner's workspace, so git
+      # refuses the checkout as dubious ownership until it is trusted.
+      - name: Trust the checkout
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      # The writer needs gh for its push; check the same setup here so a
+      # missing tool fails the pull request rather than main.
+      - name: Install pinned GitHub CLI
+        run: bash scripts/run-with-budget-warning.sh 120 "Pinned GitHub CLI setup" bash scripts/setup-preview-gh.sh
+
+      - name: Check preview container tools
+        run: bash scripts/check-preview-tools.sh
+
+      - name: Install example app dependencies
+        run: |
+          npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+          npm ci --prefix examples/universal-app --no-audit --no-fund
+
+      # Pinned exactly and only used by the preview jobs.
+      - name: Install browser automation dependencies
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+        run: npm install --no-save --package-lock=false --no-audit --no-fund browser-commander@0.8.1 playwright@1.59.1 # zizmor: ignore[adhoc-packages]
+
+      - name: Render preview images
+        run: node scripts/update-preview-images.mjs
+
+      - name: Report preview drift
+        run: |
+          # The assignment fails the step when git fails; a test on $(...)
+          # would read the failure as no drift.
+          changes="$(git status --porcelain -- docs/screenshots/example-app/)"
+          if [[ -n "$changes" ]]; then
+            printf '%s\n' "$changes"
+            echo "::notice title=Preview images::This change renders different preview images. The main branch commits them after merge; the rendered images are in the example-app-preview-images artifact."
+          else
+            echo "Preview images already current."
+          fi
+
+      - name: Upload rendered preview images
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: example-app-preview-images
+          path: docs/screenshots/example-app/
+          retention-days: 7
+          if-no-files-found: error
+
   # Regenerate example-app preview screenshots (docs/screenshots/example-app/*)
   # using browser-commander + Playwright so README/site images always reflect
-  # the current UI. Issue: #62. Implementation: scripts/update-preview-images.mjs.
+  # the current UI. Implementation: scripts/update-preview-images.mjs.
   preview-regen:
     name: Regenerate Preview Images
     runs-on: ubuntu-24.04
@@ -289,8 +387,13 @@ jobs:
       contents: write
     env:
       PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+    # Container jobs run `run:` blocks with sh, which has no [[ ]]: under sh
+    # the drift test failed with "[[: not found" and reported no drift.
+    defaults:
+      run:
+        shell: bash
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           # Regenerate against main HEAD so the bot commit lands on a
           # fast-forward parent regardless of which trigger started the job.
@@ -299,32 +402,52 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      # The container user (root) does not own the runner's workspace, so git
+      # refuses the checkout as dubious ownership until it is trusted.
+      - name: Trust the checkout
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      # Runner tools such as gh are not inherited by container jobs; the
+      # commit step needs gh as its Git credential helper.
+      - name: Install pinned GitHub CLI
+        run: bash scripts/run-with-budget-warning.sh 120 "Pinned GitHub CLI setup" bash scripts/setup-preview-gh.sh
+
+      - name: Check preview container tools
+        run: bash scripts/check-preview-tools.sh
+
       - name: Install example app dependencies
-        run: npm ci --prefix examples/universal-app --no-audit --no-fund
+        run: |
+          npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+          npm ci --prefix examples/universal-app --no-audit --no-fund
 
       # Deliberately installed outside the lockfile: these tools are only used
-      # by this preview-image job and both versions are pinned exactly.
+      # by the preview jobs and both versions are pinned exactly.
       - name: Install browser automation dependencies
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
         run: npm install --no-save --package-lock=false --no-audit --no-fund browser-commander@0.8.1 playwright@1.59.1 # zizmor: ignore[adhoc-packages]
 
       - name: Regenerate preview images
+        id: regenerate
         run: node scripts/update-preview-images.mjs
 
       - name: Detect drift
         id: drift
         run: |
-          if [[ -n "$(git status --porcelain)" ]]; then
+          # The assignment fails the step when git fails; a test on $(...)
+          # would read the failure as no drift.
+          changes="$(git status --porcelain)"
+          if [[ -n "$changes" ]]; then
             echo "drift=true" >> "$GITHUB_OUTPUT"
             echo "Preview images drifted:"
-            git status --porcelain
+            printf '%s\n' "$changes"
           else
             echo "drift=false" >> "$GITHUB_OUTPUT"
             echo "Preview images already current."
           fi
 
       - name: Commit drift back to main
+        id: commit
         if: steps.drift.outputs.drift == 'true'
         env:
           # The dedicated actor lets required pull_request checks run when a
@@ -342,7 +465,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # Stage only generated artifacts so unrelated changes can't leak in.
-          git add docs/screenshots/example-app/*.png || true
+          # A staging failure must fail the step, not read as "nothing staged".
+          git add -- docs/screenshots/example-app/
           if git diff --cached --quiet; then
             echo "::notice::No tracked preview-image changes to commit (drift was outside expected paths)."
             git status --porcelain
@@ -352,28 +476,38 @@ jobs:
           # Do not add [skip ci]: a fallback PR needs its required checks.
           git commit -m "chore(preview): regenerate example-app preview images"
           node scripts/push-main-with-rebase-retry.mjs origin main --label preview-images
+          echo "landed=true" >> "$GITHUB_OUTPUT"
 
       - name: Upload screenshot failure artifacts
         if: failure()
         uses: actions/upload-artifact@v7
         with:
           name: preview-regen-failure-${{ github.run_id }}
-          path: |
-            docs/screenshots/
-            web/test-results/
-            web/playwright-report/
+          path: docs/screenshots/example-app/
           retention-days: 7
-          if-no-files-found: ignore
+          if-no-files-found: error
 
+      # One outcome, one message: report what actually happened instead of
+      # claiming a commit that a failed step never made.
       - name: Summarize regeneration result
         if: always()
         env:
+          REGENERATE: ${{ steps.regenerate.outcome }}
           DRIFT: ${{ steps.drift.outputs.drift }}
+          DRIFT_OUTCOME: ${{ steps.drift.outcome }}
+          COMMIT: ${{ steps.commit.outcome }}
+          LANDED: ${{ steps.commit.outputs.landed }}
         run: |
-          if [[ "$DRIFT" == "true" ]]; then
-            echo "::notice::Preview images regenerated and (if applicable) committed to main."
-          else
+          if [[ "$REGENERATE" != "success" ]]; then
+            echo "Preview images were not regenerated (step outcome: ${REGENERATE:-not run})."
+          elif [[ "$DRIFT_OUTCOME" != "success" ]]; then
+            echo "Preview drift could not be checked (step outcome: ${DRIFT_OUTCOME:-not run})."
+          elif [[ "$DRIFT" == "false" ]]; then
             echo "::notice::Preview images are already up to date."
+          elif [[ "$COMMIT" == "success" && "$LANDED" == "true" ]]; then
+            echo "::notice::Regenerated preview images were committed to main."
+          else
+            echo "Regenerated preview images differ but were not committed (commit outcome: ${COMMIT:-not run})."
           fi
 
   # Terminal status gate: runs even when the jobs above fail or are
@@ -398,14 +532,15 @@ jobs:
       - desktop-package
       - android-build
       - web-e2e
+      - preview-check
       - preview-regen
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '24.x'
 
@@ -414,4 +549,5 @@ jobs:
           NEEDS_JSON: ${{ toJSON(needs) }}
           RUN_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+          HEAD_REF: ${{ github.event_name == 'pull_request' && format('refs/pull/{0}/head', github.event.number) || github.ref }}
         run: bash scripts/check-pipeline-status.sh

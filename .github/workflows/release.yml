@@ -75,7 +75,7 @@ jobs:
       docs-changed: ${{ steps.changes.outputs.docs-changed }}
       any-code-changed: ${{ steps.changes.outputs.any-code-changed }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -106,11 +106,11 @@ jobs:
     if: |
       needs.detect-changes.outputs.js-changed == 'true'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
-      - name: Check .mjs syntax
+      - name: Check tracked JavaScript syntax
         run: bash scripts/check-mjs-syntax.sh
 
   # Enforce 1500-line limit on .mjs files and release.yml
@@ -127,7 +127,7 @@ jobs:
       needs.detect-changes.outputs.docs-changed == 'true' ||
       needs.detect-changes.outputs.any-code-changed == 'true'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -156,7 +156,7 @@ jobs:
       cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
     if: github.event_name == 'pull_request'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -183,13 +183,13 @@ jobs:
     needs: [detect-changes]
     if: github.event_name == 'pull_request' && needs.detect-changes.outputs.any-code-changed == 'true'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '24.x'
 
@@ -233,7 +233,7 @@ jobs:
         needs.detect-changes.outputs.any-code-changed == 'true'
       )
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           # For PRs, fetch enough history to merge with base branch
           fetch-depth: 0
@@ -246,7 +246,7 @@ jobs:
         run: bash scripts/simulate-fresh-merge.sh
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '24.x'
 
@@ -255,15 +255,27 @@ jobs:
 
       # Exercise versioning without credentials, even if release-preflight fails.
       # Restore consumed changesets and metadata on success or failure so lint
-      # checks the fresh merge rather than generated release files.
+      # checks the fresh merge rather than generated release files. With no
+      # changeset there is nothing to version: changeset-check decides whether
+      # one is required, and failing here would skip every lint step below.
       - name: Dry-run release versioning (PR only)
         if: github.event_name == 'pull_request'
+        env:
+          npm_config_offline: 'true'
+          npm_config_ignore_scripts: 'true'
         run: |
+          pending="$(find .changeset -maxdepth 1 -name '*.md' ! -name README.md | wc -l)"
+          if [ "$pending" -eq 0 ]; then
+            echo "::notice title=No changesets to version::Skipped the versioning dry run."
+            exit 0
+          fi
           trap 'git restore --source=HEAD --staged --worktree -- .' EXIT
           npm run changeset:version
           git status --short
 
       - name: Run ESLint
+        env:
+          LINT_ALL_WARNINGS: ${{ github.event_name != 'pull_request' && '1' || '0' }}
         run: npm run lint
 
       - name: Check formatting
@@ -273,7 +285,9 @@ jobs:
         run: npm run check:duplication
 
       - name: Check for secrets
-        run: npx --yes -p secretlint@13.0.7 -p @secretlint/secretlint-rule-preset-recommend@13.0.7 secretlint "**/*"
+        # secretlint 14 ships the recommended preset; the separate preset
+        # package is deprecated, and .secretlintrc.json keeps its rule id.
+        run: npx --yes -p secretlint@14.1.0 secretlint "**/*"
 
   # Test the three JavaScript runtimes on Ubuntu.
   # IMPORTANT: Tests must validate the ACTUAL merge result, not a stale merge preview.
@@ -321,7 +335,7 @@ jobs:
       matrix:
         runtime: [node, bun, deno]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           # For PRs, fetch enough history to merge with base branch
           fetch-depth: 0
@@ -334,12 +348,16 @@ jobs:
         shell: bash
         run: bash scripts/simulate-fresh-merge.sh
 
+      # Every leg runs native Node fixtures (the syntax gate, Changesets and
+      # pipeline scripts), so each one pins Node 24, as the JS template does.
+      # Without it the Deno leg used the runner's preinstalled Node, whose
+      # `node --check` passes untyped .js files with ESM syntax errors.
+      # Deno installs no npm packages, so it has no npm cache to save.
       - name: Setup Node.js
-        if: matrix.runtime != 'deno'
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '24.x'
-          cache: npm
+          cache: ${{ matrix.runtime != 'deno' && 'npm' || '' }}
 
       - name: Install locked dependencies
         if: matrix.runtime != 'deno'
@@ -414,7 +432,7 @@ jobs:
       CARGO_PROFILE_DEV_DEBUG: '0'
       CARGO_PROFILE_TEST_DEBUG: '0'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -425,7 +443,7 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
         run: bash scripts/simulate-fresh-merge.sh
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: '24.x'
           cache: npm
@@ -457,8 +475,17 @@ jobs:
       - name: Check Rust formatting
         run: cargo fmt --check
 
+      # -D warnings covers rustc and Clippy lints; the wrapper also fails on
+      # Cargo's own warnings, such as an unused manifest key.
       - name: Lint Rust
-        run: cargo clippy --locked --all-targets -- -D warnings
+        run: bash scripts/check-cargo-warnings.sh cargo clippy --locked --all-targets -- -D warnings
+
+      # rustdoc lints such as broken intra-doc links are not reported by
+      # Clippy or the tests.
+      - name: Check Rust documentation
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: cargo doc --locked --no-deps
 
       - name: Test Rust
         run: bash scripts/run-with-budget-warning.sh 540 "Rust test suite" cargo test --locked
@@ -491,7 +518,7 @@ jobs:
         )
       )
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -502,7 +529,7 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
         run: bash scripts/simulate-fresh-merge.sh
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: '24.x'
           cache: npm
@@ -548,74 +575,20 @@ jobs:
           echo "ILASM=$RUNNER_TEMP/ilasm/runtimes/linux-x64/native/ilasm" >> "$GITHUB_ENV"
 
       - name: Cache Dart, Julia, Scala, Groovy and Zig archives
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ runner.temp }}/tools-archives
           key: native-tools-dart3.6.0-julia1.11.2-scala3.3.4-groovy4.0.24-zig0.17.1
 
       - name: Install Dart, Julia, Scala, Groovy and Zig
         timeout-minutes: 9
-        run: |
-          # Pinned official archives, checked against their SHA-256 sums.
-          # Noble's scala (2.11) and groovy (2.4) predate the runner's JDK,
-          # and Noble has no Zig package.
-          # Archives are cached between runs, every attempt is capped at
-          # three minutes so a stalled transfer moves on, and downloads fall
-          # back to a mirror, because hosts such as Maven Central answer HTTP 429
-          # to GitHub runners from time to time.
-          tools="$RUNNER_TEMP/tools"
-          archives="$RUNNER_TEMP/tools-archives"
-          mkdir -p "$tools" "$archives"
-          fetch() {
-            local urls=$1 name=$2 sum=$3
-            if [ -f "$archives/$name" ] && echo "$sum  $archives/$name" | sha256sum --check --status; then
-              echo "Using cached $name"
-            else
-              local ok=
-              for url in $urls; do
-                if curl --fail --location --silent --show-error --retry 3 --retry-all-errors \
-                  --retry-delay 5 --connect-timeout 20 --max-time 180 "$url" --output "$archives/$name" &&
-                  echo "$sum  $archives/$name" | sha256sum --check --quiet; then
-                  ok=1
-                  break
-                fi
-                echo "Download of $name from $url failed, trying the next source"
-              done
-              [ -n "$ok" ] || { echo "::error::Could not download $name"; exit 1; }
-            fi
-            cp "$archives/$name" "$tools/$name"
-          }
-          fetch https://storage.googleapis.com/dart-archive/channels/stable/release/3.6.0/sdk/dartsdk-linux-x64-release.zip \
-            dart.zip 8e14ff436e1eec72618dabc94f421a97251f2068c9cc9ad2d3bb9d232d6155a3
-          fetch https://julialang-s3.julialang.org/bin/linux/x64/1.11/julia-1.11.2-linux-x86_64.tar.gz \
-            julia.tar.gz 8a372ad262d4d4d55a1044f4fe3bce7c9a4a3ce8c513d2470e58e8071eecd476
-          fetch https://github.com/scala/scala3/releases/download/3.3.4/scala3-3.3.4.tar.gz \
-            scala.tar.gz fd0eca29ef1f6c41874b6711e7b6514f1dc7c387c087742fb873f6e720963770
-          fetch "https://repo1.maven.org/maven2/org/apache/groovy/groovy-binary/4.0.24/groovy-binary-4.0.24.zip
-            https://maven-central.storage-download.googleapis.com/maven2/org/apache/groovy/groovy-binary/4.0.24/groovy-binary-4.0.24.zip" \
-            groovy.zip dbff36835568bec2271876f70bfcca6deb80e1b179453cca934a502ea301bb80
-          fetch "https://ziglang.org/download/0.17.1/zig-x86_64-linux-0.17.1.tar.xz
-            https://zig.linus.dev/zig/zig-x86_64-linux-0.17.1.tar.xz" \
-            zig.tar.xz 3581863e3cbcfd0fce0efc682ce7e9e93da96668a977791d356a26d2a7e9b17a
-          unzip -q "$tools/dart.zip" -d "$tools"
-          unzip -q "$tools/groovy.zip" -d "$tools"
-          tar -xzf "$tools/julia.tar.gz" -C "$tools"
-          tar -xzf "$tools/scala.tar.gz" -C "$tools"
-          tar -xJf "$tools/zig.tar.xz" -C "$tools"
-          echo "GROOVY_HOME=$tools/groovy-4.0.24" >> "$GITHUB_ENV"
-          {
-            echo "$tools/dart-sdk/bin"
-            echo "$tools/julia-1.11.2/bin"
-            echo "$tools/scala3-3.3.4/bin"
-            echo "$tools/groovy-4.0.24/bin"
-            echo "$tools/zig-x86_64-linux-0.17.1"
-          } >> "$GITHUB_PATH"
+        run: bash scripts/install-native-archives.sh
 
       # Saved right after the install, so a cold build is kept even when a
       # later step fails.
       - name: Restore Lean and Rocq
         id: provers-cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: |
             ~/.elan
@@ -630,37 +603,22 @@ jobs:
           CACHE_HIT: ${{ steps.provers-cache.outputs.cache-hit }}
           OPAMYES: '1'
           OPAMRETRIES: '3'
-        run: |
-          if [ "$CACHE_HIT" != 'true' ]; then
-            curl --fail --location --silent --show-error --retry 3 --retry-all-errors \
-              --retry-delay 5 --connect-timeout 20 --max-time 180 \
-              https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
-              --output "$RUNNER_TEMP/elan-init.sh"
-            sh "$RUNNER_TEMP/elan-init.sh" -y --no-modify-path \
-              --default-toolchain leanprover/lean4:v4.35.0
-            opam init --bare --disable-sandboxing --no-setup
-            opam switch create rocq ocaml-system
-            opam install --switch rocq --jobs "$(nproc)" rocq-core.9.3.0 rocq-stdlib.9.2.0
-            opam clean --all-switches --download-cache --logs
-          fi
-          {
-            echo "$HOME/.elan/bin"
-            echo "$HOME/.opam/rocq/bin"
-          } >> "$GITHUB_PATH"
-          "$HOME/.elan/bin/lean" --version
-          "$HOME/.opam/rocq/bin/rocq" --version
+        run: bash scripts/install-provers.sh
 
       - name: Save Lean and Rocq
         if: steps.provers-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: |
             ~/.elan
             ~/.opam
           key: ${{ steps.provers-cache.outputs.cache-primary-key }}
 
-      # Typical runs take about 220s and 250s; the budgets leave room for
-      # runners that are around 50% slower (330s and 360s were measured).
+      # Typical runs take about 215-255s and 245-290s; slow runners took 339s
+      # and 369s. Both steps get 540s, so the 70% warning (378s) fires only
+      # when a run is slower than any measured so far. The common library
+      # step used to have the smaller budget although it is the longer one,
+      # and its 336s warning fired on ordinary slow runners.
       - name: Run every translation with its native toolchain
         timeout-minutes: 10
         env:
@@ -670,11 +628,11 @@ jobs:
             node examples/programs/verify-native.mjs --require-all
 
       - name: Run every common library translation with its native toolchain
-        timeout-minutes: 9
+        timeout-minutes: 10
         env:
           LUA: lua5.4
         run: |
-          bash scripts/run-with-budget-warning.sh 480 "Common library translations" \
+          bash scripts/run-with-budget-warning.sh 540 "Common library translations" \
             node examples/programs/verify-native.mjs --require-all --common-library
 
   # === DOCKER IMAGE BUILD CHECK (pull requests) ===
@@ -699,7 +657,7 @@ jobs:
       DOCKER_CONTEXT: ${{ vars.DOCKER_CONTEXT }}
       DOCKERFILE: ${{ vars.DOCKERFILE }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -736,21 +694,9 @@ jobs:
       - name: Smoke test the Docker image
         if: steps.docker_config.outputs.enabled == 'true'
         timeout-minutes: 3
-        run: |
-          # The image must translate through its CLI and answer over HTTP.
-          echo 'console.log("Hi");' |
-            docker run --rm -i "pr-check:${{ github.sha }}" translate javascript python - |
-            grep -F 'print("Hi")'
-          docker run -d --name api -p 8080:8080 "pr-check:${{ github.sha }}"
-          for _ in $(seq 1 30); do
-            curl -fsS http://localhost:8080/languages > /tmp/languages.json && break
-            sleep 1
-          done
-          grep -F '"python"' /tmp/languages.json
-          curl -fsS -H 'content-type: application/json' \
-            -d '{"source":"console.log(\"Hi\");","from":"javascript","to":"rust"}' \
-            http://localhost:8080/translate | grep -F 'println!'
-          docker rm -f api
+        env:
+          IMAGE: pr-check:${{ github.sha }}
+        run: bash scripts/smoke-test-docker-image.sh "$IMAGE"
 
   # === DOCUMENTATION VALIDATION ===
   # Validate documentation files when docs change (hive-mind principle #12)
@@ -766,7 +712,7 @@ jobs:
     if: |
       needs.detect-changes.outputs.docs-changed == 'true'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -800,7 +746,7 @@ jobs:
       # finding.
       id-token: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -876,13 +822,13 @@ jobs:
       # `git push origin main` to publish the version bump, which needs the
       # token wired into the remote. Every other checkout in this
       # repository sets persist-credentials: false.
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: true
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '24.x'
           registry-url: 'https://registry.npmjs.org'
@@ -1028,13 +974,13 @@ jobs:
       # commit to main, which needs the token wired into the remote.
       # Every other checkout in this repository sets
       # persist-credentials: false.
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: true
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '24.x'
           registry-url: 'https://registry.npmjs.org'
@@ -1127,7 +1073,7 @@ jobs:
       DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
       RELEASE_VERSION: ${{ needs.release.outputs.published_version || needs.instant-release.outputs.published_version }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -1166,7 +1112,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -1212,7 +1158,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -1291,7 +1237,7 @@ jobs:
     steps:
       # peter-evans/create-pull-request receives the dedicated token directly;
       # dependency installation does not need a credential in .git/config.
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
           fetch-depth: 0
@@ -1306,7 +1252,7 @@ jobs:
           fi
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '24.x'
 
@@ -1384,12 +1330,12 @@ jobs:
       - docker-publish
       - changeset-pr
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '24.x'
 
@@ -1398,4 +1344,5 @@ jobs:
           NEEDS_JSON: ${{ toJSON(needs) }}
           RUN_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+          HEAD_REF: ${{ github.event_name == 'pull_request' && format('refs/pull/{0}/head', github.event.number) || github.ref }}
         run: bash scripts/check-pipeline-status.sh

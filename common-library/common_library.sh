@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+# Sourced by programs, not run on its own.
 # Standard-output operations of the common library for Bash.
 
 print_line() {

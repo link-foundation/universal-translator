@@ -52,4 +52,31 @@ describe('workflow policy regression protection', () => {
       checkWorkflowPolicy(workflow.replaceAll('1.30.1', '9.0.0')).length
     ).toBeGreaterThan(0);
   });
+  // The Native translation job warned "Node.js 20 is deprecated" for
+  // actions/cache@v4 on every run while the checks stayed green.
+  it('rejects action majors that still run on Node.js 20', () => {
+    expect(
+      checkWorkflowPolicy(
+        [
+          '      uses: actions/cache@v4',
+          '      uses: actions/cache/restore@v4',
+          '      uses: actions/download-artifact@v6',
+        ].join('\n')
+      )
+    ).toEqual([
+      'actions/cache@v4 runs on deprecated Node.js 20; use v5 or later',
+      'actions/cache/restore@v4 runs on deprecated Node.js 20; use v5 or later',
+      'actions/download-artifact@v6 runs on deprecated Node.js 20; use v7 or later',
+    ]);
+    expect(
+      checkWorkflowPolicy(
+        [
+          '      uses: actions/cache/save@v6',
+          '      uses: actions/checkout@v6',
+          '      # uses: actions/checkout@v4',
+          '      uses: someone/else@v1',
+        ].join('\n')
+      )
+    ).toEqual([]);
+  });
 });

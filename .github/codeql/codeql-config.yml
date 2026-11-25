@@ -1,4 +1,10 @@
 name: Shipped code and pipeline scripts
 paths-ignore:
   - experiments
-  - examples
+  # Translated Rosetta Code fixtures in many languages; the shipped examples
+  # (the universal app, basic usage and translation demos) are scanned.
+  - examples/programs
+  # Archived copies of old scripts and downloaded CI data kept for case
+  # studies; they are never run (the syntax gate skips them too).
+  - docs/case-studies
+  - dev/log

@@ -101,13 +101,16 @@ describe('pipeline status gate', () => {
     const gate = getJobBlock(workflow, 'pipeline-status');
 
     expect(gate).toContain('      !cancelled()');
-    expect(gate).toContain('uses: actions/setup-node@v6');
+    expect(gate).toContain('uses: actions/setup-node@v7');
     expect(gate).toContain('NEEDS_JSON: ${{ toJSON(needs) }}');
     expect(gate).toContain(
       'RUN_SHA: ${{ github.event.pull_request.head.sha || github.sha }}'
     );
     expect(gate).toContain(
       'BRANCH_NAME: ${{ github.head_ref || github.ref_name }}'
+    );
+    expect(gate).toContain(
+      "HEAD_REF: ${{ github.event_name == 'pull_request' && format('refs/pull/{0}/head', github.event.number) || github.ref }}"
     );
     expect(listNeededJobs(gate).sort()).toEqual(
       jobs.filter((job) => job !== 'pipeline-status').sort()
@@ -196,6 +199,14 @@ describe('pipeline status gate in every workflow', () => {
       }
 
       if (
+        !gate.includes(
+          "HEAD_REF: ${{ github.event_name == 'pull_request' && format('refs/pull/{0}/head', github.event.number) || github.ref }}"
+        )
+      ) {
+        problems.push(`${name}: gate does not pass HEAD_REF`);
+      }
+
+      if (
         !gate.includes('BRANCH_NAME: ${{ github.head_ref || github.ref_name }}')
       ) {
         problems.push(`${name}: gate does not pass BRANCH_NAME`);
@@ -239,6 +250,51 @@ describe('pipeline status gate in every workflow', () => {
 
 describe('pipeline status supersede detection', () => {
   const cancelled = { lint: { result: 'cancelled' } };
+
+  // A fork branch named like a base branch (here: main) must be compared
+  // with the pull request head, not with the base repository's branch.
+  itUnless(sandboxed, noPosixShell)(
+    'compares fork PR cancellations with the base repository pull head ref',
+    () => {
+      const dir = mkdtempSync(path.join(tmpdir(), 'gate-fork-'));
+      const git = (...args) =>
+        spawnSync('git', ['-C', dir, ...args], { encoding: 'utf8' });
+      const commit = (message) => {
+        git(
+          '-c',
+          'user.name=test',
+          '-c',
+          'user.email=test@example.invalid',
+          'commit',
+          '-qm',
+          message,
+          '--allow-empty'
+        );
+        return git('rev-parse', 'HEAD').stdout.trim();
+      };
+      try {
+        git('init', '-q', '-b', 'main');
+        const base = commit('base');
+        const fork = commit('fork');
+        git('update-ref', 'refs/pull/7/head', fork);
+        git('update-ref', 'refs/heads/main', base);
+        const context = {
+          RUN_SHA: fork,
+          HEAD_REF: 'refs/pull/7/head',
+          BRANCH_NAME: 'main',
+          GIT_REMOTE: dir,
+          BRANCH_HEAD_SHA: '',
+          WORKFLOW_FILE: '.github/workflows/links.yml',
+        };
+        const linkCheck = { 'link-checker': { result: 'cancelled' } };
+        expect(runGate(linkCheck, context).status).toBe(1);
+        git('update-ref', 'refs/pull/7/head', base);
+        expect(runGate(linkCheck, context).status).toBe(0);
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    }
+  );
 
   itUnless(sandboxed, noPosixShell)(
     'errors when main is at the run commit (a genuine overrun)',

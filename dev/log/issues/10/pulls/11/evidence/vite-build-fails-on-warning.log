@@ -1,0 +1,34 @@
+vite v6.4.6 building for production...
+transforming...
+✓ 414 modules transformed.
+rendering chunks...
+computing gzip size...
+../../../dist-warn/index.html                              1.23 kB │ gzip:  0.50 kB
+../../../dist-warn/assets/index-nTnqd3Gg.css               7.83 kB │ gzip:  2.28 kB
+../../../dist-warn/assets/ui-components-G46cYTCU.css      25.82 kB │ gzip:  4.73 kB
+../../../dist-warn/assets/links-notation-QR1DOa6z.js      75.66 kB │ gzip: 15.73 kB
+../../../dist-warn/assets/index-CLOEL95m.js               82.28 kB │ gzip: 27.55 kB
+../../../dist-warn/assets/react-Caun7IXv.js              141.77 kB │ gzip: 45.49 kB
+../../../dist-warn/assets/ui-components-BK1SfH9U.js      150.50 kB │ gzip: 47.19 kB
+../../../dist-warn/assets/ui-CoQOBeAH.js                 181.74 kB │ gzip: 57.34 kB
+../../../dist-warn/assets/translator-formal-C8vJ_O8O.js  233.34 kB │ gzip: 64.77 kB
+../../../dist-warn/assets/translator-Cx9Qxl4Z.js         293.59 kB │ gzip: 79.41 kB
+../../../dist-warn/assets/theme-files-CXjRHHUn.js        375.22 kB │ gzip: 35.92 kB
+
+(!) Some chunks are larger than 100 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 5.35s
+error during build:
+Error: The build printed 1 warning(s); see the log above
+    at Object.closeBundle (file:///tmp/warn.config.mjs.timestamp-1795621340783-cd7c9e64d1158.mjs:73:15)
+    at Object.handler (file:///tmp/gh-issue-solver-1795615644646/examples/universal-app/node_modules/vite/dist/node/chunks/dep-Cohbwjf9.js:46882:15)
+    at file:///tmp/gh-issue-solver-1795615644646/examples/universal-app/node_modules/rollup/dist/es/shared/node-entry.js:22987:40
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async Promise.all (index 0)
+    at async PluginDriver.hookParallel (file:///tmp/gh-issue-solver-1795615644646/examples/universal-app/node_modules/rollup/dist/es/shared/node-entry.js:22897:9)
+    at async Object.close (file:///tmp/gh-issue-solver-1795615644646/examples/universal-app/node_modules/rollup/dist/es/shared/node-entry.js:23910:13)
+    at async buildEnvironment (file:///tmp/gh-issue-solver-1795615644646/examples/universal-app/node_modules/vite/dist/node/chunks/dep-Cohbwjf9.js:46582:17)
+    at async Object.defaultBuildApp [as buildApp] (file:///tmp/gh-issue-solver-1795615644646/examples/universal-app/node_modules/vite/dist/node/chunks/dep-Cohbwjf9.js:47037:5)
+    at async CAC.<anonymous> (file:///tmp/gh-issue-solver-1795615644646/examples/universal-app/node_modules/vite/dist/node/cli.js:863:7)

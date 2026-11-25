@@ -211,6 +211,59 @@ git merge origin/main
 git push
 ```
 
+## Dependency advisories
+
+The Security workflow audits every committed npm lock with
+`scripts/npm-audit-report.mjs`. Every advisory, at any severity, becomes an
+annotation and a row in the step summary, so a green run states what it
+accepted. Pull requests and pushes fail at `high`, the same level as
+`dependency-review`: a moderate advisory with no patched release would
+otherwise block every contributor. The weekly scheduled run also fails on a
+moderate advisory that `npm audit fix` resolves without `--force`. Fix it with
+`npm update <package>` or an `overrides` entry. When only a breaking upgrade
+would remove an advisory, the run stays green and keeps reporting it.
+
+The same audit matrix looks up each locked package version in the npm registry,
+including optional and development dependencies. Live deprecations produce
+annotations on pull requests and fail the weekly run. Registry lookup failures
+fail every run. Use `DEPRECATED_FAIL=true node scripts/check-deprecated-packages.mjs package-lock.json`
+locally to apply the scheduled policy to the current directory's lock.
+`js/tests/deprecated-packages.test.js` also fails when a committed lock records
+a deprecated package. Deprecated dependencies are not allowlisted: replace or
+override them. The desktop overrides and their probe are documented in
+[universal-app/compat](../examples/universal-app/compat/README.md).
+
+Every dependency with an install script needs an explicit `allowScripts`
+decision in its owning package manifest. Approvals pin the exact locked version
+(`"esbuild@0.25.12": true`), so a new release needs a new review; denials name
+the package (`"node-pty": false`). The root denies command-stream's optional
+node-pty adapter, because the release scripts only use its ordinary process
+API; Deno reads its own policy from `deno.json`, which denies it as well.
+`js/tests/issue-228-regressions.test.js` checks every entry of both npm locks,
+including optional platform-specific packages.
+
+Release scripts load `command-stream` and `lino-arguments` from installed,
+lockfile-pinned development dependencies. Run `npm ci` before invoking them;
+they do not download helpers at runtime, so the pull request's offline
+versioning dry run exercises the same code as the release. Versioning changes
+only the version fields of `package.json` and `package-lock.json`
+(`scripts/version-lock.mjs`) and does not run `npm install`.
+
+CodeQL analyses every file, not only the lines a pull request changes, and
+`scripts/check-codeql-results.mjs` fails the run on any finding or extractor
+warning. The SARIF reports are kept as the `codeql-results-*` artifacts. The
+shipped examples are scanned; translated test fixtures, case-study archives and
+development logs are excluded in `.github/codeql/codeql-config.yml`.
+
+Dismissing an alert in the Security tab does not remove it from the SARIF
+report, so a finding the maintainers reviewed and dismissed is listed in
+`.github/codeql/accepted-findings.json` with its rule, file, the
+`primaryLocationLineHash` from the report, the dismissed alert URL and the
+reason. Only that exact finding passes: another finding of the same rule, or
+an edit to the accepted line, fails the gate, and an entry that no longer
+matches anything fails as stale until it is removed. Accepted findings are
+printed as notices in the run.
+
 ## Questions?
 
 If you have questions about contributing, feel free to open an issue for discussion.

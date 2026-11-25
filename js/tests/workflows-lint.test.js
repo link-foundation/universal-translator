@@ -1,5 +1,13 @@
+import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'test-anywhere';
+import { itUnless, noPosixShell, sandboxed } from './helpers/skip.js';
+
+// The CI job installs ShellCheck; elsewhere it is optional.
+const noShellcheck =
+  spawnSync('shellcheck', ['--version']).status === 0
+    ? null
+    : 'shellcheck is not on PATH';
 
 function readWorkflow(filePath) {
   return readFileSync(filePath, 'utf8').replaceAll('\r\n', '\n');
@@ -91,8 +99,69 @@ describe('workflow linting job', () => {
       '    timeout-minutes: 10',
       '    timeout-minutes: 10',
       '    timeout-minutes: 10',
+      '    timeout-minutes: 10',
       '    timeout-minutes: 5',
     ]);
+  });
+});
+
+describe('standalone shell scripts under shellcheck', () => {
+  // actionlint only sees `run:` blocks, so a script the workflows call by
+  // path, such as scripts/install-provers.sh, went unchecked.
+  it('checks every tracked shell script and hook in a gated job', () => {
+    const job = workflowsWorkflow.slice(
+      workflowsWorkflow.indexOf('\n  shellcheck:\n'),
+      workflowsWorkflow.indexOf('\n  status-gate-coverage:\n')
+    );
+    expect(job).toContain('shellcheck-py==0.11.0.1');
+    expect(job).toContain(
+      `git ls-files -z '*.sh' '.husky/*' | xargs -0 "$RUNNER_TEMP/shellcheck-venv/bin/shellcheck"`
+    );
+    const gate = workflowsWorkflow.slice(
+      workflowsWorkflow.indexOf('\n  pipeline-status:\n')
+    );
+    expect(gate).toContain('      - shellcheck\n');
+  });
+
+  it('runs the workflow when a shell script or hook changes', () => {
+    for (const trigger of ['push:', 'pull_request:']) {
+      const paths = workflowsWorkflow.slice(
+        workflowsWorkflow.indexOf(trigger),
+        workflowsWorkflow.indexOf('workflow_dispatch:')
+      );
+      expect(paths).toContain("      - '**.sh'\n");
+      expect(paths).toContain("      - '**/.shellcheckrc'\n");
+      expect(paths).toContain("      - '.husky/**'\n");
+    }
+  });
+
+  // The workflow's pedantic zizmor pass can hang on the GitHub API; the
+  // wrapper warns before the step timeout turns it into a cancellation.
+  it('runs the pedantic zizmor pass inside a budget', () => {
+    expect(workflowsWorkflow).toContain(
+      'bash scripts/run-with-budget-warning.sh 360 "Pedantic zizmor audit" pipx run zizmor==1.30.1'
+    );
+  });
+
+  itUnless(
+    sandboxed,
+    noPosixShell,
+    noShellcheck
+  )('finds nothing in the tracked scripts and hooks', () => {
+    // This runs the runner's ShellCheck (0.9 on ubuntu-24.04), while the job
+    // pins 0.11, so the scripts must be clean under both versions.
+    const files = spawnSync('git', ['ls-files', '*.sh', '.husky/*'], {
+      encoding: 'utf8',
+    })
+      .stdout.split('\n')
+      .filter(Boolean);
+    expect(files.length).toBeGreaterThan(0);
+    const result = spawnSync('shellcheck', files, {
+      encoding: 'utf8',
+      timeout: 60000,
+    });
+    expect(result.stdout).toBe('');
+    expect(result.status).toBe(0);
   });
 });
 
@@ -214,13 +283,16 @@ describe('reproducible workflow tooling and runner policy', () => {
     expect(workflowsWorkflow).toContain('zizmorcore/zizmor-action@v0.6.4');
     expect(['1.30.0', '1.30.1']).toContain(version);
   });
-  it('pins both secretlint packages to the same exact version', () => {
+  it('pins secretlint without the deprecated preset package', () => {
     const cli = releaseWorkflow.match(/-p secretlint@(\d+\.\d+\.\d+)/)?.[1];
-    const preset = releaseWorkflow.match(
-      /-p @secretlint\/secretlint-rule-preset-recommend@(\d+\.\d+\.\d+)/
-    )?.[1];
-    expect(cli).toBe('13.0.7');
-    expect(preset).toBe(cli);
+    expect(cli).toBe('14.1.0');
+    // Built into secretlint 14; installing it prints a deprecation warning.
+    expect(releaseWorkflow).not.toContain(
+      '@secretlint/secretlint-rule-preset-recommend@'
+    );
+    expect(readFileSync('.secretlintrc.json', 'utf8')).toContain(
+      '@secretlint/secretlint-rule-preset-recommend'
+    );
   });
   it('pins every hosted OS image in every workflow', () => {
     for (const file of activeWorkflows) {
