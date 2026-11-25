@@ -157,14 +157,20 @@ fn declare_block(p: &mut Parser) -> Parsed {
     Ok(Node::new("Sequence").with("statements", found))
 }
 
-/// (others => V) is the array of n values V; (A, B) and (0 => A) list the
-/// values.
+/// [others => V] is the array of n values V; [A, B] and [0 => A] list the
+/// values. Ada 2022 writes array aggregates in square brackets; the older
+/// parentheses are read too.
 fn aggregate(p: &mut Parser, length: Node) -> Parsed {
-    p.expect("(")?;
+    let close = if p.accept("[") {
+        "]"
+    } else {
+        p.expect("(")?;
+        ")"
+    };
     if p.accept("others") {
         p.expect("=>")?;
         let fill = p.expression()?;
-        p.expect(")")?;
+        p.expect(close)?;
         return Ok(
             if length.is("Number") && length.number("value") == Some(0.0) {
                 Node::new("ArrayLiteral").with("elements", Vec::<Node>::new())
@@ -178,7 +184,7 @@ fn aggregate(p: &mut Parser, length: Node) -> Parsed {
     if p.kind(0) == TokenType::Number && p.is_at("=>", 1) {
         p.position += 2;
     }
-    p.array_literal(")")
+    p.array_literal(close)
 }
 
 /// Statements up to the word that ends the block; `null;` stands for a
@@ -606,7 +612,7 @@ fn is_array_declaration(statement: &Node) -> bool {
                 .is_some_and(|value| value.is("ArrayLiteral") || value.is("NewArray")))
 }
 
-/// Name : Integer_Array (0 .. Last) := (others => V), or the values.
+/// Name : Integer_Array (0 .. Last) := [others => V], or the values.
 fn array_declaration(e: &mut Emitter, statement: &Node) -> Result<String> {
     e.uses.insert("array");
     let name = statement.str("name").unwrap_or_default();
@@ -620,16 +626,16 @@ fn array_declaration(e: &mut Emitter, statement: &Node) -> Result<String> {
     let bounds = format!("0 .. {}", e.expression(&offset(length, -1))?);
     let values = if value.is("NewArray") || elements.is_empty() {
         let fill = value.node("fill").cloned().unwrap_or_else(|| number(0.0));
-        format!("(others => {})", e.expression(&fill)?)
+        format!("[others => {}]", e.expression(&fill)?)
     } else {
         let written = elements
             .iter()
             .map(|element| e.expression(element))
             .collect::<Result<Vec<_>>>()?;
         if written.len() == 1 {
-            format!("(0 => {})", written[0])
+            format!("[0 => {}]", written[0])
         } else {
-            format!("({})", written.join(", "))
+            format!("[{}]", written.join(", "))
         }
     };
     Ok(format!("{name} : Integer_Array ({bounds}) := {values};"))

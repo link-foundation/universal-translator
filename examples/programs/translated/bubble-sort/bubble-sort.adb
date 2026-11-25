@@ -12,7 +12,7 @@ procedure Main is
 
 begin
     declare
-        Numbers : Integer_Array (0 .. 6) := (5, 3, 8, 1, 9, 2, 7);
+        Numbers : Integer_Array (0 .. 6) := [5, 3, 8, 1, 9, 2, 7];
     begin
         Count := Numbers'Length;
         for Pass in Long_Long_Integer range 0 .. Count - 1 - 1 loop

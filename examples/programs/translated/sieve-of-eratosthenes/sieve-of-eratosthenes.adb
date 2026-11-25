@@ -13,7 +13,7 @@ procedure Main is
 begin
     Limit := 100;
     declare
-        Is_Prime : Integer_Array (0 .. Limit) := (others => 1);
+        Is_Prime : Integer_Array (0 .. Limit) := [others => 1];
     begin
         Is_Prime (0) := 0;
         Is_Prime (1) := 0;

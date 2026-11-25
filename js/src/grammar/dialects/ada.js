@@ -79,14 +79,15 @@ const statements = (Base) =>
       return node('Sequence', { statements });
     }
 
-    // (others => V) is the array of n values V; (A, B) and (0 => A) list
-    // the values.
+    // [others => V] is the array of n values V; [A, B] and [0 => A] list
+    // the values. Ada 2022 writes array aggregates in square brackets;
+    // the older parentheses are read too.
     aggregate(length) {
-      this.expect('(');
+      const close = this.accept('[') ? ']' : (this.expect('('), ')');
       if (this.accept('others')) {
         this.expect('=>');
         const fill = this.expression();
-        this.expect(')');
+        this.expect(close);
         return length.kind === 'Number' && length.value === 0
           ? node('ArrayLiteral', { elements: [] })
           : node('NewArray', { length, fill });
@@ -94,7 +95,7 @@ const statements = (Base) =>
       if (this.peek().type === 'number' && this.is('=>', 1)) {
         this.position += 2;
       }
-      return this.literal(')');
+      return this.literal(close);
     }
 
     // Numbers'Length.
@@ -405,7 +406,7 @@ const statementEmitter = (Base) =>
       this.line('end;');
     }
 
-    // Name : Integer_Array (0 .. Last) := (others => V), or the values.
+    // Name : Integer_Array (0 .. Last) := [others => V], or the values.
     arrayDeclaration({ name, value }) {
       this.uses.add('array');
       const length =
@@ -415,15 +416,15 @@ const statementEmitter = (Base) =>
       const bounds = `0 .. ${this.expression(offset(length, -1))}`;
       let values;
       if (value.kind === 'NewArray' || value.elements.length === 0) {
-        values = `(others => ${this.expression(value.fill ?? number(0))})`;
+        values = `[others => ${this.expression(value.fill ?? number(0))}]`;
       } else {
         const elements = value.elements.map((element) =>
           this.expression(element)
         );
         values =
           elements.length === 1
-            ? `(0 => ${elements[0]})`
-            : `(${elements.join(', ')})`;
+            ? `[0 => ${elements[0]}]`
+            : `[${elements.join(', ')}]`;
       }
       return `${name} : Integer_Array (${bounds}) := ${values};`;
     }
