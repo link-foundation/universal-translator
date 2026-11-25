@@ -348,12 +348,16 @@ jobs:
         shell: bash
         run: bash scripts/simulate-fresh-merge.sh
 
+      # Every leg runs native Node fixtures (the syntax gate, Changesets and
+      # pipeline scripts), so each one pins Node 24, as the JS template does.
+      # Without it the Deno leg used the runner's preinstalled Node, whose
+      # `node --check` passes untyped .js files with ESM syntax errors.
+      # Deno installs no npm packages, so it has no npm cache to save.
       - name: Setup Node.js
-        if: matrix.runtime != 'deno'
         uses: actions/setup-node@v7
         with:
           node-version: '24.x'
-          cache: npm
+          cache: ${{ matrix.runtime != 'deno' && 'npm' || '' }}
 
       - name: Install locked dependencies
         if: matrix.runtime != 'deno'
