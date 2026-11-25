@@ -80,7 +80,7 @@ export declare function baseNaturalLanguageIds(): string[];
 export interface NaturalLanguageVersion {
   id: string;
   label: string;
-  kind: 'full' | 'region' | 'vocabulary' | 'standard';
+  kind: 'full' | 'region' | 'vocabulary' | 'standard' | 'own';
   words?: number;
   primes?: boolean;
   default: boolean;
@@ -136,6 +136,8 @@ export interface SavedLanguageVersion {
   language: string;
   version: string;
   label?: string;
+  /** The version it is made from ("2" for python@2); none for the default. */
+  base?: string;
   syntax: Record<string, unknown>;
 }
 export declare function writeLanguageVersion(

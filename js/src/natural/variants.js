@@ -6,10 +6,15 @@
 //   vocabulary   smaller vocabularies to downgrade to, from the full
 //                vocabulary of the language down to its semantic primes
 //   standard     controlled language standards with rules of their own
+//   own          standards of one's own (registerNaturalLanguage)
 //
 // The full vocabulary of the language is the default version.
 
-import { naturalLanguage, naturalLanguageIds } from './catalog.js';
+import {
+  isOwnNaturalLanguage,
+  naturalLanguage,
+  naturalLanguageIds,
+} from './catalog.js';
 
 // What each profile is, and the size of its vocabulary where the standard
 // fixes one (in words).
@@ -32,7 +37,7 @@ const regions = {
   'english-british': ['en-GB', 'en-AU', 'en-NZ', 'en-IE', 'en-ZA', 'en-IN'],
 };
 
-const kindOrder = ['full', 'region', 'vocabulary', 'standard'];
+const kindOrder = ['full', 'region', 'vocabulary', 'standard', 'own'];
 
 // The language a version belongs to ("minimal-english" -> "english").
 export const baseOf = (id) => naturalLanguage(id).base ?? id;
@@ -40,6 +45,15 @@ export const baseOf = (id) => naturalLanguage(id).base ?? id;
 // The natural languages a menu lists: one entry per language.
 export const baseNaturalLanguageIds = () =>
   naturalLanguageIds().filter((id) => !naturalLanguage(id).base);
+
+function versionProfile(id, base, language) {
+  if (id === base) {
+    return { kind: 'full' };
+  }
+  return isOwnNaturalLanguage(id)
+    ? { kind: 'own' }
+    : (profiles[language.profile] ?? {});
+}
 
 // Every version of a natural language, the default (full vocabulary) first,
 // then regional spellings, smaller vocabularies from the largest down to the
@@ -50,8 +64,7 @@ export function naturalLanguageVersions(id) {
     .filter((other) => baseOf(other) === base)
     .map((other) => {
       const language = naturalLanguage(other);
-      const profile =
-        other === base ? { kind: 'full' } : (profiles[language.profile] ?? {});
+      const profile = versionProfile(other, base, language);
       return {
         id: other,
         label: language.label,

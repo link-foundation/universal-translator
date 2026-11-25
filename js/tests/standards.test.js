@@ -14,6 +14,7 @@ import {
   loadLanguageVersion,
   naturalLanguageIds,
   naturalLanguageSource,
+  naturalLanguageVersions,
   naturalStandardSource,
   naturalVocabulary,
   primitiveWords,
@@ -104,6 +105,34 @@ describe('standards of programming languages', () => {
     ]);
   });
 
+  it('makes a version of one own from another version', () => {
+    const base = languageVocabulary('python@2');
+    const syntax = vocabularyChanges(
+      'python@2',
+      base.map((entry) =>
+        entry.concept === 'operators.and' ? { ...entry, words: ['&&'] } : entry
+      )
+    );
+    expect(syntax).toEqual({ operators: { and: '&&' } });
+    const saved = writeLanguageVersion({
+      language: 'python',
+      version: 'old-and',
+      base: '2',
+      syntax,
+    });
+    expect(saved).toContain("  base: '2'\n");
+    expect(readLanguageVersion(saved).base).toBe('2');
+    const id = loadLanguageVersion(saved);
+    try {
+      // Python 2 prints with a statement and keeps the changed operator.
+      expect(translate(program, 'javascript', id)).toBe(
+        'def both(a, b):\n    return a && b\n\nprint both(True, False)\n'
+      );
+    } finally {
+      unregisterLanguageVersion('python', 'old-and');
+    }
+  });
+
   it('keeps built-in versions and rejects unknown concepts', () => {
     expect(() =>
       registerLanguageVersion('python', '2', { syntax: {} })
@@ -148,6 +177,13 @@ describe('standards of natural languages', () => {
       expect(isOwnNaturalLanguage('english-terse')).toBe(true);
       expect(naturalLanguageSource('english-terse')).toBe(source);
       expect(naturalLanguageIds()).toContain('english-terse');
+      // It is listed last among the versions of English, as one's own.
+      expect(naturalLanguageVersions('english').at(-1)).toEqual({
+        id: 'english-terse',
+        label: 'Terse English',
+        kind: 'own',
+        default: false,
+      });
       const words = translate(program, 'javascript', 'english-terse');
       expect(words).toContain('Show both of (true, false).');
       expect(translate(words, 'english-terse', 'javascript')).toBe(

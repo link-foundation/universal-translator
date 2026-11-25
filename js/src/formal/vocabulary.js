@@ -8,7 +8,11 @@
 
 import { parseLinks } from '../meta/links.js';
 import { languageSyntax } from './languages.js';
-import { registerLanguageVersion } from './versions.js';
+import {
+  mergeSyntax,
+  registerLanguageVersion,
+  versionSyntax,
+} from './versions.js';
 
 // Fields that name the language; they spell no concept.
 const notWords = new Set(['id', 'label', 'version', 'custom']);
@@ -86,14 +90,25 @@ function flatten(table, prefix = '') {
 //     language: python
 //     version: mine
 //     label: 'My Python'
+//     base: '2'
 //     syntax:
 //       operators.and: '&&'
-export function writeLanguageVersion({ language, version, label, syntax }) {
+//
+// A version made from another version (base) keeps the syntax of that
+// version; its own syntax holds the changes made to it.
+export function writeLanguageVersion({
+  language,
+  version,
+  label,
+  base,
+  syntax,
+}) {
   const lines = [
     'language-version:',
     `  language: ${language}`,
     `  version: ${quote(version)}`,
     ...(label ? [`  label: ${quote(label)}`] : []),
+    ...(base ? [`  base: ${quote(base)}`] : []),
     '  syntax:',
     ...flatten(syntax).map(
       ([concept, words]) => `    ${concept}: ${words.map(quote).join(' ')}`
@@ -102,7 +117,7 @@ export function writeLanguageVersion({ language, version, label, syntax }) {
   return `${lines.join('\n')}\n`;
 }
 
-// Links Notation -> { language, version, label, syntax }.
+// Links Notation -> { language, version, label, base?, syntax }.
 export function readLanguageVersion(source) {
   const [root] = parseLinks(source);
   if (root?.id !== 'language-version') {
@@ -113,6 +128,7 @@ export function readLanguageVersion(source) {
   );
   const single = (name) => fields[name]?.map((value) => value.id).join(' ');
   const language = single('language');
+  const base = single('base');
   const entries = (fields.syntax ?? []).map(({ id, values }) => ({
     concept: id,
     words: values.map((value) => value.id),
@@ -121,12 +137,17 @@ export function readLanguageVersion(source) {
     language,
     version: single('version'),
     label: single('label'),
-    syntax: vocabularyChanges(language, entries),
+    ...(base ? { base } : {}),
+    syntax: vocabularyChanges(base ? `${language}@${base}` : language, entries),
   };
 }
 
 // Read a saved version and make it available as "<language>@<version>".
 export function loadLanguageVersion(source) {
-  const { language, version, label, syntax } = readLanguageVersion(source);
-  return registerLanguageVersion(language, version, { label, syntax });
+  const { language, version, label, base, syntax } =
+    readLanguageVersion(source);
+  return registerLanguageVersion(language, version, {
+    label,
+    syntax: base ? mergeSyntax(versionSyntax(language, base), syntax) : syntax,
+  });
 }

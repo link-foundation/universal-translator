@@ -31,6 +31,7 @@
     "@capacitor/android": "^7.4.4",
     "@capacitor/core": "^7.4.4",
     "@capacitor/ios": "^7.4.4",
+    "@link-foundation/ui-components": "^0.6.0",
     "@link-foundation/ui-core": "^0.1.6",
     "@link-foundation/ui-i18n": "^0.1.0",
     "@link-foundation/ui-settings": "^0.2.0",
