@@ -64,8 +64,9 @@ describe('JavaScript syntax gate', () => {
           'scripts/valid.mjs': 'export const ready = true;',
           ...files,
         });
-        // Shows what the gate checked if it ever passes again (Deno, run
-        // 45649688140, reported exit 0 once without showing its output).
+        // The Deno job runs the gate on the runner's preinstalled Node, and
+        // `node --check` on Node 20 and 22 passed the untyped .js fixture
+        // (runs 45649688140, 45652861265). The output shows what was checked.
         expect(result.stdout).toContain(`Checking ${file}...`);
         expect(result.status).toBe(1);
         expect(result.stderr).toContain(`::error file=${file}::`);
@@ -93,6 +94,36 @@ describe('JavaScript syntax gate', () => {
       expect(result.stdout).toContain('1 file(s), 0 failure(s)');
     }
   );
+
+  // Untyped .js files are checked as either kind, so valid code of both
+  // kinds still passes next to the ESM syntax error fixture above.
+  itUnless(sandboxed, noPosixShell)(
+    'accepts untyped CommonJS and ES module files',
+    () => {
+      const result = runGate({
+        'lib/common.js': "module.exports = require('node:fs');",
+        'lib/module.js': "import { readFileSync } from 'node:fs';",
+      });
+      expect(result.stderr).toBe('');
+      expect(result.status).toBe(0);
+      expect(result.stdout).toContain('2 file(s), 0 failure(s)');
+    }
+  );
+
+  it('runs every test leg on the pinned Node.js', () => {
+    const workflow = readFileSync(
+      '.github/workflows/release.yml',
+      'utf8'
+    ).replaceAll('\r\n', '\n');
+    const testJob = workflow
+      .slice(workflow.indexOf('\n  test:\n') + 1)
+      .split(/\n(?= {2}[\w-]+:\n)/)[0];
+    const setupNode = testJob.match(
+      /\n {6}- name: Setup Node\.js\n((?: {8}.*\n)+)/
+    );
+    expect(setupNode?.[1]).toContain("node-version: '24.x'");
+    expect(setupNode?.[1]).not.toContain('if:');
+  });
 
   it('is the syntax step of the release workflow', () => {
     const workflow = readFileSync(
