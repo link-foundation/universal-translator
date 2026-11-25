@@ -662,7 +662,7 @@ jobs:
         # it declares its deadline with a step-level timeout-minutes: an
         # exhausted step budget fails the step, while an exhausted job cap
         # only cancels the job.
-        timeout-minutes: 20
+        timeout-minutes: 18
         uses: docker/build-push-action@v7
         with:
           context: ${{ steps.docker_config.outputs.context }}
@@ -680,14 +680,14 @@ jobs:
 
       - name: Smoke test the Docker image
         if: steps.docker_config.outputs.enabled == 'true'
-        timeout-minutes: 5
+        timeout-minutes: 3
         run: |
           # The image must translate through its CLI and answer over HTTP.
           echo 'console.log("Hi");' |
             docker run --rm -i "pr-check:${{ github.sha }}" translate javascript python - |
             grep -F 'print("Hi")'
           docker run -d --name api -p 8080:8080 "pr-check:${{ github.sha }}"
-          for attempt in $(seq 1 30); do
+          for _ in $(seq 1 30); do
             curl -fsS http://localhost:8080/languages > /tmp/languages.json && break
             sleep 1
           done

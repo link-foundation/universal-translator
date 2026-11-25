@@ -84,12 +84,22 @@ describe('pull-request Docker build check', () => {
 
 describe('Docker build configuration', () => {
   it('stays disabled when the repository ships no Dockerfile', () => {
-    const config = evaluateDockerBuildConfig({ cwd: '.', env: {} });
+    const config = evaluateDockerBuildConfig({
+      cwd: '.',
+      env: { DOCKERFILE: './does-not-exist/Dockerfile' },
+    });
 
     expect(config.enabled).toBe(false);
     expect(config.errors).toEqual([]);
-    expect(config.dockerfile).toBe('./Dockerfile');
+    expect(config.dockerfile).toBe('./does-not-exist/Dockerfile');
     expect(config.context).toBe('.');
+  });
+
+  it('builds the shipped Dockerfile by default', () => {
+    const config = evaluateDockerBuildConfig({ cwd: '.', env: {} });
+
+    expect(config.enabled).toBe(true);
+    expect(config.dockerfile).toBe('./Dockerfile');
   });
 
   it('enables the build when a Dockerfile exists', () => {
