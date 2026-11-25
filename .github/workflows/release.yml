@@ -468,8 +468,8 @@ jobs:
     name: Native translation
     runs-on: ubuntu-24.04
     # Typical run: about 15 minutes, mostly the Kotlin, Swift, Scala, .NET
-    # and Zig compilers. 60min bounds a stalled toolchain download.
-    timeout-minutes: 60
+    # and Zig compilers. 65min bounds a stalled toolchain download.
+    timeout-minutes: 65
     concurrency:
       group: check-${{ github.workflow }}-${{ github.ref }}-native-translation
       cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
@@ -546,13 +546,14 @@ jobs:
           key: native-tools-dart3.6.0-julia1.11.2-scala3.3.4-groovy4.0.24-zig0.17.1
 
       - name: Install Dart, Julia, Scala, Groovy and Zig
-        timeout-minutes: 4
+        timeout-minutes: 9
         run: |
           # Pinned official archives, checked against their SHA-256 sums.
           # Noble's scala (2.11) and groovy (2.4) predate the runner's JDK,
           # and Noble has no Zig package.
-          # Archives are cached between runs, and every download falls back
-          # to a mirror, because hosts such as Maven Central answer HTTP 429
+          # Archives are cached between runs, every attempt is capped at
+          # three minutes so a stalled transfer moves on, and downloads fall
+          # back to a mirror, because hosts such as Maven Central answer HTTP 429
           # to GitHub runners from time to time.
           tools="$RUNNER_TEMP/tools"
           archives="$RUNNER_TEMP/tools-archives"
@@ -564,8 +565,8 @@ jobs:
             else
               local ok=
               for url in $urls; do
-                if curl --fail --location --silent --show-error --retry 5 --retry-all-errors \
-                  --retry-delay 5 "$url" --output "$archives/$name" &&
+                if curl --fail --location --silent --show-error --retry 3 --retry-all-errors \
+                  --retry-delay 5 --connect-timeout 20 --max-time 180 "$url" --output "$archives/$name" &&
                   echo "$sum  $archives/$name" | sha256sum --check --quiet; then
                   ok=1
                   break
@@ -585,7 +586,8 @@ jobs:
           fetch "https://repo1.maven.org/maven2/org/apache/groovy/groovy-binary/4.0.24/groovy-binary-4.0.24.zip
             https://maven-central.storage-download.googleapis.com/maven2/org/apache/groovy/groovy-binary/4.0.24/groovy-binary-4.0.24.zip" \
             groovy.zip dbff36835568bec2271876f70bfcca6deb80e1b179453cca934a502ea301bb80
-          fetch https://ziglang.org/download/0.17.1/zig-x86_64-linux-0.17.1.tar.xz \
+          fetch "https://ziglang.org/download/0.17.1/zig-x86_64-linux-0.17.1.tar.xz
+            https://zig.linus.dev/zig/zig-x86_64-linux-0.17.1.tar.xz" \
             zig.tar.xz 3581863e3cbcfd0fce0efc682ce7e9e93da96668a977791d356a26d2a7e9b17a
           unzip -q "$tools/dart.zip" -d "$tools"
           unzip -q "$tools/groovy.zip" -d "$tools"
