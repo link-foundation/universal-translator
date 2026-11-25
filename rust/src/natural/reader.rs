@@ -14,15 +14,20 @@ use std::sync::LazyLock;
 use regex::Regex;
 
 use super::catalog::{Language, natural_language};
-use super::levels::{Associativity, LEVELS, operator_of_template};
+use super::levels::{Associativity, LEVELS, level_index, operator_of_template};
 use super::tokens::{Kind, Token};
 use crate::grammar::meta::{Node, Value, add, block, name, number};
 
 const NAME_SLOTS: [&str; 3] = ["name", "variable", "callee"];
+/// Slots the writer fills with a primary expression (parenthesized unless it
+/// is one already).
+const PRIMARY_SLOTS: [&str; 4] = ["index", "array", "length", "fill"];
+const ARRAY_KEYS: [&str; 4] = ["array", "new-array", "element", "length"];
 
-const STATEMENT_KEYS: [&str; 8] = [
+const STATEMENT_KEYS: [&str; 9] = [
     "print-line",
     "print",
+    "set-element",
     "declare",
     "assign",
     "return-value",
@@ -347,6 +352,16 @@ impl<'a> SentenceReader<'a> {
                 }
             }
         }
+        for key in ARRAY_KEYS {
+            for template in self.language.variants(key) {
+                let mut reader =
+                    |slot: &str, from: usize, to: usize| self.slot(tokens, slot, from, to);
+                if let Some(slots) = Self::match_template(template, tokens, start, end, &mut reader)
+                {
+                    return array_node(key, slots);
+                }
+            }
+        }
         None
     }
 
@@ -417,6 +432,14 @@ impl<'a> SentenceReader<'a> {
         if slot == "parameters" {
             return self.names(tokens, from, to).map(Slot::Names);
         }
+        if slot == "elements" {
+            return self.arguments(tokens, from, to).map(Slot::Arguments);
+        }
+        if PRIMARY_SLOTS.contains(&slot) {
+            return self
+                .expression(tokens, from, to, level_index("primary"))
+                .map(Slot::Expression);
+        }
         self.expression(tokens, from, to, 0).map(Slot::Expression)
     }
 
@@ -451,6 +474,38 @@ fn name_slot(slots: &mut Captured, name: &str) -> String {
     slots.remove(name).and_then(Slot::name).unwrap_or_default()
 }
 
+/// The node of a matched array template. A new array of no elements is the
+/// empty array literal.
+fn array_node(key: &str, mut slots: Captured) -> Option<Node> {
+    let mut value = |name: &str| expression_slot(&mut slots, name);
+    Some(match key {
+        "array" => {
+            let elements = match slots.remove("elements") {
+                Some(Slot::Arguments(elements)) => elements,
+                _ => return None,
+            };
+            Node::new("ArrayLiteral").with("elements", elements)
+        }
+        "new-array" => {
+            let length = value("length")?;
+            if length.is("Number") && length.number("value") == Some(0.0) {
+                Node::new("ArrayLiteral").with("elements", Vec::<Node>::new())
+            } else {
+                Node::new("NewArray")
+                    .with("length", length)
+                    .with("fill", value("fill")?)
+            }
+        }
+        "element" => {
+            let index = value("index")?;
+            Node::new("Index")
+                .with("array", value("array")?)
+                .with("index", index)
+        }
+        _ => Node::new("Length").with("array", value("array")?),
+    })
+}
+
 fn statement_from_sentence(key: &str, mut slots: Captured) -> Option<Node> {
     let mut value = |name: &str| expression_slot(&mut slots, name);
     Some(match key {
@@ -464,6 +519,10 @@ fn statement_from_sentence(key: &str, mut slots: Captured) -> Option<Node> {
         "assign" => Node::new("Assignment")
             .with("name", name_slot(&mut slots, "name"))
             .with("operator", "=")
+            .with_opt("value", expression_slot(&mut slots, "value")),
+        "set-element" => Node::new("IndexAssignment")
+            .with("name", name_slot(&mut slots, "name"))
+            .with_opt("index", expression_slot(&mut slots, "index"))
             .with_opt("value", expression_slot(&mut slots, "value")),
         "return-value" => Node::new("Return").with_opt("value", value("value")),
         "return" => Node::new("Return"),

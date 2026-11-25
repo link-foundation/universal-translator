@@ -193,7 +193,7 @@ pub const SOURCES: &[(&str, &str)] = &[
 pub const PRIMES_FILE: &str = "semantic-primes.lino";
 
 /// Every statement and expression form a language must describe.
-pub const TEMPLATE_KEYS: [&str; 33] = [
+pub const TEMPLATE_KEYS: [&str; 38] = [
     "function",
     "function-without-parameters",
     "declare",
@@ -211,6 +211,11 @@ pub const TEMPLATE_KEYS: [&str; 33] = [
     "for",
     "call",
     "call-without-arguments",
+    "array",
+    "new-array",
+    "element",
+    "length",
+    "set-element",
     "join",
     "or",
     "and",
