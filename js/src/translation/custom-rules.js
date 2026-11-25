@@ -31,24 +31,27 @@ function textRule(rule, stage, index) {
   if (typeof (rule.replace ?? '') !== 'string') {
     throw new Error(`The ${where} needs a "replace" text`);
   }
+  const replace = rule.replace ?? '';
+  if (!rule.regex) {
+    // A plain rule replaces literally, without "$1" substitutions.
+    return {
+      language: rule.language || undefined,
+      apply: (text) => text.split(rule.find).join(replace),
+    };
+  }
   let pattern;
   try {
-    pattern = rule.regex
-      ? new RegExp(rule.find, 'gu')
-      : new RegExp(rule.find.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&'), 'gu');
+    // The pattern is the rule author's own: regular expressions are what
+    // a regex rule asks for. The server refuses them by default.
+    pattern = new RegExp(rule.find, 'gu');
   } catch (error) {
     throw new Error(
       `The ${where} is not a regular expression: ${error.message}`
     );
   }
-  const replace = rule.replace ?? '';
   return {
     language: rule.language || undefined,
-    // A plain rule replaces literally, without "$1" substitutions.
-    apply: (text) =>
-      rule.regex
-        ? text.replace(pattern, replace)
-        : text.replace(pattern, () => replace),
+    apply: (text) => text.replace(pattern, replace),
   };
 }
 

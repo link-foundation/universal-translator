@@ -194,7 +194,8 @@ docker run --rm -i universal-translator translate javascript go - < app.js
 
 `POST /translate` takes `{source, from, to, fragment?, mode?, commonLibrary?,
 allOrNothing?, rules?}` and answers `{output, complete, errors, coverage?,
-detected?}`, or `{error}` with status 400.
+detected?}`, or `{error}` with status 400. Regular expression rules are refused unless the
+server is created with `createTranslationServer({ allowRegexRules: true })`.
 
 ### Partial translation, detection and rules
 

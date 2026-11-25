@@ -209,8 +209,8 @@ describe('rules as data (issue #8)', () => {
 });
 
 describe('translation server (issue #8)', () => {
-  const post = async (body) => {
-    const server = createTranslationServer();
+  const post = async (body, settings) => {
+    const server = createTranslationServer(settings);
     await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
     try {
       const response = await fetch(
@@ -257,6 +257,20 @@ describe('translation server (issue #8)', () => {
     expect(
       (await post({ source: '', from: 'a', to: 'b', rules: [] })).status
     ).toBe(400);
+  });
+
+  it('refuses regular expression rules unless allowed', async () => {
+    const body = {
+      source: 'print(1)\n',
+      from: 'python',
+      to: 'python',
+      rules: { output: [{ find: '\\d', replace: '2', regex: true }] },
+    };
+    const refused = await post(body);
+    expect(refused.status).toBe(400);
+    expect(refused.body.error).toContain('only plain text rules');
+    const allowed = await post(body, { allowRegexRules: true });
+    expect(allowed.body.output).toBe('print(2)\n');
   });
 });
 

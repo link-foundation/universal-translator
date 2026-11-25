@@ -35,7 +35,15 @@ function readBody(request) {
   });
 }
 
-function checkRequest(body) {
+// Regular expressions from a client could take exponential time (ReDoS),
+// so a server accepts only plain text rules unless it is told otherwise.
+const hasRegexRule = (rules) =>
+  ['source', 'output'].some(
+    (stage) =>
+      Array.isArray(rules[stage]) && rules[stage].some((rule) => rule?.regex)
+  );
+
+function checkRequest(body, { allowRegexRules = false } = {}) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     throw new Error('Send a JSON object');
   }
@@ -52,6 +60,11 @@ function checkRequest(body) {
     (!body.rules || typeof body.rules !== 'object' || Array.isArray(body.rules))
   ) {
     throw new Error('"rules" must be an object');
+  }
+  if (body.rules && !allowRegexRules && hasRegexRule(body.rules)) {
+    throw new Error(
+      'This server accepts only plain text rules (start it with allowRegexRules to accept regular expressions)'
+    );
   }
   return {
     source: body.source,
@@ -114,10 +127,12 @@ function runTranslation(
  * GET /languages lists the programming and natural languages;
  * POST /translate takes {source, from (or "auto"), to, fragment?, mode?,
  * commonLibrary?, allOrNothing?, rules?} and answers {output, complete,
- * errors, coverage?, detected?} or {error}.
+ * errors, coverage?, detected?} or {error}. Rules with regular expressions
+ * are refused unless `allowRegexRules` is true.
  */
 export function createTranslationServer({
   translator = createGrammarTranslator(),
+  allowRegexRules = false,
 } = {}) {
   const languages = () => ({
     languages: translator.languages(),
@@ -137,7 +152,11 @@ export function createTranslationServer({
         } catch (error) {
           throw new Error(`The body is not JSON: ${error.message}`);
         }
-        reply(response, 200, runTranslation(translator, checkRequest(body)));
+        reply(
+          response,
+          200,
+          runTranslation(translator, checkRequest(body, { allowRegexRules }))
+        );
       } else {
         reply(response, 404, {
           error: `No route for ${request.method} ${pathname}`,
