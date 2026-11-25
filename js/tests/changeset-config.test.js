@@ -15,7 +15,7 @@ import { tmpdir } from 'node:os';
 import { delimiter, join, resolve } from 'node:path';
 import { promisify } from 'node:util';
 import { describe, it, expect } from 'test-anywhere';
-import { itUnless, sandboxed } from './helpers/skip.js';
+import { itUnless, noPosixShell, sandboxed } from './helpers/skip.js';
 
 const config = JSON.parse(readFileSync('.changeset/config.json', 'utf8'));
 const execFileAsync = promisify(execFile);
@@ -202,4 +202,56 @@ describe('credential-free PR release versioning', () => {
       lint.indexOf('Simulate fresh merge')
     );
   });
+});
+
+// Extracts the shell script of a `run: |` block from the release workflow.
+function stepScript(name) {
+  const workflow = readFileSync('.github/workflows/release.yml', 'utf8')
+    .replaceAll('\r\n', '\n')
+    .split('\n');
+  const start = workflow.indexOf(`      - name: ${name}`);
+  const run = workflow.indexOf('        run: |', start);
+  const body = [];
+  for (const line of workflow.slice(run + 1)) {
+    if (line.trim() && !line.startsWith('          ')) {
+      break;
+    }
+    body.push(line.slice(10));
+  }
+  return body.join('\n');
+}
+
+describe('versioning dry run without changesets', () => {
+  // A docs-only pull request needs no changeset, and a missing one is reported
+  // by changeset-check; failing here would also skip ESLint and Prettier.
+  itUnless(sandboxed, noPosixShell)(
+    'skips with a notice and leaves the later lint steps to run',
+    () => {
+      const script = stepScript('Dry-run release versioning (PR only)');
+      const cwd = mkdtempSync(join(tmpdir(), 'dry-run-'));
+      try {
+        mkdirSync(join(cwd, '.changeset'));
+        writeFileSync(join(cwd, '.changeset/README.md'), '# Changesets\n');
+        const run = () =>
+          spawnSync(
+            'bash',
+            ['-e', '-c', `npm() { echo "npm $*"; }\n${script}`],
+            {
+              cwd,
+              encoding: 'utf8',
+              timeout: 5000,
+            }
+          );
+        const skipped = run();
+        expect(skipped.status).toBe(0);
+        expect(skipped.stdout).toContain('::notice title=No changesets');
+        expect(skipped.stdout).not.toContain('npm run');
+
+        writeFileSync(join(cwd, '.changeset/tidy-cats.md'), '---\n---\n');
+        expect(run().stdout).toContain('npm run changeset:version');
+      } finally {
+        rmSync(cwd, { recursive: true, force: true });
+      }
+    }
+  );
 });

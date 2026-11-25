@@ -255,10 +255,20 @@ jobs:
 
       # Exercise versioning without credentials, even if release-preflight fails.
       # Restore consumed changesets and metadata on success or failure so lint
-      # checks the fresh merge rather than generated release files.
+      # checks the fresh merge rather than generated release files. With no
+      # changeset there is nothing to version: changeset-check decides whether
+      # one is required, and failing here would skip every lint step below.
       - name: Dry-run release versioning (PR only)
         if: github.event_name == 'pull_request'
+        env:
+          npm_config_offline: 'true'
+          npm_config_ignore_scripts: 'true'
         run: |
+          pending="$(find .changeset -maxdepth 1 -name '*.md' ! -name README.md | wc -l)"
+          if [ "$pending" -eq 0 ]; then
+            echo "::notice title=No changesets to version::Skipped the versioning dry run."
+            exit 0
+          fi
           trap 'git restore --source=HEAD --staged --worktree -- .' EXIT
           npm run changeset:version
           git status --short
