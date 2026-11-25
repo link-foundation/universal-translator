@@ -10,7 +10,7 @@ use std::sync::Arc;
 
 use super::arrays::{expand_array_fills, raise_array_fills, recognize_arrays};
 use super::common_library::{recognize_common_library, spell_common_library};
-use super::languages::{ImmutableParameters, IntegerDivision, Syntax, language_syntax};
+use super::languages::{Blocks, ImmutableParameters, IntegerDivision, Syntax, language_syntax};
 use super::lifting::counting_loops;
 use super::names::{avoid_reserved, name_words, neutral_name, rename_declared, spell_name};
 use crate::meta::truth::raise_truth_functions;
@@ -35,6 +35,7 @@ pub fn understanding_rules() -> Vec<Rule> {
             recognize_common_library(program)
         }),
         rule("recognizePrint", recognize_print),
+        rule("dropEmptyStatements", drop_empty_statements),
         rule("expandCompoundAssignment", |program, _| {
             expand_compound_assignment(program)
         }),
@@ -480,6 +481,27 @@ fn ends_with(node: Option<&Node>, suffix: &str) -> bool {
 }
 
 /// Replace each known output procedure with the Print concept.
+/// The statement an indentation language writes into an empty block
+/// (Python's `pass`, Nim's `discard`) does nothing, so it is no statement of
+/// the meta language. Without this rule `pass` read back as a variable.
+pub fn drop_empty_statements(program: Node, settings: &Settings) -> Node {
+    let Ok(syntax) = language_syntax(&settings.from) else {
+        return program;
+    };
+    if syntax.blocks != Blocks::Indentation {
+        return program;
+    }
+    let empty = syntax.empty_statement.unwrap_or("pass");
+    rewrite_opt(program.clone(), |current| {
+        let is_empty = current.is("Evaluate")
+            && current.node("expression").is_some_and(|expression| {
+                expression.is("Name") && expression.str("name") == Some(empty)
+            });
+        (!is_empty).then_some(current)
+    })
+    .unwrap_or(program)
+}
+
 pub fn recognize_print(program: Node, settings: &Settings) -> Node {
     let syntax = language_syntax(&settings.from).ok();
     rewrite(program, |current| {

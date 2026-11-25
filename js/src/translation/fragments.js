@@ -449,5 +449,22 @@ export function createFragmentTranslator({ toMeta, adapt, write, emit }) {
     return writeBetweenMarkers(adapted, kind, to, emit);
   }
 
-  return { parseFragment, translateFragment };
+  // Comments that stand on their own as statements of the target (notes in
+  // a natural language). Partial translation marks what it cannot
+  // translate with them. The texts are kept as written (literal mode).
+  function writeNotes(texts, to) {
+    const meta = program({
+      statements: texts.map((text) =>
+        // A comment must not close a block comment early.
+        comment(text.replaceAll('*/', '* /'))
+      ),
+    });
+    const adapted = adapt(meta, to, { from: to, mode: 'literal' });
+    if (isNaturalLanguage(to) || machineTargetIds.includes(to)) {
+      return write(adapted, to);
+    }
+    return writeBetweenMarkers(adapted, 'statements', to, emit);
+  }
+
+  return { parseFragment, translateFragment, writeNotes };
 }

@@ -24,12 +24,12 @@ natural:
     join: '{left} puis {right}'
     not: 'pas {operand}'
     negate: "l'opposé de {operand}"
-    equal: '{left} est le même que {right}'
-    not-equal: "{left} n'est pas le même que {right}"
-    less: '{left} est moins que {right}'
-    less-or-equal: "{left} n'est pas plus que {right}"
-    greater: '{left} est plus que {right}'
-    greater-or-equal: "{left} n'est pas moins que {right}"
+    equal: '{left} est le même que {right}' '{left} = {right}' '{left} == {right}'
+    not-equal: "{left} n'est pas le même que {right}" '{left} != {right}' '{left} ≠ {right}' '{left} <> {right}'
+    less: '{left} est moins que {right}' '{left} < {right}'
+    less-or-equal: "{left} n'est pas plus que {right}" '{left} <= {right}' '{left} ≤ {right}'
+    greater: '{left} est plus que {right}' '{left} > {right}'
+    greater-or-equal: "{left} n'est pas moins que {right}" '{left} >= {right}' '{left} ≥ {right}'
     array: 'ces choses ({elements})'
     new-array: '{length} choses comme {fill}'
     element: 'la partie {index} de {array}'

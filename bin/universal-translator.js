@@ -25,7 +25,14 @@ const COMMANDS = {
 const GRAMMAR_ENGINE =
   'Set UNIVERSAL_TRANSLATOR_META_LANGUAGE to the Meta Language 1.0 module file';
 const GRAMMAR_COMMANDS = ['encode-cst', 'decode-cst', 'translate-program'];
-const TRANSLATION_COMMANDS = ['translate', 'meta', 'languages', 'check-words'];
+const TRANSLATION_COMMANDS = [
+  'translate',
+  'meta',
+  'languages',
+  'check-words',
+  'coverage',
+  'detect',
+];
 const SOURCE_COMMANDS = [
   'encode-source',
   'decode-source',
@@ -43,8 +50,13 @@ function usage() {
     '  translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment]  Translate through the meta language',
     '            --common-library prints through common-library/ calls',
     '            --fragment translates statements or functions on their own',
+    '            Parts that cannot be translated become comments and are listed',
+    '            on standard error; --all-or-nothing fails instead',
+    '            The source language may be "auto" to detect it',
     '  translate-program <from|cst> <to> [file|-]  Translate a checked JavaScript or Rust program',
     '  meta <language> [file|-]  Print the typed meta program as JSON',
+    '  coverage <language> [file|-]  Print which parts of a text can be read, as JSON',
+    '  detect [file|-]  Print the most likely languages of a text, as JSON',
     '  encode-source <language> [file|-]  Write a Links Notation source document',
     '  decode-source [file|-]  Restore source from a Links Notation document',
     '  encode-cst <language> [file|-]  Parse source into a Meta Language CST',
@@ -103,6 +115,8 @@ function translationArguments(args) {
       options.commonLibrary = true;
     } else if (argument === '--fragment') {
       options.fragment = true;
+    } else if (argument === '--all-or-nothing') {
+      options.allOrNothing = true;
     } else if (argument === '--mode') {
       const key = argument.slice(2);
       const value = args[++index];
@@ -140,6 +154,62 @@ function checkWords(text, language) {
   return `The text keeps the rules of ${language}\n`;
 }
 
+// --fragment translates a single statement, function definitions or a
+// whole program into the same kind of fragment. By default every part that
+// can be translated is, and the others are marked and listed on standard
+// error; --all-or-nothing throws at the first part it cannot read.
+function translateCommand(
+  translator,
+  { from, to, file, options },
+  read,
+  write,
+  stderr
+) {
+  const source = read(file);
+  const language =
+    from === 'auto' ? translator.detectLanguage(source)[0]?.id : from;
+  if (!language) {
+    throw new Error('The language of the text could not be detected');
+  }
+  if (from === 'auto') {
+    stderr(`Detected language: ${language}`);
+  }
+  const settings = {
+    mode: options.mode,
+    commonLibrary: options.commonLibrary,
+    fragment: options.fragment,
+  };
+  if (options.allOrNothing) {
+    const translation = options.fragment
+      ? translator.translateFragment
+      : translator.translate;
+    write(translation(source, language, to, settings));
+    return;
+  }
+  const result = translator.translatePartial(source, language, to, settings);
+  write(result.text);
+  if (!result.complete) {
+    stderr(
+      `Translated ${result.readLines} of ${result.lines} lines; ${result.errors.length} part(s) could not be translated:`
+    );
+    for (const { line, endLine, message } of result.errors) {
+      stderr(
+        `  ${endLine > line ? `lines ${line}-${endLine}` : `line ${line}`}: ${message}`
+      );
+    }
+  }
+}
+
+// What `coverage` prints: the summary and where each part starts and ends.
+function coverageReport({ parts, ...summary }) {
+  const located = parts.map((part) => {
+    const rest = { ...part };
+    delete rest.source;
+    return rest;
+  });
+  return `${JSON.stringify({ ...summary, parts: located }, null, 2)}\n`;
+}
+
 function runTranslation(command, args, read, write, stderr) {
   const [from, to, ...trailing] = args;
   const { file, options } =
@@ -157,17 +227,19 @@ function runTranslation(command, args, read, write, stderr) {
     write(checkWords(read(to), from));
   } else if (command === 'meta' && from && args.length <= 2) {
     write(`${JSON.stringify(translator.toMeta(read(to), from), null, 2)}\n`);
-  } else if (command === 'translate' && from && to) {
-    // --fragment translates a single statement, function definitions or a
-    // whole program into the same kind of fragment.
-    const translation = options.fragment
-      ? translator.translateFragment
-      : translator.translate;
+  } else if (command === 'coverage' && from && args.length <= 2) {
+    write(coverageReport(translator.parsePartial(read(to), from)));
+  } else if (command === 'detect' && args.length <= 1) {
     write(
-      translation(read(file), from, to, {
-        mode: options.mode,
-        commonLibrary: options.commonLibrary,
-      })
+      `${JSON.stringify(translator.detectLanguage(read(from)), null, 2)}\n`
+    );
+  } else if (command === 'translate' && from && to) {
+    translateCommand(
+      translator,
+      { from, to, file, options },
+      read,
+      write,
+      stderr
     );
   } else {
     throw new Error(usage());

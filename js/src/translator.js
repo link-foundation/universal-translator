@@ -29,6 +29,8 @@ import {
 import { readNatural } from './natural/reader.js';
 import { writeNatural } from './natural/writer.js';
 import { createFragmentTranslator } from './translation/fragments.js';
+import { createPartialTranslator } from './translation/partial.js';
+import { createLanguageDetector } from './translation/detect.js';
 
 const readMachine = (source, from) => machineReaders[from](source);
 
@@ -134,6 +136,38 @@ export function createGrammarTranslator({
   }
 
   const fragments = createFragmentTranslator({ toMeta, adapt, write, emit });
+  const partial = createPartialTranslator(fragments);
+
+  const translate = (source, from, to, options = {}) =>
+    fromMeta(toMeta(source, from), to, { ...options, from });
+
+  // Partial translation (the default of the command line, the server and
+  // the web demo) keeps every part it can translate and marks the rest;
+  // all-or-nothing translation throws at the first part it cannot read.
+  // Machine code is read and written as whole programs only.
+  function translatePartial(source, from, to, options = {}) {
+    const whole = options.fragment ? fragments.translateFragment : translate;
+    const machine =
+      machineTargetIds.includes(to) ||
+      (!isNaturalLanguage(from) && languageSyntax(from).machine);
+    try {
+      const text = whole(source, from, to, options);
+      const lines = source.split('\n').filter((line) => line.trim()).length;
+      return {
+        text,
+        complete: true,
+        errors: [],
+        lines,
+        readLines: lines,
+        coverage: 1,
+      };
+    } catch (error) {
+      if (machine) {
+        throw error;
+      }
+      return partial.translatePartial(source, from, to, options);
+    }
+  }
 
   return {
     languages: () =>
@@ -145,8 +179,13 @@ export function createGrammarTranslator({
       }),
     toMeta,
     fromMeta,
-    translate: (source, from, to, options = {}) =>
-      fromMeta(toMeta(source, from), to, { ...options, from }),
+    translate,
+    translatePartial,
+    parsePartial: partial.parsePartial,
+    detectLanguage: createLanguageDetector({
+      parseFragment: fragments.parseFragment,
+      parsePartial: partial.parsePartial,
+    }),
     parseFragment: fragments.parseFragment,
     translateFragment: fragments.translateFragment,
   };
@@ -165,6 +204,25 @@ export function translate(source, from, to, options) {
 export function parseFragment(source, from) {
   defaultTranslator ??= createGrammarTranslator();
   return defaultTranslator.parseFragment(source, from);
+}
+
+// Translate what can be translated and mark the rest, with the default rule
+// layers.
+export function translatePartial(source, from, to, options) {
+  defaultTranslator ??= createGrammarTranslator();
+  return defaultTranslator.translatePartial(source, from, to, options);
+}
+
+// Read what can be read, with the default rule layers.
+export function parsePartial(source, from) {
+  defaultTranslator ??= createGrammarTranslator();
+  return defaultTranslator.parsePartial(source, from);
+}
+
+// Rank the languages a text may be written in, likeliest first.
+export function detectLanguage(source, options) {
+  defaultTranslator ??= createGrammarTranslator();
+  return defaultTranslator.detectLanguage(source, options);
 }
 
 // Translate a fragment with the default rule layers.

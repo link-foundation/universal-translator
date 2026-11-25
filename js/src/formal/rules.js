@@ -615,6 +615,24 @@ export function raiseTruthValues(program, context = {}) {
   return words?.true === '1' ? raiseTruthFunctions(program) : program;
 }
 
+// The statement an indentation language writes into an empty block
+// (Python's `pass`, Nim's `discard`) does nothing, so it is no statement of
+// the meta language. Without this rule `pass` read back as a variable.
+export function dropEmptyStatements(program, { from } = {}) {
+  const syntax = from ? languageSyntax(from) : undefined;
+  if (syntax?.blocks !== 'indentation') {
+    return program;
+  }
+  const empty = syntax.emptyStatement ?? 'pass';
+  return rewrite(program, (current) =>
+    current.kind === 'Evaluate' &&
+    current.expression?.kind === 'Name' &&
+    current.expression.name === empty
+      ? undefined
+      : current
+  );
+}
+
 export const understandingRules = [
   findEntryPoint,
   concatenationOperator,
@@ -622,6 +640,7 @@ export const understandingRules = [
   recognizeArrays,
   recognizeCommonLibrary,
   recognizePrint,
+  dropEmptyStatements,
   expandCompoundAssignment,
   dropParameterCopies,
   declareOnFirstAssignment,
