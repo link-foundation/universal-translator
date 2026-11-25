@@ -30,9 +30,140 @@ const compoundMeanings = {
   '/=': 'divide',
   '%=': 'remainder',
 };
+// The method that reads each constructor, by the word it starts with.
+const constructorReaders = {
+  new: 'newConstructor',
+  'vec!': 'vecMacro',
+  IntArray: 'kotlinIntArray',
+  Array: 'scalaArrayFill',
+  sizeof: 'sizeOf',
+  cast: 'namedCast',
+};
 
-export const withArrays = (Base) =>
-  class ArrayParser extends Base {
+// Arrays built by a named constructor, a cast or a Perl list.
+const withArrayConstructors = (Base) =>
+  class ArrayConstructorParser extends Base {
+    // The reader of a constructor named by its first word, if any.
+    namedConstructor(word) {
+      const reader = Object.hasOwn(constructorReaders, word)
+        ? constructorReaders[word]
+        : undefined;
+      return reader ? this[reader]() : undefined;
+    }
+
+    newConstructor() {
+      // Java, Groovy and D: new int[n], filled with zeros.
+      if (this.peek(1).type === 'name' && this.is('[', 2)) {
+        this.next();
+        this.next();
+        this.next();
+        const length = this.expression();
+        this.expect(']');
+        return node('NewArray', { length, fill: number(0) });
+      }
+      // JavaScript: new Array(n), filled later.
+      if (this.peek(1).type === 'name' && this.is('(', 2)) {
+        this.next();
+        return name(`new ${this.next().value}`);
+      }
+      return undefined;
+    }
+
+    // Rust: vec![a, b] and vec![v; n].
+    vecMacro() {
+      if (!this.is('[', 1)) {
+        return undefined;
+      }
+      this.next();
+      this.next();
+      const first = this.expression();
+      if (this.accept(';')) {
+        const length = this.expression();
+        this.expect(']');
+        return node('NewArray', { length, fill: first });
+      }
+      const rest = this.accept(',') ? this.elementList(']') : [];
+      if (!rest.length) {
+        this.expect(']');
+      }
+      return node('ArrayLiteral', { elements: [first, ...rest] });
+    }
+
+    // Kotlin: IntArray(n) { v }.
+    kotlinIntArray() {
+      if (!this.is('(', 1)) {
+        return undefined;
+      }
+      this.next();
+      this.next();
+      const length = this.expression();
+      this.expect(')');
+      this.expect('{');
+      const fill = this.expression();
+      this.expect('}');
+      return node('NewArray', { length, fill });
+    }
+
+    // Scala: Array.fill(n)(v).
+    scalaArrayFill() {
+      if (!this.is('.', 1) || !this.is('fill', 2)) {
+        return undefined;
+      }
+      this.position += 3;
+      this.expect('(');
+      const length = this.expression();
+      this.expect(')');
+      this.expect('(');
+      const fill = this.expression();
+      this.expect(')');
+      return node('NewArray', { length, fill });
+    }
+
+    // C: sizeof a.
+    sizeOf() {
+      this.next();
+      return node('SizeOf', { operand: this.unary() });
+    }
+
+    // D: cast(long) value.
+    namedCast() {
+      if (!this.is('(', 1) || !this.is(')', 3)) {
+        return undefined;
+      }
+      this.position += 4;
+      return this.unary();
+    }
+
+    // C and C++: (int) value.
+    cast() {
+      if (
+        this.is('(') &&
+        castTypes.has(this.peek(1).value) &&
+        this.is(')', 2) &&
+        ['c', 'objc', 'cpp'].includes(this.syntax.family ?? this.syntax.id)
+      ) {
+        this.position += 3;
+        return this.unary();
+      }
+      return undefined;
+    }
+
+    // Perl: (a, b, c), and (v) x n for n copies of v.
+    perlList() {
+      this.next();
+      const elements = this.elementList(')');
+      if (this.accept('x')) {
+        return node('NewArray', { length: this.unary(), fill: elements[0] });
+      }
+      return elements.length === 1
+        ? elements[0]
+        : node('ArrayLiteral', { elements });
+    }
+  };
+
+// Array expressions: literals, indexing and the length operator.
+const withArrayExpressions = (Base) =>
+  class ArrayExpressionParser extends Base {
     // a, b, c up to the closing symbol.
     elementList(close) {
       const elements = [];
@@ -142,97 +273,6 @@ export const withArrays = (Base) =>
       return this.literal(']');
     }
 
-    namedConstructor(word) {
-      // Java, Groovy and D: new int[n], filled with zeros.
-      if (word === 'new' && this.peek(1).type === 'name' && this.is('[', 2)) {
-        this.next();
-        this.next();
-        this.next();
-        const length = this.expression();
-        this.expect(']');
-        return node('NewArray', { length, fill: number(0) });
-      }
-      // JavaScript: new Array(n), filled later.
-      if (word === 'new' && this.peek(1).type === 'name' && this.is('(', 2)) {
-        this.next();
-        return name(`new ${this.next().value}`);
-      }
-      // Rust: vec![a, b] and vec![v; n].
-      if (word === 'vec!' && this.is('[', 1)) {
-        this.next();
-        this.next();
-        const first = this.expression();
-        if (this.accept(';')) {
-          const length = this.expression();
-          this.expect(']');
-          return node('NewArray', { length, fill: first });
-        }
-        const rest = this.accept(',') ? this.elementList(']') : [];
-        if (!rest.length) {
-          this.expect(']');
-        }
-        return node('ArrayLiteral', { elements: [first, ...rest] });
-      }
-      // Kotlin: IntArray(n) { v }.
-      if (word === 'IntArray' && this.is('(', 1)) {
-        this.next();
-        this.next();
-        const length = this.expression();
-        this.expect(')');
-        this.expect('{');
-        const fill = this.expression();
-        this.expect('}');
-        return node('NewArray', { length, fill });
-      }
-      // Scala: Array.fill(n)(v).
-      if (word === 'Array' && this.is('.', 1) && this.is('fill', 2)) {
-        this.position += 3;
-        this.expect('(');
-        const length = this.expression();
-        this.expect(')');
-        this.expect('(');
-        const fill = this.expression();
-        this.expect(')');
-        return node('NewArray', { length, fill });
-      }
-      // C: sizeof a. D: cast(long) value.
-      if (word === 'sizeof') {
-        this.next();
-        return node('SizeOf', { operand: this.unary() });
-      }
-      if (word === 'cast' && this.is('(', 1) && this.is(')', 3)) {
-        this.position += 4;
-        return this.unary();
-      }
-      return undefined;
-    }
-
-    // C and C++: (int) value.
-    cast() {
-      if (
-        this.is('(') &&
-        castTypes.has(this.peek(1).value) &&
-        this.is(')', 2) &&
-        ['c', 'objc', 'cpp'].includes(this.syntax.family ?? this.syntax.id)
-      ) {
-        this.position += 3;
-        return this.unary();
-      }
-      return undefined;
-    }
-
-    // Perl: (a, b, c), and (v) x n for n copies of v.
-    perlList() {
-      this.next();
-      const elements = this.elementList(')');
-      if (this.accept('x')) {
-        return node('NewArray', { length: this.unary(), fill: elements[0] });
-      }
-      return elements.length === 1
-        ? elements[0]
-        : node('ArrayLiteral', { elements });
-    }
-
     unary() {
       // Lua: #a is the length of a.
       if (this.syntax.id === 'lua' && this.accept('#')) {
@@ -245,7 +285,11 @@ export const withArrays = (Base) =>
       }
       return value;
     }
+  };
 
+// Array statements: declarations and element assignments.
+const withArrayStatements = (Base) =>
+  class ArrayStatementParser extends Base {
     // Perl: my @name = (...).
     declaration() {
       if (
@@ -379,3 +423,6 @@ export const withArrays = (Base) =>
       return node('IndexAssignment', { name: variable, index, value });
     }
   };
+
+export const withArrays = (Base) =>
+  withArrayStatements(withArrayExpressions(withArrayConstructors(Base)));

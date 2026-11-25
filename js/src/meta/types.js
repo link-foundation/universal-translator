@@ -17,41 +17,43 @@ const comparisons = new Set([
   'or',
 ]);
 
+// Kinds whose type does not depend on their parts.
+const fixedTypes = new Map([
+  ['Number', 'integer'],
+  ['Text', 'text'],
+  ['Interpolation', 'text'],
+  ['Boolean', 'boolean'],
+  ['ArrayLiteral', 'array'],
+  ['NewArray', 'array'],
+  ['Index', 'integer'],
+  ['Length', 'integer'],
+]);
+
+function binaryType(expression, scope, signatures) {
+  if (comparisons.has(expression.operator)) {
+    return 'boolean';
+  }
+  const left = expressionType(expression.left, scope, signatures);
+  const right = expressionType(expression.right, scope, signatures);
+  if (expression.operator === 'add' && (left === 'text' || right === 'text')) {
+    return 'text';
+  }
+  return 'integer';
+}
+
 function expressionType(expression, scope, signatures) {
+  if (fixedTypes.has(expression.kind)) {
+    return fixedTypes.get(expression.kind);
+  }
   switch (expression.kind) {
-    case 'Number':
-      return 'integer';
-    case 'Text':
-    case 'Interpolation':
-      return 'text';
-    case 'Boolean':
-      return 'boolean';
     case 'Name':
       return scope.get(expression.name);
     case 'Unary':
       return expression.operator === 'not' ? 'boolean' : 'integer';
-    case 'Binary': {
-      if (comparisons.has(expression.operator)) {
-        return 'boolean';
-      }
-      const left = expressionType(expression.left, scope, signatures);
-      const right = expressionType(expression.right, scope, signatures);
-      if (
-        expression.operator === 'add' &&
-        (left === 'text' || right === 'text')
-      ) {
-        return 'text';
-      }
-      return 'integer';
-    }
+    case 'Binary':
+      return binaryType(expression, scope, signatures);
     case 'Call':
       return signatures.get(expression.callee)?.returnType;
-    case 'ArrayLiteral':
-    case 'NewArray':
-      return 'array';
-    case 'Index':
-    case 'Length':
-      return 'integer';
     default:
       return undefined;
   }

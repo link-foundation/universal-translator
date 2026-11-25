@@ -168,7 +168,9 @@ export function createTranslationServer({
         try {
           body = JSON.parse(await readBody(request));
         } catch (error) {
-          throw new Error(`The body is not JSON: ${error.message}`);
+          throw new Error(`The body is not JSON: ${error.message}`, {
+            cause: error,
+          });
         }
         reply(
           response,
