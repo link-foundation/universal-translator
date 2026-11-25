@@ -135,6 +135,24 @@ fn binary_slots<'a>(
     ]))
 }
 
+/// Tokens of an expression written where only a primary fits (an index, an
+/// array or the length and fill of a new array).
+fn operand(expression: &Node, key: &str, language: &Language) -> Result<Vec<Token>, String> {
+    write_expression(child(expression, key)?, language, level_index("primary"))
+}
+
+/// Expressions separated by the list separator, as call arguments are.
+fn separated(expressions: Vec<&Node>, language: &Language) -> Result<Vec<Token>, String> {
+    let mut tokens = Vec::new();
+    for (index, expression) in expressions.into_iter().enumerate() {
+        if index > 0 {
+            tokens.push(separator(language));
+        }
+        tokens.extend(write_expression(expression, language, 0)?);
+    }
+    Ok(tokens)
+}
+
 fn primary(expression: &Node, language: &Language) -> Result<Vec<Token>, String> {
     match expression.kind.as_str() {
         "Number" => Ok(vec![Token::number(
@@ -166,19 +184,48 @@ fn primary(expression: &Node, language: &Language) -> Result<Vec<Token>, String>
                     &Slots::from([("callee", callee)]),
                 );
             }
-            let mut tokens = Vec::new();
-            for (index, argument) in arguments.into_iter().enumerate() {
-                if index > 0 {
-                    tokens.push(separator(language));
-                }
-                tokens.extend(write_expression(argument, language, 0)?);
-            }
+            let tokens = separated(arguments, language)?;
             fill(
                 language,
                 "call",
                 &Slots::from([("callee", callee), ("arguments", tokens)]),
             )
         }
+        // An empty array is a new array of no zeros: no template lists nothing.
+        "ArrayLiteral" => {
+            let elements = expression.nodes("elements");
+            if elements.is_empty() {
+                let zero = || vec![Token::number(0.0)];
+                return fill(
+                    language,
+                    "new-array",
+                    &Slots::from([("length", zero()), ("fill", zero())]),
+                );
+            }
+            let elements = separated(elements, language)?;
+            fill(language, "array", &Slots::from([("elements", elements)]))
+        }
+        "NewArray" => fill(
+            language,
+            "new-array",
+            &Slots::from([
+                ("length", operand(expression, "length", language)?),
+                ("fill", operand(expression, "fill", language)?),
+            ]),
+        ),
+        "Index" => fill(
+            language,
+            "element",
+            &Slots::from([
+                ("index", operand(expression, "index", language)?),
+                ("array", operand(expression, "array", language)?),
+            ]),
+        ),
+        "Length" => fill(
+            language,
+            "length",
+            &Slots::from([("array", operand(expression, "array", language)?)]),
+        ),
         kind => Err(format!("Cannot write a {kind} expression in words")),
     }
 }
@@ -357,6 +404,18 @@ impl Writer<'_> {
                     ("value", self.expression(statement.node("value"))?),
                 ]);
                 self.sentence(depth, key, &slots, false)
+            }
+            "IndexAssignment" => {
+                let index = child(statement, "index")?;
+                let slots = Slots::from([
+                    ("name", self.name(statement.str("name"))),
+                    (
+                        "index",
+                        write_expression(index, self.language, level_index("primary"))?,
+                    ),
+                    ("value", self.expression(statement.node("value"))?),
+                ]);
+                self.sentence(depth, "set-element", &slots, false)
             }
             "Print" => {
                 let key = if statement.flag("newline").unwrap_or(false) {
