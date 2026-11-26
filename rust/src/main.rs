@@ -1,11 +1,10 @@
 use std::fs;
 use std::io::{self, Read, Write};
 use universal_translator::custom_rules::lino_value;
-use universal_translator::formal::languages::language_syntax;
 use universal_translator::meta::notation::format_meta;
 use universal_translator::meta::{format_number, to_json};
 use universal_translator::natural::check_text;
-use universal_translator::translator::{Translator, language_ids, natural_languages};
+use universal_translator::translator::{Translator, languages, natural_languages};
 use universal_translator::{
     CustomRules, Detection, Mode, Options, PartialReading, SourceDocument, translate_program,
 };
@@ -366,10 +365,12 @@ fn run(arguments: &[String]) -> Result<String, String> {
     match arguments.as_slice() {
         [] | ["--help" | "-h"] => Ok(format!("{USAGE}\n")),
         ["--version" | "-v"] => Ok(format!("{}\n", env!("CARGO_PKG_VERSION"))),
-        ["languages"] => Ok(language_ids()
+        ["languages"] => Ok(languages()
             .into_iter()
-            .filter_map(|id| language_syntax(id).ok())
-            .map(|syntax| format!("{}\t{}\n", syntax.id, syntax.label))
+            .map(|language| {
+                let kind = if language.machine { " (machine)" } else { "" };
+                format!("{}\t{}{kind}\n", language.id, language.label)
+            })
             .chain(
                 natural_languages()
                     .into_iter()

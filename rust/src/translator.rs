@@ -6,7 +6,8 @@
 //!   --custom meta layers--> --context rules--> --emit--> target text
 //! ```
 //!
-//! Machine targets (x86-64 assembly, CIL and JVM bytecode) replace the last
+//! Machine targets (assembly for x86-64 and ARM64, CIL, JVM bytecode, LLVM IR
+//! and WebAssembly text) replace the last
 //! step: the adapted meta program is lowered to stack machine code and
 //! written in the target's assembler syntax. Machine code is also read
 //! back: its instructions are lifted into the meta language and continue
@@ -444,26 +445,31 @@ pub fn language_ids() -> Vec<&'static str> {
     languages::language_ids()
 }
 
-/// A programming language the grammar translator reads and writes, with
-/// its versions (the default first), as the JavaScript `languages()` lists
-/// it.
+/// A programming language or machine target the grammar translator reads
+/// and writes, with its versions (the default first), as the JavaScript
+/// `languages()` lists it.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct LanguageListing {
     pub id: &'static str,
     pub label: &'static str,
     pub versions: Vec<Version>,
+    /// Whether this is a machine target (assembly or an intermediate
+    /// language) rather than a source language.
+    pub machine: bool,
 }
 
-/// The programming languages with their labels and versions, in listing
-/// order.
+/// The programming languages with their labels and versions, then the
+/// machine targets, in listing order.
 pub fn languages() -> Vec<LanguageListing> {
     language_ids()
         .into_iter()
+        .chain(machine_target_ids())
         .filter_map(|id| languages::language_syntax(id).ok())
         .map(|syntax| LanguageListing {
             id: syntax.id,
             label: syntax.label,
             versions: versions_of(syntax.id),
+            machine: syntax.machine,
         })
         .collect()
 }
