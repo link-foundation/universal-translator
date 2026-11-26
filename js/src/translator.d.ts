@@ -1,3 +1,5 @@
+import type { ConcreteSyntax } from './translation/concrete-syntax.js';
+
 export type TranslationMode = 'context-dependent' | 'literal' | 'same-effect';
 
 export interface TranslationOptions {
@@ -111,6 +113,29 @@ export interface Fragment {
   program: unknown;
 }
 
+export interface PartialError {
+  line: number;
+  endLine: number;
+  message: string;
+  source: string;
+}
+
+export interface PartialReading {
+  complete: boolean;
+  syntax: ConcreteSyntax;
+  parts: (Omit<PartialError, 'message'> & {
+    start: number;
+    end: number;
+    status: 'read' | 'failed';
+    kind?: FragmentKind;
+    message?: string;
+  })[];
+  lines: number;
+  readLines: number;
+  coverage: number;
+  errors: PartialError[];
+}
+
 export interface GrammarTranslator {
   /**
    * Programming languages and machine targets; `versions` lists the versions
@@ -150,6 +175,8 @@ export interface GrammarTranslator {
   /** Read a complete fragment: a whole program, function definitions or
    * statements. */
   parseFragment(source: string, from: string): Fragment;
+  /** Read accepted fragments while retaining every original source byte. */
+  parsePartial(source: string, from: string): PartialReading;
   /** Translate a complete fragment into the same kind of fragment. */
   translateFragment(
     source: string,
@@ -192,6 +219,11 @@ export declare function translate(
 ): string;
 
 export declare function parseFragment(source: string, from: string): Fragment;
+
+export declare function parsePartial(
+  source: string,
+  from: string
+): PartialReading;
 
 export declare function translateFragment(
   source: string,

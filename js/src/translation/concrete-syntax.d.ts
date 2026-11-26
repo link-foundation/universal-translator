@@ -20,6 +20,12 @@ export interface ConcreteSyntax {
     start: number;
     end: number;
   }[];
+  errors: {
+    kind: 'Error';
+    start: number;
+    end: number;
+    message: string;
+  }[];
 }
 
 export declare function reconstructConcrete(syntax: ConcreteSyntax): string;

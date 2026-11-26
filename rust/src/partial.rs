@@ -92,6 +92,8 @@ pub struct PartError {
 /// What [`Translator::parse_partial`] reads.
 #[derive(Clone, Debug, PartialEq)]
 pub struct PartialReading {
+    /// Lossless original source, accepted fragment views and unread regions.
+    pub syntax: crate::meta::Node,
     pub complete: bool,
     pub parts: Vec<Part>,
     /// The written (non-blank) lines of the text.
@@ -329,7 +331,7 @@ pub fn parse_partial(
         Err(error) => {
             let reader = Reader { translator, from };
             let parts = reader.segments(&lines, 0, lines.len());
-            if parts.is_empty() {
+            if parts.is_empty() && written > 0 {
                 return Err(error);
             }
             parts
@@ -353,6 +355,7 @@ pub fn parse_partial(
         })
         .sum();
     Ok(PartialReading {
+        syntax: crate::source_syntax::source_syntax(source, from, None, &parts),
         complete: parts.iter().all(|part| part.status == PartStatus::Read),
         errors: errors_of(&parts),
         parts,

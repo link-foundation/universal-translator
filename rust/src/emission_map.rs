@@ -48,6 +48,16 @@ pub(crate) fn capture<T>(translate: impl FnOnce() -> T) -> (T, Vec<Emission>) {
     (result, emissions)
 }
 
+// Readers need instruction provenance for concrete production views even
+// when the caller has not requested an emitted line map.
+pub(crate) fn source_records<T>(read: impl FnOnce() -> T) -> T {
+    if CONTEXTS.with_borrow(|contexts| contexts.is_empty()) {
+        capture(read).0
+    } else {
+        read()
+    }
+}
+
 pub(crate) struct Active(Option<Origins>);
 
 impl Drop for Active {

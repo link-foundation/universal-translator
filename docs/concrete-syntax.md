@@ -1,7 +1,7 @@
 # Concrete syntax in the translation pipeline
 
-The default formal-language parser retains a concrete source record in
-`sourceTree.syntax`. Its token and trivia leaves partition the original text:
+The default readers retain a concrete source record in `sourceTree.syntax`.
+Its token and trivia leaves partition the original text:
 quotes, comment markers, whitespace, line endings, directives and file headers
 remain present. `reconstructConcrete(sourceTree.syntax)` in JavaScript, or
 `reconstruct_concrete` in Rust, concatenates those leaves to reproduce the input.
@@ -12,9 +12,11 @@ are views over the shared token stream, so a transformation can retain its sourc
 without copying the entire text into every node. Synthetic indentation and
 end-of-file tokens consume no source bytes.
 
-The `parsed` trace callback and a decorator around the `parse` stage receive this
-record before understanding rules derive a meta program. No tracing is enabled
-by default. Existing custom parsers remain replaceable through the stage API.
+The `parsed` trace callback receives this record for formal languages, controlled
+natural languages and all seven machine formats. A decorator around the formal
+`parse` stage also receives it before understanding rules derive a meta program.
+No tracing is enabled by default. Existing custom readers remain replaceable
+through the stage API.
 
 ```js
 import {
@@ -39,8 +41,21 @@ between source tokens and rewrites in
 and the explicit source ranges used by
 [tree-sitter](https://tree-sitter.github.io/tree-sitter/using-parsers/3-advanced-parsing.html).
 
-The current record covers successful parses by the shared formal-language parser
-and its dialects. Natural-language and machine readers, syntax-error recovery,
-grammar import/update, and carrying ranges through all semantic rewrites and
-emitters remain tracked work in issue 16. Retaining the concrete source alone
-does not establish a semantic mapping between two translated programs.
+`translator.parsePartial(source, language).syntax` in JavaScript, or
+`translator.parse_partial(source, language)?.syntax` in Rust, also retains
+incomplete input, including unclosed literals and unsupported constructs. Its
+`productions` describe accepted fragments; its `errors` contain unread byte
+ranges and diagnostic messages. Whitespace-only and empty inputs have a complete
+record with no productions or errors. The original CRLF endings and indentation
+remain intact even though fragment recovery dedents its semantic inputs.
+
+The formal parser records its actual grammar tokens and production methods.
+Line-oriented readers and recovery use lossless word/symbol leaves and layout
+trivia; accepted semantic concepts have `source-lines` production views. A
+concept assembled from separate instruction ranges has separate views rather
+than claiming ownership of the instructions between them. Recovery's `fragment`
+views describe accepted parts, while unread parts appear only in `errors`.
+
+Grammar import/update and exact subline ranges through every semantic rewrite
+remain tracked work in issue 16. Retaining the concrete source alone does not
+establish a semantic mapping between two translated programs.

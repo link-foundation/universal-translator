@@ -408,17 +408,23 @@ impl Translator {
     }
 
     fn read_meta(&self, text: &str, from: &str) -> Result<Node, GrammarError> {
+        crate::emission_map::source_records(|| self.read_source(text, from))
+    }
+
+    fn read_source(&self, text: &str, from: &str) -> Result<Node, GrammarError> {
         let source = &self.rules.source(text, from);
         if natural::is_natural_language(from) {
-            // A controlled natural language is read sentence by sentence
-            // straight into the meta language; it has no source details to
-            // understand.
+            // Sentence reading supplies semantics alongside the concrete record.
             let language = match self.rules.natural_language(from) {
                 Some(language) => language,
                 None => natural::natural_language(from).map_err(GrammarError::new)?,
             };
             let read = (self.stages.read_natural)(source, from, language)?;
             let read = rules::infer_mutability(read);
+            self.report(
+                "parsed",
+                &crate::source_syntax::source_tree(source, from, &read),
+            );
             self.report("read", &read);
             let settings = Settings {
                 from: from.to_owned(),
@@ -440,14 +446,16 @@ impl Translator {
             mode: Mode::default(),
         };
         if syntax.machine {
-            // Machine code has no grammar to parse: read its instructions,
-            // lift them to the meta language and continue like any other
-            // source.
+            // Instruction reading and lifting retain the concrete source record.
             let machine = (self.stages.read_machine)(source, from)?;
             let lifted =
                 rules::infer_mutability(meta::for_each::raise_for_each((self.stages.lift)(
                     &machine,
                 )?));
+            self.report(
+                "parsed",
+                &crate::source_syntax::source_tree(source, from, &lifted),
+            );
             self.report("lifted", &lifted);
             let typed = apply_rules((self.stages.infer)(lifted), &self.meaning, &settings);
             self.report("typed", &typed);

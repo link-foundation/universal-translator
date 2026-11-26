@@ -59,6 +59,7 @@ import {
   mergeLineMaps,
 } from './translation/emission-map.js';
 import { markImprecision } from './meta/imprecision.js';
+import { sourceTree as concreteSourceTree } from './translation/source-syntax.js';
 import { unnest } from './translation/nesting.js';
 import { decorateStages, mergeDecorators } from './translation/decorators.js';
 
@@ -369,11 +370,11 @@ export function createGrammarTranslator(settings = {}) {
   function readMeta(text, from) {
     const source = custom.source(text, from);
     if (isNaturalLanguage(from)) {
-      // A controlled natural language is read sentence by sentence straight
-      // into the meta language; it has no source details to understand.
+      // Sentence reading supplies semantic nodes alongside the concrete record.
       const read = inferMutability(
         stages.readNatural(source, from, custom.naturalLanguage(from))
       );
+      trace('parsed', concreteSourceTree(source, from, read));
       trace('read', read);
       const typed = applyRules(infer(read), meaning, {});
       trace('typed', typed);
@@ -381,11 +382,11 @@ export function createGrammarTranslator(settings = {}) {
     }
     const syntax = languageSyntax(from);
     if (syntax.machine) {
-      // Machine code has no grammar to parse: read its instructions, lift
-      // them to the meta language and continue like any other source.
+      // Instruction reading and lifting retain their concrete source record.
       const lifted = inferMutability(
         raiseForEach(lift(stages.readMachine(source, from)))
       );
+      trace('parsed', concreteSourceTree(source, from, lifted));
       trace('lifted', lifted);
       const typed = applyRules(infer(lifted), meaning, { from });
       trace('typed', typed);

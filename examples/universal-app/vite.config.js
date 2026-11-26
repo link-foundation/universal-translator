@@ -60,7 +60,7 @@ const chunkGroups = [
   ['links-notation', /[\\/]node_modules[\\/](links-notation|lino-i18n)[\\/]/],
   [
     'translator-source',
-    /[\\/]js[\\/]src[\\/]translation[\\/](concrete-syntax|source-origins|emission-map|layout)\.js$/,
+    /[\\/]js[\\/]src[\\/]translation[\\/](concrete-syntax|source-syntax|source-origins|emission-map|layout)\.js$/,
   ],
   ['translator-formal', /[\\/]js[\\/]src[\\/](formal|meta)[\\/]/],
   [

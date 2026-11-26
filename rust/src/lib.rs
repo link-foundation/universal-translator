@@ -22,6 +22,7 @@ mod referents;
 pub mod server;
 mod source_document;
 mod source_origins;
+mod source_syntax;
 pub mod stages;
 pub mod style;
 pub mod translator;

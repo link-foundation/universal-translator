@@ -24,6 +24,8 @@
 //    is prose: it is translated freely (`translateProse`), not
 //    marked, and is listed in `prose`.
 
+import { sourceSyntax } from './source-syntax.js';
+
 const closers =
   /^\s*(?:[}\])]|end\b|fi\b|done\b|esac\b|else\b|elif\b|elsif\b|elseif\b|until\b|loop\b|wend\b|next\b|catch\b|finally\b|except\b|rescue\b|ensure\b|then\b|begin\b|do\b)/iu;
 
@@ -234,7 +236,7 @@ export function createPartialTranslator({
       parts = [{ start: 0, end: lines.length, status: 'read', kind }];
     } catch (error) {
       parts = segments(lines, from, 0, lines.length);
-      if (!parts.length) {
+      if (!parts.length && written) {
         throw error;
       }
     }
@@ -252,6 +254,7 @@ export function createPartialTranslator({
       readLines,
       coverage: written ? readLines / written : 1,
       errors: errorsOf(located),
+      syntax: sourceSyntax(source, from, undefined, located),
     };
   }
 

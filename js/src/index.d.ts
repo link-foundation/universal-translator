@@ -29,6 +29,7 @@ export declare const delay: (ms: number) => Promise<void>;
 export {
   createGrammarTranslator as createTranslator,
   parseFragment,
+  parsePartial,
   translate,
   translateCandidates,
   translateFragment,
@@ -48,6 +49,8 @@ export type {
   TranslationCandidate,
   Fragment,
   FragmentKind,
+  PartialError,
+  PartialReading,
   GrammarTranslator,
   GrammarTranslatorOptions,
   Decorator,

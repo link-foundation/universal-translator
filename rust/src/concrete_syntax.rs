@@ -41,6 +41,15 @@ pub(crate) fn concrete_syntax(
             production.set(field, offsets[character] as f64);
         }
     }
+    record(source, language, children, productions)
+}
+
+pub(crate) fn record(
+    source: &str,
+    language: &str,
+    children: Vec<Node>,
+    productions: Vec<Node>,
+) -> Node {
     Node::new("ConcreteSyntax")
         .with("language", language)
         .with("unit", "utf8")
@@ -48,6 +57,7 @@ pub(crate) fn concrete_syntax(
         .with("end", source.len() as f64)
         .with("children", children)
         .with("productions", productions)
+        .with("errors", Vec::<Node>::new())
 }
 
 /// Reconstruct the exact original text from the concrete token stream.

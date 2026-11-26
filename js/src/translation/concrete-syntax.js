@@ -2,7 +2,7 @@
 // its token stream; semantic nodes can change without changing that record.
 import { sourceLocator, withOrigin } from './source-origins.js';
 
-function byteOffsets(source) {
+export function byteOffsets(source) {
   const offsets = new Uint32Array(source.length + 1);
   let position = 0;
   let bytes = 0;
@@ -78,7 +78,13 @@ function productions(tree, locations, offsets) {
 
 // Token boundaries use the lexer's string offsets; the public CST uses UTF-8
 // byte ranges, matching Meta Language and tree-sitter across both runtimes.
-export function concreteSyntax(source, language, tokens, tree, locations) {
+export function concreteSyntax(
+  source,
+  language,
+  tokens,
+  tree,
+  locations = new WeakMap()
+) {
   const offsets = byteOffsets(source);
   const children = [];
   let position = 0;
@@ -111,6 +117,7 @@ export function concreteSyntax(source, language, tokens, tree, locations) {
     end: offsets[source.length],
     children,
     productions: productions(tree, locations, offsets),
+    errors: [],
   };
 }
 
