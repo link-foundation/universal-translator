@@ -100,7 +100,18 @@ Every stage of the translation pipeline (parser, readers and emitters) can be wr
 
 Where prose admits several readings, each candidate translation is scored by the frequency of its readings (Zipf priors) and by how much survives the round trip, as relative-meta-logic truth values. The scores are combined by their product with the share of lines translated, and the most probable candidate is kept. New: `translateCandidates` / `Translator::translate_candidates`, `rankProse` / `rank_prose`, and `translate <from> <to> --candidates`. The meta program records `(imprecision ambiguous|untranslated|truncated|rounded)`, `(alternatives n)` and `(probability p)`; `meta` shows them and emitters ignore them.
 
+### Language detection
+
+Detection also finds machine code: NASM, GNU as, ARM64, CIL, JVM bytecode, LLVM IR and WebAssembly text are candidates, read whole by their own readers. Objective-C is told from C by its `#import`. Every committed factorial golden is detected as its own language.
+
+A word that starts with an underscore (`_`, `_x`, Perl's `@_`) is one word to the natural-language tokenizer. Before this fix such a word was read as an empty word that never moved on, so detecting the language of a Perl program ran out of memory.
+
+### JavaScript arrow functions and static classes
+
+JavaScript and TypeScript functions written as arrow functions (`const add = (a, b) => a + b;`, `const twice = n => { ... };`) are read as named functions; an expression body returns its value, and TypeScript parameter and return types are kept. A class of static methods is read as plain functions, and a call such as `Program.square(3)` calls the function by its own name in every language. Classes of objects need objects in the meta language and are not read yet.
+
 ### Smaller fixes
 
 - `"" + year` in Java and similar languages keeps the type of `year`. The interpolation is text, not the name.
-- The LLVM IR reader finds text constants in linear time.
+- The LLVM IR reader matches text constants in linear time.
+- The Rust documentation builds without warnings again (`cargo doc` with `-D warnings`).

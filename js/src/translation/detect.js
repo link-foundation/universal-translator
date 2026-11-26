@@ -8,9 +8,12 @@
 // comment marker and declaration keywords) and, for controlled natural
 // languages, by how many words of the text are words of its templates.
 // Only the best candidates by that evidence are read partially, so
-// detection stays fast on long texts.
+// detection stays fast on long texts. Machine code (assembly, bytecode,
+// intermediate languages) is read whole only: each dialect's reader takes
+// its own programs and no other text.
 
 import { grammarLanguageIds, languageSyntax } from '../formal/languages.js';
+import { machineTargetIds } from '../formal/machine.js';
 import { naturalLanguage, naturalLanguageIds } from '../natural/catalog.js';
 import { tokenize } from '../natural/tokens.js';
 import { isKnownWord, wordsOf } from '../natural/comments.js';
@@ -71,6 +74,21 @@ const signatures = {
   nasm: [/^\s*section\s+\.text/mu, /^\s*global\s+_?main/mu, /\bmov\s+\w+,/u],
   cil: [/^\s*\.method\b/mu, /\bldc\.i4/u, /\.assembly\b/u],
   jvm: [/^\s*\.class\b/mu, /^\s*\.method\b/mu, /\binvokestatic\b/u],
+  gas: [/^\s*\.globl\b/mu, /%r[sb]p\b/u, /^\s*(?:push|mov|sub)q\s/mu],
+  arm64: [/^\s*stp\s+x\d+,/mu, /^\s*(?:ldr|str)\s+x\d+,/mu, /%function\b/u],
+  llvm: [
+    /^\s*define\s+\S+\s+@\w+\(/mu,
+    /^\s*declare\s+\S+\s+@\w+\(/mu,
+    /\balloca\b/u,
+  ],
+  wat: [/^\s*\(module\b/mu, /\blocal\.get\b/u, /\(func\s+\$\w+/u],
+};
+
+// Patterns a language never writes: Objective-C imports its headers, C and
+// C++ include them, so "#import" rules C and C++ out.
+const contradictions = {
+  c: [/^\s*#import\b/mu],
+  cpp: [/^\s*#import\b/mu],
 };
 
 const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
@@ -81,6 +99,11 @@ function syntaxEvidence(source, id) {
   for (const pattern of signatures[id] ?? []) {
     if (pattern.test(source)) {
       score += 3;
+    }
+  }
+  for (const pattern of contradictions[id] ?? []) {
+    if (pattern.test(source)) {
+      score -= 6;
     }
   }
   const words = [syntax.functionKeyword, ...(syntax.declarations ?? [])].filter(
@@ -151,6 +174,28 @@ function proseCoverage(source, id) {
   return known / (words.length + symbols);
 }
 
+// Every language a text may be written in, with the evidence for it.
+const candidatesOf = (source) => [
+  ...grammarLanguageIds.map((id) => ({
+    id,
+    natural: false,
+    evidence: syntaxEvidence(source, id),
+  })),
+  ...machineTargetIds.map((id) => ({
+    id,
+    natural: false,
+    machine: true,
+    evidence: syntaxEvidence(source, id),
+  })),
+  ...naturalLanguageIds().map((id) => ({
+    id,
+    natural: true,
+    // A profile only narrows its language, so on a tie the language itself
+    // is the better guess.
+    evidence: wordEvidence(source, id) - (naturalLanguage(id).base ? 0.5 : 0),
+  })),
+];
+
 export function createLanguageDetector({ parseFragment, parsePartial }) {
   const reads = (source, id) => {
     try {
@@ -166,21 +211,7 @@ export function createLanguageDetector({ parseFragment, parsePartial }) {
     if (!source.trim()) {
       return [];
     }
-    const candidates = [
-      ...grammarLanguageIds.map((id) => ({
-        id,
-        natural: false,
-        evidence: syntaxEvidence(source, id),
-      })),
-      ...naturalLanguageIds().map((id) => ({
-        id,
-        natural: true,
-        // A profile only narrows its language, so on a tie the language
-        // itself is the better guess.
-        evidence:
-          wordEvidence(source, id) - (naturalLanguage(id).base ? 0.5 : 0),
-      })),
-    ];
+    const candidates = candidatesOf(source);
     for (const candidate of candidates) {
       candidate.reads = candidate.evidence > -1 && reads(source, candidate.id);
       candidate.coverage = candidate.reads ? 1 : 0;
@@ -191,7 +222,10 @@ export function createLanguageDetector({ parseFragment, parsePartial }) {
     const best = (natural) =>
       candidates
         .filter(
-          (candidate) => candidate.natural === natural && !candidate.reads
+          (candidate) =>
+            candidate.natural === natural &&
+            !candidate.machine &&
+            !candidate.reads
         )
         .sort((a, b) => b.evidence - a.evidence)
         .slice(0, limit);

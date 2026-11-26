@@ -115,7 +115,7 @@ fn read_word(source: &[char], start: usize, joiners: &[char]) -> usize {
             && end > start
             && end + 1 < source.len()
             && (is_letter(source[end + 1]) || source[end + 1] == '_');
-        if is_letter(character) || joins || (character == '_' && end > start) {
+        if is_letter(character) || joins || character == '_' {
             end += 1;
         } else {
             break;

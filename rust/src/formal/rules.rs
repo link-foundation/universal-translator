@@ -125,6 +125,37 @@ fn flatten_classes(items: Vec<Node>) -> Vec<Node> {
         .collect()
 }
 
+/// "Program.square" for every function of a class of the program.
+fn class_function_names(items: &[Node], owner: Option<&str>, names: &mut HashSet<String>) {
+    for item in items {
+        if item.is("Class") {
+            class_function_names(&item.node_list("items"), item.str("name"), names);
+        } else if let (Some(owner), true) = (owner, item.is("Function")) {
+            names.insert(format!("{owner}.{}", item.str("name").unwrap_or_default()));
+        }
+    }
+}
+
+/// `Program.square(3)` calls a function of the program. The classes are
+/// flattened, so the call names the plain function.
+fn unqualify_class_calls(program: Node, items: &[Node]) -> Node {
+    let mut qualified = HashSet::new();
+    class_function_names(items, None, &mut qualified);
+    if qualified.is_empty() {
+        return program;
+    }
+    rewrite(program, |mut current| {
+        let callee = current.str("callee").map(str::to_string);
+        if let Some(callee) =
+            callee.filter(|callee| current.is("Call") && qualified.contains(callee))
+        {
+            let last = callee.rsplit('.').next().unwrap_or_default().to_string();
+            current.set("callee", last);
+        }
+        current
+    })
+}
+
 fn is_call_to(statement: &Node, function_name: &str) -> bool {
     statement.is("Evaluate")
         && statement.node("expression").is_some_and(|expression| {
@@ -216,7 +247,8 @@ fn is_exit_success(statement: Option<&Node>) -> bool {
 /// Collect functions, the entry point and file comments into a Program. The
 /// body of `main` becomes the program's main block.
 pub fn find_entry_point(source: Node) -> Node {
-    let mut program = collect_items(flatten_classes(source.node_list("items")));
+    let items = source.node_list("items");
+    let mut program = unqualify_class_calls(collect_items(flatten_classes(items.clone())), &items);
     let mut functions = program.node_list("functions");
     let Some(index) = functions
         .iter()
