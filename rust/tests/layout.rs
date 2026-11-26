@@ -189,3 +189,31 @@ fn line_ends_blank_lines_and_indentation_follow_the_source() {
     let empty = transfer_layout("\n\n", "x\n", &c, &c, true, "c");
     assert_eq!(empty.text, "x\n");
 }
+
+#[test]
+fn each_closing_brace_maps_to_the_brace_that_closes_its_own_block() {
+    let source = "function f(a) {\n  if (a) {\n    g();\n  }\n}\n";
+    let target = [
+        "class Program {",
+        "    static void F(bool a) {",
+        "        if (a) {",
+        "            G();",
+        "        }",
+        "    }",
+        "",
+        "    static void Main() {",
+        "    }",
+        "}",
+        "",
+    ]
+    .join("\n");
+    let layout = transfer_layout(
+        source,
+        &target,
+        &marks("javascript"),
+        &marks("csharp"),
+        false,
+        "csharp",
+    );
+    assert_eq!(layout.lines, vec![(0, 1), (1, 2), (2, 3), (3, 4), (4, 5)]);
+}

@@ -13,7 +13,7 @@ use universal_translator::{
 };
 
 const USAGE: &str = "Usage:
-  universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment] [--all-or-nothing] [--rules <file.lino>] [--comment-language <natural>] [--comment-from <natural>] [--identifier-language <natural>] [--identifier-from <natural>] [--layout source|target]
+  universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment] [--all-or-nothing] [--rules <file.lino>] [--comment-language <natural>] [--comment-from <natural>] [--identifier-language <natural>] [--identifier-from <natural>] [--layout source|target] [--braces same-line|next-line] [--indent <n|tab>]
   universal-translator meta <language> [file|-] [--json] [--shallow]
   universal-translator coverage <language> [file|-] [--json]
   universal-translator detect [file|-] [--json]
@@ -51,6 +51,9 @@ the language of the names (detected otherwise).
 --layout source (the default) keeps the spaces and blank lines of the
 source between programming languages; --layout target writes the layout
 of the target.
+--braces same-line|next-line puts the brace that opens a block on the line
+of its statement or on a line of its own; --indent <n|tab> indents each
+block by n spaces or by a tab.
 <to> may name a version: python@2.
 meta prints the meta program as indented Links Notation; --json prints JSON.
 It reads comments and strings with the grammars they are written in
@@ -280,6 +283,7 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
     let mut identifier_language = None;
     let mut identifier_from = None;
     let mut layout = None;
+    let mut style = universal_translator::Style::default();
     let mut arguments = arguments.iter().copied();
     // An option with a value takes one value, given once.
     fn value<'a>(
@@ -320,6 +324,14 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
                         .parse::<universal_translator::TextLayout>()?,
                 );
             }
+            "--braces" => {
+                style.braces =
+                    Some(value(argument, style.braces.is_some(), &mut arguments)?.parse()?);
+            }
+            "--indent" => {
+                style.indent =
+                    Some(value(argument, style.indent.is_some(), &mut arguments)?.parse()?);
+            }
             "--comment-from" => {
                 comment_from = Some(value(argument, comment_from.is_some(), &mut arguments)?);
             }
@@ -349,6 +361,7 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
         mode: mode.unwrap_or_default(),
         common_library,
         layout: layout.unwrap_or_default(),
+        style,
         ..Options::default()
     };
     // --comment-from only matters with --comment-language.

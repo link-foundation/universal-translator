@@ -100,8 +100,19 @@ A word that starts with an underscore (`_`, `_x`, Perl's `@_`) is one word to th
 
 JavaScript and TypeScript functions written as arrow functions (`const add = (a, b) => a + b;`, `const twice = n => { ... };`) are read as named functions; an expression body returns its value, and TypeScript parameter and return types are kept. A class of static methods is read as plain functions, and a call such as `Program.square(3)` calls the function by its own name in every language. Classes of objects need objects in the meta language and are not read yet.
 
+### Brace placement and indent width
+
+`--braces same-line|next-line` and `--indent <n|tab>` (`braces` and `indent`; Rust: `Options::style`, a `Style { braces, indent }`) write a translation in the style asked for: C# and Java with each opening brace on a line of its own and `}`, `else` and `{` on lines of their own, JavaScript indented by two spaces, Rust by a tab. A program translated into its own language is restyled the same way, the `lineMap` follows the moved lines, and `POST /translate` takes both fields. Go keeps its braces on the line of their statement, which its grammar needs.
+
+- The `lineMap` of a partial translation maps a closing brace to the brace that closes its own block, also when the target closes more blocks after it (the class around a C# or Java program).
+
+### Language versions
+
+Lua, PHP and C# have versions besides Python. `lua@5.1` divides integers with `math.floor(a / b)` (Lua 5.1 and 5.2 have no `//`), `php@5` with `intval($a / $b)` (no `intdiv`), and `csharp@5` joins text with `+` (no `$"..."` strings). Each language reads all of its versions, and every committed task written in an older version keeps its meaning.
+
 ### Smaller fixes
 
+- Lua's `..` joins text, numbers included, and binds looser than `+` and `-`: `half(4) .. half(2)` is no longer read as a sum, and `"a" .. 1 + 2` is `"a3"`.
 - `"" + year` in Java and similar languages keeps the type of `year`. The interpolation is text, not the name.
 - The LLVM IR reader matches text constants in linear time.
 - The Rust documentation builds without warnings again (`cargo doc` with `-D warnings`).

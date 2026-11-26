@@ -214,6 +214,12 @@ function uniqueAnchors(a, b, [a0, a1, b0, b1]) {
       candidates.push([i, count.j]);
     }
   }
+  return longestIncreasing(candidates);
+}
+
+// The longest run of pairs, sorted by their first position, whose second
+// positions increase too.
+function longestIncreasing(candidates) {
   const tails = [];
   const previous = [];
   candidates.forEach(([, j], k) => {
@@ -230,11 +236,11 @@ function uniqueAnchors(a, b, [a0, a1, b0, b1]) {
     previous[k] = low > 0 ? tails[low - 1] : -1;
     tails[low] = k;
   });
-  const anchors = [];
+  const run = [];
   for (let k = tails.length ? tails.at(-1) : -1; k >= 0; k = previous[k]) {
-    anchors.unshift(candidates[k]);
+    run.push(candidates[k]);
   }
-  return anchors;
+  return run.reverse();
 }
 
 // The largest table of the longest common subsequence (cells).
@@ -316,7 +322,50 @@ export function alignTokens(sourceTokens, targetTokens) {
   const b = targetTokens.map(id);
   const pairs = [];
   alignRange(a, b, [0, a.length, 0, b.length], pairs);
-  return pairs;
+  return pairBrackets(pairs, sourceTokens, targetTokens);
+}
+
+const openers = { 'p(': 'p)', 'p[': 'p]', 'p{': 'p}' };
+const closers = new Set(Object.values(openers));
+
+// For each opening bracket, the index of the bracket that closes it.
+function closingBrackets(tokens) {
+  const closing = new Map();
+  const open = [];
+  tokens.forEach((token, index) => {
+    if (openers[token.key]) {
+      open.push(index);
+    } else if (closers.has(token.key)) {
+      const opener = open.pop();
+      if (opener !== undefined && openers[tokens[opener].key] === token.key) {
+        closing.set(opener, index);
+      }
+    }
+  });
+  return closing;
+}
+
+// A closing bracket goes with its opening bracket: when the opening
+// brackets of both sides are matched, so are the brackets that close them
+// (the target may close more blocks after the source's last one, such as
+// the class around a C# program). Pairs that cross these are left out.
+function pairBrackets(pairs, sourceTokens, targetTokens) {
+  const sourceClosing = closingBrackets(sourceTokens);
+  const targetClosing = closingBrackets(targetTokens);
+  const closed = [];
+  for (const [i, j] of pairs) {
+    if (sourceClosing.has(i) && targetClosing.has(j)) {
+      closed.push([sourceClosing.get(i), targetClosing.get(j)]);
+    }
+  }
+  const sourceClosed = new Set(closed.map(([i]) => i));
+  const targetClosed = new Set(closed.map(([, j]) => j));
+  const others = pairs.filter(
+    ([i, j]) => !sourceClosed.has(i) && !targetClosed.has(j)
+  );
+  return longestIncreasing(
+    [...others, ...closed].sort((left, right) => left[0] - right[0])
+  );
 }
 
 const wordLike = (kind) => kind === 'word' || kind === 'string';

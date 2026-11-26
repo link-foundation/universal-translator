@@ -168,3 +168,33 @@ describe('layout of the source (issue 14)', () => {
     expect(transferLayout('  \n', 'f();\n', c, c).text).toBe('f();\n');
   });
 });
+
+describe('lines of the layout', () => {
+  it('maps each closing brace to the brace that closes its own block', () => {
+    const source = 'function f(a) {\n  if (a) {\n    g();\n  }\n}\n';
+    const c = syntax('csharp');
+    const target = [
+      'class Program {',
+      '    static void F(bool a) {',
+      '        if (a) {',
+      '            G();',
+      '        }',
+      '    }',
+      '',
+      '    static void Main() {',
+      '    }',
+      '}',
+      '',
+    ].join('\n');
+    const { lines } = transferLayout(source, target, syntax('javascript'), c, {
+      respace: false,
+    });
+    expect(lines).toEqual([
+      [0, 1],
+      [1, 2],
+      [2, 3],
+      [3, 4],
+      [4, 5],
+    ]);
+  });
+});

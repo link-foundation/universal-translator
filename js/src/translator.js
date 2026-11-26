@@ -48,6 +48,7 @@ import { createPartialTranslator } from './translation/partial.js';
 import { createLanguageDetector } from './translation/detect.js';
 import { compileCustomRules } from './translation/custom-rules.js';
 import { transferLayout } from './translation/layout.js';
+import { applyStyle, checkStyle, hasStyle } from './translation/style.js';
 import { specialize } from './meta/library.js';
 import { unnest } from './translation/nesting.js';
 
@@ -153,9 +154,21 @@ function completeResult(text, source) {
 // map the lines of the target to the lines of the source.
 const layouts = ['source', 'target'];
 
+const programming = (id) =>
+  !isNaturalLanguage(id) && !languageSyntax(id).machine;
+
+// All-or-nothing translation writes the target in the style asked for.
+function styledText(translateWhole) {
+  return (source, from, to, options = {}) => {
+    checkStyle(options);
+    const text = translateWhole(source, from, to, options);
+    return hasStyle(options) && programming(to)
+      ? applyStyle(text, languageSyntax(to), options).text
+      : text;
+  };
+}
+
 function withLayout(result, source, from, to, options) {
-  const programming = (id) =>
-    !isNaturalLanguage(id) && !languageSyntax(id).machine;
   if (!programming(from) || !programming(to)) {
     return result;
   }
@@ -165,11 +178,21 @@ function withLayout(result, source, from, to, options) {
     languageSyntax(from),
     languageSyntax(to),
     {
-      respace: options.layout !== 'target',
+      respace: options.layout !== 'target' && !hasStyle(options),
       language: splitVersion(to).id,
     }
   );
-  return { ...result, text, lineMap: lines };
+  if (!hasStyle(options)) {
+    return { ...result, text, lineMap: lines };
+  }
+  // A style lays the target out anew: each line of the map (from 0) moves
+  // to the line it starts at (from 1).
+  const styled = applyStyle(text, languageSyntax(to), options);
+  return {
+    ...result,
+    text: styled.text,
+    lineMap: lines.map(([line, target]) => [line, styled.starts[target] - 1]),
+  };
 }
 
 // Between two natural languages a sentence no controlled template reads is
@@ -231,6 +254,7 @@ function partialTranslator(translate, fragments, partial) {
     if (options.layout !== undefined && !layouts.includes(options.layout)) {
       throw new Error(`Unsupported layout "${options.layout}"`);
     }
+    checkStyle(options);
     const result = readAll(source, from, to, options);
     return withLayout(result, source, from, to, options);
   };
@@ -417,7 +441,7 @@ export function createGrammarTranslator(settings = {}) {
       }),
     toMeta,
     fromMeta,
-    translate,
+    translate: styledText(translate),
     translatePartial,
     parsePartial: partial.parsePartial,
     // The same translator with other data rules.
@@ -428,7 +452,7 @@ export function createGrammarTranslator(settings = {}) {
       parsePartial: partial.parsePartial,
     }),
     parseFragment: fragments.parseFragment,
-    translateFragment: fragments.translateFragment,
+    translateFragment: styledText(fragments.translateFragment),
   };
 }
 

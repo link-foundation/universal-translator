@@ -18,6 +18,7 @@ mod program;
 mod referents;
 pub mod server;
 mod source_document;
+pub mod style;
 pub mod translator;
 
 pub use comment_language::{CommentTranslator, translate_comments};
@@ -33,6 +34,7 @@ pub use referents::{
     Candidate, Observation, RankedCandidate, Ranking, rank_interpretations, read_referent_input,
 };
 pub use source_document::SourceDocument;
+pub use style::{Braces, Indent, Style};
 pub use translator::{
     Detection, LanguageListing, Options, PartError, PartStatus, PartialReading, PartialTranslation,
     TextLayout, Translator,

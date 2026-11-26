@@ -379,7 +379,8 @@ pub fn translate_partial(
     let mut text = String::new();
     for part in &mut reading.parts {
         if part.status == PartStatus::Read {
-            match translator.translate_fragment(&part.source, from, to, options) {
+            match crate::fragments::translate_fragment(translator, &part.source, from, to, options)
+            {
                 Ok(written) => {
                     text.push_str(&written);
                     continue;

@@ -5,6 +5,7 @@ import { URL } from 'node:url';
 
 import { createGrammarTranslator } from './translator.js';
 import { readRules } from './translation/rules-notation.js';
+import { checkStyle } from './translation/style.js';
 
 const MODES = ['context-dependent', 'literal', 'same-effect'];
 const LIMIT = 1024 * 1024;
@@ -93,6 +94,7 @@ function checkRequest(body, { allowRegexRules = false } = {}) {
   ) {
     throw new Error('"layout" must be one of source, target');
   }
+  checkStyle(body);
   const rules = checkRules(body.rules, allowRegexRules);
   return {
     source: body.source,
@@ -109,6 +111,8 @@ function checkRequest(body, { allowRegexRules = false } = {}) {
       identifierLanguage: body.identifierLanguage,
       identifierFrom: body.identifierFrom,
       layout: body.layout,
+      braces: body.braces,
+      indent: body.indent,
     },
   };
 }
@@ -164,7 +168,7 @@ function runTranslation(
  * GET /languages lists the programming and natural languages;
  * POST /translate takes {source, from (or "auto"), to, fragment?, mode?,
  * commonLibrary?, commentLanguage?, commentFrom?, identifierLanguage?,
- * identifierFrom?, layout?, allOrNothing?, rules?} and answers {output, complete, errors, coverage?, lineMap?,
+ * identifierFrom?, layout?, braces?, indent?, allOrNothing?, rules?} and answers {output, complete, errors, coverage?, lineMap?,
  * detected?} or {error}. lineMap pairs 0-based source and target lines. The
  * rules are Links Notation text (or an object). Rules with regular
  * expressions are refused unless `allowRegexRules` is true.

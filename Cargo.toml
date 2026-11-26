@@ -118,6 +118,10 @@ name = "versions"
 path = "rust/tests/versions.rs"
 
 [[test]]
+name = "style"
+path = "rust/tests/style.rs"
+
+[[test]]
 name = "vocabulary"
 path = "rust/tests/vocabulary.rs"
 

@@ -82,6 +82,31 @@ describe('translation server', () => {
     });
   });
 
+  it('writes the braces and the indent asked for', async () => {
+    const source = 'if (a) {\n  f();\n}\n';
+    await withServer(async (base) => {
+      const styled = await (
+        await post(base, {
+          source,
+          from: 'javascript',
+          to: 'java',
+          braces: 'next-line',
+          indent: 2,
+        })
+      ).json();
+      expect(styled.output).toContain('    if (a)\n    {\n      f();\n    }');
+      const wrong = await post(base, {
+        source,
+        from: 'javascript',
+        to: 'java',
+        indent: 'wide',
+      });
+      expect((await wrong.json()).error).toBe(
+        'Unsupported indent "wide": a number of spaces from 1 to 16 or "tab"'
+      );
+    });
+  });
+
   it('translates only the comments to a comment language', async () => {
     await withServer(async (base) => {
       const response = await post(base, {

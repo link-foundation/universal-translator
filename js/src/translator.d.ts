@@ -25,6 +25,12 @@ export interface TranslationOptions {
    * the default) or the layout its emitter writes ('target'); both return
    * a `lineMap` of [source line, target line] pairs (0-based). */
   layout?: 'source' | 'target';
+  /** Where the brace that opens a block goes: on the line of its statement
+   * or on a line of its own (not in Go). Lays the target out anew. */
+  braces?: 'same-line' | 'next-line';
+  /** How deep each block is indented: a number of spaces (1 to 16) or
+   * 'tab'. Lays the target out anew. */
+  indent?: number | string;
 }
 
 export type CommentTranslator = (

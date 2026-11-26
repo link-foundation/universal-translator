@@ -11,6 +11,7 @@ use crate::custom_rules::{CustomRules, read_rules, truthy};
 use crate::formal::languages::language_syntax;
 use crate::meta::format_number;
 use crate::natural::{is_natural_language, natural_language};
+use crate::style::{Braces, Indent, Style};
 use crate::translator::{Options, TextLayout, Translator, languages, natural_languages};
 use crate::{Mode, PartError};
 
@@ -156,6 +157,34 @@ fn layout_field(body: &Value) -> Result<TextLayout, String> {
     }
 }
 
+/// The text of a field as the error messages name it.
+fn field_text(value: &Value) -> String {
+    match value {
+        Value::String(text) => text.clone(),
+        other => other.to_string(),
+    }
+}
+
+/// The brace placement and indent width of a request: `indent` is a number
+/// of spaces or "tab".
+fn style_field(body: &Value) -> Result<Style, String> {
+    let braces = body
+        .get("braces")
+        .map(|braces| field_text(braces).parse::<Braces>())
+        .transpose()?;
+    let indent = body
+        .get("indent")
+        .map(|indent| match indent.as_f64() {
+            // 2.0 is the number 2, as JavaScript reads it.
+            Some(width) if width.fract() == 0.0 && width.abs() < 1e9 => {
+                format!("{width}").parse::<Indent>()
+            }
+            _ => field_text(indent).parse::<Indent>(),
+        })
+        .transpose()?;
+    Ok(Style { braces, indent })
+}
+
 /// The translation options of a request. A natural language that does not
 /// exist is a wrong option.
 fn options_field(
@@ -174,6 +203,7 @@ fn options_field(
         mode,
         common_library: body.get("commonLibrary") == Some(&Value::Bool(true)),
         layout: layout_field(body)?,
+        style: style_field(body)?,
         ..Options::default()
     };
     if let Some(to) = comments.0 {
@@ -208,6 +238,7 @@ fn check_request(body: &Value, allow_regex_rules: bool) -> Result<Request<'_>, S
         optional_text(body, "identifierFrom")?,
     );
     layout_field(body)?;
+    style_field(body)?;
     let rules = rules_field(body, allow_regex_rules)?;
     Ok(Request {
         source,

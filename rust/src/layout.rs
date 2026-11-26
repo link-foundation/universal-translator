@@ -274,6 +274,12 @@ fn unique_anchors(a: &[usize], b: &[usize], (a0, a1, b0, b1): Range) -> Vec<(usi
             (in_a == 1 && in_b == 1).then_some((i, j))
         })
         .collect();
+    longest_increasing(&candidates)
+}
+
+/// The longest run of pairs, sorted by their first position, whose second
+/// positions increase too.
+fn longest_increasing(candidates: &[(usize, usize)]) -> Vec<(usize, usize)> {
     let mut tails: Vec<usize> = Vec::new();
     let mut previous: Vec<Option<usize>> = vec![None; candidates.len()];
     for (k, &(_, j)) in candidates.iter().enumerate() {
@@ -285,14 +291,14 @@ fn unique_anchors(a: &[usize], b: &[usize], (a0, a1, b0, b1): Range) -> Vec<(usi
             tails[low] = k;
         }
     }
-    let mut anchors = Vec::new();
+    let mut run = Vec::new();
     let mut k = tails.last().copied();
     while let Some(at) = k {
-        anchors.push(candidates[at]);
+        run.push(candidates[at]);
         k = previous[at];
     }
-    anchors.reverse();
-    anchors
+    run.reverse();
+    run
 }
 
 /// The largest table of the longest common subsequence (cells).
@@ -382,7 +388,61 @@ pub fn align_tokens<'a>(source: &'a [Token], target: &'a [Token]) -> Vec<(usize,
     let b = id_of(target);
     let mut pairs = Vec::new();
     align_range(&a, &b, (0, a.len(), 0, b.len()), &mut pairs);
-    pairs
+    pair_brackets(&pairs, source, target)
+}
+
+/// The closing bracket of an opening one.
+fn closer(key: &str) -> Option<&'static str> {
+    match key {
+        "p(" => Some("p)"),
+        "p[" => Some("p]"),
+        "p{" => Some("p}"),
+        _ => None,
+    }
+}
+
+/// For each opening bracket, the index of the bracket that closes it.
+fn closing_brackets(tokens: &[Token]) -> HashMap<usize, usize> {
+    let mut closing = HashMap::new();
+    let mut open: Vec<usize> = Vec::new();
+    for (index, token) in tokens.iter().enumerate() {
+        if closer(&token.key).is_some() {
+            open.push(index);
+        } else if matches!(token.key.as_str(), "p)" | "p]" | "p}")
+            && let Some(opener) = open.pop()
+            && closer(&tokens[opener].key) == Some(token.key.as_str())
+        {
+            closing.insert(opener, index);
+        }
+    }
+    closing
+}
+
+/// A closing bracket goes with its opening bracket: when the opening
+/// brackets of both sides are matched, so are the brackets that close them
+/// (the target may close more blocks after the source's last one, such as
+/// the class around a C# program). Pairs that cross these are left out.
+fn pair_brackets(
+    pairs: &[(usize, usize)],
+    source: &[Token],
+    target: &[Token],
+) -> Vec<(usize, usize)> {
+    let source_closing = closing_brackets(source);
+    let target_closing = closing_brackets(target);
+    let closed: Vec<(usize, usize)> = pairs
+        .iter()
+        .filter_map(|(i, j)| Some((*source_closing.get(i)?, *target_closing.get(j)?)))
+        .collect();
+    let source_closed: HashSet<usize> = closed.iter().map(|(i, _)| *i).collect();
+    let target_closed: HashSet<usize> = closed.iter().map(|(_, j)| *j).collect();
+    let mut kept: Vec<(usize, usize)> = pairs
+        .iter()
+        .copied()
+        .filter(|(i, j)| !source_closed.contains(i) && !target_closed.contains(j))
+        .chain(closed)
+        .collect();
+    kept.sort_unstable();
+    longest_increasing(&kept)
 }
 
 fn word_like(kind: Kind) -> bool {

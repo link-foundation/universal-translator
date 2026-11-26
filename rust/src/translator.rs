@@ -33,6 +33,7 @@ use crate::formal::versions::{Version, split_version, versions_of};
 use crate::fragments;
 pub use crate::fragments::{Fragment, FragmentKind};
 pub use crate::partial::{PartError, PartStatus, PartialReading, PartialTranslation};
+use crate::style::{Style, apply_style};
 
 /// How a translation is written.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -58,6 +59,9 @@ pub struct Options {
     /// Whose layout a partial translation between programming languages
     /// keeps (see [`crate::layout`]).
     pub layout: TextLayout,
+    /// The brace placement and indent width the target is written in (as
+    /// its emitter writes it when unset); see [`crate::style`].
+    pub style: Style,
 }
 
 /// The layout of a translation between programming languages.
@@ -107,12 +111,36 @@ fn with_layout(
         &result.text,
         &crate::layout::Marks::of(&from_syntax),
         &crate::layout::Marks::of(&to_syntax),
-        options.layout == TextLayout::Source,
+        options.layout == TextLayout::Source && !options.style.is_set(),
         split_version(to).0,
     );
-    result.text = layout.text;
-    result.line_map = layout.lines;
+    if !options.style.is_set() {
+        result.text = layout.text;
+        result.line_map = layout.lines;
+        return Ok(result);
+    }
+    // A style lays the target out anew: each line of the map (from 0) moves
+    // to the line it starts at (from 1).
+    let styled = apply_style(&layout.text, &to_syntax, options.style)?;
+    result.line_map = layout
+        .lines
+        .into_iter()
+        .map(|(line, target)| (line, styled.starts[target] - 1))
+        .collect();
+    result.text = styled.text;
     Ok(result)
+}
+
+/// A whole translation written in the style asked for.
+fn styled(text: String, to: &str, style: Style) -> Result<String, GrammarError> {
+    if !style.is_set() || natural::is_natural_language(to) {
+        return Ok(text);
+    }
+    let syntax = languages::language_syntax(to)?;
+    if syntax.machine {
+        return Ok(text);
+    }
+    Ok(apply_style(&text, &syntax, style)?.text)
 }
 
 impl Options {
@@ -512,9 +540,9 @@ impl Translator {
         let machine = machine_target_ids().contains(&to)
             || (!natural::is_natural_language(from) && languages::language_syntax(from)?.machine);
         let whole = if fragment {
-            self.translate_fragment(source, from, to, options)
+            fragments::translate_fragment(self, source, from, to, options)
         } else {
-            self.translate_with(source, from, to, options)
+            self.translate_plain(source, from, to, options)
         };
         let result = match whole {
             Ok(text) => {
@@ -559,7 +587,8 @@ impl Translator {
         to: &str,
         options: Options,
     ) -> Result<String, GrammarError> {
-        fragments::translate_fragment(self, source, from, to, options)
+        let text = fragments::translate_fragment(self, source, from, to, options)?;
+        styled(text, to, options.style)
     }
 
     /// Translate a source text from one language to another.
@@ -579,6 +608,18 @@ impl Translator {
 
     /// [`Translator::translate`] with all translation options.
     pub fn translate_with(
+        &self,
+        source: &str,
+        from: &str,
+        to: &str,
+        options: Options,
+    ) -> Result<String, GrammarError> {
+        let text = self.translate_plain(source, from, to, options)?;
+        styled(text, to, options.style)
+    }
+
+    /// The translation as the emitter writes it.
+    fn translate_plain(
         &self,
         source: &str,
         from: &str,

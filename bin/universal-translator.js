@@ -53,7 +53,7 @@ function usage() {
     'Commands:',
     '  add       Add two numbers',
     '  multiply  Multiply two numbers',
-    '  translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment] [--layout source|target]  Translate through the meta language',
+    '  translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment] [--layout source|target] [--braces same-line|next-line] [--indent <n|tab>]  Translate through the meta language',
     '            --common-library prints through common-library/ calls',
     '            --fragment translates statements or functions on their own',
     '            --comment-language <natural> translates the comments too (only them when <from> is <to>)',
@@ -62,6 +62,9 @@ function usage() {
     '            --identifier-from <natural> names the language of the declared names (detected otherwise)',
     '            --layout source|target keeps the spaces and blank lines of the source',
     '            (source, the default) or writes the layout of the target',
+    '            --braces same-line|next-line puts the brace that opens a block on',
+    '            the line of its statement or on a line of its own',
+    '            --indent <n|tab> indents each block by n spaces or by a tab',
     '            <to> may name a version: python@2',
     '            Parts that cannot be translated become comments and are listed',
     '            on standard error; --all-or-nothing fails instead',
@@ -169,6 +172,8 @@ const valueOptions = {
   '--identifier-language': 'identifierLanguage',
   '--identifier-from': 'identifierFrom',
   '--layout': 'layout',
+  '--braces': 'braces',
+  '--indent': 'indent',
 };
 
 // Options without a value, and the translation option each one turns on.
@@ -258,6 +263,8 @@ function translateCommand(
     identifierLanguage: options.identifierLanguage,
     identifierFrom: options.identifierFrom,
     layout: options.layout,
+    braces: options.braces,
+    indent: options.indent,
   };
   if (options.allOrNothing) {
     const translation = options.fragment

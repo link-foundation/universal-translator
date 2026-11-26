@@ -195,7 +195,7 @@ docker run --rm -i universal-translator translate javascript go - < app.js
 ```
 
 `POST /translate` takes `{source, from, to, fragment?, mode?, commonLibrary?,
-commentLanguage?, commentFrom?, identifierLanguage?, identifierFrom?, layout?,
+commentLanguage?, commentFrom?, identifierLanguage?, identifierFrom?, layout?, braces?, indent?,
 allOrNothing?, rules?}` and answers `{output, complete, errors, coverage?,
 lineMap?, detected?}`, or `{error}` with status 400. Regular expression rules
 are refused unless the server is created with
@@ -336,6 +336,22 @@ Spaces that would join two tokens (`u "x"`), make a call a grouping
 writes them, and Bash keeps its own spacing. `examples/layout/` holds the
 examples both implementations are checked against; see the
 [issue 14 case study](docs/case-studies/issue-14/README.md).
+
+### Brace placement and indent width
+
+`--braces same-line|next-line` and `--indent <n|tab>` (`braces` and
+`indent` in the library and in `POST /translate`; `Options::style` in
+Rust) write the target in a style of its own. Each opening brace goes on
+the line of its statement or on a line of its own (with `}`, `else` and `{`
+on lines of their own), and each block is indented by 1 to 16 spaces or a
+tab. Translating a program into its own language restyles it:
+
+```bash
+universal-translator translate javascript csharp sign.js --braces next-line
+universal-translator translate javascript javascript sign.js --indent 2
+```
+
+Go keeps the brace on the line of its statement, as its grammar needs.
 
 ### Language versions, comment languages and the meta view
 
