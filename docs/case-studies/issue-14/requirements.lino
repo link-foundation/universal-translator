@@ -88,7 +88,7 @@ requirements:
     text: 'The Hello World Collection is imported (issue 1, item 1.3)'
     from: 'issue 1'
     status: done
-    evidence: scripts/hello-world-collection.mjs js/tests/hello-world-collection.test.js docs/case-studies/issue-14/hello-world-coverage.lino
+    evidence: scripts/hello-world-collection.mjs js/tests/hello-world-collection.test.js docs/case-studies/issue-14/hello-world-coverage.lino rust/tests/hello_world_collection.rs js/tests/hello-world-dialects.test.js rust/tests/hello_world_dialects.rs experiments/issue-14/objc-hello-check.sh
   ranking-and-imprecision:
     text: 'Translations are ranked by frequency and round trip, and the imprecision of each statement is recorded (issue 1, items 1.1 and 1.2)'
     from: 'issue 1'
