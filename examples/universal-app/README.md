@@ -19,6 +19,32 @@ node examples/universal-app/e2e/translate.e2e.mjs http://127.0.0.1:4173/ web-dem
 > by the `preview-regen` job in `.github/workflows/example-app.yml`. Run it
 > locally with `npm run example:web:preview-images`.
 
+## Editors
+
+Both panes are [Monaco](https://microsoft.github.io/monaco-editor/) editors
+by default. The settings also offer a plain text editor. Every language can
+fold its regions: brackets, indented blocks and runs of comments, so this
+works even for languages Monaco has no grammar for.
+
+The editors are linked through the `lineMap` of the translation, which says
+which source lines became which target lines:
+
+- matching lines have the same background colour on both sides, and a strip
+  between the editors joins them, as in diff tools and Compiler Explorer;
+- the group under the cursor is highlighted in both editors;
+- a selection, the cursor or a folded region on one side is shown on the
+  other side too;
+- scrolling one editor scrolls the other to the matching lines, and longer
+  and shorter parts scroll in proportion.
+
+Under each language picker are the natural languages of the comments and
+identifiers. The source side's default is found from the text; on the
+target side the default keeps the source's. The options used less often
+(the mode, fragments, all-or-nothing, the meta language, word wrap) are
+below the editors.
+
+![The linked editors](../../docs/case-studies/issue-14/screenshots/app-mapping.png)
+
 ## Local Setup
 
 ```bash

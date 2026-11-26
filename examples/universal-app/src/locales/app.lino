@@ -30,6 +30,7 @@ en
     meta "Show the meta language"
     comments "Comment language"
     commentsSame "Same as the code"
+    identifiers "Identifier language"
     allOrNothing "All or nothing (no partial translation)"
     wrap "Wrap long lines"
   text
@@ -179,6 +180,7 @@ ru
     meta "Показать метаязык"
     comments "Язык комментариев"
     commentsSame "Как в коде"
+    identifiers "Язык идентификаторов"
     allOrNothing "Всё или ничего (без частичного перевода)"
     wrap "Переносить длинные строки"
   text
@@ -328,6 +330,7 @@ de
     meta "Metasprache zeigen"
     comments "Sprache der Kommentare"
     commentsSame "Wie im Code"
+    identifiers "Sprache der Bezeichner"
     allOrNothing "Alles oder nichts (keine Teilübersetzung)"
     wrap "Lange Zeilen umbrechen"
   text
@@ -477,6 +480,7 @@ fr
     meta "Afficher le métalangage"
     comments "Langue des commentaires"
     commentsSame "Comme le code"
+    identifiers "Langue des identifiants"
     allOrNothing "Tout ou rien (pas de traduction partielle)"
     wrap "Renvoyer les longues lignes à la ligne"
   text
@@ -626,6 +630,7 @@ es
     meta "Mostrar el metalenguaje"
     comments "Idioma de los comentarios"
     commentsSame "Como el código"
+    identifiers "Idioma de los identificadores"
     allOrNothing "Todo o nada (sin traducción parcial)"
     wrap "Ajustar las líneas largas"
   text
@@ -775,6 +780,7 @@ zh
     meta "显示元语言"
     comments "注释语言"
     commentsSame "与代码相同"
+    identifiers "标识符语言"
     allOrNothing "全有或全无（不做部分翻译）"
     wrap "长行自动换行"
   text
@@ -924,6 +930,7 @@ hi
     meta "मेटा भाषा दिखाएँ"
     comments "टिप्पणियों की भाषा"
     commentsSame "कोड जैसी"
+    identifiers "पहचानकर्ताओं की भाषा"
     allOrNothing "सब या कुछ नहीं (आंशिक अनुवाद नहीं)"
     wrap "लंबी पंक्तियाँ लपेटें"
   text

@@ -104,9 +104,9 @@ export function settingsSchemaText(t) {
     ]),
     field('editor', [
       '(type choice)',
-      '(default plain)',
-      '(options plain monaco)',
-      choices('plain', 'monaco'),
+      '(default monaco)',
+      '(options monaco plain)',
+      choices('monaco', 'plain'),
       '(section text)',
       `(label ${quote(t('settings.editor'))})`,
       '(apply (data-attr editor))',

@@ -1,12 +1,15 @@
-// Monaco, loaded only when the "Monaco" editor is chosen in the settings
-// (the package is large; the plain editor needs none of it). The ESM
+// Monaco, the default editor of the text panes (the plain editor, a choice
+// in the settings, needs none of it). It is loaded the first time a pane
+// needs it (the package is large). The ESM
 // editor API comes without its features: the ones a text pane uses are
 // imported here (find, folding, brackets, clipboard, the context menu,
 // several cursors and line operations). Every word is coloured by
 // highlight.js, the highlighting taken from the meta language, through a
-// tokens provider; the colours are the CSS variables of the skin.
+// tokens provider; the colours are the CSS variables of the skin. Where a
+// pane folds is found by folding.js, the same way for every language.
 
 import { initialState, highlightLine } from './highlight.js';
+import { foldingRanges } from './folding.js';
 import { debug } from './debug.js';
 
 let loading;
@@ -23,6 +26,8 @@ export function loadMonaco() {
     import('monaco-editor/editor/contrib/linesOperations/browser/linesOperations.js'),
     import('monaco-editor/editor/contrib/multicursor/browser/multicursor.js'),
     import('monaco-editor/editor/contrib/wordHighlighter/browser/wordHighlighter.js'),
+    // The icon font: the arrows of the folding regions, the find widget.
+    import('monaco-editor/features/codicon/register.js'),
   ]).then(([monaco, { default: EditorWorker }]) => {
     globalThis.MonacoEnvironment = { getWorker: () => new EditorWorker() };
     return monaco;
@@ -71,6 +76,21 @@ export function colourPane(monaco, language, lexicon) {
         endState: new LineState(result.state),
       };
     },
+  });
+}
+
+// The folding regions of a pane: brackets, indentation and comment lines
+// (folding.js), for languages Monaco has no grammar for as well.
+export function foldPane(monaco, language, lexicon) {
+  return monaco.languages.registerFoldingRangeProvider(language, {
+    provideFoldingRanges: (model) =>
+      foldingRanges(model.getValue(), lexicon).map(({ start, end, kind }) => ({
+        start,
+        end,
+        ...(kind === 'comment'
+          ? { kind: monaco.languages.FoldingRangeKind.Comment }
+          : {}),
+      })),
   });
 }
 
