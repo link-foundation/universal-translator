@@ -157,11 +157,14 @@ export function likely(phrase, language, question) {
 }
 
 // The phrase of `target` for a meaning: the first that reads back to it.
+// A phrase that reads back to the program word spelled the same (count ->
+// word:count) reads back to the concept too: both are written "count".
 function preferredPhrase(meaning, target, question) {
   const phrases = target.phrases.get(meaning);
   return (
-    phrases.find((phrase) => likely(phrase, target, question)[0] === meaning) ??
-    phrases[0]
+    phrases.find((phrase) =>
+      [meaning, `word:${phrase}`].includes(likely(phrase, target, question)[0])
+    ) ?? phrases[0]
   );
 }
 

@@ -117,7 +117,12 @@ JavaScript and TypeScript functions written as arrow functions (`const add = (a,
 - `"" + year` in Java and similar languages keeps the type of `year`. The interpolation is text, not the name.
 - The LLVM IR reader matches text constants in linear time.
 - The Rust documentation builds without warnings again (`cargo doc` with `-D warnings`).
+- The Hello World Collection extractor strips HTML tags until none is left (a CodeQL finding).
 
 ### Python type hints
 
 Python type hints on parameters, results and assignments (`def square(n: int) -> int:`, `total: int = 0`) are read in both runtimes: `int`, `str`, `bool`, `None` and `list[int]` give the meta types integer, text, boolean, nothing and array, every other hint is left to type inference, and a hinted program translates as its unhinted twin does.
+
+### Programming words in comments
+
+Comments read the words programmers write in them. The vocabulary has 74 more concepts (console, screen, output, input, integer, string, character, maximum, average, key, object, class, type, table, largest, even, odd, true, false, else, search, iterate, enter, initialize, subtract, reverse, copy, insert, update, save, split, generate and more) in the twelve languages its programming words are written in. The verbs it had gain the imperative and perfective forms of Russian, Ukrainian and Polish, so `// Вывести привет мир`, `// Выведи привет мир` and `// Сложить два числа` become `// Print hello world` and `// Add two numbers`. A concept is written with the word that is also a program word (`count`, `swap`), not with a later form (`counts`).
