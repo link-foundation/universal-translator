@@ -43,3 +43,76 @@ fn translates_a_russian_comment_to_english() {
         "// Hello world\nlet x = 1;\n"
     );
 }
+
+fn free(source: &str, from: &str, to: &str) -> String {
+    translate_partial(source, from, to, Options::default())
+        .expect("a translation")
+        .text
+}
+
+#[test]
+fn keeps_the_verb_form_the_object_case_and_the_genitive_of_a_sentence() {
+    let sentences = [
+        ("Greets someone", "russian", "Приветствует кого-то\n"),
+        ("Greets someone", "ukrainian", "Вітає когось\n"),
+        ("Greets someone", "polish", "Wita kogoś\n"),
+        ("Greets someone", "german", "Grüßt jemanden\n"),
+        ("Greets someone", "french", "Salue quelqu’un\n"),
+        ("Greets someone", "spanish", "Saluda a alguien\n"),
+        ("Prints the sum", "russian", "Печатает сумму\n"),
+        ("Prints the sum", "ukrainian", "Друкує суму\n"),
+        ("Prints the sum", "polish", "Drukuje sumę\n"),
+        (
+            "Returns the factorial of n",
+            "russian",
+            "Возвращает факториал n\n",
+        ),
+        (
+            "Returns the factorial of n",
+            "ukrainian",
+            "Повертає факторіал n\n",
+        ),
+        ("Returns the factorial of n", "polish", "Zwraca silnię n\n"),
+        (
+            "Returns the factorial of n",
+            "spanish",
+            "Devuelve el factorial de n\n",
+        ),
+    ];
+    for (source, language, expected) in sentences {
+        assert_eq!(free(source, "english", language), expected);
+    }
+    // The lemma is the infinitive, a finite form never is.
+    assert_eq!(free("to print", "english", "russian"), "печатать\n");
+    assert_eq!(free("Print", "english", "russian"), "Печатать\n");
+    // A noun keeps its form where it is no object or no singular nominative.
+    assert_eq!(
+        free("Prints the name", "english", "russian"),
+        "Печатает имя\n"
+    );
+    assert_eq!(
+        free("Sorts the numbers", "english", "russian"),
+        "Сортирует числа\n"
+    );
+}
+
+#[test]
+fn reads_the_verb_forms_and_the_cases_back() {
+    assert_eq!(free("Печатает сумму", "russian", "english"), "Prints sum\n");
+    assert_eq!(
+        free("Приветствует кого-то", "russian", "english"),
+        "Greets someone\n"
+    );
+    assert_eq!(
+        free("Saluda a alguien", "spanish", "english"),
+        "Greets someone\n"
+    );
+    assert_eq!(
+        free("Возвращает факториал n", "russian", "english"),
+        "Returns factorial n\n"
+    );
+    assert_eq!(
+        free("Печатать сумму", "russian", "english"),
+        "To print sum\n"
+    );
+}

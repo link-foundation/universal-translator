@@ -11,11 +11,25 @@
 //! chosen are the frequent ones that survive the round trip.
 //!
 //! The longest known phrase wins. A little grammar (data/natural/grammar.lino)
-//! goes beyond word for word: interrogatives first in questions, inflected
-//! forms through their stems, infinitives kept, articles the other language
-//! lacks left out, and words of languages written without spaces found
-//! inside the text. Unknown words, numbers, punctuation and every other
-//! space stay as they are, so the layout inside a comment is kept.
+//! goes beyond word for word:
+//!
+//! - in a question, interrogative concepts come first (как -> how, not like);
+//! - an inflected form is found through its stem (мира -> мир -> world);
+//! - an infinitive stays one (покакать -> to poop, to poop -> покакать);
+//! - a verb form keeps its slot when both languages name their verb forms
+//!   (verb-forms): prints -> печатает, a finite form is never written as an
+//!   infinitive;
+//! - the object of a verb takes the accusative when the language has one
+//!   (object-endings, object-forms): greets someone -> приветствует кого-то,
+//!   prints the sum -> печатает сумму;
+//! - "of" between two nouns is left out before a name the dictionary does
+//!   not know, in a language whose second noun takes the genitive
+//!   (of-genitive): factorial of n -> факториал n;
+//! - an article the other language does not have is left out;
+//! - words of languages written without spaces are found inside the text.
+//!
+//! Unknown words, numbers, punctuation and every other space stay as they
+//! are, so the layout inside a comment is kept.
 //!
 //! The JavaScript twin is js/src/natural/comments.js.
 
@@ -68,6 +82,9 @@ pub(crate) struct Meanings {
     /// meaning -> part of speech ('prime' and 'name' for the primes and the
     /// words of program names)
     pub(crate) parts: HashMap<String, String>,
+    /// concept meaning -> its forms in the order of the vocabulary, so the
+    /// slot of a verb form (lemma, present) is its position
+    pub(crate) forms: HashMap<String, Vec<String>>,
     pub(crate) grammar: Grammar,
     pub(crate) stems: HashMap<String, String>,
 }
@@ -110,6 +127,7 @@ pub(crate) fn meanings_of(id: &str) -> Result<Arc<Meanings>, String> {
         meanings: HashMap::new(),
         order: Vec::new(),
         parts: HashMap::new(),
+        forms: HashMap::new(),
         grammar,
         stems: HashMap::new(),
     };
@@ -137,12 +155,18 @@ pub(crate) fn meanings_of(id: &str) -> Result<Arc<Meanings>, String> {
         }
     }
     for concept in vocabulary_concepts()? {
-        for phrase in concept.forms.get(&base).into_iter().flatten() {
-            result.add(
-                &format!("concept:{}", concept.id),
-                &concept.part,
-                Some(phrase),
-            );
+        let meaning = format!("concept:{}", concept.id);
+        let written = concept.forms.get(&base).cloned().unwrap_or_default();
+        for phrase in &written {
+            result.add(&meaning, &concept.part, Some(phrase));
+        }
+        result.forms.insert(meaning, written);
+    }
+    // The accusative of a word with a form of its own is read as the word.
+    for (nominative, accusative) in &result.grammar.object_forms.clone() {
+        for meaning in result.meanings.get(nominative).cloned().unwrap_or_default() {
+            let part = result.part(&meaning).to_owned();
+            result.add(&meaning, &part, Some(accusative));
         }
     }
     result.stems = stem_index(&result.order, &result.grammar);
@@ -200,7 +224,31 @@ fn preferred_phrase(meaning: &str, target: &Meanings, question: bool) -> String 
 struct Translated {
     text: String,
     part: String,
+    meaning: String,
     lemma: bool,
+}
+
+/// The form of a verb in the slot (lemma, present) the source form has, when
+/// both languages name their verb forms; None for the lemma and for every
+/// verb form the languages do not both name.
+fn slot_form(phrase: &str, meaning: &str, source: &Meanings, target: &Meanings) -> Option<String> {
+    let slot = source
+        .forms
+        .get(meaning)?
+        .iter()
+        .position(|form| form == phrase)?;
+    let name = source.grammar.verb_forms.get(slot).filter(|_| slot > 0)?;
+    let at = target
+        .grammar
+        .verb_forms
+        .iter()
+        .position(|known| known == name)?;
+    target
+        .forms
+        .get(meaning)?
+        .get(at)
+        .filter(|form| at > 0 && !form.is_empty())
+        .cloned()
 }
 
 fn translate_phrase(
@@ -213,16 +261,23 @@ fn translate_phrase(
     for meaning in likely(phrase, source, question) {
         let part = source.part(meaning).to_owned();
         if target.phrases.contains_key(meaning.as_str()) {
+            let form = if part == "verb" {
+                slot_form(phrase, meaning, source, target)
+            } else {
+                None
+            };
             return Some(Translated {
-                text: preferred_phrase(meaning, target, question),
+                lemma: form.is_none() && source.phrases[meaning.as_str()][0] == phrase,
+                text: form.unwrap_or_else(|| preferred_phrase(meaning, target, question)),
                 part,
-                lemma: source.phrases[meaning.as_str()][0] == phrase,
+                meaning: meaning.clone(),
             });
         }
         if part == "article" {
             return Some(Translated {
                 text: String::new(),
                 part,
+                meaning: meaning.clone(),
                 lemma: true,
             });
         }
@@ -327,12 +382,24 @@ struct Words {
     text: String,
     end: usize,
     part: String,
+    meaning: String,
 }
 
 /// Phrase translation through the grammar of both languages.
 struct ProseTranslator {
     source: Arc<Meanings>,
     target: Arc<Meanings>,
+    /// the next noun is the object of the verb just written
+    object: bool,
+    /// the part of the word just written, when only blanks follow it
+    last: Option<String>,
+}
+
+/// A translated phrase: its written text, its part of speech and its meaning.
+struct Phrase {
+    text: String,
+    part: String,
+    meaning: String,
 }
 
 impl ProseTranslator {
@@ -346,11 +413,98 @@ impl ProseTranslator {
         }
     }
 
-    fn phrase(&self, phrase: &str, question: bool) -> Option<(String, String)> {
+    fn phrase(&self, phrase: &str, question: bool) -> Option<Phrase> {
         let translated = translate_phrase(phrase, &self.source, &self.target, question)?;
         let infinitive =
             translated.lemma && self.source.grammar.verb_lemma.as_deref() == Some("infinitive");
-        Some((self.write(&translated, infinitive), translated.part))
+        Some(Phrase {
+            text: self.write(&translated, infinitive),
+            part: translated.part,
+            meaning: translated.meaning,
+        })
+    }
+
+    /// The accusative of the object of a verb: a word with its own form
+    /// (кто-то -> кого-то) or a noun with the ending of the case
+    /// (сумма -> сумму).
+    fn accusative(&self, result: &Words) -> String {
+        let grammar = &self.target.grammar;
+        if let Some((_, object)) = grammar
+            .object_forms
+            .iter()
+            .find(|(nominative, _)| *nominative == result.text)
+        {
+            return object.clone();
+        }
+        // Only a singular nominative has the endings: the first phrase of the
+        // meaning, and not a word of the program names in the plural.
+        let nominative = self
+            .target
+            .phrases
+            .get(&result.meaning)
+            .and_then(|phrases| phrases.first());
+        let plural = result.meaning.starts_with("word:") && result.meaning.ends_with('s');
+        if !["noun", "name"].contains(&result.part.as_str())
+            || result.text.contains(' ')
+            || nominative != Some(&result.text)
+            || plural
+        {
+            return result.text.clone();
+        }
+        // The longest ending decides (a neuter имя keeps its form).
+        grammar
+            .object_endings
+            .iter()
+            .find(|(ending, _)| result.text.ends_with(ending.as_str()))
+            .map_or_else(
+                || result.text.clone(),
+                |(ending, object)| {
+                    format!(
+                        "{}{object}",
+                        &result.text[..result.text.len() - ending.len()]
+                    )
+                },
+            )
+    }
+
+    /// Whether the words at parts[index] are none the dictionary knows (the
+    /// name of something in the program).
+    fn unknown(&self, parts: &[&str], index: usize) -> bool {
+        index < parts.len() && self.words(parts, index, false).is_none()
+    }
+
+    /// The words around a verb agree in case: the first noun after a verb
+    /// (an article may come between) is its object and takes the accusative,
+    /// and "of" between two nouns is left out of a language whose second noun
+    /// takes the genitive when the second noun is a name the dictionary does
+    /// not know. Only words separated by blanks belong together.
+    fn agree(&mut self, parts: &[&str], mut result: Words) -> Words {
+        let object = self.object;
+        let last = self.last.take();
+        let after = parts.get(result.end + 1).copied().unwrap_or("");
+        let blank = after.chars().all(|c| c == ' ' || c == '\t');
+        if object && result.part != "article" {
+            result.text = self.accusative(&result);
+        }
+        if result.meaning == "word:of"
+            && self.target.grammar.of_genitive
+            && last
+                .as_deref()
+                .is_some_and(|part| part == "noun" || part == "name")
+            && after == " "
+            && self.unknown(parts, result.end + 2)
+        {
+            result.text = String::new();
+        }
+        self.object = blank && (result.part == "verb" || (object && result.part == "article"));
+        self.last = blank.then(|| result.part.clone());
+        result
+    }
+
+    /// A word no translation reads ends the sentence parts that agree.
+    fn disagree(&mut self) {
+        self.object = false;
+        self.last = None;
     }
 
     /// An infinitive written around its verb ('to poop'): the words of the
@@ -382,6 +536,7 @@ impl ProseTranslator {
             text: self.write(&translated, true),
             end: verb_at,
             part: "verb".to_owned(),
+            meaning: translated.meaning,
         })
     }
 
@@ -408,8 +563,8 @@ impl ProseTranslator {
             let mut translated = None;
             for size in (1..=LONGEST_RUN.min(letters.len() - at)).rev() {
                 let run = fold(&letters[at..at + size].iter().collect::<String>());
-                if let Some((text, _)) = self.phrase(&run, question) {
-                    translated = Some((text, size));
+                if let Some(found) = self.phrase(&run, question) {
+                    translated = Some((found.text, size));
                     break;
                 }
             }
@@ -458,18 +613,29 @@ impl ProseTranslator {
                     None
                 }
             });
-            if let Some((text, part)) = translated {
-                return Some(Words { text, end, part });
+            if let Some(Phrase {
+                text,
+                part,
+                meaning,
+            }) = translated
+            {
+                return Some(Words {
+                    text,
+                    end,
+                    part,
+                    meaning,
+                });
             }
         }
         self.segments(parts[index], question).map(|text| Words {
             text,
             end: index,
             part: "segments".to_owned(),
+            meaning: String::new(),
         })
     }
 
-    fn inflected(&self, word: &str, question: bool) -> Option<(String, String)> {
+    fn inflected(&self, word: &str, question: bool) -> Option<Phrase> {
         let form = known_form(word, &self.source.stems, &self.source.grammar)?;
         self.phrase(&form, question)
     }
@@ -490,9 +656,11 @@ pub fn translate_comment_text(text: &str, from: &str, to: &str) -> Result<String
     if from == to {
         return Ok(text.to_owned());
     }
-    let translator = ProseTranslator {
+    let mut translator = ProseTranslator {
         source: meanings_of(from)?,
         target: meanings_of(to)?,
+        object: false,
+        last: None,
     };
     let parts = pieces(text);
     let questions = questions_of(&parts);
@@ -500,13 +668,15 @@ pub fn translate_comment_text(text: &str, from: &str, to: &str) -> Result<String
     let mut capitalize = false;
     let mut index = 1;
     while index < parts.len() {
-        let Some(result) = translator.words(&parts, index, questions[index]) else {
+        let Some(found) = translator.words(&parts, index, questions[index]) else {
+            translator.disagree();
             written.push(Written::Word(parts[index].to_owned(), false));
             written.push(Written::Gap(parts[index + 1].to_owned()));
             capitalize = false;
             index += 2;
             continue;
         };
+        let result = translator.agree(&parts, found);
         let original = parts[index..=result.end].concat();
         let mut output = match_case(&original, &result.text);
         if capitalize {
@@ -514,9 +684,9 @@ pub fn translate_comment_text(text: &str, from: &str, to: &str) -> Result<String
         }
         capitalize = false;
         let mut gap = parts[result.end + 1];
-        if output.is_empty() && result.part == "article" {
-            // The article is left out with the space after it; a capital
-            // moves on to the next word.
+        if output.is_empty() {
+            // An article or an "of" left out goes with the space after it; a
+            // capital moves on to the next word.
             let first: String = original.chars().take(1).collect();
             capitalize = first != fold(&first);
             if gap == " " {

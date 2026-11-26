@@ -1,15 +1,17 @@
-// Prints the second form of every verb in a few languages, to see whether
-// the vocabulary lists the third person present tense second.
+// Lists the forms of every verb concept per language, to check that the
+// slots (lemma, present, past) are aligned across languages.
+//
+//   node experiments/issue-14/verb-slots.mjs english russian german
 import { vocabularyConcepts } from '../../js/src/natural/vocabulary.js';
-const languages = process.argv.slice(2).length
-  ? process.argv.slice(2)
-  : ['english', 'russian', 'german', 'french', 'spanish'];
-for (const { id, part, forms } of vocabularyConcepts()) {
-  if (part !== 'verb') {
+
+const languages = process.argv.slice(2);
+for (const concept of vocabularyConcepts()) {
+  if (concept.part !== 'verb') {
     continue;
   }
-  console.log(
-    id.padEnd(12),
-    languages.map((l) => (forms[l] ?? []).slice(0, 3).join('/')).join(' | ')
-  );
+  console.log(concept.id);
+  for (const language of languages) {
+    const forms = (concept.forms[language] ?? []).join(' | ');
+    console.log(`    ${language.padEnd(10)} ${forms}`);
+  }
 }
