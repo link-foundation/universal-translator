@@ -1,9 +1,11 @@
 use std::fs;
 use std::io::{self, Read, Write};
+use std::net::TcpListener;
 use universal_translator::custom_rules::lino_value;
 use universal_translator::meta::notation::format_meta;
 use universal_translator::meta::{format_number, to_json};
 use universal_translator::natural::check_text;
+use universal_translator::server::{serve, serve_configuration};
 use universal_translator::translator::{Translator, languages, natural_languages};
 use universal_translator::{
     CustomRules, Detection, Mode, Options, PartialReading, SourceDocument, nest_grammars,
@@ -22,6 +24,7 @@ const USAGE: &str = "Usage:
   universal-translator decode-cst [file|-]
   universal-translator languages
   universal-translator check-words <natural> [file|-]
+  universal-translator serve [--port <port>] [--host <host>]
   universal-translator --version
 
 A language may be a controlled natural language (english, russian,
@@ -54,6 +57,9 @@ It reads comments and strings with the grammars they are written in
 coverage prints which parts of a text can be read as indented Links
 Notation; detect prints the most likely languages of a text, one per
 line. --json prints either as JSON.
+serve answers GET /languages and POST /translate as JSON, like the
+JavaScript server. PORT, HOST or a .lenv file set the defaults (8080,
+0.0.0.0); --port 0 picks a free port.
 Omit the file or pass - to read standard input.";
 
 /// The file of `meta`, `coverage` or `detect` (`[file|-] [--json]`):
@@ -400,6 +406,28 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
     Ok(result.text)
 }
 
+/// Start the server and answer requests until the process is stopped.
+fn serve_command(arguments: &[&str]) -> Result<String, String> {
+    let arguments: Vec<String> = arguments
+        .iter()
+        .map(|argument| (*argument).to_owned())
+        .collect();
+    let environment = std::env::vars().collect();
+    let directory = std::env::current_dir().map_err(|error| error.to_string())?;
+    let configuration = serve_configuration(&arguments, &environment, &directory)?;
+    let listener = TcpListener::bind((configuration.host.as_str(), configuration.port))
+        .map_err(|error| format!("{}:{}: {error}", configuration.host, configuration.port))?;
+    let address = listener.local_addr().map_err(|error| error.to_string())?;
+    println!(
+        "Listening on http://{}:{}",
+        configuration.host,
+        address.port()
+    );
+    io::stdout().flush().map_err(|error| error.to_string())?;
+    serve(&listener, false);
+    Ok(String::new())
+}
+
 fn run(arguments: &[String]) -> Result<String, String> {
     let arguments: Vec<&str> = arguments.iter().map(String::as_str).collect();
     match arguments.as_slice() {
@@ -480,6 +508,7 @@ fn run(arguments: &[String]) -> Result<String, String> {
         ["decode-cst", trailing @ ..] if trailing.len() <= 1 => {
             Ok(SourceDocument::from_syntax_notation(&source(trailing.first().copied())?)?.source)
         }
+        ["serve", trailing @ ..] => serve_command(trailing),
         ["translate", from, to, trailing @ ..] => translate(from, to, trailing),
         ["translate-program", from, to, trailing @ ..] if trailing.len() <= 1 => {
             let input = source(trailing.first().copied())?;

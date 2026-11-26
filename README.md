@@ -195,9 +195,19 @@ docker run --rm -i universal-translator translate javascript go - < app.js
 ```
 
 `POST /translate` takes `{source, from, to, fragment?, mode?, commonLibrary?,
+commentLanguage?, commentFrom?, identifierLanguage?, identifierFrom?, layout?,
 allOrNothing?, rules?}` and answers `{output, complete, errors, coverage?,
-detected?}`, or `{error}` with status 400. Regular expression rules are refused unless the
-server is created with `createTranslationServer({ allowRegexRules: true })`.
+lineMap?, detected?}`, or `{error}` with status 400. Regular expression rules
+are refused unless the server is created with
+`createTranslationServer({ allowRegexRules: true })`.
+
+The Rust command line has the same `serve [--port <port>] [--host <host>]`
+command (`std::net` and a minimal HTTP/1.1, one request per connection, no web
+framework). It reads `PORT`, `HOST` and `.lenv` like the JavaScript one,
+prints `Listening on http://<host>:<port>`, and answers the same JSON bytes as
+the JavaScript server for the same request (`rust/tests/serve.rs` compares the
+two). The only difference is the wording of the parser's message after `The
+body is not JSON: `. The library functions are `universal_translator::server`.
 
 ### Partial translation, detection and rules
 
@@ -413,7 +423,13 @@ naturalLanguageVersions('english'); // regions, standards and minimal-english
 Every natural language has a `minimal-<id>` version restricted to the 65
 semantic primes of Natural Semantic Metalanguage. `createStandard`,
 `defineWord` and `wikidataLookup` build a standard of at most 1024 words
-whose other words are defined recursively through it. The web demo edits
+whose other words are defined recursively through it. The Rust crate has
+`universal_translator::natural::standards` with the same standards and
+`define_word`; its Wikidata lookup never fetches (the standard library has no
+HTTPS), it answers from a definition cache in the file format of
+`scripts/precache-definitions.mjs` (`data/definitions/wikidata-english.lino`,
+shipped with the crate as `precached_definitions("english")`), so definitions
+the JavaScript side fetched once work offline in both. The web demo edits
 standards and settings, and switches between the languages on both sides.
 The Rust crate has the same versions, comment languages and
 `--comment-language`/`--comment-from` flags. See the
