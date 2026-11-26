@@ -95,3 +95,7 @@ The meta language has a for-each loop, `ForEach { variable, array, body }`, read
 ### Decorators, language versions and the Hello World Collection
 
 Every stage of the translation pipeline (parser, readers and emitters) can be wrapped with decorators, in JavaScript with `createTranslator({ decorate })` and `translator.decorate`, and in Rust with `Translator::decorate_*`. Programming languages gain versions with real differences in the written program: `javascript@es5` (no `let`, `const`, template strings or `for…of`), `php@5` and `csharp@5`. The Hello World Collection can be downloaded with `scripts/hello-world-collection.mjs`, and every extracted program is read into the meta language and measured in a coverage file.
+
+### Arrow functions and Python type hints
+
+A JavaScript or TypeScript arrow function bound to a name (`const square = (n) => n * n;`, `const square = n => n * n;`, or a block body with `return`) reads as the same `Function` node as `function square(n) { return n * n; }`, so it translates exactly as the declaration does and is written back as a `function` declaration. Python type hints on parameters, results and assignments (`def square(n: int) -> int:`, `total: int = 0`) are read in both runtimes: `int`, `str`, `bool`, `None` and `list[int]` give the meta types integer, text, boolean, nothing and array, every other hint is left to type inference, and a hinted program translates as its unhinted twin does.

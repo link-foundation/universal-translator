@@ -126,6 +126,10 @@ name = "for_each"
 path = "rust/tests/for_each.rs"
 
 [[test]]
+name = "arrow_and_hints"
+path = "rust/tests/arrow_and_hints.rs"
+
+[[test]]
 name = "decorators"
 path = "rust/tests/decorators.rs"
 

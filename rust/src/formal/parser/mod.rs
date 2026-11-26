@@ -66,6 +66,7 @@ const CONTROL_WORDS: [&str; 9] = [
 const ASSIGNMENT_SYMBOLS: [&str; 8] = ["=", "+=", "-=", "*=", "/=", "%=", "++", "--"];
 
 mod arrays;
+mod forms;
 mod loops;
 
 use loops::step_operator;
@@ -389,6 +390,9 @@ impl Parser {
             }
             _ => {}
         }
+        if self.is_arrow_function_start() {
+            return self.arrow_function();
+        }
         if self.is_namespace_or_class() {
             return self.class_definition();
         }
@@ -678,6 +682,9 @@ impl Parser {
     }
 
     pub(crate) fn base_type_expression(&mut self) -> Parsed<Option<String>> {
+        if self.syntax.id == "python" {
+            return self.type_hint();
+        }
         let mut words = Vec::new();
         let mut depth = 0i64;
         loop {

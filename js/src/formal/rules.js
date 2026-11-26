@@ -450,8 +450,10 @@ export function declareOnFirstAssignment(program) {
         !read.has(statement.name)
       ) {
         scope.add(statement.name);
+        // A Python hint (`total: int = 0`) gives the declared type.
         return node('Declaration', {
           name: statement.name,
+          ...(statement.type ? { type: statement.type } : {}),
           value: statement.value,
           mutable: true,
         });

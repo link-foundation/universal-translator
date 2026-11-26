@@ -728,8 +728,10 @@ impl Declarer {
             && !self.read.contains(&name)
         {
             self.scope.insert(name.clone());
+            // A Python hint (`total: int = 0`) gives the declared type.
             return Node::new("Declaration")
                 .with("name", name)
+                .with_opt("type", statement.str("type"))
                 .with_opt("value", statement.node("value").cloned())
                 .with("mutable", true);
         }
