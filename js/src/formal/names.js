@@ -8,16 +8,20 @@ import { rewrite } from '../meta/tree.js';
 
 // "greatestCommonDivisor", "greatest_common_divisor" and
 // "GreatestCommonDivisor" all become ["greatest", "common", "divisor"].
+// Letters of every script count: "суммаКвадратов" is ["сумма", "квадратов"].
 export function nameWords(identifier) {
   return identifier
-    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-    .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2')
+    .replace(/([\p{Ll}\p{N}])(\p{Lu})/gu, '$1 $2')
+    .replace(/(\p{Lu})(\p{Lu}\p{Ll})/gu, '$1 $2')
     .split(/[\s_]+/)
     .filter(Boolean)
     .map((word) => word.toLowerCase());
 }
 
-const capitalize = (word) => word.charAt(0).toUpperCase() + word.slice(1);
+const capitalize = (word) => {
+  const [first = '', ...rest] = word;
+  return first.toUpperCase() + rest.join('');
+};
 
 export const conventions = {
   camel: (words) =>
@@ -52,7 +56,7 @@ export function declaredNames(program) {
     if (current.kind === 'Declaration') {
       names.add(current.name);
     }
-    if (current.kind === 'CountingLoop') {
+    if (current.kind === 'CountingLoop' || current.kind === 'ForEach') {
       names.add(current.variable);
     }
     return current;
@@ -85,6 +89,7 @@ export function renameDeclared(program, rename) {
       case 'IndexAssignment':
         return { ...current, name: change(current.name) };
       case 'CountingLoop':
+      case 'ForEach':
         return { ...current, variable: change(current.variable) };
       default:
         return current;
@@ -147,6 +152,7 @@ const reservedLists = {
   zig: 'addrspace align allowzero and anyframe anytype asm break callconv catch comptime const continue defer else enum errdefer error export extern false fn for if inline linksection noalias noinline nosuspend opaque or orelse packed pub resume return struct suspend switch test threadlocal true try undefined union unreachable usingnamespace var volatile while out buffer writer init std common_library main',
   lean: 'abbrev at axiom by calc class deriving do else end example export extends false for from fun have if import in inductive instance let local macro match mut mutual namespace notation open partial private protected pure return section show structure syntax then theorem this true universe variable where while with default main commonlibrary',
   rocq: 'as at cofix definition else end eval exists fix fixpoint for forall fun if in let load match mod module return set struct then type where with pure stop bind loop_while for_range print print_line line_end digits show value call run item with_item with_item_at filled size default outcome going returned action tt unit negb andb orb list nil cons string bool true false nat length commonlibrary common_library main no_arguments',
+  gml: 'all and array_create array_length begin break case catch constructor continue default delete depth direction div do else end enum exit false finally for friction function global globalvar gravity health hspeed id if image_index lives local mod new noone not or other persistent repeat return score self show_debug_message solid speed sprite_index static string switch then throw true try until var visible vspeed while with x xor y',
   bash: 'case coproc dirname do done echo elif else esac fi for function if in local printf return select then time until while',
   groovy:
     'abstract as assert boolean break byte case catch char class const continue def default do double else enum extends false final finally float for goto if implements import in instanceof int interface long native new null package private protected public return short static super switch synchronized this threadsafe throw throws transient true try var void volatile while',
@@ -167,4 +173,72 @@ export function avoidReserved(spelled, language) {
   return reservedWords[language]?.has(spelled.toLowerCase())
     ? `${spelled}${reservedSuffixes[language] ?? '_'}`
     : spelled;
+}
+
+// Languages whose names are ASCII letters, digits and underscores only (or
+// whose compilers accept other letters only with extra flags). A name in
+// another script is transliterated for them; what has no transliteration
+// is written as its code point ("u4e16").
+const asciiOnly = new Set([
+  'ada',
+  'bash',
+  'c',
+  'cpp',
+  'dart',
+  'fortran',
+  'gml',
+  'lua',
+  'matlab',
+  'objc',
+  'pascal',
+  'perl',
+  'r',
+  'zig',
+]);
+
+export const asciiNames = (language, syntax = {}) =>
+  asciiOnly.has(language) || Boolean(syntax.machine);
+
+// Each letter and its Latin spelling, lower case.
+const latinPairs =
+  'а a б b в v г g д d е e ё e ж zh з z и i й y к k л l м m н n о o п p ' +
+  'р r с s т t у u ф f х kh ц ts ч ch ш sh щ shch ъ _ ы y ь _ э e ю yu ' +
+  'я ya і i ї yi є ye ґ g ў u α a β b γ g δ d ε e ζ z η i θ th ι i κ k ' +
+  'λ l μ m ν n ξ x ο o π p ρ r σ s ς s τ t υ y φ f χ ch ψ ps ω o ß ss ' +
+  'æ ae œ oe ø o å a ł l đ d ð d þ th ı i';
+
+const latin = new Map(
+  latinPairs
+    .split(' ')
+    .flatMap((word, at, words) => (at % 2 ? [] : [[word, words[at + 1]]]))
+    .map(([letter, spelled]) => [letter, spelled === '_' ? '' : spelled])
+);
+
+// Latin letters with marks and the letters without them (no Unicode
+// normalization, so that the Rust twin writes the same names).
+const marked = [
+  ...'àáâãäåçèéêëìíîïñòóôõöùúûüýÿāăąćĉċčďēĕėęěĝğġģĥĩīĭįĵķĺļľńņňōŏőŕŗřśŝşšţťũūŭůűųŵŷźżžơưǎǐǒǔǖǘǚǜǟǡǧǩǫǭǰǵǹǻȁȃȅȇȉȋȍȏȑȓȕȗșțȟȧȩȫȭȯȱȳ',
+];
+const unmarked =
+  'aaaaaaceeeeiiiinooooouuuuyyaaaccccdeeeeegggghiiiijklllnnnooorrrssssttuuuuuuwyzzzouaiouuuuuaagkoojgnaaaeeiioorruusthaeooooy';
+marked.forEach((letter, at) => latin.set(letter, unmarked[at]));
+
+function latinLetter(letter) {
+  const lower = letter.toLowerCase();
+  const spelled = latin.get(lower) ?? lower;
+  if (!/^[a-z0-9_]*$/.test(spelled)) {
+    return `u${letter.codePointAt(0).toString(16)}`;
+  }
+  return letter === lower ? spelled : capitalize(spelled);
+}
+
+// A spelled name in the letters a language accepts.
+export function asciiName(spelled, language, syntax) {
+  // eslint-disable-next-line no-control-regex
+  if (!asciiNames(language, syntax) || /^[\x00-\x7f]*$/.test(spelled)) {
+    return spelled;
+  }
+  return [...spelled]
+    .map((letter) => (letter < '\x80' ? letter : latinLetter(letter)))
+    .join('');
 }

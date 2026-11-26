@@ -36,6 +36,8 @@ pub struct Token {
     pub value: String,
     pub folded: String,
     pub number: f64,
+    /// Whether a number token is written with a fraction: 1.5.
+    pub real: bool,
 }
 
 impl Token {
@@ -51,6 +53,7 @@ impl Token {
             value,
             folded,
             number: 0.0,
+            real: false,
         }
     }
 
@@ -64,6 +67,7 @@ impl Token {
             value: format_number(value),
             folded: String::new(),
             number: value,
+            real: false,
         }
     }
 }
@@ -115,7 +119,7 @@ fn read_word(source: &[char], start: usize, joiners: &[char]) -> usize {
             && end > start
             && end + 1 < source.len()
             && (is_letter(source[end + 1]) || source[end + 1] == '_');
-        if is_letter(character) || joins || (character == '_' && end > start) {
+        if is_letter(character) || joins || character == '_' {
             end += 1;
         } else {
             break;
@@ -161,8 +165,19 @@ fn read_number(source: &[char], index: usize) -> (Token, usize) {
     while end < source.len() && source[end].is_ascii_digit() {
         end += 1;
     }
+    // A point between digits starts the fraction of a real number.
+    let real =
+        source.get(end) == Some(&'.') && source.get(end + 1).is_some_and(char::is_ascii_digit);
+    if real {
+        end += 1;
+        while end < source.len() && source[end].is_ascii_digit() {
+            end += 1;
+        }
+    }
     let text: String = source[index..end].iter().collect();
-    (Token::number(text.parse::<f64>().unwrap_or(0.0)), end)
+    let mut token = Token::number(text.parse::<f64>().unwrap_or(0.0));
+    token.real = real;
+    (token, end)
 }
 
 fn read_token(

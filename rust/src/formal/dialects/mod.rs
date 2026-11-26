@@ -1,5 +1,6 @@
 //! Languages whose statements and program layout follow a grammar of their
-//! own (Pascal, Fortran, Ada, Visual Basic, Bash, MATLAB, Zig, Lean, Rocq).
+//! own (Pascal, Fortran, Ada, Visual Basic, Bash, MATLAB, Zig, Lean, Rocq,
+//! GameMaker Language).
 //! Each dialect overrides some steps of the shared parser and emitter and
 //! keeps their expressions, names and token helpers; a step it does not
 //! override, or calls back as `base_...`, behaves as in every other language.
@@ -7,6 +8,7 @@
 mod ada;
 mod bash;
 mod fortran;
+mod gml;
 mod lean;
 mod matlab;
 mod pascal;
@@ -170,6 +172,7 @@ pub(crate) fn emitter_dialect(language: &str) -> &'static dyn EmitterDialect {
         "ada" => &ada::Ada,
         "bash" => &bash::Bash,
         "fortran" => &fortran::Fortran,
+        "gml" => &gml::GameMaker,
         "lean" => &lean::Lean,
         "matlab" => &matlab::Matlab,
         "pascal" => &pascal::Pascal,
@@ -186,6 +189,7 @@ pub(crate) fn parser_dialect(language: &str) -> &'static dyn ParserDialect {
         "ada" => &ada::Ada,
         "bash" => &bash::Bash,
         "fortran" => &fortran::Fortran,
+        "gml" => &gml::GameMaker,
         "lean" => &lean::Lean,
         "matlab" => &matlab::Matlab,
         "pascal" => &pascal::Pascal,

@@ -1,0 +1,8 @@
+Note: Greatest element of a list in JavaScript
+
+Let numbers be the list (17, 4, 93, 28, 65, 3, 80).
+Let greatest be part 0 of numbers.
+For each number in numbers, do this:
+  If number is more than greatest, do this:
+    Now let greatest be number.
+Say “The greatest element is ” then greatest on a line.

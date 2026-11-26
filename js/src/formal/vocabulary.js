@@ -27,6 +27,7 @@ const notWords = new Set([
   'entryPoint',
   'typed',
   'arrayFill',
+  'forEach',
   'forwardDeclarations',
   'functionForm',
   'immutableParameters',

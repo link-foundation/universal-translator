@@ -1,9 +1,15 @@
 // Machine targets: x86-64 assembly (NASM, System V, libc printf), CIL
-// (ILAsm for .NET) and JVM bytecode (Jasmin). Each writer spells the stack
-// machine code from lowering.js; the descriptions below are read by the
-// context rules (comment adaptation, naming) like any language description.
+// (ILAsm for .NET) and JVM bytecode (Jasmin); the GNU as, ARM64, LLVM IR and
+// WebAssembly text writers live in modules of their own. Each writer spells
+// the stack machine code from lowering.js; the descriptions below are read
+// by the context rules (comment adaptation, naming) like any language
+// description.
 
 import { lowerProgram } from './lowering.js';
+import { writeArm64, writeGas } from './machine-assembly.js';
+import { writeLlvm } from './machine-llvm.js';
+import { comments, createsArrays } from './machine-shared.js';
+import { writeWat } from './machine-wasm.js';
 
 // Jasmin reads these words as instructions or keywords, so a variable named
 // like one (swap, pop, new) is written with a trailing underscore, which the
@@ -47,11 +53,25 @@ export const jasminVariable = (name) =>
 
 export const machineTargets = {
   nasm: {
-    label: 'x86-64 assembly',
+    label: 'x86-64 assembly (NASM)',
     machine: true,
     naming: 'snake',
     lineComment: ';',
     terms: { call: 'call instruction', routine: 'procedure' },
+  },
+  gas: {
+    label: 'x86-64 assembly (GNU as, AT&T)',
+    machine: true,
+    naming: 'snake',
+    lineComment: '#',
+    terms: { call: 'call instruction', routine: 'function' },
+  },
+  arm64: {
+    label: 'ARM64 assembly',
+    machine: true,
+    naming: 'snake',
+    lineComment: '//',
+    terms: { call: 'branch instruction', routine: 'function' },
   },
   cil: {
     label: 'CIL',
@@ -67,21 +87,23 @@ export const machineTargets = {
     lineComment: ';',
     terms: { call: 'method call', routine: 'method' },
   },
+  llvm: {
+    label: 'LLVM IR',
+    machine: true,
+    naming: 'snake',
+    lineComment: ';',
+    terms: { call: 'call instruction', routine: 'function' },
+  },
+  wat: {
+    label: 'WebAssembly text',
+    machine: true,
+    naming: 'snake',
+    lineComment: ';;',
+    terms: { call: 'call instruction', routine: 'function' },
+  },
 };
 
 export const machineTargetIds = Object.keys(machineTargets);
-
-// Whether a lowered program creates arrays, and so needs the helper that
-// allocates and fills them.
-const createsArrays = (program) =>
-  [...program.functions, program.main].some((item) =>
-    item.code.some(([operation]) => operation === 'new-array')
-  );
-
-const comments = (prefix, texts, indent = '') =>
-  texts.flatMap((text) =>
-    text.split('\n').map((line) => `${indent}${prefix} ${line}`.trimEnd())
-  );
 
 // Printable ASCII runs stay readable; other bytes are written as numbers.
 function nasmText(text) {
@@ -579,7 +601,15 @@ function writeJvm(program) {
   ].join('\n');
 }
 
-const writers = { nasm: writeNasm, cil: writeCil, jvm: writeJvm };
+const writers = {
+  nasm: writeNasm,
+  gas: writeGas,
+  arm64: writeArm64,
+  cil: writeCil,
+  jvm: writeJvm,
+  llvm: writeLlvm,
+  wat: writeWat,
+};
 
 // Lower an adapted meta program and write it for a machine target.
 export function emitMachine(program, target) {

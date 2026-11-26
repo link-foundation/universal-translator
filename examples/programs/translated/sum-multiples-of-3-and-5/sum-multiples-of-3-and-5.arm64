@@ -1,0 +1,131 @@
+// Sum multiples of 3 and 5 in ARM64 assembly: the sum of the multiples below 1000
+
+    .global main
+    .section .rodata
+integer_format: .asciz "%lld"
+text_format: .asciz "%s"
+newline_format: .asciz "\n"
+
+    .text
+.type main, %function
+main:
+    .set main.total, 0
+    .set main.number, 8
+    stp x29, x30, [sp, #-16]!
+    sub sp, sp, #16
+    mov x29, sp
+    mov x0, #0
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #main.total]
+    mov x0, #1
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #main.number]
+.Lmain_L1:
+    ldr x0, [x29, #main.number]
+    str x0, [sp, #-16]!
+    mov x0, #1000
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    cmp x0, x1
+    b.ge .Lmain_L2
+    ldr x0, [x29, #main.number]
+    str x0, [sp, #-16]!
+    mov x0, #3
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    sdiv x2, x0, x1
+    msub x0, x2, x1, x0
+    str x0, [sp, #-16]!
+    mov x0, #0
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    cmp x0, x1
+    b.eq .Lmain_L5
+    ldr x0, [x29, #main.number]
+    str x0, [sp, #-16]!
+    mov x0, #5
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    sdiv x2, x0, x1
+    msub x0, x2, x1, x0
+    str x0, [sp, #-16]!
+    mov x0, #0
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    cmp x0, x1
+    b.ne .Lmain_L3
+.Lmain_L5:
+    ldr x0, [x29, #main.total]
+    str x0, [sp, #-16]!
+    ldr x0, [x29, #main.number]
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    add x0, x0, x1
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #main.total]
+    b .Lmain_L4
+.Lmain_L3:
+.Lmain_L4:
+    ldr x0, [x29, #main.number]
+    str x0, [sp, #-16]!
+    mov x0, #1
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    add x0, x0, x1
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #main.number]
+    b .Lmain_L1
+.Lmain_L2:
+    ldr x0, [x29, #main.total]
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    bl print_integer
+    bl print_newline
+    mov x0, #0
+    mov sp, x29
+    add sp, sp, #16
+    ldp x29, x30, [sp], #16
+    ret
+.size main, .-main
+
+print_integer:
+    stp x29, x30, [sp, #-16]!
+    mov x29, sp
+    mov x1, x0
+    adrp x0, integer_format
+    add x0, x0, :lo12:integer_format
+    bl printf
+    ldp x29, x30, [sp], #16
+    ret
+
+print_text:
+    stp x29, x30, [sp, #-16]!
+    mov x29, sp
+    mov x1, x0
+    adrp x0, text_format
+    add x0, x0, :lo12:text_format
+    bl printf
+    ldp x29, x30, [sp], #16
+    ret
+
+print_newline:
+    stp x29, x30, [sp, #-16]!
+    mov x29, sp
+    adrp x0, newline_format
+    add x0, x0, :lo12:newline_format
+    bl printf
+    ldp x29, x30, [sp], #16
+    ret
+
+    .section .note.GNU-stack,"",%progbits

@@ -119,7 +119,7 @@ export default [
     files: [
       'docs/case-studies/**/*.{js,mjs,cjs}',
       'js/tests/no-changelog-comments.test.js',
-      'js/src/natural/sources.js',
+      'js/src/natural/sources*.js',
     ],
     rules: {
       'local/no-changelog-comments': 'off',

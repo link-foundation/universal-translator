@@ -17,9 +17,20 @@ node bin/universal-translator.js meta python examples/programs/hand-written/grea
 
 The `meta` command prints the typed meta program as JSON. It is the same
 structure that the rule layers receive. `languages` lists every identifier and
-its display name. The machine targets `nasm`, `cil` and `jvm` work in both
-directions, so assembly, CIL and JVM bytecode translate into each other and
-into every language:
+its display name; the machine targets come last and carry `machine: true` in
+the JavaScript and Rust `languages()`. The machine targets work in both
+directions, so every dialect translates into each other and into every
+language:
+
+| id      | label                          | file     |
+| ------- | ------------------------------ | -------- |
+| `nasm`  | x86-64 assembly (NASM)         | `.asm`   |
+| `gas`   | x86-64 assembly (GNU as, AT&T) | `.s`     |
+| `arm64` | ARM64 assembly                 | `.arm64` |
+| `cil`   | CIL (ILAsm)                    | `.il`    |
+| `jvm`   | JVM bytecode (Jasmin)          | `.j`     |
+| `llvm`  | LLVM IR                        | `.ll`    |
+| `wat`   | WebAssembly text               | `.wat`   |
 
 ```sh
 node bin/universal-translator.js translate jvm nasm examples/programs/translated/factorial/factorial.j
@@ -32,8 +43,9 @@ sequences that `machine.js` writes and returns stack machine code. Then
 expressions and recognizes the jump patterns of conditions (including `and`,
 `or` and `not`), `if`/`else if`/`else`, `while`, counting loops and boolean
 values. Variable names survive the round trip, because the machine code keeps
-them: NASM `%define %$name`, CIL named parameters and locals, and Jasmin
-`.var` directives. Lifting `x → machine → meta` and lowering again gives the
+them: NASM `%define %$name`, gas and ARM64 `.set` names, CIL named parameters
+and locals, Jasmin `.var` directives, LLVM IR `%name.addr` slots and WebAssembly
+`$name` locals. Lifting `x → machine → meta` and lowering again gives the
 same machine code.
 
 ## Translate from JavaScript
@@ -98,14 +110,17 @@ project or organization can keep its own glossary and rules in the same way.
 ```sh
 node examples/programs/write-translations.mjs --check
 node examples/programs/verify-native.mjs              # skips missing tools
-node examples/programs/verify-native.mjs nasm cil jvm # only these targets
+node examples/programs/verify-native.mjs nasm gas llvm wat # only these targets
 node examples/programs/verify-native.mjs --require-all
 ```
 
 `verify-native.mjs` builds and runs every translated and hand-written program
 and compares its output with the JavaScript original. It uses `nasm` and `gcc`
 for assembly, `ILASM` (an ilasm path) and `dotnet` for CIL, and `jasmin` or
-`JASMIN_CLASSPATH` with `java` for JVM bytecode. Set `LUA` to pick the Lua
+`JASMIN_CLASSPATH` with `java` for JVM bytecode, `as` and `gcc` for GNU as,
+`lli` for LLVM IR, and `wat2wasm` with `node` for WebAssembly text. ARM64
+assembly runs with `gcc` on an ARM64 host, or with `ARM64_CC` and `ARM64_RUN`
+(`qemu-aarch64`) elsewhere. Set `LUA` to pick the Lua
 interpreter.
 
 ## Rank natural-language referents

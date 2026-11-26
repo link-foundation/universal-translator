@@ -1,0 +1,8 @@
+Note: Greatest element of a list in JavaScript
+
+Numbers is classified as a variable with initial value the list (17, 4, 93, 28, 65, 3, 80).
+Greatest is classified as a variable with initial value item 0 of numbers.
+For each number in numbers the following is repeated:
+  If number is greater than greatest then the following is performed:
+    Greatest has as new value number.
+The output has as next line “The greatest element is ” concatenated with greatest.

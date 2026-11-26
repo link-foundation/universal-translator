@@ -1,0 +1,12 @@
+Lura: Linear search in JavaScript: find the position of a value in a list
+
+Ƙirƙiri adadai mai ƙima jeri (31, 41, 59, 26, 53, 58, 97, 93).
+Ƙirƙiri wanted mai ƙima 53.
+Ƙirƙiri matsayi mai ƙima -1.
+Ƙirƙiri yanzu mai ƙima 0.
+Ga kowane fihirisa daga 0 zuwa tsawon adadai ragi 1, maimaita wannan:
+  Ƙirƙiri lamba mai ƙima abu fihirisa a cikin adadai.
+  Idan lamba daidai yake da wanted kuma matsayi ya gaza 0, yi wannan:
+    Canza matsayi zuwa yanzu.
+  Canza yanzu zuwa yanzu ƙari 1.
+Rubuta “Found ” sannan wanted sannan “ at position ” sannan matsayi kuma ka gama layi.

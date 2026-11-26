@@ -1,16 +1,148 @@
 // Fortran (free form, Fortran 2018): a main program whose variables are
 // declared before its statements, and procedures after `contains`.
 
-import { add, block, node, number } from '../../meta/tree.js';
-import { declaredVariables, keywordParser } from './shared.js';
+import { add, block, node, number, text as textNode } from '../../meta/tree.js';
+import { SyntaxError } from '../lexer.js';
+import { commentNode, declaredVariables, keywordParser } from './shared.js';
 
 // The meta type of a declaration's first word.
-const typeWords = { integer: 'integer', logical: 'boolean', character: 'text' };
+const typeWords = {
+  integer: 'integer',
+  real: 'real',
+  logical: 'boolean',
+  character: 'text',
+};
 const format = "'(*(g0))'";
+
+// Output statements and the statement lists around them.
+const output = (Base) =>
+  class FortranOutput extends Base {
+    // write (unit, format, advance='no') items: a write ends its line
+    // unless it says advance='no'. A format given by the label of a format
+    // statement prints its text.
+    fortranWrite() {
+      this.expect('(');
+      let position = 0;
+      let label;
+      let advance = true;
+      while (!this.accept(')')) {
+        if (this.is('advance') && this.is('=', 1)) {
+          this.position += 2;
+          advance = this.next().value.toLowerCase() !== 'no';
+        } else if (position === 1 && this.peek().type === 'number') {
+          label = this.next().value;
+        } else {
+          this.skipControlItem();
+        }
+        if (this.accept(',')) {
+          position += 1;
+        }
+      }
+      if (label === undefined) {
+        return this.output(advance ? 'print' : 'write', true);
+      }
+      const text = this.formats?.get(label);
+      if (text === undefined) {
+        throw new SyntaxError(
+          `No format statement labelled ${label}`,
+          this.peek().line
+        );
+      }
+      if (this.peek().type !== 'newline' && this.peek().type !== 'end') {
+        throw new SyntaxError(
+          'Items written with a format statement',
+          this.peek().line
+        );
+      }
+      return node('Evaluate', {
+        expression: node('Call', {
+          callee: advance ? 'print' : 'write',
+          arguments: [text],
+        }),
+      });
+    }
+
+    // One item of a control list, up to the next "," or ")" outside
+    // parentheses.
+    skipControlItem() {
+      let depth = 0;
+      while (depth > 0 || (!this.is(',') && !this.is(')'))) {
+        const token = this.next();
+        if (token.value === '(') {
+          depth += 1;
+        } else if (token.value === ')') {
+          depth -= 1;
+        }
+      }
+    }
+
+    // A statement label (`100 format (...)`, `10 continue`) is read and
+    // dropped; format statements were read with the program. A stop that
+    // is the last statement of the main program ends it as its end does.
+    statementsUntil(done) {
+      const statements = [];
+      this.skipLines();
+      while (!done() && this.peek().type !== 'end') {
+        if (this.peek().type === 'number') {
+          this.next();
+        }
+        if (this.peek().type === 'comment') {
+          statements.push(commentNode(this.next()));
+        } else if (this.is('format')) {
+          this.skipLine();
+        } else if (this.is('stop') && this.isLastStatement()) {
+          this.skipLine();
+        } else {
+          statements.push(this.statement());
+        }
+        this.skipLines(statements);
+      }
+      return statements;
+    }
+
+    // Whether only comments, labelled format statements and the end of the
+    // main program follow this line.
+    isLastStatement() {
+      let offset = 1;
+      const at = () => this.peek(offset);
+      while (at().type !== 'end') {
+        if (at().type === 'newline' || at().type === 'comment') {
+          offset += 1;
+        } else if (at().type === 'number' && this.is('format', offset + 1)) {
+          while (!['newline', 'end'].includes(at().type)) {
+            offset += 1;
+          }
+        } else {
+          return (
+            this.is('end', offset) &&
+            !this.is('if', offset + 1) &&
+            !this.is('do', offset + 1) &&
+            this.result === undefined
+          );
+        }
+      }
+      return false;
+    }
+
+    // print '(*(g0))', a, b and write (...) a, b print their items one
+    // after another.
+    output(callee, afterControlList = false) {
+      const values = [];
+      if (afterControlList && this.peek().type !== 'newline') {
+        values.push(this.expression());
+      }
+      while (this.accept(',')) {
+        values.push(this.expression());
+      }
+      return node('Evaluate', {
+        expression: node('Call', { callee, arguments: values }),
+      });
+    }
+  };
 
 // Statements: if, do while, counted do, print, write, call and assignments.
 const statements = (Base) =>
-  class FortranStatements extends Base {
+  class FortranStatements extends output(Base) {
     statement() {
       if (this.accept('if')) {
         return this.fortranIf();
@@ -23,11 +155,7 @@ const statements = (Base) =>
         return this.output('print');
       }
       if (this.accept('write')) {
-        this.expect('(');
-        while (!this.accept(')')) {
-          this.next();
-        }
-        return this.output('write');
+        return this.fortranWrite();
       }
       if (this.accept('call')) {
         return node('Evaluate', { expression: this.called(this.expression()) });
@@ -49,21 +177,6 @@ const statements = (Base) =>
         return node('Return', { value });
       }
       return node('Assignment', { name, operator: '=', value });
-    }
-
-    // print '(*(g0))', a, b and write (...) a, b print their items one
-    // after another.
-    output(callee) {
-      const values = [];
-      if (callee === 'write' && this.peek().type !== 'newline') {
-        values.push(this.expression());
-      }
-      while (this.accept(',')) {
-        values.push(this.expression());
-      }
-      return node('Evaluate', {
-        expression: node('Call', { callee, arguments: values }),
-      });
     }
 
     // do while (condition) or do i = first, last: the meta loop stops
@@ -123,6 +236,13 @@ const statements = (Base) =>
           value: token.value.toLowerCase() === '.true.',
         });
       }
+      // new_line('a') is the line end character.
+      if (this.is('new_line') && this.is('(', 1)) {
+        this.position += 2;
+        this.skipControlItem();
+        this.expect(')');
+        return textNode('\n');
+      }
       if (this.is('mod') && this.is('(', 1)) {
         this.position += 2;
         const left = this.expression();
@@ -138,6 +258,7 @@ const statements = (Base) =>
 const parser = (Base) =>
   class FortranParser extends statements(keywordParser(Base)) {
     program() {
+      this.formats = this.formatStatements();
       const items = [];
       this.gatherComments(items);
       this.expect('program');
@@ -157,6 +278,46 @@ const parser = (Base) =>
       this.skipLine();
       this.skipLines();
       return node('SourceProgram', { language: this.syntax.id, items });
+    }
+
+    // The text of each labelled format statement, by label: its quoted
+    // texts, with a line end for each "/" (fixed-form programs write
+    // `100 format (' Hello World! ' /)`).
+    formatStatements() {
+      const formats = new Map();
+      this.tokens.forEach((token, index) => {
+        const before = this.tokens[index - 1];
+        const word = this.tokens[index + 1];
+        if (
+          token.type !== 'number' ||
+          (before && before.type !== 'newline') ||
+          word?.type !== 'name' ||
+          word.value.toLowerCase() !== 'format'
+        ) {
+          return;
+        }
+        let text = '';
+        let at = index + 3;
+        for (let depth = 1; ; at += 1) {
+          const item = this.tokens[at];
+          if (item.type === 'text') {
+            text += item.value;
+          } else if (item.value === '/' || item.value === '//') {
+            text += '\n'.repeat(item.value.length);
+          } else if (item.value === '(') {
+            depth += 1;
+          } else if (item.value === ')' && --depth === 0) {
+            break;
+          } else if (item.value !== ',') {
+            throw new SyntaxError(
+              `Edit descriptor "${item.value}" in a format statement`,
+              item.line
+            );
+          }
+        }
+        formats.set(token.value, textNode(text));
+      });
+      return formats;
     }
 
     // use, implicit none and declarations, which the first assignments
@@ -239,6 +400,7 @@ const parser = (Base) =>
 // Declared types: deferred-length text is allocated by its assignment.
 const declaredTypes = {
   integer: 'integer(8)',
+  real: 'real(8)',
   boolean: 'logical',
   text: 'character(len=:), allocatable',
   // An array is allocated by its first assignment.
@@ -316,8 +478,18 @@ const emitter = (Base) =>
       return '';
     }
 
+    // A line end inside text is new_line('a'): `'a' // new_line('a')`.
     quote(value) {
-      return `'${value.replace(/'/g, "''")}'`;
+      const pieces = [];
+      value.split('\n').forEach((line, index) => {
+        if (index > 0) {
+          pieces.push("new_line('a')");
+        }
+        if (line || value === '') {
+          pieces.push(`'${line.replace(/'/g, "''")}'`);
+        }
+      });
+      return pieces.join(' // ');
     }
 
     unary(expression, parent) {
@@ -339,7 +511,9 @@ const emitter = (Base) =>
     // Literal arguments are written with the kind of the integer(8)
     // arguments they are passed to.
     argument(value) {
-      return value.kind === 'Number' && Number.isInteger(value.value)
+      return value.kind === 'Number' &&
+        value.type !== 'real' &&
+        Number.isInteger(value.value)
         ? `${value.value}_8`
         : this.expression(value);
     }

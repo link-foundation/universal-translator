@@ -1,0 +1,14 @@
+{
+  "author": {
+    "id": "MDQ6VXNlcjE0MzE5MDQ=",
+    "is_bot": false,
+    "login": "konard",
+    "name": "Konstantin Diachenko"
+  },
+  "body": "## Goal\n\nPublish the package as `universal-translator`. The current manifest still uses the template name from the repository template.\n\n## Current state\n\n`package.json`:\n\n- name: `@link-foundation/example-package-name`\n- version: `0.11.31`\n- bin: `example-package-name` -> `./bin/example-package-name.js`\n\n## Requested change\n\n1. Rename the npm package to `universal-translator`.\n2. Rename the bin entry and its file to `universal-translator`.\n3. Update examples, tests, README, release checks, and any `npm pack` assertions that mention `example-package-name`.\n4. Keep the existing release workflow, but make sure it publishes the new name with OIDC trusted publishing.\n\n## Acceptance criteria\n\n- [ ] `npm view universal-translator version` succeeds after the release.\n- [ ] `npx universal-translator --version` works.\n- [ ] No reference to `@link-foundation/example-package-name` remains in the package metadata, docs, or release workflow.\n- [ ] The first release is bootstrapped and the trusted publisher is attached for `link-foundation/universal-translator` and its release workflow.\n",
+  "closedAt": "2026-11-16T00:16:30Z",
+  "createdAt": "2026-11-15T08:36:25Z",
+  "number": 2,
+  "state": "CLOSED",
+  "title": "Rename @link-foundation/example-package-name to universal-translator before first publish"
+}

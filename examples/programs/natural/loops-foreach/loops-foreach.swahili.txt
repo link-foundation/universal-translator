@@ -1,0 +1,6 @@
+Kumbuka: Loops/Foreach in JavaScript: print every element of a collection
+
+Unda namba yenye thamani orodha (1, 1, 2, 3, 5, 8, 13, 21).
+Kwa kila fahirisi kutoka 0 hadi urefu wa namba toa 1, rudia hivi:
+  Unda nambari yenye thamani kipengele fahirisi cha namba.
+  Andika nambari na umalize mstari.

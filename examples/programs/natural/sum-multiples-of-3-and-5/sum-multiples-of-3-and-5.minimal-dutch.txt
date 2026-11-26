@@ -1,0 +1,7 @@
+Opmerking: Sum multiples of 3 and 5 in JavaScript: the sum of the multiples below 1000
+
+Er is totaal, het is 0.
+Voor alle getal van 1 tot en met 999, doe dit:
+  Als getal modulo 3 is hetzelfde als 0 of getal modulo 5 is hetzelfde als 0, doe dit:
+    Hierna is totaal totaal plus getal.
+Zeg totaal op één regel.

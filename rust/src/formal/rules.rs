@@ -10,9 +10,14 @@ use std::sync::Arc;
 
 use super::arrays::{expand_array_fills, raise_array_fills, recognize_arrays};
 use super::common_library::{recognize_common_library, spell_common_library};
+use super::for_each::{expand_for_each, raise_for_each};
 use super::languages::{Blocks, ImmutableParameters, IntegerDivision, Syntax, language_syntax};
 use super::lifting::counting_loops;
-use super::names::{avoid_reserved, name_words, neutral_name, rename_declared, spell_name};
+use super::names::{
+    ascii_name, avoid_reserved, name_words, neutral_name, rename_declared, spell_name,
+};
+use super::numbers::slash_operator;
+use super::versions::{split_version, versions_of, with_version};
 use crate::meta::truth::raise_truth_functions;
 use crate::meta::{Mode, Rule, Settings};
 use crate::meta::{Node, binary, block, layout, rewrite, rewrite_opt, text, walk};
@@ -37,8 +42,9 @@ pub fn understanding_rules() -> Vec<Rule> {
         rule("recognizePrint", recognize_print),
         rule("dropTextConversions", drop_text_conversions),
         rule("dropEmptyStatements", drop_empty_statements),
-        rule("expandCompoundAssignment", |program, _| {
-            expand_compound_assignment(program)
+        rule("expandCompoundAssignment", |program, settings| {
+            let syntax = language_syntax(&settings.from).ok();
+            expand_compound_assignment(program, syntax.as_ref())
         }),
         rule("dropParameterCopies", |program, _| {
             drop_parameter_copies(program)
@@ -50,6 +56,7 @@ pub fn understanding_rules() -> Vec<Rule> {
             raise_counting_loops(program)
         }),
         rule("raiseArrayFills", |program, _| raise_array_fills(program)),
+        rule("raiseForEach", |program, _| raise_for_each(program)),
         rule("raiseTruthValues", raise_truth_values),
         rule("inferMutability", |program, _| infer_mutability(program)),
         rule("dropSourceDetails", |program, _| {
@@ -72,6 +79,7 @@ pub fn context_rules() -> Vec<Rule> {
         rule("adaptComments", adapt_comments),
         rule("copyReassignedParameters", copy_reassigned_parameters),
         rule("expandArrayFills", expand_array_fills),
+        rule("expandForEach", expand_for_each),
         rule("spellNames", spell_names),
         rule("spellCommonLibrary", spell_common_library),
     ]
@@ -118,6 +126,37 @@ fn flatten_classes(items: Vec<Node>) -> Vec<Node> {
             }
         })
         .collect()
+}
+
+/// "Program.square" for every function of a class of the program.
+fn class_function_names(items: &[Node], owner: Option<&str>, names: &mut HashSet<String>) {
+    for item in items {
+        if item.is("Class") {
+            class_function_names(&item.node_list("items"), item.str("name"), names);
+        } else if let (Some(owner), true) = (owner, item.is("Function")) {
+            names.insert(format!("{owner}.{}", item.str("name").unwrap_or_default()));
+        }
+    }
+}
+
+/// `Program.square(3)` calls a function of the program. The classes are
+/// flattened, so the call names the plain function.
+fn unqualify_class_calls(program: Node, items: &[Node]) -> Node {
+    let mut qualified = HashSet::new();
+    class_function_names(items, None, &mut qualified);
+    if qualified.is_empty() {
+        return program;
+    }
+    rewrite(program, |mut current| {
+        let callee = current.str("callee").map(str::to_string);
+        if let Some(callee) =
+            callee.filter(|callee| current.is("Call") && qualified.contains(callee))
+        {
+            let last = callee.rsplit('.').next().unwrap_or_default().to_string();
+            current.set("callee", last);
+        }
+        current
+    })
 }
 
 fn is_call_to(statement: &Node, function_name: &str) -> bool {
@@ -211,7 +250,8 @@ fn is_exit_success(statement: Option<&Node>) -> bool {
 /// Collect functions, the entry point and file comments into a Program. The
 /// body of `main` becomes the program's main block.
 pub fn find_entry_point(source: Node) -> Node {
-    let mut program = collect_items(flatten_classes(source.node_list("items")));
+    let items = source.node_list("items");
+    let mut program = unqualify_class_calls(collect_items(flatten_classes(items.clone())), &items);
     let mut functions = program.node_list("functions");
     let Some(index) = functions
         .iter()
@@ -279,14 +319,18 @@ fn format_call(callee: &str) -> Option<FormatStyle> {
     }
 }
 
-fn join_with_spaces(mut values: Vec<Node>) -> Node {
+fn join_with_spaces(values: Vec<Node>) -> Node {
+    join_with(values, &text(" "))
+}
+
+fn join_with(mut values: Vec<Node>, separator: &Node) -> Node {
     if values.len() == 1 {
         return values.remove(0);
     }
     let mut parts = Vec::new();
     for (index, value) in values.into_iter().enumerate() {
         if index > 0 {
-            parts.push(text(" "));
+            parts.push(separator.clone());
         }
         parts.push(value);
     }
@@ -311,7 +355,18 @@ fn placeholder_length(format: &[char], index: usize, style: FormatStyle) -> Opti
             if length == 1 && matches!(at(1), Some('i' | 's' | 'c' | 'v' | 't' | '%')) {
                 return Some(2);
             }
-            None
+            // A real: %f, %g, %e, %G, with a precision such as %.2f.
+            let mut length = 1;
+            if at(1) == Some('.') && at(2).is_some_and(|c| c.is_ascii_digit()) {
+                length = 2;
+                while at(length).is_some_and(|c| c.is_ascii_digit()) {
+                    length += 1;
+                }
+            }
+            if at(length) == Some('l') {
+                length += 1;
+            }
+            matches!(at(length), Some('f' | 'g' | 'e' | 'G')).then_some(length + 1)
         }
         FormatStyle::Braces => match (at(0), at(1)) {
             (Some('{'), Some('{' | '}')) | (Some('}'), Some('}')) => Some(2),
@@ -454,6 +509,41 @@ fn spread_interpolations(values: Vec<Node>) -> Vec<Node> {
         .collect()
 }
 
+/// The value of the last named argument called one of `names`.
+fn named_value<'a>(named: &'a [Node], names: [&str; 2]) -> Option<&'a Node> {
+    named
+        .iter()
+        .rev()
+        .find(|argument| {
+            argument
+                .str("name")
+                .is_some_and(|name| names.contains(&name))
+        })
+        .and_then(|argument| argument.node("value"))
+}
+
+/// Python's `print(..., sep=, end=)` and Swift's `print(..., separator:,
+/// terminator:)`: an empty end keeps the line open (`""` reads as an empty
+/// interpolation where quotes interpolate), and any other end is printed
+/// after the values, so `end="!"` is not lost.
+fn print_line(values: Vec<Node>, named: &[Node]) -> Node {
+    let joined = match (values.is_empty(), named_value(named, ["sep", "separator"])) {
+        (true, _) => text(""),
+        (false, Some(separator)) => join_with(values, separator),
+        (false, None) => join_with_spaces(values),
+    };
+    let Some(end) = named_value(named, ["end", "terminator"]) else {
+        return print(joined, true);
+    };
+    if text_value(end) == Some("") || (end.is("Interpolation") && end.node_list("parts").is_empty())
+    {
+        return print(joined, false);
+    }
+    let (parts, newline) =
+        without_trailing_newline(spread_interpolations(vec![joined, end.clone()]));
+    print(parts_to_value(parts), newline)
+}
+
 fn print_from_call(call: &Node, syntax: Option<&Syntax>) -> Option<Node> {
     let callee = call.str("callee").unwrap_or_default();
     let kind = print_kind(callee, syntax);
@@ -467,18 +557,7 @@ fn print_from_call(call: &Node, syntax: Option<&Syntax>) -> Option<Node> {
         return Some(print(parts_to_value(spread_interpolations(values)), true));
     }
     if kind == Some(PrintKind::Line) {
-        let end = named
-            .iter()
-            .rev()
-            .find(|argument| argument.str("name") == Some("end"))
-            .and_then(|argument| argument.node("value"));
-        let newline = end.and_then(text_value) != Some("");
-        let value = if values.is_empty() {
-            text("")
-        } else {
-            join_with_spaces(values)
-        };
-        return Some(print(value, newline));
+        return Some(print_line(values, &named));
     }
     if kind == Some(PrintKind::Text) {
         let (parts, newline) = without_trailing_newline(spread_interpolations(values));
@@ -559,16 +638,16 @@ pub fn drop_text_conversions(program: Node, settings: &Settings) -> Node {
     if conversions.is_empty() {
         return program;
     }
-    let unwrap = |value: Node| -> Node {
-        if value.is("Call")
+    let is_conversion = |value: &Node| -> bool {
+        value.is("Call")
             && value
                 .str("callee")
                 .is_some_and(|callee| conversions.contains(&callee))
-        {
-            let arguments = value.node_list("arguments");
-            if let [only] = arguments.as_slice() {
-                return only.clone();
-            }
+            && value.node_list("arguments").len() == 1
+    };
+    let unwrap = |value: Node| -> Node {
+        if is_conversion(&value) {
+            return value.node_list("arguments").remove(0);
         }
         value
     };
@@ -580,6 +659,33 @@ pub fn drop_text_conversions(program: Node, settings: &Settings) -> Node {
                 && (value.node("left").is_some_and(is_text)
                     || value.node("right").is_some_and(is_text)))
     }
+    // The parts of text joined with +: `"n is " + str(n) + ", half "` is the
+    // text, n and the text again.
+    fn parts_of(value: Node, unwrap: &dyn Fn(Node) -> Node) -> Vec<Node> {
+        if value.is("Interpolation") {
+            return value.node_list("parts");
+        }
+        if value.is("Binary") && value.str("operator") == Some("add") && is_text(&value) {
+            let mut parts = Vec::new();
+            for side in ["left", "right"] {
+                if let Some(side) = value.node(side).cloned() {
+                    parts.extend(parts_of(side, unwrap));
+                }
+            }
+            return parts;
+        }
+        vec![unwrap(value)]
+    }
+    // `str(n) + str(n)` joins two texts: it is the interpolation of n and n,
+    // not the sum n + n.
+    let joined = |current: &Node| -> Node {
+        let parts: Vec<Node> = ["left", "right"]
+            .into_iter()
+            .filter_map(|side| current.node(side).cloned())
+            .flat_map(|value| parts_of(value, &unwrap))
+            .collect();
+        Node::new("Interpolation").with("parts", parts)
+    };
     rewrite(program, |current| {
         if current.is("Print") {
             return match current.node("value").cloned() {
@@ -591,7 +697,14 @@ pub fn drop_text_conversions(program: Node, settings: &Settings) -> Node {
             let parts: Vec<Node> = current.node_list("parts").into_iter().map(unwrap).collect();
             return current.with("parts", parts);
         }
-        if current.is("Binary") && current.str("operator") == Some("add") && is_text(&current) {
+        let added = current.is("Binary") && current.str("operator") == Some("add");
+        if added
+            && (current.node("left").is_some_and(is_conversion)
+                || current.node("right").is_some_and(is_conversion))
+        {
+            return joined(&current);
+        }
+        if added && is_text(&current) {
             let mut changed = current;
             for side in ["left", "right"] {
                 if let Some(value) = changed.node(side).cloned() {
@@ -704,6 +817,14 @@ impl Declarer {
                 self.visit_field(&mut statement, "body");
                 return statement;
             }
+            "ForEach" => {
+                self.read_field(&statement, "array");
+                if let Some(variable) = statement.str("variable") {
+                    self.scope.insert(variable.to_owned());
+                }
+                self.visit_field(&mut statement, "body");
+                return statement;
+            }
             _ => {}
         }
         // The value is read before the variable is assigned.
@@ -715,8 +836,10 @@ impl Declarer {
             && !self.read.contains(&name)
         {
             self.scope.insert(name.clone());
+            // A Python hint (`total: int = 0`) gives the declared type.
             return Node::new("Declaration")
                 .with("name", name)
+                .with_opt("type", statement.str("type"))
                 .with_opt("value", statement.node("value").cloned())
                 .with("mutable", true);
         }
@@ -780,12 +903,12 @@ pub fn drop_source_details(program: Node) -> Node {
     })
 }
 
-fn compound_meaning(operator: &str) -> Option<&'static str> {
+fn compound_meaning(operator: &str, from: Option<&Syntax>) -> Option<&'static str> {
     match operator {
         "+=" => Some("add"),
         "-=" => Some("subtract"),
         "*=" => Some("multiply"),
-        "/=" => Some("divide"),
+        "/=" => Some(from.map_or("divide", slash_operator)),
         "%=" => Some("remainder"),
         _ => None,
     }
@@ -793,12 +916,16 @@ fn compound_meaning(operator: &str) -> Option<&'static str> {
 
 /// `x += v` means `x = x + v`; the meta language keeps only the plain form.
 /// Operators without a meaning (the parser produces none) stay as written.
-pub fn expand_compound_assignment(program: Node) -> Node {
+/// `/=` divides like the `/` of the source language.
+pub fn expand_compound_assignment(program: Node, from: Option<&Syntax>) -> Node {
     rewrite(program, |current| {
         if !current.is("Assignment") {
             return current;
         }
-        let Some(operator) = current.str("operator").and_then(compound_meaning) else {
+        let meaning = current
+            .str("operator")
+            .and_then(|operator| compound_meaning(operator, from));
+        let Some(operator) = meaning else {
             return current;
         };
         let name = current.str("name").unwrap_or_default().to_owned();
@@ -853,8 +980,10 @@ pub fn concatenation_operator(program: Node, settings: &Settings) -> Node {
 /// JavaScript writes `Math.trunc(a / b)`, Perl `int(a / b)`, PHP
 /// `intdiv(a, b)`, Julia `div(a, b)` and Groovy `a.intdiv(b)`. Each means
 /// the meta operator "divide". The language description names its spelling.
-const INTEGER_DIVISION_SPELLINGS: [IntegerDivision; 2] = [
+const INTEGER_DIVISION_SPELLINGS: [IntegerDivision; 4] = [
     IntegerDivision::Wrapper("Math.trunc"),
+    IntegerDivision::Wrapper("~~"),
+    IntegerDivision::Wrapper("int"),
     IntegerDivision::Call("intdiv"),
 ];
 
@@ -866,9 +995,9 @@ fn integer_division(call: &Node, spelling: IntegerDivision) -> Option<Node> {
         (IntegerDivision::Wrapper(wrapper), [first])
             if callee == wrapper
                 && first.is("Binary")
-                && first.str("operator") == Some("divide") =>
+                && matches!(first.str("operator"), Some("divide" | "realDivide")) =>
         {
-            Some(first.clone())
+            Some(first.clone().with("operator", "divide"))
         }
         (IntegerDivision::Call(own), [first, second]) if callee == own => {
             Some(divide(first.clone(), second.clone()))
@@ -890,12 +1019,28 @@ fn integer_division(call: &Node, spelling: IntegerDivision) -> Option<Node> {
     }
 }
 
+/// The spellings of the language a program is read from, in every version
+/// of it: Lua 5.1 writes `math.floor(a / b)` for Lua 5.3's `a // b`.
+fn own_integer_divisions(from: &str) -> Vec<IntegerDivision> {
+    let (id, _) = split_version(from);
+    let Ok(syntax) = language_syntax(id) else {
+        return Vec::new();
+    };
+    std::iter::once(syntax.integer_division)
+        .chain(versions_of(id).into_iter().map(|version| {
+            with_version(syntax.clone(), Some(version.version))
+                .ok()
+                .and_then(|syntax| syntax.integer_division)
+        }))
+        .flatten()
+        .collect()
+}
+
 pub fn integer_division_calls(program: Node, settings: &Settings) -> Node {
-    let own = language_syntax(&settings.from)
-        .ok()
-        .and_then(|syntax| syntax.integer_division);
-    let spellings: Vec<IntegerDivision> =
-        own.into_iter().chain(INTEGER_DIVISION_SPELLINGS).collect();
+    let spellings: Vec<IntegerDivision> = own_integer_divisions(&settings.from)
+        .into_iter()
+        .chain(INTEGER_DIVISION_SPELLINGS)
+        .collect();
     rewrite(program, |current| {
         if !current.is("Call") {
             return current;
@@ -977,11 +1122,18 @@ pub fn concatenation_to_interpolation(program: Node) -> Node {
         if !joins_text {
             return current;
         }
-        parts_to_value(flatten_parts(&[
+        let value = parts_to_value(flatten_parts(&[
             current.node("left"),
             current.node("right"),
-        ]))
-        .with("type", "text")
+        ]));
+        // `"" + year` is the text of `year`: the name keeps its own type.
+        if value.is("Text") || value.is("Interpolation") {
+            value.with("type", "text")
+        } else {
+            Node::new("Interpolation")
+                .with("parts", vec![value])
+                .with("type", "text")
+        }
     })
 }
 
@@ -1217,9 +1369,7 @@ pub fn spell_names(program: Node, settings: &Settings) -> Node {
         return program;
     };
     rename_declared(program, |identifier, role| {
-        avoid_reserved(
-            spell_name(identifier, syntax.naming_convention(role)),
-            syntax.id,
-        )
+        let spelled = spell_name(identifier, syntax.naming_convention(role));
+        avoid_reserved(ascii_name(spelled, syntax.id, syntax.machine), syntax.id)
     })
 }

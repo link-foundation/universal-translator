@@ -1,0 +1,6 @@
+Uwaga: Loops/Foreach in JavaScript: print every element of a collection
+
+Jest liczby, to jest te rzeczy (1, 1, 2, 3, 5, 8, 13, 21).
+Dla wszystkich indeks od 0 do ile części ma liczby minus 1, zrobić to:
+  Jest liczba, to jest część indeks z liczby.
+  Powiedzieć liczba w jednej linii.

@@ -1,0 +1,10 @@
+
+# Привет мир
+total = 0
+for i in 1...4
+  total += i * 2   # twice
+end
+
+if total>10
+  puts "big #{total}"
+end

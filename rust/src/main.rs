@@ -1,18 +1,21 @@
 use std::fs;
 use std::io::{self, Read, Write};
+use std::net::TcpListener;
 use universal_translator::custom_rules::lino_value;
-use universal_translator::formal::languages::language_syntax;
 use universal_translator::meta::notation::format_meta;
 use universal_translator::meta::{format_number, to_json};
 use universal_translator::natural::check_text;
-use universal_translator::translator::{Translator, language_ids, natural_languages};
+use universal_translator::server::{serve, serve_configuration};
+use universal_translator::translator::{Translator, languages, natural_languages};
 use universal_translator::{
-    CustomRules, Detection, Mode, Options, PartialReading, SourceDocument, translate_program,
+    CustomRules, Detection, Equivalence, Mode, Options, PartialReading, SourceDocument,
+    check_equivalence, nest_grammars, translate_program,
 };
 
 const USAGE: &str = "Usage:
-  universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment] [--all-or-nothing] [--rules <file.lino>] [--comment-language <natural>] [--comment-from <natural>]
-  universal-translator meta <language> [file|-] [--json]
+  universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment] [--all-or-nothing] [--rules <file.lino>] [--comment-language <natural>] [--comment-from <natural>] [--identifier-language <natural>] [--identifier-from <natural>] [--layout source|target] [--braces same-line|next-line] [--indent <n|tab>] [--candidates]
+  universal-translator meta <language> [file|-] [--json] [--shallow]
+  universal-translator check-equivalence <from> <to> [file|-] [translation] [--json]
   universal-translator coverage <language> [file|-] [--json]
   universal-translator detect [file|-] [--json]
   universal-translator translate-program <from|cst> <to> [file|-]
@@ -22,6 +25,7 @@ const USAGE: &str = "Usage:
   universal-translator decode-cst [file|-]
   universal-translator languages
   universal-translator check-words <natural> [file|-]
+  universal-translator serve [--port <port>] [--host <host>]
   universal-translator --version
 
 A language may be a controlled natural language (english, russian,
@@ -41,11 +45,32 @@ The source language may be \"auto\" to detect it.
 --comment-language <natural> translates the comments too (only them when
 <from> is <to>); --comment-from <natural> names the language of the
 comments (detected otherwise).
+--identifier-language <natural> translates the declared names too (only
+them, in place, when <from> is <to>); --identifier-from <natural> names
+the language of the names (detected otherwise).
+--layout source (the default) keeps the spaces and blank lines of the
+source between programming languages; --layout target writes the layout
+of the target.
+--braces same-line|next-line puts the brace that opens a block on the line
+of its statement or on a line of its own; --indent <n|tab> indents each
+block by n spaces or by a tab.
+--candidates prints the candidate translations, the most probable first:
+(text ...) (probability p) (frequency f) (roundTrip r) (coverage c)
 <to> may name a version: python@2.
 meta prints the meta program as indented Links Notation; --json prints JSON.
+It reads comments and strings with the grammars they are written in
+(prose, quoted code); --shallow leaves them as plain text.
+check-equivalence checks that a translation does what its source does:
+both read into the same meta program when comments, imports, blank
+lines, types and mutability are left out. The translation is written by
+the translator unless a file is given; the exit code is 1 when they
+differ.
 coverage prints which parts of a text can be read as indented Links
 Notation; detect prints the most likely languages of a text, one per
 line. --json prints either as JSON.
+serve answers GET /languages and POST /translate as JSON, like the
+JavaScript server. PORT, HOST or a .lenv file set the defaults (8080,
+0.0.0.0); --port 0 picks a free port.
 Omit the file or pass - to read standard input.";
 
 /// The file of `meta`, `coverage` or `detect` (`[file|-] [--json]`):
@@ -58,6 +83,11 @@ fn report_file<'a>(trailing: &[&'a str]) -> Option<Option<&'a str>> {
         .collect();
     let flags = trailing.len() - files.len();
     (files.len() <= 1 && flags <= 1).then(|| files.first().copied())
+}
+
+/// The arguments but a flag.
+fn without<'a>(trailing: &[&'a str], flag: &str) -> Vec<&'a str> {
+    trailing.iter().copied().filter(|it| *it != flag).collect()
 }
 
 fn source(file: Option<&str>) -> Result<String, String> {
@@ -224,6 +254,58 @@ fn coverage_report(reading: &PartialReading, json: bool) -> String {
     .report(json)
 }
 
+/// What `check-equivalence` prints.
+fn equivalence_report(result: &Equivalence, json: bool) -> String {
+    let differences = result
+        .differences
+        .iter()
+        .map(|difference| {
+            Json::Object(vec![
+                ("line", count(difference.line)),
+                ("source", Json::Text(difference.source.clone())),
+                ("target", Json::Text(difference.target.clone())),
+            ])
+        })
+        .collect();
+    Json::Object(vec![
+        ("equivalent", Json::Bool(result.equivalent)),
+        ("metaLines", count(result.meta_lines)),
+        ("differences", Json::List(differences)),
+    ])
+    .report(json)
+}
+
+/// `check-equivalence <from> <to> [file|-] [translation] [--json]`: the
+/// report, and an error after it when the two differ.
+fn check_equivalence_command(arguments: &[&str]) -> (String, Option<String>) {
+    let json = arguments.contains(&"--json");
+    let arguments = without(arguments, "--json");
+    let [from, to, files @ ..] = arguments.as_slice() else {
+        return (String::new(), Some(USAGE.into()));
+    };
+    if files.len() > 2 {
+        return (String::new(), Some(USAGE.into()));
+    }
+    let checked = source(files.first().copied()).and_then(|text| {
+        let translation = files.get(1).map(|file| source(Some(file))).transpose()?;
+        check_equivalence(
+            &Translator::new(),
+            (&text, from),
+            (translation.as_deref(), to),
+            Options::default(),
+        )
+        .map_err(|error| error.to_string())
+    });
+    match checked {
+        Ok(result) => {
+            let failure = (!result.equivalent)
+                .then(|| format!("The {to} translation does not do what the {from} source does"));
+            (equivalence_report(&result, json), failure)
+        }
+        Err(error) => (String::new(), Some(error)),
+    }
+}
+
 /// What `detect` prints: the likeliest languages first.
 fn detection_report(detections: &[Detection], json: bool) -> String {
     Json::List(
@@ -243,6 +325,35 @@ fn detection_report(detections: &[Detection], json: bool) -> String {
     .report(json)
 }
 
+/// What `translate --candidates` prints: one candidate per line, the most
+/// probable first.
+fn candidates_report(
+    translator: &Translator,
+    (source, from, to): (&str, &str, &str),
+    options: Options,
+    whole: bool,
+) -> Result<String, String> {
+    if whole {
+        return Err("--candidates takes no --all-or-nothing or --fragment".to_owned());
+    }
+    Ok(translator
+        .translate_candidates(source, from, to, options)
+        .map_err(|error| error.to_string())?
+        .into_iter()
+        .map(|candidate| {
+            Json::Object(vec![
+                ("text", Json::Text(candidate.text)),
+                ("probability", Json::Number(candidate.probability)),
+                ("frequency", Json::Number(candidate.frequency)),
+                ("roundTrip", Json::Number(candidate.round_trip)),
+                ("coverage", Json::Number(candidate.coverage)),
+            ])
+            .lino_links()
+                + "\n"
+        })
+        .collect())
+}
+
 fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String> {
     let mut file = None;
     let mut mode = None;
@@ -250,9 +361,14 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
     let mut common_library = false;
     let mut fragment = false;
     let mut all_or_nothing = false;
+    let mut candidates = false;
     let mut rules = None;
     let mut comment_language = None;
     let mut comment_from = None;
+    let mut identifier_language = None;
+    let mut identifier_from = None;
+    let mut layout = None;
+    let mut style = universal_translator::Style::default();
     let mut arguments = arguments.iter().copied();
     // An option with a value takes one value, given once.
     fn value<'a>(
@@ -271,6 +387,7 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
             "--common-library" => common_library = true,
             "--fragment" => fragment = true,
             "--all-or-nothing" => all_or_nothing = true,
+            "--candidates" => candidates = true,
             "--rules" => {
                 let value = arguments
                     .next()
@@ -287,8 +404,32 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
                 comment_language =
                     Some(value(argument, comment_language.is_some(), &mut arguments)?);
             }
+            "--layout" => {
+                layout = Some(
+                    value(argument, layout.is_some(), &mut arguments)?
+                        .parse::<universal_translator::TextLayout>()?,
+                );
+            }
+            "--braces" => {
+                style.braces =
+                    Some(value(argument, style.braces.is_some(), &mut arguments)?.parse()?);
+            }
+            "--indent" => {
+                style.indent =
+                    Some(value(argument, style.indent.is_some(), &mut arguments)?.parse()?);
+            }
             "--comment-from" => {
                 comment_from = Some(value(argument, comment_from.is_some(), &mut arguments)?);
+            }
+            "--identifier-language" => {
+                identifier_language = Some(value(
+                    argument,
+                    identifier_language.is_some(),
+                    &mut arguments,
+                )?);
+            }
+            "--identifier-from" => {
+                identifier_from = Some(value(argument, identifier_from.is_some(), &mut arguments)?);
             }
             part if (part == "-" || !part.starts_with('-')) && file.is_none() => file = Some(part),
             _ => return Err(format!("Unexpected argument {argument}")),
@@ -305,12 +446,20 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
     let mut options = Options {
         mode: mode.unwrap_or_default(),
         common_library,
+        layout: layout.unwrap_or_default(),
+        style,
         ..Options::default()
     };
     // --comment-from only matters with --comment-language.
     if let Some(comment_language) = comment_language {
         options = options
             .with_comment_language(comment_language, comment_from)
+            .map_err(|error| error.to_string())?;
+    }
+    // --identifier-from only matters with --identifier-language.
+    if let Some(identifier_language) = identifier_language {
+        options = options
+            .with_identifier_language(identifier_language, identifier_from)
             .map_err(|error| error.to_string())?;
     }
     let source = source(file)?;
@@ -326,6 +475,14 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
     } else {
         from.to_owned()
     };
+    if candidates {
+        return candidates_report(
+            &translator,
+            (&source, &language, to),
+            options,
+            fragment || all_or_nothing,
+        );
+    }
     // --fragment translates a single statement, function definitions or a
     // whole program into the same kind of fragment. By default every part
     // that can be translated is, and the others are marked and listed on
@@ -361,15 +518,39 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
     Ok(result.text)
 }
 
+/// Start the server and answer requests until the process is stopped.
+fn serve_command(arguments: &[&str]) -> Result<String, String> {
+    let arguments: Vec<String> = arguments
+        .iter()
+        .map(|argument| (*argument).to_owned())
+        .collect();
+    let environment = std::env::vars().collect();
+    let directory = std::env::current_dir().map_err(|error| error.to_string())?;
+    let configuration = serve_configuration(&arguments, &environment, &directory)?;
+    let listener = TcpListener::bind((configuration.host.as_str(), configuration.port))
+        .map_err(|error| format!("{}:{}: {error}", configuration.host, configuration.port))?;
+    let address = listener.local_addr().map_err(|error| error.to_string())?;
+    println!(
+        "Listening on http://{}:{}",
+        configuration.host,
+        address.port()
+    );
+    io::stdout().flush().map_err(|error| error.to_string())?;
+    serve(&listener, false);
+    Ok(String::new())
+}
+
 fn run(arguments: &[String]) -> Result<String, String> {
     let arguments: Vec<&str> = arguments.iter().map(String::as_str).collect();
     match arguments.as_slice() {
         [] | ["--help" | "-h"] => Ok(format!("{USAGE}\n")),
         ["--version" | "-v"] => Ok(format!("{}\n", env!("CARGO_PKG_VERSION"))),
-        ["languages"] => Ok(language_ids()
+        ["languages"] => Ok(languages()
             .into_iter()
-            .filter_map(|id| language_syntax(id).ok())
-            .map(|syntax| format!("{}\t{}\n", syntax.id, syntax.label))
+            .map(|language| {
+                let kind = if language.machine { " (machine)" } else { "" };
+                format!("{}\t{}{kind}\n", language.id, language.label)
+            })
             .chain(
                 natural_languages()
                     .into_iter()
@@ -384,11 +565,20 @@ fn run(arguments: &[String]) -> Result<String, String> {
                 Err(problems.join("\n"))
             }
         }
-        ["meta", language, trailing @ ..] if report_file(trailing).is_some() => {
+        ["meta", language, trailing @ ..]
+            if report_file(&without(trailing, "--shallow")).is_some() =>
+        {
             let json = trailing.contains(&"--json");
-            let meta = Translator::new()
-                .to_meta(&source(report_file(trailing).flatten())?, language)
+            let file = report_file(&without(trailing, "--shallow")).flatten();
+            let translator = Translator::new();
+            let meta = translator
+                .to_meta(&source(file)?, language)
                 .map_err(|error| error.to_string())?;
+            let meta = if trailing.contains(&"--shallow") {
+                meta
+            } else {
+                nest_grammars(&meta, language, &translator)
+            };
             Ok(if json {
                 // Indented like the JavaScript CLI; the fields are in name order.
                 let compact = to_json(Some(&meta.into()));
@@ -430,6 +620,7 @@ fn run(arguments: &[String]) -> Result<String, String> {
         ["decode-cst", trailing @ ..] if trailing.len() <= 1 => {
             Ok(SourceDocument::from_syntax_notation(&source(trailing.first().copied())?)?.source)
         }
+        ["serve", trailing @ ..] => serve_command(trailing),
         ["translate", from, to, trailing @ ..] => translate(from, to, trailing),
         ["translate-program", from, to, trailing @ ..] if trailing.len() <= 1 => {
             let input = source(trailing.first().copied())?;
@@ -448,6 +639,23 @@ fn run(arguments: &[String]) -> Result<String, String> {
 }
 
 fn main() -> std::process::ExitCode {
+    let arguments: Vec<String> = std::env::args().skip(1).collect();
+    if arguments.first().map(String::as_str) == Some("check-equivalence") {
+        let arguments: Vec<&str> = arguments[1..].iter().map(String::as_str).collect();
+        let (output, failure) = check_equivalence_command(&arguments);
+        let written = io::stdout().write_all(output.as_bytes());
+        return match (failure, written) {
+            (None, Ok(())) => std::process::ExitCode::SUCCESS,
+            (Some(error), _) => {
+                eprintln!("{error}");
+                std::process::ExitCode::FAILURE
+            }
+            (None, Err(error)) => {
+                eprintln!("{error}");
+                std::process::ExitCode::FAILURE
+            }
+        };
+    }
     match run(&std::env::args().skip(1).collect::<Vec<_>>()).and_then(|output| {
         io::stdout()
             .write_all(output.as_bytes())

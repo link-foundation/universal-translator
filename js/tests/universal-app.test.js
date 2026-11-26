@@ -62,7 +62,9 @@ describe('universal React example app', () => {
     // Auto-detection, partial translation and the rules editor.
     expect(appSource).toContain("from: 'auto'");
     expect(appSource).toContain('translatePartial');
-    expect(appSource).toContain("id: 'all-or-nothing'");
+    expect(readText(`${exampleRoot}/src/Options.js`)).toContain(
+      "id: 'all-or-nothing'"
+    );
     expect(appSource).toContain('h(RulesEditor');
     expect(workflow).toContain('web-e2e:');
     expect(workflow).toContain('examples/universal-app/e2e/translate.e2e.mjs');
@@ -213,5 +215,27 @@ describe('the web build of the example app', () => {
       'app.js (500 kB)',
       'mixed.js (500 kB)',
     ]);
+  });
+});
+
+describe('the language pickers of the example app', () => {
+  it('lists assembly and intermediate languages in a group of their own', async () => {
+    const { languageEntries } =
+      await import('../../examples/universal-app/src/languages.js');
+    const { createGrammarTranslator } = await import('../src/translator.js');
+    const entries = languageEntries(createGrammarTranslator());
+    const machine = entries.filter((entry) => entry.machine).map((it) => it.id);
+    expect(machine).toEqual([
+      'nasm',
+      'gas',
+      'arm64',
+      'cil',
+      'jvm',
+      'llvm',
+      'wat',
+    ]);
+    expect(entries.find((it) => it.id === 'python').machine).toBe(undefined);
+    const picker = readText(`${exampleRoot}/src/LanguagePicker.js`);
+    expect(picker).toContain("t('picker.machine')");
   });
 });

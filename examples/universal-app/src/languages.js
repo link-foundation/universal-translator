@@ -10,7 +10,7 @@ import {
 } from '../../../js/src/natural/variants.js';
 import { naturalLanguage } from '../../../js/src/natural/catalog.js';
 
-function programmingEntry({ id, label }) {
+function programmingEntry({ id, label, machine }) {
   const versions = versionsOf(id).map((version) => ({
     id: version.default ? id : `${id}@${version.version}`,
     label: version.default
@@ -23,7 +23,13 @@ function programmingEntry({ id, label }) {
   if (!versions.some((version) => version.id === id)) {
     versions.unshift({ id, label, kind: 'version' });
   }
-  return { id, label, group: 'programming', versions };
+  return {
+    id,
+    label,
+    group: 'programming',
+    ...(machine ? { machine: true } : {}),
+    versions,
+  };
 }
 
 const versionLabel = (version) =>
@@ -48,7 +54,8 @@ function naturalEntry(id) {
   };
 }
 
-// [{ id, label, group, versions: [{ id, label, kind }] }]
+// [{ id, label, group, machine?, versions: [{ id, label, kind }] }]
+// Machine code targets are programming entries with machine: true.
 export function languageEntries(translator) {
   return [
     ...translator.languages().map(programmingEntry),

@@ -14,4 +14,6 @@ dev/log/
 # Generated translations, compared byte for byte by the tests
 examples/programs/translated/
 examples/programs/fragments/translated/
-js/src/natural/sources.js
+js/src/natural/sources*.js
+# Sources whose spacing is the point of the experiment
+experiments/issue-14/*.js

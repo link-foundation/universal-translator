@@ -1,0 +1,9 @@
+Lura: Greatest element of a list in JavaScript
+
+Akwai adadai, shi ne waɗannan abubuwa (17, 4, 93, 28, 65, 3, 80).
+Akwai babba, shi ne sashe 0 na adadai.
+Ga kowane fihirisa daga 0 zuwa yawan sassan adadai ragi 1, yi wannan:
+  Akwai lamba, shi ne sashe fihirisa na adadai.
+  Idan lamba ya fi babba, yi wannan:
+    Bayan wannan, babba ya zama lamba.
+Faɗi “The greatest element is ” sannan babba a layi ɗaya.

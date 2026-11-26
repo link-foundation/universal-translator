@@ -1,0 +1,7 @@
+注：Sum multiples of 3 and 5 in JavaScript: the sum of the multiples below 1000
+
+合計 が ある、 それ は 0 だ。
+全て の 数_ について 1 から 999 まで これ を する：
+  もし 数_ 剰余 3 が 0 と 同じ または 数_ 剰余 5 が 0 と 同じ なら これ を する：
+    この 後 合計 は 合計 足す 数_ だ。
+合計 を 一つ の 行 に 言う。

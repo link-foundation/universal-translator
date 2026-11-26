@@ -7,7 +7,7 @@
 //!   program (comments hi)
 //!     declaration x (mutable false) (type text)
 //!       text 'a b' (type text)
-//!     print (newline true)
+//!     call print-line (library standard)
 //!       binary multiply (type integer)
 //!         name x (type text)
 //!         number 3 (type integer)
@@ -20,7 +20,13 @@
 //! statement. Links Notation keeps `name:` for links that define a unique
 //! name, and no field name is unique here. The JavaScript `formatMeta`
 //! writes the same text.
+//!
+//! The program is written in its general form (see [`super::library`]):
+//! writing a line or taking a length is a call to a procedure of the
+//! standard library, like any other call. A call made for its effect is
+//! written as the call itself, as most programming languages write it.
 
+use super::library::generalize;
 use super::tree::{Node, Value};
 
 fn kebab(text: &str) -> String {
@@ -63,7 +69,10 @@ fn main_field(kind: &str) -> Option<&'static str> {
         "Boolean" | "Number" | "Text" => "value",
         "Call" => "callee",
         "Comment" => "text",
-        "CountingLoop" => "variable",
+        "Code" | "Prose" => "language",
+        "CountingLoop" | "ForEach" => "variable",
+        "Paragraph" => "id",
+        "Word" => "text",
         "Assignment" | "Declaration" | "Function" | "IndexAssignment" | "Name" | "Parameter"
         | "" => "name",
         _ => return None,
@@ -71,7 +80,8 @@ fn main_field(kind: &str) -> Option<&'static str> {
 }
 
 /// The order in which child nodes are read; other fields follow by name.
-const CHILD_ORDER: [&str; 23] = [
+const CHILD_ORDER: [&str; 26] = [
+    "comments",
     "condition",
     "array",
     "index",
@@ -89,10 +99,12 @@ const CHILD_ORDER: [&str; 23] = [
     "elements",
     "parts",
     "parameters",
+    "texts",
     "functions",
     "statements",
     "then",
     "body",
+    "mainComments",
     "main",
     "otherwise",
 ];
@@ -193,7 +205,25 @@ fn children(value: &Value, field: &str, indent: &str, out: &mut Vec<String>) {
     }
 }
 
-fn lines(node: &Node, indent: &str, list: &str, out: &mut Vec<String>) {
+/// A statement that only evaluates a call is written as the call.
+fn shown(node: &Node) -> std::borrow::Cow<'_, Node> {
+    match node.node("expression") {
+        Some(call) if node.is("Evaluate") && call.is("Call") => {
+            let mut merged = call.clone();
+            for (field, value) in &node.fields {
+                if field != "expression" {
+                    merged.fields.insert(field.clone(), value.clone());
+                }
+            }
+            std::borrow::Cow::Owned(merged)
+        }
+        _ => std::borrow::Cow::Borrowed(node),
+    }
+}
+
+fn lines(written: &Node, indent: &str, list: &str, out: &mut Vec<String>) {
+    let shown = shown(written);
+    let node = shown.as_ref();
     out.push(format!("{indent}{}", head(node, list)));
     let inner = format!("{indent}  ");
     let mut after_block = false;
@@ -211,6 +241,6 @@ fn lines(node: &Node, indent: &str, list: &str, out: &mut Vec<String>) {
 /// Meta tree (a program or a fragment) -> Links Notation text.
 pub fn format_meta(node: &Node) -> String {
     let mut out = Vec::new();
-    lines(node, "", "", &mut out);
+    lines(&generalize(node.clone()), "", "", &mut out);
     format!("{}\n", out.join("\n"))
 }

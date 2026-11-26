@@ -1,0 +1,16 @@
+
+var
+  Total: Int64;
+  I: Int64;
+
+// Привет мир
+Total := 0;
+for I := 1 to 3 do
+begin
+  Total := Total+I * 2;   // twice
+end;
+
+if Total>10 then
+begin
+  WriteLn( 'big', ' ', Total );
+end;

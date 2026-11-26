@@ -15,6 +15,13 @@ import { languageSyntax } from './languages.js';
 import { splitVersion } from './versions.js';
 import { dialects } from './dialects/index.js';
 import { withArrays } from './array-spellings.js';
+import {
+  isReal,
+  realValue,
+  slashIsReal,
+  withRealOperands,
+  withReals,
+} from './numbers.js';
 
 const precedence = {
   or: 1,
@@ -29,6 +36,7 @@ const precedence = {
   subtract: 5,
   multiply: 6,
   divide: 6,
+  realDivide: 6,
   remainder: 6,
 };
 const symbols = {
@@ -36,6 +44,7 @@ const symbols = {
   subtract: '-',
   multiply: '*',
   divide: '/',
+  realDivide: '/',
   remainder: '%',
   less: '<',
   lessOrEqual: '<=',
@@ -370,7 +379,12 @@ class BaseEmitter {
 
   // "format string", value, value  — for printf-like and format!-like calls.
   formatArguments(parts, style) {
-    const placeholders = { integer: '%d', text: '%s', boolean: '%d' };
+    const placeholders = {
+      integer: '%d',
+      real: '%g',
+      text: '%s',
+      boolean: '%d',
+    };
     if (this.id === 'go') {
       placeholders.boolean = '%t';
     }
@@ -547,27 +561,39 @@ class BaseEmitter {
         return this.whileStatement(statement);
       case 'CountingLoop':
         return this.countingLoop(statement);
+      case 'ForEach':
+        return this.forEachLoop(statement);
       default:
         throw new Error(`Cannot emit ${statement.kind} as a statement`);
     }
   }
 
   declaration({ name, type, value, mutable }) {
-    const initial = value ? this.expression(value) : this.expression(number(0));
+    const initial = this.expression(
+      realValue(value ?? number(0), type, this.syntax)
+    );
     const declare = declarers[this.id] ?? declarers.typedPrefix;
     return declare(this, { name, type, mutable, initial });
   }
 
   // The meta language only knows `x = value`; `x = x + 1` is written back
   // as `x += 1` in every language that has compound assignment.
-  assignment({ name: identifier, value }) {
+  assignment({ name: identifier, value: original }) {
     const target = this.variable(identifier);
+    const value =
+      original.kind === 'Binary'
+        ? withRealOperands(original, this.syntax)
+        : original;
     const compound = compoundOperators[value.operator];
     // Languages that spell integer division as a call or a wrapper, or with
-    // an operator of its own, would lose the truncation with `/=`.
+    // an operator of its own, would lose the truncation with `/=`; `/=` of
+    // an integer variable divides integers where `/` depends on the types.
     const plainDivision =
-      value.operator !== 'divide' ||
-      !(this.syntax.integerDivision || this.syntax.operators.integerDivide);
+      value.operator === 'divide'
+        ? !(this.syntax.integerDivision || this.syntax.operators.integerDivide)
+        : value.operator !== 'realDivide' ||
+          slashIsReal(this.syntax) ||
+          isReal(value.left);
     if (
       compound &&
       plainDivision &&
@@ -648,7 +674,7 @@ class BaseEmitter {
       cpp: `for (int ${identifier} = ${from}; ${identifier} < ${to}; ${identifier}++)`,
       csharp: `for (int ${identifier} = ${from}; ${identifier} < ${to}; ${identifier}++)`,
       java: `for (int ${identifier} = ${from}; ${identifier} < ${to}; ${identifier}++)`,
-      javascript: `for (let ${identifier} = ${from}; ${identifier} < ${to}; ${identifier}++)`,
+      javascript: `for (${this.syntax.declarationKeyword ?? 'let'} ${identifier} = ${from}; ${identifier} < ${to}; ${identifier}++)`,
       typescript: `for (let ${identifier} = ${from}; ${identifier} < ${to}; ${identifier}++)`,
       php: `for (${target} = ${from}; ${target} < ${to}; ${target}++)`,
       go: `for ${identifier} := ${from}; ${identifier} < ${to}; ${identifier}++`,
@@ -672,6 +698,22 @@ class BaseEmitter {
       d: `for (long ${identifier} = ${from}; ${identifier} < ${to}; ${identifier}++)`,
     };
     this.openBlock(headers[this.id]);
+    this.body(body);
+    this.closeBlock();
+  }
+
+  // The loop header is the language's `forEach` template with the loop
+  // variable, its type and the array filled in.
+  forEachLoop({ variable: identifier, array, body }) {
+    const fill = {
+      type: this.type('integer'),
+      variable: this.variable(identifier),
+      array: this.expression(array),
+      'array-name': array.name,
+    };
+    this.openBlock(
+      this.syntax.forEach.replace(/\{([a-z-]+)\}/g, (_, key) => fill[key])
+    );
     this.body(body);
     this.closeBlock();
   }
@@ -911,11 +953,12 @@ const compoundOperators = {
   subtract: '-=',
   multiply: '*=',
   divide: '/=',
+  realDivide: '/=',
   remainder: '%=',
 };
 
 // Arrays are written by a mixin of their own, which the dialects inherit.
-const Emitter = withArrays(BaseEmitter);
+const Emitter = withReals(withArrays(BaseEmitter));
 
 export function emitProgram(program, languageId) {
   const LanguageEmitter = emitterFor(languageId);
@@ -984,8 +1027,16 @@ const printers = {
     `System.out.${newline ? 'println' : 'print'}(${single()});`,
   kotlin: (emitter, { newline, single }) =>
     `${newline ? 'println' : 'print'}(${single()})`,
-  swift: (emitter, { newline, single }) =>
-    newline ? `print(${single()})` : `print(${single()}, terminator: "")`,
+  swift: (emitter, { newline, single }) => {
+    // Swift 1 prints a line with println and text with print.
+    const own = emitter.syntax.printCalls;
+    if (own) {
+      return `${newline ? own.line[0] : own.text[0]}(${single()})`;
+    }
+    return newline
+      ? `print(${single()})`
+      : `print(${single()}, terminator: "")`;
+  },
   perl: (emitter, { lineParts }) =>
     `print ${emitter.interpolationOrText(lineParts)};`,
   dart: (emitter, { newline, single }) => {
@@ -1011,15 +1062,16 @@ printers.scala = printers.kotlin;
 printers.groovy = printers.kotlin;
 
 // How each language declares a local variable.
+const rustTypes = { integer: ': i64', real: ': f64' };
 const declarers = {
   javascript: (emitter, { name, mutable, initial }) =>
-    `${mutable ? 'let' : 'const'} ${name} = ${initial};`,
+    `${emitter.syntax.declarationKeyword ?? (mutable ? 'let' : 'const')} ${name} = ${initial};`,
   python: (emitter, { name, initial }) => `${name} = ${initial}`,
   php: (emitter, { name, initial }) => `$${name} = ${initial};`,
   lua: (emitter, { name, initial }) => `local ${name} = ${initial}`,
   go: (emitter, { name, initial }) => `${name} := ${initial}`,
   rust: (emitter, { name, type, mutable, initial }) =>
-    `let ${mutable ? 'mut ' : ''}${name}${type === 'integer' ? ': i64' : ''} = ${initial};`,
+    `let ${mutable ? 'mut ' : ''}${name}${rustTypes[type] ?? ''} = ${initial};`,
   kotlin: (emitter, { name, mutable, initial }) =>
     `${mutable ? 'var' : 'val'} ${name} = ${initial}${emitter.terminator()}`,
   swift: (emitter, { name, mutable, initial }) =>

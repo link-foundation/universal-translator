@@ -1,0 +1,168 @@
+// Fibonacci sequence in ARM64 assembly, computed iteratively
+
+    .global main
+    .section .rodata
+integer_format: .asciz "%lld"
+text_format: .asciz "%s"
+newline_format: .asciz "\n"
+text_0: .asciz "fibonacci("
+text_1: .asciz ") = "
+
+    .text
+.type fibonacci, %function
+fibonacci:
+    .set fibonacci.count, 0
+    .set fibonacci.previous, 8
+    .set fibonacci.current, 16
+    .set fibonacci.step, 24
+    .set fibonacci.next, 32
+    stp x29, x30, [sp, #-16]!
+    sub sp, sp, #48
+    mov x29, sp
+    str x0, [x29, #fibonacci.count]
+    mov x0, #0
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #fibonacci.previous]
+    mov x0, #1
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #fibonacci.current]
+    mov x0, #0
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #fibonacci.step]
+.Lfibonacci_L1:
+    ldr x0, [x29, #fibonacci.step]
+    str x0, [sp, #-16]!
+    ldr x0, [x29, #fibonacci.count]
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    cmp x0, x1
+    b.ge .Lfibonacci_L2
+    ldr x0, [x29, #fibonacci.previous]
+    str x0, [sp, #-16]!
+    ldr x0, [x29, #fibonacci.current]
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    add x0, x0, x1
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #fibonacci.next]
+    ldr x0, [x29, #fibonacci.current]
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #fibonacci.previous]
+    ldr x0, [x29, #fibonacci.next]
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #fibonacci.current]
+    ldr x0, [x29, #fibonacci.step]
+    str x0, [sp, #-16]!
+    mov x0, #1
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    add x0, x0, x1
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #fibonacci.step]
+    b .Lfibonacci_L1
+.Lfibonacci_L2:
+    ldr x0, [x29, #fibonacci.previous]
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    mov sp, x29
+    add sp, sp, #48
+    ldp x29, x30, [sp], #16
+    ret
+.size fibonacci, .-fibonacci
+
+.type main, %function
+main:
+    .set main.index, 0
+    stp x29, x30, [sp, #-16]!
+    sub sp, sp, #16
+    mov x29, sp
+    mov x0, #0
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #main.index]
+.Lmain_L1:
+    ldr x0, [x29, #main.index]
+    str x0, [sp, #-16]!
+    mov x0, #21
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    cmp x0, x1
+    b.ge .Lmain_L2
+    adrp x0, text_0
+    add x0, x0, :lo12:text_0
+    bl print_text
+    ldr x0, [x29, #main.index]
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    bl print_integer
+    adrp x0, text_1
+    add x0, x0, :lo12:text_1
+    bl print_text
+    ldr x0, [x29, #main.index]
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    bl fibonacci
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    bl print_integer
+    bl print_newline
+    ldr x0, [x29, #main.index]
+    str x0, [sp, #-16]!
+    mov x0, #1
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    add x0, x0, x1
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #main.index]
+    b .Lmain_L1
+.Lmain_L2:
+    mov x0, #0
+    mov sp, x29
+    add sp, sp, #16
+    ldp x29, x30, [sp], #16
+    ret
+.size main, .-main
+
+print_integer:
+    stp x29, x30, [sp, #-16]!
+    mov x29, sp
+    mov x1, x0
+    adrp x0, integer_format
+    add x0, x0, :lo12:integer_format
+    bl printf
+    ldp x29, x30, [sp], #16
+    ret
+
+print_text:
+    stp x29, x30, [sp, #-16]!
+    mov x29, sp
+    mov x1, x0
+    adrp x0, text_format
+    add x0, x0, :lo12:text_format
+    bl printf
+    ldp x29, x30, [sp], #16
+    ret
+
+print_newline:
+    stp x29, x30, [sp, #-16]!
+    mov x29, sp
+    adrp x0, newline_format
+    add x0, x0, :lo12:newline_format
+    bl printf
+    ldp x29, x30, [sp], #16
+    ret
+
+    .section .note.GNU-stack,"",%progbits

@@ -1,0 +1,9 @@
+Hinweis: Greatest element of a list in JavaScript
+
+Es gibt Zahlen, es ist diese Dinge (17, 4, 93, 28, 65, 3, 80).
+Es gibt größte, es ist Teil 0 von Zahlen.
+Für alle Index von 0 bis wie viele Teile Zahlen hat minus 1, tue dies:
+  Es gibt Zahl, es ist Teil Index von Zahlen.
+  Wenn Zahl ist mehr als größte, tue dies:
+    Danach ist größte jetzt Zahl.
+Sage „The greatest element is “ dann größte auf einer Zeile.

@@ -1,6 +1,6 @@
 // Split one controlled sentence (or one template) into tokens.
 //
-//   word       a run of letters, marks and digits; "-", "_", "'" and the
+//   word       a run of letters, marks, digits and "_"; "-", "'" and the
 //              language's name joiner may join such runs into one word
 //   number     an integer, optionally negative ("-5")
 //   text       a quoted literal, in the language's own quotation marks;
@@ -30,7 +30,7 @@ function readWord(source, start, joiners) {
       (letter.test(source[end + 1]) || source[end + 1] === '_')
     ) {
       end += 1;
-    } else if (character === '_' && end > start) {
+    } else if (character === '_') {
       end += 1;
     } else {
       break;
@@ -66,8 +66,20 @@ function readNumber(source, index) {
   while (end < source.length && digit.test(source[end])) {
     end += 1;
   }
+  // A point between digits starts the fraction of a real number.
+  const real =
+    source[end] === '.' && digit.test(source[end + 1] ?? '') ? end + 1 : 0;
+  if (real) {
+    end = real;
+    while (end < source.length && digit.test(source[end])) {
+      end += 1;
+    }
+  }
+  const value = Number(source.slice(index, end));
   return {
-    token: { type: 'number', value: Number(source.slice(index, end)) },
+    token: real
+      ? { type: 'number', value, real: true }
+      : { type: 'number', value },
     end,
   };
 }

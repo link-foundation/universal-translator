@@ -19,6 +19,7 @@ const levels = {
   and: 3,
   multiply: 3,
   divide: 3,
+  realDivide: 3,
   remainder: 3,
 };
 const spellings = {
@@ -34,6 +35,7 @@ const spellings = {
   and: 'and',
   multiply: '*',
   divide: 'div',
+  realDivide: '/',
   remainder: 'mod',
 };
 

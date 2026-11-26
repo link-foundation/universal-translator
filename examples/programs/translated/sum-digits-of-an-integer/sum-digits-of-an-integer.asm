@@ -1,4 +1,4 @@
-; Sum digits of an integer in x86-64 assembly
+; Sum digits of an integer in x86-64 assembly (NASM)
 
 default rel
 extern printf

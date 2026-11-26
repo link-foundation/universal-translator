@@ -12,6 +12,7 @@ use super::levels::{
     Associativity, LEVELS, binary_template, level_index, level_of_template, unary_template,
 };
 use super::tokens::{Kind, Token};
+use crate::meta::for_each::lower_for_each;
 use crate::meta::{Node, layout, number, subtract};
 
 const INDENT_UNIT: &str = "  ";
@@ -481,6 +482,18 @@ impl Writer<'_> {
                 self.sentence(depth, "for", &slots, true)?;
                 self.block(statement.node("body"), depth + 1)
             }
+            "ForEach" => {
+                let array = child(statement, "array")?;
+                let slots = Slots::from([
+                    ("variable", self.name(statement.str("variable"))),
+                    (
+                        "array",
+                        write_expression(array, self.language, level_index("primary"))?,
+                    ),
+                ]);
+                self.sentence(depth, "for-each", &slots, true)?;
+                self.block(statement.node("body"), depth + 1)
+            }
             "Block" => self.block(Some(statement), depth),
             kind => Err(format!("Cannot write a {kind} statement in words")),
         }
@@ -548,9 +561,10 @@ impl Writer<'_> {
 /// A meta program written in a controlled natural language.
 pub fn write_natural(program: &Node, id: &str) -> Result<String, String> {
     let language = natural_language(id)?;
+    let sentence = !language.variants("for-each").is_empty();
     Writer {
         language,
         lines: Vec::new(),
     }
-    .program(program)
+    .program(&lower_for_each(program.clone(), &|_| sentence))
 }

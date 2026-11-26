@@ -1,0 +1,10 @@
+
+/* Привет мир */
+int total = 0;
+for (int i = 1; i < 4; i++) {
+  total += i * 2;   /* twice */
+}
+
+if (total>10) {
+  printf("big %d\n", total );
+}

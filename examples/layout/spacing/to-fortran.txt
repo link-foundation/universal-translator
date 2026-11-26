@@ -1,0 +1,13 @@
+
+integer(8) :: total
+integer(8) :: i
+
+! Привет мир
+total = 0
+do i = 1, 3
+  total = total+i * 2   ! twice
+end do
+
+if (total>10) then
+  print '(*(g0))', 'big', ' ', total
+end if

@@ -1,0 +1,8 @@
+Note: Greatest element of a list in JavaScript
+
+It is obligatory that numbers is initially the list (17, 4, 93, 28, 65, 3, 80).
+It is obligatory that greatest is initially item 0 of numbers.
+For each number in numbers the following applies:
+  If number is greater than greatest then the following applies:
+    It is obligatory that greatest becomes number.
+It is obligatory that the output shows “The greatest element is ” followed by greatest as a line.

@@ -1,6 +1,6 @@
 //! Lowering of a typed meta program to a small stack machine, which the
-//! machine writers spell as x86-64 assembly (NASM), CIL (ILAsm) or JVM
-//! bytecode (Jasmin).
+//! machine writers spell as assembly (x86-64 NASM and GNU as, ARM64), CIL
+//! (ILAsm), JVM bytecode (Jasmin), LLVM IR or WebAssembly text.
 //!
 //! The stack machine has these instructions:
 //!
@@ -395,7 +395,7 @@ impl<'a> FunctionLowering<'a> {
         match node.kind.as_str() {
             "Number" => {
                 let value = node.number("value").unwrap_or(0.0);
-                if value.fract() != 0.0 || !value.is_finite() {
+                if value.fract() != 0.0 || !value.is_finite() || node.str("type") == Some("real") {
                     return Err(unsupported(&format!(
                         "the number {}",
                         crate::meta::format_number(value)
@@ -435,6 +435,9 @@ impl<'a> FunctionLowering<'a> {
                 } else {
                     self.boolean_value(node)?;
                 }
+            }
+            "Binary" if node.str("operator") == Some("realDivide") => {
+                return Err(unsupported("true division, which gives a real"));
             }
             "Binary" => match arithmetic(node.str("operator").unwrap_or_default()) {
                 Some(operation) => {

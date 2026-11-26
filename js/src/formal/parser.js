@@ -8,6 +8,8 @@ import { block, name, node, number, text } from '../meta/tree.js';
 import { dialects } from './dialects/index.js';
 import { withArrays } from './array-parser.js';
 import { stepOperators, withLoops } from './loop-parser.js';
+import { withFunctionForms } from './function-forms.js';
+import { slashOperator } from './numbers.js';
 
 const binaryLevels = [
   { or: ['||', 'or'] },
@@ -37,6 +39,8 @@ const typeWords = new Set([
   'signed',
   'std',
 ]);
+// The languages whose arrow functions are read as named functions.
+const arrowLanguages = new Set(['javascript', 'typescript']);
 const modifiers = new Set([
   'public',
   'private',
@@ -75,6 +79,7 @@ const controlWords = new Set([
   'else',
   'while',
   'for',
+  'foreach',
   'switch',
   'return',
   'do',
@@ -100,12 +105,18 @@ class BaseParser {
     };
     this.levels = binaryLevels.map((level) =>
       Object.fromEntries(
-        Object.entries(level).map(([operator, surfaces]) => [
-          operator,
-          extra[operator] && !surfaces.includes(extra[operator])
-            ? [...surfaces, extra[operator]]
-            : surfaces,
-        ])
+        Object.entries(level).map(([operator, shared]) => {
+          // Fortran joins text with //, which divides elsewhere.
+          const surfaces = shared.filter(
+            (surface) => surface !== syntax.operators.concatenate
+          );
+          return [
+            operator,
+            extra[operator] && !surfaces.includes(extra[operator])
+              ? [...surfaces, extra[operator]]
+              : surfaces,
+          ];
+        })
       )
     );
   }
@@ -249,6 +260,12 @@ class BaseParser {
     if (this.isFunctionStart()) {
       return this.functionDefinition();
     }
+    if (this.isArrowFunctionStart()) {
+      return this.arrowFunctionDefinition();
+    }
+    if (this.isStaticMethodStart()) {
+      return this.staticMethodDefinition();
+    }
     return this.statement();
   }
 
@@ -310,11 +327,17 @@ class BaseParser {
     }
     const kind = this.next().value;
     const title = this.expectName();
+    // Scala: the body of `object Hello extends App { ... }` is the program.
+    if (this.syntax.id === 'scala' && this.is('extends') && this.is('App', 1)) {
+      this.position += 2;
+    }
     while (this.peek().type === 'newline') {
       this.next();
     }
     this.expect('{');
+    this.classDepth = (this.classDepth ?? 0) + 1;
     const items = this.items(() => this.is('}'));
+    this.classDepth -= 1;
     this.expect('}');
     return node('Class', { form: kind, name: title, items });
   }
@@ -330,6 +353,103 @@ class BaseParser {
     return this.syntax.functionKeyword
       ? this.isKeywordFunctionStart()
       : this.isPrefixFunctionStart();
+  }
+
+  // JavaScript and TypeScript name a function by declaring a constant:
+  // `const name = (first, second) => ...` or `const name = single => ...`.
+  isArrowFunctionStart() {
+    if (
+      !arrowLanguages.has(this.syntax.id) ||
+      !this.syntax.declarations.includes(this.peek().value) ||
+      this.peek(1).type !== 'name' ||
+      !this.is('=', 2)
+    ) {
+      return false;
+    }
+    if (this.peek(3).type === 'name') {
+      return this.is('=>', 4);
+    }
+    const closing = this.closingParenthesis(3);
+    if (closing === undefined) {
+      return false;
+    }
+    // A TypeScript return type may follow the parameters.
+    let offset = closing + 1;
+    if (this.is(':', offset)) {
+      while (
+        this.peek(offset).type !== 'end' &&
+        this.peek(offset).type !== 'newline' &&
+        !this.is('=>', offset)
+      ) {
+        offset += 1;
+      }
+    }
+    return this.is('=>', offset);
+  }
+
+  // A JavaScript or TypeScript class holds functions as static methods:
+  // `static name(first, second) { ... }`. Methods of objects need objects in
+  // the meta language and are not read.
+  isStaticMethodStart() {
+    if (!arrowLanguages.has(this.syntax.id) || !this.classDepth) {
+      return false;
+    }
+    let offset = 0;
+    while (modifiers.has(this.peek(offset).value)) {
+      offset += 1;
+    }
+    return (
+      offset > 0 &&
+      this.peek(offset - 1).value === 'static' &&
+      this.peek(offset).type === 'name' &&
+      this.is('(', offset + 1)
+    );
+  }
+
+  staticMethodDefinition() {
+    while (modifiers.has(this.peek().value)) {
+      this.next();
+    }
+    const functionName = this.expectName();
+    const parameters = this.parameterList();
+    const returnType = this.accept(':') ? this.typeExpression() : undefined;
+    return node('Function', {
+      name: functionName,
+      parameters,
+      returnType,
+      body: this.block(),
+    });
+  }
+
+  // The arrow function as a function of its own: an expression body
+  // returns its value.
+  arrowFunctionDefinition() {
+    this.next();
+    const functionName = this.expectName();
+    this.expect('=');
+    const parameters = this.is('(')
+      ? this.parameterList()
+      : [{ name: this.expectName(), type: undefined }];
+    const returnType = this.accept(':') ? this.typeExpression() : undefined;
+    this.expect('=>');
+    if (this.is('{')) {
+      const body = this.block();
+      this.accept(';');
+      return node('Function', {
+        name: functionName,
+        parameters,
+        returnType,
+        body,
+      });
+    }
+    const value = this.expression();
+    this.endStatement();
+    return node('Function', {
+      name: functionName,
+      parameters,
+      returnType,
+      body: block([node('Return', { value })]),
+    });
   }
 
   // [modifiers] function-keyword name
@@ -570,7 +690,7 @@ class BaseParser {
       if (
         depth === 0 &&
         (token.type === 'newline' ||
-          ['{', '=', ',', ')', ';'].includes(token.value))
+          ['{', '=', '=>', ',', ')', ';'].includes(token.value))
       ) {
         break;
       }
@@ -647,6 +767,9 @@ class BaseParser {
     };
     if (word && Object.hasOwn(keywords, word)) {
       return keywords[word]();
+    }
+    if (word === 'foreach' && this.syntax.forEach?.startsWith('foreach')) {
+      return this.foreachStatement();
     }
     if (this.syntax.id === 'ruby' && this.isRangeEach()) {
       return this.rangeEach();
@@ -971,8 +1094,19 @@ class BaseParser {
         return left;
       }
       this.next();
+      if (token.value === '..') {
+        // Lua's ".." joins text, numbers included. It binds looser than +
+        // and -, to the right: "a" .. 1 + 2 is "a3".
+        const right = this.binary(level);
+        return node('Binary', { operator: 'concatenate', left, right });
+      }
       const right = this.binary(level + 1);
-      left = node('Binary', { operator: operator[0], left, right });
+      // `/` is true division or integer division, depending on the language.
+      const meaning =
+        token.value === '/' && operator[0] === 'divide'
+          ? slashOperator(this.syntax)
+          : operator[0];
+      left = node('Binary', { operator: meaning, left, right });
     }
   }
 
@@ -980,7 +1114,7 @@ class BaseParser {
     if (this.accept('-')) {
       const operand = this.unary();
       return operand.kind === 'Number'
-        ? number(-operand.value)
+        ? { ...operand, value: -operand.value }
         : node('Unary', { operator: 'negate', operand });
     }
     if (
@@ -989,6 +1123,11 @@ class BaseParser {
       this.accept(this.syntax.operators.not)
     ) {
       return node('Unary', { operator: 'not', operand: this.unary() });
+    }
+    // ECMAScript 5 truncates with ~~(a / b), which reads as a call of "~~".
+    if (this.is('~') && this.is('~', 1)) {
+      this.position += 2;
+      return node('Call', { callee: '~~', arguments: [this.unary()] });
     }
     return this.postfix();
   }
@@ -1015,29 +1154,7 @@ class BaseParser {
         continue;
       }
       if (this.is('(')) {
-        this.next();
-        const values = [];
-        while (!this.is(')')) {
-          // Where "=" compares (Pascal, Ada, Visual Basic), `f(a = b)`
-          // passes a truth value, not a named argument.
-          if (
-            this.syntax.operators.equal !== '=' &&
-            this.peek().type === 'name' &&
-            this.is('=', 1)
-          ) {
-            const label = this.next().value;
-            this.next();
-            values.push(
-              node('NamedArgument', { name: label, value: this.expression() })
-            );
-          } else {
-            values.push(this.expression());
-          }
-          if (!this.accept(',')) {
-            break;
-          }
-        }
-        this.expect(')');
+        const values = this.callArguments();
         expression =
           expression.kind === 'Method'
             ? node('Call', {
@@ -1050,15 +1167,61 @@ class BaseParser {
               });
         continue;
       }
+      if (this.isTextCall(expression)) {
+        expression = node('Call', {
+          callee: calleeName(expression),
+          arguments: [this.textLiteral(this.next())],
+        });
+        continue;
+      }
       return expression;
     }
+  }
+
+  // The arguments of a call, from its "(" to its ")".
+  callArguments() {
+    this.expect('(');
+    const values = [];
+    while (!this.is(')')) {
+      // Where "=" compares (Pascal, Ada, Visual Basic), `f(a = b)`
+      // passes a truth value, not a named argument. Swift labels an
+      // argument with ":", print(x, terminator: "").
+      if (
+        this.peek().type === 'name' &&
+        ((this.syntax.operators.equal !== '=' && this.is('=', 1)) ||
+          (this.syntax.id === 'swift' && this.is(':', 1)))
+      ) {
+        const label = this.next().value;
+        this.next();
+        values.push(
+          node('NamedArgument', { name: label, value: this.expression() })
+        );
+      } else {
+        values.push(this.expression());
+      }
+      if (!this.accept(',')) {
+        break;
+      }
+    }
+    this.expect(')');
+    return values;
+  }
+
+  // Lua: a call with one text argument needs no parentheses, f "x".
+  isTextCall(expression) {
+    return (
+      this.syntax.id === 'lua' &&
+      expression.kind === 'Name' &&
+      this.peek().type === 'text' &&
+      this.peek().line === this.tokens[this.position - 1].line
+    );
   }
 
   primary() {
     const token = this.next();
     switch (token.type) {
       case 'number':
-        return number(Number(token.value));
+        return numberLiteral(token.value);
       case 'text':
         return this.textLiteral(token);
       case 'name':
@@ -1231,8 +1394,15 @@ function calleeName(expression) {
   return expression.name;
 }
 
-// Arrays and loops are read by mixins of their own, which the dialects inherit.
-const Parser = withLoops(withArrays(BaseParser));
+// A number as written: 1.5, 2.0 and 1e3 are reals, 7 is an integer.
+export function numberLiteral(written) {
+  const literal = number(Number(written));
+  return /[.eE]/.test(written) ? { ...literal, type: 'real' } : literal;
+}
+
+// Arrays, loops and type hints are read by mixins of their own, which the
+// dialects inherit.
+const Parser = withFunctionForms(withLoops(withArrays(BaseParser)));
 
 // Map a source type spelling to a meta type.
 export function sourceType(spelling) {
@@ -1258,6 +1428,13 @@ export function sourceType(spelling) {
     )
   ) {
     return 'array';
+  }
+  if (
+    /^(double|float|f32|f64|float32|float64|Double|Float|Float64|Long_Float|real|Real)$/.test(
+      words
+    )
+  ) {
+    return 'real';
   }
   if (/^(bool|boolean|Bool|Boolean)$/.test(words)) {
     return 'boolean';

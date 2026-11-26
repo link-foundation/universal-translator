@@ -456,7 +456,7 @@ jobs:
           RELEASE_PR_TOKEN: ${{ secrets.RELEASE_PR_TOKEN }}
         run: |
           if [[ -z "$RELEASE_PR_TOKEN" ]]; then
-            echo "::error::RELEASE_PR_TOKEN is required to push generated preview images."
+            echo "::error title=Preview images drifted::RELEASE_PR_TOKEN is required to push generated preview images. Either add a RELEASE_PR_TOKEN repository secret (Settings > Secrets and variables > Actions; Contents and Pull requests write access, Checks read access), or download the preview-regen-failure-${GITHUB_RUN_ID} artifact of this run, commit its files under docs/screenshots/example-app/ through a pull request, and rerun."
             exit 1
           fi
           # Configure gh as a step-scoped Git credential helper. The checkout

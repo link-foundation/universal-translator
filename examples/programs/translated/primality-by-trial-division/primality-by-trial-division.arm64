@@ -1,0 +1,187 @@
+// Primality by trial division in ARM64 assembly
+
+    .global main
+    .section .rodata
+integer_format: .asciz "%lld"
+text_format: .asciz "%s"
+newline_format: .asciz "\n"
+
+    .text
+.type is_prime, %function
+is_prime:
+    .set is_prime.number, 0
+    .set is_prime.divisor, 8
+    stp x29, x30, [sp, #-16]!
+    sub sp, sp, #16
+    mov x29, sp
+    str x0, [x29, #is_prime.number]
+    ldr x0, [x29, #is_prime.number]
+    str x0, [sp, #-16]!
+    mov x0, #2
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    cmp x0, x1
+    b.ge .Lis_prime_L1
+    mov x0, #0
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    mov sp, x29
+    add sp, sp, #16
+    ldp x29, x30, [sp], #16
+    ret
+    b .Lis_prime_L2
+.Lis_prime_L1:
+.Lis_prime_L2:
+    mov x0, #2
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #is_prime.divisor]
+.Lis_prime_L3:
+    ldr x0, [x29, #is_prime.divisor]
+    str x0, [sp, #-16]!
+    ldr x0, [x29, #is_prime.divisor]
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    mul x0, x0, x1
+    str x0, [sp, #-16]!
+    ldr x0, [x29, #is_prime.number]
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    cmp x0, x1
+    b.gt .Lis_prime_L4
+    ldr x0, [x29, #is_prime.number]
+    str x0, [sp, #-16]!
+    ldr x0, [x29, #is_prime.divisor]
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    sdiv x2, x0, x1
+    msub x0, x2, x1, x0
+    str x0, [sp, #-16]!
+    mov x0, #0
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    cmp x0, x1
+    b.ne .Lis_prime_L5
+    mov x0, #0
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    mov sp, x29
+    add sp, sp, #16
+    ldp x29, x30, [sp], #16
+    ret
+    b .Lis_prime_L6
+.Lis_prime_L5:
+.Lis_prime_L6:
+    ldr x0, [x29, #is_prime.divisor]
+    str x0, [sp, #-16]!
+    mov x0, #1
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    add x0, x0, x1
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #is_prime.divisor]
+    b .Lis_prime_L3
+.Lis_prime_L4:
+    mov x0, #1
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    mov sp, x29
+    add sp, sp, #16
+    ldp x29, x30, [sp], #16
+    ret
+.size is_prime, .-is_prime
+
+.type main, %function
+main:
+    .set main.number, 0
+    stp x29, x30, [sp, #-16]!
+    sub sp, sp, #16
+    mov x29, sp
+    mov x0, #1
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #main.number]
+.Lmain_L1:
+    ldr x0, [x29, #main.number]
+    str x0, [sp, #-16]!
+    mov x0, #51
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    cmp x0, x1
+    b.ge .Lmain_L2
+    ldr x0, [x29, #main.number]
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    bl is_prime
+    str x0, [sp, #-16]!
+    mov x0, #0
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    cmp x0, x1
+    b.eq .Lmain_L3
+    ldr x0, [x29, #main.number]
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    bl print_integer
+    bl print_newline
+    b .Lmain_L4
+.Lmain_L3:
+.Lmain_L4:
+    ldr x0, [x29, #main.number]
+    str x0, [sp, #-16]!
+    mov x0, #1
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    add x0, x0, x1
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #main.number]
+    b .Lmain_L1
+.Lmain_L2:
+    mov x0, #0
+    mov sp, x29
+    add sp, sp, #16
+    ldp x29, x30, [sp], #16
+    ret
+.size main, .-main
+
+print_integer:
+    stp x29, x30, [sp, #-16]!
+    mov x29, sp
+    mov x1, x0
+    adrp x0, integer_format
+    add x0, x0, :lo12:integer_format
+    bl printf
+    ldp x29, x30, [sp], #16
+    ret
+
+print_text:
+    stp x29, x30, [sp, #-16]!
+    mov x29, sp
+    mov x1, x0
+    adrp x0, text_format
+    add x0, x0, :lo12:text_format
+    bl printf
+    ldp x29, x30, [sp], #16
+    ret
+
+print_newline:
+    stp x29, x30, [sp, #-16]!
+    mov x29, sp
+    adrp x0, newline_format
+    add x0, x0, :lo12:newline_format
+    bl printf
+    ldp x29, x30, [sp], #16
+    ret
+
+    .section .note.GNU-stack,"",%progbits

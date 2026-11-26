@@ -518,6 +518,90 @@ button.link {
   margin-top: 16px;
 }
 
+/* Under each language picker: the languages of its comments and of its
+   identifiers. */
+.side-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.input-grid {
+  margin-bottom: 16px;
+}
+
+/* The source and its translation, with the strip that joins the lines
+   that match between them. */
+.code-grid.linked {
+  grid-template-columns: minmax(0, 1fr) 32px minmax(0, 1fr);
+  column-gap: 0;
+}
+
+.code-grid.linked > .pane:first-child {
+  margin-inline-end: 4px;
+}
+
+.code-grid.linked > .pane:last-child {
+  margin-inline-start: 4px;
+}
+
+.map-strip {
+  align-self: stretch;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* The colours of the groups of lines that match, the same in both editors
+   and in the strip; the group under the cursor is stronger. */
+.map-c0 {
+  --map: 66, 133, 244;
+}
+.map-c1 {
+  --map: 15, 157, 88;
+}
+.map-c2 {
+  --map: 244, 160, 0;
+}
+.map-c3 {
+  --map: 171, 71, 188;
+}
+.map-c4 {
+  --map: 0, 172, 193;
+}
+.map-c5 {
+  --map: 219, 68, 55;
+}
+
+.monaco-editor .map-line {
+  background: rgba(var(--map), 0.1);
+}
+
+.monaco-editor .map-line.map-active {
+  background: rgba(var(--map), 0.26);
+}
+
+.monaco-editor .map-gutter {
+  margin-left: 3px;
+  width: 4px !important;
+  background: rgba(var(--map), 0.55);
+}
+
+.monaco-editor .map-gutter.map-active {
+  background: rgba(var(--map), 1);
+}
+
+.map-link {
+  fill: rgba(var(--map), 0.16);
+  stroke: rgba(var(--map), 0.45);
+  stroke-width: 1;
+}
+
+.map-link.map-active {
+  fill: rgba(var(--map), 0.38);
+  stroke: rgba(var(--map), 0.9);
+}
+
 .download-link {
   display: inline-flex;
   min-height: var(--control-height);
@@ -653,8 +737,39 @@ button.link {
   }
 
   .input-grid,
-  .code-grid {
+  .code-grid,
+  .code-grid.linked {
     grid-template-columns: 1fr;
+  }
+
+  /* One column: each side's languages stay under its picker. */
+  .input-grid > .side-source {
+    order: 1;
+  }
+
+  .input-grid > .swap {
+    order: 2;
+  }
+
+  .input-grid > :nth-child(3) {
+    order: 3;
+  }
+
+  .input-grid > .side-target {
+    order: 4;
+  }
+
+  .side-gap,
+  .map-strip {
+    display: none;
+  }
+
+  .code-grid.linked {
+    row-gap: 16px;
+  }
+
+  .code-grid.linked > .pane {
+    margin: 0;
   }
 
   .swap {

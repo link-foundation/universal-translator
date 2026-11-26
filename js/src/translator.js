@@ -4,8 +4,9 @@
 //     --type inference--> typed meta program --meaning rules-->
 //     --custom meta layers--> --context rules--> --emit--> target text
 //
-// Every stage is a replaceable function, and every rule list is ordinary
-// data, so callers can add, remove, reorder or decorate rules.
+// Every stage is a replaceable function that can also be decorated (see
+// translation/decorators.js), and every rule list is ordinary data, so
+// callers can add, remove, reorder or decorate rules.
 
 import { grammarLanguageIds, languageSyntax } from './formal/languages.js';
 import { parseProgram } from './formal/parser.js';
@@ -17,9 +18,14 @@ import {
 } from './formal/rules.js';
 import { inferTypes } from './meta/types.js';
 import { emitProgram } from './formal/emitter.js';
-import { emitMachine, machineTargetIds } from './formal/machine.js';
+import {
+  emitMachine,
+  machineTargetIds,
+  machineTargets,
+} from './formal/machine.js';
 import { machineReaders } from './formal/machine-reader.js';
 import { liftProgram } from './formal/lifting.js';
+import { raiseForEach } from './meta/for-each.js';
 import { useCommonLibrary } from './formal/common-library.js';
 import { splitVersion, versionsOf } from './formal/versions.js';
 import {
@@ -29,16 +35,54 @@ import {
 } from './natural/catalog.js';
 import { readNatural } from './natural/reader.js';
 import { writeNatural } from './natural/writer.js';
+import { translateCommentText } from './natural/comments.js';
 import {
   translateComments,
   translateProgramComments,
 } from './translation/comment-language.js';
+import {
+  translateIdentifiers,
+  translateProgramIdentifiers,
+} from './translation/identifier-language.js';
+import { declaredNames } from './formal/names.js';
 import { createFragmentTranslator } from './translation/fragments.js';
 import { createPartialTranslator } from './translation/partial.js';
+import { createCandidateTranslator } from './translation/candidates.js';
 import { createLanguageDetector } from './translation/detect.js';
 import { compileCustomRules } from './translation/custom-rules.js';
+import { transferLayout } from './translation/layout.js';
+import { applyStyle, checkStyle, hasStyle } from './translation/style.js';
+import { specialize } from './meta/library.js';
+import { markImprecision } from './meta/imprecision.js';
+import { unnest } from './translation/nesting.js';
+import { decorateStages, mergeDecorators } from './translation/decorators.js';
 
 const readMachine = (source, from) => machineReaders[from](source);
+
+// The replaceable stages, in the form decorators wrap.
+const defaultStages = {
+  parse: parseProgram,
+  infer: inferTypes,
+  lift: liftProgram,
+  readMachine,
+  readNatural,
+  emit: emitProgram,
+  emitMachineCode: emitMachine,
+  writeNatural,
+};
+
+// The stages a translator runs: the ones given in the settings or the
+// defaults, wrapped by the decorators of the settings.
+const buildStages = (settings) =>
+  decorateStages(
+    Object.fromEntries(
+      Object.entries(defaultStages).map(([stage, standard]) => [
+        stage,
+        settings[stage] ?? standard,
+      ])
+    ),
+    settings.decorate
+  );
 
 const modes = ['context-dependent', 'literal', 'same-effect'];
 
@@ -59,18 +103,40 @@ function inCommentLanguage(
     : program;
 }
 
+// The declared names can be words of a natural language of their own too.
+function inIdentifierLanguage(
+  program,
+  { identifierLanguage, identifierFrom, translateComment }
+) {
+  return identifierLanguage
+    ? translateProgramIdentifiers(program, {
+        from: identifierFrom,
+        to: identifierLanguage,
+        translateComment,
+      })
+    : program;
+}
+
 // A mode, a target and the common library must go together.
-// A comment language that does not exist is a wrong option, not a part of
-// the text that could not be read. A translator of one's own may know more.
+// A comment or identifier language that does not exist is a wrong option,
+// not a part of the text that could not be read. A translator of one's own
+// may know more.
 function checkCommentLanguages({
   commentLanguage,
   commentFrom,
+  identifierLanguage,
+  identifierFrom,
   translateComment,
 }) {
   if (translateComment) {
     return;
   }
-  for (const id of [commentLanguage, commentFrom]) {
+  for (const id of [
+    commentLanguage,
+    commentFrom,
+    identifierLanguage,
+    identifierFrom,
+  ]) {
     if (id) {
       naturalLanguage(id);
     }
@@ -108,34 +174,187 @@ function completeResult(text, source) {
     lines,
     readLines: lines,
     coverage: 1,
+    prose: [],
   };
 }
 
+// Two programming languages share a layout: the target keeps the spaces and
+// the blank lines around the code of the source (layout 'source', the
+// default) or is written as its emitter lays it out (layout 'target'). Both
+// map the lines of the target to the lines of the source.
+const layouts = ['source', 'target'];
+
+const programming = (id) =>
+  !isNaturalLanguage(id) && !languageSyntax(id).machine;
+
+// All-or-nothing translation writes the target in the style asked for.
+function styledText(translateWhole) {
+  return (source, from, to, options = {}) => {
+    checkStyle(options);
+    const text = translateWhole(source, from, to, options);
+    return hasStyle(options) && programming(to)
+      ? applyStyle(text, languageSyntax(to), options).text
+      : text;
+  };
+}
+
+function withLayout(result, source, from, to, options) {
+  if (!programming(from) || !programming(to)) {
+    return result;
+  }
+  const { text, lines } = transferLayout(
+    source,
+    result.text,
+    languageSyntax(from),
+    languageSyntax(to),
+    {
+      respace: options.layout !== 'target' && !hasStyle(options),
+      language: splitVersion(to).id,
+    }
+  );
+  if (!hasStyle(options)) {
+    return { ...result, text, lineMap: lines };
+  }
+  // A style lays the target out anew: each line of the map (from 0) moves
+  // to the line it starts at (from 1).
+  const styled = applyStyle(text, languageSyntax(to), options);
+  return {
+    ...result,
+    text: styled.text,
+    lineMap: lines.map(([line, target]) => [line, styled.starts[target] - 1]),
+  };
+}
+
+// Between two natural languages a sentence no controlled template reads is
+// prose, translated freely with the vocabulary (or the caller's
+// translateComment).
+function translateProse(text, from, to, options = {}) {
+  if (!isNaturalLanguage(from) || !isNaturalLanguage(to)) {
+    return undefined;
+  }
+  const translateText = options.translateComment ?? translateCommentText;
+  return translateText(text, { from, to });
+}
+
+// Same code, other comment or identifier language: change only the
+// comments and the declared names, in place, so every other character of
+// the code stays (`toMeta` reads the names it declares). Undefined when
+// only the meta program can rename.
+function inPlace(source, language, options, toMeta) {
+  const { commentLanguage, commentFrom, translateComment } = options;
+  const { identifierLanguage, identifierFrom } = options;
+  let text = source;
+  if (identifierLanguage) {
+    const declared = declaredNames(toMeta(source, language));
+    text = translateIdentifiers(text, language, declared, {
+      from: identifierFrom,
+      to: identifierLanguage,
+      translateComment,
+    });
+    if (text === undefined) {
+      return undefined;
+    }
+  }
+  return commentLanguage
+    ? translateComments(text, language, {
+        from: commentFrom,
+        to: commentLanguage,
+        translateComment,
+      })
+    : text;
+}
+
+// Partial translation (the default of the command line, the server and the
+// web demo) keeps every part it can translate and marks the rest;
+// all-or-nothing translation throws at the first part it cannot read.
+function partialTranslator(translate, fragments, partial) {
+  function readAll(source, from, to, options) {
+    const whole = options.fragment ? fragments.translateFragment : translate;
+    try {
+      return completeResult(whole(source, from, to, options), source);
+    } catch (error) {
+      if (involvesMachineCode(from, to)) {
+        throw error;
+      }
+      return partial.translatePartial(source, from, to, options);
+    }
+  }
+  return (source, from, to, options = {}) => {
+    checkCommentLanguages(options);
+    if (options.layout !== undefined && !layouts.includes(options.layout)) {
+      throw new Error(`Unsupported layout "${options.layout}"`);
+    }
+    checkStyle(options);
+    const result = readAll(source, from, to, options);
+    return withLayout(result, source, from, to, options);
+  };
+}
+
+// A meta program in its special form, without the readings of its nested
+// texts, with the empty lists of a program that a hand-written one may
+// leave out.
+function completed(meta) {
+  const special = specialize(unnest(meta));
+  return special.kind === 'Program'
+    ? {
+        ...special,
+        comments: special.comments ?? [],
+        imports: special.imports ?? [],
+        functions: special.functions ?? [],
+      }
+    : special;
+}
+
+// The grammar languages with their versions, then the machine targets.
+function listLanguages() {
+  return [
+    ...grammarLanguageIds.map((id) => {
+      const versions = versionsOf(id);
+      return {
+        id,
+        label: languageSyntax(id).label,
+        ...(versions.length ? { versions } : {}),
+      };
+    }),
+    ...machineTargetIds.map((id) => ({
+      id,
+      label: machineTargets[id].label,
+      machine: true,
+    })),
+  ];
+}
+
+const listNaturalLanguages = () =>
+  naturalLanguageIds().map((id) => {
+    const { label, base } = naturalLanguage(id);
+    return { id, label, ...(base ? { base } : {}) };
+  });
+
 export function createGrammarTranslator(settings = {}) {
   const {
-    parse = parseProgram,
     understanding = understandingRules,
-    infer = inferTypes,
     meaning = meaningRules,
     context = contextRules,
     layers = [],
-    emit = emitProgram,
-    emitMachineCode = emitMachine,
-    lift = liftProgram,
     trace = () => {},
     rules = {},
   } = settings;
+  const stages = buildStages(settings);
+  const { parse, infer, lift, emit, emitMachineCode } = stages;
   // Rules given as data (see translation/custom-rules.js).
   const custom = compileCustomRules(rules);
   const metaLayers = [...layers, ...custom.layers];
 
-  function toMeta(text, from) {
+  // The typed meta program of a text, with what its reading lost marked.
+  const toMeta = (text, from) => markImprecision(readMeta(text, from));
+
+  function readMeta(text, from) {
     const source = custom.source(text, from);
     if (isNaturalLanguage(from)) {
       // A controlled natural language is read sentence by sentence straight
       // into the meta language; it has no source details to understand.
       const read = inferMutability(
-        readNatural(source, from, custom.naturalLanguage(from))
+        stages.readNatural(source, from, custom.naturalLanguage(from))
       );
       trace('read', read);
       const typed = applyRules(infer(read), meaning, {});
@@ -146,7 +365,9 @@ export function createGrammarTranslator(settings = {}) {
     if (syntax.machine) {
       // Machine code has no grammar to parse: read its instructions, lift
       // them to the meta language and continue like any other source.
-      const lifted = inferMutability(lift(readMachine(source, from)));
+      const lifted = inferMutability(
+        raiseForEach(lift(stages.readMachine(source, from)))
+      );
       trace('lifted', lifted);
       const typed = applyRules(infer(lifted), meaning, { from });
       trace('typed', typed);
@@ -178,6 +399,8 @@ export function createGrammarTranslator(settings = {}) {
     const settings = {
       from: splitVersion(isNaturalLanguage(from) ? to : from).id,
       to: splitVersion(to).id,
+      // The target with its version, for the rules that depend on it.
+      target: to,
       mode,
     };
     // Custom layers are meta -> meta transformations, so they see the target
@@ -186,9 +409,12 @@ export function createGrammarTranslator(settings = {}) {
     const allLayers = commonLibrary
       ? [...metaLayers, [useCommonLibrary]]
       : metaLayers;
-    const transformed = allLayers.reduce(
-      (current, layer) => applyRules(current, layer, settings),
-      meta
+    const transformed = inIdentifierLanguage(
+      allLayers.reduce(
+        (current, layer) => applyRules(current, layer, settings),
+        meta
+      ),
+      options
     );
     trace('transformed', transformed);
     if (natural) {
@@ -200,22 +426,14 @@ export function createGrammarTranslator(settings = {}) {
   }
 
   function translate(source, from, to, options = {}) {
-    const { commentLanguage, commentFrom, translateComment } = options;
-    // Same code, other comment language: change only the comments, in place,
-    // so every character of the code stays.
-    if (
-      commentLanguage &&
-      from === to &&
-      !isNaturalLanguage(from) &&
-      !languageSyntax(from).machine
-    ) {
-      return translateComments(source, from, {
-        from: commentFrom,
-        to: commentLanguage,
-        translateComment,
-      });
-    }
-    return fromMeta(toMeta(source, from), to, { ...options, from });
+    const { commentLanguage, identifierLanguage } = options;
+    const same =
+      from === to && !isNaturalLanguage(from) && !languageSyntax(from).machine;
+    const kept =
+      same && (commentLanguage || identifierLanguage)
+        ? inPlace(source, from, options, toMeta)
+        : undefined;
+    return kept ?? writeMeta(toMeta(source, from), to, { ...options, from });
   }
 
   // Write an adapted program in a language, a machine target or words.
@@ -224,15 +442,24 @@ export function createGrammarTranslator(settings = {}) {
 
   function writeTarget(adapted, to) {
     if (isNaturalLanguage(to)) {
-      return writeNatural(adapted, to);
+      return stages.writeNatural(adapted, to);
     }
     return machineTargetIds.includes(to)
       ? emitMachineCode(adapted, to)
       : emit(adapted, to);
   }
 
-  function fromMeta(meta, to, options = {}) {
+  function writeMeta(meta, to, options = {}) {
     return write(adapt(meta, to, options), to);
+  }
+
+  // A meta program given from outside may be written in its general form
+  // (calls to the standard library) and leave out empty lists and types.
+  function fromMeta(meta, to, options = {}) {
+    const typed = applyRules(infer(completed(meta)), meaning, {
+      from: options.from ?? to,
+    });
+    return writeMeta(typed, to, options);
   }
 
   const fragments = createFragmentTranslator({
@@ -241,53 +468,40 @@ export function createGrammarTranslator(settings = {}) {
     write,
     emit: emitText,
   });
-  const partial = createPartialTranslator(fragments);
+  const partial = createPartialTranslator({ ...fragments, translateProse });
 
-  // Partial translation (the default of the command line, the server and
-  // the web demo) keeps every part it can translate and marks the rest;
-  // all-or-nothing translation throws at the first part it cannot read.
-  function translatePartial(source, from, to, options = {}) {
-    const whole = options.fragment ? fragments.translateFragment : translate;
-    checkCommentLanguages(options);
-    try {
-      return completeResult(whole(source, from, to, options), source);
-    } catch (error) {
-      if (involvesMachineCode(from, to)) {
-        throw error;
-      }
-      return partial.translatePartial(source, from, to, options);
-    }
-  }
+  const translatePartial = partialTranslator(translate, fragments, partial);
+  const translateCandidates = createCandidateTranslator(translatePartial);
 
   return {
-    languages: () =>
-      grammarLanguageIds.map((id) => {
-        const versions = versionsOf(id);
-        return {
-          id,
-          label: languageSyntax(id).label,
-          ...(versions.length ? { versions } : {}),
-        };
-      }),
-    naturalLanguages: () =>
-      naturalLanguageIds().map((id) => {
-        const { label, base } = naturalLanguage(id);
-        return { id, label, ...(base ? { base } : {}) };
-      }),
+    languages: listLanguages,
+    naturalLanguages: listNaturalLanguages,
     toMeta,
     fromMeta,
-    translate,
+    translate: styledText(translate),
     translatePartial,
+    translateCandidates,
     parsePartial: partial.parsePartial,
     // The same translator with other data rules.
     withRules: (other) =>
       createGrammarTranslator({ ...settings, rules: other }),
+    // The same translator with decorators around some stages: one stage and
+    // its decorator, or an object of stages and decorators (or lists of
+    // them). They wrap the decorators the translator already has.
+    decorate: (stage, decorator) =>
+      createGrammarTranslator({
+        ...settings,
+        decorate: mergeDecorators(
+          settings.decorate,
+          typeof stage === 'string' ? { [stage]: decorator } : stage
+        ),
+      }),
     detectLanguage: createLanguageDetector({
       parseFragment: fragments.parseFragment,
       parsePartial: partial.parsePartial,
     }),
     parseFragment: fragments.parseFragment,
-    translateFragment: fragments.translateFragment,
+    translateFragment: styledText(fragments.translateFragment),
   };
 }
 
@@ -311,6 +525,13 @@ export function parseFragment(source, from) {
 export function translatePartial(source, from, to, options) {
   defaultTranslator ??= createGrammarTranslator();
   return defaultTranslator.translatePartial(source, from, to, options);
+}
+
+// The candidate translations of a text, the most probable first, with the
+// default rule layers.
+export function translateCandidates(source, from, to, options) {
+  defaultTranslator ??= createGrammarTranslator();
+  return defaultTranslator.translateCandidates(source, from, to, options);
 }
 
 // Read what can be read, with the default rule layers.

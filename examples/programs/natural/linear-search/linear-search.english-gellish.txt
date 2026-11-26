@@ -1,0 +1,11 @@
+Note: Linear search in JavaScript: find the position of a value in a list
+
+Numbers is classified as a variable with initial value the list (31, 41, 59, 26, 53, 58, 97, 93).
+Wanted is classified as a variable with initial value 53.
+Position is classified as a variable with initial value -1.
+Current is classified as a variable with initial value 0.
+For each number in numbers the following is repeated:
+  If number is equal to wanted and position is less than 0 then the following is performed:
+    Position has as new value current.
+  Current has as new value current plus 1.
+The output has as next line “Found ” concatenated with wanted concatenated with “ at position ” concatenated with position.

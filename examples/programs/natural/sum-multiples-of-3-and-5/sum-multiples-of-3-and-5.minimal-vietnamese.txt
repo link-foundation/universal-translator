@@ -1,0 +1,7 @@
+Ghi chú: Sum multiples of 3 and 5 in JavaScript: the sum of the multiples below 1000
+
+Có tổng_cộng, nó là 0.
+Với mọi số từ 1 đến 999, làm điều này:
+  Nếu số chia lấy dư 3 giống 0 hoặc số chia lấy dư 5 giống 0, làm điều này:
+    Sau đó, tổng_cộng là tổng_cộng cộng số.
+Nói tổng_cộng trên một dòng.

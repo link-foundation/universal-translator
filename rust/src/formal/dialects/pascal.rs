@@ -16,7 +16,7 @@ fn level(operator: &str) -> f64 {
     match operator {
         "equal" | "notEqual" | "less" | "lessOrEqual" | "greater" | "greaterOrEqual" => 1.0,
         "or" | "add" | "subtract" => 2.0,
-        "and" | "multiply" | "divide" | "remainder" => 3.0,
+        "and" | "multiply" | "divide" | "realDivide" | "remainder" => 3.0,
         _ => f64::NAN,
     }
 }
@@ -33,6 +33,7 @@ fn spelling(operator: &str) -> &str {
         "subtract" => "-",
         "multiply" => "*",
         "divide" => "div",
+        "realDivide" => "/",
         "remainder" => "mod",
         other => other,
     }

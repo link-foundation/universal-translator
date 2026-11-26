@@ -1,0 +1,7 @@
+Nota: Sum multiples of 3 and 5 in JavaScript: the sum of the multiples below 1000
+
+Crea totale con valore 0.
+Per ogni numero da 1 a 999, ripeti questo:
+  Se numero modulo 3 è uguale a 0 o numero modulo 5 è uguale a 0, fai questo:
+    Cambia totale in totale più numero.
+Scrivi totale e termina la riga.

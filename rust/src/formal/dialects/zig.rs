@@ -28,7 +28,7 @@ const WRITER_NAMES: [&str; 3] = ["out", "buffer", "writer"];
 
 fn placeholder(kind: Option<&str>) -> &'static str {
     match kind {
-        Some("integer") => "{d}",
+        Some("integer" | "real") => "{d}",
         Some("text") => "{s}",
         Some("boolean") => "{}",
         _ => "{any}",
@@ -202,12 +202,14 @@ impl ParserDialect for Zig {
         p.base_item()
     }
 
-    /// [pub] fn name(a: i64, b: i64) i64 { ... }
+    /// [pub] fn name(a: i64, b: i64) i64 { ... }; Zig before 0.1 wrote
+    /// `fn main(args: [][]u8) -> %void`.
     fn function_definition(&self, p: &mut Parser) -> Parsed {
         p.accept("pub");
         p.expect("fn")?;
         let name = p.expect_name()?;
         let parameters = p.parameter_list()?;
+        p.accept("->");
         let return_type = p.type_expression()?;
         let body = p.block()?;
         // main receives the process only to open the writer.
@@ -224,7 +226,11 @@ impl ParserDialect for Zig {
     }
 
     /// i64, bool, []const u8 and void, as the language table spells them.
+    /// An error union (!void, or %void before Zig 0.1) is its value type.
     fn type_expression(&self, p: &mut Parser) -> Parsed<Option<String>> {
+        while p.is("!") || p.is("%") {
+            p.next()?;
+        }
         let mut words = Vec::new();
         while !["{", "=", ",", ")", ";"].contains(&p.current().value.as_str())
             && !matches!(p.kind(0), TokenType::Newline | TokenType::End)
@@ -262,6 +268,10 @@ impl ParserDialect for Zig {
         }
         if p.is("out") && p.is_at(".", 1) && p.is_at("print", 2) {
             return print_statement(p);
+        }
+        let legacy = legacy_print_length(p);
+        if legacy > 0 {
+            return legacy_print(p, legacy);
         }
         if p.is_at("page_allocator", 7) && p.is_at("alloc", 9) {
             return allocation(p);
@@ -400,20 +410,56 @@ fn tuple(p: &mut Parser) -> Parsed<Vec<Node>> {
     Ok(values)
 }
 
+/// Zig before 0.1: %%io.stdout.printf("format\n", values) writes to
+/// standard output (io is @import("std").io), and %% stops the program on
+/// an error. The number of tokens up to the format, or 0.
+fn legacy_print_length(p: &Parser) -> usize {
+    let mut offset = if p.is("%") && p.is_at("%", 1) { 2 } else { 0 };
+    while p.kind(offset) == TokenType::Name && p.is_at(".", offset + 1) {
+        offset += 2;
+    }
+    if offset >= 2
+        && p.is_at("stdout", offset - 2)
+        && p.is_at("printf", offset)
+        && p.is_at("(", offset + 1)
+    {
+        offset + 2
+    } else {
+        0
+    }
+}
+
+fn legacy_print(p: &mut Parser, length: usize) -> Parsed {
+    p.position += length;
+    let format = p.next()?;
+    let mut values = Vec::new();
+    while p.accept(",") {
+        values.push(p.expression()?);
+    }
+    p.expect(")")?;
+    p.end_statement()?;
+    formatted_print(&format, values)
+}
+
 /// out.print("format\n", .{ values }) catch {};
 fn print_statement(p: &mut Parser) -> Parsed {
     p.position += 3;
     p.expect("(")?;
     let format = p.next()?;
-    if format.kind != TokenType::Text {
-        return Err(GrammarError::syntax("A format must be text", format.line));
-    }
     p.expect(",")?;
     let values = tuple(p)?;
     for word in [")", "catch", "{", "}"] {
         p.expect(word)?;
     }
     p.end_statement()?;
+    formatted_print(&format, values)
+}
+
+/// The text a format token and its values print.
+fn formatted_print(format: &Token, values: Vec<Node>) -> Parsed {
+    if format.kind != TokenType::Text {
+        return Err(GrammarError::syntax("A format must be text", format.line));
+    }
     let written = decode_escapes(&format.value);
     let newline = written.ends_with('\n');
     let written = if newline {
@@ -540,9 +586,10 @@ impl EmitterDialect for Zig {
 
     fn declaration(&self, e: &mut Emitter, statement: &Node) -> Result<String> {
         let name = statement.str("name").unwrap_or_default();
+        let declared = statement.str("type").unwrap_or("integer");
         let initial = match statement.node("value") {
-            Some(value) => e.expression(value)?,
-            None => e.expression(&number(0.0))?,
+            Some(value) => e.initial_value(value, declared)?,
+            None => e.initial_value(&number(0.0), declared)?,
         };
         let state = e.state::<Writing>();
         if state.scopes.iter().any(|scope| scope.contains(name)) {
@@ -556,7 +603,7 @@ impl EmitterDialect for Zig {
         } else {
             "const"
         };
-        let kind = e.type_name(statement.str("type").unwrap_or("integer"));
+        let kind = e.type_name(declared);
         Ok(format!("{keyword} {name}: {kind} = {initial};"))
     }
 

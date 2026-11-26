@@ -43,7 +43,9 @@ function bundleThemeFiles() {
 // below the 500 kB warning limit and changes on its own schedule, so a
 // browser keeps the others cached across releases. A group must not import
 // a group that imports it back (Vite warns about a circular chunk): formal
-// imports only meta, so both share a chunk that the rest of js/src uses.
+// imports only meta, so both share a chunk that the rest of js/src uses;
+// natural imports only meta too, so it has a chunk of its own, and its
+// generated vocabulary data one more.
 const chunkGroups = [
   ['react', /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/],
   [
@@ -56,6 +58,11 @@ const chunkGroups = [
   ],
   ['links-notation', /[\\/]node_modules[\\/](links-notation|lino-i18n)[\\/]/],
   ['translator-formal', /[\\/]js[\\/]src[\\/](formal|meta)[\\/]/],
+  [
+    'natural-vocabulary',
+    /[\\/]js[\\/]src[\\/]natural[\\/]sources-vocabulary\.js$/,
+  ],
+  ['translator-natural', /[\\/]js[\\/]src[\\/]natural[\\/]/],
   ['translator', /[\\/]js[\\/]src[\\/]/],
 ];
 

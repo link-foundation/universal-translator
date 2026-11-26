@@ -1,0 +1,7 @@
+Uwaga: Sum multiples of 3 and 5 in JavaScript: the sum of the multiples below 1000
+
+Jest razem, to jest 0.
+Dla wszystkich liczba od 1 do 999, zrobić to:
+  Jeżeli liczba modulo 3 jest tym samym co 0 lub liczba modulo 5 jest tym samym co 0, zrobić to:
+    Po tym razem jest razem plus liczba.
+Powiedzieć razem w jednej linii.

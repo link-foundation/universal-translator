@@ -53,6 +53,27 @@ export const templateKeys = [
   'remainder',
 ];
 
+// Templates a language may leave out: a loop over an array is then written
+// as the counting loop it lowers to, and increase and decrease (everyday
+// wordings of an assignment that adds to or subtracts from the variable) are
+// written as the assignment.
+export const optionalTemplateKeys = ['for-each', 'increase', 'decrease'];
+
+// Everyday wordings a profile with its own rules does not inherit: a
+// controlled standard keeps to its vocabulary, and the assignment still says
+// what they say.
+const everydayTemplateKeys = ['increase', 'decrease'];
+
+function inheritedTemplates(base, description) {
+  const templates = { ...base.templates };
+  if (Object.keys(description.rules ?? {}).length > 0) {
+    for (const key of everydayTemplateKeys) {
+      delete templates[key];
+    }
+  }
+  return { ...templates, ...description.templates };
+}
+
 const scalarFields = [
   'id',
   'label',
@@ -105,10 +126,18 @@ function readDescription(source) {
   return description;
 }
 
+// The files of data/natural that describe no language: the semantic primes,
+// the everyday vocabulary and the grammar of free translation.
+const sharedFiles = new Set([
+  'semantic-primes.lino',
+  'vocabulary.lino',
+  'grammar.lino',
+]);
+
 function readAll() {
   const descriptions = {};
   for (const [file, source] of Object.entries(naturalSources)) {
-    if (file === 'semantic-primes.lino') {
+    if (sharedFiles.has(file)) {
       continue;
     }
     const description = readDescription(source);
@@ -138,7 +167,7 @@ function resolve(descriptions, id, seen = new Set()) {
   return {
     ...base,
     ...description,
-    templates: { ...base.templates, ...description.templates },
+    templates: inheritedTemplates(base, description),
     words: { ...base.words, ...description.words },
     rules: description.rules,
     base: base.base ?? base.id,
@@ -166,6 +195,9 @@ function compile(description) {
       texts.map((text) => tokenize(text, language, { templates: true })),
     ])
   );
+  for (const key of optionalTemplateKeys) {
+    language.compiled[key] ??= [];
+  }
   // Every word that appears literally in a template is reserved: a program
   // name spelled the same way gets a trailing "_" so it stays a name.
   language.reserved = new Set(
@@ -280,14 +312,12 @@ export function withTemplates(id, templates = {}) {
   const language = naturalLanguage(id);
   const merged = { ...language.templates };
   for (const [key, variants] of Object.entries(templates)) {
-    if (!templateKeys.includes(key)) {
+    if (!templateKeys.includes(key) && !optionalTemplateKeys.includes(key)) {
       throw new Error(`No template "${key}" in natural languages`);
     }
     const list = Array.isArray(variants) ? variants : [variants];
-    merged[key] = [
-      ...merged[key],
-      ...list.filter((text) => !merged[key].includes(text)),
-    ];
+    const known = merged[key] ?? [];
+    merged[key] = [...known, ...list.filter((text) => !known.includes(text))];
   }
   return compile({ ...language, templates: merged });
 }

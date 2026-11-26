@@ -1,4 +1,4 @@
-; Hello World in x86-64 assembly
+; Hello World in x86-64 assembly (NASM)
 
 default rel
 extern printf

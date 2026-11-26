@@ -28,14 +28,21 @@ import { StandardsView } from './StandardsView.js';
 import { defaultStorage } from './saved-standards.js';
 import { applySettings, saveSettings, settingsSchema } from './settings.js';
 import { CodeEditor } from './CodeEditor.js';
+import {
+  Options,
+  SideOptions,
+  languageOptions,
+  styleOptions,
+  modes,
+  swappedLanguages,
+} from './Options.js';
+import { useEditorSync } from './editor-sync.js';
 import { debug, timed } from './debug.js';
 import { linoLexicon, metaWords, sourceLexicon } from './highlight.js';
 
 const repositoryUrl =
   import.meta.env.VITE_REPOSITORY_URL ??
   'https://github.com/link-foundation/universal-translator';
-
-const modes = ['context-dependent', 'literal', 'same-effect'];
 
 // The Rosetta Code tasks random examples are cut from, by task name.
 const programs = Object.fromEntries(
@@ -100,6 +107,7 @@ function translateWith(
       output: result.text,
       errors: result.errors,
       coverage: result.coverage,
+      lineMap: result.lineMap,
       detected,
     };
   } catch (error) {
@@ -223,6 +231,7 @@ function TextPane({
   onChange,
   lexicon,
   editor,
+  onMount,
   t,
 }) {
   const failed = result.error !== undefined;
@@ -247,6 +256,7 @@ function TextPane({
           value: result.output ?? '',
           readOnly: !editable,
           onChange,
+          onMount,
           lexicon,
         })
   );
@@ -325,89 +335,6 @@ function Examples({ onExample, t }) {
       'span',
       { id: 'example-note', className: 'muted example-note', title: note },
       note
-    )
-  );
-}
-
-function Options({ state, update, natural, wrap, onWrap, t }) {
-  const { mode, fragment, showMeta, commentLanguage, allOrNothing } = state;
-  return h(
-    'div',
-    { className: 'options' },
-    h(
-      'label',
-      { className: 'field', htmlFor: 'mode' },
-      h('span', null, t('options.mode')),
-      h(
-        'select',
-        {
-          id: 'mode',
-          value: mode,
-          onChange: (event) => update({ mode: event.target.value }),
-        },
-        modes.map((name) => h('option', { key: name, value: name }, name))
-      )
-    ),
-    h(
-      'label',
-      { className: 'field', htmlFor: 'comment-language' },
-      h('span', null, t('options.comments')),
-      h(
-        'select',
-        {
-          id: 'comment-language',
-          value: commentLanguage,
-          onChange: (event) => update({ commentLanguage: event.target.value }),
-        },
-        h('option', { value: '' }, t('options.commentsSame')),
-        natural.map((entry) =>
-          h('option', { key: entry.id, value: entry.id }, entry.label)
-        )
-      )
-    ),
-    h(
-      'label',
-      { className: 'check', htmlFor: 'fragment' },
-      h('input', {
-        id: 'fragment',
-        type: 'checkbox',
-        checked: fragment,
-        onChange: (event) => update({ fragment: event.target.checked }),
-      }),
-      h('span', null, t('options.fragment'))
-    ),
-    h(
-      'label',
-      { className: 'check', htmlFor: 'all-or-nothing' },
-      h('input', {
-        id: 'all-or-nothing',
-        type: 'checkbox',
-        checked: allOrNothing,
-        onChange: (event) => update({ allOrNothing: event.target.checked }),
-      }),
-      h('span', null, t('options.allOrNothing'))
-    ),
-    h(
-      'label',
-      { className: 'check', htmlFor: 'show-meta' },
-      h('input', {
-        id: 'show-meta',
-        type: 'checkbox',
-        checked: showMeta,
-        onChange: (event) => update({ showMeta: event.target.checked }),
-      }),
-      h('span', null, t('options.meta'))
-    ),
-    h(
-      'label',
-      { className: 'check', htmlFor: 'word-wrap' },
-      h('input', {
-        id: 'word-wrap',
-        type: 'checkbox',
-        checked: wrap,
-        onChange: (event) => onWrap(event.target.checked),
-      }),
-      h('span', null, t('options.wrap'))
     )
   );
 }
@@ -494,8 +421,19 @@ function RulesNote({ count, error, onOpen, t }) {
   );
 }
 
-// The languages on either side, and the swap button between them.
-function Pickers({ entries, from, to, detected, onFrom, onSwap, onTo, t }) {
+// The languages on either side, and the swap button between them; under
+// each its comment and identifier languages (`below`).
+function Pickers({
+  entries,
+  from,
+  to,
+  detected,
+  onFrom,
+  onSwap,
+  onTo,
+  below,
+  t,
+}) {
   const detectedLabel =
     entries.find(
       (entry) =>
@@ -535,7 +473,10 @@ function Pickers({ entries, from, to, detected, onFrom, onSwap, onTo, t }) {
       entries,
       onChange: onTo,
       t,
-    })
+    }),
+    below[0],
+    h('span', { className: 'side-gap', 'aria-hidden': true }),
+    below[1]
   );
 }
 
@@ -566,25 +507,75 @@ function MetaPanes({ source, reading, result, to, editor, t }) {
   );
 }
 
-function Translate({ entries, state, update, rules, editor, onWrap, t }) {
-  const {
+// The source and its translation side by side, kept in step when both are
+// Monaco editors (editor-sync.js): selection, cursor, scrolling, folding
+// and the colours of the lines that match, with a strip between them.
+function Editors({ source, result, update, lexicons, editor, t }) {
+  const [sourcePane, setSourcePane] = useState();
+  const [targetPane, setTargetPane] = useState();
+  const strip = useRef();
+  const linked = editor.engine !== 'plain';
+  useEditorSync(
+    [sourcePane, targetPane],
+    strip,
+    result.lineMap,
     source,
-    from,
-    to,
-    mode,
-    fragment,
-    showMeta,
-    commentLanguage,
-    allOrNothing,
-  } = state;
-  const result = useMemo(
+    result.output
+  );
+  return h(
+    'div',
+    { className: linked ? 'code-grid linked' : 'code-grid' },
+    h(TextPane, {
+      id: 'source-text',
+      label: t('text.source'),
+      result: { output: source },
+      editable: true,
+      onChange: (text) => update({ source: text }),
+      onMount: setSourcePane,
+      lexicon: lexicons[0],
+      editor,
+      t,
+    }),
+    linked
+      ? h('svg', {
+          ref: strip,
+          className: 'map-strip',
+          'aria-hidden': true,
+          'data-line-map': result.lineMap ? result.lineMap.length : 0,
+        })
+      : null,
+    h(TextPane, {
+      id: 'target-text',
+      label: t('text.translation'),
+      result,
+      onMount: setTargetPane,
+      lexicon: lexicons[1],
+      editor,
+      t,
+    })
+  );
+}
+
+// The translation of the text as it is now, with the options chosen.
+function useTranslation(state, rules) {
+  const { source, from, to, mode, fragment, allOrNothing } = state;
+  const { commentFrom, commentLanguage, identifierFrom, identifierLanguage } =
+    state;
+  const { braces, indent } = state;
+  return useMemo(
     () =>
       translateText(source, from, to, {
         fragment,
         mode,
         allOrNothing,
         rules: rules.rules,
-        ...(commentLanguage ? { commentLanguage } : {}),
+        ...languageOptions({
+          commentFrom,
+          commentLanguage,
+          identifierFrom,
+          identifierLanguage,
+        }),
+        ...styleOptions({ braces, indent }),
       }),
     [
       source,
@@ -594,9 +585,19 @@ function Translate({ entries, state, update, rules, editor, onWrap, t }) {
       mode,
       allOrNothing,
       rules.rules,
+      commentFrom,
       commentLanguage,
+      identifierFrom,
+      identifierLanguage,
+      braces,
+      indent,
     ]
   );
+}
+
+function Translate({ entries, state, update, rules, editor, onWrap, t }) {
+  const { source, from, to, showMeta } = state;
+  const result = useTranslation(state, rules);
   const natural = entries.filter((entry) => entry.group === 'natural');
   // The language the text is read in: the one chosen, or the detected one.
   const reading = from === 'auto' ? result.detected : from;
@@ -624,6 +625,7 @@ function Translate({ entries, state, update, rules, editor, onWrap, t }) {
     update({
       from: to,
       to: reading ?? 'python',
+      ...swappedLanguages(state),
       ...(result.output === undefined ? {} : { source: result.output }),
     });
   const onExample = (kind, random) => {
@@ -638,6 +640,8 @@ function Translate({ entries, state, update, rules, editor, onWrap, t }) {
     }
     return example;
   };
+  const side = (name) =>
+    h(SideOptions, { side: name, state, update, natural, t });
 
   return h(
     'div',
@@ -651,9 +655,9 @@ function Translate({ entries, state, update, rules, editor, onWrap, t }) {
       onFrom: changeFrom,
       onSwap: swap,
       onTo: (next) => update({ to: next }),
+      below: [side('source'), side('target')],
       t,
     }),
-    h(Options, { state, update, natural, wrap: editor.wrap, onWrap, t }),
     rules.count || rules.rulesError
       ? h(RulesNote, {
           count: rules.count,
@@ -662,32 +666,19 @@ function Translate({ entries, state, update, rules, editor, onWrap, t }) {
           t,
         })
       : null,
-    h(
-      'div',
-      { className: 'code-grid' },
-      h(TextPane, {
-        id: 'source-text',
-        label: t('text.source'),
-        result: { output: source },
-        editable: true,
-        onChange: (text) => update({ source: text }),
-        lexicon: sourceLexicon,
-        editor,
-        t,
-      }),
-      h(TextPane, {
-        id: 'target-text',
-        label: t('text.translation'),
-        result,
-        lexicon: targetLexicon,
-        editor,
-        t,
-      })
-    ),
+    h(Editors, {
+      source,
+      result,
+      update,
+      lexicons: [sourceLexicon, targetLexicon],
+      editor,
+      t,
+    }),
     result.errors?.length
       ? h(Untranslated, { errors: result.errors, coverage: result.coverage, t })
       : null,
-    showMeta && h(MetaPanes, { source, reading, result, to, editor, t })
+    showMeta && h(MetaPanes, { source, reading, result, to, editor, t }),
+    h(Options, { state, update, wrap: editor.wrap, onWrap, t })
   );
 }
 
@@ -699,8 +690,13 @@ const initialState = {
   mode: modes[0],
   fragment: true,
   showMeta: false,
+  commentFrom: '',
   commentLanguage: '',
+  identifierFrom: '',
+  identifierLanguage: '',
   allOrNothing: false,
+  braces: '',
+  indent: '',
 };
 
 export function App({ initialSettings }) {
@@ -720,7 +716,7 @@ export function App({ initialSettings }) {
   const rules = useRules(entries);
   rules.open = () => setTab('rules');
   const editor = {
-    engine: settings.editor ?? 'plain',
+    engine: settings.editor ?? 'monaco',
     wrap: settings.wrap ?? true,
   };
   const update = useCallback(

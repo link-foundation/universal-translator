@@ -1,0 +1,6 @@
+Nota: Loops/Foreach in JavaScript: print every element of a collection
+
+Crea numeri con valore la lista (1, 1, 2, 3, 5, 8, 13, 21).
+Per ogni indice da 0 a la lunghezza di numeri meno 1, ripeti questo:
+  Crea numero con valore l'elemento indice di numeri.
+  Scrivi numero e termina la riga.

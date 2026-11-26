@@ -5,9 +5,11 @@ matching JavaScript and Rust implementations. The translator is built from
 grammar and rule tables, not from per-program templates. It reads JavaScript,
 TypeScript, Python, Ruby, Lua, PHP, C, C++, C#, Java, Go, Rust, Kotlin,
 Swift, Perl, Dart, Scala, Julia, R, Groovy, Objective-C, Nim, D, Pascal,
-Fortran, Ada, Visual Basic .NET, Bash, MATLAB/Octave, Zig, Lean 4 and Rocq
-(32 languages), and writes any of them. It can also lower a program to x86-64
-assembly (NASM), CIL (ILAsm) or JVM bytecode (Jasmin).
+Fortran, Ada, Visual Basic .NET, Bash, MATLAB/Octave, Zig, Lean 4, Rocq and
+GameMaker Language (33 languages), and writes any of them. It can also lower a program to x86-64
+assembly (NASM or GNU as, AT&T), ARM64 assembly, CIL (ILAsm), JVM bytecode
+(Jasmin), LLVM IR or WebAssembly text. These machine targets appear in
+`languages()` flagged `machine: true`, after the programming languages.
 
 ## Translate a program
 
@@ -56,7 +58,9 @@ Every program in `examples/programs` has been translated into every target
 in `examples/programs/translated`. These shared files are what the JavaScript
 and Rust tests check against. `node examples/programs/verify-native.mjs`
 compiles and runs each translation with its native toolchain, and CI runs it
-with `--require-all`.
+with `--require-all`. GameMaker Language has no runtime outside the
+GameMaker IDE, so its translations are only checked by reading them back
+into the same meta program.
 
 ## Translate a statement or a function on its own
 
@@ -102,7 +106,7 @@ Limits:
   as a declaration.
 - In a natural language, a fragment is one or more sentences that match a
   template of the language.
-- Machine targets (NASM, CIL, JVM) hold whole programs only. A statement or
+- Machine targets (NASM, GNU as, ARM64, CIL, JVM, LLVM IR, WebAssembly text) hold whole programs only. A statement or
   function on its own is rejected.
 - Perl and Bash have no booleans, so `true` and `false` come back as 1 and 0.
 - Classes are not part of the meta language yet.
@@ -193,9 +197,19 @@ docker run --rm -i universal-translator translate javascript go - < app.js
 ```
 
 `POST /translate` takes `{source, from, to, fragment?, mode?, commonLibrary?,
+commentLanguage?, commentFrom?, identifierLanguage?, identifierFrom?, layout?, braces?, indent?,
 allOrNothing?, rules?}` and answers `{output, complete, errors, coverage?,
-detected?}`, or `{error}` with status 400. Regular expression rules are refused unless the
-server is created with `createTranslationServer({ allowRegexRules: true })`.
+lineMap?, detected?}`, or `{error}` with status 400. Regular expression rules
+are refused unless the server is created with
+`createTranslationServer({ allowRegexRules: true })`.
+
+The Rust command line has the same `serve [--port <port>] [--host <host>]`
+command (`std::net` and a minimal HTTP/1.1, one request per connection, no web
+framework). It reads `PORT`, `HOST` and `.lenv` like the JavaScript one,
+prints `Listening on http://<host>:<port>`, and answers the same JSON bytes as
+the JavaScript server for the same request (`rust/tests/serve.rs` compares the
+two). The only difference is the wording of the parser's message after `The
+body is not JSON: `. The library functions are `universal_translator::server`.
 
 ### Partial translation, detection and rules
 
@@ -262,6 +276,92 @@ output:
 
 `POST /translate` takes `rules` as this text or as the object.
 
+### Checking that two programs are equivalent
+
+`check-equivalence` reads a source and its translation into meta programs
+and compares them line by line. Comments, blank lines, imports, declared
+types and mutability are left out, because they do not change what a
+program does. Without a translation it checks what the translator writes.
+When the programs differ it prints the first differing lines of the meta
+programs and exits with status 1:
+
+```bash
+universal-translator check-equivalence javascript python sum.js sum.py
+# equivalent: true
+# metaLines: 7
+universal-translator check-equivalence javascript rust sum.js   # checks the translation
+universal-translator check-equivalence javascript python sum.js changed.py
+# equivalent: false
+# metaLines: 7
+# differences:
+#   (line 5) (source 'number 3') (target 'number 4')
+# The python translation does not do what the javascript source does
+```
+
+```js
+import {
+  checkEquivalence,
+  createTranslator,
+} from '@link-foundation/universal-translator';
+
+checkEquivalence(createTranslator(), {
+  source,
+  from: 'javascript',
+  to: 'python',
+  translation, // optional: the translator writes one when it is left out
+});
+// { equivalent, translation, metaLines, differences: [{ line, source, target }] }
+```
+
+In Rust this is
+`check_equivalence(&Translator::new(), (source, from), (Some(translation), to), Options::default())`,
+which returns an `Equivalence { equivalent, translation, meta_lines, differences }`.
+Every committed translation in `examples/programs/translated` is equivalent
+to its JavaScript source (`experiments/issue-14/equivalence-matrix.mjs`; the tests are
+`js/tests/equivalence.test.js` and `rust/tests/equivalence.rs`).
+
+### Layout: the source's whitespace, by default
+
+Partial translation (the default of the command line, the server and the
+web demo) keeps the concrete layout of the source wherever the target has
+the same tokens: the spaces inside a line, the step of indentation, the
+blank lines, the blank lines around the code and the line ends. It also
+returns `lineMap`, the 0-based `[source line, target line]` pairs that the
+web demo uses to keep both editors in step. `--layout target` (`layout:
+'target'`) writes the layout of the target's emitter instead:
+
+```bash
+printf '\nconsole.log( "Hello World!");\n\nconsole.log(1+ 2);\n' > hello.js
+universal-translator translate javascript python hello.js
+# (blank line)
+# print( "Hello World!")
+# (blank line)
+# print(1+ 2)
+universal-translator translate javascript python hello.js --layout target
+```
+
+Spaces that would join two tokens (`u "x"`), make a call a grouping
+(`f (x)`), or sit next to `.`, `:` and the like are left as the target
+writes them, and Bash keeps its own spacing. `examples/layout/` holds the
+examples both implementations are checked against; see the
+[issue 14 case study](docs/case-studies/issue-14/README.md).
+
+### Brace placement and indent width
+
+`--braces same-line|next-line` and `--indent <n|tab>` (`braces` and
+`indent` in the library and in `POST /translate`; `Options::style` in
+Rust) write the target in a style of its own. Each opening brace goes on
+the line of its statement or on a line of its own (with `}`, `else` and `{`
+on lines of their own), and each block is indented by 1 to 16 spaces or a
+tab. Translating a program into its own language restyles it:
+
+```bash
+universal-translator translate javascript csharp sign.js --braces next-line
+universal-translator translate javascript javascript sign.js --indent 2
+```
+
+Go keeps the brace on the line of its statement, as its grammar needs.
+
 ### Language versions, comment languages and the meta view
 
 A target may name a version of a language (`python@2`, `english-british`,
@@ -275,6 +375,30 @@ universal-translator translate python python app.py --comment-language german  #
 universal-translator meta python app.py   # the meta language as an indented tree
 universal-translator meta python app.py --json   # the same program as JSON
 ```
+
+A version changes how a program is written, and a language reads the
+programs of all its versions; it changes how a program is read only where
+two versions disagree (`print(x)` ends the line in Swift 2 and later, not
+in `swift@1`). Besides `python@2` and `python@3.5` (no f-strings),
+`javascript@es5` writes `var`, `+` joins, `~~(a / b)` and a fill loop
+instead of `let`, `const`, template strings, `Math.trunc` and
+`Array(n).fill`; `php@5` writes `(int) (a / b)` and `array(...)` instead of
+`intdiv` and `[...]`; `csharp@5` joins text with `Convert.ToString` and `+`
+instead of `$"..."`; `scala@2.9` joins text with `String.valueOf` and `+`
+instead of `s"..."`; `lua@5.1` divides with `math.floor(a / b)`;
+`java@1.4` counts over the indexes of an array instead of a for-each loop;
+and `swift@1` writes `println(x)` and `print(x)` instead of `print(x)` and
+`print(x, terminator: "")`. Ask for `universal-translator languages` or
+`versionsOf(id)` to list the versions of a language, and an unknown version
+is an error (`php has no version "4"`).
+
+The Hello World Collection (http://helloworldcollection.de) is a test corpus:
+`node scripts/hello-world-collection.mjs --fetch` downloads the page (after
+asking `robots.txt`), caches it under
+`docs/case-studies/issue-14/data/hello-world-collection/`, extracts the
+program of every language id and records in
+`docs/case-studies/issue-14/hello-world-coverage.lino` which programs read
+into the meta language and why the others do not.
 
 The meta view is indented Links Notation: one line per node with its kind,
 its main value and its other plain fields as `(name value)` links, and its
@@ -297,6 +421,70 @@ program
       otherwise
         return
           number 0 (type integer)
+  call print-line (library standard)
+    call twice (type integer)
+      number 3 (type integer)
+```
+
+The meta view shows a program in its general form. Printing a line and
+taking the length of an array are no special parts of the meta language:
+they are calls to procedures of its standard library (`print-line`,
+`print`, `length`), each of which every target spells in its own way
+(`console.log`, `print`, `printf`, `len`, `.length`, ...). `generalize`
+and `specialize` move a meta program between this general form and the
+concepts the emitters work on, and `fromMeta` accepts either form:
+
+```js
+import { generalize, specialize } from '@link-foundation/universal-translator';
+
+const meta = translator.toMeta(
+  'numbers = [1, 2]\nprint(len(numbers))\n',
+  'python'
+);
+const general = generalize(meta);
+// Evaluate { Call print-line (library standard) [Call length (library standard) [numbers]] }
+translator.fromMeta(general, 'c'); // printf("%d\n", (int) (sizeof numbers / sizeof numbers[0]));
+specialize(general); // the same program as toMeta wrote it
+```
+
+The `meta` command also reads comments and strings with the grammars
+they are written in (`--shallow` leaves them as plain text;
+`nestGrammars` / `nest_grammars` do the same in code). A comment is read
+as prose of the natural language most of its words belong to: its
+sentences, its words and the concepts, semantic primes or program words
+they stand for. Code quoted between backticks, and a string that one of
+the programming languages reads whole, is read as a nested program. A
+text longer than twelve words is written once in the `texts` of the
+program and referred to by id from every comment and string that holds
+it. `unnest` gives back the plain program, and `fromMeta` accepts the
+nested form too:
+
+```
+program
+  paragraph text-1 (text 'This program reads a list of numbers, adds them and prints the sum of all of them')
+    prose english
+      sentence
+        word This (part prime) (prime this)
+        word program (concept program) (part noun)
+        word reads (concept read) (part verb)
+        ...
+  comment 'Prints `x + 1`'
+    prose english
+      sentence
+        word Prints (concept print) (part verb)
+        code javascript
+          program
+            evaluate
+              binary add (type integer)
+                name x
+                number 1 (type integer)
+  declaration x (mutable false) (type integer)
+    number 1 (type integer)
+  call print-line (library standard)
+    binary add (type integer)
+      name x (type integer)
+      number 1 (type integer)
+  comment (reference text-1)
 ```
 
 ```js
@@ -321,7 +509,13 @@ naturalLanguageVersions('english'); // regions, standards and minimal-english
 Every natural language has a `minimal-<id>` version restricted to the 65
 semantic primes of Natural Semantic Metalanguage. `createStandard`,
 `defineWord` and `wikidataLookup` build a standard of at most 1024 words
-whose other words are defined recursively through it. The web demo edits
+whose other words are defined recursively through it. The Rust crate has
+`universal_translator::natural::standards` with the same standards and
+`define_word`; its Wikidata lookup never fetches (the standard library has no
+HTTPS), it answers from a definition cache in the file format of
+`scripts/precache-definitions.mjs` (`data/definitions/wikidata-english.lino`,
+shipped with the crate as `precached_definitions("english")`), so definitions
+the JavaScript side fetched once work offline in both. The web demo edits
 standards and settings, and switches between the languages on both sides.
 The Rust crate has the same versions, comment languages and
 `--comment-language`/`--comment-from` flags. See the
@@ -332,6 +526,42 @@ parts and edits the same rules visually. `node scripts/rosetta-code.mjs all`
 measures coverage over every Rosetta Code task; see the
 [issue 8 case study](docs/case-studies/issue-8/README.md). Pull requests build the
 image and smoke test both the CLI and the API inside it.
+
+### Decorators
+
+Every stage of the pipeline is a replaceable function, and every stage can
+also be wrapped. A decorator receives the inner implementation of a stage
+and returns the wrapped one, so it can trace calls, rewrite the input or the
+output, cache or fall back. The stages are `parse`, `infer`, `lift`,
+`readMachine`, `readNatural`, `emit`, `emitMachineCode` and `writeNatural`.
+Decorators of one stage compose in the order they are added: the first is
+innermost, the last sees the input first and the output last.
+
+```js
+import { createTranslator } from '@link-foundation/universal-translator';
+
+const translator = createTranslator({
+  decorate: {
+    // trace every program that is emitted
+    emit: (next) => (meta, to) => {
+      console.error(`emit ${to}`);
+      return next(meta, to);
+    },
+  },
+})
+  // rewrite the output of the emitter
+  .decorate('emit', (next) => (meta, to) => next(meta, to).toUpperCase());
+
+translator.translate('console.log("Hi");\n', 'javascript', 'python');
+// 'PRINT("HI")\n', after "emit python" on stderr
+```
+
+`translator.decorate(stage, decorator)` and
+`translator.decorate({ stage: decorator | [decorators] })` return a new
+translator, and `withRules` keeps the decorators. The Rust crate has the
+same API: `Translator::new().decorate_emit(|next| Arc::new(move |meta, to|
+next(meta, to).map(|text| text.to_uppercase())))`, with one `decorate_*`
+method per stage and the stage types in `universal_translator::stages`.
 
 ## Features
 

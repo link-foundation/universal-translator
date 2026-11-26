@@ -1,8 +1,12 @@
 //! The meta language shared by every formal and natural language: the
 //! language-independent tree ([`tree`]), its type inference ([`types`]) and
-//! truth rules ([`truth`]), Links Notation reading ([`links`]), and the
+//! truth rules ([`truth`]), its standard library ([`library`]), Links
+//! Notation reading ([`links`]), and the
 //! rule and error types that every stage uses.
 
+pub mod for_each;
+pub mod imprecision;
+pub mod library;
 pub mod links;
 pub mod notation;
 pub mod tree;
@@ -56,6 +60,9 @@ impl std::error::Error for GrammarError {}
 pub struct Settings {
     pub from: String,
     pub to: String,
+    /// The target with its version (`python@2`), for the rules that depend
+    /// on it.
+    pub target: String,
     pub mode: Mode,
 }
 

@@ -20,6 +20,7 @@ natural:
     else: 'If not, do these steps'
     while: 'While {condition}, do these steps again'
     for: 'For each {variable} from {start} to {last}, do these steps'
+    for-each: 'For each {variable} in {array}, do these steps'
     join: '{left} then {right}'
     equal: '{left} equals {right}' '{left} = {right}' '{left} == {right}'
     not-equal: '{left} is not {right}' '{left} != {right}' '{left} ≠ {right}' '{left} <> {right}'
@@ -32,4 +33,4 @@ natural:
   rules:
     max-sentence-words: 20
     sentence-starts: procedure set change write return stop do if while for
-    vocabulary: procedure with set to change write line return stop do nothing if not and these steps while again for each from then of or the negative equals is less than more plus minus times divided by modulo true false list a item items value length
+    vocabulary: procedure with set to change write line return stop do nothing if not and these steps while again for each from then of in or the negative equals is less than more plus minus times divided by modulo true false list a item items value length

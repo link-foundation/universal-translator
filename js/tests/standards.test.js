@@ -101,6 +101,7 @@ describe('standards of programming languages', () => {
     }
     expect(versionsOf('python').map(({ version }) => version)).toEqual([
       '3',
+      '3.5',
       '2',
     ]);
   });

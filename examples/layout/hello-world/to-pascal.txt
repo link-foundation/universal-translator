@@ -1,0 +1,4 @@
+
+WriteLn( 'Hello World!');
+
+WriteLn(1+ 2);

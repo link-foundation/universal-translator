@@ -1,4 +1,4 @@
-; Primality by trial division in x86-64 assembly
+; Primality by trial division in x86-64 assembly (NASM)
 
 default rel
 extern printf

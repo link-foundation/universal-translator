@@ -6,7 +6,8 @@
 //!   --custom meta layers--> --context rules--> --emit--> target text
 //! ```
 //!
-//! Machine targets (x86-64 assembly, CIL and JVM bytecode) replace the last
+//! Machine targets (assembly for x86-64 and ARM64, CIL, JVM bytecode, LLVM IR
+//! and WebAssembly text) replace the last
 //! step: the adapted meta program is lowered to stack machine code and
 //! written in the target's assembler syntax. Machine code is also read
 //! back: its instructions are lifted into the meta language and continue
@@ -16,10 +17,8 @@
 //! decorate rules, and a trace hook sees the tree after every stage.
 
 pub use crate::Mode;
-use crate::formal::{
-    common_library, emitter, languages, lifting, machine, machine_reader, parser, rules,
-};
-use crate::meta::{self, GrammarError, Node, Rule, Settings, Trace, apply_rules, types};
+use crate::formal::{common_library, languages, rules};
+use crate::meta::{self, GrammarError, Node, Rule, Settings, Trace, Value, apply_rules, library};
 use crate::natural;
 use std::sync::Arc;
 
@@ -30,6 +29,10 @@ use crate::formal::versions::{Version, split_version, versions_of};
 use crate::fragments;
 pub use crate::fragments::{Fragment, FragmentKind};
 pub use crate::partial::{PartError, PartStatus, PartialReading, PartialTranslation};
+use crate::stages::{
+    EmitStage, InferStage, LiftStage, ParseStage, ReadMachineStage, ReadNaturalStage, Stages,
+};
+use crate::style::{Style, apply_style};
 
 /// How a translation is written.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -44,6 +47,99 @@ pub struct Options {
     /// The natural language the comments are written in (detected when
     /// absent).
     pub comment_from: Option<&'static str>,
+    /// The natural language to translate the declared names to. When the
+    /// source and the target are the same programming language, only the
+    /// names change, in place. Set it with
+    /// [`Options::with_identifier_language`].
+    pub identifier_language: Option<&'static str>,
+    /// The natural language the declared names are written in (detected
+    /// when absent).
+    pub identifier_from: Option<&'static str>,
+    /// Whose layout a partial translation between programming languages
+    /// keeps (see [`crate::layout`]).
+    pub layout: TextLayout,
+    /// The brace placement and indent width the target is written in (as
+    /// its emitter writes it when unset); see [`crate::style`].
+    pub style: Style,
+}
+
+/// The layout of a translation between programming languages.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum TextLayout {
+    /// The spaces, blank lines, indentation step and line ends of the
+    /// source, where the target has the same tokens (the default).
+    #[default]
+    Source,
+    /// The layout the emitter of the target writes.
+    Target,
+}
+
+impl std::str::FromStr for TextLayout {
+    type Err = String;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        match value {
+            "source" => Ok(Self::Source),
+            "target" => Ok(Self::Target),
+            _ => Err(format!(r#"Unsupported layout "{value}""#)),
+        }
+    }
+}
+
+/// Give a partial translation between programming languages the layout of
+/// its source and the map of its lines.
+fn with_layout(
+    mut result: PartialTranslation,
+    source: &str,
+    from: &str,
+    to: &str,
+    options: Options,
+) -> Result<PartialTranslation, GrammarError> {
+    if natural::is_natural_language(from) || natural::is_natural_language(to) {
+        return Ok(result);
+    }
+    let (from_syntax, to_syntax) = (
+        languages::language_syntax(from)?,
+        languages::language_syntax(to)?,
+    );
+    if from_syntax.machine || to_syntax.machine {
+        return Ok(result);
+    }
+    let layout = crate::layout::transfer_layout(
+        source,
+        &result.text,
+        &crate::layout::Marks::of(&from_syntax),
+        &crate::layout::Marks::of(&to_syntax),
+        options.layout == TextLayout::Source && !options.style.is_set(),
+        split_version(to).0,
+    );
+    if !options.style.is_set() {
+        result.text = layout.text;
+        result.line_map = layout.lines;
+        return Ok(result);
+    }
+    // A style lays the target out anew: each line of the map (from 0) moves
+    // to the line it starts at (from 1).
+    let styled = apply_style(&layout.text, &to_syntax, options.style)?;
+    result.line_map = layout
+        .lines
+        .into_iter()
+        .map(|(line, target)| (line, styled.starts[target] - 1))
+        .collect();
+    result.text = styled.text;
+    Ok(result)
+}
+
+/// A whole translation written in the style asked for.
+fn styled(text: String, to: &str, style: Style) -> Result<String, GrammarError> {
+    if !style.is_set() || natural::is_natural_language(to) {
+        return Ok(text);
+    }
+    let syntax = languages::language_syntax(to)?;
+    if syntax.machine {
+        return Ok(text);
+    }
+    Ok(apply_style(&text, &syntax, style)?.text)
 }
 
 impl Options {
@@ -63,6 +159,23 @@ impl Options {
         self.comment_from = from.map(known).transpose()?;
         Ok(self)
     }
+
+    /// The options that also translate the declared names to the natural
+    /// language `to`, from `from` (detected when `None`).
+    pub fn with_identifier_language(
+        mut self,
+        to: &str,
+        from: Option<&str>,
+    ) -> Result<Self, GrammarError> {
+        let known = |id: &str| {
+            natural::natural_language(id)
+                .map(|language| language.id.as_str())
+                .map_err(GrammarError::new)
+        };
+        self.identifier_language = Some(known(to)?);
+        self.identifier_from = from.map(known).transpose()?;
+        Ok(self)
+    }
 }
 
 /// The grammar translator with its rule layers.
@@ -79,6 +192,9 @@ pub struct Translator {
     /// Translates comments to a comment language (the comment dictionary
     /// when absent).
     pub comment_translator: Option<CommentTranslator>,
+    /// The replaceable stages (parser, readers, emitters) with their
+    /// decorators; see the `decorate_*` methods.
+    pub stages: Stages,
 }
 
 impl Default for Translator {
@@ -91,6 +207,7 @@ impl Default for Translator {
             trace: None,
             rules: Arc::default(),
             comment_translator: None,
+            stages: Stages::default(),
         }
     }
 }
@@ -129,7 +246,68 @@ impl Translator {
         self
     }
 
-    fn comment_translator(&self) -> CommentTranslator {
+    /// The translator with a decorator around the parser: it receives the
+    /// inner parser and returns the wrapped one. Decorators compose in the
+    /// order they are added; the last added is the outermost.
+    pub fn decorate_parse(mut self, decorator: impl FnOnce(ParseStage) -> ParseStage) -> Self {
+        self.stages.parse = decorator(self.stages.parse.clone());
+        self
+    }
+
+    /// The translator with a decorator around type inference.
+    pub fn decorate_infer(mut self, decorator: impl FnOnce(InferStage) -> InferStage) -> Self {
+        self.stages.infer = decorator(self.stages.infer.clone());
+        self
+    }
+
+    /// The translator with a decorator around lifting machine instructions
+    /// to the meta language.
+    pub fn decorate_lift(mut self, decorator: impl FnOnce(LiftStage) -> LiftStage) -> Self {
+        self.stages.lift = decorator(self.stages.lift.clone());
+        self
+    }
+
+    /// The translator with a decorator around the machine code reader.
+    pub fn decorate_read_machine(
+        mut self,
+        decorator: impl FnOnce(ReadMachineStage) -> ReadMachineStage,
+    ) -> Self {
+        self.stages.read_machine = decorator(self.stages.read_machine.clone());
+        self
+    }
+
+    /// The translator with a decorator around the natural language reader.
+    pub fn decorate_read_natural(
+        mut self,
+        decorator: impl FnOnce(ReadNaturalStage) -> ReadNaturalStage,
+    ) -> Self {
+        self.stages.read_natural = decorator(self.stages.read_natural.clone());
+        self
+    }
+
+    /// The translator with a decorator around the programming language
+    /// emitter.
+    pub fn decorate_emit(mut self, decorator: impl FnOnce(EmitStage) -> EmitStage) -> Self {
+        self.stages.emit = decorator(self.stages.emit.clone());
+        self
+    }
+
+    /// The translator with a decorator around the machine code emitter.
+    pub fn decorate_emit_machine(mut self, decorator: impl FnOnce(EmitStage) -> EmitStage) -> Self {
+        self.stages.emit_machine = decorator(self.stages.emit_machine.clone());
+        self
+    }
+
+    /// The translator with a decorator around the natural language writer.
+    pub fn decorate_write_natural(
+        mut self,
+        decorator: impl FnOnce(EmitStage) -> EmitStage,
+    ) -> Self {
+        self.stages.write_natural = decorator(self.stages.write_natural.clone());
+        self
+    }
+
+    pub(crate) fn comment_translator(&self) -> CommentTranslator {
         self.comment_translator
             .clone()
             .unwrap_or_else(comment_language::dictionary_translator)
@@ -145,6 +323,56 @@ impl Translator {
                 &self.comment_translator(),
             ),
             None => Ok(program),
+        }
+    }
+
+    /// The declared names can be words of a natural language of their own
+    /// too.
+    fn in_identifier_language(
+        &self,
+        program: Node,
+        options: Options,
+    ) -> Result<Node, GrammarError> {
+        match options.identifier_language {
+            Some(to) => crate::identifier_language::translate_program_identifiers(
+                program,
+                options.identifier_from,
+                to,
+                &self.comment_translator(),
+            ),
+            None => Ok(program),
+        }
+    }
+
+    /// Same code, other comment or identifier language: change only the
+    /// comments and the declared names, in place, so every other character
+    /// of the code stays. `None` when only the meta program can rename.
+    fn in_place(
+        &self,
+        source: &str,
+        language: &str,
+        options: Options,
+    ) -> Result<Option<String>, GrammarError> {
+        let mut text = source.to_owned();
+        if let Some(to) = options.identifier_language {
+            let declared = crate::formal::names::declared_names(&self.to_meta(source, language)?);
+            match crate::identifier_language::translate_identifiers(
+                &text,
+                language,
+                &declared,
+                options.identifier_from,
+                to,
+                &self.comment_translator(),
+            )? {
+                Some(renamed) => text = renamed,
+                None => return Ok(None),
+            }
+        }
+        match options.comment_language {
+            Some(to) => self
+                .translate_comments(&text, language, options.comment_from, to)
+                .map(Some),
+            None => Ok(Some(text)),
         }
     }
 
@@ -172,54 +400,64 @@ impl Translator {
         }
     }
 
-    /// Read a source text into a typed meta program.
+    /// Read a source text into a typed meta program, with what its reading
+    /// lost marked.
     pub fn to_meta(&self, text: &str, from: &str) -> Result<Node, GrammarError> {
+        self.read_meta(text, from)
+            .map(crate::meta::imprecision::mark_imprecision)
+    }
+
+    fn read_meta(&self, text: &str, from: &str) -> Result<Node, GrammarError> {
         let source = &self.rules.source(text, from);
         if natural::is_natural_language(from) {
             // A controlled natural language is read sentence by sentence
             // straight into the meta language; it has no source details to
             // understand.
-            let read = match self.rules.natural_language(from) {
-                Some(language) => natural::read_natural_with(source, language),
-                None => natural::read_natural(source, from),
-            }
-            .map_err(GrammarError::new)?;
+            let language = match self.rules.natural_language(from) {
+                Some(language) => language,
+                None => natural::natural_language(from).map_err(GrammarError::new)?,
+            };
+            let read = (self.stages.read_natural)(source, from, language)?;
             let read = rules::infer_mutability(read);
             self.report("read", &read);
             let settings = Settings {
                 from: from.to_owned(),
                 to: from.to_owned(),
+                target: from.to_owned(),
                 mode: Mode::default(),
             };
-            let typed = apply_rules(types::infer_types(read), &self.meaning, &settings);
+            let typed = apply_rules((self.stages.infer)(read), &self.meaning, &settings);
             self.report("typed", &typed);
             return Ok(typed);
         }
         let syntax = languages::language_syntax(from)?;
-        // Reading accepts every version of a language: `python@2` reads
-        // Python.
-        let id = split_version(from).0;
+        // The reading rules see the version: `swift@1` reads `print` as
+        // output without a line end, like the JavaScript reader.
         let settings = Settings {
-            from: id.to_owned(),
-            to: id.to_owned(),
+            from: from.to_owned(),
+            to: from.to_owned(),
+            target: from.to_owned(),
             mode: Mode::default(),
         };
         if syntax.machine {
             // Machine code has no grammar to parse: read its instructions,
             // lift them to the meta language and continue like any other
             // source.
-            let machine = machine_reader::read_machine(source, from)?;
-            let lifted = rules::infer_mutability(lifting::lift_program(&machine)?);
+            let machine = (self.stages.read_machine)(source, from)?;
+            let lifted =
+                rules::infer_mutability(meta::for_each::raise_for_each((self.stages.lift)(
+                    &machine,
+                )?));
             self.report("lifted", &lifted);
-            let typed = apply_rules(types::infer_types(lifted), &self.meaning, &settings);
+            let typed = apply_rules((self.stages.infer)(lifted), &self.meaning, &settings);
             self.report("typed", &typed);
             return Ok(typed);
         }
-        let source_tree = parser::parse_program(source, &syntax)?;
+        let source_tree = (self.stages.parse)(source, &syntax)?;
         self.report("parsed", &source_tree);
         let meta = apply_rules(source_tree, &self.understanding, &settings);
         self.report("understood", &meta);
-        let typed = apply_rules(types::infer_types(meta), &self.meaning, &settings);
+        let typed = apply_rules((self.stages.infer)(meta), &self.meaning, &settings);
         self.report("typed", &typed);
         Ok(typed)
     }
@@ -248,8 +486,30 @@ impl Translator {
         from: Option<&str>,
         options: Options,
     ) -> Result<String, GrammarError> {
-        let adapted = self.adapt(meta, to, from, options)?;
+        let complete = self.complete_meta(meta, to, from);
+        let adapted = self.adapt(&complete, to, from, options)?;
         self.write(&adapted, to)
+    }
+
+    /// A meta program given from outside may be written in its general
+    /// form (calls to the standard library), hold the readings of its
+    /// nested texts and leave out empty lists and types.
+    fn complete_meta(&self, meta: &Node, to: &str, from: Option<&str>) -> Node {
+        let mut special = library::specialize(crate::nesting::unnest(meta));
+        if special.is("Program") {
+            for field in ["comments", "imports", "functions"] {
+                if special.get(field).is_none() {
+                    special.set(field, Value::List(Vec::new()));
+                }
+            }
+        }
+        let settings = Settings {
+            from: split_version(from.unwrap_or(to)).0.to_owned(),
+            to: split_version(to).0.to_owned(),
+            target: to.to_owned(),
+            mode: Mode::default(),
+        };
+        apply_rules((self.stages.infer)(special), &self.meaning, &settings)
     }
 
     /// Run the custom layers and the context rules for a target. A natural
@@ -287,6 +547,7 @@ impl Translator {
         let settings = Settings {
             from: split_version(from.unwrap_or(to)).0.to_owned(),
             to: split_version(to).0.to_owned(),
+            target: to.to_owned(),
             mode: options.mode,
         };
         // Custom layers are meta -> meta transformations, so they see the
@@ -302,6 +563,7 @@ impl Translator {
         if options.common_library {
             transformed = common_library::use_common_library(transformed)?;
         }
+        let transformed = self.in_identifier_language(transformed, options)?;
         self.report("transformed", &transformed);
         if natural {
             return self.in_comment_language(transformed, options);
@@ -314,11 +576,11 @@ impl Translator {
     /// Write an adapted program in a language, a machine target or words.
     pub fn write(&self, adapted: &Node, to: &str) -> Result<String, GrammarError> {
         let written = if natural::is_natural_language(to) {
-            natural::write_natural(adapted, to).map_err(GrammarError::new)?
+            (self.stages.write_natural)(adapted, to)?
         } else if languages::language_syntax(to)?.machine {
-            machine::emit_machine(adapted, to)?
+            (self.stages.emit_machine)(adapted, to)?
         } else {
-            emitter::emit_program(adapted, to)?
+            (self.stages.emit)(adapted, to)?
         };
         Ok(self.rules.output(&written, to))
     }
@@ -326,7 +588,7 @@ impl Translator {
     /// Emit an adapted program in a programming language, with the output
     /// rules.
     pub fn emit_text(&self, adapted: &Node, to: &str) -> Result<String, GrammarError> {
-        Ok(self.rules.output(&emitter::emit_program(adapted, to)?, to))
+        Ok(self.rules.output(&(self.stages.emit)(adapted, to)?, to))
     }
 
     /// Comments that stand on their own as statements of the target.
@@ -354,28 +616,31 @@ impl Translator {
         let machine = machine_target_ids().contains(&to)
             || (!natural::is_natural_language(from) && languages::language_syntax(from)?.machine);
         let whole = if fragment {
-            self.translate_fragment(source, from, to, options)
+            fragments::translate_fragment(self, source, from, to, options)
         } else {
-            self.translate_with(source, from, to, options)
+            self.translate_plain(source, from, to, options)
         };
-        match whole {
+        let result = match whole {
             Ok(text) => {
                 let lines = source
                     .split('\n')
                     .filter(|line| !line.trim().is_empty())
                     .count();
-                Ok(PartialTranslation {
+                PartialTranslation {
                     text,
+                    line_map: Vec::new(),
                     complete: true,
                     errors: Vec::new(),
                     lines,
                     read_lines: lines,
                     coverage: 1.0,
-                })
+                    prose: Vec::new(),
+                }
             }
-            Err(error) if machine => Err(error),
-            Err(_) => crate::partial::translate_partial(self, source, from, to, options),
-        }
+            Err(error) if machine => return Err(error),
+            Err(_) => crate::partial::translate_partial(self, source, from, to, options)?,
+        };
+        with_layout(result, source, from, to, options)
     }
 
     /// Rank the languages a text may be written in, likeliest first, and
@@ -398,7 +663,8 @@ impl Translator {
         to: &str,
         options: Options,
     ) -> Result<String, GrammarError> {
-        fragments::translate_fragment(self, source, from, to, options)
+        let text = fragments::translate_fragment(self, source, from, to, options)?;
+        styled(text, to, options.style)
     }
 
     /// Translate a source text from one language to another.
@@ -424,17 +690,31 @@ impl Translator {
         to: &str,
         options: Options,
     ) -> Result<String, GrammarError> {
-        // Same code, other comment language: change only the comments, in
-        // place, so every character of the code stays.
-        if let Some(comment_language) = options.comment_language
+        let text = self.translate_plain(source, from, to, options)?;
+        styled(text, to, options.style)
+    }
+
+    /// The translation as the emitter writes it.
+    fn translate_plain(
+        &self,
+        source: &str,
+        from: &str,
+        to: &str,
+        options: Options,
+    ) -> Result<String, GrammarError> {
+        // Same code, other comment or identifier language: change only the
+        // comments and the names, in place.
+        if (options.comment_language.is_some() || options.identifier_language.is_some())
             && from == to
             && !natural::is_natural_language(from)
             && !languages::language_syntax(from)?.machine
+            && let Some(kept) = self.in_place(source, from, options)?
         {
-            return self.translate_comments(source, from, options.comment_from, comment_language);
+            return Ok(kept);
         }
         let meta = self.to_meta(source, from)?;
-        self.from_meta_with(&meta, to, Some(from), options)
+        let adapted = self.adapt(&meta, to, Some(from), options)?;
+        self.write(&adapted, to)
     }
 }
 
@@ -444,26 +724,31 @@ pub fn language_ids() -> Vec<&'static str> {
     languages::language_ids()
 }
 
-/// A programming language the grammar translator reads and writes, with
-/// its versions (the default first), as the JavaScript `languages()` lists
-/// it.
+/// A programming language or machine target the grammar translator reads
+/// and writes, with its versions (the default first), as the JavaScript
+/// `languages()` lists it.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct LanguageListing {
     pub id: &'static str,
     pub label: &'static str,
     pub versions: Vec<Version>,
+    /// Whether this is a machine target (assembly or an intermediate
+    /// language) rather than a source language.
+    pub machine: bool,
 }
 
-/// The programming languages with their labels and versions, in listing
-/// order.
+/// The programming languages with their labels and versions, then the
+/// machine targets, in listing order.
 pub fn languages() -> Vec<LanguageListing> {
     language_ids()
         .into_iter()
+        .chain(machine_target_ids())
         .filter_map(|id| languages::language_syntax(id).ok())
         .map(|syntax| LanguageListing {
             id: syntax.id,
             label: syntax.label,
             versions: versions_of(syntax.id),
+            machine: syntax.machine,
         })
         .collect()
 }

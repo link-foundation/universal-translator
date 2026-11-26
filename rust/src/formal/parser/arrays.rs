@@ -339,6 +339,9 @@ impl Parser {
     }
 
     pub(crate) fn simple_statement(&mut self) -> Parsed {
+        if self.is_annotated_assignment() {
+            return self.annotated_assignment();
+        }
         match self.is_element_assignment() {
             Some(close) => self.element_assignment(close),
             None => self.plain_simple_statement(),

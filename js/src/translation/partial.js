@@ -20,6 +20,9 @@
 //    it has an indented body (a function or loop whose header the grammar
 //    does not know), the header and its closing lines are reported, and the
 //    body is read the same way, so its statements still count and translate.
+// 4. Between two natural languages a part outside the controlled templates
+//    is prose: it is translated freely (`translateProse`), not
+//    marked, and is listed in `prose`.
 
 const closers =
   /^\s*(?:[}\])]|end\b|fi\b|done\b|esac\b|else\b|elif\b|elsif\b|elseif\b|until\b|loop\b|wend\b|next\b|catch\b|finally\b|except\b|rescue\b|ensure\b|then\b|begin\b|do\b)/iu;
@@ -118,10 +121,29 @@ const linesRead = (lines, parts) =>
       0
     );
 
+// The notes of a part left untranslated: the reason, then its source lines.
+function untranslated(part) {
+  const lines =
+    part.endLine > part.line
+      ? `lines ${part.line}-${part.endLine}`
+      : `line ${part.line}`;
+  return [
+    `untranslated (${lines}): ${part.message}`,
+    ...part.source.replace(/\n$/u, '').split('\n'),
+  ];
+}
+
+// The parts translated freely, as prose: their first and last lines.
+const freeParts = (parts) =>
+  parts
+    .filter((part) => part.status === 'free')
+    .map(({ line, endLine }) => ({ line, endLine }));
+
 export function createPartialTranslator({
   parseFragment,
   translateFragment,
   writeNotes,
+  translateProse = () => undefined,
 }) {
   const read = (lines, from, offset) => {
     try {
@@ -247,17 +269,12 @@ export function createPartialTranslator({
           part.message = shiftLines(error.message, part.start);
         }
       }
-      const lines =
-        part.endLine > part.line
-          ? `lines ${part.line}-${part.endLine}`
-          : `line ${part.line}`;
-      return writeNotes(
-        [
-          `untranslated (${lines}): ${part.message}`,
-          ...part.source.replace(/\n$/u, '').split('\n'),
-        ],
-        to
-      );
+      const prose = translateProse(part.source, from, to, options);
+      if (prose !== undefined) {
+        part.status = 'free';
+        return prose;
+      }
+      return writeNotes(untranslated(part), to);
     });
     const errors = errorsOf(reading.parts);
     return {
@@ -267,6 +284,7 @@ export function createPartialTranslator({
       lines: reading.lines,
       readLines: reading.readLines,
       coverage: reading.coverage,
+      prose: freeParts(reading.parts),
     };
   }
 

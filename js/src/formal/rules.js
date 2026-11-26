@@ -13,7 +13,10 @@ import { block, layout, node, rewrite, text, walk } from '../meta/tree.js';
 import { countingLoops } from './lifting.js';
 import { raiseTruthFunctions } from '../meta/truth.js';
 import { languageSyntax, namingConvention } from './languages.js';
+import { splitVersion, versionsOf } from './versions.js';
+import { slashOperator } from './numbers.js';
 import {
+  asciiName,
   avoidReserved,
   nameWords,
   neutralName,
@@ -25,6 +28,7 @@ import {
   raiseArrayFills,
   recognizeArrays,
 } from './arrays.js';
+import { expandForEach, raiseForEach } from './for-each.js';
 
 // ---------------------------------------------------------------------------
 // Understanding layer
@@ -35,6 +39,30 @@ const entryNames = new Set(['main', 'Main']);
 function flattenClasses(items) {
   return items.flatMap((item) =>
     item.kind === 'Class' ? flattenClasses(item.items) : [item]
+  );
+}
+
+// "Program.square" for every function of a class of the program.
+function classFunctionNames(items, owner) {
+  return items.flatMap((item) => {
+    if (item.kind === 'Class') {
+      return classFunctionNames(item.items, item.name);
+    }
+    return owner && item.kind === 'Function' ? [`${owner}.${item.name}`] : [];
+  });
+}
+
+// `Program.square(3)` calls a function of the program. The classes are
+// flattened, so the call names the plain function.
+function unqualifyClassCalls(program, items) {
+  const qualified = new Set(classFunctionNames(items));
+  if (!qualified.size) {
+    return program;
+  }
+  return rewrite(program, (current) =>
+    current.kind === 'Call' && qualified.has(current.callee)
+      ? { ...current, callee: current.callee.split('.').at(-1) }
+      : current
   );
 }
 
@@ -118,7 +146,10 @@ const isExitSuccess = (statement) =>
 // Collect functions, the entry point and file comments into a Program. The
 // body of `main` becomes the program's main block.
 export function findEntryPoint(source, { from } = {}) {
-  const program = collectItems(flattenClasses(source.items));
+  const program = unqualifyClassCalls(
+    collectItems(flattenClasses(source.items)),
+    source.items
+  );
   const own = from && languageSyntax(from).mainName;
   const entry = program.functions.find(
     (item) => entryNames.has(item.name) || item.name === own
@@ -171,14 +202,14 @@ const formatCalls = {
   'print!': 'braces',
 };
 
-function joinWithSpaces(values) {
+function joinWithSpaces(values, separator = text(' ')) {
   if (values.length === 1) {
     return values[0];
   }
   const parts = [];
   values.forEach((value, index) => {
     if (index > 0) {
-      parts.push(text(' '));
+      parts.push(separator);
     }
     parts.push(value);
   });
@@ -187,7 +218,9 @@ function joinWithSpaces(values) {
 
 function readFormat(format, values, style) {
   const pattern =
-    style === 'percent' ? /%(?:l{0,2}d|i|s|c|v|t|%)/g : /\{\{|\}\}|\{\}/g;
+    style === 'percent'
+      ? /%(?:l{0,2}d|i|s|c|v|t|%|(?:\.\d+)?l?[fgeG])/g
+      : /\{\{|\}\}|\{\}/g;
   const parts = [];
   let last = 0;
   let index = 0;
@@ -275,6 +308,30 @@ function printKind(callee, { printCalls: own, print: renamed }) {
   return textCalls.has(callee) || callee === 'echo' ? 'text' : undefined;
 }
 
+// Python's print(..., sep=, end=) and Swift's print(..., separator:,
+// terminator:): an empty end keeps the line open ("" reads as an empty
+// interpolation where quotes interpolate), and any other end is printed
+// after the values, so `end="!"` is not lost.
+function printLine(values, named) {
+  const separator = named.sep ?? named.separator;
+  const joined = values.length ? joinWithSpaces(values, separator) : text('');
+  const end = named.end ?? named.terminator;
+  if (end === undefined) {
+    return node('Print', { value: joined, newline: true });
+  }
+  const empty =
+    (end.kind === 'Text' && end.value === '') ||
+    (end.kind === 'Interpolation' && end.parts.length === 0);
+  if (empty) {
+    return node('Print', { value: joined, newline: false });
+  }
+  const flat = [joined, end].flatMap((value) =>
+    value.kind === 'Interpolation' ? value.parts : [value]
+  );
+  const { parts, newline } = withoutTrailingNewline(flat);
+  return node('Print', { value: partsToValue(parts), newline });
+}
+
 function printFromCall(call, syntax) {
   const kind = printKind(call.callee, syntax);
   const values = call.arguments.filter(
@@ -293,15 +350,7 @@ function printFromCall(call, syntax) {
     return node('Print', { value: partsToValue(flat), newline: true });
   }
   if (kind === 'line') {
-    const newline = !(
-      named.end &&
-      named.end.kind === 'Text' &&
-      named.end.value === ''
-    );
-    return node('Print', {
-      value: values.length ? joinWithSpaces(values) : text(''),
-      newline,
-    });
+    return printLine(values, named);
   }
   if (kind === 'text') {
     const flat = values.flatMap((value) =>
@@ -358,23 +407,43 @@ export function dropTextConversions(program, { from } = {}) {
   if (!conversions) {
     return program;
   }
-  const unwrap = (value) =>
+  const isConversion = (value) =>
     value.kind === 'Call' &&
     conversions.includes(value.callee) &&
-    value.arguments.length === 1
-      ? value.arguments[0]
-      : value;
+    value.arguments.length === 1;
+  const unwrap = (value) => (isConversion(value) ? value.arguments[0] : value);
   const isText = (value) =>
     ['Text', 'Interpolation'].includes(value.kind) ||
     (value.kind === 'Binary' &&
       value.operator === 'add' &&
       (isText(value.left) || isText(value.right)));
+  // The parts of text joined with +: `"n is " + str(n) + ", half "` is the
+  // text, n and the text again.
+  const partsOf = (value) =>
+    value.kind === 'Interpolation'
+      ? value.parts
+      : value.kind === 'Binary' && value.operator === 'add' && isText(value)
+        ? [...partsOf(value.left), ...partsOf(value.right)]
+        : [unwrap(value)];
+  // `str(n) + str(n)` joins two texts: it is the interpolation of n and n,
+  // not the sum n + n.
+  const joined = (current) =>
+    node('Interpolation', {
+      parts: [...partsOf(current.left), ...partsOf(current.right)],
+    });
   return rewrite(program, (current) => {
     if (current.kind === 'Print') {
       return { ...current, value: unwrap(current.value) };
     }
     if (current.kind === 'Interpolation') {
       return { ...current, parts: current.parts.map(unwrap) };
+    }
+    if (
+      current.kind === 'Binary' &&
+      current.operator === 'add' &&
+      (isConversion(current.left) || isConversion(current.right))
+    ) {
+      return joined(current);
     }
     if (
       current.kind === 'Binary' &&
@@ -434,6 +503,11 @@ export function declareOnFirstAssignment(program) {
         scope.add(statement.variable);
         return { ...statement, body: visitBlock(statement.body) };
       }
+      if (statement.kind === 'ForEach') {
+        addReadNames(statement.array, read);
+        scope.add(statement.variable);
+        return { ...statement, body: visitBlock(statement.body) };
+      }
       // The value is read before the variable is assigned.
       addReadNames(statement, read);
       if (
@@ -443,8 +517,10 @@ export function declareOnFirstAssignment(program) {
         !read.has(statement.name)
       ) {
         scope.add(statement.name);
+        // A Python hint (`total: int = 0`) gives the declared type.
         return node('Declaration', {
           name: statement.name,
+          ...(statement.type ? { type: statement.type } : {}),
           value: statement.value,
           mutable: true,
         });
@@ -517,12 +593,17 @@ const compoundMeanings = {
 };
 
 // `x += v` means `x = x + v`; the meta language keeps only the plain form.
-export function expandCompoundAssignment(program) {
+// `/=` divides like the language's `/`.
+export function expandCompoundAssignment(program, { from } = {}) {
+  const meanings = {
+    ...compoundMeanings,
+    '/=': from ? slashOperator(languageSyntax(from)) : 'divide',
+  };
   return rewrite(program, (current) => {
     if (current.kind !== 'Assignment' || current.operator === '=') {
       return current;
     }
-    const operator = compoundMeanings[current.operator];
+    const operator = meanings[current.operator];
     if (!operator) {
       throw new Error(`Unknown assignment operator "${current.operator}"`);
     }
@@ -605,6 +686,8 @@ const copyName = (name) => ['initial', ...nameWords(name)].join('-');
 // the meta operator "divide". The language description names its spelling.
 const integerDivisionSpellings = [
   { wrapper: 'Math.trunc' },
+  { wrapper: '~~' },
+  { wrapper: 'int' },
   { call: 'intdiv' },
 ];
 
@@ -616,9 +699,9 @@ function integerDivision(call, { wrapper, call: callee, method }) {
     call.callee === wrapper &&
     call.arguments.length === 1 &&
     first.kind === 'Binary' &&
-    first.operator === 'divide'
+    ['divide', 'realDivide'].includes(first.operator)
   ) {
-    return first;
+    return { ...first, operator: 'divide' };
   }
   if (call.callee === callee && call.arguments.length === 2) {
     return divide(first, second);
@@ -640,11 +723,23 @@ function integerDivision(call, { wrapper, call: callee, method }) {
   return undefined;
 }
 
+// The spellings of the language a program is read from, in every version
+// of it: Lua 5.1 writes `math.floor(a / b)` for Lua 5.3's `a // b`.
+function ownIntegerDivisions(from) {
+  if (!from) {
+    return [];
+  }
+  const { id } = splitVersion(from);
+  return [
+    languageSyntax(id),
+    ...versionsOf(id).map(({ version }) => languageSyntax(`${id}@${version}`)),
+  ]
+    .map(({ integerDivision }) => integerDivision)
+    .filter(Boolean);
+}
+
 export function integerDivisionCalls(program, { from } = {}) {
-  const own = from && languageSyntax(from).integerDivision;
-  const spellings = own
-    ? [own, ...integerDivisionSpellings]
-    : integerDivisionSpellings;
+  const spellings = [...ownIntegerDivisions(from), ...integerDivisionSpellings];
   return rewrite(program, (current) => {
     if (current.kind !== 'Call') {
       return current;
@@ -714,6 +809,7 @@ export const understandingRules = [
   declareOnFirstAssignment,
   raiseCountingLoops,
   raiseArrayFills,
+  raiseForEach,
   raiseTruthValues,
   inferMutability,
   dropSourceDetails,
@@ -736,7 +832,11 @@ export function concatenationToInterpolation(program) {
       const parts = [current.left, current.right].flatMap((part) =>
         part.kind === 'Interpolation' ? part.parts : [part]
       );
-      return { ...partsToValue(parts), type: 'text' };
+      const value = partsToValue(parts);
+      // `"" + year` is the text of `year`: the name keeps its own type.
+      return ['Text', 'Interpolation'].includes(value.kind)
+        ? { ...value, type: 'text' }
+        : node('Interpolation', { parts: [value], type: 'text' });
     }
     return current;
   });
@@ -879,7 +979,14 @@ export function copyReassignedParameters(program, { to }) {
 export function spellNames(program, { to }) {
   const syntax = languageSyntax(to);
   return renameDeclared(program, (identifier, role) =>
-    avoidReserved(spellName(identifier, namingConvention(syntax, role)), to)
+    avoidReserved(
+      asciiName(
+        spellName(identifier, namingConvention(syntax, role)),
+        to,
+        syntax
+      ),
+      to
+    )
   );
 }
 
@@ -887,6 +994,7 @@ export const contextRules = [
   adaptComments,
   copyReassignedParameters,
   expandArrayFills,
+  expandForEach,
   spellNames,
   spellCommonLibrary,
 ];

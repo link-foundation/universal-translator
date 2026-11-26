@@ -33,10 +33,12 @@ export {
   parseFragment,
   parsePartial,
   translate,
+  translateCandidates,
   translateFragment,
   translatePartial,
 } from './translator.js';
 export { fragmentKinds } from './translation/fragments.js';
+export { decorateStages, stageNames } from './translation/decorators.js';
 export { grammarLanguageIds, languages } from './formal/languages.js';
 export { machineTargetIds, machineTargets } from './formal/machine.js';
 export {
@@ -49,6 +51,10 @@ export {
 export { lowerProgram } from './formal/lowering.js';
 export { liftProgram } from './formal/lifting.js';
 export { formatMeta } from './meta/notation.js';
+export { generalize, specialize, standardProcedures } from './meta/library.js';
+export { nestGrammars, unnest } from './translation/nesting.js';
+export { checkEquivalence, effectOf } from './translation/equivalence.js';
+export { readProse } from './natural/prose-reading.js';
 export {
   machineReaders,
   readCil,
@@ -119,12 +125,18 @@ export {
 export {
   commentDictionary,
   detectCommentLanguage,
+  rankProse,
   translateCommentText,
 } from './natural/comments.js';
 export {
   translateComments,
   translateProgramComments,
 } from './translation/comment-language.js';
+export {
+  identifierDictionary,
+  translateIdentifiers,
+  translateProgramIdentifiers,
+} from './translation/identifier-language.js';
 export { readNatural } from './natural/reader.js';
 export { writeNatural } from './natural/writer.js';
 export {

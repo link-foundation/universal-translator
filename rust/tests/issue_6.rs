@@ -34,12 +34,15 @@ fn cli(arguments: &[&str], input: &str) -> Run {
         .stderr(Stdio::piped())
         .spawn()
         .expect("the command line");
-    child
-        .stdin
-        .take()
-        .expect("standard input")
-        .write_all(input.as_bytes())
-        .expect("the input");
+    // A command that rejects its arguments exits before it reads its input.
+    let mut stdin = child.stdin.take().expect("standard input");
+    let written = stdin.write_all(input.as_bytes());
+    drop(stdin);
+    if let Err(error) = written
+        && error.kind() != std::io::ErrorKind::BrokenPipe
+    {
+        panic!("the input: {error}");
+    }
     let output = child.wait_with_output().expect("the output");
     Run {
         status: output.status.code().unwrap_or(-1),
@@ -110,7 +113,7 @@ fn lists_one_python_with_its_versions_python_3_first() {
             .iter()
             .map(|version| version.version)
             .collect::<Vec<_>>(),
-        ["3", "2"]
+        ["3", "3.5", "2"]
     );
     assert!(versions_of("python")[0].default);
     assert!(versions_of("ruby").is_empty());
@@ -259,6 +262,15 @@ fn spells_british_english_with_british_spellings() {
 // Comment language (js/tests/comments.test.js).
 
 #[test]
+fn keeps_the_gaps_and_the_case_of_each_comment_word() {
+    let german = |text: &str| translate_comment_text(text, "english", "german").unwrap();
+    assert_eq!(german("NUMBER"), "ZAHL");
+    assert_eq!(german("Sum"), "Summe");
+    assert_eq!(german("sum"), "summe");
+    assert_eq!(german(" sum-of, squares 42"), " sum-of, quadrate 42");
+}
+
+#[test]
 fn translates_comment_words_through_the_shared_meanings() {
     let text = |text: &str, from: &str, to: &str| {
         translate_comment_text(text, from, to).expect("a comment")
@@ -295,7 +307,7 @@ fn changes_only_the_comments_when_the_code_language_stays() {
         commenting("russian", None),
     );
     assert!(
-        russian.contains("// Сумма из квадраты in JavaScript"),
+        russian.contains("// Сумма из квадраты в JavaScript"),
         "{russian}"
     );
     assert_eq!(code_of(&russian, "//"), code_of(&source, "//"));

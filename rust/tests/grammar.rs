@@ -76,9 +76,14 @@ fn extension(target: &str) -> &'static str {
         "zig" => "zig",
         "lean" => "lean",
         "rocq" => "v",
+        "gml" => "gml",
         "nasm" => "asm",
+        "gas" => "s",
+        "arm64" => "arm64",
         "cil" => "il",
         "jvm" => "j",
+        "llvm" => "ll",
+        "wat" => "wat",
         other => panic!("no extension for {other}"),
     }
 }
@@ -122,7 +127,7 @@ fn matches_every_golden_file_for_all_targets() {
         .into_iter()
         .chain(machine_target_ids())
         .collect();
-    assert_eq!(targets.len(), 35);
+    assert_eq!(targets.len(), 40);
     let mut mismatches = Vec::new();
     for task in tasks() {
         let task = task.as_str();
@@ -361,6 +366,7 @@ fn lets_callers_remove_or_decorate_a_rule() {
         [
             "copyReassignedParameters",
             "expandArrayFills",
+            "expandForEach",
             "spellNames",
             "spellCommonLibrary"
         ]
@@ -410,7 +416,7 @@ fn lower(code: &str) -> Vec<Instruction> {
 fn adapts_comments_and_spells_names_for_assembly_cil_and_jvm() {
     let gcd = source("greatest-common-divisor");
     let nasm = translate(&gcd, "javascript", "nasm");
-    assert!(nasm.contains("; Greatest common divisor in x86-64 assembly"));
+    assert!(nasm.contains("; Greatest common divisor in x86-64 assembly (NASM)"));
     assert!(nasm.contains("call greatest_common_divisor"));
     let cil = translate(&gcd, "javascript", "cil");
     assert!(cil.contains("call int64 Program::GreatestCommonDivisor"));
@@ -554,7 +560,7 @@ fn shows_the_meta_program_as_links_notation() {
         "program (comments hi)
   declaration x (mutable false) (type text)
     text 'a b' (type text)
-  print (newline true)
+  call print-line (library standard)
     binary multiply (type integer)
       name x (type text)
       number 3 (type integer)
@@ -582,7 +588,7 @@ fn nests_meta_parameters_and_names_a_field_after_a_block() {
       otherwise
         return
           number 0 (type integer)
-  print (newline true)
+  call print-line (library standard)
     call twice (type integer)
       number 3 (type integer)
 "

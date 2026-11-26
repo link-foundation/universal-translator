@@ -1,0 +1,6 @@
+Lura: Loops/Foreach in JavaScript: print every element of a collection
+
+Akwai adadai, shi ne waɗannan abubuwa (1, 1, 2, 3, 5, 8, 13, 21).
+Ga kowane fihirisa daga 0 zuwa yawan sassan adadai ragi 1, yi wannan:
+  Akwai lamba, shi ne sashe fihirisa na adadai.
+  Faɗi lamba a layi ɗaya.

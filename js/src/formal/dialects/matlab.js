@@ -13,12 +13,12 @@ const result = 'result';
 // Escapes of a format: a line end, a tab, a backslash.
 const formatEscapes = { n: '\n', t: '\t', r: '\r', '\\': '\\' };
 
-// The parts of a format and its values: %d and %s take the next value.
+// The parts of a format and its values: %d, %g and %s take the next value.
 function formatParts(format, values) {
   const parts = [];
   let literal = '';
   let index = 0;
-  const pattern = /%%|%[ds]|\\./y;
+  const pattern = /%%|%[dgs]|\\./y;
   while (index < format.length) {
     pattern.lastIndex = index;
     const found = pattern.exec(format)?.[0];
@@ -253,7 +253,7 @@ function formatText(value) {
 const statementEmitter = (Base) =>
   class MatlabStatementEmitter extends Base {
     // 'format', values: text is written into the format, values take %s
-    // when they are text and %d otherwise.
+    // when they are text, %g when they are real and %d otherwise.
     format(parts, ending = '') {
       const values = [];
       const pieces = parts.map((part) => {
@@ -261,7 +261,7 @@ const statementEmitter = (Base) =>
           return formatText(part.value);
         }
         values.push(this.expression(part));
-        return part.type === 'text' ? '%s' : '%d';
+        return { text: '%s', real: '%g' }[part.type] ?? '%d';
       });
       return [`'${pieces.join('')}${ending}'`, ...values].join(', ');
     }

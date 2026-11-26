@@ -4,6 +4,7 @@
 //! tables, so supporting another language (or a project-specific dialect)
 //! means describing it here.
 
+use super::more_languages::MORE_LANGUAGES;
 use super::rocq_runtime::ROCQ_RUNTIME;
 use super::versions::{split_version, with_version};
 use crate::meta::GrammarError;
@@ -25,7 +26,7 @@ pub struct Naming {
     pub variable: Convention,
 }
 
-const fn same(convention: Convention) -> Naming {
+pub(super) const fn same(convention: Convention) -> Naming {
     Naming {
         function: convention,
         variable: convention,
@@ -117,7 +118,7 @@ pub struct Interpolation {
     pub style: InterpolationStyle,
 }
 
-const fn embeds(quote: char, style: InterpolationStyle) -> Interpolation {
+pub(super) const fn embeds(quote: char, style: InterpolationStyle) -> Interpolation {
     Interpolation {
         quote: Some(quote),
         prefix: None,
@@ -204,6 +205,9 @@ pub struct Syntax {
     pub text_join_concatenation: bool,
     /// Whether print is a statement: `print x` (Python 2).
     pub print_statement: bool,
+    /// The word that declares every variable and loop counter where the
+    /// language has older and newer ones (`var` in ECMAScript 5).
+    pub declaration_keyword: Option<&'static str>,
     /// The version of the language the description is for, such as "2" for
     /// `python@2` (none for the default version).
     pub version: Option<&'static str>,
@@ -258,6 +262,10 @@ pub struct Syntax {
     /// How a language without a filled array constructor writes one (see
     /// `expand_array_fills` in arrays.rs).
     pub array_fill: Option<ArrayFill>,
+    /// How a language writes a loop over the elements of an array, with
+    /// `{type}`, `{variable}`, `{array}` and `{array-name}` as the holes; the
+    /// others write a counting loop (see `expand_for_each` in for_each.rs).
+    pub for_each: Option<&'static str>,
 }
 
 /// Which calls may be written without parentheses.
@@ -320,7 +328,7 @@ pub enum Role {
     Variable,
 }
 
-const BRACE_OPERATORS: Operators = Operators {
+pub(super) const BRACE_OPERATORS: Operators = Operators {
     and: "&&",
     or: "||",
     not: "!",
@@ -331,13 +339,13 @@ const BRACE_OPERATORS: Operators = Operators {
     remainder: None,
 };
 
-const SCRIPT_OPERATORS: Operators = Operators {
+pub(super) const SCRIPT_OPERATORS: Operators = Operators {
     equal: Some("==="),
     not_equal: "!==",
     ..BRACE_OPERATORS
 };
 
-const WORD_OPERATORS: Operators = Operators {
+pub(super) const WORD_OPERATORS: Operators = Operators {
     and: "and",
     or: "or",
     not: "not",
@@ -348,31 +356,33 @@ const WORD_OPERATORS: Operators = Operators {
     remainder: None,
 };
 
-const INTEGER_TYPES: Types = Types {
+pub(super) const INTEGER_TYPES: Types = Types {
     integer: "int",
     text: "string",
     boolean: "bool",
     nothing: "void",
 };
 
-const C_QUOTES: &[char] = &['"'];
-const SCRIPT_QUOTES: &[char] = &['"', '\'', '`'];
-const BOTH_QUOTES: &[char] = &['"', '\''];
-const SLASH_COMMENTS: Option<(&str, &str)> = Some(("/*", "*/"));
-const FUNCTION_TERMS: Terms = Terms {
+pub(super) const C_QUOTES: &[char] = &['"'];
+pub(super) const SCRIPT_QUOTES: &[char] = &['"', '\'', '`'];
+pub(super) const BOTH_QUOTES: &[char] = &['"', '\''];
+pub(super) const SLASH_COMMENTS: Option<(&str, &str)> = Some(("/*", "*/"));
+pub(super) const FUNCTION_TERMS: Terms = Terms {
     call: "function call",
     routine: "function",
 };
-const METHOD_TERMS: Terms = Terms {
+pub(super) const METHOD_TERMS: Terms = Terms {
     call: "method call",
     routine: "method",
 };
 
-const SCRIPT_DIVISION: Option<IntegerDivision> = Some(IntegerDivision::Wrapper("Math.trunc"));
+pub(super) const SCRIPT_DIVISION: Option<IntegerDivision> =
+    Some(IntegerDivision::Wrapper("Math.trunc"));
 
 /// The JavaScript description; the others start from it and change fields.
-const JAVASCRIPT: Syntax = Syntax {
+pub(super) const JAVASCRIPT: Syntax = Syntax {
     id: "javascript",
+    for_each: Some("for (const {variable} of {array})"),
     label: "JavaScript",
     naming: same(Convention::Camel),
     immutable_parameters: ImmutableParameters::No,
@@ -396,6 +406,7 @@ const JAVASCRIPT: Syntax = Syntax {
     text_conversions: &[],
     text_join_concatenation: false,
     print_statement: false,
+    declaration_keyword: None,
     version: None,
     body_after: None,
     operators: SCRIPT_OPERATORS,
@@ -430,8 +441,9 @@ const JAVASCRIPT: Syntax = Syntax {
 };
 
 /// The C description, the base of the other prefix-typed languages.
-const C: Syntax = Syntax {
+pub(super) const C: Syntax = Syntax {
     id: "c",
+    for_each: None,
     label: "C",
     naming: same(Convention::Snake),
     quotes: C_QUOTES,
@@ -455,11 +467,14 @@ const C: Syntax = Syntax {
 pub static LANGUAGES: [Syntax; 32] = [
     Syntax {
         integer_division: SCRIPT_DIVISION,
+        // ECMAScript 5 truncates with ~~(a / b).
+        symbols: &["~"],
         text_conversions: &["String"],
         ..JAVASCRIPT
     },
     Syntax {
         id: "typescript",
+        for_each: Some("for (const {variable} of {array})"),
         integer_division: SCRIPT_DIVISION,
         text_conversions: &["String"],
         label: "TypeScript",
@@ -475,6 +490,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "python",
+        for_each: Some("for {variable} in {array}"),
         label: "Python",
         naming: same(Convention::Snake),
         blocks: Blocks::Indentation,
@@ -498,6 +514,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "ruby",
+        for_each: Some("for {variable} in {array}"),
         label: "Ruby",
         naming: same(Convention::Snake),
         blocks: Blocks::End,
@@ -516,6 +533,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "lua",
+        for_each: Some("for _, {variable} in ipairs({array}) do"),
         array_fill: Some(ArrayFill::Empty),
         array_base: 1,
         label: "Lua",
@@ -539,6 +557,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "php",
+        for_each: Some("foreach ({array} as {variable})"),
         label: "PHP",
         integer_division: Some(IntegerDivision::Call("intdiv")),
         quotes: BOTH_QUOTES,
@@ -561,6 +580,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "cpp",
+        for_each: Some("for ({type} {variable} : {array})"),
         label: "C++",
         print_line: "std::cout",
         types: Some(Types {
@@ -571,6 +591,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "csharp",
+        for_each: Some("foreach ({type} {variable} in {array})"),
         array_fill: Some(ArrayFill::NonZero),
         label: "C#",
         naming: Naming {
@@ -582,6 +603,9 @@ pub static LANGUAGES: [Syntax; 32] = [
             prefix: Some("$"),
             style: InterpolationStyle::Braces,
         }],
+        // C# 5 converts the computed parts of a joined text; every version
+        // reads them back as the parts.
+        text_conversions: &["System.Convert.ToString"],
         declarations: &["var"],
         print_line: "System.Console.WriteLine",
         entry_point: EntryPoint::ClassMethod,
@@ -593,6 +617,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "java",
+        for_each: Some("for ({type} {variable} : {array})"),
         array_fill: Some(ArrayFill::NonZero),
         label: "Java",
         naming: same(Convention::Camel),
@@ -611,6 +636,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "go",
+        for_each: Some("for _, {variable} := range {array}"),
         array_fill: Some(ArrayFill::NonZero),
         label: "Go",
         naming: same(Convention::Camel),
@@ -627,6 +653,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "rust",
+        for_each: Some("for &{variable} in &{array}"),
         label: "Rust",
         immutable_parameters: ImmutableParameters::Copied,
         declarations: &["let"],
@@ -649,6 +676,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "kotlin",
+        for_each: Some("for ({variable} in {array})"),
         label: "Kotlin",
         naming: same(Convention::Camel),
         immutable_parameters: ImmutableParameters::Copied,
@@ -671,6 +699,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "swift",
+        for_each: Some("for {variable} in {array}"),
         label: "Swift",
         naming: same(Convention::Camel),
         immutable_parameters: ImmutableParameters::Copied,
@@ -692,6 +721,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "perl",
+        for_each: Some("for my {variable} (@{array-name})"),
         label: "Perl",
         naming: same(Convention::Snake),
         line_comment: "#",
@@ -727,6 +757,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "dart",
+        for_each: Some("for (final {variable} in {array})"),
         label: "Dart",
         naming: same(Convention::Camel),
         quotes: BOTH_QUOTES,
@@ -757,6 +788,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "scala",
+        for_each: Some("for ({variable} <- {array})"),
         label: "Scala",
         naming: same(Convention::Camel),
         immutable_parameters: ImmutableParameters::Renamed,
@@ -778,6 +810,7 @@ pub static LANGUAGES: [Syntax; 32] = [
             text: &["print"],
             adjacent: false,
         }),
+        text_conversions: &["String.valueOf"],
         entry_point: EntryPoint::ClassMethod,
         container: Some("object Main"),
         typed: Typed::Annotation,
@@ -793,6 +826,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "julia",
+        for_each: Some("for {variable} in {array}"),
         array_base: 1,
         label: "Julia",
         naming: same(Convention::Snake),
@@ -817,6 +851,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "r",
+        for_each: Some("for ({variable} in {array})"),
         array_base: 1,
         label: "R",
         naming: same(Convention::Snake),
@@ -847,6 +882,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "groovy",
+        for_each: Some("for ({variable} in {array})"),
         label: "Groovy",
         naming: same(Convention::Camel),
         quotes: BOTH_QUOTES,
@@ -861,6 +897,8 @@ pub static LANGUAGES: [Syntax; 32] = [
             text: &["print"],
             adjacent: false,
         }),
+        // println "Hello World"
+        command_calls: CommandCalls::Only(&["println", "print"]),
         typed: Typed::Prefix,
         types: Some(Types {
             integer: "long",
@@ -887,6 +925,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "nim",
+        for_each: Some("for {variable} in {array}"),
         label: "Nim",
         naming: same(Convention::Camel),
         // Parameters cannot be assigned; `var n = n` makes a mutable copy.
@@ -939,6 +978,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "d",
+        for_each: Some("foreach ({variable}; {array})"),
         array_fill: Some(ArrayFill::NonZero),
         label: "D",
         naming: same(Convention::Camel),
@@ -970,6 +1010,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "pascal",
+        for_each: None,
         array_fill: Some(ArrayFill::NonZero),
         label: "Pascal",
         naming: same(Convention::Pascal),
@@ -1022,6 +1063,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "fortran",
+        for_each: None,
         array_base: 1,
         label: "Fortran",
         naming: same(Convention::Snake),
@@ -1031,7 +1073,7 @@ pub static LANGUAGES: [Syntax; 32] = [
         case_insensitive: true,
         line_comment: "!",
         block_comment: None,
-        quotes: &['\''],
+        quotes: &['\'', '"'],
         doubled_quotes: true,
         interpolation: &[],
         declarations: &[],
@@ -1047,7 +1089,7 @@ pub static LANGUAGES: [Syntax; 32] = [
             not_equal: "/=",
             equal: None,
             integer_divide: Some("/"),
-            concatenate: None,
+            concatenate: Some("//"),
             remainder: None,
         },
         words: Some((".true.", ".false.")),
@@ -1073,6 +1115,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "ada",
+        for_each: None,
         label: "Ada",
         naming: same(Convention::Ada),
         // In parameters are constants, so a reassigned one is copied first.
@@ -1121,6 +1164,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "vb",
+        for_each: None,
         array_fill: Some(ArrayFill::NonZero),
         label: "Visual Basic .NET",
         naming: Naming {
@@ -1168,6 +1212,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "bash",
+        for_each: None,
         array_fill: Some(ArrayFill::Empty),
         label: "Bash",
         naming: same(Convention::Snake),
@@ -1190,6 +1235,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "matlab",
+        for_each: None,
         array_base: 1,
         label: "MATLAB/Octave",
         naming: same(Convention::Snake),
@@ -1216,6 +1262,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "zig",
+        for_each: None,
         label: "Zig",
         naming: Naming {
             function: Convention::Camel,
@@ -1247,6 +1294,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "lean",
+        for_each: None,
         label: "Lean",
         immutable_parameters: ImmutableParameters::Copied,
         // Definitions, do blocks and applications are in dialects/lean.rs.
@@ -1281,6 +1329,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "rocq",
+        for_each: None,
         label: "Rocq",
         naming: same(Convention::Snake),
         // Fixpoints, actions and applications are in dialects/rocq.rs. Every
@@ -1315,18 +1364,44 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
 ];
 
-/// The machine targets: x86-64 assembly (NASM), CIL and JVM bytecode. Only
-/// the label, naming, comment marker and terms are read, by the context
-/// rules.
-pub const MACHINE_TARGETS: [Syntax; 3] = [
+/// The machine targets: x86-64 assembly (NASM and GNU as in AT&T syntax),
+/// ARM64 assembly, CIL, JVM bytecode, LLVM IR and WebAssembly text. Only the
+/// label, naming, comment marker and terms are read, by the context rules.
+pub const MACHINE_TARGETS: [Syntax; 7] = [
     Syntax {
         id: "nasm",
-        label: "x86-64 assembly",
+        label: "x86-64 assembly (NASM)",
         naming: same(Convention::Snake),
         line_comment: ";",
         terms: Terms {
             call: "call instruction",
             routine: "procedure",
+        },
+        machine: true,
+        forward_declarations: ForwardDeclarations::None,
+        ..C
+    },
+    Syntax {
+        id: "gas",
+        label: "x86-64 assembly (GNU as, AT&T)",
+        naming: same(Convention::Snake),
+        line_comment: "#",
+        terms: Terms {
+            call: "call instruction",
+            routine: "function",
+        },
+        machine: true,
+        forward_declarations: ForwardDeclarations::None,
+        ..C
+    },
+    Syntax {
+        id: "arm64",
+        label: "ARM64 assembly",
+        naming: same(Convention::Snake),
+        line_comment: "//",
+        terms: Terms {
+            call: "branch instruction",
+            routine: "function",
         },
         machine: true,
         forward_declarations: ForwardDeclarations::None,
@@ -1355,6 +1430,32 @@ pub const MACHINE_TARGETS: [Syntax; 3] = [
         forward_declarations: ForwardDeclarations::None,
         ..C
     },
+    Syntax {
+        id: "llvm",
+        label: "LLVM IR",
+        naming: same(Convention::Snake),
+        line_comment: ";",
+        terms: Terms {
+            call: "call instruction",
+            routine: "function",
+        },
+        machine: true,
+        forward_declarations: ForwardDeclarations::None,
+        ..C
+    },
+    Syntax {
+        id: "wat",
+        label: "WebAssembly text",
+        naming: same(Convention::Snake),
+        line_comment: ";;",
+        terms: Terms {
+            call: "call instruction",
+            routine: "function",
+        },
+        machine: true,
+        forward_declarations: ForwardDeclarations::None,
+        ..C
+    },
 ];
 
 /// The identifiers of the machine targets.
@@ -1370,6 +1471,7 @@ pub fn language_syntax(identifier: &str) -> Result<Syntax, GrammarError> {
     let (id, version) = split_version(identifier);
     let syntax = LANGUAGES
         .iter()
+        .chain(MORE_LANGUAGES.iter())
         .chain(MACHINE_TARGETS.iter())
         .find(|syntax| syntax.id == id)
         .cloned()
@@ -1383,5 +1485,9 @@ pub fn language_syntax(identifier: &str) -> Result<Syntax, GrammarError> {
 
 /// The identifiers of every described language, in listing order.
 pub fn language_ids() -> Vec<&'static str> {
-    LANGUAGES.iter().map(|syntax| syntax.id).collect()
+    LANGUAGES
+        .iter()
+        .chain(MORE_LANGUAGES.iter())
+        .map(|syntax| syntax.id)
+        .collect()
 }

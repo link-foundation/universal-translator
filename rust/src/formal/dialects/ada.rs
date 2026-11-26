@@ -226,8 +226,8 @@ fn output(p: &mut Parser) -> Parsed {
         }
         p.expect("(")?;
         parts.push(p.expression()?);
-        // The width of an integer, always 0.
-        if p.accept(",") {
+        // The width of an integer, or the layout of a real.
+        while p.accept(",") {
             p.expression()?;
         }
         p.expect(")")?;
@@ -589,6 +589,15 @@ fn put(e: &mut Emitter, part: &Node, last: bool) -> Result<String> {
         let call = if last { "Put_Line" } else { "Put" };
         return Ok(format!("{call} ({value});"));
     }
+    if part.str("type") == Some("real") {
+        e.uses.insert("float_io");
+        let written = format!("Put ({value}, 0, 6, 0);");
+        return Ok(if last {
+            format!("{written} New_Line;")
+        } else {
+            written
+        });
+    }
     e.uses.insert("integer_io");
     let written = if part.str("type") == Some("boolean") {
         format!("Put (Boolean'Image ({value}));")
@@ -720,6 +729,11 @@ fn prelude(e: &mut Emitter, program: &Node) {
     e.line("procedure Main is");
     if e.uses.contains("integer_io") {
         e.line("    package Long_IO is new Integer_IO (Long_Long_Integer); use Long_IO;");
+        e.line("");
+    }
+    // Reals are written with six digits after the point, like C's %f.
+    if e.uses.contains("float_io") {
+        e.line("    package Real_IO is new Float_IO (Long_Float); use Real_IO;");
         e.line("");
     }
     if e.uses.contains("array") {

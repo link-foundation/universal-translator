@@ -61,7 +61,8 @@ pub struct Token {
     /// Comments written as block comments.
     pub block: bool,
     /// Comments: where the comment text starts and stops in the source, in
-    /// characters (the comment markers are outside).
+    /// characters (the comment markers are outside). Names: where the name
+    /// starts and stops.
     pub span: Option<(usize, usize)>,
 }
 
@@ -197,12 +198,13 @@ pub fn tokenize(source: &str, syntax: &Syntax) -> Result<Vec<Token>, GrammarErro
     Lexer::new(source, syntax).run()
 }
 
+/// Letters of every script make names ("сумма").
 fn is_word(character: char) -> bool {
-    character.is_ascii_alphanumeric() || character == '_'
+    character.is_alphanumeric() || character == '_'
 }
 
 fn is_name_start(character: char) -> bool {
-    character.is_ascii_alphabetic() || character == '_'
+    character.is_alphabetic() || character == '_'
 }
 
 /// Reads one token kind at a time. Each reader returns true when it consumed
@@ -260,6 +262,9 @@ impl<'a> Lexer<'a> {
             if self.line_start && self.syntax.blocks == Blocks::Indentation {
                 self.indent()?;
             }
+            if self.closing_tag()? {
+                break;
+            }
             for read in readers {
                 if read(&mut self)? {
                     break;
@@ -278,6 +283,25 @@ impl<'a> Lexer<'a> {
         }
         self.push(TokenType::End, "");
         Ok(self.tokens)
+    }
+
+    /// PHP: the closing ?> tag ends the program when only whitespace follows
+    /// it; text after it would be output, which is not read.
+    fn closing_tag(&mut self) -> Result<bool, GrammarError> {
+        if self.syntax.id != "php" || !self.starts_with("?>", self.index) {
+            return Ok(false);
+        }
+        if self.source[self.index + 2..]
+            .iter()
+            .any(|character| !character.is_whitespace())
+        {
+            return Err(GrammarError::syntax(
+                "Text after the closing \"?>\" tag",
+                self.line,
+            ));
+        }
+        self.index = self.source.len();
+        Ok(true)
     }
 
     fn push(&mut self, kind: TokenType, value: &str) {
@@ -412,8 +436,36 @@ impl<'a> Lexer<'a> {
             .map_or(self.source.len(), |offset| self.index + offset)
     }
 
+    /// The line comment marker here: Lua skips a first line that starts
+    /// with "#" (a #! line), and fixed-form Fortran comments out a line with
+    /// C or * in its first column (`C     Hello World`, not `c = 1`).
+    fn comment_marker(&self) -> &'static str {
+        let id = self.syntax.id;
+        if id == "lua" && self.index == 0 && self.source.first() == Some(&'#') {
+            return "#";
+        }
+        if id == "fortran" && (self.index == 0 || self.source[self.index - 1] == '\n') {
+            let line = &self.source[self.index..self.until_line_end()];
+            let rest = line.get(1..).unwrap_or_default();
+            let separated = rest.first().is_none_or(|c| matches!(c, ' ' | '\t' | '\r'));
+            let assigned = rest
+                .iter()
+                .find(|c| !matches!(c, ' ' | '\t'))
+                .is_some_and(|c| matches!(c, '=' | '('));
+            if separated && !assigned {
+                match line.first() {
+                    Some('C') => return "C",
+                    Some('c') => return "c",
+                    Some('*') => return "*",
+                    _ => {}
+                }
+            }
+        }
+        self.syntax.line_comment
+    }
+
     fn line_comment(&mut self) -> bool {
-        let marker = self.syntax.line_comment;
+        let marker = self.comment_marker();
         if !self.starts_with(marker, self.index)
             || (self.syntax.id == "lua" && self.starts_with("--[[", self.index))
             // Bash: ${#a[@]} is the length of a, not a comment.
@@ -545,6 +597,7 @@ impl<'a> Lexer<'a> {
                 length += 1 + fraction;
             }
         }
+        length += exponent(&rest[length..]);
         let value = self.slice(self.index, self.index + length);
         self.push(TokenType::Number, &value);
         self.index += length;
@@ -573,6 +626,8 @@ impl<'a> Lexer<'a> {
         }
         let value = self.slice(self.index, self.index + length);
         self.push(TokenType::Name, &value);
+        // Where the name stands, so identifiers can be renamed in place.
+        self.tokens.last_mut().expect("pushed").span = Some((self.index, self.index + length));
         self.index += length;
         true
     }
@@ -624,4 +679,17 @@ fn interpolation_style(syntax: &Syntax, quote: char, prefix: Option<&str>) -> In
         .iter()
         .find(|entry| entry.prefix == prefix && entry.quote.is_none_or(|own| own == quote))
         .map_or(InterpolationStyle::Plain, |entry| entry.style)
+}
+
+/// The length of the exponent (`e3`, `E-2`) that starts `rest`, or 0.
+fn exponent(rest: &[char]) -> usize {
+    if !matches!(rest.first(), Some('e' | 'E')) {
+        return 0;
+    }
+    let sign = usize::from(matches!(rest.get(1), Some('+' | '-')));
+    let digits = rest[1 + sign..]
+        .iter()
+        .take_while(|c| c.is_ascii_digit())
+        .count();
+    if digits == 0 { 0 } else { 1 + sign + digits }
 }

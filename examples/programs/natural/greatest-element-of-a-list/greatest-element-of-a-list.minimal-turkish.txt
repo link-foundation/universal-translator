@@ -1,0 +1,9 @@
+Not: Greatest element of a list in JavaScript
+
+Sayılar var, bu şu şeyler (17, 4, 93, 28, 65, 3, 80).
+Azami var, bu sayılar şeyinin 0 parçası.
+Her indeks için 0 ile sayılar şeyinin kaç parçası var eksi 1 arasında bunu yap:
+  Sayı var, bu sayılar şeyinin indeks parçası.
+  Eğer sayı azami değerinden daha çok ise bunu yap:
+    Bundan sonra azami şimdi sayı olur.
+“The greatest element is ” sonra azami bir satırda söyle.

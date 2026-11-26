@@ -4,13 +4,21 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { createGrammarTranslator } from '../js/src/translator.js';
 const t = createGrammarTranslator();
 const root = 'examples/programs/translated';
-const ext = { nasm: '.asm', cil: '.il', jvm: '.j' };
+const ext = {
+  nasm: '.asm',
+  gas: '.s',
+  arm64: '.arm64',
+  cil: '.il',
+  jvm: '.j',
+  llvm: '.ll',
+  wat: '.wat',
+};
 let failures = 0;
 for (const task of readdirSync(root)) {
   const js = readFileSync(`${root}/${task}/${task}.js`, 'utf8');
   for (const [from, e] of Object.entries(ext)) {
     const source = readFileSync(`${root}/${task}/${task}${e}`, 'utf8');
-    for (const to of ['nasm', 'cil', 'jvm', 'javascript']) {
+    for (const to of [...Object.keys(ext), 'javascript']) {
       let out;
       try {
         out = t.translate(source, from, to);

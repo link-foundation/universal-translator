@@ -299,10 +299,24 @@ pub const SOURCES: &[(&str, &str)] = &[
         "vietnamese.lino",
         include_str!("../../../data/natural/vietnamese.lino"),
     ),
+    (
+        "vocabulary.lino",
+        include_str!("../../../data/natural/vocabulary.lino"),
+    ),
+    (
+        "grammar.lino",
+        include_str!("../../../data/natural/grammar.lino"),
+    ),
 ];
 
 /// The file of the semantic primes, which describes no language.
 pub const PRIMES_FILE: &str = "semantic-primes.lino";
+
+/// The file of the everyday vocabulary of free translation.
+pub const VOCABULARY_FILE: &str = "vocabulary.lino";
+
+/// The file of the grammar of free translation.
+pub const GRAMMAR_FILE: &str = "grammar.lino";
 
 /// Every statement and expression form a language must describe.
 pub const TEMPLATE_KEYS: [&str; 38] = [
@@ -345,6 +359,17 @@ pub const TEMPLATE_KEYS: [&str; 38] = [
     "divide",
     "remainder",
 ];
+
+/// Templates a language may leave out: a loop over an array is then written
+/// as the counting loop it lowers to, and increase and decrease (everyday
+/// wordings of an assignment that adds to or subtracts from the variable)
+/// are written as the assignment.
+pub const OPTIONAL_TEMPLATE_KEYS: [&str; 3] = ["for-each", "increase", "decrease"];
+
+/// Everyday wordings a profile with its own rules does not inherit: a
+/// controlled standard keeps to its vocabulary, and the assignment still
+/// says what they say.
+const EVERYDAY_TEMPLATE_KEYS: [&str; 2] = ["increase", "decrease"];
 
 const SCALAR_FIELDS: [&str; 16] = [
     "id",
@@ -555,7 +580,7 @@ fn resolve(
     Ok(Description {
         scalars,
         quotes: description.quotes.clone().or(base.quotes.clone()),
-        templates: base.templates.merged(&description.templates),
+        templates: inherited_templates(&base, description),
         words: base.words.merged(&description.words),
         rules: description.rules.clone(),
         base: Some(
@@ -564,6 +589,16 @@ fn resolve(
                 .unwrap_or_else(|| base.scalars.get("id").cloned().unwrap_or_default()),
         ),
     })
+}
+
+fn inherited_templates(base: &Description, description: &Description) -> Ordered<Vec<String>> {
+    let mut templates = base.templates.clone();
+    if !description.rules.entries.is_empty() {
+        templates
+            .entries
+            .retain(|(key, _)| !EVERYDAY_TEMPLATE_KEYS.contains(&key.as_str()));
+    }
+    templates.merged(&description.templates)
 }
 
 /// Templates become token lists once, with slot tokens for the holes.
@@ -655,7 +690,7 @@ fn load() -> Result<Catalog, String> {
     let mut sources: Vec<&(&str, &str)> = SOURCES.iter().collect();
     sources.sort_by_key(|(file, _)| *file);
     for (file, source) in sources {
-        if *file == PRIMES_FILE {
+        if [PRIMES_FILE, VOCABULARY_FILE, GRAMMAR_FILE].contains(file) {
             continue;
         }
         let description = read_description(source).map_err(|error| format!("{file}: {error}"))?;
@@ -705,7 +740,8 @@ pub fn natural_language_ids() -> Vec<&'static str> {
 pub fn with_templates(id: &str, templates: &[(String, Vec<String>)]) -> Result<Language, String> {
     let mut language = natural_language(id)?.clone();
     for (key, variants) in templates {
-        if !TEMPLATE_KEYS.contains(&key.as_str()) {
+        if !TEMPLATE_KEYS.contains(&key.as_str()) && !OPTIONAL_TEMPLATE_KEYS.contains(&key.as_str())
+        {
             return Err(format!("No template \"{key}\" in natural languages"));
         }
         let mut merged = language.templates.get(key).cloned().unwrap_or_default();

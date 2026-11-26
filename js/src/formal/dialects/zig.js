@@ -7,6 +7,7 @@
 import { add, block, node, number, text, walk } from '../../meta/tree.js';
 import { decodeEscapes, SyntaxError } from '../lexer.js';
 import { sourceType } from '../parser.js';
+import { realValue } from '../numbers.js';
 
 // main opens the writer that every print uses; these lines are layout, not
 // part of the program.
@@ -17,7 +18,12 @@ const writerSetup = [
   'defer out.flush() catch {};',
 ];
 const writerNames = new Set(['out', 'buffer', 'writer']);
-const placeholders = { integer: '{d}', text: '{s}', boolean: '{}' };
+const placeholders = {
+  integer: '{d}',
+  real: '{d}',
+  text: '{s}',
+  boolean: '{}',
+};
 const builtins = { divTrunc: 'divide', rem: 'remainder' };
 // Arrays of n values live as long as the function, in pages of memory.
 const allocator = 'std.heap.page_allocator';
@@ -172,12 +178,14 @@ const headParser = (Base) =>
       return super.item();
     }
 
-    // [pub] fn name(a: i64, b: i64) i64 { ... }
+    // [pub] fn name(a: i64, b: i64) i64 { ... }; Zig before 0.1 wrote
+    // `fn main(args: [][]u8) -> %void`.
     functionDefinition() {
       this.accept('pub');
       this.expect('fn');
       const functionName = this.expectName();
       const parameters = this.parameterList();
+      this.accept('->');
       const returnType = this.typeExpression();
       const body = this.block();
       return node('Function', {
@@ -189,8 +197,12 @@ const headParser = (Base) =>
       });
     }
 
-    // i64, bool, []const u8 and void, as languages.js spells them.
+    // i64, bool, []const u8 and void, as languages.js spells them. An
+    // error union (!void, or %void before Zig 0.1) is its value type.
     typeExpression() {
+      while (this.is('!') || this.is('%')) {
+        this.next();
+      }
       const words = [];
       while (
         !['{', '=', ',', ')', ';'].includes(this.peek().value) &&
@@ -207,8 +219,84 @@ const headParser = (Base) =>
   };
 
 // Statements: allocations, tuples, prints and while loops.
+// The print statements of standard output, before Zig 0.1 and after.
+const printParser = (Base) =>
+  class ZigPrintParser extends headParser(Base) {
+    // The values of `.{ a, b }`.
+    tuple() {
+      this.expect('.');
+      this.expect('{');
+      const values = [];
+      while (!this.accept('}')) {
+        values.push(this.expression());
+        this.accept(',');
+      }
+      return values;
+    }
+
+    // Zig before 0.1: %%io.stdout.printf("format\n", values) writes to
+    // standard output (io is @import("std").io), and %% stops the program
+    // on an error. The number of tokens up to the format, or 0.
+    legacyPrintLength() {
+      let offset = this.is('%') && this.is('%', 1) ? 2 : 0;
+      while (this.peek(offset).type === 'name' && this.is('.', offset + 1)) {
+        offset += 2;
+      }
+      return offset >= 2 &&
+        this.is('stdout', offset - 2) &&
+        this.is('printf', offset) &&
+        this.is('(', offset + 1)
+        ? offset + 2
+        : 0;
+    }
+
+    legacyPrint(length) {
+      this.position += length;
+      const format = this.next();
+      const values = [];
+      while (this.accept(',')) {
+        values.push(this.expression());
+      }
+      this.expect(')');
+      this.endStatement();
+      return this.formattedPrint(format, values);
+    }
+
+    // out.print("format\n", .{ values }) catch {};
+    printStatement() {
+      this.position += 3;
+      this.expect('(');
+      const format = this.next();
+      this.expect(',');
+      const values = this.tuple();
+      for (const word of [')', 'catch', '{', '}']) {
+        this.expect(word);
+      }
+      this.endStatement();
+      return this.formattedPrint(format, values);
+    }
+
+    // The text a format token and its values print.
+    formattedPrint(format, values) {
+      if (format.type !== 'text') {
+        throw new SyntaxError('A format must be text', format.line);
+      }
+      const written = decodeEscapes(format.value);
+      const newline = written.endsWith('\n');
+      const parts = formatParts(
+        newline ? written.slice(0, -1) : written,
+        values
+      );
+      const value =
+        parts.length > 1
+          ? node('Interpolation', { parts })
+          : (parts[0] ?? text(''));
+      return node('Print', { value, newline });
+    }
+  };
+
 const parser = (Base) =>
-  class ZigParser extends headParser(Base) {
+  class ZigParser extends printParser(Base) {
     statement() {
       // `_ = f(x);` drops a result, and `_ = x;` marks an unused parameter.
       if (this.is('_') && this.is('=', 1)) {
@@ -221,6 +309,10 @@ const parser = (Base) =>
       }
       if (this.is('out') && this.is('.', 1) && this.is('print', 2)) {
         return this.printStatement();
+      }
+      const legacy = this.legacyPrintLength();
+      if (legacy) {
+        return this.legacyPrint(legacy);
       }
       if (this.is('page_allocator', 7) && this.is('alloc', 9)) {
         return this.allocation();
@@ -264,45 +356,6 @@ const parser = (Base) =>
         type: 'array',
         value: node('NewArray', { length, fill }),
       });
-    }
-
-    // The values of `.{ a, b }`.
-    tuple() {
-      this.expect('.');
-      this.expect('{');
-      const values = [];
-      while (!this.accept('}')) {
-        values.push(this.expression());
-        this.accept(',');
-      }
-      return values;
-    }
-
-    // out.print("format\n", .{ values }) catch {};
-    printStatement() {
-      this.position += 3;
-      this.expect('(');
-      const format = this.next();
-      if (format.type !== 'text') {
-        throw new SyntaxError('A format must be text', format.line);
-      }
-      this.expect(',');
-      const values = this.tuple();
-      for (const word of [')', 'catch', '{', '}']) {
-        this.expect(word);
-      }
-      this.endStatement();
-      const written = decodeEscapes(format.value);
-      const newline = written.endsWith('\n');
-      const parts = formatParts(
-        newline ? written.slice(0, -1) : written,
-        values
-      );
-      const value =
-        parts.length > 1
-          ? node('Interpolation', { parts })
-          : (parts[0] ?? text(''));
-      return node('Print', { value, newline });
     }
 
     // while (condition) : (i += 1) { ... }
@@ -408,7 +461,9 @@ const statementEmitter = (Base) =>
     }
 
     declaration({ name, type, value, mutable }) {
-      const initial = this.expression(value ?? number(0));
+      const initial = this.expression(
+        realValue(value ?? number(0), type, this.syntax)
+      );
       if (this.declared(name)) {
         return `${name} = ${initial};`;
       }

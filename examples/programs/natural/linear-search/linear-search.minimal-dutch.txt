@@ -1,0 +1,12 @@
+Opmerking: Linear search in JavaScript: find the position of a value in a list
+
+Er is getallen, het is deze dingen (31, 41, 59, 26, 53, 58, 97, 93).
+Er is wanted, het is 53.
+Er is positie, het is -1.
+Er is huidig, het is 0.
+Voor alle index van 0 tot en met hoeveel delen getallen heeft min 1, doe dit:
+  Er is getal, het is deel index van getallen.
+  Als getal is hetzelfde als wanted en positie is minder dan 0, doe dit:
+    Hierna is positie huidig.
+  Hierna is huidig huidig plus 1.
+Zeg “Found ” daarna wanted daarna “ at position ” daarna positie op één regel.

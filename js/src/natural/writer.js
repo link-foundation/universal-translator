@@ -13,6 +13,7 @@ import {
   levels,
   unaryTemplates,
 } from './levels.js';
+import { lowerForEach } from '../meta/for-each.js';
 import { layout, subtract, number } from '../meta/tree.js';
 
 const indentUnit = '  ';
@@ -271,13 +272,7 @@ class Writer {
       case 'IndexAssignment':
         return this.binding(statement, depth);
       case 'Print':
-        return this.sentence(
-          depth,
-          statement.newline ? 'print-line' : 'print',
-          {
-            value: this.expression(statement.value),
-          }
-        );
+        return this.printing(statement, depth);
       case 'Return':
         return this.giveBack(statement, depth);
       case 'Evaluate':
@@ -288,12 +283,20 @@ class Writer {
         return this.conditional(statement, depth);
       case 'While':
       case 'CountingLoop':
+      case 'ForEach':
         return this.loop(statement, depth);
       case 'Block':
         return this.block(statement, depth);
       default:
         throw new Error(`Cannot write a ${statement.kind} statement in words`);
     }
+  }
+
+  printing(statement, depth) {
+    const key = statement.newline ? 'print-line' : 'print';
+    return this.sentence(depth, key, {
+      value: this.expression(statement.value),
+    });
   }
 
   // A sentence that gives a name or an element a value.
@@ -339,6 +342,16 @@ class Writer {
         depth,
         'while',
         { condition: this.expression(statement.condition) },
+        true
+      );
+    } else if (statement.kind === 'ForEach') {
+      this.sentence(
+        depth,
+        'for-each',
+        {
+          variable: [word(writeName(statement.variable, this.language))],
+          array: this.expression(statement.array, levelIndex.primary),
+        },
         true
       );
     } else {
@@ -397,5 +410,7 @@ class Writer {
 }
 
 export function writeNatural(program, id) {
-  return new Writer(naturalLanguage(id)).program(program);
+  const language = naturalLanguage(id);
+  const sentence = language.compiled['for-each'].length > 0;
+  return new Writer(language).program(lowerForEach(program, () => sentence));
 }

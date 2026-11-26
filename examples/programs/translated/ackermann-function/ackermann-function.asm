@@ -1,4 +1,4 @@
-; Ackermann procedure in x86-64 assembly, defined recursively
+; Ackermann procedure in x86-64 assembly (NASM), defined recursively
 
 default rel
 extern printf

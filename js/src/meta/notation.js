@@ -6,10 +6,15 @@
 //   program (comments hi)
 //     declaration x (mutable false) (type text)
 //       text 'a b' (type text)
-//     print (newline true)
+//     call print-line (library standard)
 //       binary multiply (type integer)
 //         name x (type text)
 //         number 3 (type integer)
+//
+// The program is written in its general form (see library.js): writing a
+// line or taking a length is a call to a procedure of the standard
+// library, like any other call. A call made for its effect is written as
+// the call itself, as most programming languages write it.
 //
 // A block is not written: its statements are the children of the node that
 // holds it (the main program, a function, a loop, the "then" of an if). A
@@ -18,6 +23,8 @@
 // Links Notation keeps "name:" for links that define a unique name, and no
 // field name is unique here: "value", "left" or "body" appear again and
 // again. The Rust format_meta writes the same text.
+
+import { generalize } from './library.js';
 
 const kebab = (text) =>
   text.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
@@ -39,20 +46,26 @@ const mainField = {
   Boolean: 'value',
   Call: 'callee',
   Comment: 'text',
+  Code: 'language',
   CountingLoop: 'variable',
   Declaration: 'name',
+  ForEach: 'variable',
   Function: 'name',
   IndexAssignment: 'name',
   Name: 'name',
   Number: 'value',
+  Paragraph: 'id',
   Parameter: 'name',
+  Prose: 'language',
   Text: 'value',
   Unary: 'operator',
+  Word: 'text',
   '': 'name',
 };
 
 // The order in which child nodes are read; other fields follow by name.
 const childOrder = [
+  'comments',
   'condition',
   'array',
   'index',
@@ -70,10 +83,12 @@ const childOrder = [
   'elements',
   'parts',
   'parameters',
+  'texts',
   'functions',
   'statements',
   'then',
   'body',
+  'mainComments',
   'main',
   'otherwise',
 ];
@@ -142,7 +157,21 @@ function children(value, field, indent, out) {
   }
 }
 
-function lines(node, indent, list, out) {
+// A statement that only evaluates a call is written as the call.
+const shown = (node) =>
+  node.kind === 'Evaluate' && node.expression?.kind === 'Call'
+    ? {
+        ...node.expression,
+        ...Object.fromEntries(
+          Object.entries(node).filter(
+            ([field]) => field !== 'kind' && field !== 'expression'
+          )
+        ),
+      }
+    : node;
+
+function lines(written, indent, list, out) {
+  const node = shown(written);
   out.push(`${indent}${head(node, list)}`);
   const inner = `${indent}  `;
   let afterBlock = false;
@@ -160,5 +189,5 @@ function lines(node, indent, list, out) {
 
 // Meta program (or fragment) -> Links Notation text.
 export function formatMeta(program) {
-  return `${lines(program, '', '', []).join('\n')}\n`;
+  return `${lines(generalize(program), '', '', []).join('\n')}\n`;
 }

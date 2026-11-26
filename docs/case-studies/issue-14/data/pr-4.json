@@ -1,0 +1,8 @@
+{
+  "body": "npm rejects `universal-translator` as too similar to an existing package, so this publishes the package as `@link-foundation/universal-translator`. The CLI command, binary filename, and repository URL stay unchanged. Updates package metadata, lockfile, changesets, tests, and README.",
+  "createdAt": "2026-11-19T14:38:07Z",
+  "mergedAt": "2026-11-19T15:09:05Z",
+  "number": 4,
+  "state": "MERGED",
+  "title": "Rename npm package to the link-foundation scope"
+}

@@ -1,0 +1,8 @@
+Note: Greatest element of a list in JavaScript
+
+There is numbers, it is these things (17, 4, 93, 28, 65, 3, 80).
+There is greatest, it is part 0 of numbers.
+For all number inside numbers, do this:
+  If number is more than greatest, do this:
+    After this, greatest is number.
+Say “The greatest element is ” then greatest on one line.

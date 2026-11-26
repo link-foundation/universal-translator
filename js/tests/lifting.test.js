@@ -20,7 +20,15 @@ const tasks = [
   'bubble-sort',
   'sum-and-product-of-an-array',
 ];
-const extensions = { nasm: '.asm', cil: '.il', jvm: '.j' };
+const extensions = {
+  nasm: '.asm',
+  gas: '.s',
+  arm64: '.arm64',
+  cil: '.il',
+  jvm: '.j',
+  llvm: '.ll',
+  wat: '.wat',
+};
 const golden = (task, extension) =>
   readFileSync(join(folder, 'translated', task, `${task}${extension}`), 'utf8');
 
@@ -70,7 +78,7 @@ while (index < 4 && !(index === 2 || count > 5)) {
 for (let step = 0; step < 3; step++) {
   console.log(step);
 }
-console.log(\`count \${count}, \${count / 2}, \${count % 3}\`);
+console.log(\`count \${count}, \${Math.trunc(count / 2)}, \${count % 3}\`);
 `;
 
 describe('reading machine code', () => {
@@ -123,7 +131,7 @@ describe('reading machine code', () => {
 
 describe('lifting machine code into the meta language', () => {
   for (const task of tasks) {
-    it(`translates ${task} between assembly, CIL and JVM bytecode`, () => {
+    it(`translates ${task} between every machine target`, () => {
       const original = readFileSync(join(folder, `${task}.js`), 'utf8');
       const expected = run(original);
       for (const from of machineTargetIds) {
@@ -141,7 +149,7 @@ describe('lifting machine code into the meta language', () => {
   }
 
   it('rebuilds nested conditions, loops and boolean values', () => {
-    // Machine code divides integers, as the JavaScript translation does.
+    // Machine code divides integers, like Math.trunc(count / 2).
     const expected = run(
       translator.translate(conditions, 'javascript', 'javascript')
     );

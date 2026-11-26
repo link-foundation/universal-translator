@@ -67,6 +67,7 @@ fn extension(target: &str) -> &'static str {
         "zig" => "zig",
         "lean" => "lean",
         "rocq" => "v",
+        "gml" => "gml",
         other => panic!("no extension for {other}"),
     }
 }

@@ -5,6 +5,7 @@ import { URL } from 'node:url';
 
 import { createGrammarTranslator } from './translator.js';
 import { readRules } from './translation/rules-notation.js';
+import { checkStyle } from './translation/style.js';
 
 const MODES = ['context-dependent', 'literal', 'same-effect'];
 const LIMIT = 1024 * 1024;
@@ -77,11 +78,23 @@ function checkRequest(body, { allowRegexRules = false } = {}) {
   if (body.mode !== undefined && !MODES.includes(body.mode)) {
     throw new Error(`"mode" must be one of ${MODES.join(', ')}`);
   }
-  for (const key of ['commentLanguage', 'commentFrom']) {
+  for (const key of [
+    'commentLanguage',
+    'commentFrom',
+    'identifierLanguage',
+    'identifierFrom',
+  ]) {
     if (body[key] !== undefined && typeof body[key] !== 'string') {
       throw new Error(`"${key}" must be a string`);
     }
   }
+  if (
+    body.layout !== undefined &&
+    !['source', 'target'].includes(body.layout)
+  ) {
+    throw new Error('"layout" must be one of source, target');
+  }
+  checkStyle(body);
   const rules = checkRules(body.rules, allowRegexRules);
   return {
     source: body.source,
@@ -95,6 +108,11 @@ function checkRequest(body, { allowRegexRules = false } = {}) {
       commonLibrary: body.commonLibrary === true,
       commentLanguage: body.commentLanguage,
       commentFrom: body.commentFrom,
+      identifierLanguage: body.identifierLanguage,
+      identifierFrom: body.identifierFrom,
+      layout: body.layout,
+      braces: body.braces,
+      indent: body.indent,
     },
   };
 }
@@ -140,6 +158,7 @@ function runTranslation(
       message,
     })),
     coverage: result.coverage,
+    ...(result.lineMap ? { lineMap: result.lineMap } : {}),
     ...extra,
   };
 }
@@ -148,8 +167,9 @@ function runTranslation(
  * Create an HTTP server with two routes:
  * GET /languages lists the programming and natural languages;
  * POST /translate takes {source, from (or "auto"), to, fragment?, mode?,
- * commonLibrary?, commentLanguage?, commentFrom?, allOrNothing?, rules?} and
- * answers {output, complete, errors, coverage?, detected?} or {error}. The
+ * commonLibrary?, commentLanguage?, commentFrom?, identifierLanguage?,
+ * identifierFrom?, layout?, braces?, indent?, allOrNothing?, rules?} and answers {output, complete, errors, coverage?, lineMap?,
+ * detected?} or {error}. lineMap pairs 0-based source and target lines. The
  * rules are Links Notation text (or an object). Rules with regular
  * expressions are refused unless `allowRegexRules` is true.
  */

@@ -21,7 +21,10 @@ for (const file of readdirSync('examples/programs').filter((f) =>
       meaningDifference(t.toMeta(js, 'javascript'), meta)
     );
   }
-  for (const { id } of t.languages()) {
+  for (const { id, machine } of t.languages()) {
+    if (machine) {
+      continue;
+    }
     if (only && only !== id) {
       continue;
     }

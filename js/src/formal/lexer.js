@@ -174,6 +174,9 @@ class Lexer {
       if (this.lineStart && this.syntax.blocks === 'indentation') {
         this.indent();
       }
+      if (this.closingTag()) {
+        break;
+      }
       this.readers.some((read) => read());
     }
     if (this.tokens.length && this.tokens.at(-1).type !== 'newline') {
@@ -184,6 +187,19 @@ class Lexer {
     }
     this.push('end', '');
     return this.tokens;
+  }
+
+  // PHP: the closing ?> tag ends the program when only whitespace follows
+  // it; text after it would be output, which is not read.
+  closingTag() {
+    if (this.syntax.id !== 'php' || !this.source.startsWith('?>', this.index)) {
+      return false;
+    }
+    if (this.source.slice(this.index + 2).trim()) {
+      throw new SyntaxError('Text after the closing "?>" tag', this.line);
+    }
+    this.index = this.source.length;
+    return true;
   }
 
   push(type, value, extra = {}) {
@@ -280,8 +296,29 @@ class Lexer {
     return end < 0 ? this.source.length : end;
   }
 
+  // The line comment marker here: Lua skips a first line that starts with
+  // "#" (a #! line), and fixed-form Fortran comments out a line with C or *
+  // in its first column (`C     Hello World`, not `c = 1`).
+  commentMarker() {
+    const { id, lineComment } = this.syntax;
+    if (id === 'lua' && this.index === 0 && this.source[0] === '#') {
+      return '#';
+    }
+    if (
+      id === 'fortran' &&
+      (this.index === 0 || this.source[this.index - 1] === '\n')
+    ) {
+      const line = this.source.slice(this.index, this.untilLineEnd());
+      const fixed = /^([Cc*])(?![^ \t\r])(?![ \t]*[=(])/.exec(line);
+      if (fixed) {
+        return fixed[1];
+      }
+    }
+    return lineComment;
+  }
+
   lineComment() {
-    const marker = this.syntax.lineComment;
+    const marker = this.commentMarker();
     if (
       !this.source.startsWith(marker, this.index) ||
       (this.syntax.id === 'lua' &&
@@ -384,7 +421,7 @@ class Lexer {
   }
 
   number() {
-    const number = /^\d+(\.\d+)?/.exec(this.rest());
+    const number = /^\d+(\.\d+)?([eE][+-]?\d+)?/.exec(this.rest());
     if (!number) {
       return false;
     }
@@ -399,12 +436,14 @@ class Lexer {
   }
 
   // Names, including Rust macro names such as println! (but not "x != y").
-  // Where "!" starts a comment (Fortran), it never ends a name.
+  // Where "!" starts a comment (Fortran), it never ends a name. Letters of
+  // every script make names ("сумма"); the span says where the name stands,
+  // so identifiers can be renamed in place.
   name() {
     const pattern =
       this.syntax.lineComment === '!'
-        ? /^[A-Za-z_][A-Za-z0-9_]*/
-        : /^[A-Za-z_][A-Za-z0-9_]*!?/;
+        ? /^[\p{Alphabetic}_][\p{Alphabetic}\p{N}_]*/u
+        : /^[\p{Alphabetic}_][\p{Alphabetic}\p{N}_]*!?/u;
     const name = pattern.exec(this.rest());
     if (!name) {
       return false;
@@ -413,7 +452,9 @@ class Lexer {
       name[0].endsWith('!') && this.source[this.index + name[0].length] === '='
         ? name[0].slice(0, -1)
         : name[0];
-    this.push('name', value);
+    this.push('name', value, {
+      span: [this.index, this.index + value.length],
+    });
     this.index += value.length;
     return true;
   }
@@ -422,7 +463,7 @@ class Lexer {
   sigil() {
     if (
       this.syntax.variableSigil !== this.source[this.index] ||
-      !/[A-Za-z_]/.test(this.source[this.index + 1] ?? '')
+      !/[\p{Alphabetic}_]/u.test(this.source[this.index + 1] ?? '')
     ) {
       return false;
     }

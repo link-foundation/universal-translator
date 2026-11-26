@@ -16,7 +16,8 @@ use regex::Regex;
 use super::catalog::{Language, natural_language};
 use super::levels::{Associativity, LEVELS, level_index, operator_of_template};
 use super::tokens::{Kind, Token};
-use crate::meta::{Node, Value, add, block, name, number};
+use crate::meta::for_each::raise_for_each;
+use crate::meta::{Node, Value, add, binary, block, name, number};
 
 const NAME_SLOTS: [&str; 3] = ["name", "variable", "callee"];
 /// Slots the writer fills with a primary expression (parenthesized unless it
@@ -24,18 +25,20 @@ const NAME_SLOTS: [&str; 3] = ["name", "variable", "callee"];
 const PRIMARY_SLOTS: [&str; 4] = ["index", "array", "length", "fill"];
 const ARRAY_KEYS: [&str; 4] = ["array", "new-array", "element", "length"];
 
-const STATEMENT_KEYS: [&str; 9] = [
+const STATEMENT_KEYS: [&str; 11] = [
     "print-line",
     "print",
     "set-element",
     "declare",
     "assign",
+    "increase",
+    "decrease",
     "return-value",
     "return",
     "nothing",
     "evaluate",
 ];
-const BLOCK_KEYS: [&str; 5] = ["else-if", "else", "if", "while", "for"];
+const BLOCK_KEYS: [&str; 6] = ["else-if", "else", "if", "while", "for", "for-each"];
 const FUNCTION_KEYS: [&str; 2] = ["function", "function-without-parameters"];
 
 static NAME_START: LazyLock<Regex> =
@@ -367,6 +370,7 @@ impl<'a> SentenceReader<'a> {
 
     fn atom(&self, token: &Token) -> Option<Node> {
         match token.kind {
+            Kind::Number if token.real => Some(number(token.number).with("type", "real")),
             Kind::Number => Some(number(token.number)),
             Kind::Text => Some(Node::new("Text").with("value", token.value.clone())),
             Kind::Word => {
@@ -520,6 +524,18 @@ fn statement_from_sentence(key: &str, mut slots: Captured) -> Option<Node> {
             .with("name", name_slot(&mut slots, "name"))
             .with("operator", "=")
             .with_opt("value", expression_slot(&mut slots, "value")),
+        "increase" | "decrease" => {
+            let variable = name_slot(&mut slots, "name");
+            let operator = if key == "increase" { "add" } else { "subtract" };
+            Node::new("Assignment")
+                .with("name", variable.clone())
+                .with("operator", "=")
+                .with_opt(
+                    "value",
+                    expression_slot(&mut slots, "value")
+                        .map(|amount| binary(operator, name(variable), amount)),
+                )
+        }
         "set-element" => Node::new("IndexAssignment")
             .with("name", name_slot(&mut slots, "name"))
             .with_opt("index", expression_slot(&mut slots, "index"))
@@ -539,6 +555,8 @@ struct Line {
     note: Option<String>,
     text: String,
     opens_block: bool,
+    /// Text without the sentence or block end mark.
+    unmarked: bool,
     blank: bool,
 }
 
@@ -560,9 +578,24 @@ fn note_pattern(language: &Language) -> Regex {
     .expect("note pattern")
 }
 
+/// A heading written without its end mark ("While n is less than 3, do
+/// this") still opens a block when the lines after it are indented deeper.
+fn mark_headings(mut lines: Vec<Line>) -> Vec<Line> {
+    for position in 0..lines.len() {
+        if lines[position].unmarked {
+            let depth = lines[position].depth;
+            lines[position].opens_block = lines[position + 1..]
+                .iter()
+                .find(|other| !other.blank)
+                .is_some_and(|next| next.depth > depth);
+        }
+    }
+    lines
+}
+
 fn read_lines(source: &str, language: &Language) -> Vec<Line> {
     let pattern = note_pattern(language);
-    source
+    let lines = source
         .split('\n')
         .map(|raw| raw.strip_suffix('\r').unwrap_or(raw))
         .enumerate()
@@ -578,6 +611,7 @@ fn read_lines(source: &str, language: &Language) -> Vec<Line> {
                     note: Some(note[1].to_owned()),
                     text: text.to_owned(),
                     opens_block: false,
+                    unmarked: false,
                     blank: false,
                 };
             }
@@ -596,10 +630,12 @@ fn read_lines(source: &str, language: &Language) -> Vec<Line> {
                 note: None,
                 text: sentence.to_owned(),
                 opens_block,
+                unmarked: !text.is_empty() && !text.ends_with(end_mark.as_str()),
                 blank: text.is_empty(),
             }
         })
-        .collect()
+        .collect();
+    mark_headings(lines)
 }
 
 struct Paragraph {
@@ -690,6 +726,14 @@ impl ProgramReader<'_> {
                 return Ok(Some(
                     Node::new("While")
                         .with_opt("condition", condition())
+                        .with("body", body),
+                ));
+            }
+            "for-each" => {
+                return Ok(Some(
+                    Node::new("ForEach")
+                        .with("variable", name_slot(&mut slots, "variable"))
+                        .with_opt("array", expression_slot(&mut slots, "array"))
                         .with("body", body),
                 ));
             }
@@ -823,6 +867,8 @@ pub fn read_natural(source: &str, id: &str) -> Result<Node, String> {
 /// [`read_natural`] with a compiled language, such as one with more
 /// template variants (see [`super::catalog::with_templates`]).
 pub fn read_natural_with(source: &str, language: &Language) -> Result<Node, String> {
+    // A language without a for-each sentence writes the counting loop over an
+    // index; it is read back as the loop over the elements it stands for.
     ProgramReader {
         language,
         sentences: SentenceReader::new(language),
@@ -830,4 +876,5 @@ pub fn read_natural_with(source: &str, language: &Language) -> Result<Node, Stri
         position: 0,
     }
     .read()
+    .map(raise_for_each)
 }

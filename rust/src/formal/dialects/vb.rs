@@ -17,21 +17,29 @@ const MODIFIERS: [&str; 4] = ["private", "public", "shared", "friend"];
 /// The operators Visual Basic binds at different levels: * and / above \,
 /// and \ above Mod.
 fn multiplicative(operator: Option<&str>) -> bool {
-    matches!(operator, Some("multiply" | "divide" | "remainder"))
+    matches!(
+        operator,
+        Some("multiply" | "divide" | "realDivide" | "remainder")
+    )
 }
 
 // ---- reading ----
 
 impl ParserDialect for VisualBasic {
-    /// Imports, then a module of procedures; Sub Main is the entry point.
+    /// Imports, then a module (or a class) of procedures; Sub Main is the
+    /// entry point.
     fn program(&self, p: &mut Parser) -> Parsed {
         let mut items = Vec::new();
         p.gather_comments(&mut items);
         while p.is("imports") || p.is("option") {
+            let console =
+                p.is("imports") && p.is_at("system", 1) && p.is_at(".", 2) && p.is_at("console", 3);
+            p.state::<Reading>().console_imported |= console;
             p.skip_line();
             p.gather_comments(&mut items);
         }
-        p.expect("module")?;
+        let container = if p.is("class") { "class" } else { "module" };
+        p.expect(container)?;
         p.skip_line();
         p.gather_comments(&mut items);
         while !p.is("end") {
@@ -39,7 +47,7 @@ impl ParserDialect for VisualBasic {
             p.gather_comments(&mut items);
         }
         p.expect("end")?;
-        p.expect("module")?;
+        p.expect(container)?;
         p.gather_comments(&mut items);
         Ok(Node::new("SourceProgram")
             .with("language", p.syntax.id)
@@ -79,9 +87,30 @@ impl ParserDialect for VisualBasic {
         {
             return Ok(assignment);
         }
-        let expression = Parser::called(p.expression()?);
+        let called = Parser::called(p.expression()?);
+        let expression = imported(p, called);
         Ok(Node::new("Evaluate").with("expression", expression))
     }
+}
+
+/// What the reader remembers: whether Imports System.Console came first.
+#[derive(Default)]
+struct Reading {
+    console_imported: bool,
+}
+
+/// After Imports System.Console, WriteLine and Write are the console's.
+fn imported(p: &mut Parser, expression: Node) -> Node {
+    if expression.kind != "Call" || !p.state::<Reading>().console_imported {
+        return expression;
+    }
+    let callee = expression.str("callee").unwrap_or_default().to_lowercase();
+    let name = match callee.as_str() {
+        "writeline" => "WriteLine",
+        "write" => "Write",
+        _ => return expression,
+    };
+    expression.with("callee", format!("Console.{name}"))
 }
 
 /// name = value, name += value, and name \= value for integer division.
@@ -340,8 +369,8 @@ impl EmitterDialect for VisualBasic {
         let name = statement.str("name").unwrap_or_default();
         let kind = statement.str("type").unwrap_or("integer");
         let initial = match statement.node("value") {
-            Some(value) => e.expression(value)?,
-            None => e.expression(&default_value(kind))?,
+            Some(value) => e.initial_value(value, kind)?,
+            None => e.initial_value(&default_value(kind), kind)?,
         };
         let written = e.type_name(kind);
         Ok(format!("Dim {name} As {written} = {initial}"))

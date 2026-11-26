@@ -7,6 +7,7 @@
 // names), and literal words only match outside parentheses.
 
 import { add, block, name, node, number } from '../meta/tree.js';
+import { raiseForEach } from '../meta/for-each.js';
 import { naturalLanguage } from './catalog.js';
 import { tokenize } from './tokens.js';
 import { levelIndex, levels, operatorOfTemplate } from './levels.js';
@@ -248,7 +249,9 @@ export class SentenceReader {
   atom(token) {
     switch (token.type) {
       case 'number':
-        return number(token.value);
+        return token.real
+          ? { ...number(token.value), type: 'real' }
+          : number(token.value);
       case 'text':
         return node('Text', { value: token.value });
       case 'word': {
@@ -361,12 +364,14 @@ const statementKeys = [
   'set-element',
   'declare',
   'assign',
+  'increase',
+  'decrease',
   'return-value',
   'return',
   'nothing',
   'evaluate',
 ];
-const blockKeys = ['else-if', 'else', 'if', 'while', 'for'];
+const blockKeys = ['else-if', 'else', 'if', 'while', 'for', 'for-each'];
 const functionKeys = ['function', 'function-without-parameters'];
 
 function statementFromSentence({ key, slots }) {
@@ -389,6 +394,17 @@ function statementFromSentence({ key, slots }) {
         operator: '=',
         value: slots.value,
       });
+    case 'increase':
+    case 'decrease':
+      return node('Assignment', {
+        name: slots.name,
+        operator: '=',
+        value: node('Binary', {
+          operator: key === 'increase' ? 'add' : 'subtract',
+          left: name(slots.name),
+          right: slots.value,
+        }),
+      });
     case 'set-element':
       return node('IndexAssignment', {
         name: slots.name,
@@ -406,10 +422,22 @@ function statementFromSentence({ key, slots }) {
   }
 }
 
+// A heading written without its end mark ("While n is less than 3, do
+// this") still opens a block when the lines after it are indented deeper.
+function markHeadings(lines) {
+  lines.forEach((line, position) => {
+    if (line.unmarked) {
+      const next = lines.slice(position + 1).find((other) => !other.blank);
+      line.opensBlock = next !== undefined && next.depth > line.depth;
+    }
+  });
+  return lines;
+}
+
 // One line of text: depth, the sentence without its end mark, and whether it
 // opens a block.
 function readLines(source, language) {
-  return source.split(/\r?\n/).map((raw, index) => {
+  const lines = source.split(/\r?\n/).map((raw, index) => {
     const content = raw.trimEnd();
     const indentation = content.length - content.trimStart().length;
     const text = content.trim();
@@ -427,9 +455,11 @@ function readLines(source, language) {
       depth: indentation / 2,
       text: sentence,
       opensBlock,
+      unmarked: Boolean(text) && !text.endsWith(endMark),
       blank: !text,
     };
   });
+  return markHeadings(lines);
 }
 
 function notePattern(language) {
@@ -502,6 +532,13 @@ class ProgramReader {
     }
     if (key === 'while') {
       return node('While', { condition: slots.condition, body });
+    }
+    if (key === 'for-each') {
+      return node('ForEach', {
+        variable: slots.variable,
+        array: slots.array,
+        body,
+      });
     }
     if (key === 'for') {
       return node('CountingLoop', {
@@ -597,6 +634,8 @@ class ProgramReader {
   }
 }
 
+// A language without a for-each sentence writes the counting loop over an
+// index; it is read back as the loop over the elements it stands for.
 export function readNatural(source, id, language = naturalLanguage(id)) {
-  return new ProgramReader(language).read(source);
+  return raiseForEach(new ProgramReader(language).read(source));
 }

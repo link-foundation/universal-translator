@@ -1,0 +1,7 @@
+Opmerking: Sum multiples of 3 and 5 in JavaScript: the sum of the multiples below 1000
+
+Totaal is geclassificeerd als een variabele met beginwaarde 0.
+Voor elke getal van 1 tot en met 999 wordt het volgende herhaald:
+  Als getal modulo 3 is gelijk aan 0 of getal modulo 5 is gelijk aan 0 dan wordt het volgende uitgevoerd:
+    Totaal heeft als nieuwe waarde totaal plus getal.
+De uitvoer heeft als volgende regel totaal.

@@ -2,32 +2,45 @@
 //! translator, exchange sources as Links Notation documents and concrete
 //! syntax trees, and rank dependent interpretations.
 
+mod candidates;
 pub mod comment_language;
 pub mod custom_rules;
 mod detect;
+pub mod equivalence;
 pub mod formal;
 pub mod fragments;
+pub mod identifier_language;
+pub mod layout;
 pub mod meta;
 pub mod natural;
+pub mod nesting;
 mod partial;
 mod program;
 mod referents;
+pub mod server;
 mod source_document;
+pub mod stages;
+pub mod style;
 pub mod translator;
 
+pub use candidates::TranslationCandidate;
 pub use comment_language::{CommentTranslator, translate_comments};
 pub use custom_rules::CustomRules;
+pub use equivalence::{Difference, Equivalence, check_equivalence, effect_of};
 pub use formal::versions::{Version, split_version, versions_of};
 pub use fragments::{Fragment, FragmentKind};
+pub use identifier_language::{translate_identifiers, translate_program_identifiers};
 pub use meta::GrammarError;
+pub use nesting::{nest_grammars, unnest};
 pub use program::translate_program;
 pub use referents::{
     Candidate, Observation, RankedCandidate, Ranking, rank_interpretations, read_referent_input,
 };
 pub use source_document::SourceDocument;
+pub use style::{Braces, Indent, Style};
 pub use translator::{
     Detection, LanguageListing, Options, PartError, PartStatus, PartialReading, PartialTranslation,
-    Translator,
+    TextLayout, Translator,
 };
 
 /// How closely a translation follows the source.

@@ -6,7 +6,9 @@
 //! one that reads nothing comes last. Ties are broken by evidence from the
 //! language's own syntax tables and, for controlled natural languages, by
 //! how many words of the text are words of its templates. Only the best
-//! candidates by that evidence are read partially.
+//! candidates by that evidence are read partially. Machine code (assembly,
+//! bytecode, intermediate languages) is read whole only: each dialect's
+//! reader takes its own programs and no other text.
 //!
 //! The JavaScript twin is js/src/translation/detect.js.
 
@@ -190,6 +192,14 @@ const SIGNATURES: &[(&str, &[&str])] = &[
         &[r"\bFixpoint\b", r"\bDefinition\b", r"\bCompute\b"],
     ),
     (
+        "gml",
+        &[
+            r"\bshow_debug_message\s*\(",
+            r"\barray_create\s*\(",
+            r"\barray_length\s*\(",
+        ],
+    ),
+    (
         "nasm",
         &[
             r"(?m)^\s*section\s+\.text",
@@ -209,6 +219,41 @@ const SIGNATURES: &[(&str, &[&str])] = &[
             r"\binvokestatic\b",
         ],
     ),
+    (
+        "gas",
+        &[
+            r"(?m)^\s*\.globl\b",
+            r"%r[sb]p\b",
+            r"(?m)^\s*(?:push|mov|sub)q\s",
+        ],
+    ),
+    (
+        "arm64",
+        &[
+            r"(?m)^\s*stp\s+x\d+,",
+            r"(?m)^\s*(?:ldr|str)\s+x\d+,",
+            r"%function\b",
+        ],
+    ),
+    (
+        "llvm",
+        &[
+            r"(?m)^\s*define\s+\S+\s+@\w+\(",
+            r"(?m)^\s*declare\s+\S+\s+@\w+\(",
+            r"\balloca\b",
+        ],
+    ),
+    (
+        "wat",
+        &[r"(?m)^\s*\(module\b", r"\blocal\.get\b", r"\(func\s+\$\w+"],
+    ),
+];
+
+/// Patterns a language never writes: Objective-C imports its headers, C and
+/// C++ include them, so "#import" rules C and C++ out.
+const CONTRADICTIONS: &[(&str, &[&str])] = &[
+    ("c", &[r"(?m)^\s*#import\b"]),
+    ("cpp", &[r"(?m)^\s*#import\b"]),
 ];
 
 /// The languages whose JavaScript syntax table names a print call; the
@@ -232,8 +277,10 @@ const PRINTED: &[&str] = &[
     "objc",
 ];
 
-static COMPILED: LazyLock<HashMap<&'static str, Vec<Regex>>> = LazyLock::new(|| {
-    SIGNATURES
+fn compile(
+    table: &'static [(&'static str, &'static [&'static str])],
+) -> HashMap<&'static str, Vec<Regex>> {
+    table
         .iter()
         .map(|(id, patterns)| {
             let compiled = patterns
@@ -243,7 +290,12 @@ static COMPILED: LazyLock<HashMap<&'static str, Vec<Regex>>> = LazyLock::new(|| 
             (*id, compiled)
         })
         .collect()
-});
+}
+
+static COMPILED: LazyLock<HashMap<&'static str, Vec<Regex>>> =
+    LazyLock::new(|| compile(SIGNATURES));
+static CONTRADICTED: LazyLock<HashMap<&'static str, Vec<Regex>>> =
+    LazyLock::new(|| compile(CONTRADICTIONS));
 
 fn is_word(text: &str) -> bool {
     !text.is_empty()
@@ -260,6 +312,11 @@ fn syntax_evidence(source: &str, id: &str) -> f64 {
     for pattern in COMPILED.get(id).into_iter().flatten() {
         if pattern.is_match(source) {
             score += 3.0;
+        }
+    }
+    for pattern in CONTRADICTED.get(id).into_iter().flatten() {
+        if pattern.is_match(source) {
+            score -= 6.0;
         }
     }
     let words = syntax
@@ -307,14 +364,44 @@ fn word_evidence(source: &str, id: &str) -> f64 {
         .filter(|token| {
             language.reserved.contains(&token.folded)
                 || language.reverse_lexicon.contains_key(&token.folded)
+                || natural::is_known_word(&token.folded, id)
         })
         .count();
     10.0 * known as f64 / words.len() as f64
 }
 
+/// Symbols that code writes and prose does not.
+static CODE_SYMBOLS: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"[{}()\[\];=<>+*/\\$#@&|^~`]").expect("code symbols"));
+
+/// How much of a text reads as prose of a natural language: its known words
+/// (in the vocabulary, the primes or the templates, directly or through
+/// their stems) among all its words and code symbols. Prose outside the
+/// controlled templates is still translated freely, so it counts as read.
+fn prose_coverage(source: &str, id: &str) -> f64 {
+    let Ok(language) = natural::natural_language(id) else {
+        return 0.0;
+    };
+    let words = natural::words_of(source);
+    if words.is_empty() {
+        return 0.0;
+    }
+    let known = words
+        .iter()
+        .filter(|word| {
+            language.reserved.contains(*word)
+                || language.reverse_lexicon.contains_key(*word)
+                || natural::is_known_word(word, id)
+        })
+        .count();
+    let symbols = CODE_SYMBOLS.find_iter(source).count();
+    known as f64 / (words.len() + symbols) as f64
+}
+
 struct Candidate {
     id: String,
     natural: bool,
+    machine: bool,
     evidence: f64,
     reads: bool,
     coverage: f64,
@@ -328,6 +415,7 @@ pub fn detect_language(translator: &Translator, source: &str, limit: usize) -> V
     let candidate = |id: &str, natural: bool, evidence: f64| Candidate {
         id: id.to_owned(),
         natural,
+        machine: false,
         evidence,
         reads: false,
         coverage: 0.0,
@@ -335,6 +423,14 @@ pub fn detect_language(translator: &Translator, source: &str, limit: usize) -> V
     let mut candidates: Vec<Candidate> = languages::language_ids()
         .into_iter()
         .map(|id| candidate(id, false, syntax_evidence(source, id)))
+        .chain(
+            languages::machine_target_ids()
+                .into_iter()
+                .map(|id| Candidate {
+                    machine: true,
+                    ..candidate(id, false, syntax_evidence(source, id))
+                }),
+        )
         .chain(natural::natural_language_ids().into_iter().map(|id| {
             // A profile only narrows its language, so on a tie the
             // language itself is the better guess.
@@ -356,13 +452,23 @@ pub fn detect_language(translator: &Translator, source: &str, limit: usize) -> V
     // natural languages by evidence.
     for natural in [false, true] {
         let mut unread: Vec<usize> = (0..candidates.len())
-            .filter(|&index| candidates[index].natural == natural && !candidates[index].reads)
+            .filter(|&index| {
+                let candidate = &candidates[index];
+                candidate.natural == natural && !candidate.machine && !candidate.reads
+            })
             .collect();
         unread.sort_by(|&a, &b| candidates[b].evidence.total_cmp(&candidates[a].evidence));
         for index in unread.into_iter().take(limit) {
             candidates[index].coverage = translator
                 .parse_partial(source, &candidates[index].id)
                 .map_or(0.0, |reading| reading.coverage);
+        }
+    }
+    for candidate in &mut candidates {
+        if candidate.natural && !candidate.reads {
+            candidate.coverage = candidate
+                .coverage
+                .max(prose_coverage(source, &candidate.id));
         }
     }
     let mut detections: Vec<Detection> = candidates

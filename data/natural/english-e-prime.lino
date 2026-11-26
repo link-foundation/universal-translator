@@ -5,6 +5,7 @@ natural:
   profile: e-prime
   source: 'https://en.wikipedia.org/wiki/E-Prime'
   templates:
+    declare: 'Create {name} with value {value}'
     equal: '{left} equals {right}' '{left} = {right}' '{left} == {right}'
     not-equal: '{left} does not equal {right}' '{left} != {right}' '{left} ≠ {right}' '{left} <> {right}'
     less: '{left} falls below {right}' '{left} < {right}'
