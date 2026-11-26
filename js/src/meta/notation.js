@@ -1,25 +1,26 @@
 // A meta program as indented Links Notation, for people to read. Every node
 // is one line: its kind, its main value as a plain word and its other plain
-// fields as (name value) links. Its child nodes are nested below it, in
-// the order they are read, with no field names:
+// fields as (name value) links. Every child field is named, so conditions,
+// actions, operands and arguments remain distinguishable at every depth.
 //
 //   program (comments hi)
-//     declaration x (mutable false) (type text)
-//       text 'a b' (type text)
-//     call print-line (library standard)
-//       binary multiply (type integer)
-//         name x (type text)
-//         number 3 (type integer)
+//     main
+//       declaration x (mutable false) (type text)
+//         value
+//           text 'a b' (type text)
+//       evaluate
+//         expression
+//           call print-line (library standard)
+//             arguments
+//               name x (type text)
 //
 // The program is written in its general form (see library.js): writing a
 // line or taking a length is a call to a procedure of the standard
-// library, like any other call. A call made for its effect is written as
-// the call itself, as most programming languages write it.
+// library, like any other call.
 //
-// A block is not written: its statements are the children of the node that
-// holds it (the main program, a function, a loop, the "then" of an if). A
-// field that comes after a block is introduced by its name, a plain word
-// such as "otherwise", so it cannot be mistaken for one more statement.
+// A block is written under its field name (main, body, then, otherwise).
+// Evaluate remains a statement containing an expression: a call used for
+// its effect cannot be confused with a call used as a value.
 // Links Notation keeps "name:" for links that define a unique name, and no
 // field name is unique here: "value", "left" or "body" appear again and
 // again. The Rust format_meta writes the same text.
@@ -157,32 +158,12 @@ function children(value, field, indent, out) {
   }
 }
 
-// A statement that only evaluates a call is written as the call.
-const shown = (node) =>
-  node.kind === 'Evaluate' && node.expression?.kind === 'Call'
-    ? {
-        ...node.expression,
-        ...Object.fromEntries(
-          Object.entries(node).filter(
-            ([field]) => field !== 'kind' && field !== 'expression'
-          )
-        ),
-      }
-    : node;
-
-function lines(written, indent, list, out) {
-  const node = shown(written);
+function lines(node, indent, list, out) {
   out.push(`${indent}${head(node, list)}`);
   const inner = `${indent}  `;
-  let afterBlock = false;
   for (const [field, value] of childFields(node)) {
-    if (afterBlock) {
-      out.push(`${inner}${kebab(field)}`);
-      children(value, field, `${inner}  `, out);
-    } else {
-      children(value, field, inner, out);
-    }
-    afterBlock ||= isBlock(value);
+    out.push(`${inner}${kebab(field)}`);
+    children(value, field, `${inner}  `, out);
   }
   return out;
 }

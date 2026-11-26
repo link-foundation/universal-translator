@@ -40,14 +40,20 @@ describe('nested grammars', () => {
     const text = formatMeta(meta);
     expect(text).toContain(
       [
-        "  comment 'Prints `x + 1` twice'",
-        '    prose english',
-        '      sentence',
-        '        word Prints (concept print) (part verb)',
-        '        code javascript',
-        '          program',
-        '            evaluate',
-        '              binary add (type integer)',
+        "    comment 'Prints `x + 1` twice'",
+        '      reading',
+        '        prose english',
+        '          sentences',
+        '            sentence',
+        '              words',
+        '                word Prints (concept print) (part verb)',
+        '                code javascript',
+        '                  program',
+        '                    program',
+        '                      main',
+        '                        evaluate',
+        '                          expression',
+        '                            binary add (type integer)',
       ].join('\n')
     );
   });
@@ -57,7 +63,7 @@ describe('nested grammars', () => {
       nested('code = "print(1 + 2)"\nprint(code)\n', 'python')
     );
     expect(text).toContain(
-      "    text 'print(1 + 2)' (type text)\n      code python\n        program\n          call print-line"
+      "        text 'print(1 + 2)' (type text)\n          reading\n            code python\n              program\n                program\n                  main\n                    evaluate\n                      expression\n                        call print-line"
     );
   });
 
@@ -70,10 +76,12 @@ describe('nested grammars', () => {
     );
     expect(text).toContain(
       [
-        '    prose russian',
-        '      sentence (question true)',
-        "        word 'Как хорошо' (concept how-good) (part phrase)",
-        '        word покакать (concept poop) (part verb)',
+        '        prose russian',
+        '          sentences',
+        '            sentence (question true)',
+        '              words',
+        "                word 'Как хорошо' (concept how-good) (part phrase)",
+        '                word покакать (concept poop) (part verb)',
       ].join('\n')
     );
     expect(text).toContain(
@@ -101,7 +109,7 @@ describe('nested grammars', () => {
     const meta = translator.toMeta(source, 'python');
     const deep = nestGrammars(meta, 'python', translator);
     expect(formatMeta(deep)).toContain(
-      "  function twice (blank-after true) (return-type integer)\n    comment 'Hello world'\n      prose english\n"
+      "    function twice (blank-after true) (return-type integer)\n      comments\n        comment 'Hello world'\n          reading\n            prose english\n"
     );
     expect(unnest(deep)).toEqual(meta);
   });
@@ -127,7 +135,7 @@ describe('nested grammars', () => {
   it('prints the nested meta program on the command line, --shallow the plain one', () => {
     const source = '# Hello world\nprint(1)\n';
     expect(cli(['meta', 'python', '-'], source).output).toContain(
-      "comment 'Hello world'\n    prose english\n"
+      "comment 'Hello world'\n      reading\n        prose english\n"
     );
     expect(cli(['meta', 'python', '-', '--shallow'], source).output).toBe(
       formatMeta(translator.toMeta(source, 'python'))

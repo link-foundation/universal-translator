@@ -558,12 +558,19 @@ fn shows_the_meta_program_as_links_notation() {
     assert_eq!(
         universal_translator::meta::notation::format_meta(&meta),
         "program (comments hi)
-  declaration x (mutable false) (type text)
-    text 'a b' (type text)
-  call print-line (library standard)
-    binary multiply (type integer)
-      name x (type text)
-      number 3 (type integer)
+  main
+    declaration x (mutable false) (type text)
+      value
+        text 'a b' (type text)
+    evaluate
+      expression
+        call print-line (library standard)
+          arguments
+            binary multiply (type integer)
+              left
+                name x (type text)
+              right
+                number 3 (type integer)
 "
     );
 }
@@ -575,22 +582,38 @@ fn nests_meta_parameters_and_names_a_field_after_a_block() {
     assert_eq!(
         universal_translator::meta::notation::format_meta(&meta),
         "program
-  function twice (blank-after true) (return-type integer)
-    parameter n (type integer)
-    if
-      binary greater (type boolean)
-        name n (type integer)
-        number 1 (type integer)
-      return
-        binary multiply (type integer)
-          name n (type integer)
-          number 2 (type integer)
-      otherwise
-        return
-          number 0 (type integer)
-  call print-line (library standard)
-    call twice (type integer)
-      number 3 (type integer)
+  functions
+    function twice (blank-after true) (return-type integer)
+      parameters
+        parameter n (type integer)
+      body
+        if
+          condition
+            binary greater (type boolean)
+              left
+                name n (type integer)
+              right
+                number 1 (type integer)
+          then
+            return
+              value
+                binary multiply (type integer)
+                  left
+                    name n (type integer)
+                  right
+                    number 2 (type integer)
+          otherwise
+            return
+              value
+                number 0 (type integer)
+  main
+    evaluate
+      expression
+        call print-line (library standard)
+          arguments
+            call twice (type integer)
+              arguments
+                number 3 (type integer)
 "
     );
 }

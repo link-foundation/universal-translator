@@ -12,12 +12,19 @@ import { parseLinks } from '../src/meta/links.js';
 // The same text as the Rust test "shows_the_meta_program_as_links_notation".
 const expected = [
   'program (comments hi)',
-  '  declaration x (mutable false) (type text)',
-  "    text 'a b' (type text)",
-  '  call print-line (library standard)',
-  '    binary multiply (type integer)',
-  '      name x (type text)',
-  '      number 3 (type integer)',
+  '  main',
+  '    declaration x (mutable false) (type text)',
+  '      value',
+  "        text 'a b' (type text)",
+  '    evaluate',
+  '      expression',
+  '        call print-line (library standard)',
+  '          arguments',
+  '            binary multiply (type integer)',
+  '              left',
+  '                name x (type text)',
+  '              right',
+  '                number 3 (type integer)',
   '',
 ].join('\n');
 
@@ -54,10 +61,10 @@ describe('meta view', () => {
         callee: 'f',
         arguments: [{ kind: 'Number', value: 1 }],
       })
-    ).toBe('call f\n  number 1\n');
+    ).toBe('call f\n  arguments\n    number 1\n');
   });
 
-  it('nests parameters and statements, and names a field after a block', () => {
+  it('distinguishes parameters, conditions, operands and statement bodies', () => {
     const source = [
       'def twice(n):',
       '    if n > 1:',
@@ -71,28 +78,44 @@ describe('meta view', () => {
     expect(formatMeta(translator.toMeta(source, 'python'))).toBe(
       [
         'program',
-        '  function twice (blank-after true) (return-type integer)',
-        '    parameter n (type integer)',
-        '    if',
-        '      binary greater (type boolean)',
-        '        name n (type integer)',
-        '        number 1 (type integer)',
-        '      return',
-        '        binary multiply (type integer)',
-        '          name n (type integer)',
-        '          number 2 (type integer)',
-        '      otherwise',
-        '        return',
-        '          number 0 (type integer)',
-        '  call print-line (library standard)',
-        '    call twice (type integer)',
-        '      number 3 (type integer)',
+        '  functions',
+        '    function twice (blank-after true) (return-type integer)',
+        '      parameters',
+        '        parameter n (type integer)',
+        '      body',
+        '        if',
+        '          condition',
+        '            binary greater (type boolean)',
+        '              left',
+        '                name n (type integer)',
+        '              right',
+        '                number 1 (type integer)',
+        '          then',
+        '            return',
+        '              value',
+        '                binary multiply (type integer)',
+        '                  left',
+        '                    name n (type integer)',
+        '                  right',
+        '                    number 2 (type integer)',
+        '          otherwise',
+        '            return',
+        '              value',
+        '                number 0 (type integer)',
+        '  main',
+        '    evaluate',
+        '      expression',
+        '        call print-line (library standard)',
+        '          arguments',
+        '            call twice (type integer)',
+        '              arguments',
+        '                number 3 (type integer)',
         '',
       ].join('\n')
     );
   });
 
-  it('never writes a block marker or a field label', () => {
+  it('uses repeated field names without defining unique links', () => {
     const text = formatMeta(
       translator.toMeta('for i in range(3):\n    print(i)\n', 'python')
     );

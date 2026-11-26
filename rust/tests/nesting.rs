@@ -48,14 +48,20 @@ fn reads_a_comment_as_prose_and_the_code_it_quotes() {
         "javascript",
     ));
     let expected = [
-        "  comment 'Prints `x + 1` twice'",
-        "    prose english",
-        "      sentence",
-        "        word Prints (concept print) (part verb)",
-        "        code javascript",
-        "          program",
-        "            evaluate",
-        "              binary add (type integer)",
+        "    comment 'Prints `x + 1` twice'",
+        "      reading",
+        "        prose english",
+        "          sentences",
+        "            sentence",
+        "              words",
+        "                word Prints (concept print) (part verb)",
+        "                code javascript",
+        "                  program",
+        "                    program",
+        "                      main",
+        "                        evaluate",
+        "                          expression",
+        "                            binary add (type integer)",
     ]
     .join("\n");
     assert!(text.contains(&expected), "{text}");
@@ -66,7 +72,7 @@ fn reads_a_string_as_code_when_it_looks_like_code() {
     let text = format_meta(&nested("code = \"print(1 + 2)\"\nprint(code)\n", "python"));
     assert!(
         text.contains(
-            "    text 'print(1 + 2)' (type text)\n      code python\n        program\n          call print-line"
+            "        text 'print(1 + 2)' (type text)\n          reading\n            code python\n              program\n                program\n                  main\n                    evaluate\n                      expression\n                        call print-line"
         ),
         "{text}"
     );
@@ -79,10 +85,12 @@ fn reads_russian_prose_a_question_and_its_phrases() {
         "javascript",
     ));
     let expected = [
-        "    prose russian",
-        "      sentence (question true)",
-        "        word 'Как хорошо' (concept how-good) (part phrase)",
-        "        word покакать (concept poop) (part verb)",
+        "        prose russian",
+        "          sentences",
+        "            sentence (question true)",
+        "              words",
+        "                word 'Как хорошо' (concept how-good) (part phrase)",
+        "                word покакать (concept poop) (part verb)",
     ]
     .join("\n");
     assert!(text.contains(&expected), "{text}");
@@ -118,7 +126,7 @@ fn reads_the_comment_lists_of_a_program() {
     let deep = nest_grammars(&meta, "python", &translator);
     let text = format_meta(&deep);
     assert!(
-        text.contains("  function twice (blank-after true) (return-type integer)\n    comment 'Hello world'\n      prose english\n"),
+        text.contains("    function twice (blank-after true) (return-type integer)\n      comments\n        comment 'Hello world'\n          reading\n            prose english\n"),
         "{text}"
     );
     assert_eq!(unnest(&deep), meta);
@@ -153,7 +161,7 @@ fn prints_the_nested_meta_program_on_the_command_line() {
     let source = "# Hello world\nprint(1)\n";
     assert!(
         cli(&["meta", "python", "-"], source)
-            .contains("  comment 'Hello world'\n    prose english\n")
+            .contains("    comment 'Hello world'\n      reading\n        prose english\n")
     );
     let meta = Translator::new().to_meta(source, "python").expect("meta");
     assert_eq!(
