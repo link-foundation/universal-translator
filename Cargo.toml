@@ -75,3 +75,7 @@ path = "rust/tests/issue_12.rs"
 [[test]]
 name = "decorators"
 path = "rust/tests/decorators.rs"
+
+[[test]]
+name = "language_versions"
+path = "rust/tests/language_versions.rs"

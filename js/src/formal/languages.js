@@ -27,6 +27,7 @@ export const languages = {
     naming: 'camel',
     label: 'JavaScript',
     integerDivision: { wrapper: 'Math.trunc' },
+    symbols: ['~'],
     blocks: 'braces',
     lineComment: '//',
     blockComment: ['/*', '*/'],

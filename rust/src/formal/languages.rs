@@ -204,6 +204,9 @@ pub struct Syntax {
     pub text_join_concatenation: bool,
     /// Whether print is a statement: `print x` (Python 2).
     pub print_statement: bool,
+    /// The word that declares every variable and loop counter where the
+    /// language has older and newer ones (`var` in ECMAScript 5).
+    pub declaration_keyword: Option<&'static str>,
     /// The version of the language the description is for, such as "2" for
     /// `python@2` (none for the default version).
     pub version: Option<&'static str>,
@@ -396,6 +399,7 @@ const JAVASCRIPT: Syntax = Syntax {
     text_conversions: &[],
     text_join_concatenation: false,
     print_statement: false,
+    declaration_keyword: None,
     version: None,
     body_after: None,
     operators: SCRIPT_OPERATORS,
@@ -455,6 +459,8 @@ const C: Syntax = Syntax {
 pub static LANGUAGES: [Syntax; 32] = [
     Syntax {
         integer_division: SCRIPT_DIVISION,
+        // ECMAScript 5 truncates with ~~(a / b).
+        symbols: &["~"],
         text_conversions: &["String"],
         ..JAVASCRIPT
     },

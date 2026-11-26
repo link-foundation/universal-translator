@@ -1012,10 +1012,12 @@ impl Emitter {
         let mutable = statement.flag("mutable").unwrap_or(false);
         Ok(match self.id() {
             "javascript" | "typescript" => {
-                format!(
-                    "{} {name} = {initial};",
-                    if mutable { "let" } else { "const" }
-                )
+                let keyword = self.syntax.declaration_keyword.unwrap_or(if mutable {
+                    "let"
+                } else {
+                    "const"
+                });
+                format!("{keyword} {name} = {initial};")
             }
             "python" | "ruby" => format!("{name} = {initial}"),
             "php" => format!("${name} = {initial};"),
@@ -1178,7 +1180,9 @@ impl Emitter {
         };
         let header = match self.id() {
             "c" | "cpp" | "csharp" | "java" => c_style("int"),
-            "javascript" | "typescript" => c_style("let"),
+            "javascript" | "typescript" => {
+                c_style(self.syntax.declaration_keyword.unwrap_or("let"))
+            }
             "php" => format!("for ({target} = {from}; {target} < {to}; {target}++)"),
             "go" => format!("for {identifier} := {from}; {identifier} < {to}; {identifier}++"),
             "python" => {

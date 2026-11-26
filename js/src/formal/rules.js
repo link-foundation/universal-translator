@@ -605,6 +605,8 @@ const copyName = (name) => ['initial', ...nameWords(name)].join('-');
 // the meta operator "divide". The language description names its spelling.
 const integerDivisionSpellings = [
   { wrapper: 'Math.trunc' },
+  { wrapper: '~~' },
+  { wrapper: 'int' },
   { call: 'intdiv' },
 ];
 

@@ -6,7 +6,7 @@
 //! A language id may name its version after "@": `python@2`. The JavaScript
 //! twin is js/src/formal/versions.js.
 
-use super::languages::Syntax;
+use super::languages::{ArrayFill, IntegerDivision, Syntax};
 use crate::meta::GrammarError;
 
 /// One version of a language.
@@ -36,27 +36,80 @@ fn python_2(syntax: &mut Syntax) {
     syntax.print_statement = true;
 }
 
-const LANGUAGE_VERSIONS: &[LanguageVersions] = &[LanguageVersions {
-    id: "python",
-    versions: &[
-        (
-            Version {
-                version: "3",
-                label: "Python 3 (3.6+, f-strings)",
-                default: true,
-            },
-            no_change,
-        ),
-        (
-            Version {
-                version: "2",
-                label: "Python 2.7",
-                default: false,
-            },
-            python_2,
-        ),
-    ],
-}];
+/// ES5 has no let, const, template strings, Math.trunc or
+/// Array.prototype.fill: variables are `var`, text is joined with +,
+/// integers are truncated with `~~` and a filled array is created and then
+/// filled by a loop.
+fn javascript_es5(syntax: &mut Syntax) {
+    syntax.declaration_keyword = Some("var");
+    syntax.text_join_concatenation = true;
+    syntax.integer_division = Some(IntegerDivision::Wrapper("~~"));
+    syntax.array_fill = Some(ArrayFill::Always);
+}
+
+/// PHP 5 has no intdiv() and writes arrays as `array(...)`.
+fn php_5(syntax: &mut Syntax) {
+    syntax.integer_division = Some(IntegerDivision::Wrapper("(int) "));
+}
+
+/// C# 5 has no `$"..."` strings: computed parts are converted with
+/// Convert.ToString and joined with +.
+fn csharp_5(syntax: &mut Syntax) {
+    syntax.text_join_concatenation = true;
+    syntax.text_conversions = &["System.Convert.ToString"];
+}
+
+const fn version(version: &'static str, label: &'static str, default: bool) -> Version {
+    Version {
+        version,
+        label,
+        default,
+    }
+}
+
+const LANGUAGE_VERSIONS: &[LanguageVersions] = &[
+    LanguageVersions {
+        id: "javascript",
+        versions: &[
+            (
+                version(
+                    "es6",
+                    "ECMAScript 2015 and later (let, const, template strings)",
+                    true,
+                ),
+                no_change,
+            ),
+            (version("es5", "ECMAScript 5", false), javascript_es5),
+        ],
+    },
+    LanguageVersions {
+        id: "php",
+        versions: &[
+            (
+                version("7", "PHP 7 and later (short arrays, intdiv)", true),
+                no_change,
+            ),
+            (version("5", "PHP 5", false), php_5),
+        ],
+    },
+    LanguageVersions {
+        id: "csharp",
+        versions: &[
+            (
+                version("6", "C# 6 and later (string interpolation)", true),
+                no_change,
+            ),
+            (version("5", "C# 5", false), csharp_5),
+        ],
+    },
+    LanguageVersions {
+        id: "python",
+        versions: &[
+            (version("3", "Python 3 (3.6+, f-strings)", true), no_change),
+            (version("2", "Python 2.7", false), python_2),
+        ],
+    },
+];
 
 /// `python@2` -> (`python`, `Some("2")`).
 pub fn split_version(identifier: &str) -> (&str, Option<&str>) {

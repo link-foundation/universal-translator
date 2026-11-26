@@ -255,6 +255,7 @@ impl Translator {
             let settings = Settings {
                 from: from.to_owned(),
                 to: from.to_owned(),
+                target: from.to_owned(),
                 mode: Mode::default(),
             };
             let typed = apply_rules((self.stages.infer)(read), &self.meaning, &settings);
@@ -268,6 +269,7 @@ impl Translator {
         let settings = Settings {
             from: id.to_owned(),
             to: id.to_owned(),
+            target: from.to_owned(),
             mode: Mode::default(),
         };
         if syntax.machine {
@@ -353,6 +355,7 @@ impl Translator {
         let settings = Settings {
             from: split_version(from.unwrap_or(to)).0.to_owned(),
             to: split_version(to).0.to_owned(),
+            target: to.to_owned(),
             mode: options.mode,
         };
         // Custom layers are meta -> meta transformations, so they see the

@@ -178,6 +178,20 @@ spellings.matlab = {
   length: (array) => `numel(${array})`,
 };
 
+// Spellings that a version of a language changes, by "id@version".
+const versionSpellings = {
+  // Array.prototype.fill is ES6: the array is created, then filled by a loop.
+  'javascript@es5': {
+    ...spellings.javascript,
+    create: (length) => `new Array(${length})`,
+  },
+  // The [...] spelling of an array came with PHP 5.4.
+  'php@5': {
+    ...spellings.php,
+    literal: (elements) => `array(${elements})`,
+  },
+};
+
 // The type of an array where a declaration or signature names it.
 const arrayTypes = {
   typescript: 'number[]',
@@ -206,7 +220,11 @@ const mutableContainers = new Set(['rust', 'swift', 'nim']);
 export const withArrays = (Base) =>
   class ArrayEmitter extends Base {
     spelling() {
-      return spellings[this.id] ?? {};
+      return (
+        versionSpellings[`${this.id}@${this.syntax.version}`] ??
+        spellings[this.id] ??
+        {}
+      );
     }
 
     type(meta) {

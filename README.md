@@ -276,6 +276,23 @@ universal-translator meta python app.py   # the meta language as an indented tre
 universal-translator meta python app.py --json   # the same program as JSON
 ```
 
+A version changes how a program is written, never how it is read. Besides
+`python@2`, `javascript@es5` writes `var`, `+` joins, `~~(a / b)` and a fill
+loop instead of `let`, `const`, template strings, `Math.trunc` and
+`Array(n).fill`; `php@5` writes `(int) (a / b)` and `array(...)` instead of
+`intdiv` and `[...]`; and `csharp@5` joins text with `Convert.ToString` and
+`+` instead of `$"..."`. Ask for `universal-translator languages` or
+`versionsOf(id)` to list the versions of a language, and an unknown version
+is an error (`php has no version "4"`).
+
+The Hello World Collection (http://helloworldcollection.de) is a test corpus:
+`node scripts/hello-world-collection.mjs --fetch` downloads the page (after
+asking `robots.txt`), caches it under
+`docs/case-studies/issue-14/data/hello-world-collection/`, extracts the
+program of every language id and records in
+`docs/case-studies/issue-14/hello-world-coverage.lino` which programs read
+into the meta language and why the others do not.
+
 The meta view is indented Links Notation: one line per node with its kind,
 its main value and its other plain fields as `(name value)` links, and its
 child nodes nested below it with no field labels and no block markers. A
