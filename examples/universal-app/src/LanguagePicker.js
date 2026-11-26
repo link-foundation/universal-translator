@@ -8,6 +8,9 @@ import { defaultChoice, entryOf } from './languages.js';
 
 const browserLanguages = () => globalThis.navigator?.languages ?? [];
 
+// Machine code targets get a group of their own in the list.
+const pickerGroup = (entry) => (entry.machine ? 'machine' : entry.group);
+
 export function LanguagePicker({
   id,
   label,
@@ -21,6 +24,7 @@ export function LanguagePicker({
   const entry = detecting ? undefined : (entryOf(entries, value) ?? entries[0]);
   const groups = [
     ['programming', t('picker.programming')],
+    ['machine', t('picker.machine')],
     ['natural', t('picker.natural')],
   ];
   return h(
@@ -51,7 +55,7 @@ export function LanguagePicker({
             'optgroup',
             { key: group, label: groupLabel },
             entries
-              .filter((it) => it.group === group)
+              .filter((it) => pickerGroup(it) === group)
               .map((it) => h('option', { key: it.id, value: it.id }, it.label))
           )
         )
