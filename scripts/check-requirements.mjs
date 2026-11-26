@@ -165,7 +165,9 @@ const checks = {
       : undefined;
   },
   'machine-code': ({ machineTargetIds }) =>
-    ['nasm', 'cil', 'jvm'].every((id) => machineTargetIds.includes(id))
+    ['nasm', 'gas', 'arm64', 'cil', 'jvm', 'llvm', 'wat'].every((id) =>
+      machineTargetIds.includes(id)
+    )
       ? undefined
       : `machine targets: ${machineTargetIds.join(', ')}`,
   'thirty-natural-languages': ({ baseNatural }) =>

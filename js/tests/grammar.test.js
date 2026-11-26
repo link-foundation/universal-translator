@@ -245,7 +245,9 @@ describe('machine targets', () => {
   it('adapts comments and spells names for assembly, CIL and JVM', () => {
     const gcd = read(source('greatest-common-divisor'));
     const nasm = translator.translate(gcd, 'javascript', 'nasm');
-    expect(nasm).toContain('; Greatest common divisor in x86-64 assembly');
+    expect(nasm).toContain(
+      '; Greatest common divisor in x86-64 assembly (NASM)'
+    );
     expect(nasm).toContain('call greatest_common_divisor');
     const cil = translator.translate(gcd, 'javascript', 'cil');
     expect(cil).toContain('call int64 Program::GreatestCommonDivisor');

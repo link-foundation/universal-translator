@@ -1,0 +1,140 @@
+// Sum of squares in ARM64 assembly
+
+    .global main
+    .section .rodata
+integer_format: .asciz "%lld"
+text_format: .asciz "%s"
+newline_format: .asciz "\n"
+text_0: .asciz "Sum of squares from 1 to "
+text_1: .asciz ":"
+
+    .text
+.type sum_of_squares, %function
+sum_of_squares:
+    .set sum_of_squares.limit, 0
+    .set sum_of_squares.total, 8
+    .set sum_of_squares.number, 16
+    stp x29, x30, [sp, #-16]!
+    sub sp, sp, #32
+    mov x29, sp
+    str x0, [x29, #sum_of_squares.limit]
+    mov x0, #0
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #sum_of_squares.total]
+    mov x0, #1
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #sum_of_squares.number]
+.Lsum_of_squares_L1:
+    ldr x0, [x29, #sum_of_squares.number]
+    str x0, [sp, #-16]!
+    ldr x0, [x29, #sum_of_squares.limit]
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    cmp x0, x1
+    b.gt .Lsum_of_squares_L2
+    ldr x0, [x29, #sum_of_squares.total]
+    str x0, [sp, #-16]!
+    ldr x0, [x29, #sum_of_squares.number]
+    str x0, [sp, #-16]!
+    ldr x0, [x29, #sum_of_squares.number]
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    mul x0, x0, x1
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    add x0, x0, x1
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #sum_of_squares.total]
+    ldr x0, [x29, #sum_of_squares.number]
+    str x0, [sp, #-16]!
+    mov x0, #1
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    add x0, x0, x1
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #sum_of_squares.number]
+    b .Lsum_of_squares_L1
+.Lsum_of_squares_L2:
+    ldr x0, [x29, #sum_of_squares.total]
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    mov sp, x29
+    add sp, sp, #32
+    ldp x29, x30, [sp], #16
+    ret
+.size sum_of_squares, .-sum_of_squares
+
+.type main, %function
+main:
+    .set main.limit, 0
+    stp x29, x30, [sp, #-16]!
+    sub sp, sp, #16
+    mov x29, sp
+    mov x0, #10
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #main.limit]
+    adrp x0, text_0
+    add x0, x0, :lo12:text_0
+    bl print_text
+    ldr x0, [x29, #main.limit]
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    bl print_integer
+    adrp x0, text_1
+    add x0, x0, :lo12:text_1
+    bl print_text
+    bl print_newline
+    ldr x0, [x29, #main.limit]
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    bl sum_of_squares
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    bl print_integer
+    bl print_newline
+    mov x0, #0
+    mov sp, x29
+    add sp, sp, #16
+    ldp x29, x30, [sp], #16
+    ret
+.size main, .-main
+
+print_integer:
+    stp x29, x30, [sp, #-16]!
+    mov x29, sp
+    mov x1, x0
+    adrp x0, integer_format
+    add x0, x0, :lo12:integer_format
+    bl printf
+    ldp x29, x30, [sp], #16
+    ret
+
+print_text:
+    stp x29, x30, [sp, #-16]!
+    mov x29, sp
+    mov x1, x0
+    adrp x0, text_format
+    add x0, x0, :lo12:text_format
+    bl printf
+    ldp x29, x30, [sp], #16
+    ret
+
+print_newline:
+    stp x29, x30, [sp, #-16]!
+    mov x29, sp
+    adrp x0, newline_format
+    add x0, x0, :lo12:newline_format
+    bl printf
+    ldp x29, x30, [sp], #16
+    ret
+
+    .section .note.GNU-stack,"",%progbits

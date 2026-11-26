@@ -1315,18 +1315,44 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
 ];
 
-/// The machine targets: x86-64 assembly (NASM), CIL and JVM bytecode. Only
-/// the label, naming, comment marker and terms are read, by the context
-/// rules.
-pub const MACHINE_TARGETS: [Syntax; 3] = [
+/// The machine targets: x86-64 assembly (NASM and GNU as in AT&T syntax),
+/// ARM64 assembly, CIL, JVM bytecode, LLVM IR and WebAssembly text. Only the
+/// label, naming, comment marker and terms are read, by the context rules.
+pub const MACHINE_TARGETS: [Syntax; 7] = [
     Syntax {
         id: "nasm",
-        label: "x86-64 assembly",
+        label: "x86-64 assembly (NASM)",
         naming: same(Convention::Snake),
         line_comment: ";",
         terms: Terms {
             call: "call instruction",
             routine: "procedure",
+        },
+        machine: true,
+        forward_declarations: ForwardDeclarations::None,
+        ..C
+    },
+    Syntax {
+        id: "gas",
+        label: "x86-64 assembly (GNU as, AT&T)",
+        naming: same(Convention::Snake),
+        line_comment: "#",
+        terms: Terms {
+            call: "call instruction",
+            routine: "function",
+        },
+        machine: true,
+        forward_declarations: ForwardDeclarations::None,
+        ..C
+    },
+    Syntax {
+        id: "arm64",
+        label: "ARM64 assembly",
+        naming: same(Convention::Snake),
+        line_comment: "//",
+        terms: Terms {
+            call: "branch instruction",
+            routine: "function",
         },
         machine: true,
         forward_declarations: ForwardDeclarations::None,
@@ -1351,6 +1377,32 @@ pub const MACHINE_TARGETS: [Syntax; 3] = [
         naming: same(Convention::Camel),
         line_comment: ";",
         terms: METHOD_TERMS,
+        machine: true,
+        forward_declarations: ForwardDeclarations::None,
+        ..C
+    },
+    Syntax {
+        id: "llvm",
+        label: "LLVM IR",
+        naming: same(Convention::Snake),
+        line_comment: ";",
+        terms: Terms {
+            call: "call instruction",
+            routine: "function",
+        },
+        machine: true,
+        forward_declarations: ForwardDeclarations::None,
+        ..C
+    },
+    Syntax {
+        id: "wat",
+        label: "WebAssembly text",
+        naming: same(Convention::Snake),
+        line_comment: ";;",
+        terms: Terms {
+            call: "call instruction",
+            routine: "function",
+        },
         machine: true,
         forward_declarations: ForwardDeclarations::None,
         ..C

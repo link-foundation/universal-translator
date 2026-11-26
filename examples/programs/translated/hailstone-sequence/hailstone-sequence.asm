@@ -1,4 +1,4 @@
-; Hailstone sequence in x86-64 assembly: count the steps to reach 1
+; Hailstone sequence in x86-64 assembly (NASM): count the steps to reach 1
 
 default rel
 extern printf

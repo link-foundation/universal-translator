@@ -1,6 +1,6 @@
 //! Lowering of a typed meta program to a small stack machine, which the
-//! machine writers spell as x86-64 assembly (NASM), CIL (ILAsm) or JVM
-//! bytecode (Jasmin).
+//! machine writers spell as assembly (x86-64 NASM and GNU as, ARM64), CIL
+//! (ILAsm), JVM bytecode (Jasmin), LLVM IR or WebAssembly text.
 //!
 //! The stack machine has these instructions:
 //!

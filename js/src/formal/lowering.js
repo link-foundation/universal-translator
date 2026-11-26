@@ -1,6 +1,6 @@
 // Lower a typed meta program to a small stack machine, then write that
-// machine code as x86-64 assembly (NASM), CIL (ILAsm) or JVM bytecode
-// (Jasmin).
+// machine code as assembly (x86-64 NASM and GNU as, ARM64), CIL (ILAsm),
+// JVM bytecode (Jasmin), LLVM IR or WebAssembly text.
 //
 // The stack machine has these instructions:
 //

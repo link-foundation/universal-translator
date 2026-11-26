@@ -1,4 +1,4 @@
-; FizzBuzz in x86-64 assembly
+; FizzBuzz in x86-64 assembly (NASM)
 
 default rel
 extern printf

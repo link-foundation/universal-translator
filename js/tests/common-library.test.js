@@ -59,7 +59,7 @@ describe('common library route', () => {
     expect(Object.keys(commonLibraryAccess)).toEqual(
       createTranslator()
         .languages()
-        .filter(({ id }) => !['nasm', 'cil', 'jvm'].includes(id))
+        .filter(({ machine }) => !machine)
         .map(({ id }) => id)
     );
   });

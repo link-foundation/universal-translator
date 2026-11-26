@@ -106,8 +106,12 @@ export const extensions = {
   lean: '.lean',
   rocq: '.v',
   nasm: '.asm',
+  gas: '.s',
+  arm64: '.arm64',
   cil: '.il',
   jvm: '.j',
+  llvm: '.ll',
+  wat: '.wat',
 };
 
 // Machine targets need an assembler. ILASM names the ilasm executable and
@@ -115,6 +119,14 @@ export const extensions = {
 const ilasm = process.env.ILASM || 'ilasm';
 // Without JASMIN_CLASSPATH the jasmin command (Debian jasmin-sable) is used.
 const jasmin = process.env.JASMIN_CLASSPATH;
+// LLI runs LLVM IR, WAT2WASM assembles WebAssembly text (see run-wasm.mjs),
+// and ARM64_CC with ARM64_RUN build and run AArch64 assembly on other hosts.
+const lli = process.env.LLI || 'lli';
+const wat2wasm = process.env.WAT2WASM || 'wat2wasm';
+const arm64 = process.arch === 'arm64';
+const arm64Cc =
+  process.env.ARM64_CC || (arm64 ? 'gcc' : 'aarch64-linux-gnu-gcc');
+const arm64Run = process.env.ARM64_RUN || 'qemu-aarch64';
 const lua = process.env.LUA || 'lua';
 const d = process.env.DC || 'gdc';
 const nim = process.env.NIM || 'nim';
@@ -439,6 +451,20 @@ const runners = {
       run(`${file}.out`, [])
     ),
   },
+  gas: {
+    tool: 'gcc',
+    run: (file) => (
+      run('gcc', ['-o', `${file}.out`, file]),
+      run(`${file}.out`, [])
+    ),
+  },
+  arm64: {
+    tool: arm64Cc,
+    run: (file) => (
+      run(arm64Cc, ['-static', '-x', 'assembler', '-o', `${file}.out`, file]),
+      arm64 ? run(`${file}.out`, []) : run(arm64Run, [`${file}.out`])
+    ),
+  },
   cil: {
     tool: ilasm,
     run: (file) => {
@@ -469,6 +495,11 @@ const runners = {
         : run('jasmin', ['-d', dirname(file), file]),
       run('java', ['-cp', dirname(file), 'Program'])
     ),
+  },
+  llvm: { tool: lli, run: (file) => run(lli, [file]) },
+  wat: {
+    tool: wat2wasm,
+    run: (file) => run('node', [join(folder, 'run-wasm.mjs'), file]),
   },
 };
 

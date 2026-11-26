@@ -78,10 +78,15 @@ export interface Fragment {
 }
 
 export interface GrammarTranslator {
-  /** Programming languages; `versions` lists the versions a target may name (python@2). */
+  /**
+   * Programming languages and machine targets; `versions` lists the versions
+   * a target may name (python@2), and `machine` marks assembly dialects and
+   * intermediate languages (nasm, gas, arm64, cil, jvm, llvm, wat).
+   */
   languages(): {
     id: string;
     label: string;
+    machine?: boolean;
     versions?: { version: string; label: string; default: boolean }[];
   }[];
   /** Controlled natural languages and profiles (base is the language a profile extends). */

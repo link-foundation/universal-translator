@@ -1,0 +1,161 @@
+// Towers of Hanoi in ARM64 assembly, solved recursively
+
+    .global main
+    .section .rodata
+integer_format: .asciz "%lld"
+text_format: .asciz "%s"
+newline_format: .asciz "\n"
+text_0: .asciz "Move disk "
+text_1: .asciz " from "
+text_2: .asciz " to "
+
+    .text
+.type move_disks, %function
+move_disks:
+    .set move_disks.count, 0
+    .set move_disks.source, 8
+    .set move_disks.target, 16
+    .set move_disks.spare, 24
+    stp x29, x30, [sp, #-16]!
+    sub sp, sp, #32
+    mov x29, sp
+    str x0, [x29, #move_disks.count]
+    str x1, [x29, #move_disks.source]
+    str x2, [x29, #move_disks.target]
+    str x3, [x29, #move_disks.spare]
+    ldr x0, [x29, #move_disks.count]
+    str x0, [sp, #-16]!
+    mov x0, #0
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    cmp x0, x1
+    b.ne .Lmove_disks_L1
+    mov sp, x29
+    add sp, sp, #32
+    ldp x29, x30, [sp], #16
+    ret
+    b .Lmove_disks_L2
+.Lmove_disks_L1:
+.Lmove_disks_L2:
+    ldr x0, [x29, #move_disks.count]
+    str x0, [sp, #-16]!
+    mov x0, #1
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    sub x0, x0, x1
+    str x0, [sp, #-16]!
+    ldr x0, [x29, #move_disks.source]
+    str x0, [sp, #-16]!
+    ldr x0, [x29, #move_disks.spare]
+    str x0, [sp, #-16]!
+    ldr x0, [x29, #move_disks.target]
+    str x0, [sp, #-16]!
+    ldr x3, [sp], #16
+    ldr x2, [sp], #16
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    bl move_disks
+    adrp x0, text_0
+    add x0, x0, :lo12:text_0
+    bl print_text
+    ldr x0, [x29, #move_disks.count]
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    bl print_integer
+    adrp x0, text_1
+    add x0, x0, :lo12:text_1
+    bl print_text
+    ldr x0, [x29, #move_disks.source]
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    bl print_integer
+    adrp x0, text_2
+    add x0, x0, :lo12:text_2
+    bl print_text
+    ldr x0, [x29, #move_disks.target]
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    bl print_integer
+    bl print_newline
+    ldr x0, [x29, #move_disks.count]
+    str x0, [sp, #-16]!
+    mov x0, #1
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    sub x0, x0, x1
+    str x0, [sp, #-16]!
+    ldr x0, [x29, #move_disks.spare]
+    str x0, [sp, #-16]!
+    ldr x0, [x29, #move_disks.target]
+    str x0, [sp, #-16]!
+    ldr x0, [x29, #move_disks.source]
+    str x0, [sp, #-16]!
+    ldr x3, [sp], #16
+    ldr x2, [sp], #16
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    bl move_disks
+    mov sp, x29
+    add sp, sp, #32
+    ldp x29, x30, [sp], #16
+    ret
+.size move_disks, .-move_disks
+
+.type main, %function
+main:
+    stp x29, x30, [sp, #-16]!
+    sub sp, sp, #0
+    mov x29, sp
+    mov x0, #4
+    str x0, [sp, #-16]!
+    mov x0, #1
+    str x0, [sp, #-16]!
+    mov x0, #3
+    str x0, [sp, #-16]!
+    mov x0, #2
+    str x0, [sp, #-16]!
+    ldr x3, [sp], #16
+    ldr x2, [sp], #16
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    bl move_disks
+    mov x0, #0
+    mov sp, x29
+    add sp, sp, #0
+    ldp x29, x30, [sp], #16
+    ret
+.size main, .-main
+
+print_integer:
+    stp x29, x30, [sp, #-16]!
+    mov x29, sp
+    mov x1, x0
+    adrp x0, integer_format
+    add x0, x0, :lo12:integer_format
+    bl printf
+    ldp x29, x30, [sp], #16
+    ret
+
+print_text:
+    stp x29, x30, [sp, #-16]!
+    mov x29, sp
+    mov x1, x0
+    adrp x0, text_format
+    add x0, x0, :lo12:text_format
+    bl printf
+    ldp x29, x30, [sp], #16
+    ret
+
+print_newline:
+    stp x29, x30, [sp, #-16]!
+    mov x29, sp
+    adrp x0, newline_format
+    add x0, x0, :lo12:newline_format
+    bl printf
+    ldp x29, x30, [sp], #16
+    ret
+
+    .section .note.GNU-stack,"",%progbits

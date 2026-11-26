@@ -75,3 +75,7 @@ Rust twins agree.
 ### Everyday English wordings
 
 English reads everyday wordings of algorithm sentences (`Let n be 0`, `Set n to 1`, `Print n`, `Display n`, `Show n`, `Return n`, `While …, do this`, `For each … do this`) and still writes the canonical ones.
+
+### Machine dialects
+
+List the machine targets (NASM, CIL, JVM) in `languages()` with `machine: true`, and add GNU as (AT&T) x86-64, ARM64 assembly, LLVM IR and WebAssembly text as machine targets that are written and read back in both the JavaScript and Rust translators.

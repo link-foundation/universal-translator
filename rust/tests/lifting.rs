@@ -29,7 +29,11 @@ fn tasks() -> Vec<String> {
 fn extension(target: &str) -> &'static str {
     match target {
         "nasm" => "asm",
+        "gas" => "s",
+        "arm64" => "arm64",
         "cil" => "il",
+        "llvm" => "ll",
+        "wat" => "wat",
         _ => "j",
     }
 }

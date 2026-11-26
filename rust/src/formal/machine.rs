@@ -1,36 +1,20 @@
 //! Machine targets: x86-64 assembly (NASM, System V, libc printf), CIL
-//! (ILAsm for .NET) and JVM bytecode (Jasmin). Each writer spells the stack
+//! (ILAsm for .NET) and JVM bytecode (Jasmin); the GNU as, ARM64, LLVM IR and
+//! WebAssembly text writers live in modules of their own. Each writer spells the stack
 //! machine code from the lowering; the target descriptions live with the
 //! language descriptions, where the context rules read them.
 
 use std::collections::HashMap;
 
 use super::lowering::{Instruction, LoweredProgram, Procedure, lower_program};
+use super::machine_assembly::{write_arm64, write_gas};
+use super::machine_llvm::write_llvm;
+use super::machine_shared::{comments, creates_arrays};
+use super::machine_wasm::write_wat;
 use crate::meta::GrammarError;
 use crate::meta::{Node, format_number};
 
 type Result<T> = std::result::Result<T, GrammarError>;
-
-/// Whether a lowered program creates arrays, and so needs the helper that
-/// allocates and fills them.
-fn creates_arrays(program: &LoweredProgram) -> bool {
-    program
-        .functions
-        .iter()
-        .chain([&program.main])
-        .any(|item| item.code.contains(&Instruction::NewArray))
-}
-
-fn comments(prefix: &str, texts: &[String], indent: &str) -> Vec<String> {
-    texts
-        .iter()
-        .flat_map(|text| {
-            text.split('\n')
-                .map(|line| format!("{indent}{prefix} {line}").trim_end().to_owned())
-                .collect::<Vec<_>>()
-        })
-        .collect()
-}
 
 fn is_label(line: &str) -> bool {
     line.strip_suffix(':').is_some_and(|name| {
@@ -781,8 +765,12 @@ fn write_jvm(program: &LoweredProgram) -> String {
 pub fn write_machine(program: &LoweredProgram, target: &str) -> Result<String> {
     match target {
         "nasm" => write_nasm(program),
+        "gas" => write_gas(program),
+        "arm64" => write_arm64(program),
         "cil" => Ok(write_cil(program)),
         "jvm" => Ok(write_jvm(program)),
+        "llvm" => write_llvm(program),
+        "wat" => write_wat(program),
         other => Err(GrammarError::new(format!(
             "The grammar translator does not describe \"{other}\""
         ))),

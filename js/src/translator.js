@@ -17,7 +17,11 @@ import {
 } from './formal/rules.js';
 import { inferTypes } from './meta/types.js';
 import { emitProgram } from './formal/emitter.js';
-import { emitMachine, machineTargetIds } from './formal/machine.js';
+import {
+  emitMachine,
+  machineTargetIds,
+  machineTargets,
+} from './formal/machine.js';
 import { machineReaders } from './formal/machine-reader.js';
 import { liftProgram } from './formal/lifting.js';
 import { useCommonLibrary } from './formal/common-library.js';
@@ -247,6 +251,25 @@ function completed(meta) {
     : special;
 }
 
+// The grammar languages with their versions, then the machine targets.
+function listLanguages() {
+  return [
+    ...grammarLanguageIds.map((id) => {
+      const versions = versionsOf(id);
+      return {
+        id,
+        label: languageSyntax(id).label,
+        ...(versions.length ? { versions } : {}),
+      };
+    }),
+    ...machineTargetIds.map((id) => ({
+      id,
+      label: machineTargets[id].label,
+      machine: true,
+    })),
+  ];
+}
+
 export function createGrammarTranslator(settings = {}) {
   const {
     parse = parseProgram,
@@ -386,15 +409,7 @@ export function createGrammarTranslator(settings = {}) {
   const translatePartial = partialTranslator(translate, fragments, partial);
 
   return {
-    languages: () =>
-      grammarLanguageIds.map((id) => {
-        const versions = versionsOf(id);
-        return {
-          id,
-          label: languageSyntax(id).label,
-          ...(versions.length ? { versions } : {}),
-        };
-      }),
+    languages: listLanguages,
     naturalLanguages: () =>
       naturalLanguageIds().map((id) => {
         const { label, base } = naturalLanguage(id);

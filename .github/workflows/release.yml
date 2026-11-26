@@ -564,6 +564,10 @@ jobs:
           )
           # opam, OCaml and GMP build Rocq when its cache is cold.
           packages=(lua5.4 nasm php-cli ruby jasmin-sable perl r-base-core gobjc gdc nim fp-compiler gnat gfortran octave opam ocaml-nox libgmp-dev)
+          # GNU as with gcc builds the AT&T dialect, the cross compiler and
+          # qemu run the ARM64 one, lli runs LLVM IR and wabt assembles
+          # WebAssembly text.
+          packages+=(gcc gcc-aarch64-linux-gnu libc6-dev-arm64-cross qemu-user llvm wabt)
           sudo apt-get "${apt_options[@]}" update --error-on=any
           sudo apt-get "${apt_options[@]}" install --yes --no-install-recommends "${packages[@]}"
           # ILAsm ships as a NuGet package for each runtime identifier.

@@ -20,7 +20,15 @@ const tasks = [
   'bubble-sort',
   'sum-and-product-of-an-array',
 ];
-const extensions = { nasm: '.asm', cil: '.il', jvm: '.j' };
+const extensions = {
+  nasm: '.asm',
+  gas: '.s',
+  arm64: '.arm64',
+  cil: '.il',
+  jvm: '.j',
+  llvm: '.ll',
+  wat: '.wat',
+};
 const golden = (task, extension) =>
   readFileSync(join(folder, 'translated', task, `${task}${extension}`), 'utf8');
 
@@ -123,7 +131,7 @@ describe('reading machine code', () => {
 
 describe('lifting machine code into the meta language', () => {
   for (const task of tasks) {
-    it(`translates ${task} between assembly, CIL and JVM bytecode`, () => {
+    it(`translates ${task} between every machine target`, () => {
       const original = readFileSync(join(folder, `${task}.js`), 'utf8');
       const expected = run(original);
       for (const from of machineTargetIds) {

@@ -1,4 +1,4 @@
-; Towers of Hanoi in x86-64 assembly, solved recursively
+; Towers of Hanoi in x86-64 assembly (NASM), solved recursively
 
 default rel
 extern printf

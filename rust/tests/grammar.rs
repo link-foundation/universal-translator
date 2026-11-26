@@ -77,8 +77,12 @@ fn extension(target: &str) -> &'static str {
         "lean" => "lean",
         "rocq" => "v",
         "nasm" => "asm",
+        "gas" => "s",
+        "arm64" => "arm64",
         "cil" => "il",
         "jvm" => "j",
+        "llvm" => "ll",
+        "wat" => "wat",
         other => panic!("no extension for {other}"),
     }
 }
@@ -122,7 +126,7 @@ fn matches_every_golden_file_for_all_targets() {
         .into_iter()
         .chain(machine_target_ids())
         .collect();
-    assert_eq!(targets.len(), 35);
+    assert_eq!(targets.len(), 39);
     let mut mismatches = Vec::new();
     for task in tasks() {
         let task = task.as_str();
@@ -410,7 +414,7 @@ fn lower(code: &str) -> Vec<Instruction> {
 fn adapts_comments_and_spells_names_for_assembly_cil_and_jvm() {
     let gcd = source("greatest-common-divisor");
     let nasm = translate(&gcd, "javascript", "nasm");
-    assert!(nasm.contains("; Greatest common divisor in x86-64 assembly"));
+    assert!(nasm.contains("; Greatest common divisor in x86-64 assembly (NASM)"));
     assert!(nasm.contains("call greatest_common_divisor"));
     let cil = translate(&gcd, "javascript", "cil");
     assert!(cil.contains("call int64 Program::GreatestCommonDivisor"));
