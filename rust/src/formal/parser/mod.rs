@@ -1176,6 +1176,14 @@ impl Parser {
                 .with("operator", "not")
                 .with("operand", operand));
         }
+        // ECMAScript 5 truncates with ~~(a / b), which reads as a call of "~~".
+        if self.is("~") && self.is_at("~", 1) {
+            self.position += 2;
+            let operand = self.unary()?;
+            return Ok(Node::new("Call")
+                .with("callee", "~~")
+                .with("arguments", vec![operand]));
+        }
         self.postfix()
     }
 

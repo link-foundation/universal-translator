@@ -994,6 +994,11 @@ class BaseParser {
     ) {
       return node('Unary', { operator: 'not', operand: this.unary() });
     }
+    // ECMAScript 5 truncates with ~~(a / b), which reads as a call of "~~".
+    if (this.is('~') && this.is('~', 1)) {
+      this.position += 2;
+      return node('Call', { callee: '~~', arguments: [this.unary()] });
+    }
     return this.postfix();
   }
 

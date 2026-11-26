@@ -1,0 +1,150 @@
+hello-world-coverage:
+  source: 'http://helloworldcollection.de/'
+  note: 'Programs the translator reads into the meta language, and the programs it does not read with the reason'
+  lean:
+    status: absent
+    reason: 'The collection has no section for this language'
+  rocq:
+    status: absent
+    reason: 'The collection has no section for this language'
+  javascript-javascript:
+    language: javascript
+    section: 'JavaScript'
+    status: read
+  typescript-typescript:
+    language: typescript
+    section: 'TypeScript'
+    status: read
+  python-python-3:
+    language: python
+    section: 'Python 3'
+    status: read
+  python-python-2:
+    language: python
+    section: 'Python 2'
+    status: read
+  ruby-ruby:
+    language: ruby
+    section: 'Ruby'
+    status: read
+  lua-lua:
+    language: lua
+    section: 'Lua'
+    status: failed
+    reason: 'Unexpected "World" after statement (line 1)'
+  php-php:
+    language: php
+    section: 'PHP'
+    status: failed
+    reason: 'Unexpected "?" in expression (line 4)'
+  c-c-ansi:
+    language: c
+    section: 'C (ANSI)'
+    status: read
+  cpp-cpp:
+    language: cpp
+    section: 'C++'
+    status: read
+  cpp-cpp-iso:
+    language: cpp
+    section: 'C++ (ISO)'
+    status: read
+  csharp-csharp:
+    language: csharp
+    section: 'C♯'
+    status: read
+  java-java:
+    language: java
+    section: 'Java'
+    status: read
+  go-go:
+    language: go
+    section: 'Go'
+    status: read
+  rust-rust:
+    language: rust
+    section: 'Rust'
+    status: read
+  kotlin-kotlin:
+    language: kotlin
+    section: 'Kotlin'
+    status: read
+  swift-swift:
+    language: swift
+    section: 'Swift'
+    status: read
+  perl-perl:
+    language: perl
+    section: 'Perl'
+    status: read
+  dart-dart:
+    language: dart
+    section: 'Dart'
+    status: read
+  scala-scala:
+    language: scala
+    section: 'Scala'
+    status: failed
+    reason: 'Expected "{" but found "extends" (line 3)'
+  julia-julia:
+    language: julia
+    section: 'Julia'
+    status: read
+  r-r:
+    language: r
+    section: 'R'
+    status: read
+  groovy-groovy:
+    language: groovy
+    section: 'Groovy'
+    status: failed
+    reason: 'Unexpected "Hello World" after statement (line 3)'
+  objc-objective-c:
+    language: objc
+    section: 'Objective-C'
+    status: failed
+    reason: 'Expected "]" but found "new" (line 11)'
+  nim-nim:
+    language: nim
+    section: 'Nim'
+    status: read
+  d-d:
+    language: d
+    section: 'D'
+    status: read
+  pascal-pascal:
+    language: pascal
+    section: 'Pascal'
+    status: read
+  fortran-fortran:
+    language: fortran
+    section: 'Fortran'
+    status: failed
+    reason: 'Expected "program" but found "C" (line 1)'
+  fortran-fortran90:
+    language: fortran
+    section: 'Fortran90'
+    status: failed
+    reason: 'Unexpected character """ (line 4)'
+  ada-ada:
+    language: ada
+    section: 'Ada'
+    status: read
+  vb-visual-basic-net:
+    language: vb
+    section: 'Visual Basic .NET'
+    status: failed
+    reason: 'Expected "module" but found "Class" (line 5)'
+  bash-unix-shell:
+    language: bash
+    section: 'Unix Shell'
+    status: read
+  matlab-matlab:
+    language: matlab
+    section: 'MATLAB'
+    status: read
+  zig-zig:
+    language: zig
+    section: 'Zig'
+    status: failed
+    reason: 'Unexpected "%" in expression (line 6)'

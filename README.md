@@ -314,6 +314,23 @@ universal-translator meta python app.py   # the meta language as an indented tre
 universal-translator meta python app.py --json   # the same program as JSON
 ```
 
+A version changes how a program is written, never how it is read. Besides
+`python@2`, `javascript@es5` writes `var`, `+` joins, `~~(a / b)` and a fill
+loop instead of `let`, `const`, template strings, `Math.trunc` and
+`Array(n).fill`; `php@5` writes `(int) (a / b)` and `array(...)` instead of
+`intdiv` and `[...]`; and `csharp@5` joins text with `Convert.ToString` and
+`+` instead of `$"..."`. Ask for `universal-translator languages` or
+`versionsOf(id)` to list the versions of a language, and an unknown version
+is an error (`php has no version "4"`).
+
+The Hello World Collection (http://helloworldcollection.de) is a test corpus:
+`node scripts/hello-world-collection.mjs --fetch` downloads the page (after
+asking `robots.txt`), caches it under
+`docs/case-studies/issue-14/data/hello-world-collection/`, extracts the
+program of every language id and records in
+`docs/case-studies/issue-14/hello-world-coverage.lino` which programs read
+into the meta language and why the others do not.
+
 The meta view is indented Links Notation: one line per node with its kind,
 its main value and its other plain fields as `(name value)` links, and its
 child nodes nested below it with no field labels and no block markers. A
@@ -440,6 +457,42 @@ parts and edits the same rules visually. `node scripts/rosetta-code.mjs all`
 measures coverage over every Rosetta Code task; see the
 [issue 8 case study](docs/case-studies/issue-8/README.md). Pull requests build the
 image and smoke test both the CLI and the API inside it.
+
+### Decorators
+
+Every stage of the pipeline is a replaceable function, and every stage can
+also be wrapped. A decorator receives the inner implementation of a stage
+and returns the wrapped one, so it can trace calls, rewrite the input or the
+output, cache or fall back. The stages are `parse`, `infer`, `lift`,
+`readMachine`, `readNatural`, `emit`, `emitMachineCode` and `writeNatural`.
+Decorators of one stage compose in the order they are added: the first is
+innermost, the last sees the input first and the output last.
+
+```js
+import { createTranslator } from '@link-foundation/universal-translator';
+
+const translator = createTranslator({
+  decorate: {
+    // trace every program that is emitted
+    emit: (next) => (meta, to) => {
+      console.error(`emit ${to}`);
+      return next(meta, to);
+    },
+  },
+})
+  // rewrite the output of the emitter
+  .decorate('emit', (next) => (meta, to) => next(meta, to).toUpperCase());
+
+translator.translate('console.log("Hi");\n', 'javascript', 'python');
+// 'PRINT("HI")\n', after "emit python" on stderr
+```
+
+`translator.decorate(stage, decorator)` and
+`translator.decorate({ stage: decorator | [decorators] })` return a new
+translator, and `withRules` keeps the decorators. The Rust crate has the
+same API: `Translator::new().decorate_emit(|next| Arc::new(move |meta, to|
+next(meta, to).map(|text| text.to_uppercase())))`, with one `decorate_*`
+method per stage and the stage types in `universal_translator::stages`.
 
 ## Features
 

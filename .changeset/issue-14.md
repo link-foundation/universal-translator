@@ -91,3 +91,7 @@ The Rust command line has a `serve` command that answers the same JSON as the Ja
 ### For-each loops and more Rosetta tasks
 
 The meta language has a for-each loop, `ForEach { variable, array, body }`, read from `for…of`, `for x in a`, `foreach` and the like, and written natively in 21 languages; every other language (machine code and the natural languages without a for-each sentence included) writes it as a counting loop over a fresh index that reads back as the same for-each loop. Four more Rosetta Code tasks (`loops-foreach`, `greatest-element-of-a-list`, `sum-multiples-of-3-and-5`, `linear-search`) are translated into every language.
+
+### Decorators, language versions and the Hello World Collection
+
+Every stage of the translation pipeline (parser, readers and emitters) can be wrapped with decorators, in JavaScript with `createTranslator({ decorate })` and `translator.decorate`, and in Rust with `Translator::decorate_*`. Programming languages gain versions with real differences in the written program: `javascript@es5` (no `let`, `const`, template strings or `for…of`), `php@5` and `csharp@5`. The Hello World Collection can be downloaded with `scripts/hello-world-collection.mjs`, and every extracted program is read into the meta language and measured in a coverage file.

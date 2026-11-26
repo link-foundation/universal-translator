@@ -126,6 +126,10 @@ fn construct(language: &str, expression: &Node) -> Option<Node> {
                 .flatten()
         }
         "ruby" => filled("Array.new", 0, 1),
+        // PHP 5 writes the literal [1, 2] as array(1, 2).
+        "php" if call(expression, "array", None) => {
+            Some(array_literal(expression.node_list("arguments")))
+        }
         "php" => (call(expression, "array_fill", Some(3)) && arguments[0].is_number(0.0))
             .then(|| new_array(argument(expression, 1), argument(expression, 2))),
         "go" => (call(expression, "make", Some(2)) && arguments[0].is("ArrayType"))
@@ -391,7 +395,7 @@ fn call_free(expression: &Node) -> bool {
 /// Bash and others, as `array_fill` in languages.rs says) create the array
 /// and fill it with a counting loop.
 pub fn expand_array_fills(mut program: Node, settings: &Settings) -> Node {
-    let Some(style) = language_syntax(&settings.to)
+    let Some(style) = language_syntax(&settings.target)
         .ok()
         .and_then(|syntax| syntax.array_fill)
     else {

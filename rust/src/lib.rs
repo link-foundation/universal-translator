@@ -18,6 +18,7 @@ mod program;
 mod referents;
 pub mod server;
 mod source_document;
+pub mod stages;
 pub mod translator;
 
 pub use comment_language::{CommentTranslator, translate_comments};

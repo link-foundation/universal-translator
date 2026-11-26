@@ -6,6 +6,58 @@
 // A language id may name its version after "@": "python@2".
 
 export const languageVersions = {
+  javascript: {
+    default: 'es6',
+    versions: {
+      es6: {
+        label: 'ECMAScript 2015 and later (let, const, template strings)',
+      },
+      es5: {
+        label: 'ECMAScript 5',
+        // ES5 has no let, const, template strings, Math.trunc,
+        // Array.prototype.fill or for...of: variables are `var`, text is
+        // joined with +, integers are truncated with `~~`, a filled array is
+        // created and then filled by a loop, and a for-each loop counts over
+        // the indexes of its array.
+        syntax: {
+          forEach: undefined,
+          declarationKeyword: 'var',
+          textJoin: 'concatenation',
+          integerDivision: { wrapper: '~~' },
+          arrayFill: 'always',
+        },
+      },
+    },
+  },
+  php: {
+    default: '7',
+    versions: {
+      7: { label: 'PHP 7 and later (short arrays, intdiv)' },
+      5: {
+        label: 'PHP 5',
+        // PHP 5 has no intdiv() and writes arrays as array(...) (the [...]
+        // spelling came with PHP 5.4).
+        syntax: {
+          integerDivision: { call: undefined, wrapper: '(int) ' },
+        },
+      },
+    },
+  },
+  csharp: {
+    default: '6',
+    versions: {
+      6: { label: 'C# 6 and later (string interpolation)' },
+      5: {
+        label: 'C# 5',
+        // C# 5 has no $"..." strings: computed parts are converted with
+        // Convert.ToString and joined with +.
+        syntax: {
+          textJoin: 'concatenation',
+          textConversions: ['System.Convert.ToString'],
+        },
+      },
+    },
+  },
   python: {
     default: '3',
     versions: {

@@ -15,7 +15,11 @@ use crate::meta::GrammarError;
 use crate::meta::Node;
 
 /// An array literal of the written elements.
-fn literal(id: &str, elements: &str) -> Option<String> {
+fn literal(id: &str, version: Option<&str>, elements: &str) -> Option<String> {
+    // The [...] spelling of an array came with PHP 5.4.
+    if (id, version) == ("php", Some("5")) {
+        return Some(format!("array({elements})"));
+    }
     Some(match id {
         "javascript" | "typescript" | "python" | "ruby" | "php" | "swift" | "dart" | "julia"
         | "groovy" | "d" | "pascal" | "fortran" | "matlab" => format!("[{elements}]"),
@@ -34,7 +38,12 @@ fn literal(id: &str, elements: &str) -> Option<String> {
 }
 
 /// The array of `length` values `fill`, both written.
-fn create(id: &str, length: &str, fill: &str) -> Option<String> {
+fn create(id: &str, version: Option<&str>, length: &str, fill: &str) -> Option<String> {
+    // Array.prototype.fill is ES6: the array is created, then filled by a
+    // loop.
+    if (id, version) == ("javascript", Some("es5")) {
+        return Some(format!("new Array({length})"));
+    }
     Some(match id {
         "javascript" | "typescript" => format!("new Array({length}).fill({fill})"),
         "python" | "groovy" => format!("[{fill}] * {length}"),
@@ -187,14 +196,15 @@ impl Emitter {
             .map(|element| self.expression(element))
             .collect::<Result<Vec<_>>>()?
             .join(", ");
-        literal(self.id(), &written).ok_or_else(|| {
+        literal(self.id(), self.syntax.version, &written).ok_or_else(|| {
             GrammarError::new(format!("{} cannot write an array literal", self.syntax.id))
         })
     }
 
     fn new_array(&mut self, expression: &Node, parent: f64) -> Result<String> {
         let id = self.id();
-        if create(id, "", "").is_none() {
+        let version = self.syntax.version;
+        if create(id, version, "", "").is_none() {
             return Err(GrammarError::new(format!(
                 "{} cannot write a filled array",
                 self.syntax.id
@@ -206,7 +216,7 @@ impl Emitter {
         let binding = conversion_parent(id).or(create_parent(id)).unwrap_or(0.0);
         let length = self.expression_in(field(expression, "length")?, binding)?;
         let fill = self.expression(field(expression, "fill")?)?;
-        let result = create(id, &length, &fill).unwrap_or_default();
+        let result = create(id, version, &length, &fill).unwrap_or_default();
         Ok(if create_parent(id).is_some() && parent > 6.0 {
             format!("({result})")
         } else {

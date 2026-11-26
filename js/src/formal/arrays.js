@@ -99,13 +99,19 @@ const constructors = {
           fill: expression.arguments[1],
         })
       : undefined,
-  php: (expression) =>
-    call(expression, 'array_fill', 3) && isNumber(expression.arguments[0], 0)
+  php(expression) {
+    // PHP 5 writes the literal [1, 2] as array(1, 2).
+    if (call(expression, 'array')) {
+      return node('ArrayLiteral', { elements: expression.arguments });
+    }
+    return call(expression, 'array_fill', 3) &&
+      isNumber(expression.arguments[0], 0)
       ? node('NewArray', {
           length: expression.arguments[1],
           fill: expression.arguments[2],
         })
-      : undefined,
+      : undefined;
+  },
   go: (expression) =>
     call(expression, 'make', 2) && expression.arguments[0].kind === 'ArrayType'
       ? node('NewArray', { length: expression.arguments[1], fill: number(0) })
@@ -406,8 +412,8 @@ const callFree = (expression) => {
 // and fill it with a counting loop. "always": the new array holds no
 // values yet (C's variable-length arrays); "nonzero": it starts with
 // zeros; "empty": the array is empty and grows as the loop fills it.
-export function expandArrayFills(program, { to }) {
-  const style = languageSyntax(to).arrayFill;
+export function expandArrayFills(program, { to, target = to }) {
+  const style = languageSyntax(target).arrayFill;
   if (!style) {
     return program;
   }

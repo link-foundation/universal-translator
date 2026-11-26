@@ -866,8 +866,10 @@ pub fn concatenation_operator(program: Node, settings: &Settings) -> Node {
 /// JavaScript writes `Math.trunc(a / b)`, Perl `int(a / b)`, PHP
 /// `intdiv(a, b)`, Julia `div(a, b)` and Groovy `a.intdiv(b)`. Each means
 /// the meta operator "divide". The language description names its spelling.
-const INTEGER_DIVISION_SPELLINGS: [IntegerDivision; 2] = [
+const INTEGER_DIVISION_SPELLINGS: [IntegerDivision; 4] = [
     IntegerDivision::Wrapper("Math.trunc"),
+    IntegerDivision::Wrapper("~~"),
+    IntegerDivision::Wrapper("int"),
     IntegerDivision::Call("intdiv"),
 ];
 

@@ -650,7 +650,7 @@ class BaseEmitter {
       cpp: `for (int ${identifier} = ${from}; ${identifier} < ${to}; ${identifier}++)`,
       csharp: `for (int ${identifier} = ${from}; ${identifier} < ${to}; ${identifier}++)`,
       java: `for (int ${identifier} = ${from}; ${identifier} < ${to}; ${identifier}++)`,
-      javascript: `for (let ${identifier} = ${from}; ${identifier} < ${to}; ${identifier}++)`,
+      javascript: `for (${this.syntax.declarationKeyword ?? 'let'} ${identifier} = ${from}; ${identifier} < ${to}; ${identifier}++)`,
       typescript: `for (let ${identifier} = ${from}; ${identifier} < ${to}; ${identifier}++)`,
       php: `for (${target} = ${from}; ${target} < ${to}; ${target}++)`,
       go: `for ${identifier} := ${from}; ${identifier} < ${to}; ${identifier}++`,
@@ -1031,7 +1031,7 @@ printers.groovy = printers.kotlin;
 // How each language declares a local variable.
 const declarers = {
   javascript: (emitter, { name, mutable, initial }) =>
-    `${mutable ? 'let' : 'const'} ${name} = ${initial};`,
+    `${emitter.syntax.declarationKeyword ?? (mutable ? 'let' : 'const')} ${name} = ${initial};`,
   python: (emitter, { name, initial }) => `${name} = ${initial}`,
   php: (emitter, { name, initial }) => `$${name} = ${initial};`,
   lua: (emitter, { name, initial }) => `local ${name} = ${initial}`,

@@ -59,6 +59,9 @@ impl std::error::Error for GrammarError {}
 pub struct Settings {
     pub from: String,
     pub to: String,
+    /// The target with its version (`python@2`), for the rules that depend
+    /// on it.
+    pub target: String,
     pub mode: Mode,
 }
 

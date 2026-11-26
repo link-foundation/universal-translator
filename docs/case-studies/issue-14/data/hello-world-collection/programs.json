@@ -1,0 +1,196 @@
+{
+  "javascript": [
+    {
+      "section": "JavaScript",
+      "program": "// Hello world in JavaScript\n\nconsole.log(\"Hello World\");"
+    }
+  ],
+  "typescript": [
+    {
+      "section": "TypeScript",
+      "program": "// Hello world in TypeScript\n\nalert('Hello world!');"
+    }
+  ],
+  "python": [
+    {
+      "section": "Python 3",
+      "program": "# Hello world in Python 3 (aka Python 3000)\n\nprint(\"Hello World\")"
+    },
+    {
+      "section": "Python 2",
+      "program": "# Hello world in Python 2\n\nprint \"Hello World\""
+    }
+  ],
+  "ruby": [
+    {
+      "section": "Ruby",
+      "program": "# Hello World in Ruby\r\nputs \"Hello World!\"\r\n"
+    }
+  ],
+  "lua": [
+    {
+      "section": "Lua",
+      "program": "# Hello World in Lua\r\n\r\nprint \"Hello world\"\r\n"
+    }
+  ],
+  "php": [
+    {
+      "section": "PHP",
+      "program": "<?php\n  // Hello world in PHP\n  echo 'Hello World!';\n?>"
+    }
+  ],
+  "c": [
+    {
+      "section": "C (ANSI)",
+      "program": "/* Hello World in C, Ansi-style */\n\n#include <stdio.h>\n#include <stdlib.h>\n\nint main(void)\n{\n  puts(\"Hello World!\");\n  return EXIT_SUCCESS;\n}\n"
+    }
+  ],
+  "cpp": [
+    {
+      "section": "C++",
+      "program": "// Hello World in C++ (pre-ISO)\n\n#include <iostream.h>\n\nmain()\n{\n    cout << \"Hello World!\" << endl;\n    return 0;\n}\n"
+    },
+    {
+      "section": "C++ (ISO)",
+      "program": "// Hello World in ISO C++\r\n\r\n#include <iostream>\r\n\r\nint main()\r\n{\r\n    std::cout << \"Hello World!\" << std::endl;\r\n}"
+    }
+  ],
+  "csharp": [
+    {
+      "section": "C♯",
+      "program": "//Hello World in C#\r\nclass HelloWorld\r\n{\r\n    static void Main()\r\n    {\r\n        System.Console.WriteLine(\"Hello, World!\");\r\n    }\r\n}\r\n"
+    }
+  ],
+  "java": [
+    {
+      "section": "Java",
+      "program": "// Hello World in Java\n\nclass HelloWorld {\n  static public void main( String args[] ) {\n    System.out.println( \"Hello World!\" );\n  }\n}\n"
+    }
+  ],
+  "go": [
+    {
+      "section": "Go",
+      "program": "// Hello world in Go\r\n\r\npackage main\r\nimport \"fmt\"\r\nfunc main() {\r\n fmt.Printf(\"Hello World\\n\")\r\n}"
+    }
+  ],
+  "rust": [
+    {
+      "section": "Rust",
+      "program": "// Hello world in Rust\n\nfn main() {\n    println!(\"Hello World!\");\n}"
+    }
+  ],
+  "kotlin": [
+    {
+      "section": "Kotlin",
+      "program": "// Hello world in Kotlin\n\nfun main(args : Array<String>) {\n    println(\"Hello, world!\")\n}"
+    }
+  ],
+  "swift": [
+    {
+      "section": "Swift",
+      "program": "// Hello world in Swift\n\nprintln(\"Hello, world!\")"
+    }
+  ],
+  "perl": [
+    {
+      "section": "Perl",
+      "program": "# Hello world in perl\n\nprint \"Hello World!\\n\";\n"
+    }
+  ],
+  "dart": [
+    {
+      "section": "Dart",
+      "program": "// Hello world in Dart\n\nmain() {\n   print('Hello world!');\n}"
+    }
+  ],
+  "scala": [
+    {
+      "section": "Scala",
+      "program": "// Hello world in Scala\n\nobject HelloWorld extends App {\n  println(\"Hello world!\")\n}"
+    }
+  ],
+  "julia": [
+    {
+      "section": "Julia",
+      "program": "# Hello world in Julia\n\nprintln(\"Hello, World!\")"
+    }
+  ],
+  "r": [
+    {
+      "section": "R",
+      "program": "# Hello World in R\r\ncat(\"Hello world\\n\")\r\n"
+    }
+  ],
+  "groovy": [
+    {
+      "section": "Groovy",
+      "program": "// Hello World in Groovy\r\n\r\nprintln \"Hello World\"\r\n"
+    }
+  ],
+  "objc": [
+    {
+      "section": "Objective-C",
+      "program": "/* Hello World in Objective-C.\n** Since the standard implementation is identical to K&R C,\n** a version that says hello to a set of people passed on\n** the command line is shown here.\n*/\n\n#include <stdio.h>\n#include <objpak.h>\nint main(int argc,char **argv)\n{\n    id set = [Set new];\n    argv++;while (--argc) [set add:[String str:*argv++]];\n    [set do:{ :each | printf(\"hello, %s!\\n\",[each str]); }];\n    return 0;\n}\n"
+    }
+  ],
+  "nim": [
+    {
+      "section": "Nim",
+      "program": "# Hello world in Nim\n\necho \"Hello World\""
+    }
+  ],
+  "d": [
+    {
+      "section": "D",
+      "program": "// Hello World in D\r\n\r\nimport std.stdio;\r\n\r\nvoid main()\r\n{\r\n   writefln(\"Hello World!\");\r\n}\r\n"
+    }
+  ],
+  "pascal": [
+    {
+      "section": "Pascal",
+      "program": "{Hello world in Pascal}\n\nprogram HelloWorld(output);\nbegin\n  WriteLn('Hello World!');\nend."
+    }
+  ],
+  "fortran": [
+    {
+      "section": "Fortran",
+      "program": "C     Hello World in Fortran\n\n      PROGRAM HELLO\n      WRITE (*,100)\n      STOP\n  100 FORMAT (' Hello World! ' /)\n      END\n"
+    },
+    {
+      "section": "Fortran90",
+      "program": "! Hello World in Fortran 90 and 95\r\n\r\nPROGRAM HelloWorld\r\n     WRITE(*,*)  \"Hello World!\"\r\nEND PROGRAM\r\n"
+    }
+  ],
+  "ada": [
+    {
+      "section": "Ada",
+      "program": "-- Hello World in Ada\r\n\r\nwith Text_IO;\r\nprocedure Hello_World is\r\n\r\nbegin\r\n  Text_IO.Put_Line(\"Hello World!\");\r\nend Hello_World;\r\n"
+    }
+  ],
+  "vb": [
+    {
+      "section": "Visual Basic .NET",
+      "program": "'Hello World in Visual Basic .NET (VB.NET)\r\n\r\nImports System.Console\r\n\r\nClass HelloWorld\r\n\r\n    Public Shared Sub Main()\r\n        WriteLine(\"Hello, world!\")\r\n    End Sub\r\n\r\nEnd Class\r\n"
+    }
+  ],
+  "bash": [
+    {
+      "section": "Unix Shell",
+      "program": "# Hello world for the Unix shells (sh, ksh, csh, zsh, bash, fish, xonsh, ...)\n\necho Hello World"
+    }
+  ],
+  "matlab": [
+    {
+      "section": "MATLAB",
+      "program": "% Hello World in MATLAB.\r\n\r\ndisp('Hello World');\r\n"
+    }
+  ],
+  "zig": [
+    {
+      "section": "Zig",
+      "program": "// Hello world in Zig\n\nconst io = @import(\"std\").io;\n\npub fn main(args: [][]u8) -> %void {\n    %%io.stdout.printf(\"Hello, world!\\n\");\n}\n"
+    }
+  ],
+  "lean": [],
+  "rocq": []
+}
