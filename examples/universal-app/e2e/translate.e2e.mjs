@@ -298,6 +298,18 @@ async function changesTheLeftLanguage() {
   assert.match(body, /from javascript to python/);
   assert.ok(body.includes(source));
   assert.match(body, /print\("Hi"\)/);
+
+  const cpp = 'int main() { try { throw 8; } catch (int e) { return e; } }\n';
+  await page.selectOption('#source-language', 'auto');
+  await page.fill('#source-text', cpp);
+  await page.waitForSelector('#target-text:has-text("except BaseException")');
+  assert.match(
+    await page.locator('#source-language option[value="auto"]').textContent(),
+    /Auto-detect \(C\+\+\)/
+  );
+  await choose('source', 'cpp');
+  assert.equal(await page.inputValue('#source-text'), cpp);
+  await page.waitForSelector('#target-text:has-text("SystemExit")');
 }
 
 async function showsTheMetaLanguage() {

@@ -8,6 +8,7 @@ pub mod arrays;
 pub mod common_library;
 pub mod dialects;
 pub mod emitter;
+mod exceptions;
 pub mod for_each;
 pub mod interpolation;
 pub mod languages;

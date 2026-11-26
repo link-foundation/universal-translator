@@ -70,6 +70,7 @@ const ASSIGNMENT_SYMBOLS: [&str; 8] = ["=", "+=", "-=", "*=", "/=", "%=", "++", 
 mod annotations;
 mod arrays;
 mod arrows;
+mod exceptions;
 mod forms;
 mod loops;
 
@@ -799,6 +800,9 @@ impl Parser {
     }
 
     pub(crate) fn base_statement(&mut self) -> Parsed {
+        if self.is_exception_start() {
+            return self.exception_statement();
+        }
         let word = if self.kind(0) == TokenType::Name {
             self.value(0).to_owned()
         } else {

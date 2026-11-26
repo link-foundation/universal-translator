@@ -153,6 +153,34 @@ const statementTypers = {
     ...statement,
     expression: context.typed(statement.expression),
   }),
+  Throw: (statement, context) => ({
+    ...statement,
+    value: context.typed(statement.value),
+  }),
+  Try(statement, context) {
+    return {
+      ...statement,
+      body: context.block(statement.body),
+      handlers: statement.handlers.map((handler) => {
+        const inner = new Map(context.scope);
+        inner.reals = context.reals;
+        if (handler.name) {
+          inner.set(handler.name, handler.type ?? 'integer');
+        }
+        return {
+          ...handler,
+          body: typeBlock(
+            handler.body,
+            inner,
+            context.signatures,
+            context.returns
+          ),
+        };
+      }),
+      success: statement.success && context.block(statement.success),
+      finalizer: statement.finalizer && context.block(statement.finalizer),
+    };
+  },
   Return(statement, context) {
     const value = context.typed(statement.value);
     context.returns.push(value?.type ?? 'nothing');

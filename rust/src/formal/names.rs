@@ -86,7 +86,7 @@ pub fn declared_names(program: &Node) -> HashSet<String> {
     }
     walk(program, |current| {
         let field = match current.kind.as_str() {
-            "Declaration" => "name",
+            "Declaration" | "Catch" => "name",
             "CountingLoop" | "ForEach" => "variable",
             _ => return,
         };
@@ -123,7 +123,9 @@ pub fn rename_declared(program: Node, rename: impl Fn(&str, Role) -> String) -> 
         node
     };
     let mut renamed = rewrite(program, |current| match current.kind.as_str() {
-        "Name" | "Declaration" | "Assignment" | "IndexAssignment" => rename_field(current, "name"),
+        "Name" | "Declaration" | "Assignment" | "IndexAssignment" | "Catch" => {
+            rename_field(current, "name")
+        }
         "Call" => rename_field(current, "callee"),
         "CountingLoop" | "ForEach" => rename_field(current, "variable"),
         _ => current,

@@ -12,6 +12,7 @@ import { withFunctionForms } from './function-forms.js';
 import { slashOperator } from './numbers.js';
 import { powerSymbol } from './power.js';
 import { typeDepth, typeHeadLength, withAnnotations } from './annotations.js';
+import { withExceptionParser } from './exception-parser.js';
 
 const binaryLevels = [
   { or: ['||', 'or'] },
@@ -1406,8 +1407,8 @@ export function numberLiteral(written) {
 
 // Arrays, loops and type hints are read by mixins of their own, which the
 // dialects inherit.
-const Parser = withAnnotations(
-  withFunctionForms(withLoops(withArrays(BaseParser)))
+const Parser = withExceptionParser(
+  withAnnotations(withFunctionForms(withLoops(withArrays(BaseParser))))
 );
 
 // Map a source type spelling to a meta type.

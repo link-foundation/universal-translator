@@ -15,6 +15,9 @@
 //   Return         { value }
 //   Print          { value, newline }
 //   Evaluate       { expression }
+//   Throw          { value?, mode }    an exception object or arbitrary value
+//   Try            { body, handlers, success?, finalizer? }
+//   Catch          { name?, type?, body }
 //   Comment        { text, trailing?, block? }   trailing: the spaces between
 //                  the code and a comment on the same line; block: written
 //                  as a block comment

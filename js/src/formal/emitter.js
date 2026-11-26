@@ -17,6 +17,7 @@ import { dialects } from './dialects/index.js';
 import { withArrays } from './array-spellings.js';
 import { writePower } from './power.js';
 import { namedType, withTypeMetadata } from './type-metadata.js';
+import { withExceptions } from './exceptions.js';
 import {
   isReal,
   realValue,
@@ -979,7 +980,9 @@ const compoundOperators = {
 };
 
 // Arrays are written by a mixin of their own, which the dialects inherit.
-const Emitter = withTypeMetadata(withReals(withArrays(BaseEmitter)));
+const Emitter = withExceptions(
+  withTypeMetadata(withReals(withArrays(BaseEmitter)))
+);
 
 export function emitProgram(program, languageId) {
   const LanguageEmitter = emitterFor(languageId);

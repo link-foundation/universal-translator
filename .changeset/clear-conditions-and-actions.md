@@ -11,3 +11,5 @@ Apply shared grammatical-case rules when reading and writing controlled Russian 
 Read fluent member calls continued on another line and preserve the receiver of calls on computed values.
 
 Preserve Java method and parameter annotations, named and nested generic types, and Python `Annotated` metadata through translation.
+
+Parse try/throw/catch boundaries, retain typed C++ exception values when emitting Python or JavaScript, preserve nested rethrows and finally blocks, and carry program return values to the process exit status.

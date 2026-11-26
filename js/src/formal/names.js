@@ -53,7 +53,7 @@ export function declaredNames(program) {
     item.parameters.forEach((parameter) => names.add(parameter.name));
   }
   rewrite(program, (current) => {
-    if (current.kind === 'Declaration') {
+    if (['Declaration', 'Catch'].includes(current.kind) && current.name) {
       names.add(current.name);
     }
     if (current.kind === 'CountingLoop' || current.kind === 'ForEach') {
@@ -85,6 +85,7 @@ export function renameDeclared(program, rename) {
       case 'Call':
         return { ...current, callee: change(current.callee) };
       case 'Declaration':
+      case 'Catch':
       case 'Assignment':
       case 'IndexAssignment':
         return { ...current, name: change(current.name) };

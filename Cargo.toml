@@ -12,6 +12,7 @@ include = [
     "/examples/translation/hello.c",
     "/examples/translation/hello.cs",
     "/examples/translation/spring/**",
+    "/examples/translation/exceptions.cpp",
     "/examples/programs/**",
     "/examples/layout/**",
     "/examples/rules/**",
@@ -163,6 +164,10 @@ path = "rust/tests/language_versions.rs"
 [[test]]
 name = "annotations"
 path = "rust/tests/annotations.rs"
+
+[[test]]
+name = "exceptions"
+path = "rust/tests/exceptions.rs"
 
 [[test]]
 name = "ranking"

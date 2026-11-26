@@ -122,6 +122,7 @@ pub(crate) struct Emitter {
     pub(crate) uses: HashSet<&'static str>,
     /// Functions announced before the definitions, as Lua's `local male`.
     pub(crate) announced: HashSet<String>,
+    pub(crate) exceptions: super::exceptions::ExceptionState,
     /// The statements and layout of a language with a grammar of its own.
     pub(crate) dialect: &'static dyn EmitterDialect,
     /// What a dialect remembers while it writes (see `state`).
@@ -193,6 +194,7 @@ impl Emitter {
             depth: 0,
             uses: HashSet::new(),
             announced: HashSet::new(),
+            exceptions: Default::default(),
             dialect: emitter_dialect(syntax_id),
             state: Box::new(()),
         }
@@ -654,6 +656,7 @@ impl Emitter {
             "While" => self.while_statement(statement)?,
             "CountingLoop" => self.counting_loop(statement)?,
             "ForEach" => self.for_each_loop(statement)?,
+            "Try" | "Throw" => self.exception_statement(statement)?,
             kind => {
                 return Err(GrammarError::new(format!(
                     "Cannot emit {kind} as a statement"
@@ -1119,6 +1122,9 @@ impl Emitter {
         for text in program.texts("mainComments") {
             self.comment(&text);
         }
+        if self.exception_main(program)? {
+            return Ok(());
+        }
         let main = field(program, "main")?;
         if let Some(header) = self.main_header() {
             self.open_block(header);
@@ -1141,6 +1147,7 @@ impl Emitter {
     }
 
     pub(crate) fn base_program(&mut self, program: &Node) -> Result<String> {
+        self.prepare_exceptions(program);
         let inside_class = self.syntax.entry_point == EntryPoint::ClassMethod;
         if inside_class {
             let container = self.syntax.container.unwrap_or(if self.id() == "csharp" {

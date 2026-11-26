@@ -240,7 +240,7 @@ impl Context<'_> {
                 stored(&mut statement, scope.get(&name).map(String::as_str));
                 statement
             }
-            "Print" => {
+            "Print" | "Throw" => {
                 self.typed(&mut statement, "value", scope);
                 statement
             }
@@ -279,6 +279,28 @@ impl Context<'_> {
                     }
                     None => {}
                 }
+                statement
+            }
+            "Try" => {
+                self.block_field(&mut statement, "body", scope);
+                let handlers: Vec<Node> = statement
+                    .node_list("handlers")
+                    .into_iter()
+                    .map(|mut handler| {
+                        let mut inner = scope.clone();
+                        if let Some(name) = handler.str("name") {
+                            inner.insert(
+                                name.to_owned(),
+                                handler.str("type").unwrap_or("integer").to_owned(),
+                            );
+                        }
+                        self.block_field(&mut handler, "body", &inner);
+                        handler
+                    })
+                    .collect();
+                statement.set("handlers", handlers);
+                self.block_field(&mut statement, "success", scope);
+                self.block_field(&mut statement, "finalizer", scope);
                 statement
             }
             "While" => {
