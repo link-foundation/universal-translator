@@ -76,6 +76,8 @@ Rust twins agree.
 
 English reads everyday wordings of algorithm sentences (`Let n be 0`, `Set n to 1`, `Print n`, `Display n`, `Show n`, `Return n`, `While …, do this`, `For each … do this`) and still writes the canonical ones.
 
+Arithmetic may be written with symbols (`Set n to n + 1`, `2 * 3 + 1`, `n % 4`) in every natural language that already accepts `<` and `=`. A heading written without its colon (`while n is less than 3, do this`) opens a block when the lines after it are indented deeper.
+
 ### Machine dialects
 
 List the machine targets (NASM, CIL, JVM) in `languages()` with `machine: true`, and add GNU as (AT&T) x86-64, ARM64 assembly, LLVM IR and WebAssembly text as machine targets that are written and read back in both the JavaScript and Rust translators.

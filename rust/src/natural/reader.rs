@@ -540,6 +540,8 @@ struct Line {
     note: Option<String>,
     text: String,
     opens_block: bool,
+    /// Text without the sentence or block end mark.
+    unmarked: bool,
     blank: bool,
 }
 
@@ -561,9 +563,24 @@ fn note_pattern(language: &Language) -> Regex {
     .expect("note pattern")
 }
 
+/// A heading written without its end mark ("While n is less than 3, do
+/// this") still opens a block when the lines after it are indented deeper.
+fn mark_headings(mut lines: Vec<Line>) -> Vec<Line> {
+    for position in 0..lines.len() {
+        if lines[position].unmarked {
+            let depth = lines[position].depth;
+            lines[position].opens_block = lines[position + 1..]
+                .iter()
+                .find(|other| !other.blank)
+                .is_some_and(|next| next.depth > depth);
+        }
+    }
+    lines
+}
+
 fn read_lines(source: &str, language: &Language) -> Vec<Line> {
     let pattern = note_pattern(language);
-    source
+    let lines = source
         .split('\n')
         .map(|raw| raw.strip_suffix('\r').unwrap_or(raw))
         .enumerate()
@@ -579,6 +596,7 @@ fn read_lines(source: &str, language: &Language) -> Vec<Line> {
                     note: Some(note[1].to_owned()),
                     text: text.to_owned(),
                     opens_block: false,
+                    unmarked: false,
                     blank: false,
                 };
             }
@@ -597,10 +615,12 @@ fn read_lines(source: &str, language: &Language) -> Vec<Line> {
                 note: None,
                 text: sentence.to_owned(),
                 opens_block,
+                unmarked: !text.is_empty() && !text.ends_with(end_mark.as_str()),
                 blank: text.is_empty(),
             }
         })
-        .collect()
+        .collect();
+    mark_headings(lines)
 }
 
 struct Paragraph {
