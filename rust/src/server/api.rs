@@ -327,7 +327,7 @@ fn run_translation(base: &Translator, request: Request<'_>) -> Result<String, St
             ("errors", error_list(&result.errors)),
             ("coverage", format_number(result.coverage)),
         ];
-        if between_programming_languages(language, to) {
+        if !result.line_map.is_empty() || between_programming_languages(language, to) {
             fields.push(("lineMap", line_map(&result.line_map)));
         }
         fields

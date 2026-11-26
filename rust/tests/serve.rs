@@ -136,6 +136,10 @@ fn requests() -> Vec<Value> {
         json!({"source": SAMPLE, "from": "javascript", "to": "rust", "indent": "tab", "allOrNothing": true}),
         json!({"source": "let x = ;\nconsole.log(1);\n", "from": "javascript", "to": "python"}),
         json!({"source": "I see the world.", "from": "english", "to": "russian"}),
+        json!({"source": "console.log(1);\n", "from": "javascript", "to": "russian"}),
+        json!({"source": "Print 1.\n", "from": "english", "to": "python"}),
+        json!({"source": "console.log(1);\n", "from": "javascript", "to": "nasm"}),
+        json!({"source": "console.log(1);\n", "from": "javascript", "to": "wat"}),
         json!({"source": SAMPLE, "from": "javascript", "to": "python", "commonLibrary": true}),
     ]
 }

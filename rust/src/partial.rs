@@ -108,9 +108,8 @@ pub struct PartialReading {
 #[derive(Clone, Debug, PartialEq)]
 pub struct PartialTranslation {
     pub text: String,
-    /// Pairs of 0-based (source line, target line) that hold the same
-    /// tokens, for programming languages on both sides (see
-    /// [`crate::layout`]); empty otherwise.
+    /// Pairs of 0-based (source line, target line) sharing semantic ownership
+    /// or aligned tokens. Includes natural/machine output and recovered parts.
     pub line_map: Vec<(usize, usize)>,
     pub complete: bool,
     pub errors: Vec<PartError>,

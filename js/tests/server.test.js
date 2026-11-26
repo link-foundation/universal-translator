@@ -107,6 +107,28 @@ describe('translation server', () => {
     });
   });
 
+  it('returns semantic maps for prose, controlled words and instructions', async () => {
+    await withServer(async (base) => {
+      for (const [source, from, to] of [
+        ['I see the world.', 'english', 'russian'],
+        ['console.log(1);\n', 'javascript', 'russian'],
+        ['Print 1.\n', 'english', 'python'],
+        ['console.log(1);\n', 'javascript', 'nasm'],
+        ['console.log(1);\n', 'javascript', 'wat'],
+      ]) {
+        const response = await post(base, { source, from, to });
+        expect(response.status).toBe(200);
+        const result = await response.json();
+        expect(result.complete).toBe(true);
+        expect(result.lineMap.length > 0).toBe(true);
+        const lines = result.output.split('\n');
+        expect(
+          result.lineMap.every(([from, to]) => from === 0 && lines[to].trim())
+        ).toBe(true);
+      }
+    });
+  });
+
   it('translates only the comments to a comment language', async () => {
     await withServer(async (base) => {
       const response = await post(base, {
