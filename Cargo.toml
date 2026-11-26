@@ -53,6 +53,10 @@ name = "lifting"
 path = "rust/tests/lifting.rs"
 
 [[test]]
+name = "machine_dialects"
+path = "rust/tests/machine_dialects.rs"
+
+[[test]]
 name = "natural"
 path = "rust/tests/natural.rs"
 
