@@ -95,3 +95,7 @@ The meta language has a for-each loop, `ForEach { variable, array, body }`, read
 ### Decorators, language versions and the Hello World Collection
 
 Every stage of the translation pipeline (parser, readers and emitters) can be wrapped with decorators, in JavaScript with `createTranslator({ decorate })` and `translator.decorate`, and in Rust with `Translator::decorate_*`. Programming languages gain versions with real differences in the written program: `javascript@es5` (no `let`, `const`, template strings or `for…of`), `php@5` and `csharp@5`. The Hello World Collection can be downloaded with `scripts/hello-world-collection.mjs`, and every extracted program is read into the meta language and measured in a coverage file.
+
+### Programming words in comments
+
+Comments read the words programmers write in them. The vocabulary has 74 more concepts (console, screen, output, input, integer, string, character, maximum, average, key, object, class, type, table, largest, even, odd, true, false, else, search, iterate, enter, initialize, subtract, reverse, copy, insert, update, save, split, generate and more) in the twelve languages its programming words are written in. The verbs it had gain the imperative and perfective forms of Russian, Ukrainian and Polish, so `// Вывести привет мир`, `// Выведи привет мир` and `// Сложить два числа` become `// Print hello world` and `// Add two numbers`. A concept is written with the word that is also a program word (`count`, `swap`), not with a later form (`counts`).

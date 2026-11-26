@@ -206,6 +206,8 @@ pub(crate) fn likely<'a>(phrase: &str, language: &'a Meanings, question: bool) -
 }
 
 /// The phrase of `target` for a meaning: the first that reads back to it.
+/// A phrase that reads back to the program word spelled the same (count ->
+/// word:count) reads back to the concept too: both are written "count".
 fn preferred_phrase(meaning: &str, target: &Meanings, question: bool) -> String {
     let phrases = &target.phrases[meaning];
     phrases
@@ -213,7 +215,7 @@ fn preferred_phrase(meaning: &str, target: &Meanings, question: bool) -> String 
         .find(|phrase| {
             likely(phrase, target, question)
                 .first()
-                .is_some_and(|first| *first == meaning)
+                .is_some_and(|first| *first == meaning || **first == format!("word:{phrase}"))
         })
         .unwrap_or(&phrases[0])
         .clone()
