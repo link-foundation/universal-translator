@@ -88,6 +88,12 @@ The Rust command line has a `serve` command that answers the same JSON as the Ja
 
 `checkEquivalence` and `compareMeta` (Rust: `check_equivalence` and `compare_meta`) check that two programs mean the same. Both programs are read into the meta language and put in the general form of the standard library. Comments, layout, imports and types an untyped language cannot spell are left out. `universal-translator check-equivalence <from> <to> <source> [target]` reports equivalent programs. When they differ, it exits with status 1 and prints the first difference (`/main/statements/0/value/right/value: 3 != 4`). Without a target it checks the translation of the source. Every committed example translation is equivalent to its JavaScript source.
 
+### Language detection
+
+Detection also finds machine code: NASM, GNU as, ARM64, CIL, JVM bytecode, LLVM IR and WebAssembly text are candidates, read whole by their own readers. Objective-C is told from C by its `#import`. Every committed factorial golden is detected as its own language.
+
+A word that starts with an underscore (`_`, `_x`, Perl's `@_`) is one word to the natural-language tokenizer. Before this fix such a word was read as an empty word that never moved on, so detecting the language of a Perl program ran out of memory.
+
 ### Smaller fixes
 
 - `"" + year` in Java and similar languages keeps the type of `year`. The interpolation is text, not the name.
