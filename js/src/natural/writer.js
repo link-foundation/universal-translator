@@ -15,6 +15,7 @@ import {
 } from './levels.js';
 import { lowerForEach } from '../meta/for-each.js';
 import { layout, subtract, number } from '../meta/tree.js';
+import { agree, slotCase } from './agreement.js';
 
 const indentUnit = '  ';
 
@@ -45,7 +46,7 @@ function fill(language, key, slots) {
         `Template "${key}" of ${language.id} uses {${token.value}}`
       );
     }
-    return value;
+    return agree(value, language, slotCase(language, key, token.value));
   });
 }
 
@@ -116,9 +117,16 @@ function primary(expression, language) {
     case 'Text':
       return [{ type: 'text', value: expression.value }];
     case 'Boolean':
-      return [word(expression.value ? language.true : language.false)];
+      return [
+        {
+          ...word(expression.value ? language.true : language.false),
+          reference: true,
+        },
+      ];
     case 'Name':
-      return [word(writeName(expression.name, language))];
+      return [
+        { ...word(writeName(expression.name, language)), reference: true },
+      ];
     case 'Call': {
       const callee = [word(writeName(expression.callee, language))];
       if (!expression.arguments.length) {

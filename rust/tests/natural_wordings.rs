@@ -15,6 +15,28 @@ fn to(source: &str, from: &str, target: &str) -> String {
 }
 
 #[test]
+fn grammatical_case_preserves_constant_and_variable_identity() {
+    for value in ["истина", "истину"] {
+        assert_eq!(
+            to(&format!("Вернуть {value}."), "russian", "python"),
+            "return True\n"
+        );
+    }
+    assert_eq!(
+        to("return True\n", "python", "russian"),
+        "Вернуть истину.\n"
+    );
+    assert_eq!(
+        to(
+            "Создать число со значением 7.\nЕсли делитель не больше числа, сделать это:\n  Вернуть истину.\n",
+            "russian",
+            "python"
+        ),
+        "number = 7\nif divisor <= number:\n    return True\n"
+    );
+}
+
+#[test]
 fn read_like_the_canonical_sentences() {
     assert_eq!(
         to(EVERYDAY, "english", "python"),

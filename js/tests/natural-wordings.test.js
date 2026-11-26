@@ -13,6 +13,30 @@ const everyday =
 const canonical =
   'Create n with value 0.\nWhile n falls below 3, repeat this:\n  Change n to n plus 1.\nWrite n and end the line.\n';
 
+describe('grammatical case in controlled algorithms', () => {
+  it('reads nominative and accusative constants as the same boolean', () => {
+    for (const value of ['истина', 'истину']) {
+      expect(translate(`Вернуть ${value}.`, 'russian', 'python')).toBe(
+        'return True\n'
+      );
+    }
+    expect(translate('return True\n', 'python', 'russian')).toBe(
+      'Вернуть истину.\n'
+    );
+  });
+
+  it('keeps an inflected comparison operand tied to its declaration', () => {
+    const source =
+      'Создать число со значением 7.\nЕсли делитель не больше числа, сделать это:\n  Вернуть истину.\n';
+    expect(translate(source, 'russian', 'python')).toBe(
+      'number = 7\nif divisor <= number:\n    return True\n'
+    );
+    expect(
+      translate('if divisor <= number:\n    return True\n', 'python', 'russian')
+    ).toContain('не больше числа');
+  });
+});
+
 describe('everyday English wordings', () => {
   it('read like the canonical sentences', () => {
     expect(translate(everyday, 'english', 'python')).toBe(

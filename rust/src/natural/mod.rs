@@ -2,6 +2,7 @@
 //!
 //! The JavaScript twin lives in js/src/natural/.
 
+mod agreement;
 pub mod catalog;
 pub mod comments;
 pub mod levels;

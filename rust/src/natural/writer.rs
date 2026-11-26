@@ -7,6 +7,7 @@
 
 use std::collections::HashMap;
 
+use super::agreement::{agree, slot_case};
 use super::catalog::{Language, natural_language};
 use super::levels::{
     Associativity, LEVELS, binary_template, level_index, level_of_template, unary_template,
@@ -59,7 +60,11 @@ fn fill(language: &Language, key: &str, slots: &Slots) -> Result<Vec<Token>, Str
                 language.id, token.value
             )
         })?;
-        tokens.extend(value.iter().cloned());
+        tokens.extend(agree(
+            value,
+            language,
+            slot_case(language, key, &token.value),
+        ));
     }
     Ok(tokens)
 }
@@ -163,12 +168,14 @@ fn primary(expression: &Node, language: &Language) -> Result<Vec<Token>, String>
             Kind::Text,
             expression.str("value").unwrap_or_default(),
         )]),
-        "Boolean" => Ok(vec![word(if expression.flag("value").unwrap_or(false) {
-            language.true_word.clone()
-        } else {
-            language.false_word.clone()
-        })]),
-        "Name" => Ok(vec![word(write_name(
+        "Boolean" => Ok(vec![reference(
+            if expression.flag("value").unwrap_or(false) {
+                language.true_word.clone()
+            } else {
+                language.false_word.clone()
+            },
+        )]),
+        "Name" => Ok(vec![reference(write_name(
             expression.str("name").unwrap_or_default(),
             language,
         ))]),
@@ -229,6 +236,12 @@ fn primary(expression: &Node, language: &Language) -> Result<Vec<Token>, String>
         ),
         kind => Err(format!("Cannot write a {kind} expression in words")),
     }
+}
+
+fn reference(value: impl Into<String>) -> Token {
+    let mut token = word(value);
+    token.reference = true;
+    token
 }
 
 /// Tokens of an expression that must bind at least as tightly as `minimum`.

@@ -13,6 +13,7 @@ use std::sync::LazyLock;
 
 use regex::Regex;
 
+use super::agreement::{normalize, slot_case};
 use super::catalog::{Language, natural_language};
 use super::levels::{Associativity, LEVELS, level_index, operator_of_template};
 use super::tokens::{Kind, Token};
@@ -268,7 +269,7 @@ impl<'a> SentenceReader<'a> {
             _ => level + 1,
         };
         let mut reader = |slot: &str, from: usize, to: usize| {
-            self.expression(tokens, from, to, slot_level(slot))
+            self.slot_expression(tokens, from, to, slot_level(slot), key, slot)
                 .map(Slot::Expression)
         };
         let mut slots = Self::match_template(template, tokens, start, end, &mut reader)?;
@@ -388,6 +389,29 @@ impl<'a> SentenceReader<'a> {
 
     // ---- sentences ----
 
+    fn slot_expression(
+        &self,
+        tokens: &[Token],
+        from: usize,
+        to: usize,
+        level: usize,
+        key: &str,
+        slot: &str,
+    ) -> Option<Node> {
+        let expression = self.expression(tokens, from, to, level);
+        let Some(case) = slot_case(self.language, key, slot) else {
+            return expression;
+        };
+        if expression
+            .as_ref()
+            .is_some_and(|value| !value.is("Name") && !value.is("Boolean"))
+        {
+            return expression;
+        }
+        let normalized = normalize(&tokens[from..to], self.language, &case);
+        Self::new(self.language).expression(&normalized, 0, normalized.len(), level)
+    }
+
     fn names(&self, tokens: &[Token], start: usize, end: usize) -> Option<Vec<String>> {
         let mut result = Vec::new();
         let and_words: Vec<&str> = self
@@ -426,6 +450,17 @@ impl<'a> SentenceReader<'a> {
     }
 
     fn slot(&self, tokens: &[Token], slot: &str, from: usize, to: usize) -> Option<Slot> {
+        self.slot_for(tokens, slot, from, to, "")
+    }
+
+    fn slot_for(
+        &self,
+        tokens: &[Token],
+        slot: &str,
+        from: usize,
+        to: usize,
+        key: &str,
+    ) -> Option<Slot> {
         if NAME_SLOTS.contains(&slot) {
             return if to - from == 1 {
                 self.read_name(tokens.get(from)).map(Slot::Name)
@@ -444,7 +479,8 @@ impl<'a> SentenceReader<'a> {
                 .expression(tokens, from, to, level_index("primary"))
                 .map(Slot::Expression);
         }
-        self.expression(tokens, from, to, 0).map(Slot::Expression)
+        self.slot_expression(tokens, from, to, 0, key, slot)
+            .map(Slot::Expression)
     }
 
     /// The first template among `keys` that matches the whole sentence.
@@ -457,8 +493,9 @@ impl<'a> SentenceReader<'a> {
         self.memo.borrow_mut().clear();
         for key in keys {
             for template in self.language.variants(key) {
-                let mut reader =
-                    |slot: &str, from: usize, to: usize| self.slot(&tokens, slot, from, to);
+                let mut reader = |slot: &str, from: usize, to: usize| {
+                    self.slot_for(&tokens, slot, from, to, key)
+                };
                 if let Some(slots) =
                     Self::match_template(template, &tokens, 0, tokens.len(), &mut reader)
                 {

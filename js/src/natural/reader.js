@@ -11,6 +11,7 @@ import { raiseForEach } from '../meta/for-each.js';
 import { naturalLanguage } from './catalog.js';
 import { tokenize } from './tokens.js';
 import { levelIndex, levels, operatorOfTemplate } from './levels.js';
+import { normalize, slotCase } from './agreement.js';
 
 const nameSlots = new Set(['name', 'variable', 'callee']);
 // Slots the writer fills with a primary expression (parenthesized unless
@@ -146,7 +147,7 @@ export class SentenceReader {
       return slot === 'left' && associativity === 'left' ? level : level + 1;
     };
     const slots = this.match(template, tokens, start, end, (slot, from, to) =>
-      this.expression(tokens, from, to, slotLevel(slot))
+      this.slotExpression(tokens, from, to, slotLevel(slot), key, slot)
     );
     if (!slots) {
       return undefined;
@@ -271,6 +272,28 @@ export class SentenceReader {
 
   // ---- sentences ----
 
+  slotExpression(tokens, from, to, level, key, slot) {
+    const expression = this.expression(tokens, from, to, level);
+    const grammaticalCase = slotCase(this.language, key, slot);
+    if (
+      !grammaticalCase ||
+      (expression && !['Name', 'Boolean'].includes(expression.kind))
+    ) {
+      return expression;
+    }
+    const normalized = normalize(
+      tokens.slice(from, to),
+      this.language,
+      grammaticalCase
+    );
+    return new SentenceReader(this.language).expression(
+      normalized,
+      0,
+      normalized.length,
+      level
+    );
+  }
+
   names(tokens, start, end) {
     const result = [];
     const andWords = (this.language.listAnd ?? '').split(' ').filter(Boolean);
@@ -304,7 +327,7 @@ export class SentenceReader {
     return result;
   }
 
-  slot(tokens, slot, from, to) {
+  slot(tokens, slot, from, to, key) {
     if (nameSlots.has(slot)) {
       return to - from === 1 ? this.readName(tokens[from]) : undefined;
     }
@@ -317,7 +340,7 @@ export class SentenceReader {
     if (primarySlots.has(slot)) {
       return this.expression(tokens, from, to, levelIndex.primary);
     }
-    return this.expression(tokens, from, to, 0);
+    return this.slotExpression(tokens, from, to, 0, key, slot);
   }
 
   // The first template among `keys` that matches the whole sentence.
@@ -331,7 +354,7 @@ export class SentenceReader {
           tokens,
           0,
           tokens.length,
-          (slot, from, to) => this.slot(tokens, slot, from, to)
+          (slot, from, to) => this.slot(tokens, slot, from, to, key)
         );
         if (slots) {
           return { key, slots };
