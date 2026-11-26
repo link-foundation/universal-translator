@@ -70,6 +70,7 @@ const ASSIGNMENT_SYMBOLS: [&str; 8] = ["=", "+=", "-=", "*=", "/=", "%=", "++", 
 mod annotations;
 mod arrays;
 mod arrows;
+mod concrete;
 mod exceptions;
 mod forms;
 mod loops;
@@ -80,7 +81,12 @@ pub(crate) type Parsed<T = Node> = Result<T, GrammarError>;
 
 /// Parse a whole source text into a `SourceProgram` tree.
 pub fn parse_program(source: &str, syntax: &Syntax) -> Parsed {
-    Parser::new(tokenize(source, syntax)?, syntax.clone()).program()
+    let tokens = tokenize(source, syntax)?;
+    let mut parser = Parser::new(tokens.clone(), syntax.clone());
+    let tree = parser.program()?;
+    let concrete =
+        crate::concrete_syntax::concrete_syntax(source, syntax.id, &tokens, parser.productions);
+    Ok(tree.with("syntax", concrete))
 }
 
 /// Binary operators by precedence level with their spellings.
@@ -99,6 +105,7 @@ pub(crate) struct Parser {
     state: Box<dyn Any>,
     /// How many classes enclose the current item.
     class_depth: usize,
+    productions: Vec<Node>,
 }
 
 impl Parser {
@@ -149,6 +156,7 @@ impl Parser {
             dialect,
             state: Box::new(()),
             class_depth: 0,
+            productions: Vec::new(),
         }
     }
 
@@ -381,6 +389,10 @@ impl Parser {
     }
 
     pub(crate) fn item(&mut self) -> Parsed {
+        self.concrete_rule("item", Self::concrete_item)
+    }
+
+    fn concrete_item(&mut self) -> Parsed {
         let annotations = self.annotations()?;
         let dialect = self.dialect;
         let item = dialect.item(self)?;
@@ -589,7 +601,9 @@ impl Parser {
 
     pub(crate) fn function_definition(&mut self) -> Parsed {
         let dialect = self.dialect;
-        dialect.function_definition(self)
+        self.concrete_rule("functionDefinition", |parser| {
+            dialect.function_definition(parser)
+        })
     }
 
     pub(crate) fn base_function_definition(&mut self) -> Parsed {
@@ -796,7 +810,7 @@ impl Parser {
 
     pub(crate) fn statement(&mut self) -> Parsed {
         let dialect = self.dialect;
-        dialect.statement(self)
+        self.concrete_rule("statement", |parser| dialect.statement(parser))
     }
 
     pub(crate) fn base_statement(&mut self) -> Parsed {
@@ -1132,7 +1146,7 @@ impl Parser {
     // ---- expressions ----
 
     pub(crate) fn expression(&mut self) -> Parsed {
-        self.binary(0)
+        self.concrete_rule("expression", |parser| parser.binary(0))
     }
 
     /// The meta operator spelled by the current token at a precedence level.

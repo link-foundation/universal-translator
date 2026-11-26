@@ -34,6 +34,11 @@ export {
   translateFragment,
 } from './translator.js';
 export declare const fragmentKinds: FragmentKind[];
+export { reconstructConcrete } from './translation/concrete-syntax.js';
+export type {
+  ConcreteLeaf,
+  ConcreteSyntax,
+} from './translation/concrete-syntax.js';
 export declare const stageNames: import('./translator.js').StageName[];
 export declare function decorateStages(
   stages: import('./translator.js').Stages,

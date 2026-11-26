@@ -4,6 +4,7 @@
 
 mod candidates;
 pub mod comment_language;
+mod concrete_syntax;
 pub mod custom_rules;
 mod detect;
 pub mod equivalence;
@@ -25,6 +26,7 @@ pub mod translator;
 
 pub use candidates::TranslationCandidate;
 pub use comment_language::{CommentTranslator, translate_comments};
+pub use concrete_syntax::reconstruct_concrete;
 pub use custom_rules::CustomRules;
 pub use equivalence::{Difference, Equivalence, check_equivalence, effect_of};
 pub use formal::versions::{Version, split_version, versions_of};

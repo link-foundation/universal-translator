@@ -64,6 +64,8 @@ pub struct Token {
     /// characters (the comment markers are outside). Names: where the name
     /// starts and stops.
     pub span: Option<(usize, usize)>,
+    /// Entire source spelling, including comment markers and quote delimiters.
+    pub raw_span: Option<(usize, usize)>,
 }
 
 impl Token {
@@ -265,10 +267,15 @@ impl<'a> Lexer<'a> {
             if self.closing_tag()? {
                 break;
             }
+            let start = self.index;
+            let first = self.tokens.len();
             for read in readers {
                 if read(&mut self)? {
                     break;
                 }
+            }
+            for token in &mut self.tokens[first..] {
+                token.raw_span = Some((start, self.index));
             }
         }
         if self
@@ -326,6 +333,7 @@ impl<'a> Lexer<'a> {
             trailing: None,
             block: false,
             span: None,
+            raw_span: None,
         });
     }
 

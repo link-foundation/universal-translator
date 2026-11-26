@@ -177,7 +177,12 @@ class Lexer {
       if (this.closingTag()) {
         break;
       }
+      const start = this.index;
+      const first = this.tokens.length;
       this.readers.some((read) => read());
+      for (const token of this.tokens.slice(first)) {
+        token.rawSpan = [start, this.index];
+      }
     }
     if (this.tokens.length && this.tokens.at(-1).type !== 'newline') {
       this.push('newline', '\n');

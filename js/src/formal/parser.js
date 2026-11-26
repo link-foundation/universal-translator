@@ -13,6 +13,10 @@ import { slashOperator } from './numbers.js';
 import { powerSymbol } from './power.js';
 import { typeDepth, typeHeadLength, withAnnotations } from './annotations.js';
 import { withExceptionParser } from './exception-parser.js';
+import {
+  concreteParser,
+  concreteSyntax,
+} from '../translation/concrete-syntax.js';
 
 const binaryLevels = [
   { or: ['||', 'or'] },
@@ -59,7 +63,15 @@ const modifiers = new Set([
 
 export function parseProgram(source, syntax) {
   const LanguageParser = parserFor(syntax);
-  return new LanguageParser(tokenize(source, syntax), syntax).program();
+  const tokens = tokenize(source, syntax);
+  const { parser, locations } = concreteParser(
+    new LanguageParser(tokens, syntax)
+  );
+  const tree = parser.program();
+  return {
+    ...tree,
+    syntax: concreteSyntax(source, syntax.id, tokens, tree, locations),
+  };
 }
 
 // Languages whose statements follow a grammar of their own (Fortran, Pascal,

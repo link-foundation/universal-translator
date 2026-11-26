@@ -25,6 +25,10 @@ include = [
 [lib]
 path = "rust/src/lib.rs"
 
+[[test]]
+name = "concrete_syntax"
+path = "rust/tests/concrete_syntax.rs"
+
 [[bin]]
 name = "universal-translator"
 path = "rust/src/main.rs"
