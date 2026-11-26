@@ -28,7 +28,7 @@ use super::catalog::{natural_language, natural_language_ids};
 use super::rules::semantic_primes;
 use super::vocabulary::{Grammar, grammar_of, known_form, stem_index, vocabulary_concepts};
 
-fn fold(text: &str) -> String {
+pub(crate) fn fold(text: &str) -> String {
     text.to_lowercase()
 }
 
@@ -58,18 +58,18 @@ fn neutral_words() -> &'static [String] {
 }
 
 /// The meanings of one language.
-struct Meanings {
+pub(crate) struct Meanings {
     /// meaning -> phrases, the preferred phrase first
-    phrases: HashMap<String, Vec<String>>,
+    pub(crate) phrases: HashMap<String, Vec<String>>,
     /// phrase -> meanings, the likeliest first
-    meanings: HashMap<String, Vec<String>>,
+    pub(crate) meanings: HashMap<String, Vec<String>>,
     /// the phrases in the order they are first met
-    order: Vec<String>,
+    pub(crate) order: Vec<String>,
     /// meaning -> part of speech ('prime' and 'name' for the primes and the
     /// words of program names)
-    parts: HashMap<String, String>,
-    grammar: Grammar,
-    stems: HashMap<String, String>,
+    pub(crate) parts: HashMap<String, String>,
+    pub(crate) grammar: Grammar,
+    pub(crate) stems: HashMap<String, String>,
 }
 
 impl Meanings {
@@ -91,12 +91,12 @@ impl Meanings {
         meanings.push(meaning.to_owned());
     }
 
-    fn part(&self, meaning: &str) -> &str {
+    pub(crate) fn part(&self, meaning: &str) -> &str {
         self.parts.get(meaning).map_or("", String::as_str)
     }
 }
 
-fn meanings_of(id: &str) -> Result<Arc<Meanings>, String> {
+pub(crate) fn meanings_of(id: &str) -> Result<Arc<Meanings>, String> {
     static CACHE: LazyLock<Mutex<HashMap<String, Arc<Meanings>>>> =
         LazyLock::new(|| Mutex::new(HashMap::new()));
     if let Some(known) = CACHE.lock().ok().and_then(|cache| cache.get(id).cloned()) {
@@ -157,7 +157,7 @@ fn meanings_of(id: &str) -> Result<Arc<Meanings>, String> {
 /// meanings that list it earliest (a word mostly means what it is the main
 /// word of: "в" is first "in", only then "inside"), then in a question the
 /// interrogative concepts first, elsewhere last.
-fn likely<'a>(phrase: &str, language: &'a Meanings, question: bool) -> Vec<&'a String> {
+pub(crate) fn likely<'a>(phrase: &str, language: &'a Meanings, question: bool) -> Vec<&'a String> {
     let rank = |meaning: &String| {
         language.phrases[meaning.as_str()]
             .iter()
@@ -266,7 +266,7 @@ pub fn comment_dictionary(from: &str, to: &str) -> Result<Dictionary, String> {
 /// Words are letters with inner apostrophes and hyphens; everything else
 /// (spaces, digits, punctuation, code) is kept as it is. The pieces
 /// alternate: a gap (maybe empty), a word, a gap, ... ending with a gap.
-fn pieces(text: &str) -> Vec<&str> {
+pub(crate) fn pieces(text: &str) -> Vec<&str> {
     static WORD: LazyLock<Regex> = LazyLock::new(|| {
         Regex::new(r"[\p{L}\p{M}]+(?:['’-][\p{L}\p{M}]+)*").expect("word pattern")
     });

@@ -7,12 +7,13 @@ use universal_translator::meta::{format_number, to_json};
 use universal_translator::natural::check_text;
 use universal_translator::translator::{Translator, language_ids, natural_languages};
 use universal_translator::{
-    CustomRules, Detection, Mode, Options, PartialReading, SourceDocument, translate_program,
+    CustomRules, Detection, Mode, Options, PartialReading, SourceDocument, nest_grammars,
+    translate_program,
 };
 
 const USAGE: &str = "Usage:
   universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment] [--all-or-nothing] [--rules <file.lino>] [--comment-language <natural>] [--comment-from <natural>] [--identifier-language <natural>] [--identifier-from <natural>] [--layout source|target]
-  universal-translator meta <language> [file|-] [--json]
+  universal-translator meta <language> [file|-] [--json] [--shallow]
   universal-translator coverage <language> [file|-] [--json]
   universal-translator detect [file|-] [--json]
   universal-translator translate-program <from|cst> <to> [file|-]
@@ -49,6 +50,8 @@ source between programming languages; --layout target writes the layout
 of the target.
 <to> may name a version: python@2.
 meta prints the meta program as indented Links Notation; --json prints JSON.
+It reads comments and strings with the grammars they are written in
+(prose, quoted code); --shallow leaves them as plain text.
 coverage prints which parts of a text can be read as indented Links
 Notation; detect prints the most likely languages of a text, one per
 line. --json prints either as JSON.
@@ -64,6 +67,11 @@ fn report_file<'a>(trailing: &[&'a str]) -> Option<Option<&'a str>> {
         .collect();
     let flags = trailing.len() - files.len();
     (files.len() <= 1 && flags <= 1).then(|| files.first().copied())
+}
+
+/// The arguments but a flag.
+fn without<'a>(trailing: &[&'a str], flag: &str) -> Vec<&'a str> {
+    trailing.iter().copied().filter(|it| *it != flag).collect()
 }
 
 fn source(file: Option<&str>) -> Result<String, String> {
@@ -416,11 +424,20 @@ fn run(arguments: &[String]) -> Result<String, String> {
                 Err(problems.join("\n"))
             }
         }
-        ["meta", language, trailing @ ..] if report_file(trailing).is_some() => {
+        ["meta", language, trailing @ ..]
+            if report_file(&without(trailing, "--shallow")).is_some() =>
+        {
             let json = trailing.contains(&"--json");
-            let meta = Translator::new()
-                .to_meta(&source(report_file(trailing).flatten())?, language)
+            let file = report_file(&without(trailing, "--shallow")).flatten();
+            let translator = Translator::new();
+            let meta = translator
+                .to_meta(&source(file)?, language)
                 .map_err(|error| error.to_string())?;
+            let meta = if trailing.contains(&"--shallow") {
+                meta
+            } else {
+                nest_grammars(&meta, language, &translator)
+            };
             Ok(if json {
                 // Indented like the JavaScript CLI; the fields are in name order.
                 let compact = to_json(Some(&meta.into()));

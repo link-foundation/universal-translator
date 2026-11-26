@@ -50,6 +50,8 @@ export { lowerProgram } from './formal/lowering.js';
 export { liftProgram } from './formal/lifting.js';
 export { formatMeta } from './meta/notation.js';
 export { generalize, specialize, standardProcedures } from './meta/library.js';
+export { nestGrammars, unnest } from './translation/nesting.js';
+export { readProse } from './natural/prose-reading.js';
 export {
   machineReaders,
   readCil,

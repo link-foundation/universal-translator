@@ -349,6 +349,46 @@ translator.fromMeta(general, 'c'); // printf("%d\n", (int) (sizeof numbers / siz
 specialize(general); // the same program as toMeta wrote it
 ```
 
+The `meta` command also reads comments and strings with the grammars
+they are written in (`--shallow` leaves them as plain text;
+`nestGrammars` / `nest_grammars` do the same in code). A comment is read
+as prose of the natural language most of its words belong to: its
+sentences, its words and the concepts, semantic primes or program words
+they stand for. Code quoted between backticks, and a string that one of
+the programming languages reads whole, is read as a nested program. A
+text longer than twelve words is written once in the `texts` of the
+program and referred to by id from every comment and string that holds
+it. `unnest` gives back the plain program, and `fromMeta` accepts the
+nested form too:
+
+```
+program
+  paragraph text-1 (text 'This program reads a list of numbers, adds them and prints the sum of all of them')
+    prose english
+      sentence
+        word This (part prime) (prime this)
+        word program (concept program) (part noun)
+        word reads (concept read) (part verb)
+        ...
+  comment 'Prints `x + 1`'
+    prose english
+      sentence
+        word Prints (concept print) (part verb)
+        code javascript
+          program
+            evaluate
+              binary add (type integer)
+                name x
+                number 1 (type integer)
+  declaration x (mutable false) (type integer)
+    number 1 (type integer)
+  call print-line (library standard)
+    binary add (type integer)
+      name x (type integer)
+      number 1 (type integer)
+  comment (reference text-1)
+```
+
 ```js
 import {
   createTranslator,

@@ -5,6 +5,7 @@
 pub mod catalog;
 pub mod comments;
 pub mod levels;
+pub mod prose_reading;
 pub mod reader;
 pub mod rules;
 pub mod tokens;
@@ -18,6 +19,7 @@ pub use catalog::{
 pub use comments::{
     comment_dictionary, detect_comment_language, is_known_word, translate_comment_text, words_of,
 };
+pub use prose_reading::read_prose;
 pub use reader::{read_natural, read_natural_with};
 pub use rules::{SemanticPrime, check_description, check_text, semantic_primes};
 pub use variants::{

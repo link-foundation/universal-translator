@@ -45,6 +45,7 @@ import { createLanguageDetector } from './translation/detect.js';
 import { compileCustomRules } from './translation/custom-rules.js';
 import { transferLayout } from './translation/layout.js';
 import { specialize } from './meta/library.js';
+import { unnest } from './translation/nesting.js';
 
 const readMachine = (source, from) => machineReaders[from](source);
 
@@ -231,10 +232,11 @@ function partialTranslator(translate, fragments, partial) {
   };
 }
 
-// A meta program in its special form, with the empty lists of a program
-// that a hand-written one may leave out.
+// A meta program in its special form, without the readings of its nested
+// texts, with the empty lists of a program that a hand-written one may
+// leave out.
 function completed(meta) {
-  const special = specialize(meta);
+  const special = specialize(unnest(meta));
   return special.kind === 'Program'
     ? {
         ...special,

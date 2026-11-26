@@ -88,3 +88,7 @@ path = "rust/tests/prose.rs"
 [[test]]
 name = "meta_library"
 path = "rust/tests/meta_library.rs"
+
+[[test]]
+name = "nesting"
+path = "rust/tests/nesting.rs"

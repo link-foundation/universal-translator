@@ -46,20 +46,25 @@ const mainField = {
   Boolean: 'value',
   Call: 'callee',
   Comment: 'text',
+  Code: 'language',
   CountingLoop: 'variable',
   Declaration: 'name',
   Function: 'name',
   IndexAssignment: 'name',
   Name: 'name',
   Number: 'value',
+  Paragraph: 'id',
   Parameter: 'name',
+  Prose: 'language',
   Text: 'value',
   Unary: 'operator',
+  Word: 'text',
   '': 'name',
 };
 
 // The order in which child nodes are read; other fields follow by name.
 const childOrder = [
+  'comments',
   'condition',
   'array',
   'index',
@@ -77,10 +82,12 @@ const childOrder = [
   'elements',
   'parts',
   'parameters',
+  'texts',
   'functions',
   'statements',
   'then',
   'body',
+  'mainComments',
   'main',
   'otherwise',
 ];

@@ -14,6 +14,7 @@ import {
   createTranslator,
   formatMeta,
   multiply,
+  nestGrammars,
   readRules,
   readSourceDocument,
   writeSourceDocument,
@@ -66,8 +67,10 @@ function usage() {
     '            --rules <file.lino> adds source, templates, names and output rules',
     '            (indented Links Notation; JSON files are read too)',
     '  translate-program <from|cst> <to> [file|-]  Translate a checked JavaScript or Rust program',
-    '  meta <language> [file|-] [--json]  Print the typed meta program as indented Links Notation',
+    '  meta <language> [file|-] [--json] [--shallow]  Print the typed meta program as indented Links Notation',
     '            --json prints it as JSON instead',
+    '            comments and strings are read with the grammars they are written in',
+    '            (prose, quoted code); --shallow leaves them as plain text',
     '  coverage <language> [file|-] [--json]  Print which parts of a text can be read',
     '            as indented Links Notation; --json prints JSON',
     '  detect [file|-] [--json]  Print the most likely languages of a text, one per line',
@@ -313,10 +316,11 @@ const detectionReport = (detections, { json }) =>
 // The commands that read a text in a language: what each one writes.
 const textCommands = {
   'check-words': (translator, text, from) => checkWords(text, from),
-  meta: (translator, text, from, { json }) =>
-    json
-      ? jsonReport(translator.toMeta(text, from))
-      : formatMeta(translator.toMeta(text, from)),
+  meta: (translator, text, from, { json, shallow }) => {
+    const meta = translator.toMeta(text, from);
+    const shown = shallow ? meta : nestGrammars(meta, from, translator);
+    return json ? jsonReport(shown) : formatMeta(shown);
+  },
   coverage: (translator, text, from, { json }) =>
     coverageReport(translator.parsePartial(text, from), { json }),
 };
@@ -337,7 +341,10 @@ function runTranslation(command, allArgs, read, write, stderr) {
   const json =
     ['meta', 'coverage', 'detect'].includes(command) &&
     allArgs.includes('--json');
-  const args = json ? allArgs.filter((arg) => arg !== '--json') : allArgs;
+  const shallow = command === 'meta' && allArgs.includes('--shallow');
+  const args = allArgs.filter(
+    (arg) => !(json && arg === '--json') && !(shallow && arg === '--shallow')
+  );
   const [from, to, ...trailing] = args;
   const { file, options = {} } =
     command === 'translate' ? translationArguments(trailing) : {};
@@ -346,7 +353,7 @@ function runTranslation(command, allArgs, read, write, stderr) {
   if (command === 'languages' && args.length === 0) {
     write(languageList(translator));
   } else if (textCommand && from && args.length <= 2) {
-    write(textCommand(translator, read(to), from, { json }));
+    write(textCommand(translator, read(to), from, { json, shallow }));
   } else if (command === 'detect' && args.length <= 1) {
     write(detectionReport(translator.detectLanguage(read(from)), { json }));
   } else if (command === 'translate' && from && to) {

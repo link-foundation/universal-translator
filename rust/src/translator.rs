@@ -389,10 +389,10 @@ impl Translator {
     }
 
     /// A meta program given from outside may be written in its general
-    /// form (calls to the standard library) and leave out empty lists and
-    /// types.
+    /// form (calls to the standard library), hold the readings of its
+    /// nested texts and leave out empty lists and types.
     fn complete_meta(&self, meta: &Node, to: &str, from: Option<&str>) -> Node {
-        let mut special = library::specialize(meta.clone());
+        let mut special = library::specialize(crate::nesting::unnest(meta));
         if special.is("Program") {
             for field in ["comments", "imports", "functions"] {
                 if special.get(field).is_none() {

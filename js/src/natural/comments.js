@@ -58,7 +58,7 @@ const meaningSets = new WeakMap();
 //   meanings  phrase -> meanings, the likeliest first
 //   parts     meaning -> part of speech ('prime' and 'name' for the primes
 //             and the words of program names)
-function meaningsOf(id) {
+export function meaningsOf(id) {
   const language = naturalLanguage(id);
   if (meaningSets.has(language)) {
     return meaningSets.get(language);
@@ -118,7 +118,7 @@ function meaningsOf(id) {
 // meanings that list it earliest (a word mostly means what it is the main
 // word of: "в" is first "in", only then "inside"), then in a question the
 // interrogative concepts first, elsewhere last.
-function likely(phrase, language, question) {
+export function likely(phrase, language, question) {
   const rank = (meaning) => language.phrases.get(meaning).indexOf(phrase);
   const meanings = [...(language.meanings.get(phrase) ?? [])].sort(
     (a, b) => rank(a) - rank(b)
@@ -178,7 +178,8 @@ export function commentDictionary(from, to) {
 
 // Words are letters with inner apostrophes and hyphens; everything else
 // (spaces, digits, punctuation, code) is kept as it is.
-const pieces = (text) => text.split(/([\p{L}\p{M}]+(?:['’-][\p{L}\p{M}]+)*)/u);
+export const pieces = (text) =>
+  text.split(/([\p{L}\p{M}]+(?:['’-][\p{L}\p{M}]+)*)/u);
 
 const longestPhrase = 4;
 // The longest word looked for inside a text written without spaces.

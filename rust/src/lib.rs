@@ -11,6 +11,7 @@ pub mod identifier_language;
 pub mod layout;
 pub mod meta;
 pub mod natural;
+pub mod nesting;
 mod partial;
 mod program;
 mod referents;
@@ -23,6 +24,7 @@ pub use formal::versions::{Version, split_version, versions_of};
 pub use fragments::{Fragment, FragmentKind};
 pub use identifier_language::{translate_identifiers, translate_program_identifiers};
 pub use meta::GrammarError;
+pub use nesting::{nest_grammars, unnest};
 pub use program::translate_program;
 pub use referents::{
     Candidate, Observation, RankedCandidate, Ranking, rank_interpretations, read_referent_input,

@@ -69,7 +69,10 @@ fn main_field(kind: &str) -> Option<&'static str> {
         "Boolean" | "Number" | "Text" => "value",
         "Call" => "callee",
         "Comment" => "text",
+        "Code" | "Prose" => "language",
         "CountingLoop" => "variable",
+        "Paragraph" => "id",
+        "Word" => "text",
         "Assignment" | "Declaration" | "Function" | "IndexAssignment" | "Name" | "Parameter"
         | "" => "name",
         _ => return None,
@@ -77,7 +80,8 @@ fn main_field(kind: &str) -> Option<&'static str> {
 }
 
 /// The order in which child nodes are read; other fields follow by name.
-const CHILD_ORDER: [&str; 23] = [
+const CHILD_ORDER: [&str; 26] = [
+    "comments",
     "condition",
     "array",
     "index",
@@ -95,10 +99,12 @@ const CHILD_ORDER: [&str; 23] = [
     "elements",
     "parts",
     "parameters",
+    "texts",
     "functions",
     "statements",
     "then",
     "body",
+    "mainComments",
     "main",
     "otherwise",
 ];

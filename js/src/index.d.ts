@@ -335,6 +335,43 @@ export declare const ruleStages: readonly [
 /** A meta program (or fragment) as indented Links Notation: one line per
  * node, its kind and plain fields first, child nodes indented below. */
 export declare function formatMeta(program: unknown): string;
+/** Concepts of the meta language -> calls to its standard library. */
+export declare function generalize<T>(tree: T): T;
+/** Calls to the standard library of the meta language -> concepts. */
+export declare function specialize<T>(tree: T): T;
+/** The procedures of the standard library and the concepts they stand for. */
+export declare const standardProcedures: Readonly<
+  Record<
+    string,
+    {
+      concept: string;
+      parameters: readonly string[];
+      fields?: Record<string, unknown>;
+      statement?: boolean;
+      returns?: string;
+    }
+  >
+>;
+/** Comments and strings of a meta program read with the grammars they are
+ * written in (prose, quoted code); long texts move to `texts` under an id. */
+export declare function nestGrammars<T>(
+  program: T,
+  language: string,
+  translator: {
+    parseFragment(source: string, from: string): { program: unknown };
+    detectLanguage(
+      source: string,
+      options?: { limit?: number }
+    ): { id: string; natural: boolean; reads: boolean }[];
+  }
+): T;
+/** The plain meta program of a nested one. */
+export declare function unnest<T>(program: T): T;
+/** The deep reading of a text as prose: sentences, words and meanings. */
+export declare function readProse(
+  text: string,
+  options?: { language?: string; readCode?: (code: string) => unknown }
+): unknown;
 /** A natural language standard of one's own (Links Notation for
  * registerNaturalLanguage) from the changed entries of a vocabulary. */
 export declare function naturalStandardSource(options: {
