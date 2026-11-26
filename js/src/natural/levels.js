@@ -50,6 +50,8 @@ export const binaryTemplates = {
   add: 'add',
   subtract: 'subtract',
   multiply: 'multiply',
+  // Prose has one division; it reads back as the meta "divide".
+  realDivide: 'divide',
   divide: 'divide',
   remainder: 'remainder',
 };

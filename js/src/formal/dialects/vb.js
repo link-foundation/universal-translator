@@ -9,7 +9,7 @@ import { offset } from '../arrays.js';
 const modifiers = ['private', 'public', 'shared', 'friend'];
 // The operators Visual Basic binds at different levels: * and / above \,
 // and \ above Mod.
-const multiplicative = ['multiply', 'divide', 'remainder'];
+const multiplicative = ['multiply', 'divide', 'realDivide', 'remainder'];
 
 // Statements: Dim, If, While, For, Return, assignments and calls.
 const statements = (Base) =>

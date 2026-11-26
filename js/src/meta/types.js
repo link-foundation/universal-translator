@@ -1,10 +1,11 @@
 // Type inference for the meta language. Statically typed targets need a
 // type for every variable, parameter and result; untyped sources do not
 // write them down, so the types are derived from literals, operators,
-// declarations and call sites. Meta types: integer, text, boolean, nothing,
-// and array (a fixed-length array of integers).
+// declarations and call sites. Meta types: integer, real, text, boolean,
+// nothing, and array (a fixed-length array of integers). A variable that
+// is given a real after an integer start is a real variable.
 
-import { rewrite } from './tree.js';
+import { rewrite, walk } from './tree.js';
 
 const comparisons = new Set([
   'equal',
@@ -19,7 +20,6 @@ const comparisons = new Set([
 
 // Kinds whose type does not depend on their parts.
 const fixedTypes = new Map([
-  ['Number', 'integer'],
   ['Text', 'text'],
   ['Interpolation', 'text'],
   ['Boolean', 'boolean'],
@@ -38,18 +38,32 @@ function binaryType(expression, scope, signatures) {
   if (expression.operator === 'add' && (left === 'text' || right === 'text')) {
     return 'text';
   }
-  return 'integer';
+  return expression.operator === 'realDivide' ||
+    left === 'real' ||
+    right === 'real'
+    ? 'real'
+    : 'integer';
 }
+
+const numberType = ({ type, value }) =>
+  type === 'real' || !Number.isInteger(value) ? 'real' : 'integer';
 
 function expressionType(expression, scope, signatures) {
   if (fixedTypes.has(expression.kind)) {
     return fixedTypes.get(expression.kind);
   }
   switch (expression.kind) {
+    case 'Number':
+      return numberType(expression);
     case 'Name':
       return scope.get(expression.name);
     case 'Unary':
-      return expression.operator === 'not' ? 'boolean' : 'integer';
+      if (expression.operator === 'not') {
+        return 'boolean';
+      }
+      return expressionType(expression.operand, scope, signatures) === 'real'
+        ? 'real'
+        : 'integer';
     case 'Binary':
       return binaryType(expression, scope, signatures);
     case 'Call':
@@ -59,19 +73,41 @@ function expressionType(expression, scope, signatures) {
   }
 }
 
+// A division with a real operand is a true division (C's `7.0 / 2`).
 function annotate(expression, scope, signatures) {
   return rewrite(expression, (current) => {
     const type = expressionType(current, scope, signatures);
-    return type ? { ...current, type } : current;
+    const operator =
+      current.kind === 'Binary' &&
+      current.operator === 'divide' &&
+      type === 'real'
+        ? 'realDivide'
+        : current.operator;
+    if (!type) {
+      return current;
+    }
+    return operator ? { ...current, operator, type } : { ...current, type };
   });
 }
 
 function typeBlock(body, scope, signatures, returns) {
   const local = new Map(scope);
+  local.reals = scope.reals;
   const statements = body.statements.map((statement) =>
     typeStatement(statement, local, signatures, returns)
   );
   return { ...body, statements };
+}
+
+// An integer literal stored in a real variable is a real literal (0 is 0.0).
+const stored = (value, type) =>
+  type === 'real' && value?.kind === 'Number' && value.type === 'integer'
+    ? { ...value, type: 'real' }
+    : value;
+
+function declare(statement, value, type, context) {
+  context.scope.set(statement.name, type);
+  return { ...statement, type, value: stored(value, type) };
 }
 
 // One small typing rule per statement kind. `context` holds the variable
@@ -80,13 +116,28 @@ const statementTypers = {
   Declaration(statement, context) {
     const value = context.typed(statement.value);
     const type = known(statement.type) ?? value?.type ?? 'integer';
-    context.scope.set(statement.name, type);
-    return { ...statement, type, value };
+    const promoted =
+      type === 'integer' &&
+      context.reals.has(statement.name) &&
+      !context.reals.declared.has(statement.name);
+    if (promoted) {
+      return declare(statement, value, 'real', context);
+    }
+    return declare(statement, value, type, context);
   },
-  Assignment: (statement, context) => ({
-    ...statement,
-    value: context.typed(statement.value),
-  }),
+  Assignment(statement, context) {
+    const value = context.typed(statement.value);
+    if (
+      value?.type === 'real' &&
+      context.scope.get(statement.name) === 'integer'
+    ) {
+      context.reals.add(statement.name);
+    }
+    return {
+      ...statement,
+      value: stored(value, context.scope.get(statement.name)),
+    };
+  },
   IndexAssignment: (statement, context) => ({
     ...statement,
     index: context.typed(statement.index),
@@ -130,6 +181,7 @@ const statementTypers = {
   }),
   CountingLoop(statement, context) {
     const inner = new Map(context.scope);
+    inner.reals = context.reals;
     inner.set(statement.variable, 'integer');
     return {
       ...statement,
@@ -152,6 +204,7 @@ function typeStatement(statement, scope, signatures, returns) {
   }
   return typer(statement, {
     scope,
+    reals: scope.reals,
     signatures,
     returns,
     typed: (expression) =>
@@ -180,6 +233,30 @@ function callSiteTypes(program, signatures) {
   return found;
 }
 
+// The variables whose type the source writes down.
+function declaredNames(body) {
+  const names = new Set();
+  walk(body, (current) => {
+    if (current.kind === 'Declaration' && known(current.type)) {
+      names.add(current.name);
+    }
+  });
+  return names;
+}
+
+// The result type of a function: the declared one, otherwise the type of
+// its returned values, a real where one of them is real.
+function returnType(signature, returns) {
+  if (signature.declared) {
+    return signature.declared;
+  }
+  const values = returns.filter((type) => type && type !== 'nothing');
+  if (values.includes('real')) {
+    return 'real';
+  }
+  return signature.returnType ?? values[0];
+}
+
 export function inferTypes(program) {
   const signatures = new Map(
     program.functions.map((item) => [
@@ -190,6 +267,19 @@ export function inferTypes(program) {
       },
     ])
   );
+  // The variables of each function that are given a real.
+  const promoted = new Map();
+  const reals = (owner, body) => {
+    if (!promoted.has(owner)) {
+      const found = new Set();
+      found.declared = declaredNames(body);
+      promoted.set(owner, found);
+    }
+    return promoted.get(owner);
+  };
+  for (const item of program.functions) {
+    signatures.get(item.name).declared = known(item.returnType);
+  }
   let current = program;
   // Recursive functions need a few rounds before every type settles.
   for (let round = 0; round < 4; round += 1) {
@@ -201,14 +291,15 @@ export function inferTypes(program) {
           signature.parameters[index] ?? 'integer',
         ])
       );
+      scope.reals = reals(`function ${item.name}`, item.body);
       const returns = [];
       const body = typeBlock(item.body, scope, signatures, returns);
-      signature.returnType ??= returns.find(
-        (type) => type && type !== 'nothing'
-      );
+      signature.returnType = returnType(signature, returns);
       return { ...item, body };
     });
-    const main = typeBlock(current.main, new Map(), signatures, []);
+    const top = new Map();
+    top.reals = reals('main', current.main);
+    const main = typeBlock(current.main, top, signatures, []);
     current = { ...current, functions, main };
     const sites = callSiteTypes(current, signatures);
     for (const [callee, types] of sites) {

@@ -66,8 +66,20 @@ function readNumber(source, index) {
   while (end < source.length && digit.test(source[end])) {
     end += 1;
   }
+  // A point between digits starts the fraction of a real number.
+  const real =
+    source[end] === '.' && digit.test(source[end + 1] ?? '') ? end + 1 : 0;
+  if (real) {
+    end = real;
+    while (end < source.length && digit.test(source[end])) {
+      end += 1;
+    }
+  }
+  const value = Number(source.slice(index, end));
   return {
-    token: { type: 'number', value: Number(source.slice(index, end)) },
+    token: real
+      ? { type: 'number', value, real: true }
+      : { type: 'number', value },
     end,
   };
 }

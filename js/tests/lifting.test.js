@@ -70,7 +70,7 @@ while (index < 4 && !(index === 2 || count > 5)) {
 for (let step = 0; step < 3; step++) {
   console.log(step);
 }
-console.log(\`count \${count}, \${count / 2}, \${count % 3}\`);
+console.log(\`count \${count}, \${Math.trunc(count / 2)}, \${count % 3}\`);
 `;
 
 describe('reading machine code', () => {
@@ -141,7 +141,7 @@ describe('lifting machine code into the meta language', () => {
   }
 
   it('rebuilds nested conditions, loops and boolean values', () => {
-    // Machine code divides integers, as the JavaScript translation does.
+    // Machine code divides integers, like Math.trunc(count / 2).
     const expected = run(
       translator.translate(conditions, 'javascript', 'javascript')
     );

@@ -13,6 +13,7 @@ import { block, layout, node, rewrite, text, walk } from '../meta/tree.js';
 import { countingLoops } from './lifting.js';
 import { raiseTruthFunctions } from '../meta/truth.js';
 import { languageSyntax, namingConvention } from './languages.js';
+import { slashOperator } from './numbers.js';
 import {
   asciiName,
   avoidReserved,
@@ -188,7 +189,9 @@ function joinWithSpaces(values) {
 
 function readFormat(format, values, style) {
   const pattern =
-    style === 'percent' ? /%(?:l{0,2}d|i|s|c|v|t|%)/g : /\{\{|\}\}|\{\}/g;
+    style === 'percent'
+      ? /%(?:l{0,2}d|i|s|c|v|t|%|(?:\.\d+)?l?[fgeG])/g
+      : /\{\{|\}\}|\{\}/g;
   const parts = [];
   let last = 0;
   let index = 0;
@@ -518,12 +521,17 @@ const compoundMeanings = {
 };
 
 // `x += v` means `x = x + v`; the meta language keeps only the plain form.
-export function expandCompoundAssignment(program) {
+// `/=` divides like the language's `/`.
+export function expandCompoundAssignment(program, { from } = {}) {
+  const meanings = {
+    ...compoundMeanings,
+    '/=': from ? slashOperator(languageSyntax(from)) : 'divide',
+  };
   return rewrite(program, (current) => {
     if (current.kind !== 'Assignment' || current.operator === '=') {
       return current;
     }
-    const operator = compoundMeanings[current.operator];
+    const operator = meanings[current.operator];
     if (!operator) {
       throw new Error(`Unknown assignment operator "${current.operator}"`);
     }
@@ -617,9 +625,9 @@ function integerDivision(call, { wrapper, call: callee, method }) {
     call.callee === wrapper &&
     call.arguments.length === 1 &&
     first.kind === 'Binary' &&
-    first.operator === 'divide'
+    ['divide', 'realDivide'].includes(first.operator)
   ) {
-    return first;
+    return { ...first, operator: 'divide' };
   }
   if (call.callee === callee && call.arguments.length === 2) {
     return divide(first, second);

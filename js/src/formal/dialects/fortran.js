@@ -5,7 +5,12 @@ import { add, block, node, number } from '../../meta/tree.js';
 import { declaredVariables, keywordParser } from './shared.js';
 
 // The meta type of a declaration's first word.
-const typeWords = { integer: 'integer', logical: 'boolean', character: 'text' };
+const typeWords = {
+  integer: 'integer',
+  real: 'real',
+  logical: 'boolean',
+  character: 'text',
+};
 const format = "'(*(g0))'";
 
 // Statements: if, do while, counted do, print, write, call and assignments.
@@ -239,6 +244,7 @@ const parser = (Base) =>
 // Declared types: deferred-length text is allocated by its assignment.
 const declaredTypes = {
   integer: 'integer(8)',
+  real: 'real(8)',
   boolean: 'logical',
   text: 'character(len=:), allocatable',
   // An array is allocated by its first assignment.
@@ -339,7 +345,9 @@ const emitter = (Base) =>
     // Literal arguments are written with the kind of the integer(8)
     // arguments they are passed to.
     argument(value) {
-      return value.kind === 'Number' && Number.isInteger(value.value)
+      return value.kind === 'Number' &&
+        value.type !== 'real' &&
+        Number.isInteger(value.value)
         ? `${value.value}_8`
         : this.expression(value);
     }

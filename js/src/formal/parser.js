@@ -8,6 +8,7 @@ import { block, name, node, number, text } from '../meta/tree.js';
 import { dialects } from './dialects/index.js';
 import { withArrays } from './array-parser.js';
 import { stepOperators, withLoops } from './loop-parser.js';
+import { slashOperator } from './numbers.js';
 
 const binaryLevels = [
   { or: ['||', 'or'] },
@@ -972,7 +973,12 @@ class BaseParser {
       }
       this.next();
       const right = this.binary(level + 1);
-      left = node('Binary', { operator: operator[0], left, right });
+      // `/` is true division or integer division, depending on the language.
+      const meaning =
+        token.value === '/' && operator[0] === 'divide'
+          ? slashOperator(this.syntax)
+          : operator[0];
+      left = node('Binary', { operator: meaning, left, right });
     }
   }
 
@@ -980,7 +986,7 @@ class BaseParser {
     if (this.accept('-')) {
       const operand = this.unary();
       return operand.kind === 'Number'
-        ? number(-operand.value)
+        ? { ...operand, value: -operand.value }
         : node('Unary', { operator: 'negate', operand });
     }
     if (
@@ -1058,7 +1064,7 @@ class BaseParser {
     const token = this.next();
     switch (token.type) {
       case 'number':
-        return number(Number(token.value));
+        return numberLiteral(token.value);
       case 'text':
         return this.textLiteral(token);
       case 'name':
@@ -1231,6 +1237,12 @@ function calleeName(expression) {
   return expression.name;
 }
 
+// A number as written: 1.5, 2.0 and 1e3 are reals, 7 is an integer.
+export function numberLiteral(written) {
+  const literal = number(Number(written));
+  return /[.eE]/.test(written) ? { ...literal, type: 'real' } : literal;
+}
+
 // Arrays and loops are read by mixins of their own, which the dialects inherit.
 const Parser = withLoops(withArrays(BaseParser));
 
@@ -1258,6 +1270,13 @@ export function sourceType(spelling) {
     )
   ) {
     return 'array';
+  }
+  if (
+    /^(double|float|f32|f64|float32|float64|Double|Float|Float64|Long_Float|real|Real)$/.test(
+      words
+    )
+  ) {
+    return 'real';
   }
   if (/^(bool|boolean|Bool|Boolean)$/.test(words)) {
     return 'boolean';

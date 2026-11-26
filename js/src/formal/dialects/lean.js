@@ -10,6 +10,7 @@
 import { laterCalls, name, node } from '../../meta/tree.js';
 import { SyntaxError } from '../lexer.js';
 import { commentNode, defaultValues } from './shared.js';
+import { realValue } from '../numbers.js';
 
 // Words that end an application: `if f x then`, `for i in ... do`.
 const keywords = new Set([
@@ -440,7 +441,8 @@ const statementEmitter = (Base) =>
       const type = array ? 'array' : (statement.type ?? 'integer');
       const initial = value ?? defaultValues[type] ?? defaultValues.integer;
       const changes = statement.mutable || statement.elementsAssigned;
-      return `let ${changes ? 'mut ' : ''}${variable} : ${this.type(type)} := ${this.expression(initial)}`;
+      const written = this.expression(realValue(initial, type, this.syntax));
+      return `let ${changes ? 'mut ' : ''}${variable} : ${this.type(type)} := ${written}`;
     }
 
     ifStatement({ condition, then, otherwise }) {
