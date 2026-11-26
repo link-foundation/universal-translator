@@ -44,6 +44,7 @@ import { createPartialTranslator } from './translation/partial.js';
 import { createLanguageDetector } from './translation/detect.js';
 import { compileCustomRules } from './translation/custom-rules.js';
 import { transferLayout } from './translation/layout.js';
+import { specialize } from './meta/library.js';
 
 const readMachine = (source, from) => machineReaders[from](source);
 
@@ -230,6 +231,20 @@ function partialTranslator(translate, fragments, partial) {
   };
 }
 
+// A meta program in its special form, with the empty lists of a program
+// that a hand-written one may leave out.
+function completed(meta) {
+  const special = specialize(meta);
+  return special.kind === 'Program'
+    ? {
+        ...special,
+        comments: special.comments ?? [],
+        imports: special.imports ?? [],
+        functions: special.functions ?? [],
+      }
+    : special;
+}
+
 export function createGrammarTranslator(settings = {}) {
   const {
     parse = parseProgram,
@@ -329,7 +344,7 @@ export function createGrammarTranslator(settings = {}) {
       same && (commentLanguage || identifierLanguage)
         ? inPlace(source, from, options, toMeta)
         : undefined;
-    return kept ?? fromMeta(toMeta(source, from), to, { ...options, from });
+    return kept ?? writeMeta(toMeta(source, from), to, { ...options, from });
   }
 
   // Write an adapted program in a language, a machine target or words.
@@ -345,8 +360,17 @@ export function createGrammarTranslator(settings = {}) {
       : emit(adapted, to);
   }
 
-  function fromMeta(meta, to, options = {}) {
+  function writeMeta(meta, to, options = {}) {
     return write(adapt(meta, to, options), to);
+  }
+
+  // A meta program given from outside may be written in its general form
+  // (calls to the standard library) and leave out empty lists and types.
+  function fromMeta(meta, to, options = {}) {
+    const typed = applyRules(infer(completed(meta)), meaning, {
+      from: options.from ?? to,
+    });
+    return writeMeta(typed, to, options);
   }
 
   const fragments = createFragmentTranslator({

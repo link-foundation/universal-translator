@@ -62,7 +62,9 @@ describe('universal React example app', () => {
     // Auto-detection, partial translation and the rules editor.
     expect(appSource).toContain("from: 'auto'");
     expect(appSource).toContain('translatePartial');
-    expect(appSource).toContain("id: 'all-or-nothing'");
+    expect(readText(`${exampleRoot}/src/Options.js`)).toContain(
+      "id: 'all-or-nothing'"
+    );
     expect(appSource).toContain('h(RulesEditor');
     expect(workflow).toContain('web-e2e:');
     expect(workflow).toContain('examples/universal-app/e2e/translate.e2e.mjs');

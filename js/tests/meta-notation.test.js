@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'test-anywhere';
 
-import { createTranslator, formatMeta } from '../src/index.js';
+import {
+  createTranslator,
+  formatMeta,
+  generalize,
+  specialize,
+  standardProcedures,
+} from '../src/index.js';
 import { parseLinks } from '../src/meta/links.js';
 
 // The same text as the Rust test "shows_the_meta_program_as_links_notation".
@@ -8,7 +14,7 @@ const expected = [
   'program (comments hi)',
   '  declaration x (mutable false) (type text)',
   "    text 'a b' (type text)",
-  '  print (newline true)',
+  '  call print-line (library standard)',
   '    binary multiply (type integer)',
   '      name x (type text)',
   '      number 3 (type integer)',
@@ -78,7 +84,7 @@ describe('meta view', () => {
         '      otherwise',
         '        return',
         '          number 0 (type integer)',
-        '  print (newline true)',
+        '  call print-line (library standard)',
         '    call twice (type integer)',
         '      number 3 (type integer)',
         '',
@@ -91,5 +97,71 @@ describe('meta view', () => {
       translator.toMeta('for i in range(3):\n    print(i)\n', 'python')
     );
     expect(/\bblock\b|\w:/u.test(text)).toBe(false);
+  });
+});
+
+describe('the standard library of the meta language', () => {
+  const translator = createTranslator();
+  const source = [
+    'const numbers = [3, 1, 2];',
+    'console.log(numbers.length);',
+    "process.stdout.write('no newline');",
+    '',
+  ].join('\n');
+
+  it('writes printing and lengths as calls to library procedures', () => {
+    const general = generalize(translator.toMeta(source, 'javascript'));
+    const calls = general.main.statements
+      .filter((statement) => statement.kind === 'Evaluate')
+      .map(({ expression }) => [expression.callee, expression.library]);
+    expect(calls).toEqual([
+      ['print-line', 'standard'],
+      ['print', 'standard'],
+    ]);
+    expect(general.main.statements[1].expression.arguments[0]).toEqual({
+      kind: 'Call',
+      callee: 'length',
+      library: 'standard',
+      arguments: [{ kind: 'Name', name: 'numbers', type: 'array' }],
+      type: 'integer',
+    });
+    expect(JSON.stringify(general)).not.toContain('Print');
+    expect(Object.keys(standardProcedures)).toEqual([
+      'print-line',
+      'print',
+      'length',
+    ]);
+  });
+
+  it('reads the general form back to the same program', () => {
+    const meta = translator.toMeta(source, 'javascript');
+    expect(specialize(generalize(meta))).toEqual(meta);
+  });
+
+  it('translates a program written with library calls', () => {
+    const program = {
+      kind: 'Program',
+      main: {
+        kind: 'Block',
+        statements: [
+          {
+            kind: 'Evaluate',
+            expression: {
+              kind: 'Call',
+              callee: 'print-line',
+              library: 'standard',
+              arguments: [{ kind: 'Text', value: 'hi' }],
+            },
+          },
+        ],
+      },
+    };
+    expect(translator.fromMeta(program, 'python')).toBe('print("hi")\n');
+    expect(translator.fromMeta(program, 'c')).toContain('printf');
+  });
+
+  it('keeps calls a program declares itself', () => {
+    const call = { kind: 'Call', callee: 'print', arguments: [] };
+    expect(specialize(call)).toEqual(call);
   });
 });

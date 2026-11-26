@@ -554,7 +554,7 @@ fn shows_the_meta_program_as_links_notation() {
         "program (comments hi)
   declaration x (mutable false) (type text)
     text 'a b' (type text)
-  print (newline true)
+  call print-line (library standard)
     binary multiply (type integer)
       name x (type text)
       number 3 (type integer)
@@ -582,7 +582,7 @@ fn nests_meta_parameters_and_names_a_field_after_a_block() {
       otherwise
         return
           number 0 (type integer)
-  print (newline true)
+  call print-line (library standard)
     call twice (type integer)
       number 3 (type integer)
 "

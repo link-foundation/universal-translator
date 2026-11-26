@@ -19,7 +19,9 @@ pub use crate::Mode;
 use crate::formal::{
     common_library, emitter, languages, lifting, machine, machine_reader, parser, rules,
 };
-use crate::meta::{self, GrammarError, Node, Rule, Settings, Trace, apply_rules, types};
+use crate::meta::{
+    self, GrammarError, Node, Rule, Settings, Trace, Value, apply_rules, library, types,
+};
 use crate::natural;
 use std::sync::Arc;
 
@@ -381,8 +383,29 @@ impl Translator {
         from: Option<&str>,
         options: Options,
     ) -> Result<String, GrammarError> {
-        let adapted = self.adapt(meta, to, from, options)?;
+        let complete = self.complete_meta(meta, to, from);
+        let adapted = self.adapt(&complete, to, from, options)?;
         self.write(&adapted, to)
+    }
+
+    /// A meta program given from outside may be written in its general
+    /// form (calls to the standard library) and leave out empty lists and
+    /// types.
+    fn complete_meta(&self, meta: &Node, to: &str, from: Option<&str>) -> Node {
+        let mut special = library::specialize(meta.clone());
+        if special.is("Program") {
+            for field in ["comments", "imports", "functions"] {
+                if special.get(field).is_none() {
+                    special.set(field, Value::List(Vec::new()));
+                }
+            }
+        }
+        let settings = Settings {
+            from: from.unwrap_or(to).to_owned(),
+            to: to.to_owned(),
+            mode: Mode::default(),
+        };
+        apply_rules(types::infer_types(special), &self.meaning, &settings)
     }
 
     /// Run the custom layers and the context rules for a target. A natural
@@ -572,7 +595,8 @@ impl Translator {
             return Ok(kept);
         }
         let meta = self.to_meta(source, from)?;
-        self.from_meta_with(&meta, to, Some(from), options)
+        let adapted = self.adapt(&meta, to, Some(from), options)?;
+        self.write(&adapted, to)
     }
 }
 

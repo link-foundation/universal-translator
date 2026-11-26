@@ -84,3 +84,7 @@ path = "rust/tests/identifiers.rs"
 [[test]]
 name = "prose"
 path = "rust/tests/prose.rs"
+
+[[test]]
+name = "meta_library"
+path = "rust/tests/meta_library.rs"

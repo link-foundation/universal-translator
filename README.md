@@ -323,6 +323,30 @@ program
       otherwise
         return
           number 0 (type integer)
+  call print-line (library standard)
+    call twice (type integer)
+      number 3 (type integer)
+```
+
+The meta view shows a program in its general form. Printing a line and
+taking the length of an array are no special parts of the meta language:
+they are calls to procedures of its standard library (`print-line`,
+`print`, `length`), each of which every target spells in its own way
+(`console.log`, `print`, `printf`, `len`, `.length`, ...). `generalize`
+and `specialize` move a meta program between this general form and the
+concepts the emitters work on, and `fromMeta` accepts either form:
+
+```js
+import { generalize, specialize } from '@link-foundation/universal-translator';
+
+const meta = translator.toMeta(
+  'numbers = [1, 2]\nprint(len(numbers))\n',
+  'python'
+);
+const general = generalize(meta);
+// Evaluate { Call print-line (library standard) [Call length (library standard) [numbers]] }
+translator.fromMeta(general, 'c'); // printf("%d\n", (int) (sizeof numbers / sizeof numbers[0]));
+specialize(general); // the same program as toMeta wrote it
 ```
 
 ```js
