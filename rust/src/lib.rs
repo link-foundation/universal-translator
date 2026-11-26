@@ -15,6 +15,7 @@ pub mod nesting;
 mod partial;
 mod program;
 mod referents;
+pub mod server;
 mod source_document;
 pub mod translator;
 

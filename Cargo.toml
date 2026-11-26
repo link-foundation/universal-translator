@@ -92,3 +92,19 @@ path = "rust/tests/meta_library.rs"
 [[test]]
 name = "nesting"
 path = "rust/tests/nesting.rs"
+
+[[test]]
+name = "versions"
+path = "rust/tests/versions.rs"
+
+[[test]]
+name = "vocabulary"
+path = "rust/tests/vocabulary.rs"
+
+[[test]]
+name = "serve"
+path = "rust/tests/serve.rs"
+
+[[test]]
+name = "standards"
+path = "rust/tests/standards.rs"

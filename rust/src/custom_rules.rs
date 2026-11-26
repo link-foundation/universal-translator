@@ -375,7 +375,7 @@ fn js_replacement(replace: &str) -> String {
 }
 
 /// JavaScript truthiness of a JSON value.
-fn truthy(value: Option<&Json>) -> bool {
+pub(crate) fn truthy(value: Option<&Json>) -> bool {
     match value {
         None | Some(Json::Null) => false,
         Some(Json::Bool(flag)) => *flag,

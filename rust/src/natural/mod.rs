@@ -8,6 +8,7 @@ pub mod levels;
 pub mod prose_reading;
 pub mod reader;
 pub mod rules;
+pub mod standards;
 pub mod tokens;
 pub mod variants;
 pub mod vocabulary;
