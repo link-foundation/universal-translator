@@ -124,11 +124,12 @@ describe('comment languages and versions with partial translation', () => {
         complete: true,
         errors: [],
         coverage: 1,
-        // Comment anchors retain their mapping after translation. The
-        // following line still shares source tokens after renaming.
+        // Semantic ownership survives comment translation, renaming and
+        // the different print spelling used by Python 2.
         lineMap: [
           [0, 0],
           [1, 1],
+          [2, 2],
         ],
         detected: 'javascript',
       });
