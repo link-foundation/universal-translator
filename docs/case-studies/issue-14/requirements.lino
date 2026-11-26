@@ -169,3 +169,8 @@ requirements:
     from: 'pull request 5'
     status: done
     evidence: js/src/formal/dialects/gml.js rust/src/formal/dialects/gml.rs common-library/common_library.gml examples/programs/translated/factorial/factorial.gml rust/tests/grammar.rs
+  code-style:
+    text: 'Style translation: the same program in another style or another language in its own style, with the brace that opens a block on its line or the next one and any indent width (issue 1, item 1.16)'
+    from: 'issue 1'
+    status: done
+    evidence: js/src/translation/style.js rust/src/style.rs js/tests/style.test.js rust/tests/style.rs examples/universal-app/src/Options.js docs/case-studies/issue-14/screenshots/app-style.png
