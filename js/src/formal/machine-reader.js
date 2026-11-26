@@ -1,16 +1,28 @@
 // Read x86-64 assembly (NASM), CIL (ILAsm) and JVM bytecode (Jasmin) back
-// into the stack machine code described in lowering.js. Each reader matches
-// the instruction sequences that machine.js writes, so any program the
-// translator lowered (or a hand-written program in the same style) can be
-// lifted into the meta language again.
+// into the stack machine code described in lowering.js; the GNU as, ARM64,
+// LLVM IR and WebAssembly text readers live in modules of their own. Each
+// reader matches the instruction sequences that its writer produces, so any
+// program the translator lowered (or a hand-written program in the same
+// style) can be lifted into the meta language again.
 //
 // A reader returns { comments, functions, main }. Every function has
 // { name, parameterCount, slotNames, returns, comments, code }.
 
 import { jasminVariable } from './machine.js';
-
-const relationsByJump = (table) =>
-  Object.fromEntries(Object.entries(table).map(([key, value]) => [value, key]));
+import { readArm64, readGas } from './machine-reader-assembly.js';
+import { readLlvm } from './machine-reader-llvm.js';
+import {
+  decodeBytes,
+  integer,
+  leadingComments,
+  program,
+  readError,
+  readInstructions,
+  relationsByJump,
+  resolveResults,
+  sourceLines,
+} from './machine-reader-shared.js';
+import { readWat } from './machine-reader-wasm.js';
 
 const nasmRelations = relationsByJump({
   equal: 'je',
@@ -59,72 +71,6 @@ const nasmArithmetic = [
 ];
 const argumentRegisters = ['rdi', 'rsi', 'rdx', 'rcx', 'r8', 'r9'];
 
-function readError(target, line, message) {
-  return new Error(`Cannot read ${target} line "${line}": ${message}`);
-}
-
-// Read instructions with a list of rules. A rule is [patterns, build]: the
-// patterns match consecutive lines, and build turns the matches into
-// instructions. The first rule that matches wins, so longer sequences come
-// first.
-function readInstructions(lines, rules, target) {
-  const code = [];
-  let index = 0;
-  while (index < lines.length) {
-    let matched = false;
-    for (const [patterns, build] of rules) {
-      const matches = patterns.map((pattern, offset) =>
-        lines[index + offset]?.match(pattern)
-      );
-      if (matches.every(Boolean)) {
-        const built = build(...matches);
-        if (built) {
-          code.push(...built);
-          index += patterns.length;
-          matched = true;
-          break;
-        }
-      }
-    }
-    if (!matched) {
-      throw readError(target, lines[index], 'unknown instruction');
-    }
-  }
-  return code;
-}
-
-// Split a file into the program comments (before the first line that
-// starts the program) and the rest.
-function leadingComments(lines, prefix, start) {
-  const first = lines.findIndex((line) => start.test(line));
-  const comments = lines
-    .slice(0, Math.max(first, 0))
-    .filter((line) => line.startsWith(prefix))
-    .map((line) => line.slice(prefix.length).replace(/^ /, ''));
-  return { comments, rest: lines.slice(first) };
-}
-
-const integer = (text) => {
-  const value = Number(text);
-  if (!Number.isSafeInteger(value)) {
-    throw new Error(`The integer ${text} is outside the supported range`);
-  }
-  return value;
-};
-
-// Functions after reading: "main" is the entry point.
-function program(comments, items) {
-  const main = items.find((item) => item.name === 'main');
-  if (!main) {
-    throw new Error('The machine program has no entry point');
-  }
-  return {
-    comments,
-    functions: items.filter((item) => item !== main),
-    main,
-  };
-}
-
 // ---------------------------------------------------------------------------
 // x86-64 NASM
 // ---------------------------------------------------------------------------
@@ -144,10 +90,7 @@ function nasmTexts(lines) {
         bytes.push(Number(part));
       }
     }
-    texts.set(
-      match[1],
-      new globalThis.TextDecoder().decode(Uint8Array.from(bytes))
-    );
+    texts.set(match[1], decodeBytes(bytes));
   }
   return texts;
 }
@@ -277,19 +220,7 @@ function readNasmProcedure(name, comments, lines, texts) {
     nasmRules(texts, slots),
     'nasm'
   );
-  // "call f; push rax" is a call whose result stays on the stack. A call
-  // without "push rax" is a call to a procedure that returns nothing.
-  const code = [];
-  for (const instruction of raw) {
-    if (instruction[0] === 'result') {
-      const last = code.at(-1);
-      if (last?.[0] !== 'call') {
-        throw readError('nasm', 'push rax', 'not after a call');
-      }
-      continue;
-    }
-    code.push(instruction);
-  }
+  const code = resolveResults(raw, 'nasm', 'push rax');
   return {
     name,
     parameterCount,
@@ -301,7 +232,7 @@ function readNasmProcedure(name, comments, lines, texts) {
 }
 
 export function readNasm(source) {
-  const lines = source.split('\n').map((line) => line.trim());
+  const lines = sourceLines(source);
   const { comments, rest } = leadingComments(lines, ';', /^default rel$/);
   const texts = nasmTexts(rest);
   const text = rest.slice(rest.indexOf('section .text') + 1);
@@ -401,7 +332,7 @@ function cilRules(parameterCount) {
 }
 
 export function readCil(source) {
-  const lines = source.split('\n').map((line) => line.trim());
+  const lines = sourceLines(source);
   const { comments, rest } = leadingComments(lines, '//', /^\.assembly/);
   const items = [];
   let pending = [];
@@ -520,7 +451,7 @@ function jvmRules(slotOf) {
 }
 
 export function readJvm(source) {
-  const lines = source.split('\n').map((line) => line.trim());
+  const lines = sourceLines(source);
   const { comments, rest } = leadingComments(lines, ';', /^\.class/);
   const items = [];
   let pending = [];
@@ -566,4 +497,12 @@ export function readJvm(source) {
   return program(comments, items);
 }
 
-export const machineReaders = { nasm: readNasm, cil: readCil, jvm: readJvm };
+export const machineReaders = {
+  nasm: readNasm,
+  gas: readGas,
+  arm64: readArm64,
+  cil: readCil,
+  jvm: readJvm,
+  llvm: readLlvm,
+  wat: readWat,
+};
