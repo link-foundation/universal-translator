@@ -86,6 +86,22 @@ export function renderLines(emitter, lines, ending = '\n') {
   return text;
 }
 
+// Partial recovery assembles separately emitted fragments. Retain their maps
+// as one emission so later layout and style changes can align the whole text.
+export function recordMapping(source, text, language, lines) {
+  if (contexts.length) {
+    contexts.at(-1).emissions.push({
+      language,
+      text,
+      mapped: lines.map(([from, target]) => ({
+        source,
+        lines: [from],
+        target,
+      })),
+    });
+  }
+}
+
 // Layout, style, fragment extraction and output decorators can change target
 // positions. Align the generated target with its final spelling in that same
 // language; semantic source positions come from the tree, not token equality.

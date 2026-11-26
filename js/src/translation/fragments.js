@@ -19,7 +19,7 @@ import { declaredVariables } from '../formal/dialects/shared.js';
 import { languageSyntax } from '../formal/languages.js';
 import { machineTargetIds } from '../formal/machine.js';
 import { isNaturalLanguage } from '../natural/catalog.js';
-import { remapOrigins } from './source-origins.js';
+import { remapOrigins, withOrigin } from './source-origins.js';
 
 export const fragmentKinds = ['program', 'functions', 'statements'];
 
@@ -453,11 +453,16 @@ export function createFragmentTranslator({ toMeta, adapt, write, emit }) {
   // Comments that stand on their own as statements of the target (notes in
   // a natural language). Partial translation marks what it cannot
   // translate with them. The texts are kept as written (literal mode).
-  function writeNotes(texts, to) {
+  function writeNotes(texts, to, source) {
     const meta = program({
-      statements: texts.map((text) =>
+      statements: texts.map((text, index) =>
         // A comment must not close a block comment early.
-        comment(text.replaceAll('*/', '* /'))
+        withOrigin(
+          comment(text.replaceAll('*/', '* /')),
+          source === undefined
+            ? undefined
+            : { source, lines: [Math.max(0, index - 1)] }
+        )
       ),
     });
     const adapted = adapt(meta, to, { from: to, mode: 'literal' });

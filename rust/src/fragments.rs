@@ -729,10 +729,27 @@ pub fn write_notes(
     texts: &[String],
     to: &str,
 ) -> Result<String, GrammarError> {
+    write_source_notes(translator, texts, to, None)
+}
+
+pub(crate) fn write_source_notes(
+    translator: &Translator,
+    texts: &[String],
+    to: &str,
+    source: Option<&str>,
+) -> Result<String, GrammarError> {
+    let locator = source.map(crate::source_origins::SourceLocator::new);
     // A comment must not close a block comment early.
     let notes = texts
         .iter()
-        .map(|text| comment(&text.replace("*/", "* /")))
+        .enumerate()
+        .map(|(index, text)| {
+            let mut note = comment(&text.replace("*/", "* /"));
+            if let Some(locator) = &locator {
+                note.origin = Some(locator.line(index.saturating_sub(1)));
+            }
+            note
+        })
         .collect();
     let meta = program(Vec::new(), notes, Vec::new());
     let options = Options {

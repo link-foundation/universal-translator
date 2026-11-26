@@ -369,6 +369,64 @@ pub fn parse_partial(
     })
 }
 
+fn write_part(
+    translator: &Translator,
+    part: &mut Part,
+    from: &str,
+    to: &str,
+    options: Options,
+) -> Result<String, GrammarError> {
+    if part.status == PartStatus::Read {
+        match crate::fragments::translate_fragment(translator, &part.source, from, to, options) {
+            Ok(written) => return Ok(written),
+            Err(error) => {
+                part.status = PartStatus::Failed;
+                part.message = Some(shift_lines(&error.to_string(), part.start));
+            }
+        }
+    }
+    if is_natural_language(from)
+        && is_natural_language(to)
+        && let Ok(prose) = (translator.comment_translator())(&part.source, from, to)
+    {
+        part.status = PartStatus::Free;
+        return Ok(prose);
+    }
+    let place = if part.end_line > part.line {
+        format!("lines {}-{}", part.line, part.end_line)
+    } else {
+        format!("line {}", part.line)
+    };
+    let notes: Vec<String> = std::iter::once(format!(
+        "untranslated ({place}): {}",
+        part.message.as_deref().unwrap_or_default()
+    ))
+    .chain(
+        part.source
+            .strip_suffix('\n')
+            .unwrap_or(&part.source)
+            .split('\n')
+            .map(str::to_owned),
+    )
+    .collect();
+    crate::fragments::write_source_notes(translator, &notes, to, Some(&part.source))
+}
+
+fn prose_map(source: &str, target: &str) -> Vec<(usize, usize)> {
+    source
+        .split('\n')
+        .enumerate()
+        .filter(|(_, line)| !blank(line))
+        .flat_map(|(from, _)| {
+            target
+                .split('\n')
+                .enumerate()
+                .filter(|(_, line)| !blank(line))
+                .map(move |(to, _)| (from, to))
+        })
+        .collect()
+}
+
 /// Translate what can be read; every other part becomes a comment in the
 /// target that holds the reason and the original text.
 pub fn translate_partial(
@@ -380,52 +438,31 @@ pub fn translate_partial(
 ) -> Result<PartialTranslation, GrammarError> {
     let mut reading = parse_partial(translator, source, from)?;
     let mut text = String::new();
+    let mut target_line = 0;
+    let mut line_map = Vec::new();
+    let language = crate::formal::versions::split_version(to).0;
     for part in &mut reading.parts {
-        if part.status == PartStatus::Read {
-            match crate::fragments::translate_fragment(translator, &part.source, from, to, options)
-            {
-                Ok(written) => {
-                    text.push_str(&written);
-                    continue;
-                }
-                Err(error) => {
-                    // A part may read but not be writable in the target.
-                    part.status = PartStatus::Failed;
-                    part.message = Some(shift_lines(&error.to_string(), part.start));
-                }
-            }
-        }
-        if is_natural_language(from)
-            && is_natural_language(to)
-            && let Ok(prose) = (translator.comment_translator())(&part.source, from, to)
-        {
-            part.status = PartStatus::Free;
-            text.push_str(&prose);
-            continue;
-        }
-        let place = if part.end_line > part.line {
-            format!("lines {}-{}", part.line, part.end_line)
+        let (written, emissions) =
+            crate::emission_map::capture(|| write_part(translator, part, from, to, options));
+        let written = written?;
+        let lines = if part.status == PartStatus::Free {
+            prose_map(&part.source, &written)
         } else {
-            format!("line {}", part.line)
+            crate::emission_map::emitted_map(&emissions, &part.source, &written, language)
         };
-        let notes: Vec<String> = std::iter::once(format!(
-            "untranslated ({place}): {}",
-            part.message.as_deref().unwrap_or_default()
-        ))
-        .chain(
-            part.source
-                .strip_suffix('\n')
-                .unwrap_or(&part.source)
-                .split('\n')
-                .map(str::to_owned),
-        )
-        .collect();
-        text.push_str(&translator.write_notes(&notes, to)?);
+        line_map.extend(
+            lines
+                .into_iter()
+                .map(|(from, to)| (from + part.start, to + target_line)),
+        );
+        target_line += written.bytes().filter(|byte| *byte == b'\n').count();
+        text.push_str(&written);
     }
     let errors = errors_of(&reading.parts);
+    crate::emission_map::record_mapping(source, &text, language, &line_map);
     Ok(PartialTranslation {
         text,
-        line_map: Vec::new(),
+        line_map,
         complete: errors.is_empty(),
         errors,
         lines: reading.lines,

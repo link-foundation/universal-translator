@@ -10,6 +10,59 @@ fn options() -> Options {
 }
 
 #[test]
+fn partial_fragments_and_untranslated_notes_keep_their_original_lines() {
+    let source = "const first = 5;\nconsole.log(first + 2);\nconst broken = ;\nconst second = 9;\nconsole.log(second * 3);\n";
+    let translator = Translator::new();
+    for target in ["python", "bash", "english", "russian"] {
+        let result = translator
+            .translate_partial(source, "javascript", target, options(), false)
+            .unwrap();
+        assert!(!result.complete, "{target}");
+        let lines: Vec<_> = result.text.lines().collect();
+        for (line, statement) in [
+            (1, "console.log(first + 2);"),
+            (4, "console.log(second * 3);"),
+        ] {
+            let expected = translator
+                .translate_fragment(statement, "javascript", target, Options::default())
+                .unwrap();
+            let mapped: Vec<_> = result
+                .line_map
+                .iter()
+                .filter(|(from, _)| *from == line)
+                .map(|(_, to)| lines[*to].trim())
+                .collect();
+            assert_eq!(mapped, [expected.trim()], "{target}: {line}");
+        }
+        assert!(
+            result
+                .line_map
+                .iter()
+                .any(|(from, to)| *from == 2 && lines[*to].contains("const broken = ;")),
+            "{target}"
+        );
+    }
+}
+
+#[test]
+fn split_prose_retains_its_source_region() {
+    let translator = Translator::new()
+        .with_comment_translator(|_, _, _| Ok("Первая строка.\nВторая строка.\n".to_owned()));
+    let result = translator
+        .translate_partial(
+            "Fly to the moon.\n",
+            "english",
+            "russian",
+            Options::default(),
+            false,
+        )
+        .unwrap();
+    assert!(result.complete);
+    assert_eq!(result.prose, [(1, 1)]);
+    assert_eq!(result.line_map, [(0, 0), (0, 1)]);
+}
+
+#[test]
 fn independent_statements_map_to_their_full_expansion_in_every_machine_target() {
     let source = "const value = 5;\nconsole.log(value + 2);\n";
     let translator = Translator::new();

@@ -16,6 +16,63 @@ const java = `class Main {
 }
 `;
 
+it('maps every accepted partial fragment back to its original lines', () => {
+  const source = [
+    'const first = 5;',
+    'console.log(first + 2);',
+    'const broken = ;',
+    'const second = 9;',
+    'console.log(second * 3);',
+    '',
+  ].join('\n');
+  for (const target of ['python', 'bash', 'english', 'russian']) {
+    const result = translator.translatePartial(source, 'javascript', target, {
+      layout: 'target',
+    });
+    expect(result.complete).toBe(false);
+    const lines = result.text.split('\n');
+    for (const [line, statement] of [
+      [1, 'console.log(first + 2);'],
+      [4, 'console.log(second * 3);'],
+    ]) {
+      const expected = translator
+        .translateFragment(statement, 'javascript', target)
+        .trim();
+      const mapped =
+        result.lineMap
+          ?.filter(([from]) => from === line)
+          .map(([, to]) => lines[to].trim()) ?? [];
+      expect({ target, line, mapped }).toEqual({
+        target,
+        line,
+        mapped: [expected],
+      });
+    }
+    expect(
+      result.lineMap.some(
+        ([from, to]) => from === 2 && lines[to].includes('const broken = ;')
+      )
+    ).toBe(true);
+  }
+});
+
+it('maps prose that a custom translator splits across output lines', () => {
+  const result = translator.translatePartial(
+    'Fly to the moon.\n',
+    'english',
+    'russian',
+    {
+      translateComment: () => 'Первая строка.\nВторая строка.\n',
+    }
+  );
+  expect(result.complete).toBe(true);
+  expect(result.prose).toEqual([{ line: 1, endLine: 1 }]);
+  expect(result.lineMap).toEqual([
+    [0, 0],
+    [0, 1],
+  ]);
+});
+
 it('maps independent statements to their full expansion in every machine target', () => {
   const source = 'const value = 5;\nconsole.log(value + 2);\n';
   for (const target of machineTargetIds) {

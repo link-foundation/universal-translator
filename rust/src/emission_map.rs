@@ -58,6 +58,22 @@ pub(crate) fn source_records<T>(read: impl FnOnce() -> T) -> T {
     }
 }
 
+pub(crate) fn record_mapping(source: &str, text: &str, language: &str, lines: &[(usize, usize)]) {
+    CONTEXTS.with_borrow_mut(|contexts| {
+        if let Some(context) = contexts.last_mut() {
+            let locator = SourceLocator::new(source);
+            context.emissions.push(Emission {
+                language: language.to_owned(),
+                text: text.to_owned(),
+                mapped: lines
+                    .iter()
+                    .map(|(from, to)| (*to, locator.line(*from)))
+                    .collect(),
+            });
+        }
+    });
+}
+
 pub(crate) struct Active(Option<Origins>);
 
 impl Drop for Active {
