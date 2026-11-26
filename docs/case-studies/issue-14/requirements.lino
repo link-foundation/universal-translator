@@ -1,0 +1,146 @@
+requirements:
+  cst-by-default:
+    text: 'CST must be by default: whitespace is preserved as close as possible in translation'
+    from: 'issue 14'
+    status: done
+    evidence: js/src/translation/layout.js rust/src/layout.rs js/tests/layout.test.js rust/tests/layout.rs experiments/issue-14/whitespace.js
+  monaco-default:
+    text: 'Monaco is the default editor and shows collapsible regions correctly'
+    from: 'issue 14'
+    status: done
+    evidence: examples/universal-app/src/monaco.js examples/universal-app/src/folding.js js/tests/universal-app-editors.test.js
+  synced-editors:
+    text: 'Folding, selection, cursor and scrolling are kept in sync between the left and right editors, scrolling adjusts for blocks of different sizes'
+    from: 'issue 14'
+    status: done
+    evidence: examples/universal-app/src/editor-sync.js examples/universal-app/src/line-map.js js/tests/universal-app-editors.test.js
+  mapping-visualization:
+    text: 'A visualization of what translates to what'
+    from: 'issue 14'
+    status: done
+    evidence: examples/universal-app/src/mapping.js docs/case-studies/issue-14/screenshots/app-mapping.png
+  side-selectors:
+    text: 'Comment language and identifier language selectors on both sides'
+    from: 'issue 14'
+    status: done
+    evidence: examples/universal-app/src/Options.js examples/universal-app/src/LanguagePicker.js js/tests/identifiers.test.js rust/tests/identifiers.rs docs/case-studies/issue-14/screenshots/app-selectors.png
+  comments-translated:
+    text: 'Comments are translated into the selected comment language'
+    from: 'issue 14'
+    status: done
+    evidence: js/src/natural/comments.js rust/src/natural/comments.rs data/natural/vocabulary.lino js/tests/comments.test.js rust/tests/issue_6.rs
+  options-below:
+    text: 'The option checkboxes are below the editors'
+    from: 'issue 14'
+    status: done
+    evidence: examples/universal-app/src/Options.js examples/universal-app/src/App.js
+  deep-grammar:
+    text: 'A deeper, recursive grammar and dictionary: words, sentences, parts of speech'
+    from: 'issue 14'
+    status: done
+    evidence: js/src/natural/prose-reading.js rust/src/natural/prose_reading.rs data/natural/vocabulary.lino js/tests/prose.test.js rust/tests/prose.rs
+  free-natural-translation:
+    text: 'Free translation between natural languages, preferring the most frequent options that survive a round trip'
+    from: 'issue 14'
+    status: done
+    evidence: js/src/translation/candidates.js rust/src/candidates.rs js/src/natural/probability.js rust/src/natural/probability.rs js/tests/ranking.test.js rust/tests/ranking.rs
+  autodetect-and-translation-failures:
+    text: 'Fix the "language autodetect failed" and "translation failed" screenshots'
+    from: 'issue 14'
+    status: done
+    evidence: js/src/translation/detect.js rust/src/detect.rs js/tests/prose.test.js docs/case-studies/issue-14/screenshots/shot-3.jpg docs/case-studies/issue-14/screenshots/shot-4.jpg
+  nested-grammars:
+    text: 'Comments are deeply parsed in the meta language, long texts are linked by id, and grammars nest in each other'
+    from: 'issue 14'
+    status: done
+    evidence: js/src/translation/nesting.js rust/src/nesting.rs js/tests/nesting.test.js rust/tests/nesting.rs
+  general-meta-language:
+    text: 'A more general meta language: print is a call to a library function'
+    from: 'issue 14'
+    status: done
+    evidence: js/src/meta/library.js rust/src/meta/library.rs js/tests/meta-notation.test.js rust/tests/meta_library.rs
+  machine-languages:
+    text: 'Assembly with several dialects, Java bytecode, .NET CIL and other intermediate languages, in the language list and pickers'
+    from: 'issue 14'
+    status: done
+    evidence: js/src/formal/machine.js js/src/formal/machine-reader.js rust/src/formal/machine_reader.rs js/tests/machine-dialects.test.js rust/tests/machine_dialects.rs js/tests/lifting.test.js rust/tests/lifting.rs
+  equivalence-check:
+    text: 'Check that a translation is equivalent: the effect of the code is the same in both languages (issue 1, item 1.12)'
+    from: 'issue 1'
+    status: done
+    evidence: js/src/translation/equivalence.js rust/src/equivalence.rs js/tests/equivalence.test.js rust/tests/equivalence.rs
+  rust-round-trip:
+    text: 'JavaScript to meta language to Rust and back to JavaScript for the Rosetta tasks, verified in CI (PR 5, items 5.6 and 5.7)'
+    from: 'pull request 5'
+    status: done
+    evidence: js/tests/equivalence.test.js rust/tests/equivalence.rs experiments/rust-round-trip.mjs
+  decorators:
+    text: 'Every stage is replaceable and decoratable (issue 1, item 1.10)'
+    from: 'issue 1'
+    status: done
+    evidence: js/src/translation/decorators.js js/tests/decorators.test.js rust/tests/decorators.rs
+  language-versions:
+    text: 'Versions of the popular languages (issue 6, item 6.5)'
+    from: 'issue 6'
+    status: done
+    evidence: js/src/formal/versions.js rust/src/formal/versions.rs js/tests/language-versions.test.js rust/tests/language_versions.rs
+  hello-world-collection:
+    text: 'The Hello World Collection is imported (issue 1, item 1.3)'
+    from: 'issue 1'
+    status: done
+    evidence: scripts/hello-world-collection.mjs js/tests/hello-world-collection.test.js docs/case-studies/issue-14/hello-world-coverage.lino
+  ranking-and-imprecision:
+    text: 'Translations are ranked by frequency and round trip, and the imprecision of each statement is recorded (issue 1, items 1.1 and 1.2)'
+    from: 'issue 1'
+    status: done
+    evidence: js/src/meta/imprecision.js rust/src/meta/imprecision.rs js/tests/ranking.test.js rust/tests/ranking.rs
+  rust-serve:
+    text: 'The Rust command line serves the same JSON API (issue 12, P10)'
+    from: 'issue 12'
+    status: done
+    evidence: rust/tests/serve.rs
+  tests-apart-from-sources:
+    text: 'Tests never mix with the source code (PR 5, item 5.8)'
+    from: 'pull request 5'
+    status: done
+    evidence: rust/tests/issue_6.rs rust/tests/ranking.rs
+  prior-art:
+    text: 'Study prior art: ANTLR, Tree-sitter, spaCy, Stanza, NLTK, Lark, GF, Link Grammar and others'
+    from: 'issue 14'
+    status: done
+    evidence: docs/case-studies/issue-14/prior-art.md docs/case-studies/issue-14/architecture.md
+  formal-ai-tryout:
+    text: 'Try link-assistant/formal-ai on some tasks and report its failures upstream'
+    from: 'issue 14'
+    status: done
+    evidence: docs/case-studies/issue-14/formal-ai-tryout.md
+  previous-requirements:
+    text: 'Collect every requirement of the earlier issues and pull requests with its status'
+    from: 'issue 14'
+    status: done
+    evidence: docs/case-studies/issue-14/previous-requirements.md
+  issue-14-case-study:
+    text: 'Collect the issue data in docs/case-studies/issue-14 with a case study'
+    from: 'issue 14'
+    status: done
+    evidence: docs/case-studies/issue-14/README.md docs/case-studies/issue-14/data
+  debug-output:
+    text: 'Debug output and a verbose mode where root causes are not clear'
+    from: 'issue 14'
+    status: done
+    evidence: examples/universal-app/src/debug.js bin/universal-translator.js rust/src/main.rs
+  meta-language-rust:
+    text: 'The Rust translate-program path reads through the Meta Language 1.0 module (issue 12, B3)'
+    from: 'issue 12'
+    status: done
+    evidence: Cargo.toml rust/src/main.rs experiments/verify-syntax-exchange.mjs
+  meta-language-npm:
+    text: 'The JavaScript translate-program path loads Meta Language 1.0 from npm without UNIVERSAL_TRANSLATOR_META_LANGUAGE (issue 12, B3)'
+    from: 'issue 12'
+    status: blocked
+    reason: 'Meta Language 1.1.0 is tagged in link-foundation/meta-language, but its npm release workflow fails and npm latest is still 0.46.0 (link-foundation/meta-language issue 230); until it is published the CLI loads the module from the path in UNIVERSAL_TRANSLATOR_META_LANGUAGE'
+  npm-unscoped-name:
+    text: 'Publish the package under the unscoped npm name universal-translator (issue 2)'
+    from: 'issue 2'
+    status: blocked
+    reason: 'needs the owner''s npm account to publish the unscoped name and attach the trusted publisher'
