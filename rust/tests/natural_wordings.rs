@@ -53,3 +53,33 @@ fn are_written_back_in_the_canonical_wording() {
     let javascript = to(EVERYDAY, "english", "javascript");
     assert_eq!(to(&javascript, "javascript", "english"), CANONICAL);
 }
+
+#[test]
+fn reads_arithmetic_written_with_symbols() {
+    let cases = [
+        ("Let n be 0.\nSet n to n + 1.\n", "n += 1"),
+        ("Let n be 2 * 3 + 1.\nPrint n.\n", "n = 2 * 3 + 1"),
+        ("Let n be 7 - 2.\nPrint n % 4.\n", "print(n % 4)"),
+    ];
+    for (source, expected) in cases {
+        let output = to(source, "english", "python");
+        assert!(output.contains(expected), "{source} -> {output}");
+    }
+}
+
+#[test]
+fn opens_a_block_after_a_heading_without_its_colon() {
+    let source = "Let n be 0.\nwhile n is less than 3, do this\n  Print n.\n  Set n to n plus 1.\n";
+    assert_eq!(
+        to(source, "english", "python"),
+        "n = 0\nwhile n < 3:\n    print(n)\n    n += 1\n"
+    );
+}
+
+#[test]
+fn keeps_a_sentence_without_its_full_stop_a_statement() {
+    assert_eq!(
+        to("Print 7\nPrint 8\n", "english", "python"),
+        "print(7)\nprint(8)\n"
+    );
+}

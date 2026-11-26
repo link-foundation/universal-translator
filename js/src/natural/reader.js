@@ -406,10 +406,22 @@ function statementFromSentence({ key, slots }) {
   }
 }
 
+// A heading written without its end mark ("While n is less than 3, do
+// this") still opens a block when the lines after it are indented deeper.
+function markHeadings(lines) {
+  lines.forEach((line, position) => {
+    if (line.unmarked) {
+      const next = lines.slice(position + 1).find((other) => !other.blank);
+      line.opensBlock = next !== undefined && next.depth > line.depth;
+    }
+  });
+  return lines;
+}
+
 // One line of text: depth, the sentence without its end mark, and whether it
 // opens a block.
 function readLines(source, language) {
-  return source.split(/\r?\n/).map((raw, index) => {
+  const lines = source.split(/\r?\n/).map((raw, index) => {
     const content = raw.trimEnd();
     const indentation = content.length - content.trimStart().length;
     const text = content.trim();
@@ -427,9 +439,11 @@ function readLines(source, language) {
       depth: indentation / 2,
       text: sentence,
       opensBlock,
+      unmarked: Boolean(text) && !text.endsWith(endMark),
       blank: !text,
     };
   });
+  return markHeadings(lines);
 }
 
 function notePattern(language) {

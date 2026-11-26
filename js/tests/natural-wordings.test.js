@@ -50,3 +50,30 @@ describe('everyday English wordings', () => {
     ).toBe(canonical);
   });
 });
+
+describe('symbols and unmarked headings in English', () => {
+  it('reads arithmetic written with symbols', () => {
+    const cases = [
+      ['Let n be 0.\nSet n to n + 1.\n', 'n += 1'],
+      ['Let n be 2 * 3 + 1.\nPrint n.\n', 'n = 2 * 3 + 1'],
+      ['Let n be 7 - 2.\nPrint n % 4.\n', 'print(n % 4)'],
+    ];
+    for (const [source, expected] of cases) {
+      expect(translate(source, 'english', 'python')).toContain(expected);
+    }
+  });
+
+  it('opens a block after a heading without its colon', () => {
+    const source =
+      'Let n be 0.\nwhile n is less than 3, do this\n  Print n.\n  Set n to n plus 1.\n';
+    expect(translate(source, 'english', 'python')).toBe(
+      'n = 0\nwhile n < 3:\n    print(n)\n    n += 1\n'
+    );
+  });
+
+  it('keeps a sentence without its full stop a statement', () => {
+    expect(translate('Print 7\nPrint 8\n', 'english', 'python')).toBe(
+      'print(7)\nprint(8)\n'
+    );
+  });
+});
