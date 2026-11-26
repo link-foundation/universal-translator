@@ -343,6 +343,31 @@ async function writesCommentsInAnotherLanguage() {
   await page.selectOption('#identifier-language', '');
 }
 
+// Braces on lines of their own and a two-space indent, then back to the
+// style the translation is written in.
+async function writesTheStyleAskedFor() {
+  const source =
+    'function sign(a) {\n  if (a > 0) {\n    return 1;\n  }\n  return 0;\n}\n';
+  await translation('javascript', 'java', source);
+  await page.selectOption('#braces', 'next-line');
+  await page.selectOption('#indent', '2');
+  await page.waitForFunction(() =>
+    globalThis.document
+      .querySelector('#target-text')
+      ?.textContent.includes('\n  {\n')
+  );
+  const text = await page.locator('#target-text').textContent();
+  assert.match(text, /^static int sign\(int a\)\n\{$/m);
+  assert.match(text, /^ {2}if \(a > 0\)\n {2}\{\n {4}return 1;$/m);
+  await page.selectOption('#braces', '');
+  await page.selectOption('#indent', '');
+  await page.waitForFunction(() =>
+    globalThis.document
+      .querySelector('#target-text')
+      ?.textContent.includes(') {')
+  );
+}
+
 async function showsRandomExamples() {
   for (const kind of ['Program', 'Function', 'Statement']) {
     await page.click(`button[data-kind="${kind}"]`);
@@ -686,6 +711,7 @@ try {
   await changesTheLeftLanguage();
   await showsTheMetaLanguage();
   await writesCommentsInAnotherLanguage();
+  await writesTheStyleAskedFor();
   await showsRandomExamples();
   if (screenshot) {
     await page.screenshot({ path: screenshot, fullPage: true });

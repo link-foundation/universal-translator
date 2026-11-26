@@ -32,6 +32,7 @@ import {
   Options,
   SideOptions,
   languageOptions,
+  styleOptions,
   modes,
   swappedLanguages,
 } from './Options.js';
@@ -560,6 +561,7 @@ function useTranslation(state, rules) {
   const { source, from, to, mode, fragment, allOrNothing } = state;
   const { commentFrom, commentLanguage, identifierFrom, identifierLanguage } =
     state;
+  const { braces, indent } = state;
   return useMemo(
     () =>
       translateText(source, from, to, {
@@ -573,6 +575,7 @@ function useTranslation(state, rules) {
           identifierFrom,
           identifierLanguage,
         }),
+        ...styleOptions({ braces, indent }),
       }),
     [
       source,
@@ -586,6 +589,8 @@ function useTranslation(state, rules) {
       commentLanguage,
       identifierFrom,
       identifierLanguage,
+      braces,
+      indent,
     ]
   );
 }
@@ -690,6 +695,8 @@ const initialState = {
   identifierFrom: '',
   identifierLanguage: '',
   allOrNothing: false,
+  braces: '',
+  indent: '',
 };
 
 export function App({ initialSettings }) {

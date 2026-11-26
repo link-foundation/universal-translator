@@ -10,6 +10,17 @@ import { createElement as h } from 'react';
 
 export const modes = ['context-dependent', 'literal', 'same-effect'];
 
+// The indent widths offered besides the one the translation is written in.
+export const indents = ['2', '4', '8', 'tab'];
+
+// The style a translation is written in: only the parts chosen.
+export function styleOptions({ braces, indent }) {
+  return {
+    ...(braces ? { braces } : {}),
+    ...(indent ? { indent: indent === 'tab' ? 'tab' : Number(indent) } : {}),
+  };
+}
+
 // The selectors under the pickers, by side: [state key, element id, the
 // label key, the key of the label of the default choice].
 const sideSelectors = {
@@ -109,26 +120,70 @@ function Check({ id, checked, label, onChange }) {
   );
 }
 
+// A select of the options: [value, its label].
+function Choice({ id, label, value, choices, onChange }) {
+  return h(
+    'label',
+    { className: 'field', htmlFor: id },
+    h('span', null, label),
+    h(
+      'select',
+      { id, value, onChange: (event) => onChange(event.target.value) },
+      choices.map(([choice, text]) =>
+        h('option', { key: choice, value: choice }, text)
+      )
+    )
+  );
+}
+
+// Where the braces go and how deep blocks are indented.
+function StyleOptions({ state, update, t }) {
+  return [
+    h(Choice, {
+      key: 'braces',
+      id: 'braces',
+      label: t('options.braces'),
+      value: state.braces ?? '',
+      choices: [
+        ['', t('options.bracesWritten')],
+        ['same-line', t('options.sameLine')],
+        ['next-line', t('options.nextLine')],
+      ],
+      onChange: (value) => update({ braces: value }),
+    }),
+    h(Choice, {
+      key: 'indent',
+      id: 'indent',
+      label: t('options.indent'),
+      value: state.indent ?? '',
+      choices: [
+        ['', t('options.indentWritten')],
+        ...indents.map((width) => [
+          width,
+          width === 'tab'
+            ? t('options.indentTab')
+            : `${width} ${t('options.spaces')}`,
+        ]),
+      ],
+      onChange: (value) => update({ indent: value }),
+    }),
+  ];
+}
+
 // The options below the editors.
 export function Options({ state, update, wrap, onWrap, t }) {
   const { mode, fragment, showMeta, allOrNothing } = state;
   return h(
     'div',
     { className: 'options' },
-    h(
-      'label',
-      { className: 'field', htmlFor: 'mode' },
-      h('span', null, t('options.mode')),
-      h(
-        'select',
-        {
-          id: 'mode',
-          value: mode,
-          onChange: (event) => update({ mode: event.target.value }),
-        },
-        modes.map((name) => h('option', { key: name, value: name }, name))
-      )
-    ),
+    h(Choice, {
+      id: 'mode',
+      label: t('options.mode'),
+      value: mode,
+      choices: modes.map((name) => [name, name]),
+      onChange: (value) => update({ mode: value }),
+    }),
+    ...StyleOptions({ state, update, t }),
     h(Check, {
       id: 'fragment',
       checked: fragment,

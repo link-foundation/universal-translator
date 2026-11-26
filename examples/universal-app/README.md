@@ -41,7 +41,11 @@ Under each language picker are the natural languages of the comments and
 identifiers. The source side's default is found from the text; on the
 target side the default keeps the source's. The options used less often
 (the mode, fragments, all-or-nothing, the meta language, word wrap) are
-below the editors.
+below the editors. Braces and Indent write the translation in a style: the
+opening brace on the line of its statement or on a line of its own, and
+blocks indented by 2, 4 or 8 spaces or a tab.
+
+![Braces on lines of their own and a two-space indent](../../docs/case-studies/issue-14/screenshots/app-style.png)
 
 ![The linked editors](../../docs/case-studies/issue-14/screenshots/app-mapping.png)
 
