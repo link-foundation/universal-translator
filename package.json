@@ -1,6 +1,6 @@
 {
   "name": "@link-foundation/universal-translator",
-  "version": "0.15.0",
+  "version": "0.16.0",
   "description": "Source-preserving translation for small programs through a shared meta-language",
   "type": "module",
   "main": "js/src/index.js",
