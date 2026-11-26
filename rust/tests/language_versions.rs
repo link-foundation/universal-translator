@@ -226,3 +226,13 @@ fn prints_any_other_terminator_and_separator_after_the_values() {
         "process.stdout.write(\"a!\");\nconsole.log(\"a, b.\");\n"
     );
 }
+
+#[test]
+fn joins_text_with_plus_and_str_in_python_3_5_before_f_strings() {
+    let source = "const n = 7;\nconsole.log(`n is ${n}`);\n";
+    assert_eq!(
+        written(source, "python@3.5"),
+        "n = 7\nprint(\"n is \" + str(n))\n"
+    );
+    assert_eq!(written(source, "python"), "n = 7\nprint(f\"n is {n}\")\n");
+}

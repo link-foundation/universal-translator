@@ -28,6 +28,7 @@ describe('programming language versions', () => {
     expect(pythons.map(({ id }) => id)).toEqual(['python']);
     expect(pythons[0].versions.map(({ version }) => version)).toEqual([
       '3',
+      '3.5',
       '2',
     ]);
     expect(versionsOf('python')[0].default).toBe(true);

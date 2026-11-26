@@ -124,7 +124,7 @@ JavaScript and TypeScript functions written as arrow functions (`const add = (a,
 
 ### Language versions
 
-Lua has versions besides Python: `lua@5.1` divides integers with `math.floor(a / b)`, because Lua 5.1 and 5.2 have no `//` operator. `php@5` divides with `(int) ($a / $b)` (no `intdiv`), and `csharp@5` joins text with `System.Convert.ToString(...) + ...` (no `$"..."` strings). `java@1.4` counts over the indexes of an array (no for-each before Java 5), and `swift@1` writes `println(x)` and `print(x)` (no `terminator:` before Swift 2) and reads them back. Swift reads labelled arguments, so `print(x, terminator: "")` keeps the line open, and a non-empty `terminator:`, `separator:`, `end=` or `sep=` is printed with the values instead of being dropped. Each language reads all of its versions, and every committed task written in an older version keeps its meaning.
+Lua has versions besides Python: `lua@5.1` divides integers with `math.floor(a / b)`, because Lua 5.1 and 5.2 have no `//` operator. `php@5` divides with `(int) ($a / $b)` (no `intdiv`), and `csharp@5` joins text with `System.Convert.ToString(...) + ...` (no `$"..."` strings). `python@3.5` joins text with `+` and `str()` (no f-strings before 3.6), `java@1.4` counts over the indexes of an array (no for-each before Java 5), and `swift@1` writes `println(x)` and `print(x)` (no `terminator:` before Swift 2) and reads them back. Swift reads labelled arguments, so `print(x, terminator: "")` keeps the line open, and a non-empty `terminator:`, `separator:`, `end=` or `sep=` is printed with the values instead of being dropped. Each language reads all of its versions, and every committed task written in an older version keeps its meaning.
 
 ### Smaller fixes
 

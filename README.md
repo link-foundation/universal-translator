@@ -376,12 +376,18 @@ universal-translator meta python app.py   # the meta language as an indented tre
 universal-translator meta python app.py --json   # the same program as JSON
 ```
 
-A version changes how a program is written, never how it is read. Besides
-`python@2`, `javascript@es5` writes `var`, `+` joins, `~~(a / b)` and a fill
-loop instead of `let`, `const`, template strings, `Math.trunc` and
+A version changes how a program is written, and a language reads the
+programs of all its versions; it changes how a program is read only where
+two versions disagree (`print(x)` ends the line in Swift 2 and later, not
+in `swift@1`). Besides `python@2` and `python@3.5` (no f-strings),
+`javascript@es5` writes `var`, `+` joins, `~~(a / b)` and a fill loop
+instead of `let`, `const`, template strings, `Math.trunc` and
 `Array(n).fill`; `php@5` writes `(int) (a / b)` and `array(...)` instead of
-`intdiv` and `[...]`; and `csharp@5` joins text with `Convert.ToString` and
-`+` instead of `$"..."`. Ask for `universal-translator languages` or
+`intdiv` and `[...]`; `csharp@5` joins text with `Convert.ToString` and `+`
+instead of `$"..."`; `lua@5.1` divides with `math.floor(a / b)`;
+`java@1.4` counts over the indexes of an array instead of a for-each loop;
+and `swift@1` writes `println(x)` and `print(x)` instead of `print(x)` and
+`print(x, terminator: "")`. Ask for `universal-translator languages` or
 `versionsOf(id)` to list the versions of a language, and an unknown version
 is an error (`php has no version "4"`).
 

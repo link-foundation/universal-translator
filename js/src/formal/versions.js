@@ -1,7 +1,8 @@
 // Versions of a programming language: the major versions and grammar
-// variations it is written in. A version only changes how programs are
-// written; reading accepts every version of the language, so one Python
-// reads both `print "Hi"` and `print("Hi")`.
+// variations it is written in. A version changes how programs are written;
+// reading accepts every version of the language, so one Python reads both
+// `print "Hi"` and `print("Hi")`, except where two versions disagree:
+// `print(x)` ends the line in Swift 2 and later, not in `swift@1`.
 //
 // A language id may name its version after "@": "python@2".
 
@@ -62,6 +63,12 @@ export const languageVersions = {
     default: '3',
     versions: {
       3: { label: 'Python 3 (3.6+, f-strings)' },
+      3.5: {
+        label: 'Python 3.5',
+        // Python 3.5 has no f-strings (they came with 3.6): computed parts
+        // are converted with str() and concatenated.
+        syntax: { textJoin: 'concatenation' },
+      },
       2: {
         label: 'Python 2.7',
         // Python 2 has no f-strings: computed parts are converted with str()
@@ -119,7 +126,9 @@ export function splitVersion(identifier) {
     : { id: identifier.slice(0, at), version: identifier.slice(at + 1) };
 }
 
-// The versions of a language, the default first, for menus.
+// The versions of a language for menus: the default first, then the others
+// newest first, then the versions of one's own in the order they were added. (Object keys that look like integers come first in JavaScript, so
+// the order of `versions` alone would put Python 2 before Python 3.5.)
 export function versionsOf(id) {
   const described = languageVersions[id];
   if (!described) {
@@ -132,7 +141,14 @@ export function versionsOf(id) {
       default: version === described.default,
       ...(custom ? { custom: true } : {}),
     }))
-    .sort((left, right) => Number(right.default) - Number(left.default));
+    .sort(
+      (left, right) =>
+        Number(right.default) - Number(left.default) ||
+        Number(Boolean(left.custom)) - Number(Boolean(right.custom)) ||
+        (left.custom
+          ? 0
+          : right.version.localeCompare(left.version, 'en', { numeric: true }))
+    );
 }
 
 // The syntax changes of one version (none for the default version).

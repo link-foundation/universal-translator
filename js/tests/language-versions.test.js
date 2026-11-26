@@ -131,7 +131,9 @@ describe('versions of popular languages', () => {
     const check = { source, from: 'javascript', to: 'javascript@es5' };
     expect(checkEquivalence(createTranslator(), check).equivalent).toBe(true);
   });
+});
 
+describe('versions of Java, Swift and Python 3', () => {
   const loop =
     'const list = [1, 2, 3];\nfor (const item of list) {\n  console.log(item);\n}\n';
   const prints = 'process.stdout.write("a");\nconsole.log("b");\n';
@@ -180,5 +182,15 @@ describe('versions of popular languages', () => {
         'javascript'
       )
     ).toBe('process.stdout.write("a!");\nconsole.log("a, b.");\n');
+  });
+
+  it('joins text with + and str() in Python 3.5, before f-strings', () => {
+    const source = 'const n = 7;\nconsole.log(`n is ${n}`);\n';
+    expect(translate(source, 'javascript', 'python@3.5')).toBe(
+      'n = 7\nprint("n is " + str(n))\n'
+    );
+    expect(translate(source, 'javascript', 'python')).toBe(
+      'n = 7\nprint(f"n is {n}")\n'
+    );
   });
 });

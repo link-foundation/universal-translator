@@ -1,7 +1,8 @@
 //! Versions of a programming language: the major versions and grammar
-//! variations it is written in. A version only changes how programs are
-//! written; reading accepts every version of the language, so one Python
-//! reads both `print "Hi"` and `print("Hi")`.
+//! variations it is written in. A version changes how programs are written;
+//! reading accepts every version of the language, so one Python reads both
+//! `print "Hi"` and `print("Hi")`, except where two versions disagree:
+//! `print(x)` ends the line in Swift 2 and later, not in `swift@1`.
 //!
 //! A language id may name its version after "@": `python@2`. The JavaScript
 //! twin is js/src/formal/versions.js.
@@ -31,6 +32,12 @@ fn no_change(_: &mut Syntax) {}
 
 /// Python 2 has no f-strings: computed parts are converted with `str()` and
 /// concatenated; print is a statement.
+/// Python 3.5 has no f-strings (they came with 3.6): computed parts are
+/// converted with `str()` and concatenated.
+fn python_3_5(syntax: &mut Syntax) {
+    syntax.text_join_concatenation = true;
+}
+
 fn python_2(syntax: &mut Syntax) {
     syntax.text_join_concatenation = true;
     syntax.print_statement = true;
@@ -130,6 +137,7 @@ const LANGUAGE_VERSIONS: &[LanguageVersions] = &[
         id: "python",
         versions: &[
             (version("3", "Python 3 (3.6+, f-strings)", true), no_change),
+            (version("3.5", "Python 3.5", false), python_3_5),
             (version("2", "Python 2.7", false), python_2),
         ],
     },
@@ -177,7 +185,8 @@ pub fn versions_of(id: &str) -> Vec<Version> {
         .filter(|described| described.id == id)
         .flat_map(|described| described.versions.iter().map(|(version, _)| *version))
         .collect();
-    // A stable sort keeps the listing order of the other versions.
+    // A stable sort keeps the listing order of the other versions, newest
+    // first (the JavaScript twin sorts them by version).
     versions.sort_by_key(|version| !version.default);
     versions
 }

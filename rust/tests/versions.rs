@@ -18,7 +18,7 @@ fn lists_the_default_version_first() {
         .into_iter()
         .map(|version| (version.version, version.default))
         .collect();
-    assert_eq!(listed, vec![("3", true), ("2", false)]);
+    assert_eq!(listed, vec![("3", true), ("3.5", false), ("2", false)]);
     assert!(versions_of("ruby").is_empty());
     let listed = |id: &str| -> Vec<&str> {
         versions_of(id)
