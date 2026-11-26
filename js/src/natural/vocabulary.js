@@ -11,6 +11,13 @@
 //
 //   infinitive  how an infinitive is written around the verb ('to {verb}')
 //   verb-lemma  'infinitive' when the first form of a verb is its infinitive
+//   verb-forms  the names of the first forms of a verb (lemma present): a
+//               verb form is translated into the form of the same name
+//   object-endings  pairs of nominative -> accusative endings of a noun
+//   object-forms    pairs of nominative -> accusative forms of a word
+//                   (кто-то -> кого-то), for words the endings do not cover
+//   of-genitive     'yes' when "of" between nouns is the case of the second
+//                   noun, so it is left out before a word that has no case
 //   endings     inflection endings, so an inflected form that is not listed
 //               is still found through its stem (мира -> мир)
 //   spaced      'no' when words are written without spaces between them
@@ -20,6 +27,15 @@ import { naturalSources } from './sources.js';
 
 const fold = (text) => text.toLocaleLowerCase();
 const length = (text) => [...text].length;
+
+// [a, b, c, d] -> Map { a -> b, c -> d }
+const pairsOf = (list) =>
+  new Map(
+    Array.from({ length: Math.floor(list.length / 2) }, (_, at) => [
+      fold(list[2 * at]),
+      fold(list[2 * at + 1]),
+    ])
+  );
 
 let concepts;
 
@@ -69,6 +85,10 @@ export function grammarOf(base) {
           {
             infinitive: fields.infinitive?.[0],
             verbLemma: fields['verb-lemma']?.[0],
+            verbForms: fields['verb-forms'] ?? [],
+            objectEndings: pairsOf(fields['object-endings'] ?? []),
+            objectForms: pairsOf(fields['object-forms'] ?? []),
+            ofGenitive: fields['of-genitive']?.[0] === 'yes',
             endings,
             spaced: fields.spaced?.[0] !== 'no',
           },
@@ -76,7 +96,16 @@ export function grammarOf(base) {
       })
     );
   }
-  return grammars.get(base) ?? { endings: [], spaced: true };
+  return (
+    grammars.get(base) ?? {
+      verbForms: [],
+      objectEndings: new Map(),
+      objectForms: new Map(),
+      ofGenitive: false,
+      endings: [],
+      spaced: true,
+    }
+  );
 }
 
 // A stem keeps at least this many letters.

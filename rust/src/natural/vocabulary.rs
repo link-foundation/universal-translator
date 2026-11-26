@@ -12,6 +12,13 @@
 //! ```text
 //!   infinitive  how an infinitive is written around the verb ('to {verb}')
 //!   verb-lemma  'infinitive' when the first form of a verb is its infinitive
+//!   verb-forms  the names of the first forms of a verb (lemma present): a
+//!               verb form is translated into the form of the same name
+//!   object-endings  pairs of nominative -> accusative endings of a noun
+//!   object-forms    pairs of nominative -> accusative forms of a word
+//!                   (кто-то -> кого-то), for words the endings do not cover
+//!   of-genitive     'yes' when "of" between nouns is the case of the second
+//!                   noun, so it is left out before a word that has no case
 //!   endings     inflection endings, so an inflected form that is not listed
 //!               is still found through its stem (мира -> мир)
 //!   spaced      'no' when words are written without spaces between them
@@ -40,6 +47,12 @@ pub struct Concept {
 pub struct Grammar {
     pub infinitive: Option<String>,
     pub verb_lemma: Option<String>,
+    pub verb_forms: Vec<String>,
+    /// Nominative -> accusative endings, the longest ending first.
+    pub object_endings: Vec<(String, String)>,
+    /// Nominative -> accusative forms of single words, in the order of the file.
+    pub object_forms: Vec<(String, String)>,
+    pub of_genitive: bool,
     /// Longer endings first, so the shortest stem is tried last.
     pub endings: Vec<String>,
     pub spaced: bool,
@@ -50,6 +63,10 @@ impl Default for Grammar {
         Self {
             infinitive: None,
             verb_lemma: None,
+            verb_forms: Vec::new(),
+            object_endings: Vec::new(),
+            object_forms: Vec::new(),
+            of_genitive: false,
             endings: Vec::new(),
             spaced: true,
         }
@@ -106,6 +123,16 @@ static GRAMMARS: LazyLock<Result<HashMap<String, Grammar>, String>> = LazyLock::
                 .map(|field| (label_of(field), plain(values_of(field))))
                 .collect();
             let first = |name: &str| fields.get(name).and_then(|values| values.first()).cloned();
+            let pairs = |name: &str| -> Vec<(String, String)> {
+                let list = fields.get(name).cloned().unwrap_or_default();
+                let left = list.iter().step_by(2);
+                let right = list.iter().skip(1).step_by(2);
+                left.zip(right)
+                    .map(|(from, to)| (from.to_lowercase(), to.to_lowercase()))
+                    .collect()
+            };
+            let mut object_endings = pairs("object-endings");
+            object_endings.sort_by_key(|(ending, _)| std::cmp::Reverse(ending.chars().count()));
             let mut endings = fields.get("endings").cloned().unwrap_or_default();
             // A stable sort keeps the order of the file among equal lengths.
             endings.sort_by_key(|ending| std::cmp::Reverse(ending.chars().count()));
@@ -114,6 +141,10 @@ static GRAMMARS: LazyLock<Result<HashMap<String, Grammar>, String>> = LazyLock::
                 Grammar {
                     infinitive: first("infinitive"),
                     verb_lemma: first("verb-lemma"),
+                    verb_forms: fields.get("verb-forms").cloned().unwrap_or_default(),
+                    object_endings,
+                    object_forms: pairs("object-forms"),
+                    of_genitive: first("of-genitive").as_deref() == Some("yes"),
                     endings,
                     spaced: first("spaced").as_deref() != Some("no"),
                 },
