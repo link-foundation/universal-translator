@@ -8,6 +8,7 @@ import { block, name, node, number, text } from '../meta/tree.js';
 import { dialects } from './dialects/index.js';
 import { withArrays } from './array-parser.js';
 import { stepOperators, withLoops } from './loop-parser.js';
+import { withFunctionForms } from './function-forms.js';
 
 const binaryLevels = [
   { or: ['||', 'or'] },
@@ -1347,8 +1348,9 @@ function calleeName(expression) {
   return expression.name;
 }
 
-// Arrays and loops are read by mixins of their own, which the dialects inherit.
-const Parser = withLoops(withArrays(BaseParser));
+// Arrays, loops, arrow functions and type hints are read by mixins of their
+// own, which the dialects inherit.
+const Parser = withFunctionForms(withLoops(withArrays(BaseParser)));
 
 // Map a source type spelling to a meta type.
 export function sourceType(spelling) {

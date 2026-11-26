@@ -67,6 +67,7 @@ const ASSIGNMENT_SYMBOLS: [&str; 8] = ["=", "+=", "-=", "*=", "/=", "%=", "++", 
 
 mod arrays;
 mod arrows;
+mod forms;
 mod loops;
 
 use loops::step_operator;
@@ -691,6 +692,9 @@ impl Parser {
     }
 
     pub(crate) fn base_type_expression(&mut self) -> Parsed<Option<String>> {
+        if self.syntax.id == "python" {
+            return self.type_hint();
+        }
         let mut words = Vec::new();
         let mut depth = 0i64;
         loop {

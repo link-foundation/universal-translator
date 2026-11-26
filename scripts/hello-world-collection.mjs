@@ -92,6 +92,18 @@ export function decodeEntities(text) {
   });
 }
 
+// The text of an HTML fragment with every tag removed. Removing repeats
+// until the text stays the same, so no tag can be left behind.
+export function stripTags(html) {
+  let text = html;
+  let previous;
+  do {
+    previous = text;
+    text = text.replace(/<[^>]*>/g, '');
+  } while (text !== previous);
+  return text;
+}
+
 // "Section name" -> its program text. A section starts at an anchor
 // <a name="..."></a> and ends at the next one.
 export function extractSections(html) {
@@ -101,7 +113,7 @@ export function extractSections(html) {
     const heading = /<h2>([^<]*)<\/h2>/.exec(part);
     const program = /<pre[^>]*>([\s\S]*?)<\/pre>/.exec(part);
     if (heading && program) {
-      const text = decodeEntities(program[1].replace(/<[^>]*>/g, ''));
+      const text = decodeEntities(stripTags(program[1]));
       result.set(decodeEntities(heading[1]), text.replace(/^\n+/, ''));
     }
   }

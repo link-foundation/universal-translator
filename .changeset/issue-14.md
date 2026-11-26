@@ -117,3 +117,7 @@ JavaScript and TypeScript functions written as arrow functions (`const add = (a,
 - `"" + year` in Java and similar languages keeps the type of `year`. The interpolation is text, not the name.
 - The LLVM IR reader matches text constants in linear time.
 - The Rust documentation builds without warnings again (`cargo doc` with `-D warnings`).
+
+### Python type hints
+
+Python type hints on parameters, results and assignments (`def square(n: int) -> int:`, `total: int = 0`) are read in both runtimes: `int`, `str`, `bool`, `None` and `list[int]` give the meta types integer, text, boolean, nothing and array, every other hint is left to type inference, and a hinted program translates as its unhinted twin does.

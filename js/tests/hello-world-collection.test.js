@@ -13,6 +13,7 @@ import {
   programsFile,
   robotsAllow,
   sections,
+  stripTags,
 } from '../../scripts/hello-world-collection.mjs';
 
 const translator = createTranslator();
@@ -33,6 +34,13 @@ const coverage = () => {
 };
 
 describe('the Hello World Collection', () => {
+  it('strips every tag', () => {
+    expect(stripTags('<b>x</b> <scr<b></b>ipt>y')).toBe('x ipt>y');
+    expect(stripTags('<pre><span class="k">int</span> x;</pre>')).toBe(
+      'int x;'
+    );
+  });
+
   it('extracts from the cached page what programs.json holds', () => {
     const html = readFileSync(pageFile, 'utf8');
     expect(extractPrograms(html)).toEqual(programs);
