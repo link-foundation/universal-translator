@@ -4,6 +4,7 @@
 //! tables, so supporting another language (or a project-specific dialect)
 //! means describing it here.
 
+use super::more_languages::MORE_LANGUAGES;
 use super::rocq_runtime::ROCQ_RUNTIME;
 use super::versions::{split_version, with_version};
 use crate::meta::GrammarError;
@@ -25,7 +26,7 @@ pub struct Naming {
     pub variable: Convention,
 }
 
-const fn same(convention: Convention) -> Naming {
+pub(super) const fn same(convention: Convention) -> Naming {
     Naming {
         function: convention,
         variable: convention,
@@ -117,7 +118,7 @@ pub struct Interpolation {
     pub style: InterpolationStyle,
 }
 
-const fn embeds(quote: char, style: InterpolationStyle) -> Interpolation {
+pub(super) const fn embeds(quote: char, style: InterpolationStyle) -> Interpolation {
     Interpolation {
         quote: Some(quote),
         prefix: None,
@@ -327,7 +328,7 @@ pub enum Role {
     Variable,
 }
 
-const BRACE_OPERATORS: Operators = Operators {
+pub(super) const BRACE_OPERATORS: Operators = Operators {
     and: "&&",
     or: "||",
     not: "!",
@@ -338,13 +339,13 @@ const BRACE_OPERATORS: Operators = Operators {
     remainder: None,
 };
 
-const SCRIPT_OPERATORS: Operators = Operators {
+pub(super) const SCRIPT_OPERATORS: Operators = Operators {
     equal: Some("==="),
     not_equal: "!==",
     ..BRACE_OPERATORS
 };
 
-const WORD_OPERATORS: Operators = Operators {
+pub(super) const WORD_OPERATORS: Operators = Operators {
     and: "and",
     or: "or",
     not: "not",
@@ -355,30 +356,31 @@ const WORD_OPERATORS: Operators = Operators {
     remainder: None,
 };
 
-const INTEGER_TYPES: Types = Types {
+pub(super) const INTEGER_TYPES: Types = Types {
     integer: "int",
     text: "string",
     boolean: "bool",
     nothing: "void",
 };
 
-const C_QUOTES: &[char] = &['"'];
-const SCRIPT_QUOTES: &[char] = &['"', '\'', '`'];
-const BOTH_QUOTES: &[char] = &['"', '\''];
-const SLASH_COMMENTS: Option<(&str, &str)> = Some(("/*", "*/"));
-const FUNCTION_TERMS: Terms = Terms {
+pub(super) const C_QUOTES: &[char] = &['"'];
+pub(super) const SCRIPT_QUOTES: &[char] = &['"', '\'', '`'];
+pub(super) const BOTH_QUOTES: &[char] = &['"', '\''];
+pub(super) const SLASH_COMMENTS: Option<(&str, &str)> = Some(("/*", "*/"));
+pub(super) const FUNCTION_TERMS: Terms = Terms {
     call: "function call",
     routine: "function",
 };
-const METHOD_TERMS: Terms = Terms {
+pub(super) const METHOD_TERMS: Terms = Terms {
     call: "method call",
     routine: "method",
 };
 
-const SCRIPT_DIVISION: Option<IntegerDivision> = Some(IntegerDivision::Wrapper("Math.trunc"));
+pub(super) const SCRIPT_DIVISION: Option<IntegerDivision> =
+    Some(IntegerDivision::Wrapper("Math.trunc"));
 
 /// The JavaScript description; the others start from it and change fields.
-const JAVASCRIPT: Syntax = Syntax {
+pub(super) const JAVASCRIPT: Syntax = Syntax {
     id: "javascript",
     for_each: Some("for (const {variable} of {array})"),
     label: "JavaScript",
@@ -439,7 +441,7 @@ const JAVASCRIPT: Syntax = Syntax {
 };
 
 /// The C description, the base of the other prefix-typed languages.
-const C: Syntax = Syntax {
+pub(super) const C: Syntax = Syntax {
     id: "c",
     for_each: None,
     label: "C",
@@ -1463,6 +1465,7 @@ pub fn language_syntax(identifier: &str) -> Result<Syntax, GrammarError> {
     let (id, version) = split_version(identifier);
     let syntax = LANGUAGES
         .iter()
+        .chain(MORE_LANGUAGES.iter())
         .chain(MACHINE_TARGETS.iter())
         .find(|syntax| syntax.id == id)
         .cloned()
@@ -1476,5 +1479,9 @@ pub fn language_syntax(identifier: &str) -> Result<Syntax, GrammarError> {
 
 /// The identifiers of every described language, in listing order.
 pub fn language_ids() -> Vec<&'static str> {
-    LANGUAGES.iter().map(|syntax| syntax.id).collect()
+    LANGUAGES
+        .iter()
+        .chain(MORE_LANGUAGES.iter())
+        .map(|syntax| syntax.id)
+        .collect()
 }

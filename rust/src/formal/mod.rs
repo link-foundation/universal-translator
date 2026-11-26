@@ -24,6 +24,7 @@ pub mod machine_reader_shared;
 pub mod machine_reader_wasm;
 pub mod machine_shared;
 pub mod machine_wasm;
+pub mod more_languages;
 pub mod names;
 pub mod parser;
 pub mod rocq_runtime;

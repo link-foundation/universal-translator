@@ -68,6 +68,11 @@ const signatures = {
   zig: [/@import\("std"\)/u, /\bstd\.debug\.print\b/u, /\bpub\s+fn\b/u],
   lean: [/\bdef\s+\w+.*:=/u, /\bIO\.println\b/u, /#eval\b/u],
   rocq: [/\bFixpoint\b/u, /\bDefinition\b/u, /\bCompute\b/u],
+  gml: [
+    /\bshow_debug_message\s*\(/u,
+    /\barray_create\s*\(/u,
+    /\barray_length\s*\(/u,
+  ],
   nasm: [/^\s*section\s+\.text/mu, /^\s*global\s+_?main/mu, /\bmov\s+\w+,/u],
   cil: [/^\s*\.method\b/mu, /\bldc\.i4/u, /\.assembly\b/u],
   jvm: [/^\s*\.class\b/mu, /^\s*\.method\b/mu, /\binvokestatic\b/u],

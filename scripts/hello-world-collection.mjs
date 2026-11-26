@@ -66,6 +66,7 @@ export const sections = {
   zig: ['Zig'],
   lean: [],
   rocq: [],
+  gml: ['GML'],
 };
 
 const named = {

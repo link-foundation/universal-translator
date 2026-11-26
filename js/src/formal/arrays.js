@@ -190,10 +190,25 @@ const constructors = {
       : undefined,
 };
 constructors.typescript = constructors.javascript;
+// GameMaker Language: array_create(n, fill).
+constructors.gml = (expression) =>
+  call(expression, 'array_create', 2)
+    ? node('NewArray', {
+        length: expression.arguments[0],
+        fill: expression.arguments[1],
+      })
+    : undefined;
 constructors.groovy = constructors.python;
 
 // Calls that return the length of the array they are given.
-const lengthCalls = new Set(['len', 'length', 'count', 'numel', 'scalar']);
+const lengthCalls = new Set([
+  'len',
+  'length',
+  'count',
+  'numel',
+  'scalar',
+  'array_length',
+]);
 // Properties and methods that return the length of their receiver.
 const lengthMembers = new Set(['length', 'Length', 'size', 'count', 'len']);
 
@@ -288,8 +303,10 @@ export function recognizeArrays(program, { from } = {}) {
     return program;
   }
   const syntax = languageSyntax(from);
-  // A version of a language (python@2) builds arrays like the language.
-  const construct = constructors[syntax.family ?? syntax.id];
+  // A version of a language (python@2) builds arrays like the language,
+  // unless it has constructors of its own (GameMaker Language).
+  const construct =
+    constructors[syntax.id] ?? constructors[syntax.family ?? syntax.id];
   const constructed = construct
     ? rewrite(program, (current) => construct(current) ?? current)
     : program;

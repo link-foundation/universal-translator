@@ -148,3 +148,7 @@ hello-world-coverage:
     section: 'Zig'
     status: failed
     reason: 'Unexpected "%" in expression (line 6)'
+  gml-gml:
+    language: gml
+    section: 'GML'
+    status: read

@@ -23,7 +23,7 @@ pub const COMMON_LIBRARY_OPERATIONS: [&str; 4] =
     ["print-line", "write-text", "write-integer", "end-line"];
 
 /// The languages with a common library implementation, in listing order.
-pub const COMMON_LIBRARY_LANGUAGES: [&str; 32] = [
+pub const COMMON_LIBRARY_LANGUAGES: [&str; 33] = [
     "javascript",
     "typescript",
     "python",
@@ -56,6 +56,7 @@ pub const COMMON_LIBRARY_LANGUAGES: [&str; 32] = [
     "zig",
     "lean",
     "rocq",
+    "gml",
 ];
 
 /// The lines that make the library available in a language, given the

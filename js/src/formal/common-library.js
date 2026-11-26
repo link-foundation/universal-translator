@@ -77,6 +77,8 @@ export const commonLibraryAccess = {
   },
   lean: { imports: () => ['import CommonLibrary'], prefix: 'CommonLibrary.' },
   rocq: { imports: () => ['Load common_library.'], prefix: 'CommonLibrary.' },
+  // Scripts of a GameMaker project share one global scope.
+  gml: {},
 };
 
 const call = (operation, argument) =>

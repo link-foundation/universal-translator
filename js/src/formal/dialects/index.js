@@ -5,6 +5,7 @@
 import { ada } from './ada.js';
 import { bash } from './bash.js';
 import { fortran } from './fortran.js';
+import { gml } from './gml.js';
 import { lean } from './lean.js';
 import { matlab } from './matlab.js';
 import { pascal } from './pascal.js';
@@ -22,4 +23,5 @@ export const dialects = {
   zig,
   lean,
   rocq,
+  gml,
 };

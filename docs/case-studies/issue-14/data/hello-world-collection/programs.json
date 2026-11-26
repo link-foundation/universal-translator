@@ -192,5 +192,11 @@
     }
   ],
   "lean": [],
-  "rocq": []
+  "rocq": [],
+  "gml": [
+    {
+      "section": "GML",
+      "program": "// Hello World in GML (Game Maker Language)\r\ndraw_text(10,10,\"Hello World\")\r\nscreen_refresh()\r\nkeyboard_wait()\r\n"
+    }
+  ]
 }

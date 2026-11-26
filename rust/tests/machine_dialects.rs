@@ -102,7 +102,7 @@ fn lists_every_dialect_after_the_grammar_languages_flagged_as_machine() {
     assert_eq!(tail, machine);
     assert_eq!(
         listing.iter().filter(|language| !language.machine).count(),
-        32
+        33
     );
     for language in listing.iter().filter(|language| language.machine) {
         assert!(language.versions.is_empty(), "{}", language.id);
