@@ -180,6 +180,16 @@ impl Context<'_> {
                 self.block_field(&mut statement, "body", &inner);
                 statement
             }
+            "ForEach" => {
+                let mut inner = scope.clone();
+                if let Some(variable) = statement.str("variable") {
+                    inner.insert(variable.to_owned(), "integer".into());
+                }
+                statement.set("type", "integer");
+                self.typed(&mut statement, "array", scope);
+                self.block_field(&mut statement, "body", &inner);
+                statement
+            }
             _ => statement,
         }
     }
@@ -193,6 +203,7 @@ fn child_order(kind: &str) -> &'static [&'static str] {
         "Function" => &["parameters", "body"],
         "If" => &["condition", "then", "otherwise"],
         "CountingLoop" => &["start", "end", "body"],
+        "ForEach" => &["array", "body"],
         "Declaration" | "Assignment" | "Return" | "Print" => &["value"],
         "Evaluate" => &["expression"],
         "While" => &["condition", "body"],

@@ -4,6 +4,7 @@
 // languages without a filled array constructor write instead.
 
 import { languageSyntax } from './languages.js';
+import { freshName, usedNames } from '../meta/for-each.js';
 import {
   block,
   essence,
@@ -390,25 +391,6 @@ export function raiseArrayFills(program) {
   });
 }
 
-// A name for the fill loop's variable that the function does not use.
-function freshName(body, parameters = []) {
-  const used = new Set(parameters.map((parameter) => parameter.name));
-  walk(body, (current) => {
-    for (const key of ['name', 'variable']) {
-      if (typeof current[key] === 'string') {
-        used.add(current[key]);
-      }
-    }
-  });
-  const candidates = ['index', 'position', 'slot', 'place'];
-  return (
-    candidates.find((candidate) => !used.has(candidate)) ??
-    [2, 3, 4, 5, 6, 7, 8, 9]
-      .map((count) => `index-${count}`)
-      .find((candidate) => !used.has(candidate))
-  );
-}
-
 const callFree = (expression) => {
   let free = true;
   walk(expression, (current) => {
@@ -443,7 +425,7 @@ export function expandArrayFills(program, { to }) {
         ) {
           return [statement];
         }
-        variable ??= freshName(body, parameters);
+        variable ??= freshName(usedNames(body, parameters));
         const empty = style === 'empty';
         const declaration = {
           ...statement,

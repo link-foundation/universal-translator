@@ -10,6 +10,7 @@ use std::sync::Arc;
 
 use super::arrays::{expand_array_fills, raise_array_fills, recognize_arrays};
 use super::common_library::{recognize_common_library, spell_common_library};
+use super::for_each::{expand_for_each, raise_for_each};
 use super::languages::{Blocks, ImmutableParameters, IntegerDivision, Syntax, language_syntax};
 use super::lifting::counting_loops;
 use super::names::{
@@ -52,6 +53,7 @@ pub fn understanding_rules() -> Vec<Rule> {
             raise_counting_loops(program)
         }),
         rule("raiseArrayFills", |program, _| raise_array_fills(program)),
+        rule("raiseForEach", |program, _| raise_for_each(program)),
         rule("raiseTruthValues", raise_truth_values),
         rule("inferMutability", |program, _| infer_mutability(program)),
         rule("dropSourceDetails", |program, _| {
@@ -74,6 +76,7 @@ pub fn context_rules() -> Vec<Rule> {
         rule("adaptComments", adapt_comments),
         rule("copyReassignedParameters", copy_reassigned_parameters),
         rule("expandArrayFills", expand_array_fills),
+        rule("expandForEach", expand_for_each),
         rule("spellNames", spell_names),
         rule("spellCommonLibrary", spell_common_library),
     ]
@@ -700,6 +703,14 @@ impl Declarer {
             "CountingLoop" => {
                 self.read_field(&statement, "start");
                 self.read_field(&statement, "end");
+                if let Some(variable) = statement.str("variable") {
+                    self.scope.insert(variable.to_owned());
+                }
+                self.visit_field(&mut statement, "body");
+                return statement;
+            }
+            "ForEach" => {
+                self.read_field(&statement, "array");
                 if let Some(variable) = statement.str("variable") {
                     self.scope.insert(variable.to_owned());
                 }

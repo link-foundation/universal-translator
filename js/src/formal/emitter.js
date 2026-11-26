@@ -547,6 +547,8 @@ class BaseEmitter {
         return this.whileStatement(statement);
       case 'CountingLoop':
         return this.countingLoop(statement);
+      case 'ForEach':
+        return this.forEachLoop(statement);
       default:
         throw new Error(`Cannot emit ${statement.kind} as a statement`);
     }
@@ -672,6 +674,22 @@ class BaseEmitter {
       d: `for (long ${identifier} = ${from}; ${identifier} < ${to}; ${identifier}++)`,
     };
     this.openBlock(headers[this.id]);
+    this.body(body);
+    this.closeBlock();
+  }
+
+  // The loop header is the language's `forEach` template with the loop
+  // variable, its type and the array filled in.
+  forEachLoop({ variable: identifier, array, body }) {
+    const fill = {
+      type: this.type('integer'),
+      variable: this.variable(identifier),
+      array: this.expression(array),
+      'array-name': array.name,
+    };
+    this.openBlock(
+      this.syntax.forEach.replace(/\{([a-z-]+)\}/g, (_, key) => fill[key])
+    );
     this.body(body);
     this.closeBlock();
   }

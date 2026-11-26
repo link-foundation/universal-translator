@@ -1,5 +1,6 @@
 //! Counting loops: C-style `for (init; condition; update)`, Lua's numeric
-//! `for`, range loops such as `for i in 0..n` and Ruby's `(a..b).each`.
+//! `for`, range loops such as `for i in 0..n` and Ruby's `(a..b).each`, and
+//! the for-each loops over the elements of an array.
 
 use super::{ADDITIVE, Parsed, Parser};
 use crate::formal::languages::Blocks;
@@ -20,6 +21,22 @@ pub(super) fn step_operator(symbol: &str) -> Option<&'static str> {
 struct Range {
     start: Node,
     end: Node,
+}
+
+/// What a loop runs over: a counting range or the elements of an array.
+enum Over {
+    Range(Range),
+    Array(Node),
+}
+
+/// The word or symbol that stands between the loop variable and the array in
+/// the for-each template of a language, such as `of`, `in`, `:` and `<-`.
+fn for_each_opener(template: Option<&str>) -> Option<String> {
+    let template = template?;
+    let rest = template[template.find("{variable}")? + "{variable}".len()..].trim_start();
+    let end = rest.find(|character: char| character.is_whitespace() || character == '{')?;
+    let after = rest[end..].trim_start();
+    (end > 0 && after.starts_with("{array")).then(|| rest[..end].to_owned())
 }
 
 /// The step of a C-style loop update such as `i++` or `i += 1`.
@@ -50,16 +67,17 @@ impl Parser {
             let body = self.block()?;
             return counting_loop(initial, condition, update, body);
         }
-        if self.syntax.id == "go" && !self.is_at("range", 1) && !self.is_at(":=", 1) {
-            let condition = self.expression()?;
-            let body = self.block()?;
-            return Ok(Node::new("While")
-                .with("condition", condition)
-                .with("body", body));
+        if self.syntax.id == "go" {
+            return self.go_for();
         }
-        // Perl declares the loop variable: for my $i (...)
-        if self.syntax.declarations.contains(&self.value(0)) && self.kind(1) == TokenType::Name {
-            self.position += 1;
+        // The loop variable may follow a declaration or a type: for my $i
+        // (...), for (const x of ...), for (int x : ...)
+        self.skip_declarators();
+        if self.syntax.id == "rust" {
+            self.accept("&");
+        }
+        if self.syntax.id == "lua" && self.is_at(",", 1) {
+            return self.lua_for_each();
         }
         let variable = self.expect_name()?;
         if self.syntax.id == "lua" {
@@ -67,6 +85,76 @@ impl Parser {
         } else {
             self.range_for(variable, parenthesized)
         }
+    }
+
+    /// Go: `for condition { ... }`, `for i := range n`, `for _, x := range a`
+    fn go_for(&mut self) -> Parsed {
+        if self.is_at(",", 1) {
+            self.position += 2;
+            let variable = self.expect_name()?;
+            self.expect(":=")?;
+            self.expect("range")?;
+            let array = self.expression()?;
+            let body = self.block()?;
+            return Ok(for_each_node(variable, array, body));
+        }
+        if !self.is_at("range", 1) && !self.is_at(":=", 1) {
+            let condition = self.expression()?;
+            let body = self.block()?;
+            return Ok(Node::new("While")
+                .with("condition", condition)
+                .with("body", body));
+        }
+        let variable = self.expect_name()?;
+        self.range_for(variable, false)
+    }
+
+    /// PHP: `foreach ($a as $x)`, D: `foreach (x; a)`, C#: `foreach (T x in a)`
+    pub(crate) fn foreach_statement(&mut self) -> Parsed {
+        self.position += 1;
+        self.expect("(")?;
+        let id = self.syntax.id;
+        self.skip_declarators();
+        let first = self.expression()?;
+        self.expect(match id {
+            "php" => "as",
+            "d" => ";",
+            _ => "in",
+        })?;
+        let second = self.expression()?;
+        self.expect(")")?;
+        let body = self.block()?;
+        let (element, array) = if id == "php" {
+            (second, first)
+        } else {
+            (first, second)
+        };
+        let variable = element.str("name").unwrap_or_default().to_owned();
+        Ok(for_each_node(variable, array, body))
+    }
+
+    /// The words that declare a loop variable, or give its type, before it.
+    fn skip_declarators(&mut self) {
+        while self.kind(0) == TokenType::Name
+            && self.kind(1) == TokenType::Name
+            && !["in", "of", "as"].contains(&self.value(1))
+        {
+            self.position += 1;
+        }
+    }
+
+    /// Lua: `for _, x in ipairs(a) do ... end`
+    fn lua_for_each(&mut self) -> Parsed {
+        self.position += 2;
+        let variable = self.expect_name()?;
+        for word in ["in", "ipairs", "("] {
+            self.expect(word)?;
+        }
+        let array = self.expression()?;
+        self.expect(")")?;
+        let body = self.block()?;
+        self.close_keyword_block()?;
+        Ok(for_each_node(variable, array, body))
     }
 
     /// Lua: `for i = first, last do ... end`
@@ -87,14 +175,24 @@ impl Parser {
     /// `for i in range`, `for my $i (range)`, `for (i <- range)`
     pub(crate) fn range_for(&mut self, variable: String, parenthesized: bool) -> Parsed {
         let opener = self.syntax.for_in.unwrap_or("in");
-        self.expect(opener)?;
-        let range = self.range_expression()?;
+        let each = for_each_opener(self.syntax.for_each);
+        let over = each
+            .filter(|each| each != opener && self.is(each))
+            .unwrap_or_else(|| opener.to_owned());
+        self.expect(&over)?;
+        if self.syntax.id == "rust" {
+            self.accept("&");
+        }
+        let range = self.range_expression(over != opener)?;
         if opener == "(" || parenthesized {
             self.expect(")")?;
         }
         let body = self.block()?;
         self.close_keyword_block()?;
-        Ok(counting_node(variable, range, body))
+        Ok(match range {
+            Over::Array(array) => for_each_node(variable, array, body),
+            Over::Range(range) => counting_node(variable, range, body),
+        })
     }
 
     /// Ruby: `(first..last).each do |variable| ... end`
@@ -123,7 +221,12 @@ impl Parser {
 
     pub(crate) fn range_each(&mut self) -> Parsed {
         self.expect("(")?;
-        let range = self.range_expression()?;
+        let Over::Range(range) = self.range_expression(false)? else {
+            return Err(GrammarError::syntax(
+                "Expected a range",
+                self.current().line,
+            ));
+        };
         for word in [")", ".", "each", "do", "|"] {
             self.expect(word)?;
         }
@@ -165,7 +268,18 @@ impl Parser {
         })
     }
 
-    fn range_expression(&mut self) -> Parsed<Range> {
+    fn is_range_operator(&self) -> bool {
+        let value = self.value(0);
+        ["until", "..<", "...", "..", "..=", "to"].contains(&value)
+            || (value == ":" && ["julia", "r"].contains(&self.syntax.id))
+    }
+
+    /// The range a loop counts over, or the array when the loop visits its
+    /// elements: `for x in a`, `for (const x of a)`.
+    fn range_expression(&mut self, is_array: bool) -> Parsed<Over> {
+        if is_array {
+            return Ok(Over::Array(self.expression()?));
+        }
         if self.accept("range") {
             self.expect("(")?;
             let first = self.expression()?;
@@ -175,15 +289,18 @@ impl Parser {
                 None
             };
             self.expect(")")?;
-            return Ok(match second {
+            return Ok(Over::Range(match second {
                 Some(end) => Range { start: first, end },
                 None => Range {
                     start: number(0.0),
                     end: first,
                 },
-            });
+            }));
         }
         let start = self.binary(ADDITIVE)?;
+        if !self.is_range_operator() {
+            return Ok(Over::Array(start));
+        }
         let operator = self.next_value()?;
         let last = self.binary(ADDITIVE)?;
         let inclusive = |last: Node| add(last, number(1.0));
@@ -201,8 +318,15 @@ impl Parser {
                 ));
             }
         };
-        Ok(Range { start, end })
+        Ok(Over::Range(Range { start, end }))
     }
+}
+
+fn for_each_node(variable: String, array: Node, body: Node) -> Node {
+    Node::new("ForEach")
+        .with("variable", variable)
+        .with("array", array)
+        .with("body", body)
 }
 
 fn counting_node(variable: String, range: Range, body: Node) -> Node {

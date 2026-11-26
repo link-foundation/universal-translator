@@ -7,6 +7,7 @@ use std::collections::HashSet;
 
 use super::languages::{ArrayFill, Syntax, language_syntax};
 use crate::meta::Settings;
+use crate::meta::for_each::{fresh_name, used_names};
 use crate::meta::{Node, block, essence, name, number, rewrite, walk};
 
 /// `index + delta` with the constants folded, so that adding 1 for a
@@ -61,7 +62,7 @@ fn same_expression(left: &Node, right: &Node) -> bool {
     essence(left) == essence(right)
 }
 
-fn mentions(tree: &Node, identifier: &str) -> bool {
+pub fn mentions(tree: &Node, identifier: &str) -> bool {
     let mut found = false;
     walk(tree, |current| {
         if current.is_name(identifier) {
@@ -376,25 +377,6 @@ pub fn raise_array_fills(program: Node) -> Node {
     })
 }
 
-/// A name for the fill loop's variable that the function does not use.
-fn fresh_name(body: &Node, parameters: &[&Node]) -> String {
-    let mut used: HashSet<String> = parameters
-        .iter()
-        .filter_map(|parameter| parameter.str("name").map(str::to_owned))
-        .collect();
-    walk(body, |current| {
-        for key in ["name", "variable"] {
-            used.extend(current.str(key).map(str::to_owned));
-        }
-    });
-    ["index", "position", "slot", "place"]
-        .into_iter()
-        .map(str::to_owned)
-        .chain((2..=9).map(|count| format!("index-{count}")))
-        .find(|candidate| !used.contains(candidate))
-        .unwrap_or_else(|| "index-10".into())
-}
-
 fn call_free(expression: &Node) -> bool {
     let mut free = true;
     walk(expression, |current| {
@@ -437,7 +419,7 @@ pub fn expand_array_fills(mut program: Node, settings: &Settings) -> Node {
                     continue;
                 };
                 let variable = variable
-                    .get_or_insert_with(|| fresh_name(&original, parameters))
+                    .get_or_insert_with(|| fresh_name(&used_names(&original, parameters)))
                     .clone();
                 let empty = style == ArrayFill::Empty;
                 let length = created

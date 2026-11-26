@@ -56,7 +56,7 @@ export function declaredNames(program) {
     if (current.kind === 'Declaration') {
       names.add(current.name);
     }
-    if (current.kind === 'CountingLoop') {
+    if (current.kind === 'CountingLoop' || current.kind === 'ForEach') {
       names.add(current.variable);
     }
     return current;
@@ -89,6 +89,7 @@ export function renameDeclared(program, rename) {
       case 'IndexAssignment':
         return { ...current, name: change(current.name) };
       case 'CountingLoop':
+      case 'ForEach':
         return { ...current, variable: change(current.variable) };
       default:
         return current;

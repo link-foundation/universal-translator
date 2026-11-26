@@ -988,6 +988,7 @@ impl Emitter {
             "If" => self.if_statement(statement)?,
             "While" => self.while_statement(statement)?,
             "CountingLoop" => self.counting_loop(statement)?,
+            "ForEach" => self.for_each_loop(statement)?,
             kind => {
                 return Err(GrammarError::new(format!(
                     "Cannot emit {kind} as a statement"
@@ -1217,6 +1218,27 @@ impl Emitter {
             "d" => c_style("long"),
             _ => "undefined".to_owned(),
         };
+        self.open_block(&header);
+        self.body(field(statement, "body")?)?;
+        self.close_block();
+        Ok(())
+    }
+
+    /// The loop header is the language's `for_each` template with the loop
+    /// variable, its type and the array filled in.
+    pub(crate) fn for_each_loop(&mut self, statement: &Node) -> Result<()> {
+        let array = field(statement, "array")?;
+        let element = self.type_name("integer");
+        let variable = self.variable(statement.str("variable").unwrap_or_default());
+        let written = self.expression(array)?;
+        let header = self
+            .syntax
+            .for_each
+            .unwrap_or_default()
+            .replace("{type}", &element)
+            .replace("{variable}", &variable)
+            .replace("{array-name}", array.str("name").unwrap_or_default())
+            .replace("{array}", &written);
         self.open_block(&header);
         self.body(field(statement, "body")?)?;
         self.close_block();

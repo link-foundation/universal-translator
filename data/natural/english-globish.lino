@@ -20,6 +20,7 @@ natural:
     else: 'If not, do this'
     while: 'While {condition}, do this again'
     for: 'For each {variable} from {start} to {last}, do this'
+    for-each: 'For each {variable} in {array}, do this'
     join: '{left} then {right}'
     negate: 'the opposite of {operand}'
     not-equal: '{left} is not {right}' '{left} != {right}' '{left} ≠ {right}' '{left} <> {right}'
@@ -32,5 +33,5 @@ natural:
     set-element: 'Now let part {index} of {name} be {value}'
   rules:
     max-sentence-words: 20
-    vocabulary: to get from do this let be now say on a line return stop nothing if not and while again for each then of or the opposite equals is less than more true false list copies part size
+    vocabulary: to get from do this let be now say on a line return stop nothing if not and while again for each then of in or the opposite equals is less than more true false list copies part size
     extra-words: plus minus times divided by modulo

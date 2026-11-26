@@ -20,6 +20,7 @@ natural:
     else: 'else the following is performed'
     while: 'while {condition} the following is repeated'
     for: 'for each {variable} from {start} to {last} the following is repeated'
+    for-each: 'for each {variable} in {array} the following is repeated'
     call: '{callee} applied to ({arguments})'
     call-without-arguments: '{callee} applied to nothing'
     join: '{left} concatenated with {right}'

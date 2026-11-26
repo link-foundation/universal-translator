@@ -19,6 +19,7 @@ natural:
     else: 'If not, do this'
     while: 'While {condition}, do this again and again'
     for: 'For every {variable} from {start} till {last}, do this'
+    for-each: 'For every {variable} in {array}, do this'
     call-without-arguments: '{callee} ( )'
     join: '{left} then {right}'
     negate: 'the opposite of {operand}'
@@ -33,5 +34,5 @@ natural:
     set-element: 'Let part {index} of {name} now be {value}'
   rules:
     max-sentence-words: 25
-    vocabulary: make from by these steps let be now say and end the line give back stop here do no work if not but this while again for every till of then or opposite is under over true false list a copies part size
+    vocabulary: make from by these steps let be now say and end the line give back stop here do no work if not but this while again for every till of in then or opposite is under over true false list a copies part size
     extra-words: plus minus times divided modulo

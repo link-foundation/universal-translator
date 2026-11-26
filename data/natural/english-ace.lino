@@ -20,6 +20,7 @@ natural:
     else: 'Else the program does the following'
     while: 'While {condition} the program repeats the following'
     for: 'For every {variable} from {start} to {last} the program does the following'
+    for-each: 'For every {variable} in {array} the program does the following'
     not: 'it is false that {operand}'
     equal: '{left} is equal to {right}' '{left} = {right}' '{left} == {right}'
     not-equal: '{left} is not equal to {right}' '{left} != {right}' '{left} ≠ {right}' '{left} <> {right}'

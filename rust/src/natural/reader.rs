@@ -16,6 +16,7 @@ use regex::Regex;
 use super::catalog::{Language, natural_language};
 use super::levels::{Associativity, LEVELS, level_index, operator_of_template};
 use super::tokens::{Kind, Token};
+use crate::meta::for_each::raise_for_each;
 use crate::meta::{Node, Value, add, block, name, number};
 
 const NAME_SLOTS: [&str; 3] = ["name", "variable", "callee"];
@@ -35,7 +36,7 @@ const STATEMENT_KEYS: [&str; 9] = [
     "nothing",
     "evaluate",
 ];
-const BLOCK_KEYS: [&str; 5] = ["else-if", "else", "if", "while", "for"];
+const BLOCK_KEYS: [&str; 6] = ["else-if", "else", "if", "while", "for", "for-each"];
 const FUNCTION_KEYS: [&str; 2] = ["function", "function-without-parameters"];
 
 static NAME_START: LazyLock<Regex> =
@@ -693,6 +694,14 @@ impl ProgramReader<'_> {
                         .with("body", body),
                 ));
             }
+            "for-each" => {
+                return Ok(Some(
+                    Node::new("ForEach")
+                        .with("variable", name_slot(&mut slots, "variable"))
+                        .with_opt("array", expression_slot(&mut slots, "array"))
+                        .with("body", body),
+                ));
+            }
             "for" => {
                 let last = expression_slot(&mut slots, "last").unwrap_or_else(|| number(0.0));
                 return Ok(Some(
@@ -823,6 +832,8 @@ pub fn read_natural(source: &str, id: &str) -> Result<Node, String> {
 /// [`read_natural`] with a compiled language, such as one with more
 /// template variants (see [`super::catalog::with_templates`]).
 pub fn read_natural_with(source: &str, language: &Language) -> Result<Node, String> {
+    // A language without a for-each sentence writes the counting loop over an
+    // index; it is read back as the loop over the elements it stands for.
     ProgramReader {
         language,
         sentences: SentenceReader::new(language),
@@ -830,4 +841,5 @@ pub fn read_natural_with(source: &str, language: &Language) -> Result<Node, Stri
         position: 0,
     }
     .read()
+    .map(raise_for_each)
 }
