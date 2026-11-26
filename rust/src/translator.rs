@@ -16,10 +16,8 @@
 //! decorate rules, and a trace hook sees the tree after every stage.
 
 pub use crate::Mode;
-use crate::formal::{
-    common_library, emitter, languages, lifting, machine, machine_reader, parser, rules,
-};
-use crate::meta::{self, GrammarError, Node, Rule, Settings, Trace, apply_rules, types};
+use crate::formal::{common_library, languages, rules};
+use crate::meta::{self, GrammarError, Node, Rule, Settings, Trace, apply_rules};
 use crate::natural;
 use std::sync::Arc;
 
@@ -30,6 +28,9 @@ use crate::formal::versions::{Version, split_version, versions_of};
 use crate::fragments;
 pub use crate::fragments::{Fragment, FragmentKind};
 pub use crate::partial::{PartError, PartStatus, PartialReading, PartialTranslation};
+use crate::stages::{
+    EmitStage, InferStage, LiftStage, ParseStage, ReadMachineStage, ReadNaturalStage, Stages,
+};
 
 /// How a translation is written.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -79,6 +80,9 @@ pub struct Translator {
     /// Translates comments to a comment language (the comment dictionary
     /// when absent).
     pub comment_translator: Option<CommentTranslator>,
+    /// The replaceable stages (parser, readers, emitters) with their
+    /// decorators; see the `decorate_*` methods.
+    pub stages: Stages,
 }
 
 impl Default for Translator {
@@ -91,6 +95,7 @@ impl Default for Translator {
             trace: None,
             rules: Arc::default(),
             comment_translator: None,
+            stages: Stages::default(),
         }
     }
 }
@@ -126,6 +131,67 @@ impl Translator {
         translate: impl Fn(&str, &str, &str) -> Result<String, String> + Send + Sync + 'static,
     ) -> Self {
         self.comment_translator = Some(Arc::new(translate));
+        self
+    }
+
+    /// The translator with a decorator around the parser: it receives the
+    /// inner parser and returns the wrapped one. Decorators compose in the
+    /// order they are added; the last added is the outermost.
+    pub fn decorate_parse(mut self, decorator: impl FnOnce(ParseStage) -> ParseStage) -> Self {
+        self.stages.parse = decorator(self.stages.parse.clone());
+        self
+    }
+
+    /// The translator with a decorator around type inference.
+    pub fn decorate_infer(mut self, decorator: impl FnOnce(InferStage) -> InferStage) -> Self {
+        self.stages.infer = decorator(self.stages.infer.clone());
+        self
+    }
+
+    /// The translator with a decorator around lifting machine instructions
+    /// to the meta language.
+    pub fn decorate_lift(mut self, decorator: impl FnOnce(LiftStage) -> LiftStage) -> Self {
+        self.stages.lift = decorator(self.stages.lift.clone());
+        self
+    }
+
+    /// The translator with a decorator around the machine code reader.
+    pub fn decorate_read_machine(
+        mut self,
+        decorator: impl FnOnce(ReadMachineStage) -> ReadMachineStage,
+    ) -> Self {
+        self.stages.read_machine = decorator(self.stages.read_machine.clone());
+        self
+    }
+
+    /// The translator with a decorator around the natural language reader.
+    pub fn decorate_read_natural(
+        mut self,
+        decorator: impl FnOnce(ReadNaturalStage) -> ReadNaturalStage,
+    ) -> Self {
+        self.stages.read_natural = decorator(self.stages.read_natural.clone());
+        self
+    }
+
+    /// The translator with a decorator around the programming language
+    /// emitter.
+    pub fn decorate_emit(mut self, decorator: impl FnOnce(EmitStage) -> EmitStage) -> Self {
+        self.stages.emit = decorator(self.stages.emit.clone());
+        self
+    }
+
+    /// The translator with a decorator around the machine code emitter.
+    pub fn decorate_emit_machine(mut self, decorator: impl FnOnce(EmitStage) -> EmitStage) -> Self {
+        self.stages.emit_machine = decorator(self.stages.emit_machine.clone());
+        self
+    }
+
+    /// The translator with a decorator around the natural language writer.
+    pub fn decorate_write_natural(
+        mut self,
+        decorator: impl FnOnce(EmitStage) -> EmitStage,
+    ) -> Self {
+        self.stages.write_natural = decorator(self.stages.write_natural.clone());
         self
     }
 
@@ -179,11 +245,11 @@ impl Translator {
             // A controlled natural language is read sentence by sentence
             // straight into the meta language; it has no source details to
             // understand.
-            let read = match self.rules.natural_language(from) {
-                Some(language) => natural::read_natural_with(source, language),
-                None => natural::read_natural(source, from),
-            }
-            .map_err(GrammarError::new)?;
+            let language = match self.rules.natural_language(from) {
+                Some(language) => language,
+                None => natural::natural_language(from).map_err(GrammarError::new)?,
+            };
+            let read = (self.stages.read_natural)(source, from, language)?;
             let read = rules::infer_mutability(read);
             self.report("read", &read);
             let settings = Settings {
@@ -191,7 +257,7 @@ impl Translator {
                 to: from.to_owned(),
                 mode: Mode::default(),
             };
-            let typed = apply_rules(types::infer_types(read), &self.meaning, &settings);
+            let typed = apply_rules((self.stages.infer)(read), &self.meaning, &settings);
             self.report("typed", &typed);
             return Ok(typed);
         }
@@ -208,18 +274,18 @@ impl Translator {
             // Machine code has no grammar to parse: read its instructions,
             // lift them to the meta language and continue like any other
             // source.
-            let machine = machine_reader::read_machine(source, from)?;
-            let lifted = rules::infer_mutability(lifting::lift_program(&machine)?);
+            let machine = (self.stages.read_machine)(source, from)?;
+            let lifted = rules::infer_mutability((self.stages.lift)(&machine)?);
             self.report("lifted", &lifted);
-            let typed = apply_rules(types::infer_types(lifted), &self.meaning, &settings);
+            let typed = apply_rules((self.stages.infer)(lifted), &self.meaning, &settings);
             self.report("typed", &typed);
             return Ok(typed);
         }
-        let source_tree = parser::parse_program(source, &syntax)?;
+        let source_tree = (self.stages.parse)(source, &syntax)?;
         self.report("parsed", &source_tree);
         let meta = apply_rules(source_tree, &self.understanding, &settings);
         self.report("understood", &meta);
-        let typed = apply_rules(types::infer_types(meta), &self.meaning, &settings);
+        let typed = apply_rules((self.stages.infer)(meta), &self.meaning, &settings);
         self.report("typed", &typed);
         Ok(typed)
     }
@@ -314,11 +380,11 @@ impl Translator {
     /// Write an adapted program in a language, a machine target or words.
     pub fn write(&self, adapted: &Node, to: &str) -> Result<String, GrammarError> {
         let written = if natural::is_natural_language(to) {
-            natural::write_natural(adapted, to).map_err(GrammarError::new)?
+            (self.stages.write_natural)(adapted, to)?
         } else if languages::language_syntax(to)?.machine {
-            machine::emit_machine(adapted, to)?
+            (self.stages.emit_machine)(adapted, to)?
         } else {
-            emitter::emit_program(adapted, to)?
+            (self.stages.emit)(adapted, to)?
         };
         Ok(self.rules.output(&written, to))
     }
@@ -326,7 +392,7 @@ impl Translator {
     /// Emit an adapted program in a programming language, with the output
     /// rules.
     pub fn emit_text(&self, adapted: &Node, to: &str) -> Result<String, GrammarError> {
-        Ok(self.rules.output(&emitter::emit_program(adapted, to)?, to))
+        Ok(self.rules.output(&(self.stages.emit)(adapted, to)?, to))
     }
 
     /// Comments that stand on their own as statements of the target.

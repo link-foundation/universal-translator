@@ -33,11 +33,20 @@ export {
   translateFragment,
 } from './translator.js';
 export declare const fragmentKinds: FragmentKind[];
+export declare const stageNames: import('./translator.js').StageName[];
+export declare function decorateStages(
+  stages: import('./translator.js').Stages,
+  decorate?: import('./translator.js').Decorators
+): import('./translator.js').Stages;
 export type {
   Fragment,
   FragmentKind,
   GrammarTranslator,
   GrammarTranslatorOptions,
+  Decorator,
+  Decorators,
+  StageName,
+  Stages,
   TranslationMode,
   TranslationOptions,
 } from './translator.js';
