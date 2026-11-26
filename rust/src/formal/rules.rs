@@ -15,6 +15,7 @@ use super::lifting::counting_loops;
 use super::names::{
     ascii_name, avoid_reserved, name_words, neutral_name, rename_declared, spell_name,
 };
+use super::versions::{split_version, versions_of, with_version};
 use crate::meta::truth::raise_truth_functions;
 use crate::meta::{Mode, Rule, Settings};
 use crate::meta::{Node, binary, block, layout, rewrite, rewrite_opt, text, walk};
@@ -924,12 +925,28 @@ fn integer_division(call: &Node, spelling: IntegerDivision) -> Option<Node> {
     }
 }
 
+/// The spellings of the language a program is read from, in every version
+/// of it: Lua 5.1 writes `math.floor(a / b)` for Lua 5.3's `a // b`.
+fn own_integer_divisions(from: &str) -> Vec<IntegerDivision> {
+    let (id, _) = split_version(from);
+    let Ok(syntax) = language_syntax(id) else {
+        return Vec::new();
+    };
+    std::iter::once(syntax.integer_division)
+        .chain(versions_of(id).into_iter().map(|version| {
+            with_version(syntax.clone(), Some(version.version))
+                .ok()
+                .and_then(|syntax| syntax.integer_division)
+        }))
+        .flatten()
+        .collect()
+}
+
 pub fn integer_division_calls(program: Node, settings: &Settings) -> Node {
-    let own = language_syntax(&settings.from)
-        .ok()
-        .and_then(|syntax| syntax.integer_division);
-    let spellings: Vec<IntegerDivision> =
-        own.into_iter().chain(INTEGER_DIVISION_SPELLINGS).collect();
+    let spellings: Vec<IntegerDivision> = own_integer_divisions(&settings.from)
+        .into_iter()
+        .chain(INTEGER_DIVISION_SPELLINGS)
+        .collect();
     rewrite(program, |current| {
         if !current.is("Call") {
             return current;

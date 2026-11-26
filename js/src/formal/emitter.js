@@ -275,9 +275,19 @@ class BaseEmitter {
   }
 
   // Text joined with +, computed parts converted with the language's
-  // conversion (Python 2: str(value)).
+  // conversion (Python 2: str(value)). A language without a conversion
+  // (C# 5) converts them itself; an empty text first keeps a sum of
+  // numbers from being added.
   concatenation(parts) {
-    const [convert] = this.syntax.textConversions;
+    const [convert] = this.syntax.textConversions ?? [];
+    if (!convert) {
+      const pieces = parts.map((part) =>
+        part.kind === 'Text' ? this.quote(part.value) : this.expression(part, 6)
+      );
+      return parts[0].kind === 'Text'
+        ? pieces.join(' + ')
+        : ['""', ...pieces].join(' + ');
+    }
     return parts
       .map((part) =>
         part.kind === 'Text'

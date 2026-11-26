@@ -18,6 +18,45 @@ export const languageVersions = {
       },
     },
   },
+  lua: {
+    default: '5.3',
+    versions: {
+      5.3: { label: 'Lua 5.3+ (integer division //)' },
+      5.1: {
+        label: 'Lua 5.1 and 5.2 (LuaJIT)',
+        // Before 5.3 Lua has no // operator: math.floor rounds the quotient
+        // down, as // does.
+        syntax: {
+          operators: { integerDivide: undefined },
+          integerDivision: { wrapper: 'math.floor' },
+        },
+      },
+    },
+  },
+  php: {
+    default: '7',
+    versions: {
+      7: { label: 'PHP 7+ (intdiv)' },
+      5: {
+        label: 'PHP 5',
+        // intdiv arrived in PHP 7; intval drops the fraction of the quotient
+        // the same way.
+        syntax: { integerDivision: { wrapper: 'intval' } },
+      },
+    },
+  },
+  csharp: {
+    default: '6',
+    versions: {
+      6: { label: 'C# 6+ (interpolated strings)' },
+      5: {
+        label: 'C# 5',
+        // Before C# 6 there are no $"..." strings: text is joined with +,
+        // which converts the computed parts itself.
+        syntax: { textJoin: 'concatenation' },
+      },
+    },
+  },
 };
 
 // "python@2" -> { id: 'python', version: '2' }.

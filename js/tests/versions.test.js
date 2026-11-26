@@ -78,6 +78,63 @@ describe('programming language versions', () => {
   });
 });
 
+describe('older versions of Lua, PHP and C#', () => {
+  const source =
+    'function half(n) {\n  return Math.trunc(n / 2);\n}\n' +
+    'console.log(`${half(4)}${half(2)} items`);\n';
+
+  it('lists the current version first', () => {
+    const listed = (id) => versionsOf(id).map(({ version }) => version);
+    expect([listed('lua'), listed('php'), listed('csharp')]).toEqual([
+      ['5.3', '5.1'],
+      ['7', '5'],
+      ['6', '5'],
+    ]);
+  });
+
+  it('divides integers in Lua 5.1 and PHP 5 without // and intdiv', () => {
+    expect(translate(source, 'javascript', 'lua')).toContain('return n // 2');
+    expect(translate(source, 'javascript', 'lua@5.1')).toContain(
+      'return math.floor(n / 2)'
+    );
+    expect(translate(source, 'javascript', 'php@5')).toContain(
+      'return intval($n / 2);'
+    );
+  });
+
+  it('joins text with + in C# 5', () => {
+    expect(translate(source, 'javascript', 'csharp@5')).toContain(
+      'System.Console.WriteLine("" + Half(4) + Half(2) + " items");'
+    );
+    expect(translate(source, 'javascript', 'csharp')).toContain(
+      'System.Console.WriteLine($"{Half(4)}{Half(2)} items");'
+    );
+  });
+
+  it('keeps the meaning of every task written in every older version', () => {
+    for (const target of ['python@2', 'lua@5.1', 'php@5', 'csharp@5']) {
+      for (const task of tasks) {
+        const meta = translator.toMeta(read(task), 'javascript');
+        const written = translator.fromMeta(meta, target);
+        const back = translator.toMeta(written, splitVersion(target).id);
+        expect([target, task, sameMeaning(meta, back)]).toEqual([
+          target,
+          task,
+          true,
+        ]);
+      }
+    }
+  });
+
+  it("reads Lua's .. as joined text, looser than + and -", () => {
+    const lua =
+      'print(half(4) .. half(2) .. " items")\nlocal s = "a" .. 1 + 2\n';
+    expect(translate(lua, 'lua', 'javascript')).toBe(
+      'console.log(`${half(4)}${half(2)} items`);\nconst s = `a${1 + 2}`;\n'
+    );
+  });
+});
+
 describe('natural language versions', () => {
   it('lists each natural language once', () => {
     const ids = baseNaturalLanguageIds();

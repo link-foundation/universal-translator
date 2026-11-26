@@ -1158,6 +1158,13 @@ impl Parser {
             if self.value(0) == ".." && self.syntax.id != "lua" {
                 return Ok(left);
             }
+            if self.value(0) == ".." {
+                // Lua's `..` joins text, numbers included. It binds looser
+                // than `+` and `-`, to the right: `"a" .. 1 + 2` is "a3".
+                self.position += 1;
+                let right = self.binary(level)?;
+                return Ok(binary("concatenate", left, right));
+            }
             self.position += 1;
             let right = self.binary(level + 1)?;
             left = binary(operator, left, right);

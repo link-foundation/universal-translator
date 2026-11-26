@@ -13,6 +13,7 @@ import { block, layout, node, rewrite, text, walk } from '../meta/tree.js';
 import { countingLoops } from './lifting.js';
 import { raiseTruthFunctions } from '../meta/truth.js';
 import { languageSyntax, namingConvention } from './languages.js';
+import { splitVersion, versionsOf } from './versions.js';
 import {
   asciiName,
   avoidReserved,
@@ -668,11 +669,23 @@ function integerDivision(call, { wrapper, call: callee, method }) {
   return undefined;
 }
 
+// The spellings of the language a program is read from, in every version
+// of it: Lua 5.1 writes `math.floor(a / b)` for Lua 5.3's `a // b`.
+function ownIntegerDivisions(from) {
+  if (!from) {
+    return [];
+  }
+  const { id } = splitVersion(from);
+  return [
+    languageSyntax(id),
+    ...versionsOf(id).map(({ version }) => languageSyntax(`${id}@${version}`)),
+  ]
+    .map(({ integerDivision }) => integerDivision)
+    .filter(Boolean);
+}
+
 export function integerDivisionCalls(program, { from } = {}) {
-  const own = from && languageSyntax(from).integerDivision;
-  const spellings = own
-    ? [own, ...integerDivisionSpellings]
-    : integerDivisionSpellings;
+  const spellings = [...ownIntegerDivisions(from), ...integerDivisionSpellings];
   return rewrite(program, (current) => {
     if (current.kind !== 'Call') {
       return current;

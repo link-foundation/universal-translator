@@ -1078,6 +1078,12 @@ class BaseParser {
         return left;
       }
       this.next();
+      if (token.value === '..') {
+        // Lua's ".." joins text, numbers included. It binds looser than +
+        // and -, to the right: "a" .. 1 + 2 is "a3".
+        const right = this.binary(level);
+        return node('Binary', { operator: 'concatenate', left, right });
+      }
       const right = this.binary(level + 1);
       left = node('Binary', { operator: operator[0], left, right });
     }

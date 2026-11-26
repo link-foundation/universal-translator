@@ -511,26 +511,26 @@ impl Emitter {
     }
 
     /// Text joined with `+`, computed parts converted with the language's
-    /// conversion (Python 2: `str(value)`).
+    /// conversion (Python 2: `str(value)`). A language without a conversion
+    /// (C# 5) converts them itself; an empty text first keeps a sum of
+    /// numbers from being added.
     pub(crate) fn concatenation(&mut self, parts: &[Node]) -> Result<String> {
-        let convert = self
-            .syntax
-            .text_conversions
-            .first()
-            .copied()
-            .unwrap_or("str");
-        let pieces = parts
+        let convert = self.syntax.text_conversions.first().copied();
+        let mut pieces = parts
             .iter()
             .map(|part| {
                 if part.is("Text") {
                     Ok(self.quote(part.str("value").unwrap_or_default()))
-                } else if part.str("type") == Some("text") {
-                    self.expression_in(part, 6.0)
-                } else {
+                } else if let (Some(convert), false) = (convert, part.str("type") == Some("text")) {
                     Ok(format!("{convert}({})", self.expression(part)?))
+                } else {
+                    self.expression_in(part, 6.0)
                 }
             })
             .collect::<Result<Vec<_>>>()?;
+        if convert.is_none() && !parts.first().is_some_and(|part| part.is("Text")) {
+            pieces.insert(0, "\"\"".to_owned());
+        }
         Ok(pieces.join(" + "))
     }
 
