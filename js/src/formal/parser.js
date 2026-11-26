@@ -37,6 +37,8 @@ const typeWords = new Set([
   'signed',
   'std',
 ]);
+// The languages whose arrow functions are read as named functions.
+const arrowLanguages = new Set(['javascript', 'typescript']);
 const modifiers = new Set([
   'public',
   'private',
@@ -249,6 +251,12 @@ class BaseParser {
     if (this.isFunctionStart()) {
       return this.functionDefinition();
     }
+    if (this.isArrowFunctionStart()) {
+      return this.arrowFunctionDefinition();
+    }
+    if (this.isStaticMethodStart()) {
+      return this.staticMethodDefinition();
+    }
     return this.statement();
   }
 
@@ -314,7 +322,9 @@ class BaseParser {
       this.next();
     }
     this.expect('{');
+    this.classDepth = (this.classDepth ?? 0) + 1;
     const items = this.items(() => this.is('}'));
+    this.classDepth -= 1;
     this.expect('}');
     return node('Class', { form: kind, name: title, items });
   }
@@ -330,6 +340,103 @@ class BaseParser {
     return this.syntax.functionKeyword
       ? this.isKeywordFunctionStart()
       : this.isPrefixFunctionStart();
+  }
+
+  // JavaScript and TypeScript name a function by declaring a constant:
+  // `const name = (first, second) => ...` or `const name = single => ...`.
+  isArrowFunctionStart() {
+    if (
+      !arrowLanguages.has(this.syntax.id) ||
+      !this.syntax.declarations.includes(this.peek().value) ||
+      this.peek(1).type !== 'name' ||
+      !this.is('=', 2)
+    ) {
+      return false;
+    }
+    if (this.peek(3).type === 'name') {
+      return this.is('=>', 4);
+    }
+    const closing = this.closingParenthesis(3);
+    if (closing === undefined) {
+      return false;
+    }
+    // A TypeScript return type may follow the parameters.
+    let offset = closing + 1;
+    if (this.is(':', offset)) {
+      while (
+        this.peek(offset).type !== 'end' &&
+        this.peek(offset).type !== 'newline' &&
+        !this.is('=>', offset)
+      ) {
+        offset += 1;
+      }
+    }
+    return this.is('=>', offset);
+  }
+
+  // A JavaScript or TypeScript class holds functions as static methods:
+  // `static name(first, second) { ... }`. Methods of objects need objects in
+  // the meta language and are not read.
+  isStaticMethodStart() {
+    if (!arrowLanguages.has(this.syntax.id) || !this.classDepth) {
+      return false;
+    }
+    let offset = 0;
+    while (modifiers.has(this.peek(offset).value)) {
+      offset += 1;
+    }
+    return (
+      offset > 0 &&
+      this.peek(offset - 1).value === 'static' &&
+      this.peek(offset).type === 'name' &&
+      this.is('(', offset + 1)
+    );
+  }
+
+  staticMethodDefinition() {
+    while (modifiers.has(this.peek().value)) {
+      this.next();
+    }
+    const functionName = this.expectName();
+    const parameters = this.parameterList();
+    const returnType = this.accept(':') ? this.typeExpression() : undefined;
+    return node('Function', {
+      name: functionName,
+      parameters,
+      returnType,
+      body: this.block(),
+    });
+  }
+
+  // The arrow function as a function of its own: an expression body
+  // returns its value.
+  arrowFunctionDefinition() {
+    this.next();
+    const functionName = this.expectName();
+    this.expect('=');
+    const parameters = this.is('(')
+      ? this.parameterList()
+      : [{ name: this.expectName(), type: undefined }];
+    const returnType = this.accept(':') ? this.typeExpression() : undefined;
+    this.expect('=>');
+    if (this.is('{')) {
+      const body = this.block();
+      this.accept(';');
+      return node('Function', {
+        name: functionName,
+        parameters,
+        returnType,
+        body,
+      });
+    }
+    const value = this.expression();
+    this.endStatement();
+    return node('Function', {
+      name: functionName,
+      parameters,
+      returnType,
+      body: block([node('Return', { value })]),
+    });
   }
 
   // [modifiers] function-keyword name
@@ -570,7 +677,7 @@ class BaseParser {
       if (
         depth === 0 &&
         (token.type === 'newline' ||
-          ['{', '=', ',', ')', ';'].includes(token.value))
+          ['{', '=', '=>', ',', ')', ';'].includes(token.value))
       ) {
         break;
       }

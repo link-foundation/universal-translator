@@ -58,6 +58,14 @@ name = "equivalence"
 path = "rust/tests/equivalence.rs"
 
 [[test]]
+name = "detect_goldens"
+path = "rust/tests/detect_goldens.rs"
+
+[[test]]
+name = "arrow_functions"
+path = "rust/tests/arrow_functions.rs"
+
+[[test]]
 name = "machine_dialects"
 path = "rust/tests/machine_dialects.rs"
 

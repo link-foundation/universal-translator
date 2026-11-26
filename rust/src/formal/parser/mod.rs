@@ -66,6 +66,7 @@ const CONTROL_WORDS: [&str; 8] = [
 const ASSIGNMENT_SYMBOLS: [&str; 8] = ["=", "+=", "-=", "*=", "/=", "%=", "++", "--"];
 
 mod arrays;
+mod arrows;
 mod loops;
 
 use loops::step_operator;
@@ -91,6 +92,8 @@ pub(crate) struct Parser {
     dialect: &'static dyn ParserDialect,
     /// What a dialect remembers while it reads (see `state`).
     state: Box<dyn Any>,
+    /// How many classes enclose the current item.
+    class_depth: usize,
 }
 
 impl Parser {
@@ -137,6 +140,7 @@ impl Parser {
             levels,
             dialect,
             state: Box::new(()),
+            class_depth: 0,
         }
     }
 
@@ -401,6 +405,12 @@ impl Parser {
         if self.is_function_start() {
             return self.function_definition();
         }
+        if self.is_arrow_function_start() {
+            return self.arrow_function_definition();
+        }
+        if self.is_static_method_start() {
+            return self.static_method_definition();
+        }
         self.statement()
     }
 
@@ -436,7 +446,10 @@ impl Parser {
         let title = self.expect_name()?;
         self.skip_newlines();
         self.expect("{")?;
-        let items = self.items(&|parser| parser.is("}"))?;
+        self.class_depth += 1;
+        let items = self.items(&|parser| parser.is("}"));
+        self.class_depth -= 1;
+        let items = items?;
         self.expect("}")?;
         Ok(Node::new("Class")
             .with("form", form)
@@ -688,7 +701,7 @@ impl Parser {
                 _ => {}
             }
             let stops = token.kind == TokenType::Newline
-                || ["{", "=", ",", ")", ";"].contains(&token.value.as_str());
+                || ["{", "=", "=>", ",", ")", ";"].contains(&token.value.as_str());
             if (depth == 0 && stops) || token.kind == TokenType::End {
                 break;
             }

@@ -39,6 +39,30 @@ function flattenClasses(items) {
   );
 }
 
+// "Program.square" for every function of a class of the program.
+function classFunctionNames(items, owner) {
+  return items.flatMap((item) => {
+    if (item.kind === 'Class') {
+      return classFunctionNames(item.items, item.name);
+    }
+    return owner && item.kind === 'Function' ? [`${owner}.${item.name}`] : [];
+  });
+}
+
+// `Program.square(3)` calls a function of the program. The classes are
+// flattened, so the call names the plain function.
+function unqualifyClassCalls(program, items) {
+  const qualified = new Set(classFunctionNames(items));
+  if (!qualified.size) {
+    return program;
+  }
+  return rewrite(program, (current) =>
+    current.kind === 'Call' && qualified.has(current.callee)
+      ? { ...current, callee: current.callee.split('.').at(-1) }
+      : current
+  );
+}
+
 function isCallTo(statement, functionName) {
   const expression =
     statement.kind === 'Evaluate' ? statement.expression : undefined;
@@ -119,7 +143,10 @@ const isExitSuccess = (statement) =>
 // Collect functions, the entry point and file comments into a Program. The
 // body of `main` becomes the program's main block.
 export function findEntryPoint(source, { from } = {}) {
-  const program = collectItems(flattenClasses(source.items));
+  const program = unqualifyClassCalls(
+    collectItems(flattenClasses(source.items)),
+    source.items
+  );
   const own = from && languageSyntax(from).mainName;
   const entry = program.functions.find(
     (item) => entryNames.has(item.name) || item.name === own

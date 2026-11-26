@@ -571,7 +571,7 @@ fn definitions_start() -> String {
 }
 
 /// The Wikidata definitions shipped with the crate for a language
-/// (data/definitions/wikidata-<language>.lino), if there are any.
+/// (`data/definitions/wikidata-<language>.lino`), if there are any.
 pub fn precached_definitions(language: &str) -> Option<DefinitionCache> {
     let source = match language {
         "english" => include_str!("../../../data/definitions/wikidata-english.lino"),

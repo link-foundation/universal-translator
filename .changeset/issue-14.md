@@ -94,8 +94,13 @@ Detection also finds machine code: NASM, GNU as, ARM64, CIL, JVM bytecode, LLVM 
 
 A word that starts with an underscore (`_`, `_x`, Perl's `@_`) is one word to the natural-language tokenizer. Before this fix such a word was read as an empty word that never moved on, so detecting the language of a Perl program ran out of memory.
 
+### JavaScript arrow functions and static classes
+
+JavaScript and TypeScript functions written as arrow functions (`const add = (a, b) => a + b;`, `const twice = n => { ... };`) are read as named functions; an expression body returns its value, and TypeScript parameter and return types are kept. A class of static methods is read as plain functions, and a call such as `Program.square(3)` calls the function by its own name in every language. Classes of objects need objects in the meta language and are not read yet.
+
 ### Smaller fixes
 
 - `"" + year` in Java and similar languages keeps the type of `year`. The interpolation is text, not the name.
 - The LLVM IR reader matches text constants in linear time.
+- The Rust documentation builds without warnings again (`cargo doc` with `-D warnings`).
 - The web app lists the assembly and intermediate languages in a picker group of their own.
