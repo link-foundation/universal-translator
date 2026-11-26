@@ -16,7 +16,10 @@ const programs = Object.fromEntries(
     ])
 );
 const languages = [
-  ...translator.languages().map((it) => it.id),
+  ...translator
+    .languages()
+    .filter((it) => !it.machine)
+    .map((it) => it.id),
   ...translator.naturalLanguages().map((it) => it.id),
 ];
 let seed = Number(process.env.SEED ?? 1);

@@ -34,6 +34,7 @@ describe('public translation API', () => {
     expect(
       createTranslator()
         .languages()
+        .filter(({ machine }) => !machine)
         .map(({ id }) => id)
     ).toEqual(grammarLanguageIds);
     expect(Object.keys(commonLibrary)).toEqual([
