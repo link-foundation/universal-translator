@@ -1140,6 +1140,13 @@ class BaseParser {
   postfix() {
     let expression = this.primary();
     while (true) {
+      let offset = 0;
+      while (this.peek(offset).type === 'newline') {
+        offset += 1;
+      }
+      if (this.syntax.blocks === 'braces' && this.is('.', offset)) {
+        this.position += offset;
+      }
       if (
         ((this.is('.') && this.syntax.operators.concatenate !== '.') ||
           this.is('::')) &&

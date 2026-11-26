@@ -226,7 +226,7 @@ class BaseEmitter {
       case 'Interpolation':
         return this.interpolation(expression.parts);
       case 'Call':
-        return `${expression.callee}(${expression.arguments.map((argument) => this.expression(argument)).join(', ')})`;
+        return this.call(expression);
       case 'Unary':
         return this.unary(expression, parent);
       case 'Binary':
@@ -236,6 +236,13 @@ class BaseEmitter {
       default:
         throw new Error(`Cannot emit ${expression.kind} as an expression`);
     }
+  }
+
+  call({ callee, arguments: values }) {
+    const member = callee.startsWith('.');
+    const receiver = member ? `${this.expression(values[0], 9)}` : '';
+    const arguments0 = member ? values.slice(1) : values;
+    return `${receiver}${callee}(${arguments0.map((value) => this.expression(value)).join(', ')})`;
   }
 
   number({ value }, parent) {

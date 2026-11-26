@@ -395,16 +395,25 @@ impl Emitter {
                 self.interpolation(&parts)
             }
             "Call" => {
-                let arguments = expression
-                    .nodes("arguments")
+                let callee = expression.str("callee").unwrap_or_default();
+                let values = expression.nodes("arguments");
+                let member = callee.starts_with('.');
+                let receiver = if member {
+                    self.expression_in(
+                        values
+                            .first()
+                            .ok_or_else(|| GrammarError::new("A method call needs a receiver"))?,
+                        9.0,
+                    )?
+                } else {
+                    String::new()
+                };
+                let arguments = values
                     .into_iter()
+                    .skip(usize::from(member))
                     .map(|argument| self.expression(argument))
                     .collect::<Result<Vec<_>>>()?;
-                Ok(format!(
-                    "{}({})",
-                    expression.str("callee").unwrap_or_default(),
-                    arguments.join(", ")
-                ))
+                Ok(format!("{receiver}{callee}({})", arguments.join(", ")))
             }
             "Unary" => self.unary(expression, parent),
             "Binary" => self.binary(expression, parent),

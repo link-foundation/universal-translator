@@ -13,6 +13,30 @@ use universal_translator::translator::{
     Translator, language_ids, machine_target_ids, meaning_difference,
 };
 
+#[test]
+fn member_calls_keep_computed_receivers_and_java_continuations() {
+    let translator = Translator::new();
+    for (source, language, expected) in [
+        (
+            "factory().first(1).second(2);\n",
+            "javascript",
+            "factory().first(1).second(2)\n",
+        ),
+        (
+            "ResponseEntity\n    .status(HttpStatus.CREATED)\n    .body(user);\n",
+            "java",
+            "ResponseEntity.status(HttpStatus.CREATED).body(user)\n",
+        ),
+    ] {
+        assert_eq!(
+            translator
+                .translate(source, language, "python", Mode::default())
+                .unwrap(),
+            expected
+        );
+    }
+}
+
 /// Every task with goldens under `examples/programs/translated`.
 fn tasks() -> Vec<String> {
     let folder = Path::new(env!("CARGO_MANIFEST_DIR")).join("examples/programs/translated");

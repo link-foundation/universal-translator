@@ -1239,6 +1239,13 @@ impl Parser {
     pub(crate) fn postfix(&mut self) -> Parsed {
         let mut expression = self.primary()?;
         loop {
+            let mut offset = 0;
+            while self.kind(offset) == TokenType::Newline {
+                offset += 1;
+            }
+            if self.syntax.blocks == Blocks::Braces && self.is_at(".", offset) {
+                self.position += offset;
+            }
             let member =
                 (self.is(".") && self.syntax.operators.concatenate != Some(".")) || self.is("::");
             if member && self.kind(1) == TokenType::Name {
