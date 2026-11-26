@@ -737,7 +737,11 @@ export function concatenationToInterpolation(program) {
       const parts = [current.left, current.right].flatMap((part) =>
         part.kind === 'Interpolation' ? part.parts : [part]
       );
-      return { ...partsToValue(parts), type: 'text' };
+      const value = partsToValue(parts);
+      // `"" + year` is the text of `year`: the name keeps its own type.
+      return ['Text', 'Interpolation'].includes(value.kind)
+        ? { ...value, type: 'text' }
+        : node('Interpolation', { parts: [value], type: 'text' });
     }
     return current;
   });

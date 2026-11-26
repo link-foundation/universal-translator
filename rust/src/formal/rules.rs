@@ -979,11 +979,18 @@ pub fn concatenation_to_interpolation(program: Node) -> Node {
         if !joins_text {
             return current;
         }
-        parts_to_value(flatten_parts(&[
+        let value = parts_to_value(flatten_parts(&[
             current.node("left"),
             current.node("right"),
-        ]))
-        .with("type", "text")
+        ]));
+        // `"" + year` is the text of `year`: the name keeps its own type.
+        if value.is("Text") || value.is("Interpolation") {
+            value.with("type", "text")
+        } else {
+            Node::new("Interpolation")
+                .with("parts", vec![value])
+                .with("type", "text")
+        }
     })
 }
 
