@@ -43,7 +43,6 @@ describe('identifier language', () => {
         .replaceAll('numbers', 'числа')
         .replaceAll('total', 'итог')
         .replaceAll('index', 'индекс')
-        .replace('числа.length', 'числа.length')
     );
   });
 
