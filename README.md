@@ -7,7 +7,9 @@ TypeScript, Python, Ruby, Lua, PHP, C, C++, C#, Java, Go, Rust, Kotlin,
 Swift, Perl, Dart, Scala, Julia, R, Groovy, Objective-C, Nim, D, Pascal,
 Fortran, Ada, Visual Basic .NET, Bash, MATLAB/Octave, Zig, Lean 4 and Rocq
 (32 languages), and writes any of them. It can also lower a program to x86-64
-assembly (NASM), CIL (ILAsm) or JVM bytecode (Jasmin).
+assembly (NASM or GNU as, AT&T), ARM64 assembly, CIL (ILAsm), JVM bytecode
+(Jasmin), LLVM IR or WebAssembly text. These machine targets appear in
+`languages()` flagged `machine: true`, after the programming languages.
 
 ## Translate a program
 
@@ -102,7 +104,7 @@ Limits:
   as a declaration.
 - In a natural language, a fragment is one or more sentences that match a
   template of the language.
-- Machine targets (NASM, CIL, JVM) hold whole programs only. A statement or
+- Machine targets (NASM, GNU as, ARM64, CIL, JVM, LLVM IR, WebAssembly text) hold whole programs only. A statement or
   function on its own is rejected.
 - Perl and Bash have no booleans, so `true` and `false` come back as 1 and 0.
 - Classes are not part of the meta language yet.
