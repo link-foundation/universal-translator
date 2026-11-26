@@ -52,7 +52,7 @@ function llvmString(body) {
 function llvmTexts(lines) {
   const texts = new Map();
   for (const line of lines) {
-    const match = line.match(/^@(text\.\d+) = .* c"(.*)"$/);
+    const match = line.match(/^@(text\.\d+) = [^"]* c"([^"]*)"$/);
     if (match) {
       texts.set(match[1], llvmString(match[2]));
     }
