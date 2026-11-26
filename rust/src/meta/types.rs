@@ -1,12 +1,13 @@
 //! Type inference for the meta language. Statically typed targets need a
 //! type for every variable, parameter and result; untyped sources do not
 //! write them down, so the types are derived from literals, operators,
-//! declarations and call sites. Meta types: integer, text, boolean, nothing,
-//! and array (a fixed-length array of integers).
+//! declarations and call sites. Meta types: integer, real, text, boolean,
+//! nothing, and array (a fixed-length array of integers). A variable that
+//! is given a real after an integer start is a real variable.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
-use super::tree::{Node, Value, rewrite};
+use super::tree::{Node, Value, rewrite, walk};
 
 type Scope = HashMap<String, String>;
 
@@ -15,6 +16,8 @@ type Scope = HashMap<String, String>;
 struct Signature {
     parameters: Vec<Option<String>>,
     return_type: Option<String>,
+    /// The result type the source writes down.
+    declared: Option<String>,
 }
 
 type Signatures = HashMap<String, Signature>;
@@ -28,12 +31,19 @@ fn is_comparison(operator: &str) -> bool {
 
 fn expression_type(expression: &Node, scope: &Scope, signatures: &Signatures) -> Option<String> {
     match expression.kind.as_str() {
-        "Number" => Some("integer".into()),
+        "Number" => Some(number_type(expression).into()),
         "Text" | "Interpolation" => Some("text".into()),
         "Boolean" => Some("boolean".into()),
         "Name" => scope.get(expression.str("name")?).cloned(),
         "Unary" => Some(if expression.str("operator") == Some("not") {
             "boolean".into()
+        } else if expression
+            .node("operand")
+            .and_then(|operand| expression_type(operand, scope, signatures))
+            .as_deref()
+            == Some("real")
+        {
+            "real".into()
         } else {
             "integer".into()
         }),
@@ -49,8 +59,11 @@ fn expression_type(expression: &Node, scope: &Scope, signatures: &Signatures) ->
             };
             let (left, right) = (side("left"), side("right"));
             let is_text = |value: &Option<String>| value.as_deref() == Some("text");
+            let is_real = |value: &Option<String>| value.as_deref() == Some("real");
             if operator == "add" && (is_text(&left) || is_text(&right)) {
                 Some("text".into())
+            } else if operator == "realDivide" || is_real(&left) || is_real(&right) {
+                Some("real".into())
             } else {
                 Some("integer".into())
             }
@@ -64,13 +77,86 @@ fn expression_type(expression: &Node, scope: &Scope, signatures: &Signatures) ->
     }
 }
 
+fn number_type(expression: &Node) -> &'static str {
+    let value = expression.number("value").unwrap_or(0.0);
+    if expression.str("type") == Some("real") || value.fract() != 0.0 {
+        "real"
+    } else {
+        "integer"
+    }
+}
+
+/// A division with a real operand is a true division (C's `7.0 / 2`).
 fn annotate(expression: Node, scope: &Scope, signatures: &Signatures) -> Node {
     rewrite(expression, |current| {
         match expression_type(&current, scope, signatures) {
-            Some(kind) => current.with("type", kind),
+            Some(kind) => {
+                let divides = current.is("Binary") && current.str("operator") == Some("divide");
+                let real = kind == "real";
+                let typed = current.with("type", kind);
+                if divides && real {
+                    typed.with("operator", "realDivide")
+                } else {
+                    typed
+                }
+            }
             None => current,
         }
     })
+}
+
+/// An integer literal stored in a real variable is a real literal (0 is 0.0).
+fn stored(statement: &mut Node, kind: Option<&str>) {
+    let literal = statement
+        .node("value")
+        .is_some_and(|value| value.is("Number") && value.str("type") == Some("integer"));
+    if kind == Some("real")
+        && literal
+        && let Some(Value::Node(value)) = statement.fields.remove("value")
+    {
+        statement.set("value", value.with("type", "real"));
+    }
+}
+
+/// The variables whose type the source writes down.
+fn declared_names(body: &Node) -> HashSet<String> {
+    let mut names = HashSet::new();
+    walk(body, |current| {
+        if current.is("Declaration")
+            && known(current.str("type")).is_some()
+            && let Some(name) = current.str("name")
+        {
+            names.insert(name.to_owned());
+        }
+    });
+    names
+}
+
+/// The result type of a function: the declared one, otherwise the type of
+/// its returned values, a real where one of them is real.
+fn return_type(signature: &Signature, returns: Vec<String>) -> Option<String> {
+    if signature.declared.is_some() {
+        return signature.declared.clone();
+    }
+    let values: Vec<String> = returns
+        .into_iter()
+        .filter(|kind| kind != "nothing")
+        .collect();
+    if values.iter().any(|kind| kind == "real") {
+        return Some("real".into());
+    }
+    signature
+        .return_type
+        .clone()
+        .or_else(|| values.into_iter().next())
+}
+
+/// The variables of a function (or of main) that are given a real, and the
+/// ones whose type the source writes down.
+#[derive(Default)]
+struct Reals {
+    given: HashSet<String>,
+    declared: HashSet<String>,
 }
 
 fn known(kind: Option<&str>) -> Option<String> {
@@ -81,6 +167,7 @@ fn known(kind: Option<&str>) -> Option<String> {
 struct Context<'a> {
     signatures: &'a Signatures,
     returns: &'a mut Vec<String>,
+    reals: &'a mut Reals,
 }
 
 impl Context<'_> {
@@ -119,12 +206,34 @@ impl Context<'_> {
                             .map(str::to_owned)
                     })
                     .unwrap_or_else(|| "integer".into());
-                if let Some(name) = statement.str("name") {
-                    scope.insert(name.to_owned(), kind.clone());
+                let name = statement.str("name").unwrap_or_default().to_owned();
+                let kind = if kind == "integer"
+                    && self.reals.given.contains(&name)
+                    && !self.reals.declared.contains(&name)
+                {
+                    "real".into()
+                } else {
+                    kind
+                };
+                stored(&mut statement, Some(&kind));
+                if statement.str("name").is_some() {
+                    scope.insert(name, kind.clone());
                 }
                 statement.with("type", kind)
             }
-            "Assignment" | "Print" => {
+            "Assignment" => {
+                self.typed(&mut statement, "value", scope);
+                let name = statement.str("name").unwrap_or_default().to_owned();
+                let real = statement
+                    .node("value")
+                    .is_some_and(|value| value.str("type") == Some("real"));
+                if real && scope.get(&name).map(String::as_str) == Some("integer") {
+                    self.reals.given.insert(name.clone());
+                }
+                stored(&mut statement, scope.get(&name).map(String::as_str));
+                statement
+            }
+            "Print" => {
                 self.typed(&mut statement, "value", scope);
                 statement
             }
@@ -275,10 +384,33 @@ pub fn infer_types(program: Node) -> Node {
                     .map(|parameter| known(parameter.str("type")))
                     .collect(),
                 return_type: known(item.str("returnType")),
+                declared: known(item.str("returnType")),
             };
             (item.str("name").unwrap_or_default().to_owned(), signature)
         })
         .collect();
+    // The variables of each function that are given a real.
+    let mut reals: HashMap<String, Reals> = program
+        .nodes("functions")
+        .iter()
+        .map(|item| {
+            let body = item
+                .node("body")
+                .cloned()
+                .unwrap_or_else(|| Node::new("Block"));
+            (
+                format!("function {}", item.str("name").unwrap_or_default()),
+                Reals {
+                    given: HashSet::new(),
+                    declared: declared_names(&body),
+                },
+            )
+        })
+        .collect();
+    let mut main_reals = Reals {
+        given: HashSet::new(),
+        declared: program.node("main").map(declared_names).unwrap_or_default(),
+    };
     let mut current = program;
     // Recursive functions need a few rounds before every type settles.
     for _ in 0..4 {
@@ -305,15 +437,15 @@ pub fn infer_types(program: Node) -> Node {
                 .node("body")
                 .cloned()
                 .unwrap_or_else(|| Node::new("Block"));
+            let owner = reals.entry(format!("function {name}")).or_default();
             let body = Context {
                 signatures: &signatures,
                 returns: &mut returns,
+                reals: owner,
             }
             .block(body, &scope);
-            if let Some(signature) = signatures.get_mut(&name)
-                && signature.return_type.is_none()
-            {
-                signature.return_type = returns.into_iter().find(|kind| kind != "nothing");
+            if let Some(signature) = signatures.get_mut(&name) {
+                signature.return_type = return_type(signature, returns);
             }
             functions.push(item.with("body", body));
         }
@@ -325,6 +457,7 @@ pub fn infer_types(program: Node) -> Node {
         let main = Context {
             signatures: &signatures,
             returns: &mut ignored,
+            reals: &mut main_reals,
         }
         .block(main, &Scope::new());
         current.set("functions", functions);

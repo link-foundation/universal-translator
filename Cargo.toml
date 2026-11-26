@@ -96,3 +96,7 @@ path = "rust/tests/meta_library.rs"
 [[test]]
 name = "nesting"
 path = "rust/tests/nesting.rs"
+
+[[test]]
+name = "real_numbers"
+path = "rust/tests/real_numbers.rs"

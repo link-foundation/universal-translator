@@ -446,8 +446,8 @@ fn declaration(e: &mut Emitter, statement: &Node) -> Result<String> {
         statement.str("type").unwrap_or("integer")
     };
     let initial = match value {
-        Some(value) => e.expression(value)?,
-        None => e.expression(&default_value(kind))?,
+        Some(value) => e.initial_value(value, kind)?,
+        None => e.initial_value(&default_value(kind), kind)?,
     };
     let changes =
         statement.flag("mutable") == Some(true) || statement.flag("elementsAssigned") == Some(true);

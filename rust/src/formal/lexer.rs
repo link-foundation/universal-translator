@@ -641,9 +641,5 @@ fn exponent(rest: &[char]) -> usize {
         .iter()
         .take_while(|c| c.is_ascii_digit())
         .count();
-    if digits == 0 {
-        0
-    } else {
-        1 + sign + digits
-    }
+    if digits == 0 { 0 } else { 1 + sign + digits }
 }

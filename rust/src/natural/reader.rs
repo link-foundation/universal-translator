@@ -367,6 +367,7 @@ impl<'a> SentenceReader<'a> {
 
     fn atom(&self, token: &Token) -> Option<Node> {
         match token.kind {
+            Kind::Number if token.real => Some(number(token.number).with("type", "real")),
             Kind::Number => Some(number(token.number)),
             Kind::Text => Some(Node::new("Text").with("value", token.value.clone())),
             Kind::Word => {

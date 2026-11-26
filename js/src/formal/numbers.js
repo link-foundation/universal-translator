@@ -123,8 +123,11 @@ export const isReal = (expression) =>
   expression?.type === 'real' ||
   (expression?.kind === 'Number' && !Number.isInteger(expression.value));
 
+// A number the writer adds, such as the 0 of `let t;`, has no type yet.
 const isInteger = (expression) =>
-  expression.type === 'integer' && !isReal(expression);
+  !isReal(expression) &&
+  (expression.type === 'integer' ||
+    (expression.kind === 'Number' && expression.type === undefined));
 
 // The integer operand as a real: a literal becomes a real literal, another
 // expression is converted.

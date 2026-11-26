@@ -791,7 +791,9 @@ impl EmitterDialect for Rocq {
         let left = field(expression, "left")?;
         let right = field(expression, "right")?;
         match operator {
-            "divide" => return call(e, "Z.quot", &[left, right], parent),
+            // Rocq programs compute with integers only, so true division
+            // truncates too.
+            "divide" | "realDivide" => return call(e, "Z.quot", &[left, right], parent),
             "remainder" => return call(e, "Z.rem", &[left, right], parent),
             "and" | "or" => return logical(e, expression, parent),
             "notEqual" => {

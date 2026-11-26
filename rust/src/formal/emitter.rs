@@ -9,6 +9,7 @@ use super::dialects::{EmitterDialect, emitter_dialect};
 use super::languages::{
     Blocks, EntryPoint, ForwardDeclarations, IntegerDivision, Syntax, language_syntax,
 };
+use super::numbers::{rust_type, with_real_operands};
 use crate::meta::GrammarError;
 use crate::meta::{Node, add, block, format_number, later_calls, layout, number, text};
 
@@ -21,7 +22,7 @@ pub(crate) fn precedence(operator: &str) -> f64 {
         "equal" | "notEqual" => 3.0,
         "less" | "lessOrEqual" | "greater" | "greaterOrEqual" => 4.0,
         "add" | "subtract" => 5.0,
-        "multiply" | "divide" | "remainder" => 6.0,
+        "multiply" | "divide" | "realDivide" | "remainder" => 6.0,
         _ => f64::NAN,
     }
 }
@@ -31,7 +32,7 @@ pub(crate) fn symbol(operator: &str) -> &str {
         "add" => "+",
         "subtract" => "-",
         "multiply" => "*",
-        "divide" => "/",
+        "divide" | "realDivide" => "/",
         "remainder" => "%",
         "less" => "<",
         "lessOrEqual" => "<=",
@@ -48,7 +49,7 @@ pub(crate) fn compound_operator(operator: &str) -> Option<&'static str> {
         "add" => Some("+="),
         "subtract" => Some("-="),
         "multiply" => Some("*="),
-        "divide" => Some("/="),
+        "divide" | "realDivide" => Some("/="),
         "remainder" => Some("%="),
         _ => None,
     }
@@ -274,6 +275,9 @@ impl Emitter {
         let Some(types) = self.syntax.types else {
             return String::new();
         };
+        if let Some(real) = self.real_type_name(meta) {
+            return real;
+        }
         match meta {
             "text" => types.text,
             "boolean" => types.boolean,
@@ -354,7 +358,10 @@ impl Emitter {
     }
 
     pub(crate) fn base_expression_in(&mut self, expression: &Node, parent: f64) -> Result<String> {
-        if let Some(written) = self.array_expression(expression, parent) {
+        if let Some(written) = self
+            .array_expression(expression, parent)
+            .or_else(|| self.real_expression(expression, parent))
+        {
             return written;
         }
         match expression.kind.as_str() {
@@ -412,6 +419,8 @@ impl Emitter {
     }
 
     pub(crate) fn base_binary(&mut self, expression: &Node, parent: f64) -> Result<String> {
+        let converted = with_real_operands(expression, &self.syntax);
+        let expression = converted.as_ref().unwrap_or(expression);
         let operator = expression.str("operator").unwrap_or_default();
         let level = precedence(operator);
         let left_node = field(expression, "left")?;
@@ -650,6 +659,7 @@ impl Emitter {
             } else {
                 format.push_str(match part.str("type") {
                     Some("text") => "%s",
+                    Some("real") => "%g",
                     Some("boolean") if self.id() == "go" => "%t",
                     _ => "%d",
                 });
@@ -1003,12 +1013,12 @@ impl Emitter {
     }
 
     pub(crate) fn base_declaration(&mut self, statement: &Node) -> Result<String> {
-        let initial = match statement.node("value") {
-            Some(value) => self.expression(value)?,
-            None => self.expression(&number(0.0))?,
-        };
         let name = statement.str("name").unwrap_or_default();
         let kind = statement.str("type").unwrap_or_default();
+        let initial = match statement.node("value") {
+            Some(value) => self.initial_value(value, kind)?,
+            None => self.initial_value(&number(0.0), kind)?,
+        };
         let mutable = statement.flag("mutable").unwrap_or(false);
         Ok(match self.id() {
             "javascript" | "typescript" => {
@@ -1024,7 +1034,7 @@ impl Emitter {
             "rust" => format!(
                 "let {}{name}{} = {initial};",
                 if mutable { "mut " } else { "" },
-                if kind == "integer" { ": i64" } else { "" }
+                rust_type(kind)
             ),
             "kotlin" => format!(
                 "{} {name} = {initial}{}",
@@ -1063,13 +1073,11 @@ impl Emitter {
     pub(crate) fn base_assignment(&mut self, statement: &Node) -> Result<String> {
         let identifier = statement.str("name").unwrap_or_default();
         let target = self.variable(identifier);
-        let value = field(statement, "value")?;
+        let original = field(statement, "value")?;
+        let converted = with_real_operands(original, &self.syntax);
+        let value = converted.as_ref().unwrap_or(original);
         let compound = value.str("operator").and_then(compound_operator);
-        // Languages that spell integer division as a call or a wrapper, or with
-        // an operator of its own, would lose the truncation with `/=`.
-        let plain_division = value.str("operator") != Some("divide")
-            || (self.syntax.integer_division.is_none()
-                && self.syntax.operators.integer_divide.is_none());
+        let plain_division = self.plain_division(value);
         if let Some(compound) = compound
             && plain_division
             && self.syntax.compound_assignment
