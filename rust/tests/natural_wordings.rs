@@ -1,4 +1,4 @@
-//! Everyday English wordings of algorithm sentences ("Let n be 0",
+//! Everyday English and Russian wordings of algorithm sentences ("Let n be 0",
 //! "Print n", "While ..., do this") read like the canonical ones. The
 //! JavaScript twin is js/tests/natural-wordings.test.js.
 
@@ -81,5 +81,47 @@ fn keeps_a_sentence_without_its_full_stop_a_statement() {
     assert_eq!(
         to("Print 7\nPrint 8\n", "english", "python"),
         "print(7)\nprint(8)\n"
+    );
+}
+
+#[test]
+fn reads_english_increase_add_to_decrease_and_subtract_from() {
+    let source = "Let n be 0.\nIncrease n by 1.\nAdd 2 to n.\nDecrease n by 1.\nSubtract 1 from n.\nPrint n.\n";
+    assert_eq!(
+        to(source, "english", "javascript"),
+        "let n = 0;\nn += 1;\nn += 2;\nn -= 1;\nn -= 1;\nconsole.log(n);\n"
+    );
+    assert_eq!(
+        to("Let n be 0.\nIncrease n by 1.\n", "english", "english"),
+        "Create n with value 0.\nChange n to n plus 1.\n"
+    );
+}
+
+const RUSSIAN_EVERYDAY: &str = "Пусть n равно 0.\nПока n меньше 3, сделать это:\n  Установить n в n + 1.\nНапечатать n.\nУвеличить n на 2.\nУменьшить n на 1.\nВывести n.\nДля каждого i от 1 до 3, сделать это:\n  Показать i.\n";
+
+#[test]
+fn reads_everyday_russian_wordings() {
+    assert_eq!(
+        to(RUSSIAN_EVERYDAY, "russian", "python"),
+        "n = 0\nwhile n < 3:\n    n += 1\nprint(n)\nn += 2\nn -= 1\nprint(n)\nfor i in range(1, 4):\n    print(i)\n"
+    );
+    let cases = [
+        ("Пусть n будет 5.\n", "n = 5"),
+        ("Пусть n равно 0.\nПрисвоить n значение 4.\n", "n = 4"),
+        ("Вывести 7.\n", "print(7)"),
+        ("вывести 7\n", "print(7)"),
+    ];
+    for (source, expected) in cases {
+        let output = to(source, "russian", "python");
+        assert!(output.contains(expected), "{source} -> {output}");
+    }
+}
+
+#[test]
+fn detects_everyday_russian_as_russian_that_reads() {
+    let detected = universal_translator::Translator::new().detect_language(RUSSIAN_EVERYDAY, 5);
+    assert_eq!(
+        (detected[0].id.as_str(), detected[0].reads),
+        ("russian", true)
     );
 }

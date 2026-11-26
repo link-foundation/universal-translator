@@ -361,8 +361,15 @@ pub const TEMPLATE_KEYS: [&str; 38] = [
 ];
 
 /// Templates a language may leave out: a loop over an array is then written
-/// as the counting loop it lowers to.
-pub const OPTIONAL_TEMPLATE_KEYS: [&str; 1] = ["for-each"];
+/// as the counting loop it lowers to, and increase and decrease (everyday
+/// wordings of an assignment that adds to or subtracts from the variable)
+/// are written as the assignment.
+pub const OPTIONAL_TEMPLATE_KEYS: [&str; 3] = ["for-each", "increase", "decrease"];
+
+/// Everyday wordings a profile with its own rules does not inherit: a
+/// controlled standard keeps to its vocabulary, and the assignment still
+/// says what they say.
+const EVERYDAY_TEMPLATE_KEYS: [&str; 2] = ["increase", "decrease"];
 
 const SCALAR_FIELDS: [&str; 16] = [
     "id",
@@ -573,7 +580,7 @@ fn resolve(
     Ok(Description {
         scalars,
         quotes: description.quotes.clone().or(base.quotes.clone()),
-        templates: base.templates.merged(&description.templates),
+        templates: inherited_templates(&base, description),
         words: base.words.merged(&description.words),
         rules: description.rules.clone(),
         base: Some(
@@ -582,6 +589,16 @@ fn resolve(
                 .unwrap_or_else(|| base.scalars.get("id").cloned().unwrap_or_default()),
         ),
     })
+}
+
+fn inherited_templates(base: &Description, description: &Description) -> Ordered<Vec<String>> {
+    let mut templates = base.templates.clone();
+    if !description.rules.entries.is_empty() {
+        templates
+            .entries
+            .retain(|(key, _)| !EVERYDAY_TEMPLATE_KEYS.contains(&key.as_str()));
+    }
+    templates.merged(&description.templates)
 }
 
 /// Templates become token lists once, with slot tokens for the holes.

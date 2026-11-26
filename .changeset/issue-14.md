@@ -78,6 +78,10 @@ English reads everyday wordings of algorithm sentences (`Let n be 0`, `Set n to 
 
 Arithmetic may be written with symbols (`Set n to n + 1`, `2 * 3 + 1`, `n % 4`) in every natural language that already accepts `<` and `=`. A heading written without its colon (`while n is less than 3, do this`) opens a block when the lines after it are indented deeper.
 
+### Everyday Russian wordings, increase and decrease
+
+Russian reads everyday wordings too (`Пусть n равно 0`, `Пусть n будет 0`, `Установить n в 1`, `Присвоить n значение 1`, `Напечатать n`, `Вывести n`, `Показать n`, `Пока …, сделать это`, `Для каждого i от 1 до 3, сделать это`), and English and Russian read `Increase n by 1`, `Add 1 to n`, `Decrease n by 1`, `Subtract 1 from n`, `Увеличить n на 1` and `Уменьшить n на 1` as the assignment `n = n + 1` or `n = n - 1`. Controlled standards do not inherit these wordings, so they keep to their vocabulary.
+
 ### Machine dialects
 
 List the machine targets (NASM, CIL, JVM) in `languages()` with `machine: true`, and add GNU as (AT&T) x86-64, ARM64 assembly, LLVM IR and WebAssembly text as machine targets that are written and read back in both the JavaScript and Rust translators.

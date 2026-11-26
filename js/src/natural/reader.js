@@ -364,6 +364,8 @@ const statementKeys = [
   'set-element',
   'declare',
   'assign',
+  'increase',
+  'decrease',
   'return-value',
   'return',
   'nothing',
@@ -391,6 +393,17 @@ function statementFromSentence({ key, slots }) {
         name: slots.name,
         operator: '=',
         value: slots.value,
+      });
+    case 'increase':
+    case 'decrease':
+      return node('Assignment', {
+        name: slots.name,
+        operator: '=',
+        value: node('Binary', {
+          operator: key === 'increase' ? 'add' : 'subtract',
+          left: name(slots.name),
+          right: slots.value,
+        }),
       });
     case 'set-element':
       return node('IndexAssignment', {

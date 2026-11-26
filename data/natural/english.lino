@@ -16,6 +16,8 @@ natural:
     function-without-parameters: 'Define {name}'
     declare: 'Create {name} with value {value}' 'Let {name} be {value}'
     assign: 'Change {name} to {value}' 'Set {name} to {value}'
+    increase: 'Increase {name} by {value}' 'Add {value} to {name}'
+    decrease: 'Decrease {name} by {value}' 'Subtract {value} from {name}'
     print-line: 'Write {value} and end the line' 'Print {value}' 'Display {value}' 'Show {value}'
     print: 'Write {value}'
     return-value: 'Give back {value}' 'Return {value}'

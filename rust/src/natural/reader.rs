@@ -17,7 +17,7 @@ use super::catalog::{Language, natural_language};
 use super::levels::{Associativity, LEVELS, level_index, operator_of_template};
 use super::tokens::{Kind, Token};
 use crate::meta::for_each::raise_for_each;
-use crate::meta::{Node, Value, add, block, name, number};
+use crate::meta::{Node, Value, add, binary, block, name, number};
 
 const NAME_SLOTS: [&str; 3] = ["name", "variable", "callee"];
 /// Slots the writer fills with a primary expression (parenthesized unless it
@@ -25,12 +25,14 @@ const NAME_SLOTS: [&str; 3] = ["name", "variable", "callee"];
 const PRIMARY_SLOTS: [&str; 4] = ["index", "array", "length", "fill"];
 const ARRAY_KEYS: [&str; 4] = ["array", "new-array", "element", "length"];
 
-const STATEMENT_KEYS: [&str; 9] = [
+const STATEMENT_KEYS: [&str; 11] = [
     "print-line",
     "print",
     "set-element",
     "declare",
     "assign",
+    "increase",
+    "decrease",
     "return-value",
     "return",
     "nothing",
@@ -522,6 +524,18 @@ fn statement_from_sentence(key: &str, mut slots: Captured) -> Option<Node> {
             .with("name", name_slot(&mut slots, "name"))
             .with("operator", "=")
             .with_opt("value", expression_slot(&mut slots, "value")),
+        "increase" | "decrease" => {
+            let variable = name_slot(&mut slots, "name");
+            let operator = if key == "increase" { "add" } else { "subtract" };
+            Node::new("Assignment")
+                .with("name", variable.clone())
+                .with("operator", "=")
+                .with_opt(
+                    "value",
+                    expression_slot(&mut slots, "value")
+                        .map(|amount| binary(operator, name(variable), amount)),
+                )
+        }
         "set-element" => Node::new("IndexAssignment")
             .with("name", name_slot(&mut slots, "name"))
             .with_opt("index", expression_slot(&mut slots, "index"))

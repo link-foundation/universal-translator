@@ -54,8 +54,25 @@ export const templateKeys = [
 ];
 
 // Templates a language may leave out: a loop over an array is then written
-// as the counting loop it lowers to.
-export const optionalTemplateKeys = ['for-each'];
+// as the counting loop it lowers to, and increase and decrease (everyday
+// wordings of an assignment that adds to or subtracts from the variable) are
+// written as the assignment.
+export const optionalTemplateKeys = ['for-each', 'increase', 'decrease'];
+
+// Everyday wordings a profile with its own rules does not inherit: a
+// controlled standard keeps to its vocabulary, and the assignment still says
+// what they say.
+const everydayTemplateKeys = ['increase', 'decrease'];
+
+function inheritedTemplates(base, description) {
+  const templates = { ...base.templates };
+  if (Object.keys(description.rules ?? {}).length > 0) {
+    for (const key of everydayTemplateKeys) {
+      delete templates[key];
+    }
+  }
+  return { ...templates, ...description.templates };
+}
 
 const scalarFields = [
   'id',
@@ -150,7 +167,7 @@ function resolve(descriptions, id, seen = new Set()) {
   return {
     ...base,
     ...description,
-    templates: { ...base.templates, ...description.templates },
+    templates: inheritedTemplates(base, description),
     words: { ...base.words, ...description.words },
     rules: description.rules,
     base: base.base ?? base.id,

@@ -1,10 +1,10 @@
-// Everyday English wordings of algorithm sentences ("Let n be 0",
+// Everyday English and Russian wordings of algorithm sentences ("Let n be 0",
 // "Print n", "While ..., do this") read like the canonical ones. Translation
 // writes the canonical wording, the first template of each key. The Rust twin
 // is rust/tests/natural_wordings.rs.
 import { describe, expect, it } from 'test-anywhere';
 
-import { translate } from '../src/index.js';
+import { detectLanguage, translate } from '../src/index.js';
 
 const everyday =
   'Let n be 0.\nWhile n is less than 3, do this:\n  Set n to n plus 1.\nPrint n.\n';
@@ -75,5 +75,70 @@ describe('symbols and unmarked headings in English', () => {
     expect(translate('Print 7\nPrint 8\n', 'english', 'python')).toBe(
       'print(7)\nprint(8)\n'
     );
+  });
+});
+
+describe('increasing and decreasing a variable', () => {
+  it('reads English increase, add to, decrease and subtract from', () => {
+    const source =
+      'Let n be 0.\nIncrease n by 1.\nAdd 2 to n.\nDecrease n by 1.\nSubtract 1 from n.\nPrint n.\n';
+    expect(translate(source, 'english', 'javascript')).toBe(
+      'let n = 0;\nn += 1;\nn += 2;\nn -= 1;\nn -= 1;\nconsole.log(n);\n'
+    );
+  });
+
+  it('is written back as the canonical assignment', () => {
+    expect(
+      translate('Let n be 0.\nIncrease n by 1.\n', 'english', 'english')
+    ).toBe('Create n with value 0.\nChange n to n plus 1.\n');
+  });
+});
+
+describe('everyday Russian wordings', () => {
+  const everyday = [
+    'Пусть n равно 0.',
+    'Пока n меньше 3, сделать это:',
+    '  Установить n в n + 1.',
+    'Напечатать n.',
+    'Увеличить n на 2.',
+    'Уменьшить n на 1.',
+    'Вывести n.',
+    'Для каждого i от 1 до 3, сделать это:',
+    '  Показать i.',
+    '',
+  ].join('\n');
+
+  it('read like the canonical sentences', () => {
+    expect(translate(everyday, 'russian', 'python')).toBe(
+      [
+        'n = 0',
+        'while n < 3:',
+        '    n += 1',
+        'print(n)',
+        'n += 2',
+        'n -= 1',
+        'print(n)',
+        'for i in range(1, 4):',
+        '    print(i)',
+        '',
+      ].join('\n')
+    );
+  });
+
+  it('read each statement', () => {
+    const cases = [
+      ['Пусть n будет 5.\n', 'n = 5'],
+      ['Пусть n равно 0.\nПрисвоить n значение 4.\n', 'n = 4'],
+      ['Вывести 7.\n', 'print(7)'],
+      ['вывести 7\n', 'print(7)'],
+    ];
+    for (const [source, expected] of cases) {
+      expect(translate(source, 'russian', 'python')).toContain(expected);
+    }
+  });
+
+  it('are detected as Russian that reads', () => {
+    const [first] = detectLanguage(everyday);
+    expect([first.id, first.reads]).toEqual(['russian', true]);
   });
 });
