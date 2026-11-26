@@ -173,7 +173,7 @@ fn join_replies(statements: Vec<Node>) -> Vec<Node> {
         values.current = None;
         match restored.node("expression") {
             Some(call) if restored.is("Evaluate") && call.is("Call") => {
-                values.current = Some(call.clone());
+                values.current = Some(crate::source_origins::inherit(call.clone(), &restored));
             }
             _ => joined.push(restored),
         }

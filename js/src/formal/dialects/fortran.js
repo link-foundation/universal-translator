@@ -1,6 +1,7 @@
 // Fortran (free form, Fortran 2018): a main program whose variables are
 // declared before its statements, and procedures after `contains`.
 
+import { renderLines } from '../../translation/emission-map.js';
 import { add, block, node, number, text as textNode } from '../../meta/tree.js';
 import { SyntaxError } from '../lexer.js';
 import { commentNode, declaredVariables, keywordParser } from './shared.js';
@@ -604,7 +605,7 @@ const emitter = (Base) =>
       }
       this.depth -= 1;
       this.line('end program main');
-      return `${this.lines.join('\n')}\n`;
+      return renderLines(this, this.lines);
     }
   };
 

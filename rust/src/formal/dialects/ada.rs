@@ -577,7 +577,7 @@ impl EmitterDialect for Ada {
         let mut all = std::mem::take(&mut e.lines);
         all.extend(announced);
         all.extend(body);
-        Ok(format!("{}\n", all.join("\n")))
+        Ok(all.render(e.syntax.id))
     }
 }
 

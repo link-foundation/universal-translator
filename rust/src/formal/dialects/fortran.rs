@@ -690,7 +690,7 @@ impl EmitterDialect for Fortran {
         }
         e.depth -= 1;
         e.line("end program main");
-        Ok(format!("{}\n", e.lines.join("\n")))
+        Ok(e.lines.render(e.syntax.id))
     }
 }
 

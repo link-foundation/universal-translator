@@ -15,3 +15,5 @@ Preserve Java method and parameter annotations, named and nested generic types, 
 Parse try/throw/catch boundaries, retain typed C++ exception values when emitting Python or JavaScript, preserve nested rethrows and finally blocks, and carry program return values to the process exit status.
 
 Retain lossless concrete tokens, trivia and grammar production ranges by default when parsing formal languages, using UTF-8 byte offsets in JavaScript and Rust.
+
+Carry semantic source locations through transformations and emitters so expanded Bash calls and translated natural-language sentences retain many-to-many line mappings.

@@ -461,6 +461,7 @@ pub fn expand_array_fills(mut program: Node, settings: &Settings) -> Node {
                     .with("start", number(0.0))
                     .with("end", end)
                     .with("body", block(vec![store]));
+                let loop_ = crate::source_origins::inherit(loop_, &statement);
                 statements.push(statement.with("value", value));
                 statements.push(loop_);
             }

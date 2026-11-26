@@ -5,6 +5,7 @@
 
 import { languageSyntax } from './languages.js';
 import { freshName, usedNames } from '../meta/for-each.js';
+import { mapOrigins, inheritOrigin } from '../translation/source-origins.js';
 import {
   block,
   essence,
@@ -475,14 +476,17 @@ export function expandArrayFills(program, { to, target = to }) {
             }),
           ]),
         });
-        return [declaration, loop];
+        return [
+          inheritOrigin(declaration, statement),
+          inheritOrigin(loop, statement),
+        ];
       });
       return { ...current, statements };
     });
   };
   return {
     ...program,
-    functions: program.functions.map((item) => ({
+    functions: mapOrigins(program.functions, (item) => ({
       ...item,
       body: expand(item.body, item.parameters),
     })),

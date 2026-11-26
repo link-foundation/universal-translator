@@ -4,9 +4,6 @@
 //! interpret. The parser never decides what a program means.
 
 use std::any::Any;
-use std::sync::OnceLock;
-
-use regex::Regex;
 
 use super::dialects::shared::comment_node;
 use super::dialects::{ParserDialect, parser_dialect, rocq_comparison};
@@ -74,6 +71,9 @@ mod concrete;
 mod exceptions;
 mod forms;
 mod loops;
+mod types;
+
+pub use types::source_type;
 
 use loops::step_operator;
 
@@ -82,8 +82,9 @@ pub(crate) type Parsed<T = Node> = Result<T, GrammarError>;
 /// Parse a whole source text into a `SourceProgram` tree.
 pub fn parse_program(source: &str, syntax: &Syntax) -> Parsed {
     let tokens = tokenize(source, syntax)?;
-    let mut parser = Parser::new(tokens.clone(), syntax.clone());
-    let tree = parser.program()?;
+    let mut parser = Parser::new(tokens.clone(), syntax.clone()).with_source(source);
+    let mut tree = parser.program()?;
+    crate::source_origins::register_origins(&mut tree);
     let concrete =
         crate::concrete_syntax::concrete_syntax(source, syntax.id, &tokens, parser.productions);
     Ok(tree.with("syntax", concrete))
@@ -106,6 +107,7 @@ pub(crate) struct Parser {
     /// How many classes enclose the current item.
     class_depth: usize,
     productions: Vec<Node>,
+    source: Option<crate::source_origins::SourceLocator>,
 }
 
 impl Parser {
@@ -157,6 +159,7 @@ impl Parser {
             state: Box::new(()),
             class_depth: 0,
             productions: Vec::new(),
+            source: None,
         }
     }
 
@@ -1442,59 +1445,4 @@ pub fn number_literal(written: &str) -> Node {
     } else {
         literal
     }
-}
-
-/// Map a source type spelling to a meta type: integer, text, boolean,
-/// nothing, `source:<spelling>` for other types, or `None` when the source
-/// leaves the type to inference.
-pub fn source_type(spelling: &str) -> Option<String> {
-    static QUALIFIERS: OnceLock<Regex> = OnceLock::new();
-    let qualifiers = QUALIFIERS.get_or_init(|| {
-        Regex::new(r"\b(const|static|unsigned|signed|mut)\b").expect("valid pattern")
-    });
-    let stripped = qualifiers.replace_all(spelling, "");
-    let words = stripped.split_whitespace().collect::<Vec<_>>().join(" ");
-    let meta = match words.as_str() {
-        "int" | "long" | "short" | "i8" | "i16" | "i32" | "i64" | "isize" | "u8" | "u16"
-        | "u32" | "u64" | "usize" | "Int" | "Long" | "number" | "integer" => "integer",
-        "string" | "String" | "&'static str" => "text",
-        _ if is_spaced_variant(&words) => "text",
-        _ if array_pattern().is_match(&words) => "array",
-        "double" | "float" | "f32" | "f64" | "float32" | "float64" | "Double" | "Float"
-        | "Float64" | "Long_Float" | "real" | "Real" => "real",
-        "bool" | "boolean" | "Bool" | "Boolean" => "boolean",
-        "void" | "()" | "Unit" | "Void" => "nothing",
-        "" | "var" | "auto" => return None,
-        _ => return Some(format!("source:{words}")),
-    };
-    Some(meta.to_owned())
-}
-
-/// The spellings of an array of integers: `int[]`, `std::vector<int>`,
-/// `Vec<i64>`, `IntArray`, `[]int`, `[Int]`, `List<Long>`, `Array[Long]`,
-/// `seq[int]` and `[n]i64`.
-fn array_pattern() -> &'static Regex {
-    static ARRAY: OnceLock<Regex> = OnceLock::new();
-    ARRAY.get_or_init(|| {
-        Regex::new(
-            r"^((int|long|Long|number|i64) ?\[ ?\]|std ?:: ?vector ?< ?int ?>|Vec ?< ?i64 ?>|IntArray|\[ ?\] ?int|\[ ?Int ?\]|List ?< ?(int|Long) ?>|Array ?\[ ?Long ?\]|seq ?\[ ?int ?\]|\[ ?(\d+ ?)?\] ?i64)$",
-        )
-        .expect("valid pattern")
-    })
-}
-
-/// Whether `words` spells `char *`, `std::string` or `&str` with at most one
-/// space at each place the type pattern allows one.
-fn is_spaced_variant(words: &str) -> bool {
-    [
-        "char*",
-        "char *",
-        "std::string",
-        "std ::string",
-        "std:: string",
-        "std :: string",
-        "&str",
-        "& str",
-    ]
-    .contains(&words)
 }

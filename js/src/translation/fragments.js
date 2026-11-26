@@ -19,6 +19,7 @@ import { declaredVariables } from '../formal/dialects/shared.js';
 import { languageSyntax } from '../formal/languages.js';
 import { machineTargetIds } from '../formal/machine.js';
 import { isNaturalLanguage } from '../natural/catalog.js';
+import { remapOrigins } from './source-origins.js';
 
 export const fragmentKinds = ['program', 'functions', 'statements'];
 
@@ -411,7 +412,7 @@ export function createFragmentTranslator({ toMeta, adapt, write, emit }) {
         if (result.fragment) {
           return {
             kind: kind === 'functions' ? kind : 'statements',
-            program: result.fragment,
+            program: remapOrigins(result.fragment, source, wrapped.origins),
           };
         }
         failure = { message: result.problem, line: 0 };

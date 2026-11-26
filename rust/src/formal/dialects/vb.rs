@@ -471,7 +471,7 @@ impl EmitterDialect for VisualBasic {
         e.line("End Sub");
         e.depth = 0;
         e.line("End Module");
-        Ok(format!("{}\n", e.lines.join("\n")))
+        Ok(e.lines.render(e.syntax.id))
     }
 }
 

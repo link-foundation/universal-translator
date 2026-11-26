@@ -470,7 +470,7 @@ impl EmitterDialect for Matlab {
             e.comment(&comment);
         }
         e.body(field(program, "main")?)?;
-        Ok(format!("{}\n", e.lines.join("\n")))
+        Ok(e.lines.render(e.syntax.id))
     }
 }
 

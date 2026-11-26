@@ -12,6 +12,7 @@ import { naturalLanguage } from './catalog.js';
 import { tokenize } from './tokens.js';
 import { levelIndex, levels, operatorOfTemplate } from './levels.js';
 import { normalize, slotCase } from './agreement.js';
+import { withOrigin } from '../translation/source-origins.js';
 
 const nameSlots = new Set(['name', 'variable', 'callee']);
 // Slots the writer fills with a primary expression (parenthesized unless
@@ -523,12 +524,19 @@ class ProgramReader {
       }
       this.position += 1;
       if (line.note !== undefined) {
-        statements.push(node('Comment', { text: line.note }));
+        statements.push(
+          withOrigin(node('Comment', { text: line.note }), {
+            source: this.source,
+            lines: [line.index],
+          })
+        );
         continue;
       }
       const statement = this.statement(line, depth, statements);
       if (statement) {
-        statements.push(statement);
+        statements.push(
+          withOrigin(statement, { source: this.source, lines: [line.index] })
+        );
       }
     }
     return block(statements);
@@ -582,14 +590,17 @@ class ProgramReader {
     if (open.otherwise) {
       this.fail(line, 'A condition has two otherwise branches');
     }
-    open.otherwise =
+    open.otherwise = withOrigin(
       key === 'else-if'
         ? node('If', { condition: slots.condition, then: body })
-        : body;
+        : body,
+      { source: this.source, lines: [line.index] }
+    );
     return undefined;
   }
 
   read(source) {
+    this.source = source;
     this.lines = readLines(source, this.language);
     this.position = 0;
     const program = node('Program', {
@@ -637,14 +648,17 @@ class ProgramReader {
       this.position += 1;
       const body = this.block(1);
       return {
-        function: node('Function', {
-          name: heading.slots.name,
-          parameters: (heading.slots.parameters ?? []).map((parameter) => ({
-            name: parameter,
-          })),
-          body,
-          comments: notes,
-        }),
+        function: withOrigin(
+          node('Function', {
+            name: heading.slots.name,
+            parameters: (heading.slots.parameters ?? []).map((parameter) => ({
+              name: parameter,
+            })),
+            body,
+            comments: notes,
+          }),
+          { source: this.source, lines: [line.index] }
+        ),
       };
     }
     const statements = this.block(0).statements;
@@ -675,7 +689,15 @@ export function readNatural(source, id, language = naturalLanguage(id)) {
         comments: [],
         imports: [],
         functions: [],
-        main: block([node('Evaluate', { expression })]),
+        main: block([
+          withOrigin(node('Evaluate', { expression }), {
+            source,
+            lines: [
+              source.slice(0, source.indexOf(source.trim())).split('\n')
+                .length - 1,
+            ],
+          }),
+        ]),
       });
     }
   }

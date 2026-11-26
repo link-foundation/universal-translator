@@ -16,6 +16,11 @@ import {
 import { lowerForEach } from '../meta/for-each.js';
 import { layout, subtract, number } from '../meta/tree.js';
 import { agree, slotCase } from './agreement.js';
+import {
+  mappedEmitter,
+  mappedLine,
+  renderLines,
+} from '../translation/emission-map.js';
 
 const indentUnit = '  ';
 
@@ -226,14 +231,16 @@ class Writer {
     const { language } = this;
     const text = renderTokens(fill(language, key, slots), language);
     const end = opensBlock ? language.blockEnd : language.sentenceEnd;
-    this.lines.push(`${indentUnit.repeat(depth)}${capitalize(text)}${end}`);
+    this.lines.push(
+      mappedLine(this, `${indentUnit.repeat(depth)}${capitalize(text)}${end}`)
+    );
   }
 
   // A comment of several lines becomes one note per line.
   note(depth, text) {
     for (const part of text.split('\n')) {
       const line = this.language.note.replace('{text}', part.trim());
-      this.lines.push(`${indentUnit.repeat(depth)}${line}`);
+      this.lines.push(mappedLine(this, `${indentUnit.repeat(depth)}${line}`));
     }
   }
 
@@ -413,12 +420,14 @@ class Writer {
       (program.mainComments ?? []).forEach((text) => this.note(0, text));
       layout(main).forEach((statement) => this.statement(statement, 0));
     }
-    return `${this.lines.join('\n')}\n`;
+    return renderLines(this, this.lines);
   }
 }
 
 export function writeNatural(program, id) {
   const language = naturalLanguage(id);
   const sentence = language.compiled['for-each'].length > 0;
-  return new Writer(language).program(lowerForEach(program, () => sentence));
+  return mappedEmitter(new Writer(language)).program(
+    lowerForEach(program, () => sentence)
+  );
 }

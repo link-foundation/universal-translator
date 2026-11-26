@@ -44,6 +44,8 @@
 // notEqual, less, lessOrEqual, greater, greaterOrEqual, and, or.
 // Unary operators: negate, not.
 
+import { inheritOrigin } from '../translation/source-origins.js';
+
 export const node = (kind, fields = {}) => ({ kind, ...fields });
 
 export const block = (statements = []) => node('Block', { statements });
@@ -128,7 +130,8 @@ export function rewrite(tree, visit) {
     copy[key] =
       value && typeof value === 'object' ? rewrite(value, visit) : value;
   }
-  return visit(copy);
+  inheritOrigin(copy, tree);
+  return inheritOrigin(visit(copy), tree);
 }
 
 // Visit every node without changing the tree.

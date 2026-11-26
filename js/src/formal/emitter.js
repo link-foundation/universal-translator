@@ -19,6 +19,11 @@ import { writePower } from './power.js';
 import { namedType, withTypeMetadata } from './type-metadata.js';
 import { withExceptions } from './exceptions.js';
 import {
+  mappedEmitter,
+  mappedLine,
+  renderLines,
+} from '../translation/emission-map.js';
+import {
   isReal,
   realValue,
   slashIsReal,
@@ -144,7 +149,9 @@ class BaseEmitter {
   }
 
   line(content = '') {
-    this.lines.push(content ? this.unit.repeat(this.depth) + content : '');
+    this.lines.push(
+      mappedLine(this, content ? this.unit.repeat(this.depth) + content : '')
+    );
   }
 
   terminator() {
@@ -468,7 +475,11 @@ class BaseEmitter {
     const lines = commentLines(this.syntax, this.id, text, { block });
     const last = this.lines.length - 1;
     if (trailing && lines.length === 1 && this.lines[last]) {
-      this.lines[last] += `${trailing}${lines[0]}`;
+      this.lines[last] = mappedLine(
+        this,
+        `${this.lines[last]}${trailing}${lines[0]}`,
+        this.lines[last]
+      );
       return;
     }
     for (const line of lines) {
@@ -895,7 +906,11 @@ class BaseEmitter {
     if (program.comments.length) {
       this.line();
     }
-    return `${[...this.lines, ...this.prelude(program), ...body].join('\n')}\n`;
+    return renderLines(this, [
+      ...this.lines,
+      ...this.prelude(program),
+      ...body,
+    ]);
   }
 
   // The top-level statements, in a main procedure where the language has one.
@@ -986,7 +1001,9 @@ const Emitter = withExceptions(
 
 export function emitProgram(program, languageId) {
   const LanguageEmitter = emitterFor(languageId);
-  return new LanguageEmitter(languageSyntax(languageId)).program(program);
+  return mappedEmitter(new LanguageEmitter(languageSyntax(languageId))).program(
+    program
+  );
 }
 
 // Languages with a program layout of their own (Fortran, Pascal, Ada,

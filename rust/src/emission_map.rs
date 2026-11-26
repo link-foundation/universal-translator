@@ -1,0 +1,285 @@
+//! Scoped source provenance for internal emitter lines.
+
+use std::cell::RefCell;
+use std::collections::{BTreeMap, BTreeSet};
+use std::ops::{Deref, DerefMut};
+use std::sync::Arc;
+
+use crate::meta::Node;
+use crate::source_origins::{SourceOrigin, expression_origins};
+
+type Origins = Vec<Arc<SourceOrigin>>;
+
+#[derive(Default)]
+struct Context {
+    emissions: Vec<Emission>,
+    active: Origins,
+}
+
+thread_local! { static CONTEXTS: RefCell<Vec<Context>> = const { RefCell::new(Vec::new()) }; }
+
+pub(crate) struct Emission {
+    language: String,
+    text: String,
+    mapped: Vec<(usize, Arc<SourceOrigin>)>,
+}
+
+struct Capture(bool);
+
+impl Drop for Capture {
+    fn drop(&mut self) {
+        if self.0 {
+            CONTEXTS.with_borrow_mut(|contexts| {
+                contexts.pop();
+            });
+        }
+    }
+}
+
+pub(crate) fn capture<T>(translate: impl FnOnce() -> T) -> (T, Vec<Emission>) {
+    CONTEXTS.with_borrow_mut(|contexts| contexts.push(Context::default()));
+    let mut guard = Capture(true);
+    let result = translate();
+    let emissions =
+        CONTEXTS.with_borrow_mut(|contexts| contexts.pop().expect("capture context").emissions);
+    guard.0 = false;
+    (result, emissions)
+}
+
+pub(crate) struct Active(Option<Origins>);
+
+impl Drop for Active {
+    fn drop(&mut self) {
+        if let Some(previous) = self.0.take() {
+            CONTEXTS.with_borrow_mut(|contexts| {
+                if let Some(context) = contexts.last_mut() {
+                    context.active = previous;
+                }
+            });
+        }
+    }
+}
+
+pub(crate) fn active(node: &Node) -> Active {
+    Active(CONTEXTS.with_borrow_mut(|contexts| {
+        let context = contexts.last_mut()?;
+        let origins = expression_origins(node);
+        (!origins.is_empty()).then(|| std::mem::replace(&mut context.active, origins))
+    }))
+}
+
+fn current() -> Origins {
+    CONTEXTS.with_borrow(|contexts| {
+        contexts
+            .last()
+            .map(|context| context.active.clone())
+            .unwrap_or_default()
+    })
+}
+
+pub(crate) struct SourceLine(String, Origins);
+
+impl From<String> for SourceLine {
+    fn from(text: String) -> Self {
+        Self(text, Vec::new())
+    }
+}
+
+#[derive(Default)]
+pub(crate) struct SourceLines {
+    text: Vec<String>,
+    origins: Vec<Origins>,
+}
+
+impl Deref for SourceLines {
+    type Target = [String];
+    fn deref(&self) -> &Self::Target {
+        &self.text
+    }
+}
+
+impl DerefMut for SourceLines {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.text
+    }
+}
+
+impl IntoIterator for SourceLines {
+    type Item = SourceLine;
+    type IntoIter = std::vec::IntoIter<SourceLine>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.text
+            .into_iter()
+            .zip(self.origins)
+            .map(|(text, origins)| SourceLine(text, origins))
+            .collect::<Vec<_>>()
+            .into_iter()
+    }
+}
+
+impl SourceLines {
+    pub(crate) fn push(&mut self, text: String) {
+        self.origins.push(if text.is_empty() {
+            Vec::new()
+        } else {
+            current()
+        });
+        self.text.push(text);
+    }
+
+    pub(crate) fn insert(&mut self, index: usize, text: String) {
+        self.origins.insert(
+            index,
+            if text.is_empty() {
+                Vec::new()
+            } else {
+                current()
+            },
+        );
+        self.text.insert(index, text);
+    }
+
+    pub(crate) fn pop(&mut self) -> Option<String> {
+        self.origins.pop();
+        self.text.pop()
+    }
+
+    pub(crate) fn extend<I, T>(&mut self, lines: I)
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<SourceLine>,
+    {
+        for line in lines {
+            let SourceLine(text, origins) = line.into();
+            self.text.push(text);
+            self.origins.push(origins);
+        }
+    }
+
+    pub(crate) fn append_origin(&mut self) {
+        if let Some(origins) = self.origins.last_mut() {
+            origins.extend(current());
+        }
+    }
+
+    pub(crate) fn render(&self, language: &str) -> String {
+        let text = format!("{}\n", self.text.join("\n"));
+        CONTEXTS.with_borrow_mut(|contexts| {
+            if let Some(context) = contexts.last_mut() {
+                let mapped: Vec<_> = self
+                    .origins
+                    .iter()
+                    .enumerate()
+                    .flat_map(|(line, origins)| {
+                        origins.iter().map(move |origin| (line, origin.clone()))
+                    })
+                    .collect();
+                if !mapped.is_empty() {
+                    context.emissions.push(Emission {
+                        language: language.into(),
+                        text: text.clone(),
+                        mapped,
+                    });
+                }
+            }
+        });
+        text
+    }
+}
+
+pub(crate) fn emitted_map(
+    emissions: &[Emission],
+    source: &str,
+    target: &str,
+    language: &str,
+) -> Vec<(usize, usize)> {
+    let Some(emission) = emissions
+        .iter()
+        .rev()
+        .find(|item| item.language == language)
+    else {
+        return Vec::new();
+    };
+    let lines = if emission.text == target {
+        emission
+            .text
+            .split('\n')
+            .enumerate()
+            .map(|(line, _)| (line, line))
+            .collect()
+    } else {
+        let marks = if crate::natural::is_natural_language(language) {
+            crate::layout::Marks::default()
+        } else if let Ok(syntax) = crate::formal::languages::language_syntax(language) {
+            crate::layout::Marks::of(&syntax)
+        } else {
+            return Vec::new();
+        };
+        crate::layout::transfer_layout(&emission.text, target, &marks, &marks, false, language)
+            .lines
+    };
+    let mut positions: BTreeMap<usize, BTreeSet<usize>> = BTreeMap::new();
+    for (before, after) in lines {
+        positions.entry(before).or_default().insert(after);
+    }
+    let mut result = BTreeSet::new();
+    for (line, origin) in &emission.mapped {
+        if origin.source.as_ref() != source {
+            continue;
+        }
+        for from in &origin.lines {
+            for to in positions.get(line).into_iter().flatten() {
+                result.insert((*from, *to));
+            }
+        }
+    }
+    result.into_iter().collect()
+}
+
+pub(crate) fn merge(
+    semantic: Vec<(usize, usize)>,
+    lexical: Vec<(usize, usize)>,
+) -> Vec<(usize, usize)> {
+    let targets: BTreeSet<_> = semantic.iter().map(|(_, target)| *target).collect();
+    let mut result = semantic;
+    result.extend(
+        lexical
+            .into_iter()
+            .filter(|(_, target)| !targets.contains(target)),
+    );
+    result.sort_unstable();
+    result
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn capture_context_is_restored_after_panics_and_nested_translations() {
+        assert!(std::panic::catch_unwind(|| capture(|| panic!("capture probe"))).is_err());
+        let translator = crate::Translator::new();
+        let (result, emissions) = capture(|| {
+            translator
+                .translate_partial(
+                    "console.log(9);\n",
+                    "javascript",
+                    "python",
+                    crate::Options::default(),
+                    false,
+                )
+                .unwrap();
+            translator
+                .translate_partial(
+                    "console.log(8);\n",
+                    "javascript",
+                    "russian",
+                    crate::Options::default(),
+                    false,
+                )
+                .unwrap()
+        });
+        assert!(emissions.is_empty());
+        assert_eq!(result.line_map, vec![(0, 0)]);
+    }
+}

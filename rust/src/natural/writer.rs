@@ -328,7 +328,7 @@ fn capitalize(sentence: &str) -> String {
 
 struct Writer<'a> {
     language: &'a Language,
-    lines: Vec<String>,
+    lines: crate::emission_map::SourceLines,
 }
 
 impl Writer<'_> {
@@ -386,6 +386,7 @@ impl Writer<'_> {
     }
 
     fn conditional(&mut self, statement: &Node, depth: usize, key: &str) -> Result<(), String> {
+        let _origin = crate::emission_map::active(statement);
         let condition = self.expression(statement.node("condition"))?;
         self.sentence(depth, key, &Slots::from([("condition", condition)]), true)?;
         self.block(statement.node("then"), depth + 1)?;
@@ -400,6 +401,7 @@ impl Writer<'_> {
     }
 
     fn statement(&mut self, statement: &Node, depth: usize) -> Result<(), String> {
+        let _origin = crate::emission_map::active(statement);
         match statement.kind.as_str() {
             "Comment" => {
                 self.note(depth, statement.str("text").unwrap_or_default());
@@ -513,6 +515,7 @@ impl Writer<'_> {
     }
 
     fn function(&mut self, item: &Node) -> Result<(), String> {
+        let _origin = crate::emission_map::active(item);
         for text in item.texts("comments") {
             self.note(0, &text);
         }
@@ -567,7 +570,7 @@ impl Writer<'_> {
                 self.statement(statement, 0)?;
             }
         }
-        Ok(format!("{}\n", self.lines.join("\n")))
+        Ok(self.lines.render(&self.language.id))
     }
 }
 
@@ -577,7 +580,7 @@ pub fn write_natural(program: &Node, id: &str) -> Result<String, String> {
     let sentence = !language.variants("for-each").is_empty();
     Writer {
         language,
-        lines: Vec::new(),
+        lines: Default::default(),
     }
     .program(&lower_for_each(program.clone(), &|_| sentence))
 }

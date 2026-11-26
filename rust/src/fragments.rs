@@ -542,7 +542,8 @@ pub fn parse_fragment(
         });
         let failure = match read {
             Ok((meta, empty)) => match unwrap(&meta, &empty, wrapping) {
-                Ok(fragment) => {
+                Ok(mut fragment) => {
+                    crate::source_origins::remap_origins(&mut fragment, source, &wrapped.origins);
                     return Ok(Fragment {
                         kind: if wrapping == Wrapping::Functions {
                             FragmentKind::Functions

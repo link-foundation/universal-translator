@@ -17,6 +17,7 @@ import {
   concreteParser,
   concreteSyntax,
 } from '../translation/concrete-syntax.js';
+import { registerOrigins } from '../translation/source-origins.js';
 
 const binaryLevels = [
   { or: ['||', 'or'] },
@@ -65,9 +66,11 @@ export function parseProgram(source, syntax) {
   const LanguageParser = parserFor(syntax);
   const tokens = tokenize(source, syntax);
   const { parser, locations } = concreteParser(
-    new LanguageParser(tokens, syntax)
+    new LanguageParser(tokens, syntax),
+    source
   );
   const tree = parser.program();
+  registerOrigins(tree, locations, source);
   return {
     ...tree,
     syntax: concreteSyntax(source, syntax.id, tokens, tree, locations),

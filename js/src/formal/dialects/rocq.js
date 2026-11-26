@@ -12,6 +12,7 @@
 // result of a function that returns one, and a procedure is the action
 // itself. The last command evaluates `run main`, which Rocq prints.
 
+import { mappedLine } from '../../translation/emission-map.js';
 import { laterCalls, name, node } from '../../meta/tree.js';
 import {
   blankNode,
@@ -503,7 +504,12 @@ const statementEmitter = (Base) =>
 
     // Adds text to the last line written.
     append(text) {
-      this.lines[this.lines.length - 1] += text;
+      const last = this.lines.length - 1;
+      this.lines[last] = mappedLine(
+        this,
+        `${this.lines[last]}${text}`,
+        this.lines[last]
+      );
     }
 
     // The statements of a block, one level deeper, and the state it hands

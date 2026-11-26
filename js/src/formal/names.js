@@ -4,6 +4,7 @@
 // spells such words. Names the program does not declare (library procedures)
 // are left exactly as written.
 
+import { mapOrigins } from '../translation/source-origins.js';
 import { rewrite } from '../meta/tree.js';
 
 // "greatestCommonDivisor", "greatest_common_divisor" and
@@ -98,7 +99,7 @@ export function renameDeclared(program, rename) {
   });
   return {
     ...renamed,
-    functions: renamed.functions.map((item) => ({
+    functions: mapOrigins(renamed.functions, (item) => ({
       ...item,
       name: change(item.name),
       parameters: item.parameters.map((parameter) => ({

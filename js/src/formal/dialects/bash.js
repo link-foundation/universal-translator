@@ -7,6 +7,8 @@
 import { add, block, node, number, text } from '../../meta/tree.js';
 import { SyntaxError, tokenize } from '../lexer.js';
 import { keywordParser } from './shared.js';
+import { inheritOrigin } from '../../translation/source-origins.js';
+import { mappedLine } from '../../translation/emission-map.js';
 
 // Inside double quotes a backslash only escapes these characters.
 const quotedEscapes = '$"\\`';
@@ -102,7 +104,7 @@ export function joinReplies(statements) {
       continue;
     }
     values.used = false;
-    const restored = { ...statement };
+    const restored = inheritOrigin({ ...statement }, statement);
     for (const field of valueFields) {
       if (statement[field]?.kind) {
         restored[field] = restore(statement[field], values);
@@ -667,7 +669,12 @@ const statementEmitter = (Base) =>
       }
       const lifted = this.lift(value);
       if (lifted === this.pending) {
-        this.lines[this.lines.length - 1] += '; return';
+        const last = this.lines.length - 1;
+        this.lines[last] = mappedLine(
+          this,
+          `${this.lines[last]}; return`,
+          this.lines[last]
+        );
         return undefined;
       }
       return this.line(`${reply}=${this.word(lifted, true)}; return`);

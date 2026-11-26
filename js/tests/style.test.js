@@ -38,19 +38,27 @@ describe('brace placement and indent width', () => {
         '    }',
       ].join('\n')
     );
-    const lines = text.split('\n');
-    const sources = sign.split('\n');
-    expect(
-      lineMap.map(([source, target]) => [sources[source], lines[target]])
-    ).toEqual([
-      ['function sign(a) {', '    static int Sign(int a)'],
-      ['  if (a > 0) {', '        if (a > 0)'],
-      ['    return 1;', '            return 1;'],
-      ['  } else {', '        }'],
-      ['    return 0;', '            return 0;'],
-      ['  }', '        }'],
-      ['}', '    }'],
-    ]);
+    // A structural region owns its delimiters. Splitting its header and brace
+    // retains both lines, while each nested return keeps its separate origin.
+    const regions = [
+      [
+        [0, 6],
+        [2, 3, 12],
+      ],
+      [
+        [1, 3, 5],
+        [4, 5, 7, 8, 9, 11],
+      ],
+      [[2], [6]],
+      [[4], [10]],
+    ];
+    expect(lineMap).toEqual(
+      regions
+        .flatMap(([sources, targets]) =>
+          sources.flatMap((source) => targets.map((target) => [source, target]))
+        )
+        .sort(([a, b], [c, d]) => a - c || b - d)
+    );
   });
 
   it('indents JavaScript by two spaces and Rust by a tab', () => {

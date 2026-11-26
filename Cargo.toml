@@ -180,3 +180,7 @@ path = "rust/tests/ranking.rs"
 [[test]]
 name = "real_numbers"
 path = "rust/tests/real_numbers.rs"
+
+[[test]]
+name = "semantic_mapping"
+path = "rust/tests/semantic_mapping.rs"

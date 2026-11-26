@@ -42,25 +42,23 @@ fn puts_each_opening_brace_of_csharp_on_a_line_of_its_own() {
             .join("\n")
         )
     );
-    let lines: Vec<&str> = translation.text.split('\n').collect();
-    let sources: Vec<&str> = SIGN.split('\n').collect();
-    let mapped: Vec<(&str, &str)> = translation
-        .line_map
+    // Structural delimiters share their region; nested returns stay separate.
+    let regions: &[(&[usize], &[usize])] = &[
+        (&[0, 6], &[2, 3, 12]),
+        (&[1, 3, 5], &[4, 5, 7, 8, 9, 11]),
+        (&[2], &[6]),
+        (&[4], &[10]),
+    ];
+    let mut expected: Vec<_> = regions
         .iter()
-        .map(|&(source, target)| (sources[source], lines[target]))
+        .flat_map(|(sources, targets)| {
+            sources
+                .iter()
+                .flat_map(|source| targets.iter().map(move |target| (*source, *target)))
+        })
         .collect();
-    assert_eq!(
-        mapped,
-        vec![
-            ("function sign(a) {", "    static int Sign(int a)"),
-            ("  if (a > 0) {", "        if (a > 0)"),
-            ("    return 1;", "            return 1;"),
-            ("  } else {", "        }"),
-            ("    return 0;", "            return 0;"),
-            ("  }", "        }"),
-            ("}", "    }"),
-        ]
-    );
+    expected.sort_unstable();
+    assert_eq!(translation.line_map, expected);
 }
 
 #[test]

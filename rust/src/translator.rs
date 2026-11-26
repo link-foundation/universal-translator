@@ -613,34 +613,42 @@ impl Translator {
         options: Options,
         fragment: bool,
     ) -> Result<PartialTranslation, GrammarError> {
-        let machine = machine_target_ids().contains(&to)
-            || (!natural::is_natural_language(from) && languages::language_syntax(from)?.machine);
-        let whole = if fragment {
-            fragments::translate_fragment(self, source, from, to, options)
-        } else {
-            self.translate_plain(source, from, to, options)
-        };
-        let result = match whole {
-            Ok(text) => {
-                let lines = source
-                    .split('\n')
-                    .filter(|line| !line.trim().is_empty())
-                    .count();
-                PartialTranslation {
-                    text,
-                    line_map: Vec::new(),
-                    complete: true,
-                    errors: Vec::new(),
-                    lines,
-                    read_lines: lines,
-                    coverage: 1.0,
-                    prose: Vec::new(),
+        let (result, emissions) = crate::emission_map::capture(|| {
+            let machine = machine_target_ids().contains(&to)
+                || (!natural::is_natural_language(from)
+                    && languages::language_syntax(from)?.machine);
+            let whole = if fragment {
+                fragments::translate_fragment(self, source, from, to, options)
+            } else {
+                self.translate_plain(source, from, to, options)
+            };
+            let result = match whole {
+                Ok(text) => {
+                    let lines = source
+                        .split('\n')
+                        .filter(|line| !line.trim().is_empty())
+                        .count();
+                    PartialTranslation {
+                        text,
+                        line_map: Vec::new(),
+                        complete: true,
+                        errors: Vec::new(),
+                        lines,
+                        read_lines: lines,
+                        coverage: 1.0,
+                        prose: Vec::new(),
+                    }
                 }
-            }
-            Err(error) if machine => return Err(error),
-            Err(_) => crate::partial::translate_partial(self, source, from, to, options)?,
-        };
-        with_layout(result, source, from, to, options)
+                Err(error) if machine => return Err(error),
+                Err(_) => crate::partial::translate_partial(self, source, from, to, options)?,
+            };
+            with_layout(result, source, from, to, options)
+        });
+        let mut result = result?;
+        let semantic =
+            crate::emission_map::emitted_map(&emissions, source, &result.text, split_version(to).0);
+        result.line_map = crate::emission_map::merge(semantic, result.line_map);
+        Ok(result)
     }
 
     /// Rank the languages a text may be written in, likeliest first, and

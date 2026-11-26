@@ -1,6 +1,7 @@
 // Ada (GNAT): a main procedure whose declarative part holds the
 // subprograms and variables, and whose statements follow begin.
 
+import { renderLines } from '../../translation/emission-map.js';
 import {
   add,
   block,
@@ -581,7 +582,7 @@ const emitter = (Base) =>
         this.line();
       }
       this.prelude(program);
-      return `${[...this.lines, ...announced, ...body].join('\n')}\n`;
+      return renderLines(this, [...this.lines, ...announced, ...body]);
     }
 
     announcements(functions) {

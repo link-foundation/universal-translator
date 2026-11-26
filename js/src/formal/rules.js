@@ -29,6 +29,7 @@ import {
   recognizeArrays,
 } from './arrays.js';
 import { expandForEach, raiseForEach } from './for-each.js';
+import { inheritOrigin, mapOrigins } from '../translation/source-origins.js';
 
 // ---------------------------------------------------------------------------
 // Understanding layer
@@ -124,10 +125,15 @@ function collectItems(items) {
       program.comments.push(...texts(pending));
       program.imports.push(item.text);
     } else if (item.kind === 'Function') {
-      program.functions.push({
-        ...item,
-        comments: texts(pending),
-      });
+      program.functions.push(
+        inheritOrigin(
+          {
+            ...item,
+            comments: texts(pending),
+          },
+          item
+        )
+      );
     } else {
       program.main.statements.push(...pending, item);
     }
@@ -479,7 +485,7 @@ export function declareOnFirstAssignment(program) {
     const read = new Set();
     const visitBlock = (current) => ({
       ...current,
-      statements: current.statements.map(visitStatement),
+      statements: mapOrigins(current.statements, visitStatement),
     });
     const visitStatement = (statement) => {
       if (statement.kind === 'If') {
@@ -534,7 +540,7 @@ export function declareOnFirstAssignment(program) {
   };
   return {
     ...program,
-    functions: program.functions.map((item) => ({
+    functions: mapOrigins(program.functions, (item) => ({
       ...item,
       body: declareIn(
         item.body,
@@ -655,7 +661,7 @@ export function concatenationOperator(program, { from } = {}) {
 export function dropParameterCopies(program) {
   return {
     ...program,
-    functions: program.functions.map((item) => {
+    functions: mapOrigins(program.functions, (item) => {
       const statements = [...item.body.statements];
       let parameters = item.parameters;
       const copiedParameter = (statement) =>
@@ -889,7 +895,10 @@ export function adaptComments(program, { from, to, mode }) {
       ...stripped,
       comments: [],
       mainComments: [],
-      functions: stripped.functions.map((item) => ({ ...item, comments: [] })),
+      functions: mapOrigins(stripped.functions, (item) => ({
+        ...item,
+        comments: [],
+      })),
     };
   }
   if (mode === 'literal' || from === to) {
@@ -909,7 +918,7 @@ export function mapComments(program, change) {
     ...adapted,
     comments: (adapted.comments ?? []).map(change),
     mainComments: (adapted.mainComments ?? []).map(change),
-    functions: adapted.functions.map((item) => ({
+    functions: mapOrigins(adapted.functions, (item) => ({
       ...item,
       comments: (item.comments ?? []).map(change),
     })),
@@ -944,7 +953,7 @@ export function copyReassignedParameters(program, { to }) {
   }
   return {
     ...program,
-    functions: program.functions.map((item) => {
+    functions: mapOrigins(program.functions, (item) => {
       const assigned = new Set();
       rewrite(item.body, (current) => {
         if (current.kind === 'Assignment') {

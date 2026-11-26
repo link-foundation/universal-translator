@@ -59,10 +59,17 @@ pub enum Value {
 }
 
 /// A meta tree node: its kind and its fields.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct Node {
     pub kind: String,
     pub fields: BTreeMap<String, Value>,
+    pub(crate) origin: Option<std::sync::Arc<crate::source_origins::SourceOrigin>>,
+}
+
+impl PartialEq for Node {
+    fn eq(&self, other: &Self) -> bool {
+        self.kind == other.kind && self.fields == other.fields
+    }
 }
 
 impl From<Node> for Value {
@@ -135,6 +142,7 @@ impl Node {
         Node {
             kind: kind.to_owned(),
             fields: BTreeMap::new(),
+            origin: None,
         }
     }
 
@@ -352,7 +360,13 @@ where
             tree.fields.insert(key, value);
         }
     }
-    visit(tree)
+    let origin = tree.origin.clone();
+    visit(tree).map(|mut changed| {
+        if changed.origin.is_none() {
+            changed.origin = origin;
+        }
+        changed
+    })
 }
 
 /// Visit every node of a tree, children first, replacing each node with the

@@ -1,5 +1,6 @@
 // A concrete tree owns every source byte. Grammar productions are views over
 // its token stream; semantic nodes can change without changing that record.
+import { sourceLocator, withOrigin } from './source-origins.js';
 
 function byteOffsets(source) {
   const offsets = new Uint32Array(source.length + 1);
@@ -17,7 +18,8 @@ function byteOffsets(source) {
 
 // Observe the grammar's existing methods, including dialect overrides. Only
 // nodes reachable from the accepted parse become productions in the CST.
-export function concreteParser(parser) {
+export function concreteParser(parser, source) {
+  const locate = sourceLocator(source);
   const locations = new WeakMap();
   const methods = new Map();
   const proxy = new Proxy(parser, {
@@ -40,6 +42,7 @@ export function concreteParser(parser) {
                 start: first.rawSpan[0],
                 end: last.rawSpan[1],
               });
+              withOrigin(result, locate(first.rawSpan[0], last.rawSpan[1]));
             }
           }
           return result;

@@ -6,6 +6,7 @@
 // is given a real after an integer start is a real variable.
 
 import { rewrite, walk } from './tree.js';
+import { inheritOrigin } from '../translation/source-origins.js';
 
 const comparisons = new Set([
   'equal',
@@ -98,7 +99,7 @@ function typeBlock(body, scope, signatures, returns) {
   const statements = body.statements.map((statement) =>
     typeStatement(statement, local, signatures, returns)
   );
-  return { ...body, statements };
+  return inheritOrigin({ ...body, statements }, body);
 }
 
 // An integer literal stored in a real variable is a real literal (0 is 0.0).
@@ -247,15 +248,18 @@ function typeStatement(statement, scope, signatures, returns) {
   if (!typer) {
     return statement;
   }
-  return typer(statement, {
-    scope,
-    reals: scope.reals,
-    signatures,
-    returns,
-    typed: (expression) =>
-      expression && annotate(expression, scope, signatures),
-    block: (body) => typeBlock(body, scope, signatures, returns),
-  });
+  return inheritOrigin(
+    typer(statement, {
+      scope,
+      reals: scope.reals,
+      signatures,
+      returns,
+      typed: (expression) =>
+        expression && annotate(expression, scope, signatures),
+      block: (body) => typeBlock(body, scope, signatures, returns),
+    }),
+    statement
+  );
 }
 
 function known(type) {
@@ -340,7 +344,7 @@ export function inferTypes(program) {
       const returns = [];
       const body = typeBlock(item.body, scope, signatures, returns);
       signature.returnType = returnType(signature, returns);
-      return { ...item, body };
+      return inheritOrigin({ ...item, body }, item);
     });
     const top = new Map();
     top.reals = reals('main', current.main);
@@ -358,14 +362,17 @@ export function inferTypes(program) {
     ...current,
     functions: current.functions.map((item) => {
       const signature = signatures.get(item.name);
-      return {
-        ...item,
-        returnType: signature.returnType ?? 'nothing',
-        parameters: item.parameters.map((parameter, index) => ({
-          ...parameter,
-          type: signature.parameters[index] ?? 'integer',
-        })),
-      };
+      return inheritOrigin(
+        {
+          ...item,
+          returnType: signature.returnType ?? 'nothing',
+          parameters: item.parameters.map((parameter, index) => ({
+            ...parameter,
+            type: signature.parameters[index] ?? 'integer',
+          })),
+        },
+        item
+      );
     }),
   };
 }

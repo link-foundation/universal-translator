@@ -53,6 +53,11 @@ import { compileCustomRules } from './translation/custom-rules.js';
 import { transferLayout } from './translation/layout.js';
 import { applyStyle, checkStyle, hasStyle } from './translation/style.js';
 import { specialize } from './meta/library.js';
+import {
+  captureEmission,
+  emittedMap,
+  mergeLineMaps,
+} from './translation/emission-map.js';
 import { markImprecision } from './meta/imprecision.js';
 import { unnest } from './translation/nesting.js';
 import { decorateStages, mergeDecorators } from './translation/decorators.js';
@@ -285,8 +290,21 @@ function partialTranslator(translate, fragments, partial) {
       throw new Error(`Unsupported layout "${options.layout}"`);
     }
     checkStyle(options);
-    const result = readAll(source, from, to, options);
-    return withLayout(result, source, from, to, options);
+    const { result, emissions } = captureEmission(() =>
+      readAll(source, from, to, options)
+    );
+    const placed = withLayout(result, source, from, to, options);
+    const syntax = isNaturalLanguage(to) ? {} : languageSyntax(to);
+    const semantic = emittedMap(
+      emissions,
+      source,
+      placed.text,
+      splitVersion(to).id,
+      syntax
+    );
+    return semantic.length
+      ? { ...placed, lineMap: mergeLineMaps(semantic, placed.lineMap ?? []) }
+      : placed;
   };
 }
 

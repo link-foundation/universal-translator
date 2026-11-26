@@ -117,7 +117,7 @@ pub(crate) type Result<T> = std::result::Result<T, GrammarError>;
 pub(crate) struct Emitter {
     pub(crate) syntax: Syntax,
     pub(crate) unit: &'static str,
-    pub(crate) lines: Vec<String>,
+    pub(crate) lines: crate::emission_map::SourceLines,
     pub(crate) depth: usize,
     pub(crate) uses: HashSet<&'static str>,
     /// Functions announced before the definitions, as Lua's `local male`.
@@ -190,7 +190,7 @@ impl Emitter {
         Emitter {
             syntax,
             unit,
-            lines: Vec::new(),
+            lines: Default::default(),
             depth: 0,
             uses: HashSet::new(),
             announced: HashSet::new(),
@@ -360,6 +360,7 @@ impl Emitter {
     }
 
     pub(crate) fn expression_in(&mut self, expression: &Node, parent: f64) -> Result<String> {
+        let _origin = crate::emission_map::active(expression);
         let dialect = self.dialect;
         dialect.expression_in(self, expression, parent)
     }
@@ -528,6 +529,7 @@ impl Emitter {
         {
             last.push_str(trailing);
             last.push_str(only);
+            self.lines.append_origin();
             return;
         }
         for line in &lines {
@@ -616,6 +618,7 @@ impl Emitter {
     }
 
     pub(crate) fn statement(&mut self, statement: &Node) -> Result<()> {
+        let _origin = crate::emission_map::active(statement);
         let dialect = self.dialect;
         dialect.statement(self, statement)
     }
@@ -1038,6 +1041,7 @@ impl Emitter {
     }
 
     pub(crate) fn function_definition(&mut self, item: &Node) -> Result<()> {
+        let _origin = crate::emission_map::active(item);
         let dialect = self.dialect;
         dialect.function_definition(self, item)
     }
@@ -1202,7 +1206,7 @@ impl Emitter {
         let mut all = std::mem::take(&mut self.lines);
         all.extend(self.prelude(program));
         all.extend(body);
-        Ok(format!("{}\n", all.join("\n")))
+        Ok(all.render(self.syntax.id))
     }
 
     pub(crate) fn prelude(&mut self, program: &Node) -> Vec<String> {

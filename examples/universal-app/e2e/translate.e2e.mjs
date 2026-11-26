@@ -17,6 +17,7 @@
 //
 // Usage: node examples/universal-app/e2e/translate.e2e.mjs <url> [screenshot.png]
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
 async function loadChromium() {
   try {
@@ -582,9 +583,43 @@ async function linksTheEditors() {
     await linkedLines(tab);
     await linkedFolding(tab);
     await linkedScrolling(tab);
+    await linkedSemanticRegions(tab);
   } finally {
     await fresh.close();
   }
+}
+
+async function linkedSemanticRegions(tab) {
+  await tab.selectOption('#source-language', 'java');
+  await tab.selectOption('#target-language', 'bash');
+  const source = readFileSync(
+    new URL('../../translation/mapping.java', import.meta.url),
+    'utf8'
+  );
+  await typeInMonaco(tab, source);
+  await tab.waitForSelector('#target-text[data-value*="echo"]');
+  const mapped = await tab.waitForFunction(() => {
+    const find = (id, text) => {
+      const editor = globalThis.document.querySelector(id);
+      const line = [...editor.querySelectorAll('.view-line')].find((line) =>
+        line.textContent.replaceAll('\u00a0', ' ').includes(text)
+      );
+      if (!line) {
+        return undefined;
+      }
+      const top = line.getBoundingClientRect().top;
+      return [...editor.querySelectorAll('.map-line')]
+        .find((item) => Math.abs(item.getBoundingClientRect().top - top) < 1)
+        ?.className.match(/map-c\d/)?.[0];
+    };
+    const print = find('#source-text', 'System.out.println');
+    const call = find('#target-text', 'fibonacci "$index"');
+    const echo = find('#target-text', 'echo "fibonacci(');
+    return print && call && echo && { print, call, echo };
+  });
+  const colours = await mapped.jsonValue();
+  assert.equal(colours.print, colours.call);
+  assert.equal(colours.print, colours.echo);
 }
 
 // Types a text into the source Monaco editor. Monaco indents after a

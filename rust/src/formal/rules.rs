@@ -837,11 +837,14 @@ impl Declarer {
         {
             self.scope.insert(name.clone());
             // A Python hint (`total: int = 0`) gives the declared type.
-            return Node::new("Declaration")
-                .with("name", name)
-                .with_opt("type", statement.str("type"))
-                .with_opt("value", statement.node("value").cloned())
-                .with("mutable", true);
+            return crate::source_origins::inherit(
+                Node::new("Declaration")
+                    .with("name", name)
+                    .with_opt("type", statement.str("type"))
+                    .with_opt("value", statement.node("value").cloned())
+                    .with("mutable", true),
+                &statement,
+            );
         }
         if statement.is("Declaration") {
             self.scope.insert(name);

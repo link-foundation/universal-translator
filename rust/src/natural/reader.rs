@@ -691,6 +691,7 @@ struct ProgramReader<'a> {
     sentences: SentenceReader<'a>,
     lines: Vec<Line>,
     position: usize,
+    source: crate::source_origins::SourceLocator,
 }
 
 impl ProgramReader<'_> {
@@ -723,7 +724,7 @@ impl ProgramReader<'_> {
             }
             self.position += 1;
             if let Some(note) = &line.note {
-                statements.push(comment(note));
+                statements.push(self.source.at_line(comment(note), line.index));
                 continue;
             }
             if let Some(statement) = self.statement(self.position - 1, depth, &mut statements)? {
@@ -734,6 +735,17 @@ impl ProgramReader<'_> {
     }
 
     fn statement(
+        &mut self,
+        index: usize,
+        depth: f64,
+        statements: &mut [Node],
+    ) -> Result<Option<Node>, String> {
+        let line = self.lines[index].index;
+        let result = self.statement_inner(index, depth, statements)?;
+        Ok(result.map(|node| self.source.at_line(node, line)))
+    }
+
+    fn statement_inner(
         &mut self,
         index: usize,
         depth: f64,
@@ -808,7 +820,7 @@ impl ProgramReader<'_> {
         } else {
             body
         };
-        open.set("otherwise", otherwise);
+        open.set("otherwise", self.source.at_line(otherwise, line.index));
         Ok(None)
     }
 
@@ -864,6 +876,7 @@ impl ProgramReader<'_> {
             None
         };
         if let Some((_, mut slots)) = heading.filter(|_| line.depth == 0.0) {
+            let heading_line = line.index;
             self.position += 1;
             let body = self.block(1.0)?;
             let parameters: Vec<Node> = match slots.remove("parameters") {
@@ -873,11 +886,14 @@ impl ProgramReader<'_> {
                     .collect(),
                 _ => Vec::new(),
             };
-            let function = Node::new("Function")
-                .with("name", name_slot(&mut slots, "name"))
-                .with("parameters", parameters)
-                .with("body", body)
-                .with("comments", notes);
+            let function = self.source.at_line(
+                Node::new("Function")
+                    .with("name", name_slot(&mut slots, "name"))
+                    .with("parameters", parameters)
+                    .with("body", body)
+                    .with("comments", notes),
+                heading_line,
+            );
             return Ok(Paragraph {
                 notes_only: false,
                 notes: Vec::new(),
@@ -922,7 +938,16 @@ pub fn read_natural_with(source: &str, language: &Language) -> Result<Node, Stri
                 .with("functions", Value::List(Vec::new()))
                 .with(
                     "main",
-                    block(vec![Node::new("Evaluate").with("expression", expression)]),
+                    block(vec![
+                        crate::source_origins::SourceLocator::new(source).at_line(
+                            Node::new("Evaluate").with("expression", expression),
+                            source
+                                .chars()
+                                .take_while(|c| c.is_whitespace())
+                                .filter(|c| *c == '\n')
+                                .count(),
+                        ),
+                    ]),
                 ));
         }
     }
@@ -933,6 +958,7 @@ pub fn read_natural_with(source: &str, language: &Language) -> Result<Node, Stri
         sentences: SentenceReader::new(language),
         lines: read_lines(source, language),
         position: 0,
+        source: crate::source_origins::SourceLocator::new(source),
     }
     .read()
     .map(raise_for_each)
