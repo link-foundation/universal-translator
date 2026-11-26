@@ -1,14 +1,23 @@
-//! Comment language: translate only the comments of a program, word by word,
-//! with the dictionaries the natural languages already have.
+//! Free translation of prose: the comments of a program, and the sentences
+//! of a natural language text that no controlled template reads.
 //!
-//! A comment dictionary pairs the phrases of two natural languages through
-//! their shared meaning: the neutral words of program names (the lexicon of
-//! each language description) and the exponents of the semantic primes. The
-//! longest known phrase wins; unknown words, numbers, punctuation and every
+//! A dictionary pairs the phrases of two natural languages through their
+//! shared meaning: the exponents of the semantic primes, the neutral words
+//! of program names (the lexicon of each language description) and the
+//! concepts of the everyday vocabulary (data/natural/vocabulary.lino). Every
+//! meaning of a phrase is kept, likeliest first, and the translation takes
+//! the first meaning the other language has. Of that meaning's phrases it
+//! writes the first one that reads back to the same meaning, so the words
+//! chosen are the frequent ones that survive the round trip.
+//!
+//! The longest known phrase wins. A little grammar (data/natural/grammar.lino)
+//! goes beyond word for word: interrogatives first in questions, inflected
+//! forms through their stems, infinitives kept, articles the other language
+//! lacks left out, and words of languages written without spaces found
+//! inside the text. Unknown words, numbers, punctuation and every other
 //! space stay as they are, so the layout inside a comment is kept.
 //!
-//! A dictionary cannot translate free prose well; it is the default
-//! translation of comments. The JavaScript twin is js/src/natural/comments.js.
+//! The JavaScript twin is js/src/natural/comments.js.
 
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, LazyLock, Mutex};
@@ -17,6 +26,7 @@ use regex::Regex;
 
 use super::catalog::{natural_language, natural_language_ids};
 use super::rules::semantic_primes;
+use super::vocabulary::{Grammar, grammar_of, known_form, stem_index, vocabulary_concepts};
 
 fn fold(text: &str) -> String {
     text.to_lowercase()
@@ -47,31 +57,65 @@ fn neutral_words() -> &'static [String] {
     &NEUTRAL
 }
 
-/// Neutral meaning -> phrases of one language, the preferred phrase first,
-/// in the order the meanings are first met.
-type Phrases = Vec<(String, Vec<String>)>;
+/// The meanings of one language.
+struct Meanings {
+    /// meaning -> phrases, the preferred phrase first
+    phrases: HashMap<String, Vec<String>>,
+    /// phrase -> meanings, the likeliest first
+    meanings: HashMap<String, Vec<String>>,
+    /// the phrases in the order they are first met
+    order: Vec<String>,
+    /// meaning -> part of speech ('prime' and 'name' for the primes and the
+    /// words of program names)
+    parts: HashMap<String, String>,
+    grammar: Grammar,
+    stems: HashMap<String, String>,
+}
 
-fn phrases_of(id: &str) -> Result<Phrases, String> {
-    let language = natural_language(id)?;
-    let base = base_of(id)?;
-    let mut phrases: Phrases = Vec::new();
-    let mut add = |meaning: String, phrase: Option<&str>| {
+impl Meanings {
+    fn add(&mut self, meaning: &str, part: &str, phrase: Option<&str>) {
         let Some(phrase) = phrase.filter(|phrase| !phrase.is_empty()) else {
             return;
         };
         let folded = fold(phrase);
-        match phrases.iter_mut().find(|(known, _)| *known == meaning) {
-            Some((_, known)) => {
-                if !known.contains(&folded) {
-                    known.push(folded);
-                }
-            }
-            None => phrases.push((meaning, vec![folded])),
+        let known = self.phrases.entry(meaning.to_owned()).or_default();
+        if known.contains(&folded) {
+            return;
         }
+        known.push(folded.clone());
+        self.parts.insert(meaning.to_owned(), part.to_owned());
+        let meanings = self.meanings.entry(folded.clone()).or_default();
+        if meanings.is_empty() {
+            self.order.push(folded);
+        }
+        meanings.push(meaning.to_owned());
+    }
+
+    fn part(&self, meaning: &str) -> &str {
+        self.parts.get(meaning).map_or("", String::as_str)
+    }
+}
+
+fn meanings_of(id: &str) -> Result<Arc<Meanings>, String> {
+    static CACHE: LazyLock<Mutex<HashMap<String, Arc<Meanings>>>> =
+        LazyLock::new(|| Mutex::new(HashMap::new()));
+    if let Some(known) = CACHE.lock().ok().and_then(|cache| cache.get(id).cloned()) {
+        return Ok(known);
+    }
+    let language = natural_language(id)?;
+    let base = base_of(id)?;
+    let grammar = grammar_of(&base);
+    let mut result = Meanings {
+        phrases: HashMap::new(),
+        meanings: HashMap::new(),
+        order: Vec::new(),
+        parts: HashMap::new(),
+        grammar,
+        stems: HashMap::new(),
     };
     for prime in semantic_primes()? {
         for phrase in prime.exponents.get(&base).into_iter().flatten() {
-            add(format!("prime:{}", prime.prime), Some(phrase));
+            result.add(&format!("prime:{}", prime.prime), "prime", Some(phrase));
         }
     }
     // Program words are neutral English words: English spells each of them
@@ -79,18 +123,111 @@ fn phrases_of(id: &str) -> Result<Phrases, String> {
     // languages through their lexicon.
     if base == "english" {
         for neutral in neutral_words() {
-            add(
-                format!("word:{neutral}"),
+            let meaning = format!("word:{neutral}");
+            result.add(
+                &meaning,
+                "name",
                 language.lexicon.get(neutral).map(String::as_str),
             );
-            add(format!("word:{neutral}"), Some(neutral));
+            result.add(&meaning, "name", Some(neutral));
         }
     } else {
         for (neutral, word) in &language.lexicon.entries {
-            add(format!("word:{neutral}"), Some(word));
+            result.add(&format!("word:{neutral}"), "name", Some(word));
         }
     }
-    Ok(phrases)
+    for concept in vocabulary_concepts()? {
+        for phrase in concept.forms.get(&base).into_iter().flatten() {
+            result.add(
+                &format!("concept:{}", concept.id),
+                &concept.part,
+                Some(phrase),
+            );
+        }
+    }
+    result.stems = stem_index(&result.order, &result.grammar);
+    let result = Arc::new(result);
+    if let Ok(mut cache) = CACHE.lock() {
+        cache.insert(id.to_owned(), result.clone());
+    }
+    Ok(result)
+}
+
+/// The meanings of a phrase in the order a sentence makes likely: first the
+/// meanings that list it earliest (a word mostly means what it is the main
+/// word of: "в" is first "in", only then "inside"), then in a question the
+/// interrogative concepts first, elsewhere last.
+fn likely<'a>(phrase: &str, language: &'a Meanings, question: bool) -> Vec<&'a String> {
+    let rank = |meaning: &String| {
+        language.phrases[meaning.as_str()]
+            .iter()
+            .position(|known| known == phrase)
+            .unwrap_or(usize::MAX)
+    };
+    let mut meanings: Vec<&String> = language
+        .meanings
+        .get(phrase)
+        .map_or(&[][..], Vec::as_slice)
+        .iter()
+        .collect();
+    meanings.sort_by_key(|meaning| rank(meaning));
+    let (asked, others): (Vec<&String>, Vec<&String>) = meanings
+        .into_iter()
+        .partition(|meaning| language.part(meaning) == "interrogative");
+    if question {
+        asked.into_iter().chain(others).collect()
+    } else {
+        others.into_iter().chain(asked).collect()
+    }
+}
+
+/// The phrase of `target` for a meaning: the first that reads back to it.
+fn preferred_phrase(meaning: &str, target: &Meanings, question: bool) -> String {
+    let phrases = &target.phrases[meaning];
+    phrases
+        .iter()
+        .find(|phrase| {
+            likely(phrase, target, question)
+                .first()
+                .is_some_and(|first| *first == meaning)
+        })
+        .unwrap_or(&phrases[0])
+        .clone()
+}
+
+/// The translation of one known phrase. An article the target does not
+/// have becomes an empty text.
+struct Translated {
+    text: String,
+    part: String,
+    lemma: bool,
+}
+
+fn translate_phrase(
+    phrase: &str,
+    source: &Meanings,
+    target: &Meanings,
+    question: bool,
+) -> Option<Translated> {
+    source.meanings.get(phrase)?;
+    for meaning in likely(phrase, source, question) {
+        let part = source.part(meaning).to_owned();
+        if target.phrases.contains_key(meaning.as_str()) {
+            return Some(Translated {
+                text: preferred_phrase(meaning, target, question),
+                part,
+                lemma: source.phrases[meaning.as_str()][0] == phrase,
+            });
+        }
+        if part == "article" {
+            return Some(Translated {
+                text: String::new(),
+                part,
+                lemma: true,
+            });
+        }
+    }
+    None
 }
 
 type Dictionary = Arc<HashMap<String, String>>;
@@ -98,7 +235,8 @@ type Dictionary = Arc<HashMap<String, String>>;
 static DICTIONARIES: LazyLock<Mutex<HashMap<String, Dictionary>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
 
-/// Phrase of `from` -> phrase of `to`, for every meaning both languages have.
+/// Phrase of `from` -> phrase of `to`, for every meaning both languages have
+/// (outside questions).
 pub fn comment_dictionary(from: &str, to: &str) -> Result<Dictionary, String> {
     let key = format!("{from}>{to}");
     if let Some(known) = DICTIONARIES
@@ -108,16 +246,14 @@ pub fn comment_dictionary(from: &str, to: &str) -> Result<Dictionary, String> {
     {
         return Ok(known);
     }
-    let source = phrases_of(from)?;
-    let target: HashMap<String, Vec<String>> = phrases_of(to)?.into_iter().collect();
+    let source = meanings_of(from)?;
+    let target = meanings_of(to)?;
     let mut dictionary = HashMap::new();
-    for (meaning, phrases) in source {
-        if let Some(preferred) = target.get(&meaning).and_then(|phrases| phrases.first()) {
-            for phrase in phrases {
-                dictionary
-                    .entry(phrase)
-                    .or_insert_with(|| preferred.clone());
-            }
+    for phrase in &source.order {
+        if let Some(translated) = translate_phrase(phrase, &source, &target, false)
+            && !translated.text.is_empty()
+        {
+            dictionary.insert(phrase.clone(), translated.text);
         }
     }
     let dictionary = Arc::new(dictionary);
@@ -146,9 +282,16 @@ fn pieces(text: &str) -> Vec<&str> {
 }
 
 const LONGEST_PHRASE: usize = 4;
+/// The longest word looked for inside a text written without spaces.
+const LONGEST_RUN: usize = 8;
 
+/// A word written in capitals is written in capitals, a capitalized word is
+/// capitalized; scripts without case (你好) leave the translation as it is.
 fn match_case(original: &str, replacement: &str) -> String {
-    if original == original.to_uppercase() && original.chars().count() > 1 {
+    if original == original.to_uppercase()
+        && original != original.to_lowercase()
+        && original.encode_utf16().count() > 1
+    {
         return replacement.to_uppercase();
     }
     let first: String = original.chars().take(1).collect();
@@ -161,25 +304,144 @@ fn match_case(original: &str, replacement: &str) -> String {
     replacement.to_owned()
 }
 
-/// Translate the words of a text with a comment dictionary. Phrases of up
-/// to four words joined by single spaces are tried longest first.
-pub fn translate_comment_text(text: &str, from: &str, to: &str) -> Result<String, String> {
-    natural_language(from)?;
-    natural_language(to)?;
-    if from == to {
-        return Ok(text.to_owned());
-    }
-    let dictionary = comment_dictionary(from, to)?;
-    let parts = pieces(text);
-    let mut output = String::new();
-    let mut index = 0;
-    while index < parts.len() {
+/// For every word piece, whether the sentence it belongs to is a question:
+/// the first end mark after the word decides.
+fn questions_of(parts: &[&str]) -> Vec<bool> {
+    let mut questions = vec![false; parts.len()];
+    let mut question = false;
+    for index in (0..parts.len()).rev() {
         if index % 2 == 0 {
-            output.push_str(parts[index]);
-            index += 1;
-            continue;
+            if let Some(mark) = parts[index].chars().find(|c| ".!?;。！？؟".contains(*c)) {
+                question = "?？؟".contains(mark);
+            }
+        } else {
+            questions[index] = question;
         }
-        let mut matched = false;
+    }
+    questions
+}
+
+/// The translation of the words starting at a piece: `end` is the index of
+/// the last word read.
+struct Words {
+    text: String,
+    end: usize,
+    part: String,
+}
+
+/// Phrase translation through the grammar of both languages.
+struct ProseTranslator {
+    source: Arc<Meanings>,
+    target: Arc<Meanings>,
+}
+
+impl ProseTranslator {
+    /// The written form of a translated phrase.
+    fn write(&self, translated: &Translated, infinitive: bool) -> String {
+        match &self.target.grammar.infinitive {
+            Some(pattern) if infinitive && translated.part == "verb" => {
+                pattern.replace("{verb}", &translated.text)
+            }
+            _ => translated.text.clone(),
+        }
+    }
+
+    fn phrase(&self, phrase: &str, question: bool) -> Option<(String, String)> {
+        let translated = translate_phrase(phrase, &self.source, &self.target, question)?;
+        let infinitive =
+            translated.lemma && self.source.grammar.verb_lemma.as_deref() == Some("infinitive");
+        Some((self.write(&translated, infinitive), translated.part))
+    }
+
+    /// An infinitive written around its verb ('to poop'): the words of the
+    /// pattern before the verb, then the verb.
+    fn infinitive(&self, parts: &[&str], index: usize, question: bool) -> Option<Words> {
+        let pattern = self.source.grammar.infinitive.as_ref()?;
+        let before: Vec<&str> = pattern
+            .split("{verb}")
+            .next()
+            .unwrap_or_default()
+            .split_whitespace()
+            .collect();
+        let verb_at = index + 2 * before.len();
+        if verb_at >= parts.len() {
+            return None;
+        }
+        for (word, expected) in before.iter().enumerate() {
+            let at = index + 2 * word;
+            if fold(parts[at]) != *expected || parts[at + 1] != " " {
+                return None;
+            }
+        }
+        let known = self.known(&fold(parts[verb_at]))?;
+        let translated = translate_phrase(&known, &self.source, &self.target, question)?;
+        if translated.part != "verb" {
+            return None;
+        }
+        Some(Words {
+            text: self.write(&translated, true),
+            end: verb_at,
+            part: "verb".to_owned(),
+        })
+    }
+
+    /// A known form of a word, directly or through its stem.
+    fn known(&self, word: &str) -> Option<String> {
+        if self.source.meanings.contains_key(word) {
+            return Some(word.to_owned());
+        }
+        known_form(word, &self.source.stems, &self.source.grammar)
+    }
+
+    /// Known words inside a run of letters written without spaces, longest
+    /// first; None when none is known.
+    fn segments(&self, word: &str, question: bool) -> Option<String> {
+        if self.source.grammar.spaced {
+            return None;
+        }
+        let letters: Vec<char> = word.chars().collect();
+        // (text, known)
+        let mut found: Vec<(String, bool)> = Vec::new();
+        let mut any = false;
+        let mut at = 0;
+        while at < letters.len() {
+            let mut translated = None;
+            for size in (1..=LONGEST_RUN.min(letters.len() - at)).rev() {
+                let run = fold(&letters[at..at + size].iter().collect::<String>());
+                if let Some((text, _)) = self.phrase(&run, question) {
+                    translated = Some((text, size));
+                    break;
+                }
+            }
+            if let Some((text, size)) = translated {
+                found.push((text, true));
+                at += size;
+                any = true;
+            } else {
+                match found.last_mut() {
+                    Some((text, false)) => text.push(letters[at]),
+                    _ => found.push((letters[at].to_string(), false)),
+                }
+                at += 1;
+            }
+        }
+        if !any {
+            return None;
+        }
+        let joiner = if self.target.grammar.spaced { " " } else { "" };
+        Some(
+            found
+                .into_iter()
+                .map(|(text, _)| text)
+                .collect::<Vec<_>>()
+                .join(joiner),
+        )
+    }
+
+    fn words(&self, parts: &[&str], index: usize, question: bool) -> Option<Words> {
+        if let Some(infinitive) = self.infinitive(parts, index, question) {
+            return Some(infinitive);
+        }
         for size in (1..=LONGEST_PHRASE).rev() {
             let end = index + 2 * (size - 1);
             if end >= parts.len() {
@@ -188,17 +450,98 @@ pub fn translate_comment_text(text: &str, from: &str, to: &str) -> Result<String
             if (index + 1..end).step_by(2).any(|gap| parts[gap] != " ") {
                 continue;
             }
-            let phrase = parts[index..=end].concat();
-            if let Some(translated) = dictionary.get(&fold(&phrase)) {
-                output.push_str(&match_case(&phrase, translated));
-                index = end + 1;
-                matched = true;
-                break;
+            let phrase = fold(&parts[index..=end].concat());
+            let translated = self.phrase(&phrase, question).or_else(|| {
+                if size == 1 {
+                    self.inflected(&phrase, question)
+                } else {
+                    None
+                }
+            });
+            if let Some((text, part)) = translated {
+                return Some(Words { text, end, part });
             }
         }
-        if !matched {
-            output.push_str(parts[index]);
-            index += 1;
+        self.segments(parts[index], question).map(|text| Words {
+            text,
+            end: index,
+            part: "segments".to_owned(),
+        })
+    }
+
+    fn inflected(&self, word: &str, question: bool) -> Option<(String, String)> {
+        let form = known_form(word, &self.source.stems, &self.source.grammar)?;
+        self.phrase(&form, question)
+    }
+}
+
+/// A piece of the written text: a gap, or a word (translated or not).
+enum Written {
+    Gap(String),
+    Word(String, bool),
+}
+
+/// Translate the words of a text with the dictionary and the grammar of
+/// both languages. Phrases of up to four words joined by single spaces are
+/// tried longest first.
+pub fn translate_comment_text(text: &str, from: &str, to: &str) -> Result<String, String> {
+    natural_language(from)?;
+    natural_language(to)?;
+    if from == to {
+        return Ok(text.to_owned());
+    }
+    let translator = ProseTranslator {
+        source: meanings_of(from)?,
+        target: meanings_of(to)?,
+    };
+    let parts = pieces(text);
+    let questions = questions_of(&parts);
+    let mut written = vec![Written::Gap(parts[0].to_owned())];
+    let mut capitalize = false;
+    let mut index = 1;
+    while index < parts.len() {
+        let Some(result) = translator.words(&parts, index, questions[index]) else {
+            written.push(Written::Word(parts[index].to_owned(), false));
+            written.push(Written::Gap(parts[index + 1].to_owned()));
+            capitalize = false;
+            index += 2;
+            continue;
+        };
+        let original = parts[index..=result.end].concat();
+        let mut output = match_case(&original, &result.text);
+        if capitalize {
+            output = match_case("A", &output);
+        }
+        capitalize = false;
+        let mut gap = parts[result.end + 1];
+        if output.is_empty() && result.part == "article" {
+            // The article is left out with the space after it; a capital
+            // moves on to the next word.
+            let first: String = original.chars().take(1).collect();
+            capitalize = first != fold(&first);
+            if gap == " " {
+                gap = "";
+            }
+        }
+        written.push(Written::Word(output, true));
+        written.push(Written::Gap(gap.to_owned()));
+        index = result.end + 2;
+    }
+    // Words of a language written without spaces are joined.
+    let joined = !translator.target.grammar.spaced;
+    let translated_word = |piece: Option<&Written>| matches!(piece, Some(Written::Word(text, true)) if !text.is_empty());
+    let mut output = String::new();
+    for (at, piece) in written.iter().enumerate() {
+        match piece {
+            Written::Word(text, _) => output.push_str(text),
+            Written::Gap(gap) => {
+                let between = at > 0
+                    && translated_word(written.get(at - 1))
+                    && translated_word(written.get(at + 1));
+                if !(joined && gap == " " && between) {
+                    output.push_str(gap);
+                }
+            }
         }
     }
     Ok(output)
@@ -210,9 +553,9 @@ fn known_words(id: &str) -> Result<Arc<HashSet<String>>, String> {
     if let Some(known) = KNOWN.lock().ok().and_then(|cache| cache.get(id).cloned()) {
         return Ok(known);
     }
-    let words: HashSet<String> = phrases_of(id)?
-        .into_iter()
-        .flat_map(|(_, phrases)| phrases)
+    let words: HashSet<String> = meanings_of(id)?
+        .order
+        .iter()
         .flat_map(|phrase| phrase.split(' ').map(str::to_owned).collect::<Vec<_>>())
         .collect();
     let words = Arc::new(words);
@@ -222,19 +565,32 @@ fn known_words(id: &str) -> Result<Arc<HashSet<String>>, String> {
     Ok(words)
 }
 
+/// Whether a word (folded) is a word of a language, directly or through its
+/// stem.
+pub fn is_known_word(word: &str, id: &str) -> bool {
+    if known_words(id).is_ok_and(|known| known.contains(word)) {
+        return true;
+    }
+    meanings_of(id)
+        .is_ok_and(|meanings| known_form(word, &meanings.stems, &meanings.grammar).is_some())
+}
+
+/// The words of a text (folded).
+pub fn words_of(text: &str) -> Vec<String> {
+    pieces(text)
+        .into_iter()
+        .skip(1)
+        .step_by(2)
+        .map(fold)
+        .collect()
+}
+
 /// The natural language most words of the comments belong to (English when
 /// no language knows them).
 pub fn detect_comment_language<S: AsRef<str>>(texts: &[S]) -> &'static str {
     let words: Vec<String> = texts
         .iter()
-        .flat_map(|text| {
-            pieces(text.as_ref())
-                .into_iter()
-                .skip(1)
-                .step_by(2)
-                .map(fold)
-                .collect::<Vec<_>>()
-        })
+        .flat_map(|text| words_of(text.as_ref()))
         .collect();
     let mut best = ("english", 0);
     for id in natural_language_ids() {

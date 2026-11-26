@@ -105,10 +105,18 @@ function readDescription(source) {
   return description;
 }
 
+// The files of data/natural that describe no language: the semantic primes,
+// the everyday vocabulary and the grammar of free translation.
+const sharedFiles = new Set([
+  'semantic-primes.lino',
+  'vocabulary.lino',
+  'grammar.lino',
+]);
+
 function readAll() {
   const descriptions = {};
   for (const [file, source] of Object.entries(naturalSources)) {
-    if (file === 'semantic-primes.lino') {
+    if (sharedFiles.has(file)) {
       continue;
     }
     const description = readDescription(source);

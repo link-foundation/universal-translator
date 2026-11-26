@@ -8,16 +8,20 @@ import { rewrite } from '../meta/tree.js';
 
 // "greatestCommonDivisor", "greatest_common_divisor" and
 // "GreatestCommonDivisor" all become ["greatest", "common", "divisor"].
+// Letters of every script count: "суммаКвадратов" is ["сумма", "квадратов"].
 export function nameWords(identifier) {
   return identifier
-    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-    .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2')
+    .replace(/([\p{Ll}\p{N}])(\p{Lu})/gu, '$1 $2')
+    .replace(/(\p{Lu})(\p{Lu}\p{Ll})/gu, '$1 $2')
     .split(/[\s_]+/)
     .filter(Boolean)
     .map((word) => word.toLowerCase());
 }
 
-const capitalize = (word) => word.charAt(0).toUpperCase() + word.slice(1);
+const capitalize = (word) => {
+  const [first = '', ...rest] = word;
+  return first.toUpperCase() + rest.join('');
+};
 
 export const conventions = {
   camel: (words) =>
@@ -167,4 +171,71 @@ export function avoidReserved(spelled, language) {
   return reservedWords[language]?.has(spelled.toLowerCase())
     ? `${spelled}${reservedSuffixes[language] ?? '_'}`
     : spelled;
+}
+
+// Languages whose names are ASCII letters, digits and underscores only (or
+// whose compilers accept other letters only with extra flags). A name in
+// another script is transliterated for them; what has no transliteration
+// is written as its code point ("u4e16").
+const asciiOnly = new Set([
+  'ada',
+  'bash',
+  'c',
+  'cpp',
+  'dart',
+  'fortran',
+  'lua',
+  'matlab',
+  'objc',
+  'pascal',
+  'perl',
+  'r',
+  'zig',
+]);
+
+export const asciiNames = (language, syntax = {}) =>
+  asciiOnly.has(language) || Boolean(syntax.machine);
+
+// Each letter and its Latin spelling, lower case.
+const latinPairs =
+  'а a б b в v г g д d е e ё e ж zh з z и i й y к k л l м m н n о o п p ' +
+  'р r с s т t у u ф f х kh ц ts ч ch ш sh щ shch ъ _ ы y ь _ э e ю yu ' +
+  'я ya і i ї yi є ye ґ g ў u α a β b γ g δ d ε e ζ z η i θ th ι i κ k ' +
+  'λ l μ m ν n ξ x ο o π p ρ r σ s ς s τ t υ y φ f χ ch ψ ps ω o ß ss ' +
+  'æ ae œ oe ø o å a ł l đ d ð d þ th ı i';
+
+const latin = new Map(
+  latinPairs
+    .split(' ')
+    .flatMap((word, at, words) => (at % 2 ? [] : [[word, words[at + 1]]]))
+    .map(([letter, spelled]) => [letter, spelled === '_' ? '' : spelled])
+);
+
+// Latin letters with marks and the letters without them (no Unicode
+// normalization, so that the Rust twin writes the same names).
+const marked = [
+  ...'àáâãäåçèéêëìíîïñòóôõöùúûüýÿāăąćĉċčďēĕėęěĝğġģĥĩīĭįĵķĺļľńņňōŏőŕŗřśŝşšţťũūŭůűųŵŷźżžơưǎǐǒǔǖǘǚǜǟǡǧǩǫǭǰǵǹǻȁȃȅȇȉȋȍȏȑȓȕȗșțȟȧȩȫȭȯȱȳ',
+];
+const unmarked =
+  'aaaaaaceeeeiiiinooooouuuuyyaaaccccdeeeeegggghiiiijklllnnnooorrrssssttuuuuuuwyzzzouaiouuuuuaagkoojgnaaaeeiioorruusthaeooooy';
+marked.forEach((letter, at) => latin.set(letter, unmarked[at]));
+
+function latinLetter(letter) {
+  const lower = letter.toLowerCase();
+  const spelled = latin.get(lower) ?? lower;
+  if (!/^[a-z0-9_]*$/.test(spelled)) {
+    return `u${letter.codePointAt(0).toString(16)}`;
+  }
+  return letter === lower ? spelled : capitalize(spelled);
+}
+
+// A spelled name in the letters a language accepts.
+export function asciiName(spelled, language, syntax) {
+  // eslint-disable-next-line no-control-regex
+  if (!asciiNames(language, syntax) || /^[\x00-\x7f]*$/.test(spelled)) {
+    return spelled;
+  }
+  return [...spelled]
+    .map((letter) => (letter < '\x80' ? letter : latinLetter(letter)))
+    .join('');
 }

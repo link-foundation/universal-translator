@@ -10,7 +10,15 @@ export interface TranslationOptions {
   commentLanguage?: string;
   /** Natural language of the comments (detected when not given). */
   commentFrom?: string;
-  /** Translator for one comment text; a dictionary is the default. */
+  /** Natural language to translate the declared names (functions,
+   * parameters, variables) to. When `from` and `to` are the same
+   * programming language only the names change, in place. Languages that
+   * take ASCII names only get a transliteration. */
+  identifierLanguage?: string;
+  /** Natural language of the declared names (detected when not given). */
+  identifierFrom?: string;
+  /** Translator for one comment text (and the phrase a declared name
+   * makes); a dictionary is the default. */
   translateComment?: CommentTranslator;
   /** Partial translation between programming languages keeps the spaces,
    * blank lines, indentation step and line ends of the source ('source',

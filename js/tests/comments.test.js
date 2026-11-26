@@ -50,7 +50,7 @@ describe('comment language', () => {
     const russian = translate(source, 'javascript', 'javascript', {
       commentLanguage: 'russian',
     });
-    expect(russian).toContain('// Сумма из квадраты in JavaScript');
+    expect(russian).toContain('// Сумма из квадраты в JavaScript');
     expect(codeOf(russian, '//')).toBe(codeOf(source, '//'));
     const block = '/* Sum\n *   of   squares */\nlet x = 1; // number\n';
     expect(

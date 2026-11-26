@@ -399,12 +399,14 @@ class Lexer {
   }
 
   // Names, including Rust macro names such as println! (but not "x != y").
-  // Where "!" starts a comment (Fortran), it never ends a name.
+  // Where "!" starts a comment (Fortran), it never ends a name. Letters of
+  // every script make names ("сумма"); the span says where the name stands,
+  // so identifiers can be renamed in place.
   name() {
     const pattern =
       this.syntax.lineComment === '!'
-        ? /^[A-Za-z_][A-Za-z0-9_]*/
-        : /^[A-Za-z_][A-Za-z0-9_]*!?/;
+        ? /^[\p{Alphabetic}_][\p{Alphabetic}\p{N}_]*/u
+        : /^[\p{Alphabetic}_][\p{Alphabetic}\p{N}_]*!?/u;
     const name = pattern.exec(this.rest());
     if (!name) {
       return false;
@@ -413,7 +415,9 @@ class Lexer {
       name[0].endsWith('!') && this.source[this.index + name[0].length] === '='
         ? name[0].slice(0, -1)
         : name[0];
-    this.push('name', value);
+    this.push('name', value, {
+      span: [this.index, this.index + value.length],
+    });
     this.index += value.length;
     return true;
   }
@@ -422,7 +426,7 @@ class Lexer {
   sigil() {
     if (
       this.syntax.variableSigil !== this.source[this.index] ||
-      !/[A-Za-z_]/.test(this.source[this.index + 1] ?? '')
+      !/[\p{Alphabetic}_]/u.test(this.source[this.index + 1] ?? '')
     ) {
       return false;
     }

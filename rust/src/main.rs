@@ -11,7 +11,7 @@ use universal_translator::{
 };
 
 const USAGE: &str = "Usage:
-  universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment] [--all-or-nothing] [--rules <file.lino>] [--comment-language <natural>] [--comment-from <natural>] [--layout source|target]
+  universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment] [--all-or-nothing] [--rules <file.lino>] [--comment-language <natural>] [--comment-from <natural>] [--identifier-language <natural>] [--identifier-from <natural>] [--layout source|target]
   universal-translator meta <language> [file|-] [--json]
   universal-translator coverage <language> [file|-] [--json]
   universal-translator detect [file|-] [--json]
@@ -41,6 +41,9 @@ The source language may be \"auto\" to detect it.
 --comment-language <natural> translates the comments too (only them when
 <from> is <to>); --comment-from <natural> names the language of the
 comments (detected otherwise).
+--identifier-language <natural> translates the declared names too (only
+them, in place, when <from> is <to>); --identifier-from <natural> names
+the language of the names (detected otherwise).
 --layout source (the default) keeps the spaces and blank lines of the
 source between programming languages; --layout target writes the layout
 of the target.
@@ -256,6 +259,8 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
     let mut rules = None;
     let mut comment_language = None;
     let mut comment_from = None;
+    let mut identifier_language = None;
+    let mut identifier_from = None;
     let mut layout = None;
     let mut arguments = arguments.iter().copied();
     // An option with a value takes one value, given once.
@@ -300,6 +305,16 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
             "--comment-from" => {
                 comment_from = Some(value(argument, comment_from.is_some(), &mut arguments)?);
             }
+            "--identifier-language" => {
+                identifier_language = Some(value(
+                    argument,
+                    identifier_language.is_some(),
+                    &mut arguments,
+                )?);
+            }
+            "--identifier-from" => {
+                identifier_from = Some(value(argument, identifier_from.is_some(), &mut arguments)?);
+            }
             part if (part == "-" || !part.starts_with('-')) && file.is_none() => file = Some(part),
             _ => return Err(format!("Unexpected argument {argument}")),
         }
@@ -322,6 +337,12 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
     if let Some(comment_language) = comment_language {
         options = options
             .with_comment_language(comment_language, comment_from)
+            .map_err(|error| error.to_string())?;
+    }
+    // --identifier-from only matters with --identifier-language.
+    if let Some(identifier_language) = identifier_language {
+        options = options
+            .with_identifier_language(identifier_language, identifier_from)
             .map_err(|error| error.to_string())?;
     }
     let source = source(file)?;

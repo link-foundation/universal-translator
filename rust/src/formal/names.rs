@@ -14,13 +14,14 @@ use crate::meta::{Node, rewrite, walk};
 
 /// The words of an identifier: "greatestCommonDivisor",
 /// "greatest_common_divisor" and "GreatestCommonDivisor" all become
-/// `["greatest", "common", "divisor"]`.
+/// `["greatest", "common", "divisor"]`. Letters of every script count:
+/// "суммаКвадратов" is `["сумма", "квадратов"]`.
 pub fn name_words(identifier: &str) -> Vec<String> {
     static BOUNDARIES: OnceLock<[Regex; 2]> = OnceLock::new();
     let [lower_then_capital, acronym_end] = BOUNDARIES.get_or_init(|| {
         [
-            Regex::new("([a-z0-9])([A-Z])").expect("valid pattern"),
-            Regex::new("([A-Z])([A-Z][a-z])").expect("valid pattern"),
+            Regex::new(r"([\p{Ll}\p{N}])(\p{Lu})").expect("valid pattern"),
+            Regex::new(r"(\p{Lu})(\p{Lu}\p{Ll})").expect("valid pattern"),
         ]
     });
     let spaced = lower_then_capital.replace_all(identifier, "${1} ${2}");
@@ -289,4 +290,83 @@ pub fn avoid_reserved(spelled: String, language: &str) -> String {
     } else {
         spelled
     }
+}
+
+/// Languages whose names are ASCII letters, digits and underscores only (or
+/// whose compilers accept other letters only with extra flags). A name in
+/// another script is transliterated for them; what has no transliteration
+/// is written as its code point ("u4e16").
+const ASCII_ONLY: [&str; 13] = [
+    "ada", "bash", "c", "cpp", "dart", "fortran", "lua", "matlab", "objc", "pascal", "perl", "r",
+    "zig",
+];
+
+/// Whether a language (or a machine target) takes ASCII names only.
+pub fn ascii_names(language: &str, machine: bool) -> bool {
+    machine || ASCII_ONLY.contains(&language)
+}
+
+/// Each letter and its Latin spelling, lower case.
+const LATIN_PAIRS: &str = "а a б b в v г g д d е e ё e ж zh з z и i й y к k л l м m н n о o п p \
+    р r с s т t у u ф f х kh ц ts ч ch ш sh щ shch ъ _ ы y ь _ э e ю yu \
+    я ya і i ї yi є ye ґ g ў u α a β b γ g δ d ε e ζ z η i θ th ι i κ k \
+    λ l μ m ν n ξ x ο o π p ρ r σ s ς s τ t υ y φ f χ ch ψ ps ω o ß ss \
+    æ ae œ oe ø o å a ł l đ d ð d þ th ı i";
+
+/// Latin letters with marks and the letters without them.
+const MARKED: &str = "àáâãäåçèéêëìíîïñòóôõöùúûüýÿāăąćĉċčďēĕėęěĝğġģĥĩīĭįĵķĺļľńņňōŏőŕŗřśŝşšţťũūŭůűųŵŷźżžơưǎǐǒǔǖǘǚǜǟǡǧǩǫǭǰǵǹǻȁȃȅȇȉȋȍȏȑȓȕȗșțȟȧȩȫȭȯȱȳ";
+const UNMARKED: &str = "aaaaaaceeeeiiiinooooouuuuyyaaaccccdeeeeegggghiiiijklllnnnooorrrssssttuuuuuuwyzzzouaiouuuuuaagkoojgnaaaeeiioorruusthaeooooy";
+
+fn latin_table() -> &'static std::collections::HashMap<String, String> {
+    static TABLE: OnceLock<std::collections::HashMap<String, String>> = OnceLock::new();
+    TABLE.get_or_init(|| {
+        let words: Vec<&str> = LATIN_PAIRS.split_whitespace().collect();
+        let mut table: std::collections::HashMap<String, String> = words
+            .chunks(2)
+            .map(|pair| {
+                let spelled = if pair[1] == "_" { "" } else { pair[1] };
+                (pair[0].to_owned(), spelled.to_owned())
+            })
+            .collect();
+        for (letter, plain) in MARKED.chars().zip(UNMARKED.chars()) {
+            table.insert(letter.to_string(), plain.to_string());
+        }
+        table
+    })
+}
+
+fn latin_letter(letter: char) -> String {
+    let lower: String = letter.to_lowercase().collect();
+    let spelled = latin_table()
+        .get(&lower)
+        .cloned()
+        .unwrap_or_else(|| lower.clone());
+    if !spelled
+        .chars()
+        .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_')
+    {
+        return format!("u{:x}", letter as u32);
+    }
+    if letter.to_string() == lower {
+        spelled
+    } else {
+        capitalize(&spelled)
+    }
+}
+
+/// A spelled name in the letters a language accepts.
+pub fn ascii_name(spelled: String, language: &str, machine: bool) -> String {
+    if !ascii_names(language, machine) || spelled.is_ascii() {
+        return spelled;
+    }
+    spelled
+        .chars()
+        .map(|letter| {
+            if letter.is_ascii() {
+                letter.to_string()
+            } else {
+                latin_letter(letter)
+            }
+        })
+        .collect()
 }

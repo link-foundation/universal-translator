@@ -7,6 +7,7 @@ pub mod custom_rules;
 mod detect;
 pub mod formal;
 pub mod fragments;
+pub mod identifier_language;
 pub mod layout;
 pub mod meta;
 pub mod natural;
@@ -20,6 +21,7 @@ pub use comment_language::{CommentTranslator, translate_comments};
 pub use custom_rules::CustomRules;
 pub use formal::versions::{Version, split_version, versions_of};
 pub use fragments::{Fragment, FragmentKind};
+pub use identifier_language::{translate_identifiers, translate_program_identifiers};
 pub use meta::GrammarError;
 pub use program::translate_program;
 pub use referents::{

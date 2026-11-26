@@ -13,6 +13,7 @@
 import { grammarLanguageIds, languageSyntax } from '../formal/languages.js';
 import { naturalLanguage, naturalLanguageIds } from '../natural/catalog.js';
 import { tokenize } from '../natural/tokens.js';
+import { isKnownWord, wordsOf } from '../natural/comments.js';
 
 // Patterns that only one language (or a small family) writes.
 const signatures = {
@@ -121,9 +122,33 @@ function wordEvidence(source, id) {
   const known = tokens.filter(
     (token) =>
       language.reserved.has(token.folded) ||
-      language.reverseLexicon.has(token.folded)
+      language.reverseLexicon.has(token.folded) ||
+      isKnownWord(token.folded, id)
   ).length;
   return (10 * known) / tokens.length;
+}
+
+// Symbols that code writes and prose does not.
+const codeSymbols = /[{}()[\];=<>+*/\\$#@&|^~`]/gu;
+
+// How much of a text reads as prose of a natural language: its known words
+// (in the vocabulary, the primes or the templates, directly or through
+// their stems) among all its words and code symbols. Prose outside the
+// controlled templates is still translated freely, so it counts as read.
+function proseCoverage(source, id) {
+  const words = wordsOf(source);
+  if (!words.length) {
+    return 0;
+  }
+  const language = naturalLanguage(id);
+  const known = words.filter(
+    (word) =>
+      language.reserved.has(word) ||
+      language.reverseLexicon.has(word) ||
+      isKnownWord(word, id)
+  ).length;
+  const symbols = source.match(codeSymbols)?.length ?? 0;
+  return known / (words.length + symbols);
 }
 
 export function createLanguageDetector({ parseFragment, parsePartial }) {
@@ -176,6 +201,14 @@ export function createLanguageDetector({ parseFragment, parsePartial }) {
         candidate.coverage = parsePartial(source, candidate.id).coverage;
       } catch {
         candidate.coverage = 0;
+      }
+    }
+    for (const candidate of candidates) {
+      if (candidate.natural && !candidate.reads) {
+        candidate.coverage = Math.max(
+          candidate.coverage,
+          proseCoverage(source, candidate.id)
+        );
       }
     }
     return candidates

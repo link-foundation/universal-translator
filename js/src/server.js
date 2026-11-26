@@ -77,7 +77,12 @@ function checkRequest(body, { allowRegexRules = false } = {}) {
   if (body.mode !== undefined && !MODES.includes(body.mode)) {
     throw new Error(`"mode" must be one of ${MODES.join(', ')}`);
   }
-  for (const key of ['commentLanguage', 'commentFrom']) {
+  for (const key of [
+    'commentLanguage',
+    'commentFrom',
+    'identifierLanguage',
+    'identifierFrom',
+  ]) {
     if (body[key] !== undefined && typeof body[key] !== 'string') {
       throw new Error(`"${key}" must be a string`);
     }
@@ -101,6 +106,8 @@ function checkRequest(body, { allowRegexRules = false } = {}) {
       commonLibrary: body.commonLibrary === true,
       commentLanguage: body.commentLanguage,
       commentFrom: body.commentFrom,
+      identifierLanguage: body.identifierLanguage,
+      identifierFrom: body.identifierFrom,
       layout: body.layout,
     },
   };
@@ -156,8 +163,8 @@ function runTranslation(
  * Create an HTTP server with two routes:
  * GET /languages lists the programming and natural languages;
  * POST /translate takes {source, from (or "auto"), to, fragment?, mode?,
- * commonLibrary?, commentLanguage?, commentFrom?, layout?, allOrNothing?,
- * rules?} and answers {output, complete, errors, coverage?, lineMap?,
+ * commonLibrary?, commentLanguage?, commentFrom?, identifierLanguage?,
+ * identifierFrom?, layout?, allOrNothing?, rules?} and answers {output, complete, errors, coverage?, lineMap?,
  * detected?} or {error}. lineMap pairs 0-based source and target lines. The
  * rules are Links Notation text (or an object). Rules with regular
  * expressions are refused unless `allowRegexRules` is true.

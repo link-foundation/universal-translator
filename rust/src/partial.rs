@@ -13,6 +13,10 @@
 //! 3. A part that does not read at all is reported with the reason. When it
 //!    has an indented body, the header and its closing lines are reported,
 //!    and the body is read the same way.
+//! 4. Between two natural languages a part outside the controlled templates
+//!    is prose: it is translated freely by the comment translator (the
+//!    vocabulary, [`crate::natural::translate_comment_text`], unless the
+//!    translator has one of its own), not marked, and is listed in `prose`.
 //!
 //! The JavaScript twin is js/src/translation/partial.js.
 
@@ -23,6 +27,7 @@ use regex::Regex;
 use crate::custom_rules::js_regex;
 use crate::fragments::FragmentKind;
 use crate::meta::GrammarError;
+use crate::natural::is_natural_language;
 use crate::translator::{Options, Translator};
 
 static CLOSERS: LazyLock<Regex> = LazyLock::new(|| {
@@ -43,6 +48,8 @@ const MAX_TRIES: usize = 8;
 pub enum PartStatus {
     Read,
     Failed,
+    /// Translated freely, as prose.
+    Free,
 }
 
 impl PartStatus {
@@ -50,6 +57,7 @@ impl PartStatus {
         match self {
             PartStatus::Read => "read",
             PartStatus::Failed => "failed",
+            PartStatus::Free => "free",
         }
     }
 }
@@ -107,6 +115,9 @@ pub struct PartialTranslation {
     pub lines: usize,
     pub read_lines: usize,
     pub coverage: f64,
+    /// The parts translated freely, as prose: (first line, last line),
+    /// counted from 1.
+    pub prose: Vec<(usize, usize)>,
 }
 
 fn indent_of(line: &str) -> usize {
@@ -380,6 +391,14 @@ pub fn translate_partial(
                 }
             }
         }
+        if is_natural_language(from)
+            && is_natural_language(to)
+            && let Ok(prose) = (translator.comment_translator())(&part.source, from, to)
+        {
+            part.status = PartStatus::Free;
+            text.push_str(&prose);
+            continue;
+        }
         let place = if part.end_line > part.line {
             format!("lines {}-{}", part.line, part.end_line)
         } else {
@@ -408,5 +427,11 @@ pub fn translate_partial(
         lines: reading.lines,
         read_lines: reading.read_lines,
         coverage: reading.coverage,
+        prose: reading
+            .parts
+            .iter()
+            .filter(|part| part.status == PartStatus::Free)
+            .map(|part| (part.line, part.end_line))
+            .collect(),
     })
 }

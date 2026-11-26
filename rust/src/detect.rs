@@ -307,9 +307,38 @@ fn word_evidence(source: &str, id: &str) -> f64 {
         .filter(|token| {
             language.reserved.contains(&token.folded)
                 || language.reverse_lexicon.contains_key(&token.folded)
+                || natural::is_known_word(&token.folded, id)
         })
         .count();
     10.0 * known as f64 / words.len() as f64
+}
+
+/// Symbols that code writes and prose does not.
+static CODE_SYMBOLS: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"[{}()\[\];=<>+*/\\$#@&|^~`]").expect("code symbols"));
+
+/// How much of a text reads as prose of a natural language: its known words
+/// (in the vocabulary, the primes or the templates, directly or through
+/// their stems) among all its words and code symbols. Prose outside the
+/// controlled templates is still translated freely, so it counts as read.
+fn prose_coverage(source: &str, id: &str) -> f64 {
+    let Ok(language) = natural::natural_language(id) else {
+        return 0.0;
+    };
+    let words = natural::words_of(source);
+    if words.is_empty() {
+        return 0.0;
+    }
+    let known = words
+        .iter()
+        .filter(|word| {
+            language.reserved.contains(*word)
+                || language.reverse_lexicon.contains_key(*word)
+                || natural::is_known_word(word, id)
+        })
+        .count();
+    let symbols = CODE_SYMBOLS.find_iter(source).count();
+    known as f64 / (words.len() + symbols) as f64
 }
 
 struct Candidate {
@@ -363,6 +392,13 @@ pub fn detect_language(translator: &Translator, source: &str, limit: usize) -> V
             candidates[index].coverage = translator
                 .parse_partial(source, &candidates[index].id)
                 .map_or(0.0, |reading| reading.coverage);
+        }
+    }
+    for candidate in &mut candidates {
+        if candidate.natural && !candidate.reads {
+            candidate.coverage = candidate
+                .coverage
+                .max(prose_coverage(source, &candidate.id));
         }
     }
     let mut detections: Vec<Detection> = candidates

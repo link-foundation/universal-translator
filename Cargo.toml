@@ -76,3 +76,11 @@ path = "rust/tests/issue_12.rs"
 [[test]]
 name = "layout"
 path = "rust/tests/layout.rs"
+
+[[test]]
+name = "identifiers"
+path = "rust/tests/identifiers.rs"
+
+[[test]]
+name = "prose"
+path = "rust/tests/prose.rs"

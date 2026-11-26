@@ -55,6 +55,8 @@ function usage() {
     '            --fragment translates statements or functions on their own',
     '            --comment-language <natural> translates the comments too (only them when <from> is <to>)',
     '            --comment-from <natural> names the language of the comments (detected otherwise)',
+    '            --identifier-language <natural> translates the declared names too (only them, in place, when <from> is <to>)',
+    '            --identifier-from <natural> names the language of the declared names (detected otherwise)',
     '            --layout source|target keeps the spaces and blank lines of the source',
     '            (source, the default) or writes the layout of the target',
     '            <to> may name a version: python@2',
@@ -154,6 +156,8 @@ const valueOptions = {
   '--mode': 'mode',
   '--comment-language': 'commentLanguage',
   '--comment-from': 'commentFrom',
+  '--identifier-language': 'identifierLanguage',
+  '--identifier-from': 'identifierFrom',
   '--layout': 'layout',
 };
 
@@ -241,6 +245,8 @@ function translateCommand(
     fragment: options.fragment,
     commentLanguage: options.commentLanguage,
     commentFrom: options.commentFrom,
+    identifierLanguage: options.identifierLanguage,
+    identifierFrom: options.identifierFrom,
     layout: options.layout,
   };
   if (options.allOrNothing) {

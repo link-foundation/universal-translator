@@ -1,0 +1,39 @@
+grammar:
+  english:
+    infinitive: 'to {verb}'
+    endings: 's' 'es' 'ed' 'ing'
+  french:
+    verb-lemma: infinitive
+    endings: 's' 'x' 'e' 'es' 'er' 'ez' 'ent' 'ons' 'é' 'ée' 'és'
+  polish:
+    verb-lemma: infinitive
+    endings: 'a' 'e' 'i' 'y' 'u' 'ę' 'ą' 'em' 'om' 'ów' 'ach' 'ami' 'ie' 'ego' 'emu' 'ej'
+  russian:
+    verb-lemma: infinitive
+    endings: 'а' 'я' 'у' 'ю' 'ы' 'и' 'е' 'о' 'ь' 'ой' 'ей' 'ом' 'ем' 'ов' 'ев' 'ам' 'ям' 'ах' 'ях' 'ами' 'ями' 'ый' 'ий' 'ая' 'яя' 'ое' 'ее' 'ые' 'ие' 'ую' 'юю' 'ого' 'его' 'ому' 'ему' 'ыми' 'ими' 'ть' 'ет' 'ит' 'ют' 'ят' 'ешь' 'ишь'
+  spanish:
+    verb-lemma: infinitive
+    endings: 's' 'es' 'o' 'a' 'os' 'as' 'ar' 'er' 'ir' 'an' 'en' 'amos' 'emos'
+  dutch:
+    verb-lemma: infinitive
+    endings: 's' 'e' 'en' 't'
+  german:
+    verb-lemma: infinitive
+    endings: 'e' 'n' 's' 't' 'en' 'er' 'es' 'st' 'te'
+  italian:
+    verb-lemma: infinitive
+    endings: 'a' 'e' 'i' 'o' 'are' 'ere' 'ire' 'ano' 'ono'
+  portuguese:
+    verb-lemma: infinitive
+    endings: 's' 'a' 'o' 'as' 'os' 'es' 'ar' 'er' 'ir' 'am' 'em'
+  turkish:
+    endings: 'i' 'ı' 'u' 'ü' 'e' 'a' 'de' 'da' 'den' 'dan' 'in' 'ın' 'ler' 'lar' 'mak' 'mek'
+  ukrainian:
+    verb-lemma: infinitive
+    endings: 'а' 'я' 'у' 'ю' 'и' 'і' 'е' 'о' 'ь' 'ою' 'ею' 'ом' 'ем' 'ів' 'ей' 'ам' 'ям' 'ах' 'ях' 'ами' 'ями' 'ий' 'ій' 'ого' 'ому' 'ими' 'ти' 'ть'
+  chinese:
+    spaced: no
+  japanese:
+    spaced: no
+  thai:
+    spaced: no

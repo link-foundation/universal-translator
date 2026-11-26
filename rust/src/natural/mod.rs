@@ -9,12 +9,15 @@ pub mod reader;
 pub mod rules;
 pub mod tokens;
 pub mod variants;
+pub mod vocabulary;
 pub mod writer;
 
 pub use catalog::{
     Language, is_natural_language, natural_language, natural_language_ids, with_templates,
 };
-pub use comments::{comment_dictionary, detect_comment_language, translate_comment_text};
+pub use comments::{
+    comment_dictionary, detect_comment_language, is_known_word, translate_comment_text, words_of,
+};
 pub use reader::{read_natural, read_natural_with};
 pub use rules::{SemanticPrime, check_description, check_text, semantic_primes};
 pub use variants::{

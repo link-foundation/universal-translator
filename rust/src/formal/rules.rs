@@ -12,7 +12,9 @@ use super::arrays::{expand_array_fills, raise_array_fills, recognize_arrays};
 use super::common_library::{recognize_common_library, spell_common_library};
 use super::languages::{Blocks, ImmutableParameters, IntegerDivision, Syntax, language_syntax};
 use super::lifting::counting_loops;
-use super::names::{avoid_reserved, name_words, neutral_name, rename_declared, spell_name};
+use super::names::{
+    ascii_name, avoid_reserved, name_words, neutral_name, rename_declared, spell_name,
+};
 use crate::meta::truth::raise_truth_functions;
 use crate::meta::{Mode, Rule, Settings};
 use crate::meta::{Node, binary, block, layout, rewrite, rewrite_opt, text, walk};
@@ -1217,9 +1219,7 @@ pub fn spell_names(program: Node, settings: &Settings) -> Node {
         return program;
     };
     rename_declared(program, |identifier, role| {
-        avoid_reserved(
-            spell_name(identifier, syntax.naming_convention(role)),
-            syntax.id,
-        )
+        let spelled = spell_name(identifier, syntax.naming_convention(role));
+        avoid_reserved(ascii_name(spelled, syntax.id, syntax.machine), syntax.id)
     })
 }

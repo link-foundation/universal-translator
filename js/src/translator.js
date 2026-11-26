@@ -29,10 +29,16 @@ import {
 } from './natural/catalog.js';
 import { readNatural } from './natural/reader.js';
 import { writeNatural } from './natural/writer.js';
+import { translateCommentText } from './natural/comments.js';
 import {
   translateComments,
   translateProgramComments,
 } from './translation/comment-language.js';
+import {
+  translateIdentifiers,
+  translateProgramIdentifiers,
+} from './translation/identifier-language.js';
+import { declaredNames } from './formal/names.js';
 import { createFragmentTranslator } from './translation/fragments.js';
 import { createPartialTranslator } from './translation/partial.js';
 import { createLanguageDetector } from './translation/detect.js';
@@ -60,18 +66,40 @@ function inCommentLanguage(
     : program;
 }
 
+// The declared names can be words of a natural language of their own too.
+function inIdentifierLanguage(
+  program,
+  { identifierLanguage, identifierFrom, translateComment }
+) {
+  return identifierLanguage
+    ? translateProgramIdentifiers(program, {
+        from: identifierFrom,
+        to: identifierLanguage,
+        translateComment,
+      })
+    : program;
+}
+
 // A mode, a target and the common library must go together.
-// A comment language that does not exist is a wrong option, not a part of
-// the text that could not be read. A translator of one's own may know more.
+// A comment or identifier language that does not exist is a wrong option,
+// not a part of the text that could not be read. A translator of one's own
+// may know more.
 function checkCommentLanguages({
   commentLanguage,
   commentFrom,
+  identifierLanguage,
+  identifierFrom,
   translateComment,
 }) {
   if (translateComment) {
     return;
   }
-  for (const id of [commentLanguage, commentFrom]) {
+  for (const id of [
+    commentLanguage,
+    commentFrom,
+    identifierLanguage,
+    identifierFrom,
+  ]) {
     if (id) {
       naturalLanguage(id);
     }
@@ -109,6 +137,7 @@ function completeResult(text, source) {
     lines,
     readLines: lines,
     coverage: 1,
+    prose: [],
   };
 }
 
@@ -135,6 +164,45 @@ function withLayout(result, source, from, to, options) {
     }
   );
   return { ...result, text, lineMap: lines };
+}
+
+// Between two natural languages a sentence no controlled template reads is
+// prose, translated freely with the vocabulary (or the caller's
+// translateComment).
+function translateProse(text, from, to, options = {}) {
+  if (!isNaturalLanguage(from) || !isNaturalLanguage(to)) {
+    return undefined;
+  }
+  const translateText = options.translateComment ?? translateCommentText;
+  return translateText(text, { from, to });
+}
+
+// Same code, other comment or identifier language: change only the
+// comments and the declared names, in place, so every other character of
+// the code stays (`toMeta` reads the names it declares). Undefined when
+// only the meta program can rename.
+function inPlace(source, language, options, toMeta) {
+  const { commentLanguage, commentFrom, translateComment } = options;
+  const { identifierLanguage, identifierFrom } = options;
+  let text = source;
+  if (identifierLanguage) {
+    const declared = declaredNames(toMeta(source, language));
+    text = translateIdentifiers(text, language, declared, {
+      from: identifierFrom,
+      to: identifierLanguage,
+      translateComment,
+    });
+    if (text === undefined) {
+      return undefined;
+    }
+  }
+  return commentLanguage
+    ? translateComments(text, language, {
+        from: commentFrom,
+        to: commentLanguage,
+        translateComment,
+      })
+    : text;
 }
 
 // Partial translation (the default of the command line, the server and the
@@ -237,9 +305,12 @@ export function createGrammarTranslator(settings = {}) {
     const allLayers = commonLibrary
       ? [...metaLayers, [useCommonLibrary]]
       : metaLayers;
-    const transformed = allLayers.reduce(
-      (current, layer) => applyRules(current, layer, settings),
-      meta
+    const transformed = inIdentifierLanguage(
+      allLayers.reduce(
+        (current, layer) => applyRules(current, layer, settings),
+        meta
+      ),
+      options
     );
     trace('transformed', transformed);
     if (natural) {
@@ -251,22 +322,14 @@ export function createGrammarTranslator(settings = {}) {
   }
 
   function translate(source, from, to, options = {}) {
-    const { commentLanguage, commentFrom, translateComment } = options;
-    // Same code, other comment language: change only the comments, in place,
-    // so every character of the code stays.
-    if (
-      commentLanguage &&
-      from === to &&
-      !isNaturalLanguage(from) &&
-      !languageSyntax(from).machine
-    ) {
-      return translateComments(source, from, {
-        from: commentFrom,
-        to: commentLanguage,
-        translateComment,
-      });
-    }
-    return fromMeta(toMeta(source, from), to, { ...options, from });
+    const { commentLanguage, identifierLanguage } = options;
+    const same =
+      from === to && !isNaturalLanguage(from) && !languageSyntax(from).machine;
+    const kept =
+      same && (commentLanguage || identifierLanguage)
+        ? inPlace(source, from, options, toMeta)
+        : undefined;
+    return kept ?? fromMeta(toMeta(source, from), to, { ...options, from });
   }
 
   // Write an adapted program in a language, a machine target or words.
@@ -292,7 +355,7 @@ export function createGrammarTranslator(settings = {}) {
     write,
     emit: emitText,
   });
-  const partial = createPartialTranslator(fragments);
+  const partial = createPartialTranslator({ ...fragments, translateProse });
 
   const translatePartial = partialTranslator(translate, fragments, partial);
 

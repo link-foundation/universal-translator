@@ -14,6 +14,7 @@ import { countingLoops } from './lifting.js';
 import { raiseTruthFunctions } from '../meta/truth.js';
 import { languageSyntax, namingConvention } from './languages.js';
 import {
+  asciiName,
   avoidReserved,
   nameWords,
   neutralName,
@@ -879,7 +880,14 @@ export function copyReassignedParameters(program, { to }) {
 export function spellNames(program, { to }) {
   const syntax = languageSyntax(to);
   return renameDeclared(program, (identifier, role) =>
-    avoidReserved(spellName(identifier, namingConvention(syntax, role)), to)
+    avoidReserved(
+      asciiName(
+        spellName(identifier, namingConvention(syntax, role)),
+        to,
+        syntax
+      ),
+      to
+    )
   );
 }
 

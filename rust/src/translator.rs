@@ -44,6 +44,14 @@ pub struct Options {
     /// The natural language the comments are written in (detected when
     /// absent).
     pub comment_from: Option<&'static str>,
+    /// The natural language to translate the declared names to. When the
+    /// source and the target are the same programming language, only the
+    /// names change, in place. Set it with
+    /// [`Options::with_identifier_language`].
+    pub identifier_language: Option<&'static str>,
+    /// The natural language the declared names are written in (detected
+    /// when absent).
+    pub identifier_from: Option<&'static str>,
     /// Whose layout a partial translation between programming languages
     /// keeps (see [`crate::layout`]).
     pub layout: TextLayout,
@@ -121,6 +129,23 @@ impl Options {
         self.comment_from = from.map(known).transpose()?;
         Ok(self)
     }
+
+    /// The options that also translate the declared names to the natural
+    /// language `to`, from `from` (detected when `None`).
+    pub fn with_identifier_language(
+        mut self,
+        to: &str,
+        from: Option<&str>,
+    ) -> Result<Self, GrammarError> {
+        let known = |id: &str| {
+            natural::natural_language(id)
+                .map(|language| language.id.as_str())
+                .map_err(GrammarError::new)
+        };
+        self.identifier_language = Some(known(to)?);
+        self.identifier_from = from.map(known).transpose()?;
+        Ok(self)
+    }
 }
 
 /// The grammar translator with its rule layers.
@@ -187,7 +212,7 @@ impl Translator {
         self
     }
 
-    fn comment_translator(&self) -> CommentTranslator {
+    pub(crate) fn comment_translator(&self) -> CommentTranslator {
         self.comment_translator
             .clone()
             .unwrap_or_else(comment_language::dictionary_translator)
@@ -203,6 +228,56 @@ impl Translator {
                 &self.comment_translator(),
             ),
             None => Ok(program),
+        }
+    }
+
+    /// The declared names can be words of a natural language of their own
+    /// too.
+    fn in_identifier_language(
+        &self,
+        program: Node,
+        options: Options,
+    ) -> Result<Node, GrammarError> {
+        match options.identifier_language {
+            Some(to) => crate::identifier_language::translate_program_identifiers(
+                program,
+                options.identifier_from,
+                to,
+                &self.comment_translator(),
+            ),
+            None => Ok(program),
+        }
+    }
+
+    /// Same code, other comment or identifier language: change only the
+    /// comments and the declared names, in place, so every other character
+    /// of the code stays. `None` when only the meta program can rename.
+    fn in_place(
+        &self,
+        source: &str,
+        language: &str,
+        options: Options,
+    ) -> Result<Option<String>, GrammarError> {
+        let mut text = source.to_owned();
+        if let Some(to) = options.identifier_language {
+            let declared = crate::formal::names::declared_names(&self.to_meta(source, language)?);
+            match crate::identifier_language::translate_identifiers(
+                &text,
+                language,
+                &declared,
+                options.identifier_from,
+                to,
+                &self.comment_translator(),
+            )? {
+                Some(renamed) => text = renamed,
+                None => return Ok(None),
+            }
+        }
+        match options.comment_language {
+            Some(to) => self
+                .translate_comments(&text, language, options.comment_from, to)
+                .map(Some),
+            None => Ok(Some(text)),
         }
     }
 
@@ -360,6 +435,7 @@ impl Translator {
         if options.common_library {
             transformed = common_library::use_common_library(transformed)?;
         }
+        let transformed = self.in_identifier_language(transformed, options)?;
         self.report("transformed", &transformed);
         if natural {
             return self.in_comment_language(transformed, options);
@@ -430,6 +506,7 @@ impl Translator {
                     lines,
                     read_lines: lines,
                     coverage: 1.0,
+                    prose: Vec::new(),
                 }
             }
             Err(error) if machine => return Err(error),
@@ -484,14 +561,15 @@ impl Translator {
         to: &str,
         options: Options,
     ) -> Result<String, GrammarError> {
-        // Same code, other comment language: change only the comments, in
-        // place, so every character of the code stays.
-        if let Some(comment_language) = options.comment_language
+        // Same code, other comment or identifier language: change only the
+        // comments and the names, in place.
+        if (options.comment_language.is_some() || options.identifier_language.is_some())
             && from == to
             && !natural::is_natural_language(from)
             && !languages::language_syntax(from)?.machine
+            && let Some(kept) = self.in_place(source, from, options)?
         {
-            return self.translate_comments(source, from, options.comment_from, comment_language);
+            return Ok(kept);
         }
         let meta = self.to_meta(source, from)?;
         self.from_meta_with(&meta, to, Some(from), options)

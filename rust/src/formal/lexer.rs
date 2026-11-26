@@ -61,7 +61,8 @@ pub struct Token {
     /// Comments written as block comments.
     pub block: bool,
     /// Comments: where the comment text starts and stops in the source, in
-    /// characters (the comment markers are outside).
+    /// characters (the comment markers are outside). Names: where the name
+    /// starts and stops.
     pub span: Option<(usize, usize)>,
 }
 
@@ -197,12 +198,13 @@ pub fn tokenize(source: &str, syntax: &Syntax) -> Result<Vec<Token>, GrammarErro
     Lexer::new(source, syntax).run()
 }
 
+/// Letters of every script make names ("сумма").
 fn is_word(character: char) -> bool {
-    character.is_ascii_alphanumeric() || character == '_'
+    character.is_alphanumeric() || character == '_'
 }
 
 fn is_name_start(character: char) -> bool {
-    character.is_ascii_alphabetic() || character == '_'
+    character.is_alphabetic() || character == '_'
 }
 
 /// Reads one token kind at a time. Each reader returns true when it consumed
@@ -573,6 +575,8 @@ impl<'a> Lexer<'a> {
         }
         let value = self.slice(self.index, self.index + length);
         self.push(TokenType::Name, &value);
+        // Where the name stands, so identifiers can be renamed in place.
+        self.tokens.last_mut().expect("pushed").span = Some((self.index, self.index + length));
         self.index += length;
         true
     }

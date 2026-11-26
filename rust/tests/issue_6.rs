@@ -295,7 +295,7 @@ fn changes_only_the_comments_when_the_code_language_stays() {
         commenting("russian", None),
     );
     assert!(
-        russian.contains("// Сумма из квадраты in JavaScript"),
+        russian.contains("// Сумма из квадраты в JavaScript"),
         "{russian}"
     );
     assert_eq!(code_of(&russian, "//"), code_of(&source, "//"));

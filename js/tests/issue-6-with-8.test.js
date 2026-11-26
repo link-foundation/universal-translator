@@ -124,6 +124,9 @@ describe('comment languages and versions with partial translation', () => {
         complete: true,
         errors: [],
         coverage: 1,
+        // The renamed name and the translated comment differ from the
+        // source, so only the line with the same tokens is matched.
+        lineMap: [[1, 1]],
         detected: 'javascript',
       });
     } finally {

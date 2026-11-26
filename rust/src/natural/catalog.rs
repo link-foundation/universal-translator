@@ -299,10 +299,24 @@ pub const SOURCES: &[(&str, &str)] = &[
         "vietnamese.lino",
         include_str!("../../../data/natural/vietnamese.lino"),
     ),
+    (
+        "vocabulary.lino",
+        include_str!("../../../data/natural/vocabulary.lino"),
+    ),
+    (
+        "grammar.lino",
+        include_str!("../../../data/natural/grammar.lino"),
+    ),
 ];
 
 /// The file of the semantic primes, which describes no language.
 pub const PRIMES_FILE: &str = "semantic-primes.lino";
+
+/// The file of the everyday vocabulary of free translation.
+pub const VOCABULARY_FILE: &str = "vocabulary.lino";
+
+/// The file of the grammar of free translation.
+pub const GRAMMAR_FILE: &str = "grammar.lino";
 
 /// Every statement and expression form a language must describe.
 pub const TEMPLATE_KEYS: [&str; 38] = [
@@ -655,7 +669,7 @@ fn load() -> Result<Catalog, String> {
     let mut sources: Vec<&(&str, &str)> = SOURCES.iter().collect();
     sources.sort_by_key(|(file, _)| *file);
     for (file, source) in sources {
-        if *file == PRIMES_FILE {
+        if [PRIMES_FILE, VOCABULARY_FILE, GRAMMAR_FILE].contains(file) {
             continue;
         }
         let description = read_description(source).map_err(|error| format!("{file}: {error}"))?;

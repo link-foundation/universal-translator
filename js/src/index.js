@@ -125,6 +125,11 @@ export {
   translateComments,
   translateProgramComments,
 } from './translation/comment-language.js';
+export {
+  identifierDictionary,
+  translateIdentifiers,
+  translateProgramIdentifiers,
+} from './translation/identifier-language.js';
 export { readNatural } from './natural/reader.js';
 export { writeNatural } from './natural/writer.js';
 export {
