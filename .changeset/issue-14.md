@@ -95,3 +95,16 @@ The meta language has a for-each loop, `ForEach { variable, array, body }`, read
 ### Decorators, language versions and the Hello World Collection
 
 Every stage of the translation pipeline (parser, readers and emitters) can be wrapped with decorators, in JavaScript with `createTranslator({ decorate })` and `translator.decorate`, and in Rust with `Translator::decorate_*`. Programming languages gain versions with real differences in the written program: `javascript@es5` (no `let`, `const`, template strings or `for…of`), `php@5` and `csharp@5`. The Hello World Collection can be downloaded with `scripts/hello-world-collection.mjs`, and every extracted program is read into the meta language and measured in a coverage file.
+
+### More of the TIOBE top 50
+
+GameMaker Language (`gml`, number 42 in the TIOBE index of November 2026) is written and read back in both the JavaScript and Rust translators, with its own common library (`common-library/common_library.gml`). GameMaker runs GML only inside its IDE and game runner, so `verify-native.mjs` reports GML as skipped with that reason, and its translations are checked by reading them back into the same meta program.
+
+28 of the top 50 are now covered: Python, C, Java, C++, C#, JavaScript, R, Visual Basic (.NET), Go, Rust, PHP, Fortran, Perl, MATLAB, assembly language (the machine targets), Swift, Delphi/Object Pascal (through the Pascal profile), Dart, Julia, Ada, Objective-C, Ruby, Lua, Kotlin, D, Scala, TypeScript and GML. The other 22 are not supported yet:
+
+- Scratch, Ladder Logic and LabVIEW are graphical: their programs are blocks, rungs and wired diagrams, not text a parser can read or an emitter can write.
+- SQL and XSLT are declarative: standard SQL has no functions, loops or output statements, and XSLT has no assignable variables, so the examples would need an encoding of their own, like the Rocq runtime.
+- Transact-SQL functions cannot print and it has no arrays; PL/SQL needs an Oracle database to run. PL/SQL could be written like Ada (`DBMS_OUTPUT.PUT_LINE`), but it is not done.
+- ABAP, SAS, Xojo and (Visual) FoxPro run only in commercial or discontinued environments, so their translations could not be checked natively.
+- VBScript and Classic Visual Basic run only on Windows. A classic Visual Basic dialect is possible (no `Return`, so `Name = value: Exit Function`; `And` and `Or` that do not short-circuit; no `+=`; one `Dim` per procedure; `ByVal` parameters), but it is not done.
+- OCaml, Caml, ML, Lisp, Haskell, Clojure, Prolog, COBOL and Solidity each need a dialect module in both runtimes: functional and logic languages need a state encoding (as Lean and Rocq have), COBOL needs its division layout, and Solidity has no standard output outside a test framework. None of them is done yet.
