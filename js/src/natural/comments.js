@@ -16,6 +16,15 @@
 // - in a question, interrogative concepts come first (как -> how, not like);
 // - an inflected form is found through its stem (мира -> мир -> world);
 // - an infinitive stays one (покакать -> to poop, to poop -> покакать);
+// - a verb form keeps its slot when both languages name their verb forms
+//   (verb-forms): prints -> печатает, a finite form is never written as an
+//   infinitive;
+// - the object of a verb takes the accusative when the language has one
+//   (object-endings, object-forms): greets someone -> приветствует кого-то,
+//   prints the sum -> печатает сумму;
+// - "of" between two nouns is left out before a name the dictionary does not
+//   know, in a language whose second noun takes the genitive (of-genitive):
+//   factorial of n -> факториал n;
 // - an article the other language does not have is left out;
 // - words of languages written without spaces are found inside the text
 //   (你好世界 -> hello world), and are joined without spaces when written.
@@ -58,6 +67,8 @@ const meaningSets = new WeakMap();
 //   meanings  phrase -> meanings, the likeliest first
 //   parts     meaning -> part of speech ('prime' and 'name' for the primes
 //             and the words of program names)
+//   forms     concept meaning -> its forms in the order of the vocabulary,
+//             so the slot of a verb form (lemma, present) is its position
 function meaningsOf(id) {
   const language = naturalLanguage(id);
   if (meaningSets.has(language)) {
@@ -67,6 +78,7 @@ function meaningsOf(id) {
   const phrases = new Map();
   const meanings = new Map();
   const parts = new Map();
+  const forms = new Map();
   const add = (meaning, part, phrase) => {
     if (!phrase) {
       return;
@@ -97,16 +109,27 @@ function meaningsOf(id) {
       add(`word:${word}`, 'name', phrase);
     }
   }
-  for (const { id: concept, part, forms } of vocabularyConcepts()) {
-    (forms[base] ?? []).forEach((phrase) =>
-      add(`concept:${concept}`, part, phrase)
-    );
+  for (const {
+    id: concept,
+    part,
+    forms: conceptForms,
+  } of vocabularyConcepts()) {
+    const written = conceptForms[base] ?? [];
+    forms.set(`concept:${concept}`, written);
+    written.forEach((phrase) => add(`concept:${concept}`, part, phrase));
   }
   const grammar = grammarOf(base);
+  // The accusative of a word with a form of its own is read as the word.
+  for (const [nominative, accusative] of grammar.objectForms) {
+    for (const meaning of [...(meanings.get(nominative) ?? [])]) {
+      add(meaning, parts.get(meaning), accusative);
+    }
+  }
   const result = {
     phrases,
     meanings,
     parts,
+    forms,
     grammar,
     stems: stemIndex(meanings.keys(), grammar),
   };
@@ -141,17 +164,29 @@ function preferredPhrase(meaning, target, question) {
   );
 }
 
-// The translation of one known phrase: { text, part, lemma } or undefined.
-// An article the target does not have becomes an empty text.
+// The form of a verb in the slot (lemma, present) the source form has, when
+// both languages name their verb forms; undefined for the lemma and for
+// every verb form the languages do not both name.
+function slotForm(phrase, meaning, source, target) {
+  const slot = source.forms.get(meaning)?.indexOf(phrase) ?? -1;
+  const name = slot > 0 ? source.grammar.verbForms[slot] : undefined;
+  const at = target.grammar.verbForms.indexOf(name);
+  return at > 0 ? target.forms.get(meaning)?.[at] : undefined;
+}
+
+// The translation of one known phrase: { text, part, lemma, meaning } or
+// undefined. An article the target does not have becomes an empty text.
 function translatePhrase(phrase, source, target, question) {
   const meanings = likely(phrase, source, question);
   for (const meaning of meanings) {
     const part = source.parts.get(meaning);
     if (target.phrases.has(meaning)) {
+      const form = part === 'verb' && slotForm(phrase, meaning, source, target);
       return {
-        text: preferredPhrase(meaning, target, question),
+        text: form || preferredPhrase(meaning, target, question),
         part,
-        lemma: source.phrases.get(meaning)[0] === phrase,
+        meaning,
+        lemma: !form && source.phrases.get(meaning)[0] === phrase,
       };
     }
     if (part === 'article') {
@@ -226,6 +261,7 @@ class ProseTranslator {
   constructor(from, to) {
     this.source = meaningsOf(from);
     this.target = meaningsOf(to);
+    this.disagree();
   }
 
   // The written form of a translated phrase.
@@ -248,7 +284,80 @@ class ProseTranslator {
     }
     const infinitive =
       translated.lemma && this.source.grammar.verbLemma === 'infinitive';
-    return { text: this.write(translated, infinitive), part: translated.part };
+    return {
+      text: this.write(translated, infinitive),
+      part: translated.part,
+      meaning: translated.meaning,
+    };
+  }
+
+  // The accusative of the object of a verb: a word with its own form
+  // (кто-то -> кого-то) or a noun with the ending of the case (сумма -> сумму).
+  accusative(result) {
+    const { objectForms, objectEndings } = this.target.grammar;
+    if (objectForms.has(result.text)) {
+      return objectForms.get(result.text);
+    }
+    // Only a singular nominative has the endings: the first phrase of the
+    // meaning, and not a word of the program names in the plural (numbers).
+    const nominative = this.target.phrases.get(result.meaning)?.[0];
+    const plural = /^word:.*s$/u.test(result.meaning);
+    if (
+      !['noun', 'name'].includes(result.part) ||
+      result.text.includes(' ') ||
+      result.text !== nominative ||
+      plural
+    ) {
+      return result.text;
+    }
+    // The longest ending decides (a neuter имя keeps its form).
+    const endings = [...objectEndings].sort(
+      ([a], [b]) => [...b].length - [...a].length
+    );
+    const found = endings.find(([ending]) => result.text.endsWith(ending));
+    return found
+      ? result.text.slice(0, result.text.length - found[0].length) + found[1]
+      : result.text;
+  }
+
+  // Whether the words at parts[index] are none the dictionary knows (the
+  // name of something in the program).
+  unknown(parts, index) {
+    return index < parts.length && !this.words(parts, index, false);
+  }
+
+  // The words around a verb agree in case: the first noun after a verb (an
+  // article may come between) is its object and takes the accusative, and
+  // "of" between two nouns is left out of a language whose second noun takes
+  // the genitive when the second noun is a name the dictionary does not know.
+  // Only words separated by blanks belong together.
+  agree(parts, result) {
+    const { object, last } = this;
+    const blank = /^[ \t]*$/u.test(parts[result.end + 1] ?? '');
+    let { text } = result;
+    if (object && result.part !== 'article') {
+      text = this.accusative(result);
+    }
+    if (
+      result.meaning === 'word:of' &&
+      this.target.grammar.ofGenitive &&
+      ['noun', 'name'].includes(last) &&
+      parts[result.end + 1] === ' ' &&
+      this.unknown(parts, result.end + 2)
+    ) {
+      text = '';
+    }
+    this.object =
+      blank &&
+      (result.part === 'verb' || (object && result.part === 'article'));
+    this.last = blank ? result.part : undefined;
+    return { ...result, text };
+  }
+
+  // A word no translation reads ends the sentence parts that agree.
+  disagree() {
+    this.object = false;
+    this.last = undefined;
   }
 
   // An infinitive written around its verb ('to poop'): the words of the
@@ -378,13 +487,15 @@ export function translateCommentText(text, { from, to }) {
   let capitalize = false;
   let index = 1;
   while (index < parts.length) {
-    const result = translator.words(parts, index, questions[index]);
-    if (!result) {
+    const found = translator.words(parts, index, questions[index]);
+    if (!found) {
+      translator.disagree();
       written.push({ text: parts[index], translated: false }, parts[index + 1]);
       capitalize = false;
       index += 2;
       continue;
     }
+    const result = translator.agree(parts, found);
     const original = parts.slice(index, result.end + 1).join('');
     let output = matchCase(original, result.text);
     if (capitalize) {
@@ -392,9 +503,9 @@ export function translateCommentText(text, { from, to }) {
     }
     capitalize = false;
     let gap = parts[result.end + 1];
-    if (!output && result.part === 'article') {
-      // The article is left out with the space after it; a capital moves
-      // on to the next word.
+    if (!output) {
+      // An article or an "of" left out goes with the space after it; a
+      // capital moves on to the next word.
       capitalize = original.charAt(0) !== fold(original.charAt(0));
       gap = gap === ' ' ? '' : gap;
     }

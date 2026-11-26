@@ -35,6 +35,61 @@ describe('prose', () => {
     );
   });
 
+  it('keeps the verb form, the object case and the genitive of a sentence', () => {
+    const text = (source, from, to) => translatePartial(source, from, to).text;
+    const sentences = {
+      'Greets someone': {
+        russian: 'Приветствует кого-то\n',
+        ukrainian: 'Вітає когось\n',
+        polish: 'Wita kogoś\n',
+        german: 'Grüßt jemanden\n',
+        french: 'Salue quelqu’un\n',
+        spanish: 'Saluda a alguien\n',
+      },
+      'Prints the sum': {
+        russian: 'Печатает сумму\n',
+        ukrainian: 'Друкує суму\n',
+        polish: 'Drukuje sumę\n',
+      },
+      'Returns the factorial of n': {
+        russian: 'Возвращает факториал n\n',
+        ukrainian: 'Повертає факторіал n\n',
+        polish: 'Zwraca silnię n\n',
+        spanish: 'Devuelve el factorial de n\n',
+      },
+    };
+    for (const [source, targets] of Object.entries(sentences)) {
+      for (const [language, expected] of Object.entries(targets)) {
+        expect(text(source, 'english', language)).toBe(expected);
+      }
+    }
+    // The lemma is the infinitive, a finite form never is.
+    expect(text('to print', 'english', 'russian')).toBe('печатать\n');
+    expect(text('Print', 'english', 'russian')).toBe('Печатать\n');
+    // A noun keeps its form where it is no object or no singular nominative.
+    expect(text('Prints the name', 'english', 'russian')).toBe(
+      'Печатает имя\n'
+    );
+    expect(text('Sorts the numbers', 'english', 'russian')).toBe(
+      'Сортирует числа\n'
+    );
+  });
+
+  it('reads the verb forms and the cases back', () => {
+    const text = (source, from, to) => translatePartial(source, from, to).text;
+    expect(text('Печатает сумму', 'russian', 'english')).toBe('Prints sum\n');
+    expect(text('Приветствует кого-то', 'russian', 'english')).toBe(
+      'Greets someone\n'
+    );
+    expect(text('Saluda a alguien', 'spanish', 'english')).toBe(
+      'Greets someone\n'
+    );
+    expect(text('Возвращает факториал n', 'russian', 'english')).toBe(
+      'Returns factorial n\n'
+    );
+    expect(text('Печатать сумму', 'russian', 'english')).toBe('To print sum\n');
+  });
+
   it('translates a Russian comment to English', () => {
     expect(
       translateComments('// Привет мир\nlet x = 1;\n', 'javascript', {
