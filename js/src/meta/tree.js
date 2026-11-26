@@ -2,7 +2,8 @@
 // parser produces and every emitter consumes. Node kinds use full words.
 //
 //   Program        { comments, imports, functions, main }
-//   Function       { name, parameters: [{ name, type }], returnType, body, comments }
+//   Function       { name, parameters: [{ name, type, annotations? }], returnType, body, comments, annotations? }
+//   Annotation     { expression }       method or parameter metadata
 //   Block          { statements }
 //   Declaration    { name, type, value, mutable }
 //   Assignment     { name, operator, value }

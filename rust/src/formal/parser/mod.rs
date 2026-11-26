@@ -67,6 +67,7 @@ const CONTROL_WORDS: [&str; 9] = [
 
 const ASSIGNMENT_SYMBOLS: [&str; 8] = ["=", "+=", "-=", "*=", "/=", "%=", "++", "--"];
 
+mod annotations;
 mod arrays;
 mod arrows;
 mod forms;
@@ -379,8 +380,14 @@ impl Parser {
     }
 
     pub(crate) fn item(&mut self) -> Parsed {
+        let annotations = self.annotations()?;
         let dialect = self.dialect;
-        dialect.item(self)
+        let item = dialect.item(self)?;
+        Ok(if annotations.is_empty() {
+            item
+        } else {
+            item.with("annotations", annotations)
+        })
     }
 
     pub(crate) fn base_item(&mut self) -> Parsed {
@@ -551,13 +558,7 @@ impl Parser {
         if CONTROL_WORDS.contains(&self.value(0)) {
             return 0;
         }
-        (0..)
-            .take_while(|offset| {
-                self.kind(*offset) == TokenType::Name
-                    || ["*", "::", "[", "]"].contains(&self.value(*offset))
-            })
-            .take(self.tokens.len())
-            .count()
+        self.type_head_length()
     }
 
     /// The index after the parentheses opening at `offset` and any newlines.
@@ -651,7 +652,11 @@ impl Parser {
     }
 
     pub(crate) fn parameter_list(&mut self) -> Parsed<Vec<Node>> {
+        if self.syntax.id == "kotlin" {
+            return self.annotated_parameters();
+        }
         self.expect("(")?;
+        self.skip_newlines();
         let mut parameters = Vec::new();
         let mut pending_names = Vec::new();
         let parameter = |name: String, kind: Option<String>| {
@@ -662,9 +667,7 @@ impl Parser {
         while !self.is(")") {
             match self.syntax.typed {
                 Typed::Prefix => {
-                    let mut words = self.words_until(&[",", ")"])?;
-                    let parameter_name = words.pop().unwrap_or_default();
-                    parameters.push(parameter(parameter_name, source_type(&words.join(" "))));
+                    parameters.push(self.prefix_parameter()?);
                 }
                 Typed::Suffix => {
                     pending_names.push(self.expect_name()?);
@@ -685,12 +688,13 @@ impl Parser {
                     } else {
                         None
                     };
-                    parameters.push(parameter(parameter_name, kind));
+                    parameters.push(self.annotated_hint(parameter(parameter_name, kind))?);
                 }
             }
             if !self.accept(",") {
                 break;
             }
+            self.skip_newlines();
         }
         self.expect(")")?;
         Ok(parameters)
@@ -709,11 +713,7 @@ impl Parser {
         let mut depth = 0i64;
         loop {
             let token = self.current();
-            match token.value.as_str() {
-                "<" => depth += 1,
-                ">" => depth -= 1,
-                _ => {}
-            }
+            depth += annotations::type_depth(&token.value);
             let stops = token.kind == TokenType::Newline
                 || ["{", "=", "=>", ",", ")", ";"].contains(&token.value.as_str());
             if (depth == 0 && stops) || token.kind == TokenType::End {
@@ -867,13 +867,7 @@ impl Parser {
     }
 
     fn plain_is_typed_declaration(&self) -> bool {
-        let offset = (0..)
-            .take_while(|offset| {
-                self.kind(*offset) == TokenType::Name
-                    || ["*", "::", "[", "]", "<", ">"].contains(&self.value(*offset))
-            })
-            .take(self.tokens.len())
-            .count();
+        let offset = self.type_head_length();
         offset >= 2
             && self.kind(offset - 1) == TokenType::Name
             && (self.is_at("=", offset) || self.is_at(";", offset))

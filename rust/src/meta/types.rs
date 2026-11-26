@@ -168,8 +168,7 @@ struct Reals {
 }
 
 fn known(kind: Option<&str>) -> Option<String> {
-    kind.filter(|kind| !kind.starts_with("source:"))
-        .map(str::to_owned)
+    kind.map(str::to_owned)
 }
 
 struct Context<'a> {

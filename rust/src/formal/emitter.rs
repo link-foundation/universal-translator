@@ -130,8 +130,9 @@ pub(crate) struct Emitter {
 
 /// The import lines a used feature needs, before and after the common
 /// library imports.
-const IMPORTS_BEFORE_LIBRARY: [(&str, &str); 4] = [
+const IMPORTS_BEFORE_LIBRARY: [(&str, &str); 5] = [
     ("sys", "import sys"),
+    ("typing", "from typing import Annotated"),
     ("strformat", "import std/strformat"),
     ("std.conv", "import std.conv;"),
     ("dart:io", "import 'dart:io';"),
@@ -260,6 +261,9 @@ impl Emitter {
     }
 
     pub(crate) fn type_name(&mut self, meta: &str) -> String {
+        if let Some(name) = meta.strip_prefix("source:") {
+            return super::type_metadata::named_type(name, self.id());
+        }
         if meta == "array"
             && let Some(written) = self.array_type_name()
         {
@@ -1039,7 +1043,10 @@ impl Emitter {
         for text in item.texts("comments") {
             self.comment(&text);
         }
-        let mut signature = self.signature(item);
+        self.write_annotations(item)?;
+        let mut signature = self
+            .metadata_signature(item)?
+            .unwrap_or_else(|| self.signature(item));
         // Lua defines a function it declared ahead without `local`, which
         // would declare a second variable.
         if self.syntax.forward_declarations == ForwardDeclarations::Local

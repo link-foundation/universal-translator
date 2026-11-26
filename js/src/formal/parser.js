@@ -11,6 +11,7 @@ import { stepOperators, withLoops } from './loop-parser.js';
 import { withFunctionForms } from './function-forms.js';
 import { slashOperator } from './numbers.js';
 import { powerSymbol } from './power.js';
+import { typeDepth, typeHeadLength, withAnnotations } from './annotations.js';
 
 const binaryLevels = [
   { or: ['||', 'or'] },
@@ -481,14 +482,7 @@ class BaseParser {
     if (controlWords.has(this.peek().value)) {
       return 0;
     }
-    let offset = 0;
-    while (
-      this.peek(offset).type === 'name' ||
-      ['*', '::', '[', ']', '<', '>'].includes(this.peek(offset).value)
-    ) {
-      offset += 1;
-    }
-    return offset;
+    return typeHeadLength(this);
   }
 
   // The number of tokens that announce a function defined later, or 0:
@@ -682,12 +676,7 @@ class BaseParser {
     let depth = 0;
     while (true) {
       const token = this.peek();
-      if (token.value === '<') {
-        depth += 1;
-      }
-      if (token.value === '>') {
-        depth -= 1;
-      }
+      depth += typeDepth(token.value);
       if (
         depth === 0 &&
         (token.type === 'newline' ||
@@ -817,13 +806,7 @@ class BaseParser {
   }
 
   isTypedDeclaration() {
-    let offset = 0;
-    while (
-      this.peek(offset).type === 'name' ||
-      ['*', '::', '[', ']', '<', '>'].includes(this.peek(offset).value)
-    ) {
-      offset += 1;
-    }
+    const offset = typeHeadLength(this);
     return (
       offset >= 2 &&
       this.peek(offset - 1).type === 'name' &&
@@ -1423,7 +1406,9 @@ export function numberLiteral(written) {
 
 // Arrays, loops and type hints are read by mixins of their own, which the
 // dialects inherit.
-const Parser = withFunctionForms(withLoops(withArrays(BaseParser)));
+const Parser = withAnnotations(
+  withFunctionForms(withLoops(withArrays(BaseParser)))
+);
 
 // Map a source type spelling to a meta type.
 export function sourceType(spelling) {

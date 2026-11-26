@@ -5,8 +5,7 @@ use super::{Parsed, Parser};
 use crate::formal::lexer::TokenType;
 use crate::meta::Node;
 
-/// The meta type of a Python hint. Every other hint (`float`,
-/// `dict[str, int]`, a class name) is read and left to type inference.
+/// Built-in hints use shared types; application types retain their spelling.
 pub fn hint_type(spelling: &str) -> Option<String> {
     let meta = match spelling {
         "int" => "integer",
@@ -14,7 +13,9 @@ pub fn hint_type(spelling: &str) -> Option<String> {
         "bool" => "boolean",
         "None" => "nothing",
         "list[int]" | "List[int]" => "array",
-        _ => return None,
+        "float" => "real",
+        "" => return None,
+        _ => return Some(format!("source:{spelling}")),
     };
     Some(meta.to_owned())
 }
@@ -31,7 +32,7 @@ impl Parser {
         let mut words = Vec::new();
         let mut depth = 0i64;
         while !matches!(self.kind(0), TokenType::Newline | TokenType::End) {
-            if depth == 0 && [":", "=", ",", ")"].iter().any(|stop| self.is(stop)) {
+            if depth == 0 && [":", "=", ",", ")", "]"].iter().any(|stop| self.is(stop)) {
                 break;
             }
             if self.is("[") {

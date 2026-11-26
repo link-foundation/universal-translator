@@ -16,6 +16,7 @@ import { splitVersion } from './versions.js';
 import { dialects } from './dialects/index.js';
 import { withArrays } from './array-spellings.js';
 import { writePower } from './power.js';
+import { namedType, withTypeMetadata } from './type-metadata.js';
 import {
   isReal,
   realValue,
@@ -91,6 +92,7 @@ const blockCommentLanguages = new Set(['c', 'csharp']);
 // library imports.
 const importsBeforeLibrary = [
   ['sys', 'import sys'],
+  ['typing', 'from typing import Annotated'],
   ['strformat', 'import std/strformat'],
   ['std.conv', 'import std.conv;'],
   ['dart:io', "import 'dart:io';"],
@@ -156,6 +158,9 @@ class BaseEmitter {
   }
 
   type(meta) {
+    if (meta?.startsWith('source:')) {
+      return namedType(meta, this.id);
+    }
     const types = this.syntax.types ?? {};
     if (meta === 'text' && this.id === 'cpp') {
       this.uses.add('string');
@@ -807,6 +812,12 @@ class BaseEmitter {
     for (const text of item.comments ?? []) {
       this.comment(text);
     }
+    for (const annotation of item.annotations ?? []) {
+      if (!['java', 'kotlin', 'python'].includes(this.id)) {
+        throw new Error(`Annotations need a framework mapping for ${this.id}`);
+      }
+      this.line(`@${this.expression(annotation.expression)}`);
+    }
     this.openBlock(this.definitionHeading(item));
     // Perl receives its arguments in @_.
     if (this.syntax.parameters === 'unpacked' && item.parameters.length) {
@@ -968,7 +979,7 @@ const compoundOperators = {
 };
 
 // Arrays are written by a mixin of their own, which the dialects inherit.
-const Emitter = withReals(withArrays(BaseEmitter));
+const Emitter = withTypeMetadata(withReals(withArrays(BaseEmitter)));
 
 export function emitProgram(program, languageId) {
   const LanguageEmitter = emitterFor(languageId);

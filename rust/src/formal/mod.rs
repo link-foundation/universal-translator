@@ -32,4 +32,5 @@ pub(crate) mod power;
 pub mod rocq_runtime;
 pub mod rules;
 mod text_writing;
+mod type_metadata;
 pub mod versions;

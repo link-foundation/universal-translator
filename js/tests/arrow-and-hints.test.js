@@ -115,7 +115,7 @@ describe('Python type hints', () => {
     expect(total.type).toBe('integer');
   });
 
-  it('map str, bool and list[int] and leave the others to inference', () => {
+  it('map built-ins and retain application and generic types', () => {
     const types = (source) =>
       translator
         .toMeta(source, 'python')
@@ -123,11 +123,8 @@ describe('Python type hints', () => {
     const hinted = types(
       'def show(name: str, shown: bool, sizes: list[int], ratio: float, table: dict[str, int]) -> None:\n    print(name)\n'
     );
-    const plain = types(
-      'def show(name, shown, sizes, ratio, table):\n    print(name)\n'
-    );
     expect(hinted.slice(0, 3)).toEqual(['text', 'boolean', 'array']);
-    expect(hinted.slice(3)).toEqual(plain.slice(3));
+    expect(hinted.slice(3)).toEqual(['real', 'source:dict[str,int]']);
   });
 
   it('read a hint without a value as nothing to do', () => {

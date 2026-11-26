@@ -231,7 +231,7 @@ function typeStatement(statement, scope, signatures, returns) {
 }
 
 function known(type) {
-  return type && !type.startsWith('source:') ? type : undefined;
+  return type || undefined;
 }
 
 // Parameter types come from the first call site that tells them.
