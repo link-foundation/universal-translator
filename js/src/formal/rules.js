@@ -558,6 +558,15 @@ export function inferMutability(program) {
     if (current.kind === 'IndexAssignment') {
       stored.add(current.name);
     }
+    if (current.kind === 'Call') {
+      const mutator =
+        /^(.*)\.(?:push|pop|shift|unshift|splice|sort|reverse|append|extend|insert|remove|clear)$/u.exec(
+          current.callee
+        );
+      if (mutator) {
+        stored.add(mutator[1]);
+      }
+    }
     return current;
   });
   return rewrite(program, (current) => {

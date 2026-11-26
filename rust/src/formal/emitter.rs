@@ -10,6 +10,7 @@ use super::languages::{
     Blocks, EntryPoint, ForwardDeclarations, IntegerDivision, Syntax, language_syntax,
 };
 use super::numbers::{rust_type, with_real_operands};
+use super::power::write_power;
 use crate::meta::GrammarError;
 use crate::meta::{Node, add, block, format_number, later_calls, layout, number, text};
 
@@ -339,7 +340,7 @@ impl Emitter {
         } else {
             operator.to_owned()
         };
-        let operand = self.expression_in(field(expression, "operand")?, 7.0)?;
+        let operand = self.expression_in(field(expression, "operand")?, 9.0)?;
         let result = format!("{spaced}{operand}");
         Ok(if parent > 7.0 {
             format!("({result})")
@@ -419,6 +420,9 @@ impl Emitter {
     }
 
     pub(crate) fn base_binary(&mut self, expression: &Node, parent: f64) -> Result<String> {
+        if expression.str("operator") == Some("power") {
+            return write_power(self, expression, parent);
+        }
         let converted = with_real_operands(expression, &self.syntax);
         let expression = converted.as_ref().unwrap_or(expression);
         let operator = expression.str("operator").unwrap_or_default();

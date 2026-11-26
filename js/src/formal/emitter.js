@@ -15,6 +15,7 @@ import { languageSyntax } from './languages.js';
 import { splitVersion } from './versions.js';
 import { dialects } from './dialects/index.js';
 import { withArrays } from './array-spellings.js';
+import { writePower } from './power.js';
 import {
   isReal,
   realValue,
@@ -205,7 +206,7 @@ class BaseEmitter {
     const operator =
       expression.operator === 'not' ? this.syntax.operators.not : '-';
     const spaced = /\w$/.test(operator) ? `${operator} ` : operator;
-    const result = `${spaced}${this.expression(expression.operand, 7)}`;
+    const result = `${spaced}${this.expression(expression.operand, 9)}`;
     return parent > 7 ? `(${result})` : result;
   }
 
@@ -229,7 +230,9 @@ class BaseEmitter {
       case 'Unary':
         return this.unary(expression, parent);
       case 'Binary':
-        return this.binary(expression, parent);
+        return expression.operator === 'power'
+          ? writePower(this, expression, parent)
+          : this.binary(expression, parent);
       default:
         throw new Error(`Cannot emit ${expression.kind} as an expression`);
     }

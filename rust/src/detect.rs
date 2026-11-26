@@ -75,7 +75,15 @@ const SIGNATURES: &[(&str, &[&str])] = &[
             r"\bint\s+main\s*\(",
         ],
     ),
-    ("cpp", &[r"#include\s*<iostream>", "std::cout", r"\bstd::"]),
+    (
+        "cpp",
+        &[
+            r"#include\s*<iostream>",
+            "std::cout",
+            r"\bstd::",
+            r"\b(?:try|catch|throw|template|namespace)\b",
+        ],
+    ),
     (
         "csharp",
         &[r"\bConsole\.Write(?:Line)?\s*\(", r"\busing\s+System\b"],
@@ -252,7 +260,13 @@ const SIGNATURES: &[(&str, &[&str])] = &[
 /// Patterns a language never writes: Objective-C imports its headers, C and
 /// C++ include them, so "#import" rules C and C++ out.
 const CONTRADICTIONS: &[(&str, &[&str])] = &[
-    ("c", &[r"(?m)^\s*#import\b"]),
+    (
+        "c",
+        &[
+            r"(?m)^\s*#import\b",
+            r"\b(?:try|catch|throw|template|namespace)\b",
+        ],
+    ),
     ("cpp", &[r"(?m)^\s*#import\b"]),
 ];
 
@@ -483,6 +497,29 @@ pub fn detect_language(translator: &Translator, source: &str, limit: usize) -> V
         })
         .filter(|detection| detection.score > 0.0)
         .collect();
-    detections.sort_by(|a, b| b.score.total_cmp(&a.score));
+    const POPULARITY: &[&str] = &[
+        "english",
+        "python",
+        "javascript",
+        "java",
+        "csharp",
+        "cpp",
+        "c",
+        "typescript",
+        "rust",
+        "go",
+    ];
+    let rank = |id: &str| {
+        POPULARITY
+            .iter()
+            .position(|candidate| *candidate == id)
+            .unwrap_or(POPULARITY.len())
+    };
+    detections.sort_by(|a, b| {
+        b.score
+            .total_cmp(&a.score)
+            .then_with(|| rank(&a.id).cmp(&rank(&b.id)))
+            .then_with(|| a.id.cmp(&b.id))
+    });
     detections
 }

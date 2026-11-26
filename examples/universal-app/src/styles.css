@@ -717,6 +717,9 @@ button.link {
 
 .app-footer {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
   justify-content: center;
   padding: 8px 0 16px;
 }

@@ -102,6 +102,24 @@ fn the_issue_example_maps_its_lines() {
     assert_eq!(written.line_map, vec![(1, 0)]);
 }
 
+#[test]
+fn a_translated_comment_still_anchors_the_blank_line_after_it() {
+    let result = Translator::new()
+        .translate_partial(
+            "// Привет\n\nconsole.log( \"Hello World!\");\n",
+            "javascript",
+            "python",
+            Options {
+                comment_language: Some("english".into()),
+                ..Options::default()
+            },
+            true,
+        )
+        .unwrap();
+    assert_eq!(result.text, "# Hello\n\nprint( \"Hello World!\")\n");
+    assert_eq!(result.line_map, vec![(0, 0), (2, 2)]);
+}
+
 fn keys(text: &str, language: &str) -> Vec<String> {
     let chars: Vec<char> = text.chars().collect();
     layout_tokens(&chars, &marks(language))

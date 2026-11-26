@@ -27,6 +27,7 @@ pub mod machine_wasm;
 pub mod more_languages;
 pub mod names;
 pub mod numbers;
+pub(crate) mod power;
 pub mod parser;
 pub mod rocq_runtime;
 pub mod rules;

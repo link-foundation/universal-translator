@@ -1,6 +1,6 @@
 // End-to-end check of the web demo in a real browser: translations between
-// languages and their versions, the left language changing with the text
-// said in it, the meta language of both texts, random examples (program,
+// languages and their versions, correcting the left language without changing
+// the source, contextual issue reports, the meta language of both texts, random examples (program,
 // function, statement), the comment language, the Standards tab (a
 // vocabulary saved as a standard of one's own, words defined through other
 // words), the settings panel (skin, scheme, interface language), the source
@@ -282,15 +282,22 @@ async function wrapsLongLines() {
 }
 
 async function changesTheLeftLanguage() {
-  await translation('javascript', 'python', 'console.log("Hi");\n');
-  // The text on the left is said in the new language, nothing fails.
-  await choose('source', 'rust');
-  assert.match(await page.inputValue('#source-text'), /println!\("Hi"\)/);
-  await output().waitFor();
-  assert.equal(await page.locator('#target-text-error').count(), 0);
-  await choose('source', 'english', 'english');
-  assert.match(await page.inputValue('#source-text'), /Hi/);
-  assert.equal(await page.locator('#target-text-error').count(), 0);
+  const source = 'console.log("Hi");\n';
+  await translation('javascript', 'python', source);
+  // Correcting a detection must preserve the original, including whitespace.
+  for (const language of ['rust', 'english', 'javascript']) {
+    await choose('source', language);
+    assert.equal(await page.inputValue('#source-text'), source);
+  }
+  const report = new URL(await page.getAttribute('#report-issue', 'href'));
+  const body = report.searchParams.get('body');
+  assert.equal(
+    report.pathname,
+    '/link-foundation/universal-translator/issues/new'
+  );
+  assert.match(body, /from javascript to python/);
+  assert.ok(body.includes(source));
+  assert.match(body, /print\("Hi"\)/);
 }
 
 async function showsTheMetaLanguage() {
@@ -299,8 +306,14 @@ async function showsTheMetaLanguage() {
   const source = await page.locator('#source-meta').textContent();
   const target = await page.locator('#target-meta').textContent();
   assert.match(source, /^program/);
-  assert.match(source, /^ {4}text Hi \(type text\)$/m);
-  assert.doesNotMatch(source, /\bblock\b|\w:/, 'plain nesting, no labels');
+  assert.match(source, /^ +text Hi \(type text\)$/m);
+  assert.match(source, /^ +expression$/m, 'explicit expression field');
+  assert.match(source, /^ +arguments$/m, 'explicit argument list');
+  assert.doesNotMatch(
+    source,
+    /\bblock\b|\w:/,
+    'field names use Links Notation'
+  );
   assert.equal(target, source, 'one meaning on both sides');
   await page.uncheck('#show-meta');
 }

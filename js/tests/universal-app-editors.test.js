@@ -92,6 +92,21 @@ describe('line-map: groups of matched lines', () => {
       [4, 2],
     ]);
   });
+
+  it('rejects invalid coordinates and lines past either editor', () => {
+    const pairs = [
+      [0, 0],
+      [-1, 1],
+      [1, -1],
+      [1.5, 1],
+      [NaN, 1],
+      [1, Infinity],
+      [2, 1],
+      [1, 2],
+    ];
+    expect(lineLink(pairs, [2, 2]).pairs).toEqual([[0, 0]]);
+    expect(lineLink([[0, 0]]).pairs).toEqual([[0, 0]]);
+  });
 });
 
 describe('line-map: the other side of a selection', () => {

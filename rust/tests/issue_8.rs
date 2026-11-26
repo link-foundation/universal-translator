@@ -57,6 +57,19 @@ fn reads_the_russian_examples_of_the_issue() {
 }
 
 #[test]
+fn an_isolated_name_is_parseable_as_english_and_wins_ambiguous_ties() {
+    let candidates = detect_language("c");
+    assert_eq!(candidates[0].id, "english");
+    assert!(candidates[0].reads);
+    assert_eq!(
+        Translator::new()
+            .translate_fragment("c", "english", "python", Options::default())
+            .unwrap(),
+        "c\n"
+    );
+}
+
+#[test]
 fn reads_other_obvious_variations() {
     let cases = [
         (

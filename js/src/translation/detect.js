@@ -35,7 +35,12 @@ const signatures = {
   lua: [/^\s*local\s+\w+/mu, /\bthen\s*$/mu, /~=/u],
   php: [/<\?php/u, /\$\w+\s*=/u, /\becho\b/u],
   c: [/#include\s*<stdio\.h>/u, /\bprintf\s*\(/u, /\bint\s+main\s*\(/u],
-  cpp: [/#include\s*<iostream>/u, /std::cout/u, /\bstd::/u],
+  cpp: [
+    /#include\s*<iostream>/u,
+    /std::cout/u,
+    /\bstd::/u,
+    /\b(?:try|catch|throw|template|namespace)\b/u,
+  ],
   csharp: [/\bConsole\.Write(?:Line)?\s*\(/u, /\busing\s+System\b/u],
   java: [
     /\bSystem\.out\.print(?:ln)?\s*\(/u,
@@ -92,8 +97,27 @@ const signatures = {
 // Patterns a language never writes: Objective-C imports its headers, C and
 // C++ include them, so "#import" rules C and C++ out.
 const contradictions = {
-  c: [/^\s*#import\b/mu],
+  c: [/^\s*#import\b/mu, /\b(?:try|catch|throw|template|namespace)\b/u],
   cpp: [/^\s*#import\b/mu],
+};
+
+// Stable tie-break priors: evidence and complete parsing still decide first.
+// English leads ambiguous isolated names; explicit syntax always wins.
+const popularity = [
+  'english',
+  'python',
+  'javascript',
+  'java',
+  'csharp',
+  'cpp',
+  'c',
+  'typescript',
+  'rust',
+  'go',
+];
+const popularityRank = (id) => {
+  const at = popularity.indexOf(id);
+  return at < 0 ? popularity.length : at;
 };
 
 const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
@@ -259,6 +283,11 @@ export function createLanguageDetector({ parseFragment, parsePartial }) {
         score: Math.round((100 * coverage + evidence) * 100) / 100,
       }))
       .filter((candidate) => candidate.score > 0)
-      .sort((a, b) => b.score - a.score);
+      .sort(
+        (a, b) =>
+          b.score - a.score ||
+          popularityRank(a.id) - popularityRank(b.id) ||
+          a.id.localeCompare(b.id)
+      );
   };
 }

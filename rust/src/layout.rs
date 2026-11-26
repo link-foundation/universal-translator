@@ -391,6 +391,39 @@ pub fn align_tokens<'a>(source: &'a [Token], target: &'a [Token]) -> Vec<(usize,
     pair_brackets(&pairs, source, target)
 }
 
+/// Comment wording can change independently of code. Match comments in the
+/// gaps between code anchors, including block comments emitted as line comments.
+fn align_comments(
+    pairs: Vec<(usize, usize)>,
+    source: &[Token],
+    target: &[Token],
+) -> Vec<(usize, usize)> {
+    let code: Vec<_> = pairs
+        .into_iter()
+        .filter(|&(i, j)| source[i].kind != Kind::Comment && target[j].kind != Kind::Comment)
+        .collect();
+    let mut result = code.clone();
+    let mut before = (0, 0);
+    for after in code.into_iter().chain([(source.len(), target.len())]) {
+        let comments = |tokens: &[Token], start: usize, end: usize| -> Vec<usize> {
+            (start..end)
+                .filter(|&at| tokens[at].kind == Kind::Comment && !tokens[at].key.starts_with("c!"))
+                .collect()
+        };
+        let a = comments(source, before.0, after.0);
+        let b = comments(target, before.1, after.1);
+        if !a.is_empty() && !b.is_empty() {
+            let count = a.len().max(b.len());
+            for at in 0..count {
+                result.push((a[at * a.len() / count], b[at * b.len() / count]));
+            }
+        }
+        before = (after.0 + 1, after.1 + 1);
+    }
+    result.sort_unstable();
+    result
+}
+
 /// The closing bracket of an opening one.
 fn closer(key: &str) -> Option<&'static str> {
     match key {
@@ -553,11 +586,12 @@ fn line_spans(
 ) -> BTreeMap<usize, (usize, usize)> {
     let mut spans: BTreeMap<usize, (usize, usize)> = BTreeMap::new();
     for &(i, j) in pairs {
-        let line = source[i].line;
-        spans
-            .entry(target[j].line)
-            .and_modify(|span| *span = (span.0.min(line), span.1.max(line)))
-            .or_insert((line, line));
+        for line in target[j].line..=target[j].last {
+            spans
+                .entry(line)
+                .and_modify(|span| *span = (span.0.min(source[i].line), span.1.max(source[i].last)))
+                .or_insert((source[i].line, source[i].last));
+        }
     }
     spans
 }
@@ -645,10 +679,15 @@ fn map_lines(
     target_line: impl Fn(usize) -> usize,
 ) -> Vec<(usize, usize)> {
     let mut lines: Vec<(usize, usize)> = Vec::new();
+    let mut seen = HashSet::new();
     for &(i, j) in pairs {
-        let pair = (source[i].line, target_line(target[j].line));
-        if lines.last() != Some(&pair) {
-            lines.push(pair);
+        for source_line in source[i].line..=source[i].last {
+            for line in target[j].line..=target[j].last {
+                let pair = (source_line, target_line(line));
+                if seen.insert(pair) {
+                    lines.push(pair);
+                }
+            }
         }
     }
     lines
@@ -716,7 +755,11 @@ pub fn transfer_layout(
         tokens: layout_tokens(&target_chars, to),
         chars: target_chars,
     };
-    let pairs = align_tokens(&source_side.tokens, &target_side.tokens);
+    let pairs = align_comments(
+        align_tokens(&source_side.tokens, &target_side.tokens),
+        &source_side.tokens,
+        &target_side.tokens,
+    );
     let (source_start, target_start) = match (
         first_content(&source_side.chars),
         first_content(&target_side.chars),

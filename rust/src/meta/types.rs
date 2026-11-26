@@ -62,7 +62,15 @@ fn expression_type(expression: &Node, scope: &Scope, signatures: &Signatures) ->
             let is_real = |value: &Option<String>| value.as_deref() == Some("real");
             if operator == "add" && (is_text(&left) || is_text(&right)) {
                 Some("text".into())
-            } else if operator == "realDivide" || is_real(&left) || is_real(&right) {
+            } else if operator == "realDivide"
+                || is_real(&left)
+                || is_real(&right)
+                || (operator == "power"
+                    && expression.node("right").is_some_and(|right| {
+                        !right.is("Number")
+                            || right.number("value").is_some_and(|value| value < 0.0)
+                    }))
+            {
                 Some("real".into())
             } else {
                 Some("integer".into())

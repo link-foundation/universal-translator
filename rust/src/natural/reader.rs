@@ -867,6 +867,22 @@ pub fn read_natural(source: &str, id: &str) -> Result<Node, String> {
 /// [`read_natural`] with a compiled language, such as one with more
 /// template variants (see [`super::catalog::with_templates`]).
 pub fn read_natural_with(source: &str, language: &Language) -> Result<Node, String> {
+    if !source.trim().contains('\n') {
+        let tokens = super::tokens::tokenize(source.trim(), &language.spelling(), false)?;
+        if tokens.len() == 1
+            && let Some(expression) =
+                SentenceReader::new(language).expression(&tokens, 0, tokens.len(), 0)
+        {
+            return Ok(Node::new("Program")
+                .with("comments", Value::List(Vec::new()))
+                .with("imports", Value::List(Vec::new()))
+                .with("functions", Value::List(Vec::new()))
+                .with(
+                    "main",
+                    block(vec![Node::new("Evaluate").with("expression", expression)]),
+                ));
+        }
+    }
     // A language without a for-each sentence writes the counting loop over an
     // index; it is read back as the loop over the elements it stands for.
     ProgramReader {

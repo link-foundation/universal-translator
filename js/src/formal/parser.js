@@ -10,6 +10,7 @@ import { withArrays } from './array-parser.js';
 import { stepOperators, withLoops } from './loop-parser.js';
 import { withFunctionForms } from './function-forms.js';
 import { slashOperator } from './numbers.js';
+import { powerSymbol } from './power.js';
 
 const binaryLevels = [
   { or: ['||', 'or'] },
@@ -1129,7 +1130,11 @@ class BaseParser {
       this.position += 2;
       return node('Call', { callee: '~~', arguments: [this.unary()] });
     }
-    return this.postfix();
+    const left = this.postfix();
+    const power = powerSymbol(this.syntax.id);
+    return power && this.accept(power)
+      ? node('Binary', { operator: 'power', left, right: this.unary() })
+      : left;
   }
 
   postfix() {
@@ -1268,12 +1273,21 @@ class BaseParser {
         parts.push(text(decode(piece)));
       } else {
         const innerSyntax = { ...this.syntax, variableSigil: '$' };
-        parts.push(
-          new this.constructor(
-            tokenize(piece.code, innerSyntax),
-            innerSyntax
-          ).expression()
+        const parser = new this.constructor(
+          tokenize(piece.code, innerSyntax),
+          innerSyntax
         );
+        const expression = parser.expression();
+        while (parser.peek().type === 'newline') {
+          parser.next();
+        }
+        if (parser.peek().type !== 'end') {
+          throw new SyntaxError(
+            `Unexpected "${parser.peek().value}" in interpolation`,
+            token.line
+          );
+        }
+        parts.push(expression);
       }
     }
     if (parts.length === 1 && parts[0].kind === 'Text') {

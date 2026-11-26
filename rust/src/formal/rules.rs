@@ -880,7 +880,20 @@ fn assigned_names(tree: &Node, kind: &str) -> HashSet<String> {
 /// declare it like a mutable variable.
 pub fn infer_mutability(program: Node) -> Node {
     let assigned = assigned_names(&program, "Assignment");
-    let stored = assigned_names(&program, "IndexAssignment");
+    let mut stored = assigned_names(&program, "IndexAssignment");
+    walk(&program, |current| {
+        if current.is("Call")
+            && let Some((receiver, method)) =
+                current.str("callee").unwrap_or_default().rsplit_once('.')
+            && [
+                "push", "pop", "shift", "unshift", "splice", "sort", "reverse", "append", "extend",
+                "insert", "remove", "clear",
+            ]
+            .contains(&method)
+        {
+            stored.insert(receiver.to_owned());
+        }
+    });
     rewrite(program, |mut current| {
         if !current.is("Declaration") {
             return current;

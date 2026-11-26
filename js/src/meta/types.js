@@ -39,6 +39,8 @@ function binaryType(expression, scope, signatures) {
     return 'text';
   }
   return expression.operator === 'realDivide' ||
+    (expression.operator === 'power' &&
+      (expression.right.kind !== 'Number' || expression.right.value < 0)) ||
     left === 'real' ||
     right === 'real'
     ? 'real'

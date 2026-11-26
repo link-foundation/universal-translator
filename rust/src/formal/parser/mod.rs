@@ -14,6 +14,7 @@ use super::interpolation::{Piece, split_interpolation};
 use super::languages::{Blocks, CommandCalls, ForwardDeclarations, Syntax, Typed};
 use super::lexer::{InterpolationStyle, Token, TokenType, decode_escapes, tokenize};
 use super::numbers::slash_operator;
+use super::power::power_symbol;
 use crate::meta::GrammarError;
 use crate::meta::{Node, binary, block, name, number, text};
 
@@ -1224,7 +1225,15 @@ impl Parser {
                 .with("callee", "~~")
                 .with("arguments", vec![operand]));
         }
-        self.postfix()
+        let left = self.postfix()?;
+        if let Some(power) = power_symbol(self.syntax.id)
+            && self.accept(power)
+        {
+            let right = self.unary()?;
+            Ok(binary("power", left, right))
+        } else {
+            Ok(left)
+        }
     }
 
     pub(crate) fn postfix(&mut self) -> Parsed {
@@ -1369,7 +1378,16 @@ impl Parser {
                         ..self.syntax.clone()
                     };
                     let tokens = tokenize(&code, &inner)?;
-                    parts.push(Parser::new(tokens, inner).expression()?);
+                    let mut parser = Parser::new(tokens, inner);
+                    let expression = parser.expression()?;
+                    parser.skip_newlines();
+                    if parser.current().kind != TokenType::End {
+                        return Err(GrammarError::syntax(
+                            format!("Unexpected \"{}\" in interpolation", parser.value(0)),
+                            token.line,
+                        ));
+                    }
+                    parts.push(expression);
                 }
             }
         }

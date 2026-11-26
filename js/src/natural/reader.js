@@ -637,5 +637,21 @@ class ProgramReader {
 // A language without a for-each sentence writes the counting loop over an
 // index; it is read back as the loop over the elements it stands for.
 export function readNatural(source, id, language = naturalLanguage(id)) {
+  // An isolated expression is a valid fragment too. Use the same grammar
+  // as sentence slots and require the entire fragment to be consumed.
+  if (!source.trim().includes('\n')) {
+    const tokens = tokenize(source.trim(), language);
+    const expression =
+      tokens.length === 1 &&
+      new SentenceReader(language).expression(tokens, 0, tokens.length);
+    if (expression) {
+      return node('Program', {
+        comments: [],
+        imports: [],
+        functions: [],
+        main: block([node('Evaluate', { expression })]),
+      });
+    }
+  }
   return raiseForEach(new ProgramReader(language).read(source));
 }

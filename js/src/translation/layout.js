@@ -325,6 +325,41 @@ export function alignTokens(sourceTokens, targetTokens) {
   return pairBrackets(pairs, sourceTokens, targetTokens);
 }
 
+// Comment wording can change independently of code. Match comments inside
+// the gaps between aligned code tokens, including a block comment emitted
+// as several line comments. Generated shebangs have no source counterpart.
+export function alignComments(pairs, source, target) {
+  const code = pairs.filter(
+    ([i, j]) => source[i].kind !== 'comment' && target[j].kind !== 'comment'
+  );
+  const result = [...code];
+  let before = [-1, -1];
+  for (const after of [...code, [source.length, target.length]]) {
+    const comments = (tokens, side) => {
+      const found = [];
+      for (let at = before[side] + 1; at < after[side]; at += 1) {
+        if (tokens[at].kind === 'comment' && !tokens[at].key.startsWith('c!')) {
+          found.push(at);
+        }
+      }
+      return found;
+    };
+    const a = comments(source, 0);
+    const b = comments(target, 1);
+    if (a.length && b.length) {
+      const count = Math.max(a.length, b.length);
+      for (let at = 0; at < count; at += 1) {
+        result.push([
+          a[Math.floor((at * a.length) / count)],
+          b[Math.floor((at * b.length) / count)],
+        ]);
+      }
+    }
+    before = after;
+  }
+  return result.sort(([i, j], [k, l]) => i - k || j - l);
+}
+
 const openers = { 'p(': 'p)', 'p[': 'p]', 'p{': 'p}' };
 const closers = new Set(Object.values(openers));
 
@@ -470,12 +505,17 @@ function insideLines(tokens) {
 function lineSpans(pairs, sourceTokens, targetTokens) {
   const spans = new Map();
   for (const [i, j] of pairs) {
-    const line = sourceTokens[i].line;
-    const span = spans.get(targetTokens[j].line);
-    spans.set(
-      targetTokens[j].line,
-      span ? [Math.min(span[0], line), Math.max(span[1], line)] : [line, line]
-    );
+    const source = sourceTokens[i];
+    const target = targetTokens[j];
+    for (let line = target.line; line <= target.last; line += 1) {
+      const span = spans.get(line);
+      spans.set(
+        line,
+        span
+          ? [Math.min(span[0], source.line), Math.max(span[1], source.last)]
+          : [source.line, source.last]
+      );
+    }
   }
   return spans;
 }
@@ -559,17 +599,26 @@ export function transferLayout(source, target, from, to, options = {}) {
   const targetSide = { chars: [...target] };
   sourceSide.tokens = layoutTokens(sourceSide.chars, layoutSyntax(from));
   targetSide.tokens = layoutTokens(targetSide.chars, layoutSyntax(to));
-  const pairs = alignTokens(sourceSide.tokens, targetSide.tokens);
+  const pairs = alignComments(
+    alignTokens(sourceSide.tokens, targetSide.tokens),
+    sourceSide.tokens,
+    targetSide.tokens
+  );
   const mapLines = (targetLine) => {
     const lines = [];
+    const seen = new Set();
     for (const [i, j] of pairs) {
-      const pair = [
-        sourceSide.tokens[i].line,
-        targetLine(targetSide.tokens[j].line),
-      ];
-      const last = lines.at(-1);
-      if (!last || last[0] !== pair[0] || last[1] !== pair[1]) {
-        lines.push(pair);
+      const a = sourceSide.tokens[i];
+      const b = targetSide.tokens[j];
+      for (let sourceLine = a.line; sourceLine <= a.last; sourceLine += 1) {
+        for (let line = b.line; line <= b.last; line += 1) {
+          const mapped = targetLine(line);
+          const key = `${sourceLine}:${mapped}`;
+          if (Number.isInteger(mapped) && !seen.has(key)) {
+            seen.add(key);
+            lines.push([sourceLine, mapped]);
+          }
+        }
       }
     }
     return lines;

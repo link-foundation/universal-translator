@@ -2,7 +2,7 @@
 //! is js/tests/real-numbers.test.js.
 
 use universal_translator::meta::notation::format_meta;
-use universal_translator::{Mode, Translator};
+use universal_translator::{Mode, Options, Translator};
 
 const HALVES: &str = "let x = 7 / 2;\nlet y = 1.5 * 2;\nconsole.log(x + y);\n";
 const PYTHON: &str = "x = 7 / 2\nprint(x)\n";
@@ -99,4 +99,56 @@ fn reads_real_declarations_and_g_placeholders_of_c() {
 fn turns_slash_assignment_into_the_division_of_the_source_language() {
     let source = "y = 10\ny /= 4\nprint(y)\n";
     assert!(translate(source, "python", "rust").contains("let mut y: f64 = 10.0;\n    y /= 4.0;"));
+}
+
+#[test]
+fn preserves_complete_exponentiation_in_strings_and_operator_precedence() {
+    let translator = Translator::new();
+    let fragment = |source: &str, from: &str, to: &str| {
+        translator
+            .translate_fragment(source, from, to, Options::default())
+            .unwrap()
+    };
+    assert_eq!(
+        fragment("console.log(`${2 ** 10}`);", "javascript", "python"),
+        "print(f\"{2 ** 10}\")\n"
+    );
+    assert_eq!(
+        fragment(
+            "print(2 ** 3 ** 2)\nprint((2 ** 3) ** 2)\n",
+            "python",
+            "javascript"
+        ),
+        "console.log(2 ** 3 ** 2);\nconsole.log((2 ** 3) ** 2);\n"
+    );
+    assert_eq!(
+        fragment("print(-2 ** 2)\n", "python", "javascript"),
+        "console.log(-(2 ** 2));\n"
+    );
+    assert!(fragment("print(2 ** -2)\n", "python", "rust").contains("(2 as f64).powf(-2 as f64)"));
+    assert!(
+        translator
+            .to_meta("console.log(`${2 & 10}`);", "javascript")
+            .unwrap_err()
+            .to_string()
+            .contains("in interpolation")
+    );
+}
+
+#[test]
+fn a_const_array_binding_can_have_mutable_contents() {
+    let translator = Translator::new();
+    let source = "const values = [1, 2];\nvalues.push(3);\nconsole.log(values.length);\n";
+    assert!(
+        translator
+            .translate_fragment(source, "javascript", "rust", Options::default())
+            .unwrap()
+            .contains("let mut values: Vec<i64>")
+    );
+    assert!(
+        translator
+            .translate_fragment(source, "javascript", "javascript", Options::default())
+            .unwrap()
+            .contains("const values")
+    );
 }
