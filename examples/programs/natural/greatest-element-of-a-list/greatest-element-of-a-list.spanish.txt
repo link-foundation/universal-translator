@@ -1,0 +1,9 @@
+Nota: Greatest element of a list in JavaScript
+
+Crear números con valor la lista (17, 4, 93, 28, 65, 3, 80).
+Crear máximo con valor el elemento 0 de números.
+Para cada índice desde 0 hasta la longitud de números menos 1, repetir esto:
+  Crear número con valor el elemento índice de números.
+  Si número es mayor que máximo, hacer esto:
+    Cambiar máximo a número.
+Escribir «The greatest element is » seguido de máximo y terminar la línea.

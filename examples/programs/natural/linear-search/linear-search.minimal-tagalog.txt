@@ -1,0 +1,12 @@
+Tala: Linear search in JavaScript: find the position of a value in a list
+
+May mga_numero, ito ay itong mga bagay (31, 41, 59, 26, 53, 58, 97, 93).
+May wanted, ito ay 53.
+May posisyon, ito ay -1.
+May kasalukuyan, ito ay 0.
+Para sa bawat indeks mula 0 hanggang ang dami ng bahagi ng mga_numero bawas 1, gawin ito:
+  May numero, ito ay bahagi indeks ng mga_numero.
+  Kung numero ay pareho sa wanted at posisyon ay mas kaunti kaysa 0, gawin ito:
+    Pagkatapos nito, ang posisyon ay kasalukuyan.
+  Pagkatapos nito, ang kasalukuyan ay kasalukuyan dagdag 1.
+Sabihin ang “Found ” saka wanted saka “ at position ” saka posisyon sa isang linya.

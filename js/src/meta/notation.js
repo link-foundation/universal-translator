@@ -49,6 +49,7 @@ const mainField = {
   Code: 'language',
   CountingLoop: 'variable',
   Declaration: 'name',
+  ForEach: 'variable',
   Function: 'name',
   IndexAssignment: 'name',
   Name: 'name',

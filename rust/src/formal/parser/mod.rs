@@ -59,8 +59,8 @@ const MODIFIERS: [&str; 10] = [
     "local",
 ];
 
-const CONTROL_WORDS: [&str; 8] = [
-    "if", "else", "while", "for", "switch", "return", "do", "catch",
+const CONTROL_WORDS: [&str; 9] = [
+    "if", "else", "while", "for", "foreach", "switch", "return", "do", "catch",
 ];
 
 const ASSIGNMENT_SYMBOLS: [&str; 8] = ["=", "+=", "-=", "*=", "/=", "%=", "++", "--"];
@@ -781,6 +781,14 @@ impl Parser {
             "if" => return self.if_statement(),
             "while" => return self.while_statement(),
             "for" => return self.for_statement(),
+            "foreach"
+                if self
+                    .syntax
+                    .for_each
+                    .is_some_and(|each| each.starts_with("foreach")) =>
+            {
+                return self.foreach_statement();
+            }
             "return" => return self.return_statement(),
             "echo" => return self.echo_statement(),
             _ => {}

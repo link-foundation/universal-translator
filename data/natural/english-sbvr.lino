@@ -20,6 +20,7 @@ natural:
     else: 'Otherwise the following applies'
     while: 'As long as {condition} the following applies repeatedly'
     for: 'For each {variable} from {start} to {last} the following applies'
+    for-each: 'For each {variable} in {array} the following applies'
     equal: '{left} is equal to {right}' '{left} = {right}' '{left} == {right}'
     not-equal: '{left} is not equal to {right}' '{left} != {right}' '{left} ≠ {right}' '{left} <> {right}'
     less: '{left} is less than {right}' '{left} < {right}'

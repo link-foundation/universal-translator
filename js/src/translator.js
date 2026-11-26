@@ -24,6 +24,7 @@ import {
 } from './formal/machine.js';
 import { machineReaders } from './formal/machine-reader.js';
 import { liftProgram } from './formal/lifting.js';
+import { raiseForEach } from './meta/for-each.js';
 import { useCommonLibrary } from './formal/common-library.js';
 import { splitVersion, versionsOf } from './formal/versions.js';
 import {
@@ -305,7 +306,9 @@ export function createGrammarTranslator(settings = {}) {
     if (syntax.machine) {
       // Machine code has no grammar to parse: read its instructions, lift
       // them to the meta language and continue like any other source.
-      const lifted = inferMutability(lift(readMachine(source, from)));
+      const lifted = inferMutability(
+        raiseForEach(lift(readMachine(source, from)))
+      );
       trace('lifted', lifted);
       const typed = applyRules(infer(lifted), meaning, { from });
       trace('typed', typed);

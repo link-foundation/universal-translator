@@ -1,0 +1,6 @@
+Remarque : Loops/Foreach in JavaScript: print every element of a collection
+
+Il y a nombres, c'est ces choses (1, 1, 2, 3, 5, 8, 13, 21).
+Pour tous les indice de 0 à combien de parties dans nombres moins 1, faire ceci:
+  Il y a nombre, c'est la partie indice de nombres.
+  Dire nombre sur une ligne.

@@ -1,0 +1,9 @@
+Opmerking: Greatest element of a list in JavaScript
+
+Er is getallen, het is deze dingen (17, 4, 93, 28, 65, 3, 80).
+Er is grootste, het is deel 0 van getallen.
+Voor alle index van 0 tot en met hoeveel delen getallen heeft min 1, doe dit:
+  Er is getal, het is deel index van getallen.
+  Als getal is meer dan grootste, doe dit:
+    Hierna is grootste getal.
+Zeg “The greatest element is ” daarna grootste op één regel.

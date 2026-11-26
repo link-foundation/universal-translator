@@ -1,0 +1,12 @@
+Kumbuka: Linear search in JavaScript: find the position of a value in a list
+
+Unda namba yenye thamani orodha (31, 41, 59, 26, 53, 58, 97, 93).
+Unda wanted yenye thamani 53.
+Unda nafasi yenye thamani -1.
+Unda sasa yenye thamani 0.
+Kwa kila fahirisi kutoka 0 hadi urefu wa namba toa 1, rudia hivi:
+  Unda nambari yenye thamani kipengele fahirisi cha namba.
+  Ikiwa nambari ni sawa na wanted na nafasi ni chini ya 0, fanya hivi:
+    Badilisha nafasi kuwa sasa.
+  Badilisha sasa kuwa sasa jumlisha 1.
+Andika “Found ” ikifuatiwa na wanted ikifuatiwa na “ at position ” ikifuatiwa na nafasi na umalize mstari.

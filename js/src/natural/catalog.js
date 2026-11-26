@@ -53,6 +53,10 @@ export const templateKeys = [
   'remainder',
 ];
 
+// Templates a language may leave out: a loop over an array is then written
+// as the counting loop it lowers to.
+export const optionalTemplateKeys = ['for-each'];
+
 const scalarFields = [
   'id',
   'label',
@@ -174,6 +178,9 @@ function compile(description) {
       texts.map((text) => tokenize(text, language, { templates: true })),
     ])
   );
+  for (const key of optionalTemplateKeys) {
+    language.compiled[key] ??= [];
+  }
   // Every word that appears literally in a template is reserved: a program
   // name spelled the same way gets a trailing "_" so it stays a name.
   language.reserved = new Set(
@@ -288,14 +295,12 @@ export function withTemplates(id, templates = {}) {
   const language = naturalLanguage(id);
   const merged = { ...language.templates };
   for (const [key, variants] of Object.entries(templates)) {
-    if (!templateKeys.includes(key)) {
+    if (!templateKeys.includes(key) && !optionalTemplateKeys.includes(key)) {
       throw new Error(`No template "${key}" in natural languages`);
     }
     const list = Array.isArray(variants) ? variants : [variants];
-    merged[key] = [
-      ...merged[key],
-      ...list.filter((text) => !merged[key].includes(text)),
-    ];
+    const known = merged[key] ?? [];
+    merged[key] = [...known, ...list.filter((text) => !known.includes(text))];
   }
   return compile({ ...language, templates: merged });
 }

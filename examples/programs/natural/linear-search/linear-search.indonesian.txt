@@ -1,0 +1,12 @@
+Catatan: Linear search in JavaScript: find the position of a value in a list
+
+Buat angka dengan nilai daftar (31, 41, 59, 26, 53, 58, 97, 93).
+Buat wanted dengan nilai 53.
+Buat posisi dengan nilai -1.
+Buat sekarang dengan nilai 0.
+Untuk setiap indeks dari 0 sampai panjang angka dikurangi 1, ulangi ini:
+  Buat bilangan dengan nilai elemen indeks pada angka.
+  Jika bilangan sama dengan wanted dan posisi kurang dari 0, lakukan ini:
+    Ubah posisi menjadi sekarang.
+  Ubah sekarang menjadi sekarang ditambah 1.
+Tulis “Found ” diikuti wanted diikuti “ at position ” diikuti posisi dan akhiri baris.

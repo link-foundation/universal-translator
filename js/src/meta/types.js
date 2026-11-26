@@ -128,6 +128,21 @@ const statementTypers = {
     condition: context.typed(statement.condition),
     body: context.block(statement.body),
   }),
+  ForEach(statement, context) {
+    const inner = new Map(context.scope);
+    inner.set(statement.variable, 'integer');
+    return {
+      ...statement,
+      type: 'integer',
+      array: context.typed(statement.array),
+      body: typeBlock(
+        statement.body,
+        inner,
+        context.signatures,
+        context.returns
+      ),
+    };
+  },
   CountingLoop(statement, context) {
     const inner = new Map(context.scope);
     inner.set(statement.variable, 'integer');

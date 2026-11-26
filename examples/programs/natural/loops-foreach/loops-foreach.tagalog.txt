@@ -1,0 +1,6 @@
+Tala: Loops/Foreach in JavaScript: print every element of a collection
+
+Lumikha ng mga_numero na may halagang listahan (1, 1, 2, 3, 5, 8, 13, 21).
+Para sa bawat indeks mula 0 hanggang haba ng mga_numero bawas 1, ulitin ito:
+  Lumikha ng numero na may halagang elemento indeks sa mga_numero.
+  Isulat ang numero at tapusin ang linya.

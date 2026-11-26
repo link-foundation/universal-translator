@@ -1,0 +1,11 @@
+Note: Linear search in JavaScript: find the position of a value in a list
+
+It is obligatory that numbers is initially the list (31, 41, 59, 26, 53, 58, 97, 93).
+It is obligatory that wanted is initially 53.
+It is obligatory that position is initially -1.
+It is obligatory that current is initially 0.
+For each number in numbers the following applies:
+  If number is equal to wanted and position is less than 0 then the following applies:
+    It is obligatory that position becomes current.
+  It is obligatory that current becomes current plus 1.
+It is obligatory that the output shows “Found ” followed by wanted followed by “ at position ” followed by position as a line.

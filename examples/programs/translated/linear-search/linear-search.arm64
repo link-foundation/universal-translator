@@ -1,0 +1,268 @@
+// Linear search in ARM64 assembly: find the position of a value in a list
+
+    .global main
+    .section .rodata
+integer_format: .asciz "%lld"
+text_format: .asciz "%s"
+newline_format: .asciz "\n"
+text_0: .asciz "Found "
+text_1: .asciz " at position "
+
+    .text
+.type main, %function
+main:
+    .set main.numbers, 0
+    .set main.wanted, 8
+    .set main.position, 16
+    .set main.current, 24
+    .set main.index, 32
+    .set main.number, 40
+    stp x29, x30, [sp, #-16]!
+    sub sp, sp, #48
+    mov x29, sp
+    mov x0, #8
+    str x0, [sp, #-16]!
+    mov x0, #0
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    bl new_array
+    str x0, [sp, #-16]!
+    ldr x0, [sp]
+    str x0, [sp, #-16]!
+    mov x0, #0
+    str x0, [sp, #-16]!
+    mov x0, #31
+    str x0, [sp, #-16]!
+    ldr x2, [sp], #16
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    str x2, [x0, x1, lsl #3]
+    ldr x0, [sp]
+    str x0, [sp, #-16]!
+    mov x0, #1
+    str x0, [sp, #-16]!
+    mov x0, #41
+    str x0, [sp, #-16]!
+    ldr x2, [sp], #16
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    str x2, [x0, x1, lsl #3]
+    ldr x0, [sp]
+    str x0, [sp, #-16]!
+    mov x0, #2
+    str x0, [sp, #-16]!
+    mov x0, #59
+    str x0, [sp, #-16]!
+    ldr x2, [sp], #16
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    str x2, [x0, x1, lsl #3]
+    ldr x0, [sp]
+    str x0, [sp, #-16]!
+    mov x0, #3
+    str x0, [sp, #-16]!
+    mov x0, #26
+    str x0, [sp, #-16]!
+    ldr x2, [sp], #16
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    str x2, [x0, x1, lsl #3]
+    ldr x0, [sp]
+    str x0, [sp, #-16]!
+    mov x0, #4
+    str x0, [sp, #-16]!
+    mov x0, #53
+    str x0, [sp, #-16]!
+    ldr x2, [sp], #16
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    str x2, [x0, x1, lsl #3]
+    ldr x0, [sp]
+    str x0, [sp, #-16]!
+    mov x0, #5
+    str x0, [sp, #-16]!
+    mov x0, #58
+    str x0, [sp, #-16]!
+    ldr x2, [sp], #16
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    str x2, [x0, x1, lsl #3]
+    ldr x0, [sp]
+    str x0, [sp, #-16]!
+    mov x0, #6
+    str x0, [sp, #-16]!
+    mov x0, #97
+    str x0, [sp, #-16]!
+    ldr x2, [sp], #16
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    str x2, [x0, x1, lsl #3]
+    ldr x0, [sp]
+    str x0, [sp, #-16]!
+    mov x0, #7
+    str x0, [sp, #-16]!
+    mov x0, #93
+    str x0, [sp, #-16]!
+    ldr x2, [sp], #16
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    str x2, [x0, x1, lsl #3]
+    ldr x0, [sp], #16
+    str x0, [x29, #main.numbers]
+    mov x0, #53
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #main.wanted]
+    mov x0, #-1
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #main.position]
+    mov x0, #0
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #main.current]
+    mov x0, #0
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #main.index]
+.Lmain_L1:
+    ldr x0, [x29, #main.index]
+    str x0, [sp, #-16]!
+    ldr x0, [x29, #main.numbers]
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    ldr x0, [x0, #-8]
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    cmp x0, x1
+    b.ge .Lmain_L2
+    ldr x0, [x29, #main.numbers]
+    str x0, [sp, #-16]!
+    ldr x0, [x29, #main.index]
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    ldr x0, [x0, x1, lsl #3]
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #main.number]
+    ldr x0, [x29, #main.number]
+    str x0, [sp, #-16]!
+    ldr x0, [x29, #main.wanted]
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    cmp x0, x1
+    b.ne .Lmain_L3
+    ldr x0, [x29, #main.position]
+    str x0, [sp, #-16]!
+    mov x0, #0
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    cmp x0, x1
+    b.ge .Lmain_L3
+    ldr x0, [x29, #main.current]
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #main.position]
+    b .Lmain_L4
+.Lmain_L3:
+.Lmain_L4:
+    ldr x0, [x29, #main.current]
+    str x0, [sp, #-16]!
+    mov x0, #1
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    add x0, x0, x1
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #main.current]
+    ldr x0, [x29, #main.index]
+    str x0, [sp, #-16]!
+    mov x0, #1
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    add x0, x0, x1
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #main.index]
+    b .Lmain_L1
+.Lmain_L2:
+    adrp x0, text_0
+    add x0, x0, :lo12:text_0
+    bl print_text
+    ldr x0, [x29, #main.wanted]
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    bl print_integer
+    adrp x0, text_1
+    add x0, x0, :lo12:text_1
+    bl print_text
+    ldr x0, [x29, #main.position]
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    bl print_integer
+    bl print_newline
+    mov x0, #0
+    mov sp, x29
+    add sp, sp, #48
+    ldp x29, x30, [sp], #16
+    ret
+.size main, .-main
+
+new_array:
+    stp x29, x30, [sp, #-32]!
+    mov x29, sp
+    stp x0, x1, [sp, #16]
+    lsl x0, x0, #3
+    add x0, x0, #8
+    bl malloc
+    ldp x1, x2, [sp, #16]
+    str x1, [x0]
+    add x0, x0, #8
+    mov x3, #0
+.Lnew_array_fill:
+    cmp x3, x1
+    b.ge .Lnew_array_done
+    str x2, [x0, x3, lsl #3]
+    add x3, x3, #1
+    b .Lnew_array_fill
+.Lnew_array_done:
+    ldp x29, x30, [sp], #32
+    ret
+
+print_integer:
+    stp x29, x30, [sp, #-16]!
+    mov x29, sp
+    mov x1, x0
+    adrp x0, integer_format
+    add x0, x0, :lo12:integer_format
+    bl printf
+    ldp x29, x30, [sp], #16
+    ret
+
+print_text:
+    stp x29, x30, [sp, #-16]!
+    mov x29, sp
+    mov x1, x0
+    adrp x0, text_format
+    add x0, x0, :lo12:text_format
+    bl printf
+    ldp x29, x30, [sp], #16
+    ret
+
+print_newline:
+    stp x29, x30, [sp, #-16]!
+    mov x29, sp
+    adrp x0, newline_format
+    add x0, x0, :lo12:newline_format
+    bl printf
+    ldp x29, x30, [sp], #16
+    ret
+
+    .section .note.GNU-stack,"",%progbits

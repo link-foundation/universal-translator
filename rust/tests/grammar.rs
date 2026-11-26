@@ -365,6 +365,7 @@ fn lets_callers_remove_or_decorate_a_rule() {
         [
             "copyReassignedParameters",
             "expandArrayFills",
+            "expandForEach",
             "spellNames",
             "spellCommonLibrary"
         ]

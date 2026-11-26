@@ -75,6 +75,7 @@ const controlWords = new Set([
   'else',
   'while',
   'for',
+  'foreach',
   'switch',
   'return',
   'do',
@@ -647,6 +648,9 @@ class BaseParser {
     };
     if (word && Object.hasOwn(keywords, word)) {
       return keywords[word]();
+    }
+    if (word === 'foreach' && this.syntax.forEach?.startsWith('foreach')) {
+      return this.foreachStatement();
     }
     if (this.syntax.id === 'ruby' && this.isRangeEach()) {
       return this.rangeEach();

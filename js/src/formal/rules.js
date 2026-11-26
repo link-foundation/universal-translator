@@ -26,6 +26,7 @@ import {
   raiseArrayFills,
   recognizeArrays,
 } from './arrays.js';
+import { expandForEach, raiseForEach } from './for-each.js';
 
 // ---------------------------------------------------------------------------
 // Understanding layer
@@ -435,6 +436,11 @@ export function declareOnFirstAssignment(program) {
         scope.add(statement.variable);
         return { ...statement, body: visitBlock(statement.body) };
       }
+      if (statement.kind === 'ForEach') {
+        addReadNames(statement.array, read);
+        scope.add(statement.variable);
+        return { ...statement, body: visitBlock(statement.body) };
+      }
       // The value is read before the variable is assigned.
       addReadNames(statement, read);
       if (
@@ -715,6 +721,7 @@ export const understandingRules = [
   declareOnFirstAssignment,
   raiseCountingLoops,
   raiseArrayFills,
+  raiseForEach,
   raiseTruthValues,
   inferMutability,
   dropSourceDetails,
@@ -895,6 +902,7 @@ export const contextRules = [
   adaptComments,
   copyReassignedParameters,
   expandArrayFills,
+  expandForEach,
   spellNames,
   spellCommonLibrary,
 ];

@@ -70,7 +70,7 @@ fn main_field(kind: &str) -> Option<&'static str> {
         "Call" => "callee",
         "Comment" => "text",
         "Code" | "Prose" => "language",
-        "CountingLoop" => "variable",
+        "CountingLoop" | "ForEach" => "variable",
         "Paragraph" => "id",
         "Word" => "text",
         "Assignment" | "Declaration" | "Function" | "IndexAssignment" | "Name" | "Parameter"

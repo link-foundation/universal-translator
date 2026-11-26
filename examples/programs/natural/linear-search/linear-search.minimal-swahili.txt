@@ -1,0 +1,12 @@
+Kumbuka: Linear search in JavaScript: find the position of a value in a list
+
+Kuna namba, ni vitu hivi (31, 41, 59, 26, 53, 58, 97, 93).
+Kuna wanted, ni 53.
+Kuna nafasi, ni -1.
+Kuna sasa, ni 0.
+Kwa kila fahirisi kutoka 0 hadi idadi ya sehemu za namba toa 1, fanya hivi:
+  Kuna nambari, ni sehemu fahirisi ya namba.
+  Kama nambari ni sawa na wanted na nafasi ni chini ya 0, fanya hivi:
+    Baada ya hii, nafasi ni sasa.
+  Baada ya hii, sasa ni sasa jumlisha 1.
+Sema “Found ” kisha wanted kisha “ at position ” kisha nafasi kwenye mstari mmoja.

@@ -1,0 +1,12 @@
+Not: Linear search in JavaScript: find the position of a value in a list
+
+Sayılar var, bu şu şeyler (31, 41, 59, 26, 53, 58, 97, 93).
+Wanted var, bu 53.
+Konum var, bu -1.
+Mevcut var, bu 0.
+Her indeks için 0 ile sayılar şeyinin kaç parçası var eksi 1 arasında bunu yap:
+  Sayı var, bu sayılar şeyinin indeks parçası.
+  Eğer sayı ile wanted aynı ve konum 0 değerinden daha az ise bunu yap:
+    Bundan sonra konum şimdi mevcut olur.
+  Bundan sonra mevcut şimdi mevcut artı 1 olur.
+“Found ” sonra wanted sonra “ at position ” sonra konum bir satırda söyle.

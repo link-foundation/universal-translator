@@ -345,7 +345,9 @@ impl Translator {
             // lift them to the meta language and continue like any other
             // source.
             let machine = machine_reader::read_machine(source, from)?;
-            let lifted = rules::infer_mutability(lifting::lift_program(&machine)?);
+            let lifted = rules::infer_mutability(meta::for_each::raise_for_each(
+                lifting::lift_program(&machine)?,
+            ));
             self.report("lifted", &lifted);
             let typed = apply_rules(types::infer_types(lifted), &self.meaning, &settings);
             self.report("typed", &typed);

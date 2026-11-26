@@ -1,0 +1,7 @@
+注：Sum multiples of 3 and 5 in JavaScript: the sum of the multiples below 1000
+
+创建 合计 值 为 0。
+对 每个 数 从 1 到 999 重复 这些：
+  如果 数 模 3 等于 0 或 数 模 5 等于 0 就 做 这些：
+    把 合计 改 为 合计 加 数。
+输出 合计 并 换行。

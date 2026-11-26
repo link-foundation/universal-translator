@@ -1,0 +1,7 @@
+Not: Sum multiples of 3 and 5 in JavaScript: the sum of the multiples below 1000
+
+Tutar var, bu 0.
+Her sayı için 1 ile 999 arasında bunu yap:
+  Eğer sayı mod 3 ile 0 aynı veya sayı mod 5 ile 0 aynı ise bunu yap:
+    Bundan sonra tutar şimdi tutar artı sayı olur.
+Tutar bir satırda söyle.

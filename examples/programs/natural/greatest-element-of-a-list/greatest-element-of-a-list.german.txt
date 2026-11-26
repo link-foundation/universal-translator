@@ -1,0 +1,9 @@
+Hinweis: Greatest element of a list in JavaScript
+
+Erzeuge Zahlen mit dem Wert die Liste (17, 4, 93, 28, 65, 3, 80).
+Erzeuge größte mit dem Wert das Element 0 von Zahlen.
+Für jedes Index von 0 bis die Länge von Zahlen minus 1 wiederhole dies:
+  Erzeuge Zahl mit dem Wert das Element Index von Zahlen.
+  Wenn Zahl ist größer als größte, tue dies:
+    Ändere größte auf Zahl.
+Schreibe „The greatest element is “ gefolgt von größte und beende die Zeile.

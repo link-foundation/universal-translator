@@ -27,6 +27,7 @@ natural:
     else: 'Otherwise, do this' 'Else' 'Otherwise'
     while: 'While {condition}, repeat this' 'While {condition}, do this' 'While {condition}'
     for: 'For each {variable} from {start} to {last}, repeat this' 'For each {variable} from {start} to {last}, do this' 'For each {variable} from {start} to {last}'
+    for-each: 'For each {variable} in {array}, repeat this' 'For each {variable} in {array}, do this' 'For each {variable} in {array}'
     call: '{callee} of ({arguments})'
     call-without-arguments: '{callee} of nothing'
     join: '{left} followed by {right}'

@@ -1,0 +1,7 @@
+Note: Sum multiples of 3 and 5 in JavaScript: the sum of the multiples below 1000
+
+There is a variable total whose value is 0.
+For every number from 1 to 999 the program does the following:
+  If number modulo 3 is equal to 0 or number modulo 5 is equal to 0 then the program does the following:
+    The value of total becomes total plus number.
+The program writes a line that contains total.

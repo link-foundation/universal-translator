@@ -1,0 +1,12 @@
+Opmerking: Linear search in JavaScript: find the position of a value in a list
+
+Getallen is geclassificeerd als een variabele met beginwaarde de lijst (31, 41, 59, 26, 53, 58, 97, 93).
+Wanted is geclassificeerd als een variabele met beginwaarde 53.
+Positie is geclassificeerd als een variabele met beginwaarde -1.
+Huidig is geclassificeerd als een variabele met beginwaarde 0.
+Voor elke index van 0 tot en met de lengte van getallen min 1 wordt het volgende herhaald:
+  Getal is geclassificeerd als een variabele met beginwaarde element index van getallen.
+  Als getal is gelijk aan wanted en positie is kleiner dan 0 dan wordt het volgende uitgevoerd:
+    Positie heeft als nieuwe waarde huidig.
+  Huidig heeft als nieuwe waarde huidig plus 1.
+De uitvoer heeft als volgende regel “Found ” samengevoegd met wanted samengevoegd met “ at position ” samengevoegd met positie.

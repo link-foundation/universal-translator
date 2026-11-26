@@ -1,0 +1,12 @@
+Ghi chú: Linear search in JavaScript: find the position of a value in a list
+
+Tạo các_số với giá trị danh sách (31, 41, 59, 26, 53, 58, 97, 93).
+Tạo wanted với giá trị 53.
+Tạo vị_trí với giá trị -1.
+Tạo hiện_tại với giá trị 0.
+Với mỗi chỉ_số từ 0 đến độ dài các_số trừ 1, lặp lại điều này:
+  Tạo số_ với giá trị phần tử chỉ_số trong các_số.
+  Nếu số_ bằng wanted và vị_trí nhỏ hơn 0, làm điều này:
+    Đổi vị_trí thành hiện_tại.
+  Đổi hiện_tại thành hiện_tại cộng 1.
+Viết “Found ” nối với wanted nối với “ at position ” nối với vị_trí và xuống dòng.

@@ -1,0 +1,6 @@
+Nota: Loops/Foreach in JavaScript: print every element of a collection
+
+C'è numeri, è queste cose (1, 1, 2, 3, 5, 8, 13, 21).
+Per ogni indice da 0 a quante parti ha numeri meno 1, fare questo:
+  C'è numero, è la parte indice di numeri.
+  Dire numero su una riga.

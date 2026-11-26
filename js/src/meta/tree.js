@@ -9,6 +9,8 @@
 //   If             { condition, then, otherwise }
 //   While          { condition, body }
 //   CountingLoop   { variable, start, end (exclusive), body }
+//   ForEach        { variable, array, body }   the body runs once for each
+//                  element of the array, with the variable holding it
 //   Return         { value }
 //   Print          { value, newline }
 //   Evaluate       { expression }
@@ -30,6 +32,9 @@
 // equal to `fill`); `array` and the array of Length are always a Name.
 // Indexes count from 0: languages that count from 1 add 1 when they write
 // an index and subtract it when they read one. The meta type is "array".
+// The array of a ForEach is a Name too; the loop variable has the type of
+// the elements, and languages without a for-each loop write a CountingLoop
+// over a fresh index whose body starts with `variable = array[index]`.
 //
 // Binary operators: add, subtract, multiply, divide, remainder, equal,
 // notEqual, less, lessOrEqual, greater, greaterOrEqual, and, or.

@@ -87,3 +87,7 @@ The Rust command line has a `serve` command that answers the same JSON as the Ja
 ### Equivalence check
 
 `check-equivalence <from> <to> [file|-] [translation]` (and `checkEquivalence` / `check_equivalence` in the libraries) reads a source and its translation into meta programs and compares them without comments, imports, blank lines, declared types and mutability. It lists the first lines where the two differ and exits with 1 when they do, in both the JavaScript and Rust command lines. The web app lists the machine targets (NASM, GNU as, ARM64, LLVM IR, WebAssembly text, CIL, JVM) in a "Machine code" group of their own.
+
+### For-each loops and more Rosetta tasks
+
+The meta language has a for-each loop, `ForEach { variable, array, body }`, read from `for…of`, `for x in a`, `foreach` and the like, and written natively in 21 languages; every other language (machine code and the natural languages without a for-each sentence included) writes it as a counting loop over a fresh index that reads back as the same for-each loop. Four more Rosetta Code tasks (`loops-foreach`, `greatest-element-of-a-list`, `sum-multiples-of-3-and-5`, `linear-search`) are translated into every language.

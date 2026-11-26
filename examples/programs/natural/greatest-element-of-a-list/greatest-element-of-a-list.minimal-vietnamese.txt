@@ -1,0 +1,9 @@
+Ghi chú: Greatest element of a list in JavaScript
+
+Có các_số, nó là những thứ này (17, 4, 93, 28, 65, 3, 80).
+Có lớn_nhất, nó là phần 0 của các_số.
+Với mọi chỉ_số từ 0 đến các_số có bao nhiêu phần trừ 1, làm điều này:
+  Có số, nó là phần chỉ_số của các_số.
+  Nếu số nhiều hơn lớn_nhất, làm điều này:
+    Sau đó, lớn_nhất là số.
+Nói “The greatest element is ” rồi lớn_nhất trên một dòng.

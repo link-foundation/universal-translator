@@ -1,0 +1,9 @@
+Tala: Greatest element of a list in JavaScript
+
+Lumikha ng mga_numero na may halagang listahan (17, 4, 93, 28, 65, 3, 80).
+Lumikha ng pinakamalaki na may halagang elemento 0 sa mga_numero.
+Para sa bawat indeks mula 0 hanggang haba ng mga_numero bawas 1, ulitin ito:
+  Lumikha ng numero na may halagang elemento indeks sa mga_numero.
+  Kung numero ay mas mataas sa pinakamalaki, gawin ito:
+    Palitan ang pinakamalaki ng numero.
+Isulat ang “The greatest element is ” na sinusundan ng pinakamalaki at tapusin ang linya.
