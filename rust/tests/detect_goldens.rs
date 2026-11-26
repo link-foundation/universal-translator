@@ -42,7 +42,7 @@ fn golden(extension: &str) -> String {
 fn detects_every_golden() {
     let translator = Translator::new();
     let languages = extensions();
-    assert_eq!(languages.len(), 40);
+    assert!(languages.len() >= 40, "{languages:?}");
     for (language, extension) in &languages {
         let detected = translator.detect_language(&golden(extension), 5);
         assert_eq!(detected[0].id, *language, "{extension}");

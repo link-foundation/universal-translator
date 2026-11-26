@@ -144,3 +144,28 @@ requirements:
     from: 'issue 2'
     status: blocked
     reason: 'needs the owner''s npm account to publish the unscoped name and attach the trusted publisher'
+  real-numbers:
+    text: 'Real numbers in the meta language: real literals and types, and true division (realDivide) apart from integer division (issue 12, B2)'
+    from: 'issue 12'
+    status: done
+    evidence: js/src/formal/numbers.js rust/src/formal/numbers.rs js/src/meta/types.js rust/src/meta/types.rs js/tests/real-numbers.test.js rust/tests/real_numbers.rs
+  python-type-hints:
+    text: 'Python type hints on parameters, results and assignments give their meta types; a hinted program translates as its unhinted twin does'
+    from: 'issue 14'
+    status: done
+    evidence: js/src/formal/function-forms.js js/src/formal/parser.js rust/src/formal/parser/forms.rs js/tests/arrow-and-hints.test.js rust/tests/arrow_and_hints.rs
+  programming-words-in-comments:
+    text: 'Comments read the words programmers write in them: more programming concepts and the imperative forms of verbs (issue 14, comments translated)'
+    from: 'issue 14'
+    status: done
+    evidence: data/natural/vocabulary.lino js/tests/comments.test.js js/tests/vocabulary-effect.test.js rust/tests/vocabulary.rs
+  hello-world-strip-tags:
+    text: 'The Hello World Collection extractor strips HTML tags until none is left (CodeQL incomplete multi-character sanitization)'
+    from: 'issue 14'
+    status: done
+    evidence: scripts/hello-world-collection.mjs js/tests/hello-world-collection.test.js
+  gamemaker-language:
+    text: 'GameMaker Language, of the TIOBE top 50, is written and read back in both runtimes, with its / as true division (pull request 5, item 5.4)'
+    from: 'pull request 5'
+    status: done
+    evidence: js/src/formal/dialects/gml.js rust/src/formal/dialects/gml.rs common-library/common_library.gml examples/programs/translated/factorial/factorial.gml rust/tests/grammar.rs
