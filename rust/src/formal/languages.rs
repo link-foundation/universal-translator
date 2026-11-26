@@ -810,6 +810,7 @@ pub static LANGUAGES: [Syntax; 32] = [
             text: &["print"],
             adjacent: false,
         }),
+        text_conversions: &["String.valueOf"],
         entry_point: EntryPoint::ClassMethod,
         container: Some("object Main"),
         typed: Typed::Annotation,

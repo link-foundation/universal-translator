@@ -101,6 +101,18 @@ export const languageVersions = {
       },
     },
   },
+  scala: {
+    default: '2.10',
+    versions: {
+      '2.10': { label: 'Scala 2.10 and later (s-interpolation)' },
+      2.9: {
+        label: 'Scala 2.9',
+        // Scala 2.9 has no s"..." strings (they came with 2.10): computed
+        // parts are converted with String.valueOf and joined with +.
+        syntax: { textJoin: 'concatenation' },
+      },
+    },
+  },
   lua: {
     default: '5.3',
     versions: {

@@ -384,7 +384,8 @@ in `swift@1`). Besides `python@2` and `python@3.5` (no f-strings),
 instead of `let`, `const`, template strings, `Math.trunc` and
 `Array(n).fill`; `php@5` writes `(int) (a / b)` and `array(...)` instead of
 `intdiv` and `[...]`; `csharp@5` joins text with `Convert.ToString` and `+`
-instead of `$"..."`; `lua@5.1` divides with `math.floor(a / b)`;
+instead of `$"..."`; `scala@2.9` joins text with `String.valueOf` and `+`
+instead of `s"..."`; `lua@5.1` divides with `math.floor(a / b)`;
 `java@1.4` counts over the indexes of an array instead of a for-each loop;
 and `swift@1` writes `println(x)` and `print(x)` instead of `print(x)` and
 `print(x, terminator: "")`. Ask for `universal-translator languages` or

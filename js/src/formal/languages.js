@@ -397,6 +397,7 @@ export const languages = {
     forIn: '<-',
     operators: braceOperators,
     printCalls: { line: ['println'], text: ['print'] },
+    textConversions: ['String.valueOf'],
     entryPoint: 'class-method',
     container: 'object Main',
     typed: 'annotation',

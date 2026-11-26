@@ -651,22 +651,6 @@ pub fn drop_text_conversions(program: Node, settings: &Settings) -> Node {
         }
         value
     };
-    // `str(n) + str(n)` joins two texts: it is the interpolation of n and n,
-    // not the sum n + n.
-    let joined = |current: &Node| -> Node {
-        let parts: Vec<Node> = ["left", "right"]
-            .into_iter()
-            .filter_map(|side| current.node(side).cloned())
-            .flat_map(|value| {
-                if value.is("Interpolation") {
-                    value.node_list("parts")
-                } else {
-                    vec![unwrap(value)]
-                }
-            })
-            .collect();
-        Node::new("Interpolation").with("parts", parts)
-    };
     fn is_text(value: &Node) -> bool {
         value.is("Text")
             || value.is("Interpolation")
@@ -675,6 +659,33 @@ pub fn drop_text_conversions(program: Node, settings: &Settings) -> Node {
                 && (value.node("left").is_some_and(is_text)
                     || value.node("right").is_some_and(is_text)))
     }
+    // The parts of text joined with +: `"n is " + str(n) + ", half "` is the
+    // text, n and the text again.
+    fn parts_of(value: Node, unwrap: &dyn Fn(Node) -> Node) -> Vec<Node> {
+        if value.is("Interpolation") {
+            return value.node_list("parts");
+        }
+        if value.is("Binary") && value.str("operator") == Some("add") && is_text(&value) {
+            let mut parts = Vec::new();
+            for side in ["left", "right"] {
+                if let Some(side) = value.node(side).cloned() {
+                    parts.extend(parts_of(side, unwrap));
+                }
+            }
+            return parts;
+        }
+        vec![unwrap(value)]
+    }
+    // `str(n) + str(n)` joins two texts: it is the interpolation of n and n,
+    // not the sum n + n.
+    let joined = |current: &Node| -> Node {
+        let parts: Vec<Node> = ["left", "right"]
+            .into_iter()
+            .filter_map(|side| current.node(side).cloned())
+            .flat_map(|value| parts_of(value, &unwrap))
+            .collect();
+        Node::new("Interpolation").with("parts", parts)
+    };
     rewrite(program, |current| {
         if current.is("Print") {
             return match current.node("value").cloned() {

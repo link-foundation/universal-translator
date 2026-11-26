@@ -30,6 +30,7 @@ describe('versions of popular languages', () => {
       ['javascript', ['es6', 'es5']],
       ['php', ['7', '5']],
       ['csharp', ['6', '5']],
+      ['scala', ['2.10', '2.9']],
     ]) {
       expect(versionsOf(id).map(({ version }) => version)).toEqual(versions);
       expect(versionsOf(id)[0].default).toBe(true);
@@ -204,10 +205,28 @@ describe('versions of Java, Swift and Python 3', () => {
     ).toBe(
       'const n = 7;\nconsole.log(`${n}${n} items`);\nconsole.log(`${n}${n}`);\nconsole.log(n + n);\n'
     );
-    const source = 'const n = 7;\nconsole.log(`${n}${n} items`);\n';
-    for (const version of ['python@2', 'python@3.5', 'csharp@5']) {
+    const source =
+      'const n = 7;\nconsole.log(`${n}${n} items`);\nconsole.log(`n is ${n}, half ${n}!`);\n';
+    for (const version of ['python@2', 'python@3.5', 'csharp@5', 'scala@2.9']) {
       const written = translate(source, 'javascript', version);
       expect(translate(written, version, 'javascript')).toBe(source);
     }
+  });
+
+  it('joins text with + and String.valueOf in Scala 2.9, before s"..."', () => {
+    const source = 'const n = 7;\nconsole.log(`n is ${n}`);\n';
+    expect(translate(source, 'javascript', 'scala@2.9')).toContain(
+      'println("n is " + String.valueOf(n))'
+    );
+    expect(translate(source, 'javascript', 'scala')).toContain(
+      'println(s"n is ${n}")'
+    );
+    expect(
+      translate(
+        translate(source, 'javascript', 'scala@2.9'),
+        'scala@2.9',
+        'javascript'
+      )
+    ).toBe(source);
   });
 });

@@ -412,19 +412,25 @@ export function dropTextConversions(program, { from } = {}) {
     conversions.includes(value.callee) &&
     value.arguments.length === 1;
   const unwrap = (value) => (isConversion(value) ? value.arguments[0] : value);
-  // `str(n) + str(n)` joins two texts: it is the interpolation of n and n,
-  // not the sum n + n.
-  const joined = (current) =>
-    node('Interpolation', {
-      parts: [current.left, current.right].flatMap((value) =>
-        value.kind === 'Interpolation' ? value.parts : [unwrap(value)]
-      ),
-    });
   const isText = (value) =>
     ['Text', 'Interpolation'].includes(value.kind) ||
     (value.kind === 'Binary' &&
       value.operator === 'add' &&
       (isText(value.left) || isText(value.right)));
+  // The parts of text joined with +: `"n is " + str(n) + ", half "` is the
+  // text, n and the text again.
+  const partsOf = (value) =>
+    value.kind === 'Interpolation'
+      ? value.parts
+      : value.kind === 'Binary' && value.operator === 'add' && isText(value)
+        ? [...partsOf(value.left), ...partsOf(value.right)]
+        : [unwrap(value)];
+  // `str(n) + str(n)` joins two texts: it is the interpolation of n and n,
+  // not the sum n + n.
+  const joined = (current) =>
+    node('Interpolation', {
+      parts: [...partsOf(current.left), ...partsOf(current.right)],
+    });
   return rewrite(program, (current) => {
     if (current.kind === 'Print') {
       return { ...current, value: unwrap(current.value) };

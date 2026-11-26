@@ -43,6 +43,7 @@ fn lists_the_newer_version_first_as_the_default() {
         ("javascript", ["es6", "es5"]),
         ("php", ["7", "5"]),
         ("csharp", ["6", "5"]),
+        ("scala", ["2.10", "2.9"]),
     ] {
         let listed: Vec<&str> = versions_of(id).iter().map(|v| v.version).collect();
         assert_eq!(listed, versions, "{id}");
@@ -246,9 +247,23 @@ fn reads_text_joined_from_conversions_as_text_not_as_a_sum() {
         ),
         "const n = 7;\nconsole.log(`${n}${n} items`);\nconsole.log(`${n}${n}`);\nconsole.log(n + n);\n"
     );
-    let source = "const n = 7;\nconsole.log(`${n}${n} items`);\n";
-    for version in ["python@2", "python@3.5", "csharp@5"] {
+    let source =
+        "const n = 7;\nconsole.log(`${n}${n} items`);\nconsole.log(`n is ${n}, half ${n}!`);\n";
+    for version in ["python@2", "python@3.5", "csharp@5", "scala@2.9"] {
         let text = written(source, version);
         assert_eq!(read(&text, version), source, "{version}: {text}");
     }
+}
+
+#[test]
+fn joins_text_with_plus_and_string_value_of_in_scala_2_9() {
+    let source = "const n = 7;\nconsole.log(`n is ${n}`);\n";
+    let scala = written(source, "scala@2.9");
+    assert!(
+        scala.contains("println(\"n is \" + String.valueOf(n))"),
+        "{scala}"
+    );
+    let default = written(source, "scala");
+    assert!(default.contains("println(s\"n is ${n}\")"), "{default}");
+    assert_eq!(read(&scala, "scala@2.9"), source);
 }

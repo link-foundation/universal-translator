@@ -83,6 +83,12 @@ fn swift_1(syntax: &mut Syntax) {
     });
 }
 
+/// Scala 2.9 has no `s"..."` strings (they came with 2.10): computed parts
+/// are converted with `String.valueOf` and joined with +.
+fn scala_2_9(syntax: &mut Syntax) {
+    syntax.text_join_concatenation = true;
+}
+
 /// Before 5.3 Lua has no `//` operator: `math.floor` rounds the quotient
 /// down, as `//` does.
 fn lua_5_1(syntax: &mut Syntax) {
@@ -156,6 +162,16 @@ const LANGUAGE_VERSIONS: &[LanguageVersions] = &[
                 no_change,
             ),
             (version("1", "Swift 1", false), swift_1),
+        ],
+    },
+    LanguageVersions {
+        id: "scala",
+        versions: &[
+            (
+                version("2.10", "Scala 2.10 and later (s-interpolation)", true),
+                no_change,
+            ),
+            (version("2.9", "Scala 2.9", false), scala_2_9),
         ],
     },
     LanguageVersions {
