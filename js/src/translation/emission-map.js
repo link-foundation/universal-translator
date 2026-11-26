@@ -5,6 +5,8 @@ const contexts = [];
 const active = new WeakMap();
 const lineOrigins = new WeakMap();
 
+export const capturesEmission = () => contexts.length > 0;
+
 // Capturing is synchronous and scoped, including reentrant translations by a
 // decorator. Ordinary string-returning translations allocate no line records.
 export function captureEmission(translate) {
@@ -50,6 +52,11 @@ export function mappedEmitter(emitter) {
 // Only internal emitter lines carry metadata; the public output is a string.
 export function mappedLine(emitter, text, previous) {
   const origins = active.get(emitter);
+  return mappedText(text, previous, origins);
+}
+
+// Formatting changes the spelling of a line without changing its ownership.
+export function mappedText(text, previous, origins) {
   const before = previous && lineOrigins.get(previous);
   if (!text || (!origins?.length && !before?.length)) {
     return text;
@@ -59,8 +66,8 @@ export function mappedLine(emitter, text, previous) {
   return line;
 }
 
-export function renderLines(emitter, lines) {
-  const text = `${lines.join('\n')}\n`;
+export function renderLines(emitter, lines, ending = '\n') {
+  const text = `${lines.join('\n')}${ending}`;
   if (contexts.length) {
     const mapped = lines.flatMap((line, index) =>
       (lineOrigins.get(line) ?? []).map((origin) => ({

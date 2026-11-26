@@ -17,3 +17,5 @@ Parse try/throw/catch boundaries, retain typed C++ exception values when emittin
 Retain lossless concrete tokens, trivia and grammar production ranges by default when parsing formal languages, using UTF-8 byte offsets in JavaScript and Rust.
 
 Carry semantic source locations through transformations and emitters so expanded Bash calls and translated natural-language sentences retain many-to-many line mappings.
+
+Keep statement ownership through stack-machine lowering and the complete instruction expansions of all seven machine-code writers.

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'test-anywhere';
 import { readFileSync } from 'node:fs';
-import { createTranslator } from '../src/index.js';
+import { createTranslator, machineTargetIds } from '../src/index.js';
 import { naturalLanguageIds } from '../src/natural/catalog.js';
 import { captureEmission } from '../src/translation/emission-map.js';
 
@@ -15,6 +15,32 @@ const java = `class Main {
     }
 }
 `;
+
+it('maps independent statements to their full expansion in every machine target', () => {
+  const source = 'const value = 5;\nconsole.log(value + 2);\n';
+  for (const target of machineTargetIds) {
+    const result = translator.translatePartial(source, 'javascript', target, {
+      layout: 'target',
+    });
+    expect(result.complete).toBe(true);
+    const declaration = result.lineMap
+      .filter(([line]) => line === 0)
+      .map(([, line]) => line);
+    const print = result.lineMap
+      .filter(([line]) => line === 1)
+      .map(([, line]) => line);
+    // LLVM folds the literal into its store instruction.
+    expect(declaration.length >= (target === 'llvm' ? 1 : 2)).toBe(true);
+    expect(print.length >= 3).toBe(true);
+    expect(declaration.some((line) => print.includes(line))).toBe(false);
+    const lines = result.text.split('\n');
+    expect(declaration.every((line) => lines[line]?.trim())).toBe(true);
+    expect(print.every((line) => lines[line]?.trim())).toBe(true);
+    expect(result.text).toBe(
+      translator.translate(source, 'javascript', target)
+    );
+  }
+});
 
 describe('semantic many-to-many line mapping', () => {
   it('maps the complete Fibonacci interpolation reported in issue 16', () => {

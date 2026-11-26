@@ -1,6 +1,30 @@
 // Helpers shared by the machine code writers (machine.js and the dialect
 // modules next to it).
 
+import {
+  capturesEmission,
+  mappedText,
+  renderLines,
+} from '../translation/emission-map.js';
+import { sourceOrigin } from '../translation/source-origins.js';
+
+export { mappedText };
+
+// One stack instruction can spell several native instructions. Keep that
+// entire expansion attached to the statement that produced it.
+export function mapInstructions(lines, instruction, start = 0) {
+  const origin = capturesEmission() && sourceOrigin(instruction);
+  if (origin) {
+    for (let index = start; index < lines.length; index += 1) {
+      lines[index] = mappedText(lines[index], lines[index], [origin]);
+    }
+  }
+  return lines;
+}
+
+export const renderMachine = (lines, language) =>
+  renderLines({ language: { id: language } }, lines, '');
+
 // Whether a lowered program creates arrays, and so needs the helper that
 // allocates and fills them.
 export const createsArrays = (program) =>

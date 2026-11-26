@@ -1,10 +1,58 @@
 use universal_translator::natural::natural_language_ids;
+use universal_translator::translator::machine_target_ids;
 use universal_translator::{Options, TextLayout, Translator};
 
 fn options() -> Options {
     Options {
         layout: TextLayout::Target,
         ..Options::default()
+    }
+}
+
+#[test]
+fn independent_statements_map_to_their_full_expansion_in_every_machine_target() {
+    let source = "const value = 5;\nconsole.log(value + 2);\n";
+    let translator = Translator::new();
+    for target in machine_target_ids() {
+        let result = translator
+            .translate_partial(source, "javascript", target, options(), false)
+            .unwrap();
+        assert!(result.complete, "{target}");
+        let mapped = |source| {
+            result
+                .line_map
+                .iter()
+                .copied()
+                .filter_map(|(from, to)| (from == source).then_some(to))
+                .collect::<Vec<_>>()
+        };
+        let declaration = mapped(0);
+        let print = mapped(1);
+        // LLVM folds the literal into its store instruction.
+        assert!(
+            declaration.len() >= if target == "llvm" { 1 } else { 2 },
+            "{target}: {declaration:?}"
+        );
+        assert!(print.len() >= 3, "{target}: {print:?}");
+        assert!(
+            !declaration.iter().any(|line| print.contains(line)),
+            "{target}"
+        );
+        let lines = result.text.lines().collect::<Vec<_>>();
+        assert!(
+            declaration
+                .iter()
+                .chain(&print)
+                .all(|line| !lines[*line].trim().is_empty()),
+            "{target}"
+        );
+        assert_eq!(
+            result.text,
+            translator
+                .translate_with(source, "javascript", target, options())
+                .unwrap(),
+            "{target}"
+        );
     }
 }
 

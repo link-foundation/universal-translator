@@ -1,19 +1,20 @@
 //! Scoped source provenance for internal emitter lines.
 
 use std::cell::RefCell;
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
 
 use crate::meta::Node;
 use crate::source_origins::{SourceOrigin, expression_origins};
 
-type Origins = Vec<Arc<SourceOrigin>>;
+pub(crate) type Origins = Vec<Arc<SourceOrigin>>;
 
 #[derive(Default)]
 struct Context {
     emissions: Vec<Emission>,
     active: Origins,
+    instructions: HashMap<usize, Origins>,
 }
 
 thread_local! { static CONTEXTS: RefCell<Vec<Context>> = const { RefCell::new(Vec::new()) }; }
@@ -68,7 +69,7 @@ pub(crate) fn active(node: &Node) -> Active {
     }))
 }
 
-fn current() -> Origins {
+pub(crate) fn current() -> Origins {
     CONTEXTS.with_borrow(|contexts| {
         contexts
             .last()
@@ -77,11 +78,52 @@ fn current() -> Origins {
     })
 }
 
+// Instruction addresses remain stable while the completed code buffer is
+// borrowed by a writer. Records live only within this capture, without
+// changing the public stack-machine representation.
+pub(crate) fn register_instructions<T>(code: &[T], origins: Vec<(usize, Origins)>) {
+    CONTEXTS.with_borrow_mut(|contexts| {
+        if let Some(context) = contexts.last_mut() {
+            // A prior failed attempt can have released a buffer at these
+            // addresses. Clear every slot before registering its new owners.
+            for instruction in code {
+                context
+                    .instructions
+                    .remove(&(instruction as *const T as usize));
+            }
+            for (index, origins) in origins {
+                if let Some(instruction) = code.get(index) {
+                    context
+                        .instructions
+                        .insert(instruction as *const T as usize, origins);
+                }
+            }
+        }
+    });
+}
+
+pub(crate) fn active_instruction<T>(instruction: &T) -> Active {
+    Active(CONTEXTS.with_borrow_mut(|contexts| {
+        let context = contexts.last_mut()?;
+        let origins = context
+            .instructions
+            .get(&(instruction as *const T as usize))
+            .cloned()
+            .unwrap_or_default();
+        Some(std::mem::replace(&mut context.active, origins))
+    }))
+}
+
 pub(crate) struct SourceLine(String, Origins);
 
 impl From<String> for SourceLine {
     fn from(text: String) -> Self {
-        Self(text, Vec::new())
+        let origins = if text.is_empty() {
+            Vec::new()
+        } else {
+            current()
+        };
+        Self(text, origins)
     }
 }
 
@@ -89,6 +131,22 @@ impl From<String> for SourceLine {
 pub(crate) struct SourceLines {
     text: Vec<String>,
     origins: Vec<Origins>,
+}
+
+impl From<Vec<String>> for SourceLines {
+    fn from(text: Vec<String>) -> Self {
+        let mut lines = Self::default();
+        lines.extend(text);
+        lines
+    }
+}
+
+impl FromIterator<String> for SourceLines {
+    fn from_iter<T: IntoIterator<Item = String>>(iter: T) -> Self {
+        let mut lines = Self::default();
+        lines.extend(iter);
+        lines
+    }
 }
 
 impl Deref for SourceLines {
@@ -118,6 +176,10 @@ impl IntoIterator for SourceLines {
 }
 
 impl SourceLines {
+    pub(crate) fn map_text(mut self, change: impl Fn(String) -> String) -> Self {
+        self.text = self.text.into_iter().map(change).collect();
+        self
+    }
     pub(crate) fn push(&mut self, text: String) {
         self.origins.push(if text.is_empty() {
             Vec::new()
@@ -163,7 +225,11 @@ impl SourceLines {
     }
 
     pub(crate) fn render(&self, language: &str) -> String {
-        let text = format!("{}\n", self.text.join("\n"));
+        self.render_ending(language, "\n")
+    }
+
+    pub(crate) fn render_ending(&self, language: &str, ending: &str) -> String {
+        let text = format!("{}{ending}", self.text.join("\n"));
         CONTEXTS.with_borrow_mut(|contexts| {
             if let Some(context) = contexts.last_mut() {
                 let mapped: Vec<_> = self

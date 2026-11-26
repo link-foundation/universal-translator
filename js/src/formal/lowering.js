@@ -21,6 +21,11 @@
 // Arrays of integers live in local slots; an array literal is a new array
 // of zeros whose elements are stored one by one.
 
+import {
+  expressionOrigins,
+  withOrigin,
+} from '../translation/source-origins.js';
+
 const relations = [
   'equal',
   'notEqual',
@@ -94,7 +99,7 @@ class FunctionLowering {
   }
 
   emit(operation, ...operands) {
-    this.code.push([operation, ...operands]);
+    this.code.push(withOrigin([operation, ...operands], this.origin));
     const effect =
       operation === 'call'
         ? 1 - operands[1] - (this.functions.get(operands[0]).returns ? 0 : 1)
@@ -133,7 +138,19 @@ class FunctionLowering {
     if (!lower) {
       throw unsupported(`the ${node.kind} statement`);
     }
-    lower.call(this, node);
+    const previous = this.origin;
+    const origins = expressionOrigins(node);
+    this.origin = origins.length
+      ? {
+          source: origins[0].source,
+          lines: [...new Set(origins.flatMap(({ lines }) => lines))],
+        }
+      : previous;
+    try {
+      lower.call(this, node);
+    } finally {
+      this.origin = previous;
+    }
   }
 
   lowerComment(node) {

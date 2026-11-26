@@ -4,6 +4,9 @@
 
 import {
   allFunctions,
+  mapInstructions,
+  mappedText,
+  renderMachine,
   comments,
   createsArrays,
   printable,
@@ -165,14 +168,17 @@ function gasFunction(item, texts) {
     ],
     'array-length': () => ['popq %rax', 'pushq -8(%rax)'],
   };
-  for (const [operation, ...operands] of item.code) {
-    body.push(...instructions[operation](...operands));
+  for (const instruction of item.code) {
+    const [operation, ...operands] = instruction;
+    body.push(
+      ...mapInstructions(instructions[operation](...operands), instruction)
+    );
   }
   return [
     ...comments('#', item.comments),
     `.type ${item.name}, @function`,
     `${item.name}:`,
-    ...body.map(indent),
+    ...body.map((line) => mappedText(indent(String(line)), line)),
     `.size ${item.name}, .-${item.name}`,
   ];
 }
@@ -223,24 +229,27 @@ export function writeGas(program) {
     '    leave',
     '    ret',
   ];
-  return [
-    ...comments('#', program.comments),
-    ...(program.comments.length ? [''] : []),
-    '    .globl main',
-    ...dataSection(texts),
-    '',
-    '    .text',
-    ...functions.flatMap((lines) => [...lines, '']),
-    ...(createsArrays(program) ? gasNewArray : []),
-    ...helper('print_integer', ['movq %rdi, %rsi']),
-    '',
-    ...helper('print_text', ['movq %rdi, %rsi']),
-    '',
-    ...helper('print_newline', []),
-    '',
-    '    .section .note.GNU-stack,"",@progbits',
-    '',
-  ].join('\n');
+  return renderMachine(
+    [
+      ...comments('#', program.comments),
+      ...(program.comments.length ? [''] : []),
+      '    .globl main',
+      ...dataSection(texts),
+      '',
+      '    .text',
+      ...functions.flatMap((lines) => [...lines, '']),
+      ...(createsArrays(program) ? gasNewArray : []),
+      ...helper('print_integer', ['movq %rdi, %rsi']),
+      '',
+      ...helper('print_text', ['movq %rdi, %rsi']),
+      '',
+      ...helper('print_newline', []),
+      '',
+      '    .section .note.GNU-stack,"",@progbits',
+      '',
+    ],
+    'gas'
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -351,14 +360,17 @@ function armFunction(item, texts) {
     ],
     'array-length': () => [armPop('x0'), 'ldr x0, [x0, #-8]', armPush],
   };
-  for (const [operation, ...operands] of item.code) {
-    body.push(...instructions[operation](...operands));
+  for (const instruction of item.code) {
+    const [operation, ...operands] = instruction;
+    body.push(
+      ...mapInstructions(instructions[operation](...operands), instruction)
+    );
   }
   return [
     ...comments('//', item.comments),
     `.type ${item.name}, %function`,
     `${item.name}:`,
-    ...body.map(indent),
+    ...body.map((line) => mappedText(indent(String(line)), line)),
     `.size ${item.name}, .-${item.name}`,
   ];
 }
@@ -404,22 +416,25 @@ export function writeArm64(program) {
     '    ldp x29, x30, [sp], #16',
     '    ret',
   ];
-  return [
-    ...comments('//', program.comments),
-    ...(program.comments.length ? [''] : []),
-    '    .global main',
-    ...dataSection(texts),
-    '',
-    '    .text',
-    ...functions.flatMap((lines) => [...lines, '']),
-    ...(createsArrays(program) ? armNewArray : []),
-    ...helper('print_integer', ['mov x1, x0']),
-    '',
-    ...helper('print_text', ['mov x1, x0']),
-    '',
-    ...helper('print_newline', []),
-    '',
-    '    .section .note.GNU-stack,"",%progbits',
-    '',
-  ].join('\n');
+  return renderMachine(
+    [
+      ...comments('//', program.comments),
+      ...(program.comments.length ? [''] : []),
+      '    .global main',
+      ...dataSection(texts),
+      '',
+      '    .text',
+      ...functions.flatMap((lines) => [...lines, '']),
+      ...(createsArrays(program) ? armNewArray : []),
+      ...helper('print_integer', ['mov x1, x0']),
+      '',
+      ...helper('print_text', ['mov x1, x0']),
+      '',
+      ...helper('print_newline', []),
+      '',
+      '    .section .note.GNU-stack,"",%progbits',
+      '',
+    ],
+    'arm64'
+  );
 }
