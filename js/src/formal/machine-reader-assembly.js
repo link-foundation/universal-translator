@@ -330,7 +330,6 @@ function armRules(name, texts, slot) {
       return [['call', callee, count]];
     },
   ];
-  const frame = /^\[x29, #([\w.]+)\]$/;
   return [
     [[/^\/\/ ?(.*)$/], ([, text]) => [['comment', text]]],
     [
@@ -404,7 +403,6 @@ function armRules(name, texts, slot) {
     [[exact('bl print_newline')], () => [['print-newline']]],
     ...[8, 7, 6, 5, 4, 3, 2, 1, 0].map(callRule),
     [[armPush], () => [['result']]],
-    [[frame], () => null],
   ];
 }
 
