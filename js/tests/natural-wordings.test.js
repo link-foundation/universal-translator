@@ -17,7 +17,7 @@ describe('grammatical case in controlled algorithms', () => {
   it('reads nominative and accusative constants as the same boolean', () => {
     for (const value of ['истина', 'истину']) {
       expect(translate(`Вернуть ${value}.`, 'russian', 'python')).toBe(
-        'return True\n'
+        'def _ut_main0():\n    return True\n    return 0\n\nraise SystemExit(_ut_main0())\n'
       );
     }
     expect(translate('return True\n', 'python', 'russian')).toBe(
@@ -29,7 +29,7 @@ describe('grammatical case in controlled algorithms', () => {
     const source =
       'Создать число со значением 7.\nЕсли делитель не больше числа, сделать это:\n  Вернуть истину.\n';
     expect(translate(source, 'russian', 'python')).toBe(
-      'number = 7\nif divisor <= number:\n    return True\n'
+      'def _ut_main0():\n    number = 7\n    if divisor <= number:\n        return True\n    return 0\n\nraise SystemExit(_ut_main0())\n'
     );
     expect(
       translate('if divisor <= number:\n    return True\n', 'python', 'russian')

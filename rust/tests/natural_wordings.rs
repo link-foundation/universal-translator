@@ -19,7 +19,7 @@ fn grammatical_case_preserves_constant_and_variable_identity() {
     for value in ["истина", "истину"] {
         assert_eq!(
             to(&format!("Вернуть {value}."), "russian", "python"),
-            "return True\n"
+            "def _ut_main0():\n    return True\n    return 0\n\nraise SystemExit(_ut_main0())\n"
         );
     }
     assert_eq!(
@@ -32,7 +32,7 @@ fn grammatical_case_preserves_constant_and_variable_identity() {
             "russian",
             "python"
         ),
-        "number = 7\nif divisor <= number:\n    return True\n"
+        "def _ut_main0():\n    number = 7\n    if divisor <= number:\n        return True\n    return 0\n\nraise SystemExit(_ut_main0())\n"
     );
 }
 

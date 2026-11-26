@@ -110,7 +110,7 @@ fn a_translated_comment_still_anchors_the_blank_line_after_it() {
             "javascript",
             "python",
             Options {
-                comment_language: Some("english".into()),
+                comment_language: Some("english"),
                 ..Options::default()
             },
             true,
