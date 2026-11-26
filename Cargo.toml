@@ -34,6 +34,10 @@ serde_json = "1"
 links-notation = { version = "=0.31.8", default-features = false }
 
 [[test]]
+name = "equivalence"
+path = "rust/tests/equivalence.rs"
+
+[[test]]
 name = "translation"
 path = "rust/tests/translation.rs"
 

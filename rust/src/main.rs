@@ -8,13 +8,14 @@ use universal_translator::natural::check_text;
 use universal_translator::server::{serve, serve_configuration};
 use universal_translator::translator::{Translator, languages, natural_languages};
 use universal_translator::{
-    CustomRules, Detection, Mode, Options, PartialReading, SourceDocument, nest_grammars,
-    translate_program,
+    CustomRules, Detection, Equivalence, Mode, Options, PartialReading, SourceDocument,
+    check_equivalence, nest_grammars, translate_program,
 };
 
 const USAGE: &str = "Usage:
   universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment] [--all-or-nothing] [--rules <file.lino>] [--comment-language <natural>] [--comment-from <natural>] [--identifier-language <natural>] [--identifier-from <natural>] [--layout source|target]
   universal-translator meta <language> [file|-] [--json] [--shallow]
+  universal-translator check-equivalence <from> <to> [file|-] [translation] [--json]
   universal-translator coverage <language> [file|-] [--json]
   universal-translator detect [file|-] [--json]
   universal-translator translate-program <from|cst> <to> [file|-]
@@ -54,6 +55,11 @@ of the target.
 meta prints the meta program as indented Links Notation; --json prints JSON.
 It reads comments and strings with the grammars they are written in
 (prose, quoted code); --shallow leaves them as plain text.
+check-equivalence checks that a translation does what its source does:
+both read into the same meta program when comments, imports, blank
+lines, types and mutability are left out. The translation is written by
+the translator unless a file is given; the exit code is 1 when they
+differ.
 coverage prints which parts of a text can be read as indented Links
 Notation; detect prints the most likely languages of a text, one per
 line. --json prints either as JSON.
@@ -241,6 +247,58 @@ fn coverage_report(reading: &PartialReading, json: bool) -> String {
         ("parts", Json::List(parts)),
     ])
     .report(json)
+}
+
+/// What `check-equivalence` prints.
+fn equivalence_report(result: &Equivalence, json: bool) -> String {
+    let differences = result
+        .differences
+        .iter()
+        .map(|difference| {
+            Json::Object(vec![
+                ("line", count(difference.line)),
+                ("source", Json::Text(difference.source.clone())),
+                ("target", Json::Text(difference.target.clone())),
+            ])
+        })
+        .collect();
+    Json::Object(vec![
+        ("equivalent", Json::Bool(result.equivalent)),
+        ("metaLines", count(result.meta_lines)),
+        ("differences", Json::List(differences)),
+    ])
+    .report(json)
+}
+
+/// `check-equivalence <from> <to> [file|-] [translation] [--json]`: the
+/// report, and an error after it when the two differ.
+fn check_equivalence_command(arguments: &[&str]) -> (String, Option<String>) {
+    let json = arguments.contains(&"--json");
+    let arguments = without(arguments, "--json");
+    let [from, to, files @ ..] = arguments.as_slice() else {
+        return (String::new(), Some(USAGE.into()));
+    };
+    if files.len() > 2 {
+        return (String::new(), Some(USAGE.into()));
+    }
+    let checked = source(files.first().copied()).and_then(|text| {
+        let translation = files.get(1).map(|file| source(Some(file))).transpose()?;
+        check_equivalence(
+            &Translator::new(),
+            (&text, from),
+            (translation.as_deref(), to),
+            Options::default(),
+        )
+        .map_err(|error| error.to_string())
+    });
+    match checked {
+        Ok(result) => {
+            let failure = (!result.equivalent)
+                .then(|| format!("The {to} translation does not do what the {from} source does"));
+            (equivalence_report(&result, json), failure)
+        }
+        Err(error) => (String::new(), Some(error)),
+    }
 }
 
 /// What `detect` prints: the likeliest languages first.
@@ -527,6 +585,23 @@ fn run(arguments: &[String]) -> Result<String, String> {
 }
 
 fn main() -> std::process::ExitCode {
+    let arguments: Vec<String> = std::env::args().skip(1).collect();
+    if arguments.first().map(String::as_str) == Some("check-equivalence") {
+        let arguments: Vec<&str> = arguments[1..].iter().map(String::as_str).collect();
+        let (output, failure) = check_equivalence_command(&arguments);
+        let written = io::stdout().write_all(output.as_bytes());
+        return match (failure, written) {
+            (None, Ok(())) => std::process::ExitCode::SUCCESS,
+            (Some(error), _) => {
+                eprintln!("{error}");
+                std::process::ExitCode::FAILURE
+            }
+            (None, Err(error)) => {
+                eprintln!("{error}");
+                std::process::ExitCode::FAILURE
+            }
+        };
+    }
     match run(&std::env::args().skip(1).collect::<Vec<_>>()).and_then(|output| {
         io::stdout()
             .write_all(output.as_bytes())

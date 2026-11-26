@@ -83,3 +83,7 @@ List the machine targets (NASM, CIL, JVM) in `languages()` with `machine: true`,
 ### Rust serve
 
 The Rust command line has a `serve` command that answers the same JSON as the JavaScript server, and the Rust crate reads the Wikidata definition cache of the word standards in the same file format.
+
+### Equivalence check
+
+`check-equivalence <from> <to> [file|-] [translation]` (and `checkEquivalence` / `check_equivalence` in the libraries) reads a source and its translation into meta programs and compares them without comments, imports, blank lines, declared types and mutability. It lists the first lines where the two differ and exits with 1 when they do, in both the JavaScript and Rust command lines. The web app lists the machine targets (NASM, GNU as, ARM64, LLVM IR, WebAssembly text, CIL, JVM) in a "Machine code" group of their own.

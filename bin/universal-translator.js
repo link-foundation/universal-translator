@@ -7,6 +7,7 @@ import { makeConfig } from 'lino-arguments';
 
 import {
   add,
+  checkEquivalence,
   checkText,
   createProgramTranslator,
   createSourceSyntaxCodec,
@@ -42,6 +43,7 @@ const SOURCE_COMMANDS = [
   'decode-source',
   ...GRAMMAR_COMMANDS,
   ...TRANSLATION_COMMANDS,
+  'check-equivalence',
 ];
 
 function usage() {
@@ -71,6 +73,11 @@ function usage() {
     '            --json prints it as JSON instead',
     '            comments and strings are read with the grammars they are written in',
     '            (prose, quoted code); --shallow leaves them as plain text',
+    '  check-equivalence <from> <to> [file|-] [translation] [--json]  Check that a translation',
+    '            does what its source does: both read into the same meta program once',
+    '            comments, imports, blank lines, types and mutability are left out',
+    '            The translation is written by the translator unless a file is given;',
+    '            the exit code is 1 when they differ',
     '  coverage <language> [file|-] [--json]  Print which parts of a text can be read',
     '            as indented Links Notation; --json prints JSON',
     '  detect [file|-] [--json]  Print the most likely languages of a text, one per line',
@@ -307,6 +314,29 @@ function coverageReport({ parts, ...summary }, { json }) {
   return json ? jsonReport(report) : linoReport(report);
 }
 
+// What `check-equivalence` prints; it fails when the two differ.
+function equivalenceReport(translator, [from, to, file, translation], options) {
+  const result = checkEquivalence(translator, {
+    source: options.read(file),
+    from,
+    to,
+    ...(translation === undefined
+      ? {}
+      : { translation: options.read(translation) }),
+  });
+  const report = {
+    equivalent: result.equivalent,
+    metaLines: result.metaLines,
+    differences: result.differences,
+  };
+  options.write(options.json ? jsonReport(report) : linoReport(report));
+  if (!result.equivalent) {
+    throw new Error(
+      `The ${to} translation does not do what the ${from} source does`
+    );
+  }
+}
+
 // What `detect` prints: the likeliest languages first, one per line.
 const detectionReport = (detections, { json }) =>
   json
@@ -335,16 +365,30 @@ const translatorFor = ({ trace, rules = {} }, stderr) =>
     rules,
   });
 
-function runTranslation(command, allArgs, read, write, stderr) {
-  // Only the reports take --json; every other command reads it as a file
-  // name.
+// The report flags of a command and the arguments without them. Only the
+// reports take --json; every other command reads it as a file name.
+function reportFlags(command, allArgs) {
   const json =
-    ['meta', 'coverage', 'detect'].includes(command) &&
+    ['meta', 'coverage', 'detect', 'check-equivalence'].includes(command) &&
     allArgs.includes('--json');
   const shallow = command === 'meta' && allArgs.includes('--shallow');
   const args = allArgs.filter(
     (arg) => !(json && arg === '--json') && !(shallow && arg === '--shallow')
   );
+  return { json, shallow, args };
+}
+
+// check-equivalence <from> <to> [file|-] [translation] [--json]
+function runEquivalence(allArgs, read, write) {
+  const { json, args } = reportFlags('check-equivalence', allArgs);
+  if (args.length < 2 || args.length > 4) {
+    throw new Error(usage());
+  }
+  equivalenceReport(createTranslator(), args, { read, write, json });
+}
+
+function runTranslation(command, allArgs, read, write, stderr) {
+  const { json, shallow, args } = reportFlags(command, allArgs);
   const [from, to, ...trailing] = args;
   const { file, options = {} } =
     command === 'translate' ? translationArguments(trailing) : {};
@@ -444,6 +488,8 @@ function runSourceCommand(
     runGrammarCommand(command, args, read, write, grammarEngine);
   } else if (TRANSLATION_COMMANDS.includes(command)) {
     runTranslation(command, args, read, write, stderr);
+  } else if (command === 'check-equivalence') {
+    runEquivalence(args, read, write);
   } else {
     throw new Error(usage());
   }
