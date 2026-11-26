@@ -909,6 +909,12 @@ pub fn read_natural_with(source: &str, language: &Language) -> Result<Node, Stri
         if tokens.len() == 1
             && let Some(expression) =
                 SentenceReader::new(language).expression(&tokens, 0, tokens.len(), 0)
+            && (!expression.is("Name")
+                || source
+                    .trim()
+                    .chars()
+                    .next()
+                    .is_some_and(char::is_alphabetic))
         {
             return Ok(Node::new("Program")
                 .with("comments", Value::List(Vec::new()))

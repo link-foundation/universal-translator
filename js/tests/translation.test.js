@@ -85,7 +85,7 @@ describe('command line', () => {
 
   it('prints the meta program and reports errors with a failure status', () => {
     expect(cli(['meta', 'python', '-'], 'print(1)\n').output).toBe(
-      'program\n  call print-line (library standard)\n    number 1 (type integer)\n'
+      'program\n  main\n    evaluate\n      expression\n        call print-line (library standard)\n          arguments\n            number 1 (type integer)\n'
     );
     const meta = JSON.parse(
       cli(['meta', 'python', '-', '--json'], 'print(1)\n').output

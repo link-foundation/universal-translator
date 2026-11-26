@@ -40,7 +40,7 @@ pub(crate) fn write_power(
             emitter.id()
         ))
     })?;
-    if emitter.id() == "javascript" && emitter.syntax.version.as_deref() == Some("es5") {
+    if emitter.id() == "javascript" && emitter.syntax.version == Some("es5") {
         return Ok(format!(
             "Math.pow({}, {})",
             emitter.expression(left)?,

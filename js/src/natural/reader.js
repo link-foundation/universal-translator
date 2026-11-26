@@ -667,7 +667,10 @@ export function readNatural(source, id, language = naturalLanguage(id)) {
     const expression =
       tokens.length === 1 &&
       new SentenceReader(language).expression(tokens, 0, tokens.length);
-    if (expression) {
+    if (
+      expression &&
+      (expression.kind !== 'Name' || /^\p{L}/u.test(source.trim()))
+    ) {
       return node('Program', {
         comments: [],
         imports: [],

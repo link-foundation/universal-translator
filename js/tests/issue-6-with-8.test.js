@@ -124,9 +124,12 @@ describe('comment languages and versions with partial translation', () => {
         complete: true,
         errors: [],
         coverage: 1,
-        // The renamed name and the translated comment differ from the
-        // source, so only the line with the same tokens is matched.
-        lineMap: [[1, 1]],
+        // Comment anchors retain their mapping after translation. The
+        // following line still shares source tokens after renaming.
+        lineMap: [
+          [0, 0],
+          [1, 1],
+        ],
         detected: 'javascript',
       });
     } finally {

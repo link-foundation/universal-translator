@@ -59,7 +59,7 @@ describe('Equivalence of a translation', () => {
     );
     expect(result.equivalent).toBe(false);
     expect(result.differences).toEqual([
-      { line: 6, source: 'number 4', target: 'number 3' },
+      { line: 10, source: 'number 4', target: 'number 3' },
     ]);
   });
 
@@ -182,7 +182,7 @@ describe('check-equivalence command', () => {
       'sum.js': SUM,
     });
     expect(code).toBe(0);
-    expect(out).toBe('equivalent: true\nmetaLines: 12\n');
+    expect(out).toBe('equivalent: true\nmetaLines: 23\n');
   });
 
   it('fails on a translation that differs', () => {
@@ -196,7 +196,7 @@ describe('check-equivalence command', () => {
     );
     expect(code).toBe(1);
     expect(out).toBe(
-      "equivalent: false\nmetaLines: 12\ndifferences:\n  (line 6) (source 'number 4') (target 'number 3')\n"
+      "equivalent: false\nmetaLines: 23\ndifferences:\n  (line 10) (source 'number 4') (target 'number 3')\n"
     );
     expect(errors).toEqual([
       'The python translation does not do what the javascript source does',
