@@ -143,6 +143,11 @@ fn keeps_the_example_programs_through_a_round_trip_in_rust() {
         )
         .expect("both texts read");
         assert_eq!(result.differences, vec![], "{}", file.display());
-        assert_eq!(write(&back, "javascript", "rust"), rust, "{}", file.display());
+        assert_eq!(
+            write(&back, "javascript", "rust"),
+            rust,
+            "{}",
+            file.display()
+        );
     }
 }

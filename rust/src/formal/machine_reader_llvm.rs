@@ -69,7 +69,10 @@ fn llvm_texts(lines: &[String]) -> HashMap<String, String> {
             let found = header.captures(line)?;
             let inner = line.strip_suffix('"')?;
             let start = inner.rfind(" c\"").filter(|&at| at >= found[0].len())?;
-            Some((group(&found, 1).to_owned(), llvm_string(&inner[start + 3..])))
+            Some((
+                group(&found, 1).to_owned(),
+                llvm_string(&inner[start + 3..]),
+            ))
         })
         .collect()
 }
