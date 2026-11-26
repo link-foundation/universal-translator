@@ -28,7 +28,7 @@ const WRITER_NAMES: [&str; 3] = ["out", "buffer", "writer"];
 
 fn placeholder(kind: Option<&str>) -> &'static str {
     match kind {
-        Some("integer") => "{d}",
+        Some("integer" | "real") => "{d}",
         Some("text") => "{s}",
         Some("boolean") => "{}",
         _ => "{any}",
@@ -540,9 +540,10 @@ impl EmitterDialect for Zig {
 
     fn declaration(&self, e: &mut Emitter, statement: &Node) -> Result<String> {
         let name = statement.str("name").unwrap_or_default();
+        let declared = statement.str("type").unwrap_or("integer");
         let initial = match statement.node("value") {
-            Some(value) => e.expression(value)?,
-            None => e.expression(&number(0.0))?,
+            Some(value) => e.initial_value(value, declared)?,
+            None => e.initial_value(&number(0.0), declared)?,
         };
         let state = e.state::<Writing>();
         if state.scopes.iter().any(|scope| scope.contains(name)) {
@@ -556,7 +557,7 @@ impl EmitterDialect for Zig {
         } else {
             "const"
         };
-        let kind = e.type_name(statement.str("type").unwrap_or("integer"));
+        let kind = e.type_name(declared);
         Ok(format!("{keyword} {name}: {kind} = {initial};"))
     }
 

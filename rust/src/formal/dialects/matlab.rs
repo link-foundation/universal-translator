@@ -25,7 +25,7 @@ struct Output {
     name: Option<String>,
 }
 
-/// The parts of a format and its values: %d and %s take the next value.
+/// The parts of a format and its values: %d, %g and %s take the next value.
 fn format_parts(format: &str, values: Vec<Node>) -> Vec<Node> {
     let mut values = VecDeque::from(values);
     let mut parts = Vec::new();
@@ -37,7 +37,7 @@ fn format_parts(format: &str, values: Vec<Node>) -> Vec<Node> {
                 chars.next();
                 literal.push('%');
             }
-            ('%', Some('d' | 's')) => {
+            ('%', Some('d' | 'g' | 's')) => {
                 chars.next();
                 if !literal.is_empty() {
                     parts.push(text(std::mem::take(&mut literal)));
@@ -305,7 +305,7 @@ fn format_text(value: &str) -> String {
 }
 
 /// 'format', values: text is written into the format, values take %s when
-/// they are text and %d otherwise.
+/// they are text, %g when they are real and %d otherwise.
 fn format(e: &mut Emitter, parts: &[Node], ending: &str) -> Result<String> {
     let mut values = Vec::new();
     let mut pieces = String::new();
@@ -314,10 +314,10 @@ fn format(e: &mut Emitter, parts: &[Node], ending: &str) -> Result<String> {
             pieces.push_str(&format_text(part.str("value").unwrap_or_default()));
         } else {
             values.push(e.expression(part)?);
-            pieces.push_str(if part.str("type") == Some("text") {
-                "%s"
-            } else {
-                "%d"
+            pieces.push_str(match part.str("type") {
+                Some("text") => "%s",
+                Some("real") => "%g",
+                _ => "%d",
             });
         }
     }

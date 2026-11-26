@@ -16,6 +16,7 @@ pub(crate) struct Fortran;
 fn type_word(word: &str) -> Option<&'static str> {
     match word.to_ascii_lowercase().as_str() {
         "integer" => Some("integer"),
+        "real" => Some("real"),
         "logical" => Some("boolean"),
         "character" => Some("text"),
         _ => None,
@@ -296,6 +297,7 @@ fn procedure(p: &mut Parser) -> Parsed {
 fn declared_type(kind: &str) -> &'static str {
     match kind {
         "boolean" => "logical",
+        "real" => "real(8)",
         "text" => "character(len=:), allocatable",
         // An array is allocated by its first assignment.
         "array" => "integer(8), allocatable, dimension(:)",
@@ -532,7 +534,9 @@ impl EmitterDialect for Fortran {
 /// they are passed to.
 fn argument(e: &mut Emitter, value: &Node) -> Result<String> {
     match value.number("value") {
-        Some(number) if value.is("Number") && number.fract() == 0.0 => {
+        Some(number)
+            if value.is("Number") && value.str("type") != Some("real") && number.fract() == 0.0 =>
+        {
             Ok(format!("{}_8", format_number(number)))
         }
         _ => e.expression(value),

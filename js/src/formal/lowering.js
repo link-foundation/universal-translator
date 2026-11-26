@@ -286,7 +286,7 @@ class FunctionLowering {
   value(node) {
     switch (node.kind) {
       case 'Number':
-        if (!Number.isInteger(node.value)) {
+        if (!Number.isInteger(node.value) || node.type === 'real') {
           throw unsupported(`the number ${node.value}`);
         }
         this.emit('push', node.value);
@@ -347,6 +347,9 @@ class FunctionLowering {
   }
 
   binary(node) {
+    if (node.operator === 'realDivide') {
+      throw unsupported('true division, which gives a real');
+    }
     if (arithmetic[node.operator]) {
       this.value(node.left);
       this.value(node.right);

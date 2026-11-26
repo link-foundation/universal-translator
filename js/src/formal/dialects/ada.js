@@ -99,8 +99,8 @@ const statements = (Base) =>
         }
         this.expect('(');
         parts.push(this.expression());
-        // The width of an integer, always 0.
-        if (this.accept(',')) {
+        // The width of an integer, or the layout of a real.
+        while (this.accept(',')) {
           this.expression();
         }
         this.expect(')');
@@ -341,6 +341,11 @@ const outputEmitter = (Base) =>
         return `${last ? 'Put_Line' : 'Put'} (${value});`;
       }
       this.uses.add('text_io');
+      if (part.type === 'real') {
+        this.uses.add('float_io');
+        const written = `Put (${value}, 0, 6, 0);`;
+        return last ? `${written} New_Line;` : written;
+      }
       this.uses.add('integer_io');
       const written =
         part.type === 'boolean'
@@ -602,6 +607,13 @@ const emitter = (Base) =>
       if (this.uses.has('integer_io')) {
         this.line(
           '    package Long_IO is new Integer_IO (Long_Long_Integer); use Long_IO;'
+        );
+        this.line();
+      }
+      // Reals are written with six digits after the point, like C's %f.
+      if (this.uses.has('float_io')) {
+        this.line(
+          '    package Real_IO is new Float_IO (Long_Float); use Real_IO;'
         );
         this.line();
       }

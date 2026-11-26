@@ -249,7 +249,9 @@ export class SentenceReader {
   atom(token) {
     switch (token.type) {
       case 'number':
-        return number(token.value);
+        return token.real
+          ? { ...number(token.value), type: 'real' }
+          : number(token.value);
       case 'text':
         return node('Text', { value: token.value });
       case 'word': {

@@ -6,6 +6,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 use universal_translator::meta::Node;
+use universal_translator::meta::imprecision::mark_imprecision;
 use universal_translator::meta::notation::format_meta;
 use universal_translator::natural::probability::{priors, product, similarity, truth};
 use universal_translator::natural::{RankedProse, rank_prose, read_prose};
@@ -232,8 +233,17 @@ fn marks_numbers_an_integer_type_loses() {
         text.contains("number 12345678901234567000 (imprecision rounded) (type integer)"),
         "{text}"
     );
-    assert!(text.contains("number 1.5 (imprecision truncated) (type integer)"));
+    assert!(text.contains("number 1.5 (type real)\n"), "{text}");
     assert!(text.contains("number 3 (type integer)\n"));
+}
+
+#[test]
+fn marks_a_number_with_a_fraction_typed_as_an_integer() {
+    let number = Node::new("Number")
+        .with("value", 1.5)
+        .with("type", "integer");
+    let marked = mark_imprecision(number);
+    assert_eq!(marked.str("imprecision"), Some("truncated"));
 }
 
 #[test]
@@ -245,7 +255,8 @@ fn shows_imprecision_in_the_meta_program_and_not_in_a_translation() {
     ));
     assert!(output.contains("word x (imprecision untranslated)"));
     let (_, json) = cli(&["meta", "javascript", "-", "--json"], source);
-    assert!(json.contains("\"imprecision\": \"truncated\""), "{json}");
+    assert!(json.contains("\"type\": \"real\""), "{json}");
+    assert!(!json.contains("\"imprecision\": \"truncated\""), "{json}");
     let python = Translator::new()
         .translate(source, "javascript", "python", Mode::default())
         .expect("translation");

@@ -119,6 +119,10 @@ JavaScript and TypeScript functions written as arrow functions (`const add = (a,
 - The Rust documentation builds without warnings again (`cargo doc` with `-D warnings`).
 - The Hello World Collection extractor strips HTML tags until none is left (a CodeQL finding).
 
+### Real numbers
+
+Real numbers in the meta language: literals such as `1.5`, `2.0` and `1e3` have the type real, and true division (`realDivide`) is distinct from integer division (`divide`). Targets write real types (`double`, `f64`, `float64`, `Double`…), convert integer operands where needed, and print reals with `%g`.
+
 ### Python type hints
 
 Python type hints on parameters, results and assignments (`def square(n: int) -> int:`, `total: int = 0`) are read in both runtimes: `int`, `str`, `bool`, `None` and `list[int]` give the meta types integer, text, boolean, nothing and array, every other hint is left to type inference, and a hinted program translates as its unhinted twin does.

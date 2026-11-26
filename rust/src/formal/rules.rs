@@ -16,6 +16,7 @@ use super::lifting::counting_loops;
 use super::names::{
     ascii_name, avoid_reserved, name_words, neutral_name, rename_declared, spell_name,
 };
+use super::numbers::slash_operator;
 use crate::meta::truth::raise_truth_functions;
 use crate::meta::{Mode, Rule, Settings};
 use crate::meta::{Node, binary, block, layout, rewrite, rewrite_opt, text, walk};
@@ -40,8 +41,9 @@ pub fn understanding_rules() -> Vec<Rule> {
         rule("recognizePrint", recognize_print),
         rule("dropTextConversions", drop_text_conversions),
         rule("dropEmptyStatements", drop_empty_statements),
-        rule("expandCompoundAssignment", |program, _| {
-            expand_compound_assignment(program)
+        rule("expandCompoundAssignment", |program, settings| {
+            let syntax = language_syntax(&settings.from).ok();
+            expand_compound_assignment(program, syntax.as_ref())
         }),
         rule("dropParameterCopies", |program, _| {
             drop_parameter_copies(program)
@@ -348,7 +350,18 @@ fn placeholder_length(format: &[char], index: usize, style: FormatStyle) -> Opti
             if length == 1 && matches!(at(1), Some('i' | 's' | 'c' | 'v' | 't' | '%')) {
                 return Some(2);
             }
-            None
+            // A real: %f, %g, %e, %G, with a precision such as %.2f.
+            let mut length = 1;
+            if at(1) == Some('.') && at(2).is_some_and(|c| c.is_ascii_digit()) {
+                length = 2;
+                while at(length).is_some_and(|c| c.is_ascii_digit()) {
+                    length += 1;
+                }
+            }
+            if at(length) == Some('l') {
+                length += 1;
+            }
+            matches!(at(length), Some('f' | 'g' | 'e' | 'G')).then_some(length + 1)
         }
         FormatStyle::Braces => match (at(0), at(1)) {
             (Some('{'), Some('{' | '}')) | (Some('}'), Some('}')) => Some(2),
@@ -827,12 +840,12 @@ pub fn drop_source_details(program: Node) -> Node {
     })
 }
 
-fn compound_meaning(operator: &str) -> Option<&'static str> {
+fn compound_meaning(operator: &str, from: Option<&Syntax>) -> Option<&'static str> {
     match operator {
         "+=" => Some("add"),
         "-=" => Some("subtract"),
         "*=" => Some("multiply"),
-        "/=" => Some("divide"),
+        "/=" => Some(from.map_or("divide", slash_operator)),
         "%=" => Some("remainder"),
         _ => None,
     }
@@ -840,12 +853,16 @@ fn compound_meaning(operator: &str) -> Option<&'static str> {
 
 /// `x += v` means `x = x + v`; the meta language keeps only the plain form.
 /// Operators without a meaning (the parser produces none) stay as written.
-pub fn expand_compound_assignment(program: Node) -> Node {
+/// `/=` divides like the `/` of the source language.
+pub fn expand_compound_assignment(program: Node, from: Option<&Syntax>) -> Node {
     rewrite(program, |current| {
         if !current.is("Assignment") {
             return current;
         }
-        let Some(operator) = current.str("operator").and_then(compound_meaning) else {
+        let meaning = current
+            .str("operator")
+            .and_then(|operator| compound_meaning(operator, from));
+        let Some(operator) = meaning else {
             return current;
         };
         let name = current.str("name").unwrap_or_default().to_owned();
@@ -915,9 +932,9 @@ fn integer_division(call: &Node, spelling: IntegerDivision) -> Option<Node> {
         (IntegerDivision::Wrapper(wrapper), [first])
             if callee == wrapper
                 && first.is("Binary")
-                && first.str("operator") == Some("divide") =>
+                && matches!(first.str("operator"), Some("divide" | "realDivide")) =>
         {
-            Some(first.clone())
+            Some(first.clone().with("operator", "divide"))
         }
         (IntegerDivision::Call(own), [first, second]) if callee == own => {
             Some(divide(first.clone(), second.clone()))

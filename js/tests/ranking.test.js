@@ -13,6 +13,7 @@ import {
   translateCandidates,
   translatePartial,
 } from '../src/index.js';
+import { markImprecision } from '../src/meta/imprecision.js';
 import {
   priors,
   product,
@@ -167,8 +168,17 @@ describe('imprecision', () => {
     expect(text).toContain(
       'number 12345678901234567000 (imprecision rounded) (type integer)'
     );
-    expect(text).toContain('number 1.5 (imprecision truncated) (type integer)');
+    expect(text).toContain('number 1.5 (type real)\n');
     expect(text).toContain('number 3 (type integer)\n');
+  });
+
+  it('marks a number with a fraction typed as an integer', () => {
+    const marked = markImprecision({
+      kind: 'Number',
+      value: 1.5,
+      type: 'integer',
+    });
+    expect(marked.imprecision).toBe('truncated');
   });
 
   it('shows imprecision in the meta program and not in a translation', () => {
@@ -181,7 +191,8 @@ describe('imprecision', () => {
     const json = JSON.parse(
       cli(['meta', 'javascript', '-', '--json'], source).output
     );
-    expect(JSON.stringify(json)).toContain('"imprecision":"truncated"');
+    expect(JSON.stringify(json)).toContain('"type":"real"');
+    expect(JSON.stringify(json)).not.toContain('"imprecision":"truncated"');
     const python = translate(source, 'javascript', 'python');
     expect(python).not.toContain('imprecision');
     expect(python).toContain('x = 1.5');

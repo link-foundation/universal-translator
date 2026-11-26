@@ -384,7 +384,7 @@ class Lexer {
   }
 
   number() {
-    const number = /^\d+(\.\d+)?/.exec(this.rest());
+    const number = /^\d+(\.\d+)?([eE][+-]?\d+)?/.exec(this.rest());
     if (!number) {
       return false;
     }

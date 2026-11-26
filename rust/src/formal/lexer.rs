@@ -547,6 +547,7 @@ impl<'a> Lexer<'a> {
                 length += 1 + fraction;
             }
         }
+        length += exponent(&rest[length..]);
         let value = self.slice(self.index, self.index + length);
         self.push(TokenType::Number, &value);
         self.index += length;
@@ -628,4 +629,17 @@ fn interpolation_style(syntax: &Syntax, quote: char, prefix: Option<&str>) -> In
         .iter()
         .find(|entry| entry.prefix == prefix && entry.quote.is_none_or(|own| own == quote))
         .map_or(InterpolationStyle::Plain, |entry| entry.style)
+}
+
+/// The length of the exponent (`e3`, `E-2`) that starts `rest`, or 0.
+fn exponent(rest: &[char]) -> usize {
+    if !matches!(rest.first(), Some('e' | 'E')) {
+        return 0;
+    }
+    let sign = usize::from(matches!(rest.get(1), Some('+' | '-')));
+    let digits = rest[1 + sign..]
+        .iter()
+        .take_while(|c| c.is_ascii_digit())
+        .count();
+    if digits == 0 { 0 } else { 1 + sign + digits }
 }

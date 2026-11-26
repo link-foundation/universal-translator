@@ -128,7 +128,7 @@ while (index < 4 && !(index === 2 || count > 5)) {
 for (let step = 0; step < 3; step++) {
   console.log(step);
 }
-console.log(`count ${count}, ${count / 2}, ${count % 3}`);
+console.log(`count ${count}, ${Math.trunc(count / 2)}, ${count % 3}`);
 "#;
 
 #[test]
