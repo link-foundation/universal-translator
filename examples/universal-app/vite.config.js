@@ -44,8 +44,9 @@ function bundleThemeFiles() {
 // browser keeps the others cached across releases. A group must not import
 // a group that imports it back (Vite warns about a circular chunk): formal
 // imports only meta, so both share a chunk that the rest of js/src uses;
-// natural imports only meta too, so it has a chunk of its own, and its
-// generated vocabulary data one more.
+// natural imports meta and source records too, so it has a chunk of its own,
+// and its generated vocabulary data one more. Source records depend only on
+// each other, allowing parsers and writers to share their positions.
 const chunkGroups = [
   ['react', /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/],
   [
@@ -57,6 +58,10 @@ const chunkGroups = [
     /[\\/]node_modules[\\/](@link-foundation[\\/]ui-[^\\/]+|@material)[\\/]/,
   ],
   ['links-notation', /[\\/]node_modules[\\/](links-notation|lino-i18n)[\\/]/],
+  [
+    'translator-source',
+    /[\\/]js[\\/]src[\\/]translation[\\/](concrete-syntax|source-origins|emission-map|layout)\.js$/,
+  ],
   ['translator-formal', /[\\/]js[\\/]src[\\/](formal|meta)[\\/]/],
   [
     'natural-vocabulary',
