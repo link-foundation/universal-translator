@@ -10,6 +10,7 @@ import {
   translate,
 } from '../src/index.js';
 import { runCli } from '../../bin/universal-translator.js';
+import { extensions } from '../../examples/programs/verify-native.mjs';
 
 const translator = createTranslator();
 const SUM = `let total = 0;
@@ -124,6 +125,25 @@ describe('Equivalence of the example programs', () => {
 
 // JavaScript -> Rust -> JavaScript: the Rosetta tasks keep what they do,
 // and writing the read-back JavaScript in Rust again gives the same Rust.
+describe('Equivalence of the committed translations', () => {
+  const directory = new URL('../../examples/programs/', import.meta.url);
+  for (const task of ['factorial', 'greatest-common-divisor']) {
+    it(`holds for every committed translation of ${task}`, () => {
+      const source = readFileSync(new URL(`${task}.js`, directory), 'utf8');
+      for (const [to, extension] of Object.entries(extensions)) {
+        const file = `translated/${task}/${task}${extension}`;
+        const result = checkEquivalence(translator, {
+          source,
+          from: 'javascript',
+          to,
+          translation: readFileSync(new URL(file, directory), 'utf8'),
+        });
+        expect([to, result.differences]).toEqual([to, []]);
+      }
+    });
+  }
+});
+
 describe('Round trip of the example programs through Rust', () => {
   const directory = new URL('../../examples/programs/', import.meta.url);
   for (const file of readdirSync(directory).filter((name) =>

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'test-anywhere';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { performance } from 'node:perf_hooks';
 
 import { createGrammarTranslator } from '../src/translator.js';
 import { machineTargetIds, machineTargets } from '../src/formal/machine.js';
@@ -195,5 +196,12 @@ describe('reading the dialects back', () => {
     expect(() => translator.translate(broken, 'gas', 'c')).toThrow(
       'Cannot read gas line'
     );
+  });
+
+  it('reads a long LLVM text line in linear time', () => {
+    const line = `@text.0 =  c"${' c"a'.repeat(50000)}`;
+    const start = performance.now();
+    expect(() => readLlvm(line)).toThrow();
+    expect(performance.now() - start).toBeLessThan(1000);
   });
 });

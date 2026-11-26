@@ -123,6 +123,45 @@ fn holds_for_the_example_programs() {
     }
 }
 
+/// The language id and file extension of every committed translation, as
+/// examples/programs/verify-native.mjs lists them (`  python: '.py',`).
+fn committed_extensions(root: &Path) -> Vec<(String, String)> {
+    let script = fs::read_to_string(root.join("examples/programs/verify-native.mjs")).unwrap();
+    let start = script.find("export const extensions = {").unwrap();
+    let end = start + script[start..].find("};").unwrap();
+    script[start..end]
+        .lines()
+        .filter_map(|line| {
+            let (id, extension) = line.trim().trim_end_matches(',').split_once(": '")?;
+            Some((id.to_owned(), extension.trim_end_matches('\'').to_owned()))
+        })
+        .collect()
+}
+
+#[test]
+fn holds_for_every_committed_translation_of_two_tasks() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let extensions = committed_extensions(root);
+    assert!(extensions.len() > 30, "{extensions:?}");
+    let translator = Translator::new();
+    for task in ["factorial", "greatest-common-divisor"] {
+        let programs = root.join("examples/programs");
+        let source = fs::read_to_string(programs.join(format!("{task}.js"))).unwrap();
+        for (to, extension) in &extensions {
+            let file = programs.join(format!("translated/{task}/{task}{extension}"));
+            let translation = fs::read_to_string(&file).unwrap();
+            let result = check_equivalence(
+                &translator,
+                (&source, "javascript"),
+                (Some(&translation), to),
+                Options::default(),
+            )
+            .unwrap_or_else(|error| panic!("{}: {error}", file.display()));
+            assert_eq!(result.differences, vec![], "{}", file.display());
+        }
+    }
+}
+
 /// JavaScript -> Rust -> JavaScript: the Rosetta tasks keep what they do,
 /// and writing the read-back JavaScript in Rust again gives the same Rust.
 #[test]

@@ -17,7 +17,7 @@ en
     none "No example was found; try again"
   picker
     programming "Programming"
-    machine "Machine code"
+    machine "Assembly and intermediate"
     natural "Natural"
     from "From"
     to "To"
@@ -168,7 +168,7 @@ ru
     none "Пример не найден; попробуйте ещё раз"
   picker
     programming "Языки программирования"
-    machine "Машинный код"
+    machine "Ассемблер и промежуточные языки"
     natural "Естественные языки"
     from "С"
     to "На"
@@ -319,7 +319,7 @@ de
     none "Kein Beispiel gefunden; bitte erneut versuchen"
   picker
     programming "Programmiersprachen"
-    machine "Maschinencode"
+    machine "Assembler und Zwischensprachen"
     natural "Natürliche Sprachen"
     from "Von"
     to "Nach"
@@ -470,7 +470,7 @@ fr
     none "Aucun exemple trouvé ; réessayez"
   picker
     programming "Langages de programmation"
-    machine "Code machine"
+    machine "Assembleur et langages intermédiaires"
     natural "Langues naturelles"
     from "De"
     to "Vers"
@@ -621,7 +621,7 @@ es
     none "No se encontró ningún ejemplo; inténtelo de nuevo"
   picker
     programming "Lenguajes de programación"
-    machine "Código máquina"
+    machine "Ensamblador y lenguajes intermedios"
     natural "Idiomas naturales"
     from "De"
     to "A"
@@ -772,7 +772,7 @@ zh
     none "未找到示例，请重试"
   picker
     programming "编程语言"
-    machine "机器代码"
+    machine "汇编和中间语言"
     natural "自然语言"
     from "从"
     to "到"
@@ -923,7 +923,7 @@ hi
     none "कोई उदाहरण नहीं मिला; फिर से प्रयास करें"
   picker
     programming "प्रोग्रामिंग भाषाएँ"
-    machine "मशीन कोड"
+    machine "असेंबली और मध्यवर्ती भाषाएँ"
     natural "प्राकृतिक भाषाएँ"
     from "से"
     to "में"

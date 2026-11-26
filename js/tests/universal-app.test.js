@@ -217,3 +217,25 @@ describe('the web build of the example app', () => {
     ]);
   });
 });
+
+describe('the language pickers of the example app', () => {
+  it('lists assembly and intermediate languages in a group of their own', async () => {
+    const { languageEntries } =
+      await import('../../examples/universal-app/src/languages.js');
+    const { createGrammarTranslator } = await import('../src/translator.js');
+    const entries = languageEntries(createGrammarTranslator());
+    const machine = entries.filter((entry) => entry.machine).map((it) => it.id);
+    expect(machine).toEqual([
+      'nasm',
+      'gas',
+      'arm64',
+      'cil',
+      'jvm',
+      'llvm',
+      'wat',
+    ]);
+    expect(entries.find((it) => it.id === 'python').machine).toBe(undefined);
+    const picker = readText(`${exampleRoot}/src/LanguagePicker.js`);
+    expect(picker).toContain("t('picker.machine')");
+  });
+});

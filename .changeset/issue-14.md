@@ -86,7 +86,7 @@ The Rust command line has a `serve` command that answers the same JSON as the Ja
 
 ### Equivalence check
 
-`check-equivalence <from> <to> [file|-] [translation]` (and `checkEquivalence` / `check_equivalence` in the libraries) reads a source and its translation into meta programs and compares them without comments, imports, blank lines, declared types and mutability. It lists the first lines where the two differ and exits with 1 when they do, in both the JavaScript and Rust command lines. The web app lists the machine targets (NASM, GNU as, ARM64, LLVM IR, WebAssembly text, CIL, JVM) in a "Machine code" group of their own.
+`check-equivalence <from> <to> [file|-] [translation]` (and `checkEquivalence` / `check_equivalence` in the libraries) reads a source and its translation into meta programs and compares them without comments, imports, blank lines, declared types and mutability. It lists the first lines where the two differ and exits with 1 when they do, in both the JavaScript and Rust command lines. The web app lists the machine targets (NASM, GNU as, ARM64, LLVM IR, WebAssembly text, CIL, JVM) in an "Assembly and intermediate" group of their own.
 
 ### For-each loops and more Rosetta tasks
 
@@ -99,3 +99,8 @@ Every stage of the translation pipeline (parser, readers and emitters) can be wr
 ### Ranking and imprecision
 
 Where prose admits several readings, each candidate translation is scored by the frequency of its readings (Zipf priors) and by how much survives the round trip, as relative-meta-logic truth values. The scores are combined by their product with the share of lines translated, and the most probable candidate is kept. New: `translateCandidates` / `Translator::translate_candidates`, `rankProse` / `rank_prose`, and `translate <from> <to> --candidates`. The meta program records `(imprecision ambiguous|untranslated|truncated|rounded)`, `(alternatives n)` and `(probability p)`; `meta` shows them and emitters ignore them.
+
+### Smaller fixes
+
+- `"" + year` in Java and similar languages keeps the type of `year`. The interpolation is text, not the name.
+- The LLVM IR reader finds text constants in linear time.
