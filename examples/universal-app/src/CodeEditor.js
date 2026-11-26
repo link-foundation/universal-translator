@@ -1,6 +1,7 @@
 // A text pane: the source (editable), the translation, the meta views and
-// the rules. The plain editor is a textarea or a coloured <pre>; the Monaco
-// editor (chosen in the settings) is loaded the first time it is needed.
+// the rules. The Monaco editor (the default) is loaded the first time it is
+// needed; the plain editor, a choice in the settings, is a textarea or a
+// coloured <pre>.
 // Both colour words the same way (highlight.js) and wrap long lines or not
 // (the word-wrap setting).
 
@@ -53,15 +54,36 @@ function PlainEditor({ id, value, onChange, readOnly, lexicon, className }) {
 
 let panes = 0;
 
+// The colours and the folding regions of a pane, set again when its
+// lexicon changes.
+function paneFeatures(api, module, language, lexicon) {
+  const features = [
+    module.colourPane(api, language, lexicon),
+    module.foldPane(api, language, lexicon),
+  ];
+  return { dispose: () => features.forEach((it) => it.dispose()) };
+}
+
 // The Monaco pane grows with its text, between the height of the plain
 // panes and 70% of the window; the pane beside it stretches to match.
-function MonacoEditor({ id, value, onChange, readOnly, lexicon, wrap, label }) {
+// onMount({ editor, api }) is called when the editor is made, and
+// onMount(undefined) when it is gone (editor-sync.js links two panes).
+function MonacoEditor({
+  id,
+  value,
+  onChange,
+  onMount,
+  readOnly,
+  lexicon,
+  wrap,
+  label,
+}) {
   const holder = useRef();
   const editor = useRef();
   const monaco = useRef();
   const language = useRef(`universal-translator-${(panes += 1)}`);
-  const latest = useRef({ value, onChange, lexicon });
-  latest.current = { value, onChange, lexicon };
+  const latest = useRef({ value, onChange, onMount, lexicon });
+  latest.current = { value, onChange, onMount, lexicon };
   const [failed, setFailed] = useState('');
 
   useEffect(() => {
@@ -76,8 +98,9 @@ function MonacoEditor({ id, value, onChange, readOnly, lexicon, wrap, label }) {
         debug('monaco', 'loaded for', id);
         monaco.current = { api, module };
         // The lexicon of now: the text may have changed while loading.
-        const provider = module.colourPane(
+        const provider = paneFeatures(
           api,
+          module,
           language.current,
           latest.current.lexicon
         );
@@ -95,6 +118,8 @@ function MonacoEditor({ id, value, onChange, readOnly, lexicon, wrap, label }) {
           lineNumbersMinChars: 3,
           renderLineHighlight: readOnly ? 'none' : 'line',
           scrollbar: { alwaysConsumeMouseWheel: false },
+          folding: true,
+          showFoldingControls: 'always',
         });
         editor.current = instance;
         const fit = () => {
@@ -140,7 +165,9 @@ function MonacoEditor({ id, value, onChange, readOnly, lexicon, wrap, label }) {
         });
         const media = globalThis.matchMedia?.('(prefers-color-scheme: dark)');
         media?.addEventListener('change', repaint);
+        latest.current.onMount?.({ editor: instance, api });
         cleanup = () => {
+          latest.current.onMount?.(undefined);
           provider.dispose();
           subscriptions.forEach((it) => it.dispose());
           observer.disconnect();
@@ -175,7 +202,7 @@ function MonacoEditor({ id, value, onChange, readOnly, lexicon, wrap, label }) {
   useEffect(() => {
     if (monaco.current) {
       const { api, module } = monaco.current;
-      const provider = module.colourPane(api, language.current, lexicon);
+      const provider = paneFeatures(api, module, language.current, lexicon);
       return () => provider.dispose();
     }
     return undefined;
@@ -193,7 +220,7 @@ function MonacoEditor({ id, value, onChange, readOnly, lexicon, wrap, label }) {
   });
 }
 
-// engine: 'plain' or 'monaco'.
-export function CodeEditor({ engine = 'plain', ...props }) {
-  return engine === 'monaco' ? h(MonacoEditor, props) : h(PlainEditor, props);
+// engine: 'monaco' (the default) or 'plain'.
+export function CodeEditor({ engine = 'monaco', ...props }) {
+  return engine === 'plain' ? h(PlainEditor, props) : h(MonacoEditor, props);
 }
