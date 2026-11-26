@@ -22,12 +22,15 @@ fn cli(arguments: &[&str], input: &str) -> (Option<i32>, String) {
         .stderr(Stdio::piped())
         .spawn()
         .expect("the command line");
-    child
-        .stdin
-        .take()
-        .expect("standard input")
-        .write_all(input.as_bytes())
-        .expect("the input");
+    // A command that rejects its arguments exits before it reads its input.
+    let mut stdin = child.stdin.take().expect("standard input");
+    let written = stdin.write_all(input.as_bytes());
+    drop(stdin);
+    if let Err(error) = written
+        && error.kind() != std::io::ErrorKind::BrokenPipe
+    {
+        panic!("the input: {error}");
+    }
     let output = child.wait_with_output().expect("the output");
     let text = String::from_utf8(output.stdout).expect("UTF-8");
     (output.status.code(), text)
