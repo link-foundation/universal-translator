@@ -7,6 +7,7 @@ import { makeConfig } from 'lino-arguments';
 
 import {
   add,
+  checkEquivalence,
   checkText,
   createProgramTranslator,
   createSourceSyntaxCodec,
@@ -40,6 +41,7 @@ const TRANSLATION_COMMANDS = [
 const SOURCE_COMMANDS = [
   'encode-source',
   'decode-source',
+  'check-equivalence',
   ...GRAMMAR_COMMANDS,
   ...TRANSLATION_COMMANDS,
 ];
@@ -75,6 +77,11 @@ function usage() {
     '            as indented Links Notation; --json prints JSON',
     '  detect [file|-] [--json]  Print the most likely languages of a text, one per line',
     '            as Links Notation; --json prints JSON',
+    '  check-equivalence <from> <to> <source|-> [target]  Check that two programs mean the same',
+    '            both are read into the meta language and compared by meaning (comments,',
+    '            layout, imports and types an untyped language cannot spell are left out);',
+    '            without a target the translation of the source is checked. It fails with',
+    '            the first difference when they differ',
     '  encode-source <language> [file|-]  Write a Links Notation source document',
     '  decode-source [file|-]  Restore source from a Links Notation document',
     '  encode-cst <language> [file|-]  Parse source into a Meta Language CST',
@@ -325,6 +332,27 @@ const textCommands = {
     coverageReport(translator.parsePartial(text, from), { json }),
 };
 
+// `check-equivalence`: the report when both programs mean the same, the
+// first difference as the error otherwise.
+function equivalenceCommand(args, read) {
+  const [from, to, file, targetFile] = args;
+  if (args.length < 3 || args.length > 4) {
+    throw new Error(usage());
+  }
+  const checked = checkEquivalence(createTranslator(), {
+    source: read(file),
+    from,
+    to,
+    ...(targetFile === undefined ? {} : { target: read(targetFile) }),
+  });
+  if (!checked.equivalent) {
+    throw new Error(
+      `The ${from} and ${to} programs are not equivalent: ${checked.difference}`
+    );
+  }
+  return `The ${from} and ${to} programs are equivalent\n`;
+}
+
 // --trace reports every pipeline stage as JSON, so a translation can be
 // followed rule layer by rule layer.
 const translatorFor = ({ trace, rules = {} }, stderr) =>
@@ -440,6 +468,8 @@ function runSourceCommand(
     write(`${writeSourceDocument(language, read(file))}\n`);
   } else if (command === 'decode-source' && args.length <= 1) {
     write(readSourceDocument(read(language)).source);
+  } else if (command === 'check-equivalence') {
+    write(equivalenceCommand(args, read));
   } else if (GRAMMAR_COMMANDS.includes(command)) {
     runGrammarCommand(command, args, read, write, grammarEngine);
   } else if (TRANSLATION_COMMANDS.includes(command)) {

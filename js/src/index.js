@@ -37,6 +37,7 @@ export {
   translatePartial,
 } from './translator.js';
 export { fragmentKinds } from './translation/fragments.js';
+export { checkEquivalence, compareMeta } from './translation/equivalence.js';
 export { grammarLanguageIds, languages } from './formal/languages.js';
 export { machineTargetIds, machineTargets } from './formal/machine.js';
 export {

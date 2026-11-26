@@ -351,7 +351,7 @@ fn arm_function(
             item.name
         )));
     }
-    let epilogue = vec![
+    let epilogue = [
         "mov sp, x29".to_owned(),
         format!("add sp, sp, #{frame}"),
         "ldp x29, x30, [sp], #16".to_owned(),

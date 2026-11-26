@@ -8,8 +8,8 @@ use universal_translator::natural::check_text;
 use universal_translator::server::{serve, serve_configuration};
 use universal_translator::translator::{Translator, languages, natural_languages};
 use universal_translator::{
-    CustomRules, Detection, Mode, Options, PartialReading, SourceDocument, nest_grammars,
-    translate_program,
+    CustomRules, Detection, Mode, Options, PartialReading, SourceDocument, check_equivalence,
+    nest_grammars, translate_program,
 };
 
 const USAGE: &str = "Usage:
@@ -17,6 +17,7 @@ const USAGE: &str = "Usage:
   universal-translator meta <language> [file|-] [--json] [--shallow]
   universal-translator coverage <language> [file|-] [--json]
   universal-translator detect [file|-] [--json]
+  universal-translator check-equivalence <from> <to> <source|-> [target]
   universal-translator translate-program <from|cst> <to> [file|-]
   universal-translator encode-source <language> [file|-]
   universal-translator decode-source [file|-]
@@ -57,6 +58,10 @@ It reads comments and strings with the grammars they are written in
 coverage prints which parts of a text can be read as indented Links
 Notation; detect prints the most likely languages of a text, one per
 line. --json prints either as JSON.
+check-equivalence reads both programs into the meta language and compares
+their meaning (comments, layout, imports and types an untyped language
+cannot spell are left out); without a target it checks the translation of
+the source. It fails with the first difference when they differ.
 serve answers GET /languages and POST /translate as JSON, like the
 JavaScript server. PORT, HOST or a .lenv file set the defaults (8080,
 0.0.0.0); --port 0 picks a free port.
@@ -488,6 +493,26 @@ fn run(arguments: &[String]) -> Result<String, String> {
             &Translator::new().detect_language(&source(report_file(trailing).flatten())?, 5),
             trailing.contains(&"--json"),
         )),
+        ["check-equivalence", from, to, file, trailing @ ..] if trailing.len() <= 1 => {
+            let target = trailing
+                .first()
+                .map(|path| source(Some(*path)))
+                .transpose()?;
+            let checked = check_equivalence(
+                &Translator::new(),
+                &source(Some(file))?,
+                from,
+                to,
+                target.as_deref(),
+            )
+            .map_err(|error| error.to_string())?;
+            match checked.difference {
+                None => Ok(format!("The {from} and {to} programs are equivalent\n")),
+                Some(difference) => Err(format!(
+                    "The {from} and {to} programs are not equivalent: {difference}"
+                )),
+            }
+        }
         ["encode-source", language, trailing @ ..] if trailing.len() <= 1 => {
             let document = SourceDocument {
                 language: (*language).to_owned(),

@@ -28,8 +28,7 @@ for (const file of programs) {
     if (result.equivalent) {
       equal += 1;
     } else {
-      const d = result.differences[0];
-      const key = `${to}: ${d.path.replace(/\[\d+\]/g, '[]')} ${JSON.stringify(d.left)?.slice(0, 40)} vs ${JSON.stringify(d.right)?.slice(0, 40)}`;
+      const key = `${to}: ${result.difference.replace(/\/\d+/g, '/#').slice(0, 120)}`;
       tally.set(key, [...(tally.get(key) ?? []), file]);
     }
   }
@@ -69,11 +68,7 @@ for (const file of programs) {
       if (result.equivalent) {
         goldenEqual += 1;
       } else {
-        const d = result.differences[0];
-        goldens.set(
-          `${name}${extension}`,
-          `${d.path} ${JSON.stringify(d.left)?.slice(0, 40)} vs ${JSON.stringify(d.right)?.slice(0, 40)}`
-        );
+        goldens.set(`${name}${extension}`, result.difference.slice(0, 120));
       }
     } catch (error) {
       goldens.set(

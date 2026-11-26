@@ -83,3 +83,13 @@ List the machine targets (NASM, CIL, JVM) in `languages()` with `machine: true`,
 ### Rust serve
 
 The Rust command line has a `serve` command that answers the same JSON as the JavaScript server, and the Rust crate reads the Wikidata definition cache of the word standards in the same file format.
+
+### Program equivalence
+
+`checkEquivalence` and `compareMeta` (Rust: `check_equivalence` and `compare_meta`) check that two programs mean the same. Both programs are read into the meta language and put in the general form of the standard library. Comments, layout, imports and types an untyped language cannot spell are left out. `universal-translator check-equivalence <from> <to> <source> [target]` reports equivalent programs. When they differ, it exits with status 1 and prints the first difference (`/main/statements/0/value/right/value: 3 != 4`). Without a target it checks the translation of the source. Every committed example translation is equivalent to its JavaScript source.
+
+### Smaller fixes
+
+- `"" + year` in Java and similar languages keeps the type of `year`. The interpolation is text, not the name.
+- The LLVM IR reader matches text constants in linear time.
+- The web app lists the assembly and intermediate languages in a picker group of their own.

@@ -274,6 +274,43 @@ output:
 
 `POST /translate` takes `rules` as this text or as the object.
 
+### Checking that two programs are equivalent
+
+`check-equivalence` reads two programs into the meta language, puts both in
+the general form of the standard library and compares their meaning.
+Comments, blank lines, imports, mutability and types that an untyped
+language cannot spell are left out. Without a target it checks the
+translation of the source. When the programs differ it exits with status 1
+and prints the first difference:
+
+```bash
+universal-translator check-equivalence javascript python sum.js sum.py
+# The javascript and python programs are equivalent
+universal-translator check-equivalence javascript rust sum.js   # checks the translation
+universal-translator check-equivalence javascript python sum.js changed.py
+# The javascript and python programs are not equivalent: /main/statements/0/value/right/value: 3 != 4
+```
+
+```js
+import {
+  checkEquivalence,
+  createTranslator,
+} from '@link-foundation/universal-translator';
+
+checkEquivalence(createTranslator(), {
+  source,
+  from: 'javascript',
+  to: 'python',
+  target,
+});
+// { equivalent: true, target } or { equivalent: false, difference, target }
+```
+
+In Rust this is `check_equivalence(&Translator::new(), source, from, to, target)`.
+It returns an `Equivalence { difference, target }`. Every committed
+translation in `examples/programs/translated` is equivalent to its
+JavaScript source (`js/tests/equivalence.test.js`, `rust/tests/equivalence.rs`).
+
 ### Layout: the source's whitespace, by default
 
 Partial translation (the default of the command line, the server and the

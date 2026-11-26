@@ -5,6 +5,7 @@
 pub mod comment_language;
 pub mod custom_rules;
 mod detect;
+pub mod equivalence;
 pub mod formal;
 pub mod fragments;
 pub mod identifier_language;
@@ -21,6 +22,7 @@ pub mod translator;
 
 pub use comment_language::{CommentTranslator, translate_comments};
 pub use custom_rules::CustomRules;
+pub use equivalence::{Equivalence, check_equivalence, compare_meta};
 pub use formal::versions::{Version, split_version, versions_of};
 pub use fragments::{Fragment, FragmentKind};
 pub use identifier_language::{translate_identifiers, translate_program_identifiers};

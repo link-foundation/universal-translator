@@ -11,6 +11,9 @@ use universal_translator::{GrammarError, Mode, Options, translate_fragment};
 /// The dialects added after NASM, CIL and JVM bytecode.
 const DIALECTS: [&str; 4] = ["gas", "arm64", "llvm", "wat"];
 
+/// A reader of one dialect.
+type Reader = fn(&str) -> Result<LoweredProgram, GrammarError>;
+
 fn programs() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("examples/programs")
 }
@@ -210,7 +213,7 @@ fn translates_between_every_pair_of_dialects() {
 
 #[test]
 fn reads_procedures_slots_and_text() {
-    let readers: [(&str, fn(&str) -> Result<LoweredProgram, GrammarError>); 4] = [
+    let readers: [(&str, Reader); 4] = [
         ("gas", read_gas),
         ("arm64", read_arm64),
         ("llvm", read_llvm),
