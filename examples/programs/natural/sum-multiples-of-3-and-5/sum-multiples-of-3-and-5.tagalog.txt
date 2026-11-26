@@ -1,0 +1,7 @@
+Tala: Sum multiples of 3 and 5 in JavaScript: the sum of the multiples below 1000
+
+Lumikha ng lahat na may halagang 0.
+Para sa bawat numero mula 1 hanggang 999, ulitin ito:
+  Kung numero modulo 3 ay katumbas ng 0 o numero modulo 5 ay katumbas ng 0, gawin ito:
+    Palitan ang lahat ng lahat dagdag numero.
+Isulat ang lahat at tapusin ang linya.

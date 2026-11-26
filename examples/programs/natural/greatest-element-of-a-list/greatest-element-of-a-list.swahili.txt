@@ -1,0 +1,9 @@
+Kumbuka: Greatest element of a list in JavaScript
+
+Unda namba yenye thamani orodha (17, 4, 93, 28, 65, 3, 80).
+Unda kubwa yenye thamani kipengele 0 cha namba.
+Kwa kila fahirisi kutoka 0 hadi urefu wa namba toa 1, rudia hivi:
+  Unda nambari yenye thamani kipengele fahirisi cha namba.
+  Ikiwa nambari ni zaidi ya kubwa, fanya hivi:
+    Badilisha kubwa kuwa nambari.
+Andika “The greatest element is ” ikifuatiwa na kubwa na umalize mstari.

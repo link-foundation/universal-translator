@@ -1,0 +1,6 @@
+Kumbuka: Loops/Foreach in JavaScript: print every element of a collection
+
+Kuna namba, ni vitu hivi (1, 1, 2, 3, 5, 8, 13, 21).
+Kwa kila fahirisi kutoka 0 hadi idadi ya sehemu za namba toa 1, fanya hivi:
+  Kuna nambari, ni sehemu fahirisi ya namba.
+  Sema nambari kwenye mstari mmoja.

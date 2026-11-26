@@ -1,0 +1,5 @@
+Note: Loops/Foreach in JavaScript: print every element of a collection
+
+It is obligatory that numbers is initially the list (1, 1, 2, 3, 5, 8, 13, 21).
+For each number in numbers the following applies:
+  It is obligatory that the output shows number as a line.

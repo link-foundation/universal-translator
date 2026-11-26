@@ -1,0 +1,6 @@
+참고: Loops/Foreach in JavaScript: print every element of a collection
+
+수들 이 있다, 그것은 이것들 (1, 1, 2, 3, 5, 8, 13, 21) 이다.
+모든 색인 에 대해 0 부터 수들 의 부분 수 빼기 1 까지 이것을 한다:
+  수_ 이 있다, 그것은 수들 의 부분 색인 이다.
+  수_ 을 한 줄에 말한다.

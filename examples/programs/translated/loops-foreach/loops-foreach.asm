@@ -1,0 +1,179 @@
+; Loops/Foreach in x86-64 assembly: print every element of a collection
+
+default rel
+extern printf
+extern malloc
+global main
+
+section .data
+integer_format: db "%lld", 0
+text_format: db "%s", 0
+newline_format: db 10, 0
+
+section .text
+main:
+    %push main
+    %define %$numbers qword [rbp - 8]
+    %define %$index qword [rbp - 16]
+    %define %$number qword [rbp - 24]
+    push rbp
+    mov rbp, rsp
+    sub rsp, 32
+    push 8
+    push 0
+    pop rsi
+    pop rdi
+    call new_array
+    push rax
+    push qword [rsp]
+    push 0
+    push 1
+    pop rdx
+    pop rcx
+    pop rax
+    mov [rax + rcx * 8], rdx
+    push qword [rsp]
+    push 1
+    push 1
+    pop rdx
+    pop rcx
+    pop rax
+    mov [rax + rcx * 8], rdx
+    push qword [rsp]
+    push 2
+    push 2
+    pop rdx
+    pop rcx
+    pop rax
+    mov [rax + rcx * 8], rdx
+    push qword [rsp]
+    push 3
+    push 3
+    pop rdx
+    pop rcx
+    pop rax
+    mov [rax + rcx * 8], rdx
+    push qword [rsp]
+    push 4
+    push 5
+    pop rdx
+    pop rcx
+    pop rax
+    mov [rax + rcx * 8], rdx
+    push qword [rsp]
+    push 5
+    push 8
+    pop rdx
+    pop rcx
+    pop rax
+    mov [rax + rcx * 8], rdx
+    push qword [rsp]
+    push 6
+    push 13
+    pop rdx
+    pop rcx
+    pop rax
+    mov [rax + rcx * 8], rdx
+    push qword [rsp]
+    push 7
+    push 21
+    pop rdx
+    pop rcx
+    pop rax
+    mov [rax + rcx * 8], rdx
+    pop rax
+    mov %$numbers, rax
+    push 0
+    pop rax
+    mov %$index, rax
+.L1:
+    push %$index
+    push %$numbers
+    pop rax
+    push qword [rax - 8]
+    pop rcx
+    pop rax
+    cmp rax, rcx
+    jge .L2
+    push %$numbers
+    push %$index
+    pop rcx
+    pop rax
+    push qword [rax + rcx * 8]
+    pop rax
+    mov %$number, rax
+    push %$number
+    pop rdi
+    call print_integer
+    call print_newline
+    push %$index
+    push 1
+    pop rcx
+    pop rax
+    add rax, rcx
+    push rax
+    pop rax
+    mov %$index, rax
+    jmp .L1
+.L2:
+    xor eax, eax
+    leave
+    ret
+    %pop
+
+new_array:
+    push rbp
+    mov rbp, rsp
+    and rsp, -16
+    push rdi
+    push rsi
+    lea rdi, [rdi * 8 + 8]
+    call malloc wrt ..plt
+    pop rsi
+    pop rdi
+    mov [rax], rdi
+    add rax, 8
+    xor ecx, ecx
+.fill:
+    cmp rcx, rdi
+    jge .done
+    mov [rax + rcx * 8], rsi
+    inc rcx
+    jmp .fill
+.done:
+    leave
+    ret
+
+print_integer:
+    push rbp
+    mov rbp, rsp
+    and rsp, -16
+    mov rsi, rdi
+    lea rdi, [integer_format]
+    xor eax, eax
+    call printf wrt ..plt
+    leave
+    ret
+
+print_text:
+    push rbp
+    mov rbp, rsp
+    and rsp, -16
+    mov rsi, rdi
+    lea rdi, [text_format]
+    xor eax, eax
+    call printf wrt ..plt
+    leave
+    ret
+
+print_newline:
+    push rbp
+    mov rbp, rsp
+    and rsp, -16
+    lea rdi, [newline_format]
+    xor eax, eax
+    call printf wrt ..plt
+    leave
+    ret
+
+section .note.GNU-stack noalloc noexec nowrite progbits

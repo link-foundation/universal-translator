@@ -1,0 +1,7 @@
+Note: Sum multiples of 3 and 5 in JavaScript: the sum of the multiples below 1000
+
+There is total, it is 0.
+For all number from 1 to 999, do this:
+  If number modulo 3 is the same as 0 or number modulo 5 is the same as 0, do this:
+    After this, total is total plus number.
+Say total on one line.

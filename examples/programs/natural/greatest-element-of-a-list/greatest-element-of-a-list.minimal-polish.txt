@@ -1,0 +1,9 @@
+Uwaga: Greatest element of a list in JavaScript
+
+Jest liczby, to jest te rzeczy (17, 4, 93, 28, 65, 3, 80).
+Jest największy, to jest część 0 z liczby.
+Dla wszystkich indeks od 0 do ile części ma liczby minus 1, zrobić to:
+  Jest liczba, to jest część indeks z liczby.
+  Jeżeli liczba jest więcej niż największy, zrobić to:
+    Po tym największy jest liczba.
+Powiedzieć „The greatest element is ” potem największy w jednej linii.

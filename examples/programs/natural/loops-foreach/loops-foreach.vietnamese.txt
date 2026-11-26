@@ -1,0 +1,6 @@
+Ghi chú: Loops/Foreach in JavaScript: print every element of a collection
+
+Tạo các_số với giá trị danh sách (1, 1, 2, 3, 5, 8, 13, 21).
+Với mỗi chỉ_số từ 0 đến độ dài các_số trừ 1, lặp lại điều này:
+  Tạo số_ với giá trị phần tử chỉ_số trong các_số.
+  Viết số_ và xuống dòng.

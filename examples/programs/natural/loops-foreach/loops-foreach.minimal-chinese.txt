@@ -1,0 +1,6 @@
+注：Loops/Foreach in JavaScript: print every element of a collection
+
+有 数列 它 是 这些 东西 (1， 1， 2， 3， 5， 8， 13， 21)。
+对 所有 索引 从 0 到 数列 有 多少 部分 减 1 做 这个：
+  有 数 它 是 数列 的 第 索引 部分。
+  说 数 在 一 行 上。

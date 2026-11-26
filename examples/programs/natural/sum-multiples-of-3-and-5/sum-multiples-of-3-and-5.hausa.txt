@@ -1,0 +1,7 @@
+Lura: Sum multiples of 3 and 5 in JavaScript: the sum of the multiples below 1000
+
+Ƙirƙiri duka mai ƙima 0.
+Ga kowane lamba daga 1 zuwa 999, maimaita wannan:
+  Idan lamba modulo 3 daidai yake da 0 ko lamba modulo 5 daidai yake da 0, yi wannan:
+    Canza duka zuwa duka ƙari lamba.
+Rubuta duka kuma ka gama layi.

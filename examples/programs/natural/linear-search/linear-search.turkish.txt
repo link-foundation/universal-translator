@@ -1,0 +1,12 @@
+Not: Linear search in JavaScript: find the position of a value in a list
+
+Sayılar değişkenini liste (31, 41, 59, 26, 53, 58, 97, 93) değeriyle oluştur.
+Wanted değişkenini 53 değeriyle oluştur.
+Konum değişkenini -1 değeriyle oluştur.
+Mevcut değişkenini 0 değeriyle oluştur.
+Her indeks için 0 ile sayılar uzunluğu eksi 1 arasında şunu tekrarla:
+  Sayı değişkenini sayılar listesinin indeks öğesi değeriyle oluştur.
+  Eğer sayı ile wanted eşit ve konum 0 değerinden küçük ise şunu yap:
+    Konum değerini mevcut yap.
+  Mevcut değerini mevcut artı 1 yap.
+“Found ” ardından wanted ardından “ at position ” ardından konum yaz ve satırı bitir.

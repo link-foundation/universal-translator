@@ -1,0 +1,5 @@
+Note: Loops/Foreach in JavaScript: print every element of a collection
+
+Let numbers start as the list (1, 1, 2, 3, 5, 8, 13, 21).
+For each number in numbers, do this:
+  Show number on its own line.

@@ -1,0 +1,9 @@
+Tala: Greatest element of a list in JavaScript
+
+May mga_numero, ito ay itong mga bagay (17, 4, 93, 28, 65, 3, 80).
+May pinakamalaki, ito ay bahagi 0 ng mga_numero.
+Para sa bawat indeks mula 0 hanggang ang dami ng bahagi ng mga_numero bawas 1, gawin ito:
+  May numero, ito ay bahagi indeks ng mga_numero.
+  Kung numero ay higit sa pinakamalaki, gawin ito:
+    Pagkatapos nito, ang pinakamalaki ay numero.
+Sabihin ang “The greatest element is ” saka pinakamalaki sa isang linya.

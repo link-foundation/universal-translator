@@ -1,0 +1,12 @@
+Uwaga: Linear search in JavaScript: find the position of a value in a list
+
+Jest liczby, to jest te rzeczy (31, 41, 59, 26, 53, 58, 97, 93).
+Jest wanted, to jest 53.
+Jest pozycja, to jest -1.
+Jest bieżący, to jest 0.
+Dla wszystkich indeks od 0 do ile części ma liczby minus 1, zrobić to:
+  Jest liczba, to jest część indeks z liczby.
+  Jeżeli liczba jest tym samym co wanted i pozycja jest mniej niż 0, zrobić to:
+    Po tym pozycja jest bieżący.
+  Po tym bieżący jest bieżący plus 1.
+Powiedzieć „Found ” potem wanted potem „ at position ” potem pozycja w jednej linii.

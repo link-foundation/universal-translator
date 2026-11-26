@@ -1,0 +1,12 @@
+Nota: Linear search in JavaScript: find the position of a value in a list
+
+C'è numeri, è queste cose (31, 41, 59, 26, 53, 58, 97, 93).
+C'è wanted, è 53.
+C'è posizione, è -1.
+C'è corrente, è 0.
+Per ogni indice da 0 a quante parti ha numeri meno 1, fare questo:
+  C'è numero, è la parte indice di numeri.
+  Se numero è lo stesso di wanted e posizione è meno di 0, fare questo:
+    Dopo questo, posizione è corrente.
+  Dopo questo, corrente è corrente più 1.
+Dire «Found » poi wanted poi « at position » poi posizione su una riga.

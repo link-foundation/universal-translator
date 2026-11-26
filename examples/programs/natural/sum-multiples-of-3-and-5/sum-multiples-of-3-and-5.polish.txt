@@ -1,0 +1,7 @@
+Uwaga: Sum multiples of 3 and 5 in JavaScript: the sum of the multiples below 1000
+
+Utwórz razem z wartością 0.
+Dla każdego liczba od 1 do 999 powtarzaj to:
+  Jeśli liczba modulo 3 równa się 0 lub liczba modulo 5 równa się 0, zrób to:
+    Zmień razem na razem plus liczba.
+Wypisz razem i zakończ wiersz.

@@ -1,0 +1,7 @@
+Note: Sum multiples of 3 and 5 in JavaScript: the sum of the multiples below 1000
+
+It is obligatory that total is initially 0.
+For each number from 1 to 999 the following applies:
+  If number modulo 3 is equal to 0 or number modulo 5 is equal to 0 then the following applies:
+    It is obligatory that total becomes total plus number.
+It is obligatory that the output shows total as a line.

@@ -1,0 +1,9 @@
+Catatan: Greatest element of a list in JavaScript
+
+Buat angka dengan nilai daftar (17, 4, 93, 28, 65, 3, 80).
+Buat terbesar dengan nilai elemen 0 pada angka.
+Untuk setiap indeks dari 0 sampai panjang angka dikurangi 1, ulangi ini:
+  Buat bilangan dengan nilai elemen indeks pada angka.
+  Jika bilangan lebih dari terbesar, lakukan ini:
+    Ubah terbesar menjadi bilangan.
+Tulis “The greatest element is ” diikuti terbesar dan akhiri baris.

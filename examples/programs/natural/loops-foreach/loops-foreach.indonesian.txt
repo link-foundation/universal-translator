@@ -1,0 +1,6 @@
+Catatan: Loops/Foreach in JavaScript: print every element of a collection
+
+Buat angka dengan nilai daftar (1, 1, 2, 3, 5, 8, 13, 21).
+Untuk setiap indeks dari 0 sampai panjang angka dikurangi 1, ulangi ini:
+  Buat bilangan dengan nilai elemen indeks pada angka.
+  Tulis bilangan dan akhiri baris.

@@ -1,0 +1,6 @@
+Opmerking: Loops/Foreach in JavaScript: print every element of a collection
+
+Getallen is geclassificeerd als een variabele met beginwaarde de lijst (1, 1, 2, 3, 5, 8, 13, 21).
+Voor elke index van 0 tot en met de lengte van getallen min 1 wordt het volgende herhaald:
+  Getal is geclassificeerd als een variabele met beginwaarde element index van getallen.
+  De uitvoer heeft als volgende regel getal.

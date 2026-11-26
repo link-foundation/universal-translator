@@ -1,0 +1,6 @@
+Opmerking: Loops/Foreach in JavaScript: print every element of a collection
+
+Maak getallen met waarde de lijst (1, 1, 2, 3, 5, 8, 13, 21).
+Voor elke index van 0 tot en met de lengte van getallen min 1, herhaal dit:
+  Maak getal met waarde element index van getallen.
+  Schrijf getal en beëindig de regel.

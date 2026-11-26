@@ -1,0 +1,7 @@
+Catatan: Sum multiples of 3 and 5 in JavaScript: the sum of the multiples below 1000
+
+Ada total, yaitu 0.
+Untuk semua bilangan dari 1 sampai 999, lakukan ini:
+  Jika bilangan modulo 3 sama dengan 0 atau bilangan modulo 5 sama dengan 0, lakukan ini:
+    Setelah ini, total adalah total ditambah bilangan.
+Katakan total pada satu baris.
