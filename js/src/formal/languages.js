@@ -818,6 +818,27 @@ export const languages = {
     },
     terms: { call: 'function call', routine: 'function' },
   },
+  gml: {
+    // GameMaker Language is written with the JavaScript tables, plus its
+    // output, template strings and arrays (dialects/gml.js).
+    family: 'javascript',
+    naming: 'snake',
+    label: 'GameMaker Language',
+    blocks: 'braces',
+    lineComment: '//',
+    blockComment: ['/*', '*/'],
+    quotes: ['"'],
+    interpolation: [{ quote: '"', prefix: '$', style: 'braces' }],
+    declarations: ['var'],
+    declarationKeyword: 'var',
+    functionKeyword: 'function',
+    operators: { ...braceOperators, integerDivide: 'div' },
+    printCalls: { line: ['show_debug_message'], text: [] },
+    textConversions: ['string'],
+    entryPoint: 'top-level',
+    typed: false,
+    terms: { call: 'function call', routine: 'function' },
+  },
 };
 
 // How a language spells a declared name with the given role.

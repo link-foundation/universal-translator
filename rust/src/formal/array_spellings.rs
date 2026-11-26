@@ -22,7 +22,7 @@ fn literal(id: &str, version: Option<&str>, elements: &str) -> Option<String> {
     }
     Some(match id {
         "javascript" | "typescript" | "python" | "ruby" | "php" | "swift" | "dart" | "julia"
-        | "groovy" | "d" | "pascal" | "fortran" | "matlab" => format!("[{elements}]"),
+        | "groovy" | "d" | "pascal" | "fortran" | "matlab" | "gml" => format!("[{elements}]"),
         "lua" | "c" | "cpp" | "csharp" | "java" | "vb" => format!("{{{elements}}}"),
         "go" => format!("[]int{{{elements}}}"),
         "rust" => format!("vec![{elements}]"),
@@ -63,6 +63,7 @@ fn create(id: &str, version: Option<&str>, length: &str, fill: &str) -> Option<S
         "d" => format!("new long[{length}]"),
         "fortran" => format!("spread({fill}, 1, {length})"),
         "matlab" => format!("repmat({fill}, 1, {length})"),
+        "gml" => format!("array_create({length}, {fill})"),
         _ => return None,
     })
 }
@@ -111,6 +112,7 @@ fn length(id: &str, array: &str) -> String {
         "zig" => format!("@as(i64, @intCast({array}.len))"),
         "fortran" => format!("size({array}, kind=8)"),
         "matlab" => format!("numel({array})"),
+        "gml" => format!("array_length({array})"),
         _ => format!("{array}.length"),
     }
 }
@@ -164,7 +166,21 @@ pub(crate) fn is_array_declaration(statement: &Node) -> bool {
                 .is_some_and(|value| value.is("ArrayLiteral") || value.is("NewArray")))
 }
 
+/// Languages written with another language's tables that spell arrays
+/// their own way.
+const OWN_ARRAYS: [&str; 1] = ["gml"];
+
 impl Emitter {
+    /// The language whose array spellings this one uses: its own, or those
+    /// of its family.
+    fn array_id(&self) -> &'static str {
+        if OWN_ARRAYS.contains(&self.syntax.id) {
+            self.syntax.id
+        } else {
+            self.id()
+        }
+    }
+
     /// The array type of the language, or `None` where arrays have no
     /// written type.
     pub(crate) fn array_type_name(&mut self) -> Option<String> {
@@ -196,13 +212,13 @@ impl Emitter {
             .map(|element| self.expression(element))
             .collect::<Result<Vec<_>>>()?
             .join(", ");
-        literal(self.id(), self.syntax.version, &written).ok_or_else(|| {
+        literal(self.array_id(), self.syntax.version, &written).ok_or_else(|| {
             GrammarError::new(format!("{} cannot write an array literal", self.syntax.id))
         })
     }
 
     fn new_array(&mut self, expression: &Node, parent: f64) -> Result<String> {
-        let id = self.id();
+        let id = self.array_id();
         let version = self.syntax.version;
         if create(id, version, "", "").is_none() {
             return Err(GrammarError::new(format!(
@@ -250,7 +266,7 @@ impl Emitter {
 
     fn length_of(&mut self, expression: &Node, parent: f64) -> Result<String> {
         let array = field(expression, "array")?.str("name").unwrap_or_default();
-        let id = self.id();
+        let id = self.array_id();
         let result = length(id, &self.variable(array));
         Ok(if loose(id) && parent > 7.0 {
             format!("({result})")

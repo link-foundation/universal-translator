@@ -23,6 +23,7 @@ const TRUE_DIVISION: &[&str] = &[
     "nim",
     "dart",
     "vb",
+    "gml",
 ];
 
 /// Whether `/` of two integers gives a real (Python 2 divides integers).

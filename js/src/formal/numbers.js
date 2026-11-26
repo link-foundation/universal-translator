@@ -19,6 +19,7 @@ const trueDivision = new Set([
   'nim',
   'dart',
   'vb',
+  'gml',
 ]);
 
 // Whether `/` of two integers gives a real (Python 2 divides integers).

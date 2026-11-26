@@ -5,8 +5,8 @@ matching JavaScript and Rust implementations. The translator is built from
 grammar and rule tables, not from per-program templates. It reads JavaScript,
 TypeScript, Python, Ruby, Lua, PHP, C, C++, C#, Java, Go, Rust, Kotlin,
 Swift, Perl, Dart, Scala, Julia, R, Groovy, Objective-C, Nim, D, Pascal,
-Fortran, Ada, Visual Basic .NET, Bash, MATLAB/Octave, Zig, Lean 4 and Rocq
-(32 languages), and writes any of them. It can also lower a program to x86-64
+Fortran, Ada, Visual Basic .NET, Bash, MATLAB/Octave, Zig, Lean 4, Rocq and
+GameMaker Language (33 languages), and writes any of them. It can also lower a program to x86-64
 assembly (NASM or GNU as, AT&T), ARM64 assembly, CIL (ILAsm), JVM bytecode
 (Jasmin), LLVM IR or WebAssembly text. These machine targets appear in
 `languages()` flagged `machine: true`, after the programming languages.
@@ -58,7 +58,9 @@ Every program in `examples/programs` has been translated into every target
 in `examples/programs/translated`. These shared files are what the JavaScript
 and Rust tests check against. `node examples/programs/verify-native.mjs`
 compiles and runs each translation with its native toolchain, and CI runs it
-with `--require-all`.
+with `--require-all`. GameMaker Language has no runtime outside the
+GameMaker IDE, so its translations are only checked by reading them back
+into the same meta program.
 
 ## Translate a statement or a function on its own
 

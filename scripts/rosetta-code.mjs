@@ -59,6 +59,7 @@ export const headers = {
   zig: ['Zig'],
   lean: ['Lean'],
   rocq: ['Rocq', 'Coq'],
+  gml: ['GML'],
 };
 
 const byHeader = new Map(

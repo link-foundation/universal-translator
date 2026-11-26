@@ -152,6 +152,7 @@ const reservedLists = {
   zig: 'addrspace align allowzero and anyframe anytype asm break callconv catch comptime const continue defer else enum errdefer error export extern false fn for if inline linksection noalias noinline nosuspend opaque or orelse packed pub resume return struct suspend switch test threadlocal true try undefined union unreachable usingnamespace var volatile while out buffer writer init std common_library main',
   lean: 'abbrev at axiom by calc class deriving do else end example export extends false for from fun have if import in inductive instance let local macro match mut mutual namespace notation open partial private protected pure return section show structure syntax then theorem this true universe variable where while with default main commonlibrary',
   rocq: 'as at cofix definition else end eval exists fix fixpoint for forall fun if in let load match mod module return set struct then type where with pure stop bind loop_while for_range print print_line line_end digits show value call run item with_item with_item_at filled size default outcome going returned action tt unit negb andb orb list nil cons string bool true false nat length commonlibrary common_library main no_arguments',
+  gml: 'all and array_create array_length begin break case catch constructor continue default delete depth direction div do else end enum exit false finally for friction function global globalvar gravity health hspeed id if image_index lives local mod new noone not or other persistent repeat return score self show_debug_message solid speed sprite_index static string switch then throw true try until var visible vspeed while with x xor y',
   bash: 'case coproc dirname do done echo elif else esac fi for function if in local printf return select then time until while',
   groovy:
     'abstract as assert boolean break byte case catch char class const continue def default do double else enum extends false final finally float for goto if implements import in instanceof int interface long native new null package private protected public return short static super switch synchronized this threadsafe throw throws transient true try var void volatile while',
@@ -185,6 +186,7 @@ const asciiOnly = new Set([
   'cpp',
   'dart',
   'fortran',
+  'gml',
   'lua',
   'matlab',
   'objc',

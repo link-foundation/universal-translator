@@ -24,6 +24,11 @@ const spellings = {
     create: (length, fill) => `new Array(${length}).fill(${fill})`,
     length: (array) => `${array}.length`,
   },
+  gml: {
+    literal: (elements) => `[${elements}]`,
+    create: (length, fill) => `array_create(${length}, ${fill})`,
+    length: (array) => `array_length(${array})`,
+  },
   python: {
     literal: (elements) => `[${elements}]`,
     create: (length, fill) => `[${fill}] * ${length}`,
@@ -222,6 +227,7 @@ export const withArrays = (Base) =>
     spelling() {
       return (
         versionSpellings[`${this.id}@${this.syntax.version}`] ??
+        spellings[this.syntax.id] ??
         spellings[this.id] ??
         {}
       );

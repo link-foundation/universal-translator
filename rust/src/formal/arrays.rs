@@ -167,12 +167,14 @@ fn construct(language: &str, expression: &Node) -> Option<Node> {
         }
         "matlab" => (call(expression, "repmat", Some(3)) && arguments[1].is_number(1.0))
             .then(|| new_array(argument(expression, 2), argument(expression, 0))),
+        // GameMaker Language: array_create(n, fill).
+        "gml" => filled("array_create", 0, 1),
         _ => None,
     }
 }
 
 /// Calls that return the length of the array they are given.
-const LENGTH_CALLS: [&str; 5] = ["len", "length", "count", "numel", "scalar"];
+const LENGTH_CALLS: [&str; 6] = ["len", "length", "count", "numel", "scalar", "array_length"];
 /// Properties and methods that return the length of their receiver.
 const LENGTH_MEMBERS: [&str; 5] = ["length", "Length", "size", "count", "len"];
 
@@ -263,7 +265,13 @@ pub fn recognize_arrays(program: Node, settings: &Settings) -> Node {
     let Ok(syntax) = language_syntax(&settings.from) else {
         return program;
     };
-    let language = syntax.family.unwrap_or(syntax.id);
+    // A version of a language (python@2) builds arrays like the language,
+    // unless it has constructors of its own (GameMaker Language).
+    let language = if syntax.id == "gml" {
+        syntax.id
+    } else {
+        syntax.family.unwrap_or(syntax.id)
+    };
     let functions: HashSet<String> = program
         .nodes("functions")
         .iter()

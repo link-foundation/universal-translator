@@ -130,3 +130,16 @@ Python type hints on parameters, results and assignments (`def square(n: int) ->
 ### Programming words in comments
 
 Comments read the words programmers write in them. The vocabulary has 74 more concepts (console, screen, output, input, integer, string, character, maximum, average, key, object, class, type, table, largest, even, odd, true, false, else, search, iterate, enter, initialize, subtract, reverse, copy, insert, update, save, split, generate and more) in the twelve languages its programming words are written in. The verbs it had gain the imperative and perfective forms of Russian, Ukrainian and Polish, so `// Вывести привет мир`, `// Выведи привет мир` and `// Сложить два числа` become `// Print hello world` and `// Add two numbers`. A concept is written with the word that is also a program word (`count`, `swap`), not with a later form (`counts`).
+
+### More of the TIOBE top 50
+
+GameMaker Language (`gml`, number 42 in the TIOBE index of November 2026) is written and read back in both the JavaScript and Rust translators, with its own common library (`common-library/common_library.gml`). GameMaker runs GML only inside its IDE and game runner, so `verify-native.mjs` reports GML as skipped with that reason, and its translations are checked by reading them back into the same meta program.
+
+28 of the top 50 are now covered: Python, C, Java, C++, C#, JavaScript, R, Visual Basic (.NET), Go, Rust, PHP, Fortran, Perl, MATLAB, assembly language (the machine targets), Swift, Delphi/Object Pascal (through the Pascal profile), Dart, Julia, Ada, Objective-C, Ruby, Lua, Kotlin, D, Scala, TypeScript and GML. The other 22 are not supported yet:
+
+- Scratch, Ladder Logic and LabVIEW are graphical: their programs are blocks, rungs and wired diagrams, not text a parser can read or an emitter can write.
+- SQL and XSLT are declarative: standard SQL has no functions, loops or output statements, and XSLT has no assignable variables, so the examples would need an encoding of their own, like the Rocq runtime.
+- Transact-SQL functions cannot print and it has no arrays; PL/SQL needs an Oracle database to run. PL/SQL could be written like Ada (`DBMS_OUTPUT.PUT_LINE`), but it is not done.
+- ABAP, SAS, Xojo and (Visual) FoxPro run only in commercial or discontinued environments, so their translations could not be checked natively.
+- VBScript and Classic Visual Basic run only on Windows. A classic Visual Basic dialect is possible (no `Return`, so `Name = value: Exit Function`; `And` and `Or` that do not short-circuit; no `+=`; one `Dim` per procedure; `ByVal` parameters), but it is not done.
+- OCaml, Caml, ML, Lisp, Haskell, Clojure, Prolog, COBOL and Solidity each need a dialect module in both runtimes: functional and logic languages need a state encoding (as Lean and Rocq have), COBOL needs its division layout, and Solidity has no standard output outside a test framework. None of them is done yet.
