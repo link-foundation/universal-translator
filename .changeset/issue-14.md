@@ -95,3 +95,7 @@ The meta language has a for-each loop, `ForEach { variable, array, body }`, read
 ### Decorators, language versions and the Hello World Collection
 
 Every stage of the translation pipeline (parser, readers and emitters) can be wrapped with decorators, in JavaScript with `createTranslator({ decorate })` and `translator.decorate`, and in Rust with `Translator::decorate_*`. Programming languages gain versions with real differences in the written program: `javascript@es5` (no `let`, `const`, template strings or `for…of`), `php@5` and `csharp@5`. The Hello World Collection can be downloaded with `scripts/hello-world-collection.mjs`, and every extracted program is read into the meta language and measured in a coverage file.
+
+### Ranking and imprecision
+
+Where prose admits several readings, each candidate translation is scored by the frequency of its readings (Zipf priors) and by how much survives the round trip, as relative-meta-logic truth values. The scores are combined by their product with the share of lines translated, and the most probable candidate is kept. New: `translateCandidates` / `Translator::translate_candidates`, `rankProse` / `rank_prose`, and `translate <from> <to> --candidates`. The meta program records `(imprecision ambiguous|untranslated|truncated|rounded)`, `(alternatives n)` and `(probability p)`; `meta` shows them and emitters ignore them.

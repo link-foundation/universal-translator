@@ -259,6 +259,15 @@ fn spells_british_english_with_british_spellings() {
 // Comment language (js/tests/comments.test.js).
 
 #[test]
+fn keeps_the_gaps_and_the_case_of_each_comment_word() {
+    let german = |text: &str| translate_comment_text(text, "english", "german").unwrap();
+    assert_eq!(german("NUMBER"), "ZAHL");
+    assert_eq!(german("Sum"), "Summe");
+    assert_eq!(german("sum"), "summe");
+    assert_eq!(german(" sum-of, squares 42"), " sum-of, quadrate 42");
+}
+
+#[test]
 fn translates_comment_words_through_the_shared_meanings() {
     let text = |text: &str, from: &str, to: &str| {
         translate_comment_text(text, from, to).expect("a comment")

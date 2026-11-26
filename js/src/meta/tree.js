@@ -163,6 +163,7 @@ const ignoredKeys = new Set([
   'mutable',
   'elementsAssigned',
   'blankAfter',
+  'imprecision',
 ]);
 
 // The meaning of a program, without details that do not change behaviour:

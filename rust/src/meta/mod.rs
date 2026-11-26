@@ -5,6 +5,7 @@
 //! rule and error types that every stage uses.
 
 pub mod for_each;
+pub mod imprecision;
 pub mod library;
 pub mod links;
 pub mod notation;

@@ -30,6 +30,7 @@ export {
   createGrammarTranslator as createTranslator,
   parseFragment,
   translate,
+  translateCandidates,
   translateFragment,
 } from './translator.js';
 export declare const fragmentKinds: FragmentKind[];
@@ -39,6 +40,7 @@ export declare function decorateStages(
   decorate?: import('./translator.js').Decorators
 ): import('./translator.js').Stages;
 export type {
+  TranslationCandidate,
   Fragment,
   FragmentKind,
   GrammarTranslator,
@@ -280,6 +282,16 @@ export declare function commentDictionary(
 export declare function detectCommentLanguage(texts: string[]): string;
 /** Translate a comment text word by word with the comment dictionary. */
 export declare const translateCommentText: CommentTranslator;
+/** The candidate translations of a text of prose, the most probable first. */
+export declare function rankProse(
+  text: string,
+  options: { from: string; to: string }
+): {
+  text: string;
+  probability: number;
+  frequency: number;
+  roundTrip: number;
+}[];
 /** Translate the comments of a source text in place. */
 export declare function translateComments(
   source: string,

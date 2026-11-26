@@ -132,3 +132,7 @@ path = "rust/tests/decorators.rs"
 [[test]]
 name = "language_versions"
 path = "rust/tests/language_versions.rs"
+
+[[test]]
+name = "ranking"
+path = "rust/tests/ranking.rs"

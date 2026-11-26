@@ -151,6 +151,27 @@ export interface GrammarTranslator {
     to: string,
     options?: TranslationOptions
   ): string;
+  /** The candidate translations of a text, the most probable first (the
+   * first is the default translation). */
+  translateCandidates(
+    source: string,
+    from: string,
+    to: string,
+    options?: TranslationOptions
+  ): TranslationCandidate[];
+}
+
+/** A candidate translation and its scores, truth values in [0, 1]:
+ * probability = frequency x roundTrip x coverage. */
+export interface TranslationCandidate {
+  text: string;
+  probability: number;
+  /** How often the readings chosen in its prose are meant. */
+  frequency: number;
+  /** How much of the meanings of its prose a reader reads back. */
+  roundTrip: number;
+  /** The share of the lines translated. */
+  coverage: number;
 }
 
 export declare function createGrammarTranslator(
@@ -172,3 +193,10 @@ export declare function translateFragment(
   to: string,
   options?: TranslationOptions
 ): string;
+
+export declare function translateCandidates(
+  source: string,
+  from: string,
+  to: string,
+  options?: TranslationOptions
+): TranslationCandidate[];

@@ -47,10 +47,12 @@ import {
 import { declaredNames } from './formal/names.js';
 import { createFragmentTranslator } from './translation/fragments.js';
 import { createPartialTranslator } from './translation/partial.js';
+import { createCandidateTranslator } from './translation/candidates.js';
 import { createLanguageDetector } from './translation/detect.js';
 import { compileCustomRules } from './translation/custom-rules.js';
 import { transferLayout } from './translation/layout.js';
 import { specialize } from './meta/library.js';
+import { markImprecision } from './meta/imprecision.js';
 import { unnest } from './translation/nesting.js';
 import { decorateStages, mergeDecorators } from './translation/decorators.js';
 
@@ -319,7 +321,10 @@ export function createGrammarTranslator(settings = {}) {
   const custom = compileCustomRules(rules);
   const metaLayers = [...layers, ...custom.layers];
 
-  function toMeta(text, from) {
+  // The typed meta program of a text, with what its reading lost marked.
+  const toMeta = (text, from) => markImprecision(readMeta(text, from));
+
+  function readMeta(text, from) {
     const source = custom.source(text, from);
     if (isNaturalLanguage(from)) {
       // A controlled natural language is read sentence by sentence straight
@@ -442,6 +447,7 @@ export function createGrammarTranslator(settings = {}) {
   const partial = createPartialTranslator({ ...fragments, translateProse });
 
   const translatePartial = partialTranslator(translate, fragments, partial);
+  const translateCandidates = createCandidateTranslator(translatePartial);
 
   return {
     languages: listLanguages,
@@ -450,6 +456,7 @@ export function createGrammarTranslator(settings = {}) {
     fromMeta,
     translate,
     translatePartial,
+    translateCandidates,
     parsePartial: partial.parsePartial,
     // The same translator with other data rules.
     withRules: (other) =>
@@ -494,6 +501,13 @@ export function parseFragment(source, from) {
 export function translatePartial(source, from, to, options) {
   defaultTranslator ??= createGrammarTranslator();
   return defaultTranslator.translatePartial(source, from, to, options);
+}
+
+// The candidate translations of a text, the most probable first, with the
+// default rule layers.
+export function translateCandidates(source, from, to, options) {
+  defaultTranslator ??= createGrammarTranslator();
+  return defaultTranslator.translateCandidates(source, from, to, options);
 }
 
 // Read what can be read, with the default rule layers.

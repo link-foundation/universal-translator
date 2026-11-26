@@ -33,6 +33,7 @@ export {
   parseFragment,
   parsePartial,
   translate,
+  translateCandidates,
   translateFragment,
   translatePartial,
 } from './translator.js';
@@ -124,6 +125,7 @@ export {
 export {
   commentDictionary,
   detectCommentLanguage,
+  rankProse,
   translateCommentText,
 } from './natural/comments.js';
 export {

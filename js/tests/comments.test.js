@@ -39,6 +39,15 @@ describe('comment language', () => {
     ).toBe('  keep   spaces  ');
   });
 
+  it('keeps the gaps and the case of each comment word', () => {
+    const german = (text) =>
+      translateCommentText(text, { from: 'english', to: 'german' });
+    expect(german('NUMBER')).toBe('ZAHL');
+    expect(german('Sum')).toBe('Summe');
+    expect(german('sum')).toBe('summe');
+    expect(german(' sum-of, squares 42')).toBe(' sum-of, quadrate 42');
+  });
+
   it('detects the language of the comments', () => {
     expect(detectCommentLanguage(['Сумма квадратов'])).toBe('russian');
     expect(detectCommentLanguage(['Summe der Quadrate'])).toBe('german');
