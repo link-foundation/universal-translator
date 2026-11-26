@@ -19,9 +19,15 @@ export function LanguagePicker({
 }) {
   const detecting = Boolean(auto) && value === 'auto';
   const entry = detecting ? undefined : (entryOf(entries, value) ?? entries[0]);
+  // Assembly and intermediate languages are programming languages with
+  // a group of their own.
   const groups = [
-    ['programming', t('picker.programming')],
-    ['natural', t('picker.natural')],
+    [
+      t('picker.programming'),
+      (it) => it.group === 'programming' && !it.machine,
+    ],
+    [t('picker.machine'), (it) => it.machine],
+    [t('picker.natural'), (it) => it.group === 'natural'],
   ];
   return h(
     'div',
@@ -46,12 +52,12 @@ export function LanguagePicker({
             ),
         },
         auto ? h('option', { value: 'auto' }, auto) : null,
-        groups.map(([group, groupLabel]) =>
+        groups.map(([groupLabel, member]) =>
           h(
             'optgroup',
-            { key: group, label: groupLabel },
+            { key: groupLabel, label: groupLabel },
             entries
-              .filter((it) => it.group === group)
+              .filter(member)
               .map((it) => h('option', { key: it.id, value: it.id }, it.label))
           )
         )
