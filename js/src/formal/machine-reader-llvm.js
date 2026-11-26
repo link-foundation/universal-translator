@@ -49,12 +49,25 @@ function llvmString(body) {
   return decodeBytes(bytes.slice(0, -1));
 }
 
+// `@text.0 = ... c"<body>"`: the body runs from the last ` c"` to the
+// closing quote (found by position, so a long line takes linear time).
+function llvmText(line) {
+  const header = line.match(/^@(text\.\d+) = /);
+  if (!header || !line.endsWith('"')) {
+    return undefined;
+  }
+  const start = line.lastIndexOf(' c"', line.length - 4);
+  return start < header[0].length
+    ? undefined
+    : [header[1], line.slice(start + 3, -1)];
+}
+
 function llvmTexts(lines) {
   const texts = new Map();
   for (const line of lines) {
-    const match = line.match(/^@(text\.\d+) = .* c"(.*)"$/);
-    if (match) {
-      texts.set(match[1], llvmString(match[2]));
+    const text = llvmText(line);
+    if (text) {
+      texts.set(text[0], llvmString(text[1]));
     }
   }
   return texts;
