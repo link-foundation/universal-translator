@@ -1,4 +1,4 @@
-; Factorial in x86-64 assembly, defined recursively
+; Factorial in x86-64 assembly (NASM), defined recursively
 
 default rel
 extern printf

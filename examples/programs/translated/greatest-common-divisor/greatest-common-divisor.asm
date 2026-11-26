@@ -1,4 +1,4 @@
-; Greatest common divisor in x86-64 assembly, using the Euclidean algorithm
+; Greatest common divisor in x86-64 assembly (NASM), using the Euclidean algorithm
 
 default rel
 extern printf

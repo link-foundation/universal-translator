@@ -1,4 +1,4 @@
-; Sum and product of an array in x86-64 assembly
+; Sum and product of an array in x86-64 assembly (NASM)
 
 default rel
 extern printf

@@ -1,4 +1,4 @@
-; Sieve of Eratosthenes in x86-64 assembly: the primes up to 100
+; Sieve of Eratosthenes in x86-64 assembly (NASM): the primes up to 100
 
 default rel
 extern printf

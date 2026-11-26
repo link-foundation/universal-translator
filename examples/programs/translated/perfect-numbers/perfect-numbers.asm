@@ -1,4 +1,4 @@
-; Perfect numbers in x86-64 assembly: numbers equal to the sum of their divisors
+; Perfect numbers in x86-64 assembly (NASM): numbers equal to the sum of their divisors
 
 default rel
 extern printf

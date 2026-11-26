@@ -1,4 +1,4 @@
-; Bubble sort in x86-64 assembly: sort a list of numbers
+; Bubble sort in x86-64 assembly (NASM): sort a list of numbers
 
 default rel
 extern printf

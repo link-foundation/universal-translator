@@ -1,4 +1,4 @@
-; Fibonacci sequence in x86-64 assembly, computed iteratively
+; Fibonacci sequence in x86-64 assembly (NASM), computed iteratively
 
 default rel
 extern printf

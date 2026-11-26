@@ -1,4 +1,4 @@
-; Sum of squares in x86-64 assembly
+; Sum of squares in x86-64 assembly (NASM)
 
 default rel
 extern printf

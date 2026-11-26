@@ -1,4 +1,4 @@
-; Leap year in x86-64 assembly
+; Leap year in x86-64 assembly (NASM)
 
 default rel
 extern printf

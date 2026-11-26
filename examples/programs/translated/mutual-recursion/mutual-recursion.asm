@@ -1,4 +1,4 @@
-; Mutual recursion in x86-64 assembly: the Hofstadter Female and Male sequences
+; Mutual recursion in x86-64 assembly (NASM): the Hofstadter Female and Male sequences
 
 default rel
 extern printf

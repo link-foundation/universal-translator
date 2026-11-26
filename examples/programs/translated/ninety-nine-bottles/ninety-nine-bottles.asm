@@ -1,4 +1,4 @@
-; 99 bottles of beer in x86-64 assembly
+; 99 bottles of beer in x86-64 assembly (NASM)
 
 default rel
 extern printf

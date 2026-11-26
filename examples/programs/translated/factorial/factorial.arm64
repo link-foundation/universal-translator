@@ -1,0 +1,142 @@
+// Factorial in ARM64 assembly, defined recursively
+
+    .global main
+    .section .rodata
+integer_format: .asciz "%lld"
+text_format: .asciz "%s"
+newline_format: .asciz "\n"
+text_0: .asciz "! = "
+
+    .text
+.type factorial, %function
+factorial:
+    .set factorial.number, 0
+    stp x29, x30, [sp, #-16]!
+    sub sp, sp, #16
+    mov x29, sp
+    str x0, [x29, #factorial.number]
+    ldr x0, [x29, #factorial.number]
+    str x0, [sp, #-16]!
+    mov x0, #1
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    cmp x0, x1
+    b.gt .Lfactorial_L1
+    mov x0, #1
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    mov sp, x29
+    add sp, sp, #16
+    ldp x29, x30, [sp], #16
+    ret
+    b .Lfactorial_L2
+.Lfactorial_L1:
+.Lfactorial_L2:
+    ldr x0, [x29, #factorial.number]
+    str x0, [sp, #-16]!
+    ldr x0, [x29, #factorial.number]
+    str x0, [sp, #-16]!
+    mov x0, #1
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    sub x0, x0, x1
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    bl factorial
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    mul x0, x0, x1
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    mov sp, x29
+    add sp, sp, #16
+    ldp x29, x30, [sp], #16
+    ret
+.size factorial, .-factorial
+
+.type main, %function
+main:
+    .set main.number, 0
+    stp x29, x30, [sp, #-16]!
+    sub sp, sp, #16
+    mov x29, sp
+    mov x0, #0
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #main.number]
+.Lmain_L1:
+    ldr x0, [x29, #main.number]
+    str x0, [sp, #-16]!
+    mov x0, #11
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    cmp x0, x1
+    b.ge .Lmain_L2
+    ldr x0, [x29, #main.number]
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    bl print_integer
+    adrp x0, text_0
+    add x0, x0, :lo12:text_0
+    bl print_text
+    ldr x0, [x29, #main.number]
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    bl factorial
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    bl print_integer
+    bl print_newline
+    ldr x0, [x29, #main.number]
+    str x0, [sp, #-16]!
+    mov x0, #1
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    add x0, x0, x1
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #main.number]
+    b .Lmain_L1
+.Lmain_L2:
+    mov x0, #0
+    mov sp, x29
+    add sp, sp, #16
+    ldp x29, x30, [sp], #16
+    ret
+.size main, .-main
+
+print_integer:
+    stp x29, x30, [sp, #-16]!
+    mov x29, sp
+    mov x1, x0
+    adrp x0, integer_format
+    add x0, x0, :lo12:integer_format
+    bl printf
+    ldp x29, x30, [sp], #16
+    ret
+
+print_text:
+    stp x29, x30, [sp, #-16]!
+    mov x29, sp
+    mov x1, x0
+    adrp x0, text_format
+    add x0, x0, :lo12:text_format
+    bl printf
+    ldp x29, x30, [sp], #16
+    ret
+
+print_newline:
+    stp x29, x30, [sp, #-16]!
+    mov x29, sp
+    adrp x0, newline_format
+    add x0, x0, :lo12:newline_format
+    bl printf
+    ldp x29, x30, [sp], #16
+    ret
+
+    .section .note.GNU-stack,"",%progbits

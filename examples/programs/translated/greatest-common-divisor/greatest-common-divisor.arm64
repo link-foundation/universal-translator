@@ -1,0 +1,115 @@
+// Greatest common divisor in ARM64 assembly, using the Euclidean algorithm
+
+    .global main
+    .section .rodata
+integer_format: .asciz "%lld"
+text_format: .asciz "%s"
+newline_format: .asciz "\n"
+text_0: .asciz "The greatest common divisor of 1071 and 462 is "
+
+    .text
+.type greatest_common_divisor, %function
+greatest_common_divisor:
+    .set greatest_common_divisor.first, 0
+    .set greatest_common_divisor.second, 8
+    .set greatest_common_divisor.remainder, 16
+    stp x29, x30, [sp, #-16]!
+    sub sp, sp, #32
+    mov x29, sp
+    str x0, [x29, #greatest_common_divisor.first]
+    str x1, [x29, #greatest_common_divisor.second]
+.Lgreatest_common_divisor_L1:
+    ldr x0, [x29, #greatest_common_divisor.second]
+    str x0, [sp, #-16]!
+    mov x0, #0
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    cmp x0, x1
+    b.eq .Lgreatest_common_divisor_L2
+    ldr x0, [x29, #greatest_common_divisor.first]
+    str x0, [sp, #-16]!
+    ldr x0, [x29, #greatest_common_divisor.second]
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    sdiv x2, x0, x1
+    msub x0, x2, x1, x0
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #greatest_common_divisor.remainder]
+    ldr x0, [x29, #greatest_common_divisor.second]
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #greatest_common_divisor.first]
+    ldr x0, [x29, #greatest_common_divisor.remainder]
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    str x0, [x29, #greatest_common_divisor.second]
+    b .Lgreatest_common_divisor_L1
+.Lgreatest_common_divisor_L2:
+    ldr x0, [x29, #greatest_common_divisor.first]
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    mov sp, x29
+    add sp, sp, #32
+    ldp x29, x30, [sp], #16
+    ret
+.size greatest_common_divisor, .-greatest_common_divisor
+
+.type main, %function
+main:
+    stp x29, x30, [sp, #-16]!
+    sub sp, sp, #0
+    mov x29, sp
+    adrp x0, text_0
+    add x0, x0, :lo12:text_0
+    bl print_text
+    mov x0, #1071
+    str x0, [sp, #-16]!
+    mov x0, #462
+    str x0, [sp, #-16]!
+    ldr x1, [sp], #16
+    ldr x0, [sp], #16
+    bl greatest_common_divisor
+    str x0, [sp, #-16]!
+    ldr x0, [sp], #16
+    bl print_integer
+    bl print_newline
+    mov x0, #0
+    mov sp, x29
+    add sp, sp, #0
+    ldp x29, x30, [sp], #16
+    ret
+.size main, .-main
+
+print_integer:
+    stp x29, x30, [sp, #-16]!
+    mov x29, sp
+    mov x1, x0
+    adrp x0, integer_format
+    add x0, x0, :lo12:integer_format
+    bl printf
+    ldp x29, x30, [sp], #16
+    ret
+
+print_text:
+    stp x29, x30, [sp, #-16]!
+    mov x29, sp
+    mov x1, x0
+    adrp x0, text_format
+    add x0, x0, :lo12:text_format
+    bl printf
+    ldp x29, x30, [sp], #16
+    ret
+
+print_newline:
+    stp x29, x30, [sp, #-16]!
+    mov x29, sp
+    adrp x0, newline_format
+    add x0, x0, :lo12:newline_format
+    bl printf
+    ldp x29, x30, [sp], #16
+    ret
+
+    .section .note.GNU-stack,"",%progbits
