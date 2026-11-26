@@ -17,6 +17,8 @@ natural:
     function-without-parameters: '{name} ची व्याख्या करा'
     declare: '{name} हे मूल्य {value} सह तयार करा'
     assign: '{name} ला {value} मध्ये बदला'
+    increase: '{name} ला {value} ने वाढवा'
+    decrease: '{name} ला {value} ने कमी करा'
     print-line: '{value} लिहा आणि ओळ संपवा'
     print: '{value} लिहा'
     return-value: '{value} परत द्या'

@@ -17,6 +17,8 @@ natural:
     function-without-parameters: 'Tukuyin ang {name}'
     declare: 'Lumikha ng {name} na may halagang {value}'
     assign: 'Palitan ang {name} ng {value}'
+    increase: 'Dagdagan ang {name} ng {value}'
+    decrease: 'Bawasan ang {name} ng {value}'
     print-line: 'Isulat ang {value} at tapusin ang linya'
     print: 'Isulat ang {value}'
     return-value: 'Ibalik ang {value}'

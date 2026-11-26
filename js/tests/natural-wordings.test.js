@@ -1,10 +1,12 @@
-// Everyday English and Russian wordings of algorithm sentences ("Let n be 0",
-// "Print n", "While ..., do this") read like the canonical ones. Translation
+// Everyday wordings of algorithm sentences ("Let n be 0", "Print n",
+// "While ..., do this", "Increase n by 1") read like the canonical ones in
+// English, Russian and every other natural language. Translation
 // writes the canonical wording, the first template of each key. The Rust twin
 // is rust/tests/natural_wordings.rs.
 import { describe, expect, it } from 'test-anywhere';
 
 import { detectLanguage, translate } from '../src/index.js';
+import { naturalLanguage, naturalLanguageIds } from '../src/natural/catalog.js';
 
 const everyday =
   'Let n be 0.\nWhile n is less than 3, do this:\n  Set n to n plus 1.\nPrint n.\n';
@@ -140,5 +142,52 @@ describe('everyday Russian wordings', () => {
   it('are detected as Russian that reads', () => {
     const [first] = detectLanguage(everyday);
     expect([first.id, first.reads]).toEqual(['russian', true]);
+  });
+});
+
+// What a sentence of each key with the name n and the value 2 reads as, after
+// a declaration of n (a declaration alone is never reassigned).
+const everydayKeys = {
+  declare: 'const n = 2;',
+  assign: 'n = 2;',
+  increase: 'n += 2;',
+  decrease: 'n -= 2;',
+  'print-line': 'console.log(n);',
+};
+
+describe('everyday wordings in every natural language', () => {
+  const languages = naturalLanguageIds().filter(
+    (id) => !naturalLanguage(id).base
+  );
+
+  it('give every language increase and decrease', () => {
+    expect(languages.length).toBeGreaterThanOrEqual(30);
+    for (const id of languages) {
+      const { templates } = naturalLanguage(id);
+      expect([id, Boolean(templates.increase && templates.decrease)]).toEqual([
+        id,
+        true,
+      ]);
+    }
+  });
+
+  it('read every wording of a statement as the statement', () => {
+    for (const id of languages) {
+      const language = naturalLanguage(id);
+      const declare = translate('let n = 0;\n', 'javascript', id).trim();
+      for (const [key, expected] of Object.entries(everydayKeys)) {
+        for (const wording of language.templates[key]) {
+          const value = key === 'print-line' ? 'n' : '2';
+          const sentence = `${wording.replace('{name}', 'n').replace('{value}', value)}${language.sentenceEnd}`;
+          const text =
+            key === 'declare' ? `${sentence}\n` : `${declare}\n${sentence}\n`;
+          const last = translate(text, id, 'javascript')
+            .trim()
+            .split('\n')
+            .at(-1);
+          expect([sentence, last]).toEqual([sentence, expected]);
+        }
+      }
+    }
   });
 });

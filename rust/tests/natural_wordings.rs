@@ -1,5 +1,6 @@
-//! Everyday English and Russian wordings of algorithm sentences ("Let n be 0",
-//! "Print n", "While ..., do this") read like the canonical ones. The
+//! Everyday wordings of algorithm sentences ("Let n be 0", "Print n",
+//! "While ..., do this", "Increase n by 1") read like the canonical ones in
+//! English, Russian and every other natural language. The
 //! JavaScript twin is js/tests/natural-wordings.test.js.
 
 use universal_translator::{Mode, translate};
@@ -124,4 +125,63 @@ fn detects_everyday_russian_as_russian_that_reads() {
         (detected[0].id.as_str(), detected[0].reads),
         ("russian", true)
     );
+}
+
+/// What a sentence of each key with the name n and the value 2 reads as,
+/// after a declaration of n (a declaration alone is never reassigned).
+const EVERYDAY_KEYS: [(&str, &str); 5] = [
+    ("declare", "const n = 2;"),
+    ("assign", "n = 2;"),
+    ("increase", "n += 2;"),
+    ("decrease", "n -= 2;"),
+    ("print-line", "console.log(n);"),
+];
+
+fn base_languages() -> Vec<&'static universal_translator::natural::catalog::Language> {
+    universal_translator::natural::catalog::natural_language_ids()
+        .into_iter()
+        .map(|id| universal_translator::natural::catalog::natural_language(id).unwrap())
+        .filter(|language| language.base.is_none())
+        .collect()
+}
+
+#[test]
+fn gives_every_language_increase_and_decrease() {
+    let languages = base_languages();
+    assert!(languages.len() >= 30, "{} languages", languages.len());
+    for language in languages {
+        for key in ["increase", "decrease"] {
+            assert!(
+                language.templates.get(key).is_some(),
+                "{} {key}",
+                language.id
+            );
+        }
+    }
+}
+
+#[test]
+fn reads_every_wording_of_a_statement_as_the_statement() {
+    for language in base_languages() {
+        let id = language.id.as_str();
+        let declare = to("let n = 0;\n", "javascript", id);
+        for (key, expected) in EVERYDAY_KEYS {
+            for wording in language.templates.get(key).unwrap() {
+                let value = if key == "print-line" { "n" } else { "2" };
+                let sentence = format!(
+                    "{}{}",
+                    wording.replace("{name}", "n").replace("{value}", value),
+                    language.sentence_end
+                );
+                let text = if key == "declare" {
+                    format!("{sentence}\n")
+                } else {
+                    format!("{}\n{sentence}\n", declare.trim())
+                };
+                let output = to(&text, id, "javascript");
+                let last = output.trim().lines().last().unwrap_or_default();
+                assert_eq!((sentence.as_str(), last), (sentence.as_str(), expected));
+            }
+        }
+    }
 }

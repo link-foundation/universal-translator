@@ -17,6 +17,8 @@ natural:
     function-without-parameters: 'Fafanua {name}'
     declare: 'Unda {name} yenye thamani {value}'
     assign: 'Badilisha {name} kuwa {value}'
+    increase: 'Ongeza {name} kwa {value}'
+    decrease: 'Punguza {name} kwa {value}'
     print-line: 'Andika {value} na umalize mstari'
     print: 'Andika {value}'
     return-value: 'Rudisha {value}'

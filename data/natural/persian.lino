@@ -17,6 +17,8 @@ natural:
     function-without-parameters: '{name} را تعریف کن'
     declare: '{name} را با مقدار {value} بساز'
     assign: '{name} را به {value} تغییر بده'
+    increase: '{name} را به اندازه {value} افزایش بده'
+    decrease: '{name} را به اندازه {value} کاهش بده'
     print-line: '{value} را بنویس و سطر را تمام کن'
     print: '{value} را بنویس'
     return-value: '{value} را برگردان'

@@ -17,6 +17,8 @@ natural:
     function-without-parameters: 'عرّف {name}'
     declare: 'أنشئ {name} بالقيمة {value}'
     assign: 'غيّر {name} إلى {value}'
+    increase: 'زد {name} بمقدار {value}'
+    decrease: 'أنقص {name} بمقدار {value}'
     print-line: 'اكتب {value} ثم أنه السطر'
     print: 'اكتب {value}'
     return-value: 'أعد {value}'

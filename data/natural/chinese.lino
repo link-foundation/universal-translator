@@ -17,6 +17,8 @@ natural:
     function-without-parameters: '定义 {name}'
     declare: '创建 {name} 值 为 {value}'
     assign: '把 {name} 改 为 {value}'
+    increase: '把 {name} 增加 {value}' '将 {name} 增加 {value}'
+    decrease: '把 {name} 减少 {value}' '将 {name} 减少 {value}'
     print-line: '输出 {value} 并 换行'
     print: '输出 {value}'
     return-value: '返回 {value}'

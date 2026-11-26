@@ -17,6 +17,8 @@ natural:
     function-without-parameters: '{name} ਨੂੰ ਪਰਿਭਾਸ਼ਿਤ ਕਰੋ'
     declare: '{name} ਨੂੰ ਮੁੱਲ {value} ਨਾਲ ਬਣਾਓ'
     assign: '{name} ਨੂੰ {value} ਵਿੱਚ ਬਦਲੋ'
+    increase: '{name} ਨੂੰ {value} ਵਧਾਓ'
+    decrease: '{name} ਨੂੰ {value} ਘਟਾਓ'
     print-line: '{value} ਲਿਖੋ ਅਤੇ ਸਤਰ ਖਤਮ ਕਰੋ'
     print: '{value} ਲਿਖੋ'
     return-value: '{value} ਵਾਪਸ ਕਰੋ'

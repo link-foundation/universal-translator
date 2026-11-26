@@ -17,6 +17,8 @@ natural:
     function-without-parameters: 'Định nghĩa {name}'
     declare: 'Tạo {name} với giá trị {value}'
     assign: 'Đổi {name} thành {value}'
+    increase: 'Tăng {name} thêm {value}'
+    decrease: 'Giảm {name} đi {value}'
     print-line: 'Viết {value} và xuống dòng'
     print: 'Viết {value}'
     return-value: 'Trả về {value}'

@@ -78,9 +78,9 @@ English reads everyday wordings of algorithm sentences (`Let n be 0`, `Set n to 
 
 Arithmetic may be written with symbols (`Set n to n + 1`, `2 * 3 + 1`, `n % 4`) in every natural language that already accepts `<` and `=`. A heading written without its colon (`while n is less than 3, do this`) opens a block when the lines after it are indented deeper.
 
-### Everyday Russian wordings, increase and decrease
+### Everyday wordings in every natural language, increase and decrease
 
-Russian reads everyday wordings too (`Пусть n равно 0`, `Пусть n будет 0`, `Установить n в 1`, `Присвоить n значение 1`, `Напечатать n`, `Вывести n`, `Показать n`, `Пока …, сделать это`, `Для каждого i от 1 до 3, сделать это`), and English and Russian read `Increase n by 1`, `Add 1 to n`, `Decrease n by 1`, `Subtract 1 from n`, `Увеличить n на 1` and `Уменьшить n на 1` as the assignment `n = n + 1` or `n = n - 1`. Controlled standards do not inherit these wordings, so they keep to their vocabulary.
+Every natural language reads `increase` and `decrease` sentences (`Increase n by 1`, `Add 1 to n`, `Decrease n by 1`, `Subtract 1 from n`, `Увеличить n на 1`, `Erhöhe n um 1`, `Augmenter n de 1`, `把 n 增加 1`, `n を 1 増やす` and so on in all 31 languages) as the assignment `n = n + 1` or `n = n - 1`. Russian, Ukrainian, German, French, Spanish, Italian, Portuguese, Polish and Dutch read everyday wordings of declare, assign and print as English does (`Пусть n равно 0`, `Установить n в 1`, `Напечатать n`, `Пока …, сделать это`, `Нехай n дорівнює 0`, `Setze n auf 1`, `Gib n aus`, `Afficher n`, `Mostrar n`, `Stampa n`, `Wyświetl n`, `Toon n`). Translation still writes the canonical wording. Controlled standards do not inherit these wordings, so they keep to their vocabulary.
 
 ### Machine dialects
 

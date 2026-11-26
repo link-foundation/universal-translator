@@ -17,6 +17,8 @@ natural:
     function-without-parameters: 'Ayyana {name}'
     declare: 'Ƙirƙiri {name} mai ƙima {value}'
     assign: 'Canza {name} zuwa {value}'
+    increase: 'Ƙara {name} da {value}'
+    decrease: 'Rage {name} da {value}'
     print-line: 'Rubuta {value} kuma ka gama layi'
     print: 'Rubuta {value}'
     return-value: 'Mayar da {value}'

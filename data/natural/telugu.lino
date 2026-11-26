@@ -17,6 +17,8 @@ natural:
     function-without-parameters: '{name} ను నిర్వచించు'
     declare: '{name} ను విలువ {value} తో సృష్టించు'
     assign: '{name} ను {value} గా మార్చు'
+    increase: '{name} ను {value} పెంచు'
+    decrease: '{name} ను {value} తగ్గించు'
     print-line: '{value} రాసి పంక్తి ముగించు'
     print: '{value} రాయి'
     return-value: '{value} తిరిగి ఇవ్వు'

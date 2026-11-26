@@ -17,6 +17,8 @@ natural:
     function-without-parameters: '{name} を 定義 する'
     declare: '{name} を 値 {value} で 作る'
     assign: '{name} を {value} に 変える'
+    increase: '{name} を {value} 増やす'
+    decrease: '{name} を {value} 減らす'
     print-line: '{value} を 書いて 改行 する'
     print: '{value} を 書く'
     return-value: '{value} を 返す'

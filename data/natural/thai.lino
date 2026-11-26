@@ -17,6 +17,8 @@ natural:
     function-without-parameters: 'นิยาม {name}'
     declare: 'สร้าง {name} ด้วย ค่า {value}'
     assign: 'เปลี่ยน {name} เป็น {value}'
+    increase: 'เพิ่ม {name} อีก {value}'
+    decrease: 'ลด {name} ลง {value}'
     print-line: 'เขียน {value} แล้ว ขึ้น บรรทัด ใหม่'
     print: 'เขียน {value}'
     return-value: 'คืน ค่า {value}'

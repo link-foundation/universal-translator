@@ -175,7 +175,7 @@ requirements:
     status: done
     evidence: js/src/translation/style.js rust/src/style.rs js/tests/style.test.js rust/tests/style.rs examples/universal-app/src/Options.js docs/case-studies/issue-14/screenshots/app-style.png
   everyday-russian-wordings:
-    text: 'Everyday Russian wordings (Пусть n равно 0, Пока n меньше 3, сделать это:, Напечатать n, Установить n в n + 1, вывести n) and Increase n by 1 are read (issue 6, item 10; issue 8, item 1; pull request 13, gap P1)'
+    text: 'Everyday Russian wordings (Пусть n равно 0, Пока n меньше 3, сделать это:, Напечатать n, Установить n в n + 1, вывести n) and Increase n by 1 are read; every natural language reads increase and decrease, and the main European ones everyday wordings (issue 6, item 10; issue 8, item 1; pull request 13, gap P1)'
     from: 'issue 8'
     status: done
-    evidence: data/natural/russian.lino data/natural/english.lino js/src/natural/reader.js rust/src/natural/reader.rs js/tests/natural-wordings.test.js rust/tests/natural_wordings.rs
+    evidence: data/natural/russian.lino data/natural/english.lino data/natural/german.lino experiments/issue-14/everyday-wordings.mjs js/src/natural/reader.js rust/src/natural/reader.rs js/tests/natural-wordings.test.js rust/tests/natural_wordings.rs

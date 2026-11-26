@@ -17,6 +17,8 @@ natural:
     function-without-parameters: '{name} işlevini tanımla'
     declare: '{name} değişkenini {value} değeriyle oluştur'
     assign: '{name} değerini {value} yap'
+    increase: '{name} değerini {value} artır'
+    decrease: '{name} değerini {value} azalt'
     print-line: '{value} yaz ve satırı bitir'
     print: '{value} yaz'
     return-value: '{value} döndür'

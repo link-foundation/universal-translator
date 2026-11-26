@@ -17,6 +17,8 @@ natural:
     function-without-parameters: '{name} کو متعین کریں'
     declare: '{name} کو قدر {value} کے ساتھ بنائیں'
     assign: '{name} کو {value} میں بدلیں'
+    increase: '{name} کو {value} سے بڑھائیں'
+    decrease: '{name} کو {value} سے گھٹائیں'
     print-line: '{value} لکھیں اور سطر ختم کریں'
     print: '{value} لکھیں'
     return-value: '{value} واپس کریں'

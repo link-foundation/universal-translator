@@ -17,6 +17,8 @@ natural:
     function-without-parameters: '{name} কে সংজ্ঞায়িত করো'
     declare: '{name} তৈরি করো মান {value} দিয়ে'
     assign: '{name} কে {value} তে বদলাও'
+    increase: '{name} কে {value} বাড়াও'
+    decrease: '{name} কে {value} কমাও'
     print-line: '{value} লেখো এবং লাইন শেষ করো'
     print: '{value} লেখো'
     return-value: '{value} ফেরত দাও'

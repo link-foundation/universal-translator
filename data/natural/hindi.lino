@@ -17,6 +17,8 @@ natural:
     function-without-parameters: '{name} को परिभाषित करें'
     declare: '{name} को मान {value} के साथ बनाएँ'
     assign: '{name} को {value} में बदलें'
+    increase: '{name} को {value} से बढ़ाएँ'
+    decrease: '{name} को {value} से घटाएँ'
     print-line: '{value} लिखें और पंक्ति समाप्त करें'
     print: '{value} लिखें'
     return-value: '{value} लौटाएँ'

@@ -17,6 +17,8 @@ natural:
     function-without-parameters: '{name} ஐ வரையறு'
     declare: '{name} ஐ மதிப்பு {value} உடன் உருவாக்கு'
     assign: '{name} ஐ {value} ஆக மாற்று'
+    increase: '{name} ஐ {value} ஆல் அதிகரி'
+    decrease: '{name} ஐ {value} ஆல் குறை'
     print-line: '{value} எழுதி வரியை முடி'
     print: '{value} எழுது'
     return-value: '{value} திருப்பி அனுப்பு'

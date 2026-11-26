@@ -17,6 +17,8 @@ natural:
     function-without-parameters: 'Definisikan {name}'
     declare: 'Buat {name} dengan nilai {value}'
     assign: 'Ubah {name} menjadi {value}'
+    increase: 'Naikkan {name} sebesar {value}' 'Tambahkan {value} ke {name}'
+    decrease: 'Turunkan {name} sebesar {value}' 'Kurangkan {value} dari {name}'
     print-line: 'Tulis {value} dan akhiri baris'
     print: 'Tulis {value}'
     return-value: 'Kembalikan {value}'
