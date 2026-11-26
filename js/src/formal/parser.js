@@ -1184,11 +1184,12 @@ class BaseParser {
     const values = [];
     while (!this.is(')')) {
       // Where "=" compares (Pascal, Ada, Visual Basic), `f(a = b)`
-      // passes a truth value, not a named argument.
+      // passes a truth value, not a named argument. Swift labels an
+      // argument with ":", print(x, terminator: "").
       if (
-        this.syntax.operators.equal !== '=' &&
         this.peek().type === 'name' &&
-        this.is('=', 1)
+        ((this.syntax.operators.equal !== '=' && this.is('=', 1)) ||
+          (this.syntax.id === 'swift' && this.is(':', 1)))
       ) {
         const label = this.next().value;
         this.next();

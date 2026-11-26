@@ -70,6 +70,30 @@ export const languageVersions = {
       },
     },
   },
+  java: {
+    default: '5',
+    versions: {
+      5: { label: 'Java 5 and later (for-each)' },
+      1.4: {
+        label: 'Java 1.4',
+        // Java 1.4 has no for-each loop: it counts over the indexes of its
+        // array.
+        syntax: { forEach: undefined },
+      },
+    },
+  },
+  swift: {
+    default: '2',
+    versions: {
+      2: { label: 'Swift 2 and later (print with terminator)' },
+      1: {
+        label: 'Swift 1',
+        // Swift 1 ends a line with println(x) and prints text with print(x),
+        // which ends the line from Swift 2 on.
+        syntax: { printCalls: { line: ['println'], text: ['print'] } },
+      },
+    },
+  },
   lua: {
     default: '5.3',
     versions: {

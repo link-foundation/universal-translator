@@ -1027,8 +1027,16 @@ const printers = {
     `System.out.${newline ? 'println' : 'print'}(${single()});`,
   kotlin: (emitter, { newline, single }) =>
     `${newline ? 'println' : 'print'}(${single()})`,
-  swift: (emitter, { newline, single }) =>
-    newline ? `print(${single()})` : `print(${single()}, terminator: "")`,
+  swift: (emitter, { newline, single }) => {
+    // Swift 1 prints a line with println and text with print.
+    const own = emitter.syntax.printCalls;
+    if (own) {
+      return `${newline ? own.line[0] : own.text[0]}(${single()})`;
+    }
+    return newline
+      ? `print(${single()})`
+      : `print(${single()}, terminator: "")`;
+  },
   perl: (emitter, { lineParts }) =>
     `print ${emitter.interpolationOrText(lineParts)};`,
   dart: (emitter, { newline, single }) => {

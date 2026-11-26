@@ -175,3 +175,54 @@ fn counts_over_the_indexes_of_an_array_where_ecmascript_5_has_no_for_of() {
     .unwrap();
     assert!(check.equivalent, "{:?}", check.differences);
 }
+
+const LOOP: &str = "const list = [1, 2, 3];\nfor (const item of list) {\n  console.log(item);\n}\n";
+const PRINTS: &str = "process.stdout.write(\"a\");\nconsole.log(\"b\");\n";
+
+fn read(source: &str, from: &str) -> String {
+    translate(source, from, "javascript", Mode::default())
+        .unwrap_or_else(|error| panic!("{from} -> javascript: {error}"))
+}
+
+#[test]
+fn counts_over_the_indexes_of_an_array_where_java_1_4_has_no_for_each() {
+    let java = written(LOOP, "java@1.4");
+    assert!(
+        java.contains("for (int index = 0; index < list.length; index++) {"),
+        "{java}"
+    );
+    assert!(java.contains("int item = list[index];"), "{java}");
+    assert!(written(LOOP, "java").contains("for (int item : list) {"));
+    assert!(read(&java, "java@1.4").contains("console.log(item);"));
+}
+
+#[test]
+fn writes_and_reads_println_and_print_in_swift_1() {
+    assert_eq!(written(PRINTS, "swift@1"), "print(\"a\")\nprintln(\"b\")\n");
+    assert_eq!(read("print(\"a\")\nprintln(\"b\")\n", "swift@1"), PRINTS);
+}
+
+#[test]
+fn reads_the_empty_terminator_of_swift_2_and_later_as_no_line_end() {
+    let swift = written(PRINTS, "swift");
+    assert_eq!(swift, "print(\"a\", terminator: \"\")\nprint(\"b\")\n");
+    assert_eq!(read(&swift, "swift"), PRINTS);
+}
+
+#[test]
+fn prints_any_other_terminator_and_separator_after_the_values() {
+    assert_eq!(
+        read(
+            "print(\"a\", terminator: \"!\")\nprint(\"a\", \"b\", separator: \"-\")\n",
+            "swift"
+        ),
+        "process.stdout.write(\"a!\");\nconsole.log(`a-b`);\n"
+    );
+    assert_eq!(
+        read(
+            "print(\"a\", end=\"!\")\nprint(\"a\", \"b\", sep=\", \", end=\".\\n\")\n",
+            "python"
+        ),
+        "process.stdout.write(\"a!\");\nconsole.log(\"a, b.\");\n"
+    );
+}

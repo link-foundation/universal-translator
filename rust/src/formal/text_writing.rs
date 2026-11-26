@@ -330,10 +330,14 @@ impl Emitter {
             }
             "swift" => {
                 let single = self.expression(value)?;
-                if newline {
-                    format!("print({single})")
-                } else {
-                    format!("print({single}, terminator: \"\")")
+                // Swift 1 prints a line with println and text with print.
+                match self.syntax.print_calls {
+                    Some(own) => {
+                        let callee = if newline { own.line[0] } else { own.text[0] };
+                        format!("{callee}({single})")
+                    }
+                    None if newline => format!("print({single})"),
+                    None => format!("print({single}, terminator: \"\")"),
                 }
             }
             "nim" | "d" => {

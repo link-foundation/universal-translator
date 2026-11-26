@@ -202,14 +202,14 @@ const formatCalls = {
   'print!': 'braces',
 };
 
-function joinWithSpaces(values) {
+function joinWithSpaces(values, separator = text(' ')) {
   if (values.length === 1) {
     return values[0];
   }
   const parts = [];
   values.forEach((value, index) => {
     if (index > 0) {
-      parts.push(text(' '));
+      parts.push(separator);
     }
     parts.push(value);
   });
@@ -308,6 +308,30 @@ function printKind(callee, { printCalls: own, print: renamed }) {
   return textCalls.has(callee) || callee === 'echo' ? 'text' : undefined;
 }
 
+// Python's print(..., sep=, end=) and Swift's print(..., separator:,
+// terminator:): an empty end keeps the line open ("" reads as an empty
+// interpolation where quotes interpolate), and any other end is printed
+// after the values, so `end="!"` is not lost.
+function printLine(values, named) {
+  const separator = named.sep ?? named.separator;
+  const joined = values.length ? joinWithSpaces(values, separator) : text('');
+  const end = named.end ?? named.terminator;
+  if (end === undefined) {
+    return node('Print', { value: joined, newline: true });
+  }
+  const empty =
+    (end.kind === 'Text' && end.value === '') ||
+    (end.kind === 'Interpolation' && end.parts.length === 0);
+  if (empty) {
+    return node('Print', { value: joined, newline: false });
+  }
+  const flat = [joined, end].flatMap((value) =>
+    value.kind === 'Interpolation' ? value.parts : [value]
+  );
+  const { parts, newline } = withoutTrailingNewline(flat);
+  return node('Print', { value: partsToValue(parts), newline });
+}
+
 function printFromCall(call, syntax) {
   const kind = printKind(call.callee, syntax);
   const values = call.arguments.filter(
@@ -326,15 +350,7 @@ function printFromCall(call, syntax) {
     return node('Print', { value: partsToValue(flat), newline: true });
   }
   if (kind === 'line') {
-    const newline = !(
-      named.end &&
-      named.end.kind === 'Text' &&
-      named.end.value === ''
-    );
-    return node('Print', {
-      value: values.length ? joinWithSpaces(values) : text(''),
-      newline,
-    });
+    return printLine(values, named);
   }
   if (kind === 'text') {
     const flat = values.flatMap((value) =>

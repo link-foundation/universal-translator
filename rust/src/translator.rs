@@ -431,12 +431,11 @@ impl Translator {
             return Ok(typed);
         }
         let syntax = languages::language_syntax(from)?;
-        // Reading accepts every version of a language: `python@2` reads
-        // Python.
-        let id = split_version(from).0;
+        // The reading rules see the version: `swift@1` reads `print` as
+        // output without a line end, like the JavaScript reader.
         let settings = Settings {
-            from: id.to_owned(),
-            to: id.to_owned(),
+            from: from.to_owned(),
+            to: from.to_owned(),
             target: from.to_owned(),
             mode: Mode::default(),
         };

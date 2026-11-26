@@ -319,14 +319,18 @@ fn format_call(callee: &str) -> Option<FormatStyle> {
     }
 }
 
-fn join_with_spaces(mut values: Vec<Node>) -> Node {
+fn join_with_spaces(values: Vec<Node>) -> Node {
+    join_with(values, &text(" "))
+}
+
+fn join_with(mut values: Vec<Node>, separator: &Node) -> Node {
     if values.len() == 1 {
         return values.remove(0);
     }
     let mut parts = Vec::new();
     for (index, value) in values.into_iter().enumerate() {
         if index > 0 {
-            parts.push(text(" "));
+            parts.push(separator.clone());
         }
         parts.push(value);
     }
@@ -505,6 +509,41 @@ fn spread_interpolations(values: Vec<Node>) -> Vec<Node> {
         .collect()
 }
 
+/// The value of the last named argument called one of `names`.
+fn named_value<'a>(named: &'a [Node], names: [&str; 2]) -> Option<&'a Node> {
+    named
+        .iter()
+        .rev()
+        .find(|argument| {
+            argument
+                .str("name")
+                .is_some_and(|name| names.contains(&name))
+        })
+        .and_then(|argument| argument.node("value"))
+}
+
+/// Python's `print(..., sep=, end=)` and Swift's `print(..., separator:,
+/// terminator:)`: an empty end keeps the line open (`""` reads as an empty
+/// interpolation where quotes interpolate), and any other end is printed
+/// after the values, so `end="!"` is not lost.
+fn print_line(values: Vec<Node>, named: &[Node]) -> Node {
+    let joined = match (values.is_empty(), named_value(named, ["sep", "separator"])) {
+        (true, _) => text(""),
+        (false, Some(separator)) => join_with(values, separator),
+        (false, None) => join_with_spaces(values),
+    };
+    let Some(end) = named_value(named, ["end", "terminator"]) else {
+        return print(joined, true);
+    };
+    if text_value(end) == Some("") || (end.is("Interpolation") && end.node_list("parts").is_empty())
+    {
+        return print(joined, false);
+    }
+    let (parts, newline) =
+        without_trailing_newline(spread_interpolations(vec![joined, end.clone()]));
+    print(parts_to_value(parts), newline)
+}
+
 fn print_from_call(call: &Node, syntax: Option<&Syntax>) -> Option<Node> {
     let callee = call.str("callee").unwrap_or_default();
     let kind = print_kind(callee, syntax);
@@ -518,18 +557,7 @@ fn print_from_call(call: &Node, syntax: Option<&Syntax>) -> Option<Node> {
         return Some(print(parts_to_value(spread_interpolations(values)), true));
     }
     if kind == Some(PrintKind::Line) {
-        let end = named
-            .iter()
-            .rev()
-            .find(|argument| argument.str("name") == Some("end"))
-            .and_then(|argument| argument.node("value"));
-        let newline = end.and_then(text_value) != Some("");
-        let value = if values.is_empty() {
-            text("")
-        } else {
-            join_with_spaces(values)
-        };
-        return Some(print(value, newline));
+        return Some(print_line(values, &named));
     }
     if kind == Some(PrintKind::Text) {
         let (parts, newline) = without_trailing_newline(spread_interpolations(values));

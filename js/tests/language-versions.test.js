@@ -131,4 +131,54 @@ describe('versions of popular languages', () => {
     const check = { source, from: 'javascript', to: 'javascript@es5' };
     expect(checkEquivalence(createTranslator(), check).equivalent).toBe(true);
   });
+
+  const loop =
+    'const list = [1, 2, 3];\nfor (const item of list) {\n  console.log(item);\n}\n';
+  const prints = 'process.stdout.write("a");\nconsole.log("b");\n';
+
+  it('counts over the indexes of an array where Java 1.4 has no for-each', () => {
+    const java = translate(loop, 'javascript', 'java@1.4');
+    expect(java).toContain(
+      'for (int index = 0; index < list.length; index++) {'
+    );
+    expect(java).toContain('int item = list[index];');
+    expect(translate(loop, 'javascript', 'java')).toContain(
+      'for (int item : list) {'
+    );
+    expect(translate(java, 'java@1.4', 'javascript')).toContain(
+      'console.log(item);'
+    );
+  });
+
+  it('writes and reads println and print in Swift 1', () => {
+    expect(translate(prints, 'javascript', 'swift@1')).toBe(
+      'print("a")\nprintln("b")\n'
+    );
+    expect(
+      translate('print("a")\nprintln("b")\n', 'swift@1', 'javascript')
+    ).toBe(prints);
+  });
+
+  it('reads the empty terminator of Swift 2 and later as no line end', () => {
+    const swift = translate(prints, 'javascript', 'swift');
+    expect(swift).toBe('print("a", terminator: "")\nprint("b")\n');
+    expect(translate(swift, 'swift', 'javascript')).toBe(prints);
+  });
+
+  it('prints any other terminator and separator after the values', () => {
+    expect(
+      translate(
+        'print("a", terminator: "!")\nprint("a", "b", separator: "-")\n',
+        'swift',
+        'javascript'
+      )
+    ).toBe('process.stdout.write("a!");\nconsole.log(`a-b`);\n');
+    expect(
+      translate(
+        'print("a", end="!")\nprint("a", "b", sep=", ", end=".\\n")\n',
+        'python',
+        'javascript'
+      )
+    ).toBe('process.stdout.write("a!");\nconsole.log("a, b.");\n');
+  });
 });

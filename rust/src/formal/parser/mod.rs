@@ -1249,9 +1249,11 @@ impl Parser {
                 while !self.is(")") {
                     // Where "=" compares (Pascal, Ada, Visual Basic),
                     // `f(a = b)` passes a truth value, not a named argument.
-                    if self.syntax.operators.equal != Some("=")
-                        && self.kind(0) == TokenType::Name
-                        && self.is_at("=", 1)
+                    // Swift labels an argument with ":", print(x,
+                    // terminator: "").
+                    if self.kind(0) == TokenType::Name
+                        && ((self.syntax.operators.equal != Some("=") && self.is_at("=", 1))
+                            || (self.syntax.id == "swift" && self.is_at(":", 1)))
                     {
                         let label = self.next_value()?;
                         self.position += 1;

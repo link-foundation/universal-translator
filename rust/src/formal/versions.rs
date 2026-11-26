@@ -6,7 +6,7 @@
 //! A language id may name its version after "@": `python@2`. The JavaScript
 //! twin is js/src/formal/versions.js.
 
-use super::languages::{ArrayFill, IntegerDivision, Syntax};
+use super::languages::{ArrayFill, IntegerDivision, PrintCalls, Syntax};
 use crate::meta::GrammarError;
 
 /// One version of a language.
@@ -59,6 +59,21 @@ fn php_5(syntax: &mut Syntax) {
 fn csharp_5(syntax: &mut Syntax) {
     syntax.text_join_concatenation = true;
     syntax.text_conversions = &["System.Convert.ToString"];
+}
+
+/// Java 1.4 has no for-each loop: it counts over the indexes of its array.
+fn java_1_4(syntax: &mut Syntax) {
+    syntax.for_each = None;
+}
+
+/// Swift 1 ends a line with `println(x)` and prints text with `print(x)`,
+/// which ends the line from Swift 2 on.
+fn swift_1(syntax: &mut Syntax) {
+    syntax.print_calls = Some(PrintCalls {
+        line: &["println"],
+        text: &["print"],
+        adjacent: false,
+    });
 }
 
 /// Before 5.3 Lua has no `//` operator: `math.floor` rounds the quotient
@@ -116,6 +131,23 @@ const LANGUAGE_VERSIONS: &[LanguageVersions] = &[
         versions: &[
             (version("3", "Python 3 (3.6+, f-strings)", true), no_change),
             (version("2", "Python 2.7", false), python_2),
+        ],
+    },
+    LanguageVersions {
+        id: "java",
+        versions: &[
+            (version("5", "Java 5 and later (for-each)", true), no_change),
+            (version("1.4", "Java 1.4", false), java_1_4),
+        ],
+    },
+    LanguageVersions {
+        id: "swift",
+        versions: &[
+            (
+                version("2", "Swift 2 and later (print with terminator)", true),
+                no_change,
+            ),
+            (version("1", "Swift 1", false), swift_1),
         ],
     },
     LanguageVersions {
