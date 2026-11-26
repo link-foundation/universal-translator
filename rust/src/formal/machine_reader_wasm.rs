@@ -13,6 +13,7 @@ use super::machine_reader_shared::{
     ReadRule, Result, decode_bytes, fixed, group, integer, leading_comments, pattern_regex,
     procedure, program, read_error, read_instructions, rule, trimmed_lines, without_results,
 };
+use crate::emission_map::{clone_source_line, include_source_line};
 use crate::meta::GrammarError;
 
 const RELATION_PATTERN: &str = r"^(i64\.(?:eq|ne|lt_s|le_s|gt_s|ge_s))$";
@@ -81,6 +82,18 @@ fn strip_frame(lines: &[String]) -> (Vec<String>, Vec<String>) {
     let block = pattern_regex(r"^(?:block|loop) \$\S+$");
     let end = pattern_regex(r"^end ;; (?:start|dispatch)$");
     let saved = pattern_regex(r"^local\.(?:set|get) \$\.stack\.\d+$");
+    for (index, line) in lines.iter().enumerate() {
+        let neighbor = if line.starts_with("local.set $.stack.") {
+            index.checked_sub(1).and_then(|at| lines.get(at))
+        } else if line.starts_with("local.get $.stack.") {
+            lines.get(index + 1)
+        } else {
+            None
+        };
+        if let Some(neighbor) = neighbor {
+            include_source_line(neighbor, line);
+        }
+    }
     let mut kept = Vec::new();
     let mut labels = Vec::new();
     for (index, line) in lines.iter().enumerate() {
@@ -102,7 +115,7 @@ fn strip_frame(lines: &[String]) -> (Vec<String>, Vec<String>) {
                 .is_some_and(|next| next.starts_with("br_table "))
             || saved.is_match(line);
         if !frame {
-            kept.push(line.clone());
+            kept.push(clone_source_line(line));
         }
     }
     (labels, kept)
@@ -316,7 +329,7 @@ fn read_wat_function(
                 slot_names.push(group(&declared, 1).to_owned());
             }
         } else if !helper.is_match(line) {
-            body.push(line.clone());
+            body.push(clone_source_line(line));
         }
     }
     let (labels, instructions) = strip_frame(&body);

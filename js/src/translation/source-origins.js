@@ -17,6 +17,23 @@ export const inheritOrigin = (tree, source) =>
 export const mapOrigins = (items, change) =>
   items.map((item, index) => inheritOrigin(change(item, index), item));
 
+export function combineOrigins(items) {
+  const found = items.filter(Boolean);
+  if (!found.length) {
+    return undefined;
+  }
+  return {
+    source: found[0].source,
+    lines: [
+      ...new Set(
+        found.flatMap((origin) =>
+          origin.source === found[0].source ? origin.lines : []
+        )
+      ),
+    ].sort((a, b) => a - b),
+  };
+}
+
 const containers = new Set(['Block', 'Function', 'Class', 'Program']);
 const statements = new Set([
   'Declaration',

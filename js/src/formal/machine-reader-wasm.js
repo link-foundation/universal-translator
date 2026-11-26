@@ -14,6 +14,7 @@ import {
   relationsByJump,
   sourceLines,
 } from './machine-reader-shared.js';
+import { includeLine } from './machine-source.js';
 
 const watRelations = relationsByJump({
   equal: 'i64.eq',
@@ -67,9 +68,15 @@ function watTexts(lines) {
 // machine code: blocks, the dispatch loop and its table, the unreachable
 // after the last return, and the locals that save the stack at a jump.
 function stripFrame(lines) {
-  const kept = [];
+  for (let index = 0; index < lines.length; index += 1) {
+    if (/^local\.set \$\.stack\.\d+$/.test(lines[index])) {
+      includeLine(lines, index - 1, index);
+    } else if (/^local\.get \$\.stack\.\d+$/.test(lines[index])) {
+      includeLine(lines, index + 1, index);
+    }
+  }
   let labels = [];
-  lines.forEach((line, index) => {
+  const kept = lines.filter((line, index) => {
     const table = line.match(/^br_table (.*)$/);
     if (table) {
       labels = table[1]
@@ -84,9 +91,7 @@ function stripFrame(lines) {
       line.startsWith('br_table ') ||
       lines[index + 1]?.startsWith('br_table ') ||
       /^local\.(?:set|get) \$\.stack\.\d+$/.test(line);
-    if (!frame) {
-      kept.push(line);
-    }
+    return !frame;
   });
   return { labels, lines: kept };
 }
@@ -195,17 +200,16 @@ function readWatFunction(match, comments, lines, texts, counts) {
     (item) => item[1]
   );
   const locals = [];
-  const body = [];
-  for (const line of lines) {
+  const body = lines.filter((line) => {
     const local = line.match(/^\(local \$(\S+) i64\)$/);
     if (local) {
       if (!local[1].startsWith('.')) {
         locals.push(local[1]);
       }
-    } else if (!/^\(local \$\.pc i32\)$|^\(local \$\.cond i32\)$/.test(line)) {
-      body.push(line);
+      return false;
     }
-  }
+    return !/^\(local \$\.pc i32\)$|^\(local \$\.cond i32\)$/.test(line);
+  });
   const slotNames = [...parameters, ...locals];
   const { labels, lines: instructions } = stripFrame(body);
   const slotOf = (slotName) => {

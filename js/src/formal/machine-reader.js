@@ -23,6 +23,7 @@ import {
   sourceLines,
 } from './machine-reader-shared.js';
 import { readWat } from './machine-reader-wasm.js';
+import { mapOrigins } from '../translation/source-origins.js';
 
 const nasmRelations = relationsByJump({
   equal: 'je',
@@ -363,7 +364,8 @@ export function readCil(source) {
       locals.push(...list.split(',').map((item) => item.trim().split(' ')[1]));
     }
     const returns = returnType === 'int64';
-    const code = readInstructions(body, cilRules(parameters.length), 'cil').map(
+    const code = mapOrigins(
+      readInstructions(body, cilRules(parameters.length), 'cil'),
       (instruction) =>
         instruction[0] === 'ret'
           ? [returns ? 'return' : 'return-nothing']

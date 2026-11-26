@@ -39,6 +39,65 @@ it('maps independent statements to their full expansion in every machine target'
     expect(result.text).toBe(
       translator.translate(source, 'javascript', target)
     );
+    const restored = translator.translatePartial(
+      result.text,
+      target,
+      'python',
+      {
+        layout: 'target',
+      }
+    );
+    expect(restored.complete).toBe(true);
+    expect(restored.text).toBe('value = 5\nprint(value + 2)\n');
+    expect(
+      result.lineMap.every(([from, to]) =>
+        restored.lineMap.some(
+          ([before, after]) => before === to && after === from
+        )
+      )
+    ).toBe(true);
+  }
+});
+
+it('retains ownership through machine arrays, conditions, loops and interpolated calls', () => {
+  const source = readFileSync(
+    'examples/translation/machine-mapping.js',
+    'utf8'
+  );
+  const direct = translator.translatePartial(source, 'javascript', 'python', {
+    layout: 'target',
+  });
+  for (const target of machineTargetIds) {
+    const machine = translator.translatePartial(source, 'javascript', target, {
+      layout: 'target',
+    });
+    const restored = translator.translatePartial(
+      machine.text,
+      target,
+      'python',
+      { layout: 'target' }
+    );
+    expect(machine.complete && restored.complete).toBe(true);
+    // Machine programs insert a separator between functions and main.
+    const content = (text) =>
+      text
+        .split('\n')
+        .filter((line) => line.trim())
+        .join('\n');
+    expect(content(restored.text)).toBe(content(direct.text));
+    const directLines = direct.text.split('\n');
+    const restoredLines = restored.text.split('\n');
+    const missing = machine.lineMap.filter(([from, instruction]) => {
+      const expected = direct.lineMap
+        .filter(([line]) => line === from)
+        .map(([, line]) => directLines[line].trim());
+      return !restored.lineMap.some(
+        ([line, mapped]) =>
+          line === instruction &&
+          expected.includes(restoredLines[mapped].trim())
+      );
+    });
+    expect({ target, missing }).toEqual({ target, missing: [] });
   }
 });
 

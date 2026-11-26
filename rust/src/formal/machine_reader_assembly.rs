@@ -9,6 +9,7 @@ use super::machine_reader_shared::{
     ReadRule, Result, decode_bytes, exact, fixed, group, integer, leading_comments, pattern_regex,
     procedure, program, read_error, read_instructions, resolve_results, rule, trimmed_lines,
 };
+use crate::emission_map::cloned_source_lines;
 use crate::meta::GrammarError;
 
 const GAS_ARGUMENTS: [&str; 6] = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"];
@@ -144,7 +145,7 @@ fn assembly_functions(
             items.push(AssemblyFunction {
                 name,
                 comments: std::mem::take(&mut pending),
-                body: lines[(index + 2).min(end)..end].to_vec(),
+                body: cloned_source_lines(&lines[(index + 2).min(end)..end]),
             });
             index = end;
         } else if !line.is_empty() {

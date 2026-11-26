@@ -53,6 +53,61 @@ fn independent_statements_map_to_their_full_expansion_in_every_machine_target() 
                 .unwrap(),
             "{target}"
         );
+        let restored = translator
+            .translate_partial(&result.text, target, "python", options(), false)
+            .unwrap();
+        assert!(restored.complete, "{target}");
+        assert_eq!(restored.text, "value = 5\nprint(value + 2)\n", "{target}");
+        for (statement, instruction) in &result.line_map {
+            assert!(
+                restored.line_map.contains(&(*instruction, *statement)),
+                "{target}: missing {instruction} → {statement}: {:?}",
+                restored.line_map
+            );
+        }
+    }
+}
+
+#[test]
+fn machine_arrays_conditions_loops_and_interpolated_calls_keep_their_owners() {
+    let source = include_str!("../../examples/translation/machine-mapping.js");
+    let translator = Translator::new();
+    let direct = translator
+        .translate_partial(source, "javascript", "python", options(), false)
+        .unwrap();
+    let direct_lines = direct.text.lines().collect::<Vec<_>>();
+    for target in machine_target_ids() {
+        let machine = translator
+            .translate_partial(source, "javascript", target, options(), false)
+            .unwrap();
+        let restored = translator
+            .translate_partial(&machine.text, target, "python", options(), false)
+            .unwrap();
+        assert!(machine.complete && restored.complete, "{target}");
+        let content = |text: &str| {
+            text.lines()
+                .filter(|line| !line.trim().is_empty())
+                .collect::<Vec<_>>()
+                .join("\n")
+        };
+        assert_eq!(content(&restored.text), content(&direct.text), "{target}");
+        let restored_lines = restored.text.lines().collect::<Vec<_>>();
+        for (from, instruction) in &machine.line_map {
+            let expected = direct
+                .line_map
+                .iter()
+                .filter_map(|(line, mapped)| (line == from).then_some(direct_lines[*mapped].trim()))
+                .collect::<Vec<_>>();
+            assert!(
+                restored
+                    .line_map
+                    .iter()
+                    .any(|(line, mapped)| line == instruction
+                        && expected.contains(&restored_lines[*mapped].trim())),
+                "{target}: missing {instruction} → {from}: {:?}",
+                restored.line_map
+            );
+        }
     }
 }
 

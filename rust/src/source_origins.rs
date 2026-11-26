@@ -11,6 +11,22 @@ pub(crate) struct SourceOrigin {
     range: Option<(usize, usize)>,
 }
 
+pub(crate) fn combine_origins(origins: &[Arc<SourceOrigin>]) -> Option<Arc<SourceOrigin>> {
+    let source = origins.first()?.source.clone();
+    let mut lines: Vec<_> = origins
+        .iter()
+        .filter(|origin| origin.source == source)
+        .flat_map(|origin| origin.lines.iter().copied())
+        .collect();
+    lines.sort_unstable();
+    lines.dedup();
+    Some(Arc::new(SourceOrigin {
+        source,
+        lines,
+        range: None,
+    }))
+}
+
 pub(crate) struct SourceLocator {
     source: Arc<str>,
     starts: Vec<usize>,

@@ -6,7 +6,7 @@ use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
 
 use crate::meta::Node;
-use crate::source_origins::{SourceOrigin, expression_origins};
+use crate::source_origins::{SourceLocator, SourceOrigin, expression_origins};
 
 pub(crate) type Origins = Vec<Arc<SourceOrigin>>;
 
@@ -15,6 +15,7 @@ struct Context {
     emissions: Vec<Emission>,
     active: Origins,
     instructions: HashMap<usize, Origins>,
+    source_lines: HashMap<usize, Origins>,
 }
 
 thread_local! { static CONTEXTS: RefCell<Vec<Context>> = const { RefCell::new(Vec::new()) }; }
@@ -78,6 +79,94 @@ pub(crate) fn current() -> Origins {
     })
 }
 
+pub(crate) fn active_origins(origins: Origins) -> Active {
+    Active(CONTEXTS.with_borrow_mut(|contexts| {
+        let context = contexts.last_mut()?;
+        Some(std::mem::replace(&mut context.active, origins))
+    }))
+}
+
+pub(crate) fn register_source_lines(source: &str, lines: &[String]) {
+    CONTEXTS.with_borrow_mut(|contexts| {
+        if let Some(context) = contexts.last_mut() {
+            let locator = SourceLocator::new(source);
+            for (index, line) in lines
+                .iter()
+                .enumerate()
+                .filter(|(_, line)| !line.is_empty())
+            {
+                context
+                    .source_lines
+                    .insert(line.as_ptr() as usize, vec![locator.line(index)]);
+            }
+        }
+    });
+}
+
+pub(crate) fn line_origins(line: &str) -> Origins {
+    if line.is_empty() {
+        return Vec::new();
+    }
+    CONTEXTS.with_borrow(|contexts| {
+        contexts
+            .last()
+            .and_then(|context| context.source_lines.get(&(line.as_ptr() as usize)))
+            .cloned()
+            .unwrap_or_default()
+    })
+}
+
+pub(crate) fn clone_source_line(line: &str) -> String {
+    let cloned = line.to_owned();
+    if !cloned.is_empty() {
+        let origins = line_origins(line);
+        CONTEXTS.with_borrow_mut(|contexts| {
+            if let Some(context) = contexts.last_mut() {
+                let address = cloned.as_ptr() as usize;
+                context.source_lines.remove(&address);
+                if !origins.is_empty() {
+                    context.source_lines.insert(address, origins);
+                }
+            }
+        });
+    }
+    cloned
+}
+
+pub(crate) fn cloned_source_lines(lines: &[String]) -> Vec<String> {
+    lines.iter().map(|line| clone_source_line(line)).collect()
+}
+
+pub(crate) fn include_source_line(line: &str, omitted: &str) {
+    if line.is_empty() {
+        return;
+    }
+    let origins = line_origins(omitted);
+    CONTEXTS.with_borrow_mut(|contexts| {
+        if let Some(context) = contexts.last_mut() {
+            context
+                .source_lines
+                .entry(line.as_ptr() as usize)
+                .or_default()
+                .extend(origins);
+        }
+    });
+}
+
+pub(crate) fn instruction_origins<T>(instruction: &T) -> Origins {
+    CONTEXTS.with_borrow(|contexts| {
+        contexts
+            .last()
+            .and_then(|context| {
+                context
+                    .instructions
+                    .get(&(instruction as *const T as usize))
+            })
+            .cloned()
+            .unwrap_or_default()
+    })
+}
+
 // Instruction addresses remain stable while the completed code buffer is
 // borrowed by a writer. Records live only within this capture, without
 // changing the public stack-machine representation.
@@ -103,15 +192,7 @@ pub(crate) fn register_instructions<T>(code: &[T], origins: Vec<(usize, Origins)
 }
 
 pub(crate) fn active_instruction<T>(instruction: &T) -> Active {
-    Active(CONTEXTS.with_borrow_mut(|contexts| {
-        let context = contexts.last_mut()?;
-        let origins = context
-            .instructions
-            .get(&(instruction as *const T as usize))
-            .cloned()
-            .unwrap_or_default();
-        Some(std::mem::replace(&mut context.active, origins))
-    }))
+    active_origins(instruction_origins(instruction))
 }
 
 pub(crate) struct SourceLine(String, Origins);
