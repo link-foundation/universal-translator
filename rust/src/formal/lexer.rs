@@ -262,6 +262,9 @@ impl<'a> Lexer<'a> {
             if self.line_start && self.syntax.blocks == Blocks::Indentation {
                 self.indent()?;
             }
+            if self.closing_tag()? {
+                break;
+            }
             for read in readers {
                 if read(&mut self)? {
                     break;
@@ -280,6 +283,25 @@ impl<'a> Lexer<'a> {
         }
         self.push(TokenType::End, "");
         Ok(self.tokens)
+    }
+
+    /// PHP: the closing ?> tag ends the program when only whitespace follows
+    /// it; text after it would be output, which is not read.
+    fn closing_tag(&mut self) -> Result<bool, GrammarError> {
+        if self.syntax.id != "php" || !self.starts_with("?>", self.index) {
+            return Ok(false);
+        }
+        if self.source[self.index + 2..]
+            .iter()
+            .any(|character| !character.is_whitespace())
+        {
+            return Err(GrammarError::syntax(
+                "Text after the closing \"?>\" tag",
+                self.line,
+            ));
+        }
+        self.index = self.source.len();
+        Ok(true)
     }
 
     fn push(&mut self, kind: TokenType, value: &str) {
@@ -414,8 +436,36 @@ impl<'a> Lexer<'a> {
             .map_or(self.source.len(), |offset| self.index + offset)
     }
 
+    /// The line comment marker here: Lua skips a first line that starts
+    /// with "#" (a #! line), and fixed-form Fortran comments out a line with
+    /// C or * in its first column (`C     Hello World`, not `c = 1`).
+    fn comment_marker(&self) -> &'static str {
+        let id = self.syntax.id;
+        if id == "lua" && self.index == 0 && self.source.first() == Some(&'#') {
+            return "#";
+        }
+        if id == "fortran" && (self.index == 0 || self.source[self.index - 1] == '\n') {
+            let line = &self.source[self.index..self.until_line_end()];
+            let rest = line.get(1..).unwrap_or_default();
+            let separated = rest.first().is_none_or(|c| matches!(c, ' ' | '\t' | '\r'));
+            let assigned = rest
+                .iter()
+                .find(|c| !matches!(c, ' ' | '\t'))
+                .is_some_and(|c| matches!(c, '=' | '('));
+            if separated && !assigned {
+                match line.first() {
+                    Some('C') => return "C",
+                    Some('c') => return "c",
+                    Some('*') => return "*",
+                    _ => {}
+                }
+            }
+        }
+        self.syntax.line_comment
+    }
+
     fn line_comment(&mut self) -> bool {
-        let marker = self.syntax.line_comment;
+        let marker = self.comment_marker();
         if !self.starts_with(marker, self.index)
             || (self.syntax.id == "lua" && self.starts_with("--[[", self.index))
             // Bash: ${#a[@]} is the length of a, not a comment.

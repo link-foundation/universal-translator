@@ -174,6 +174,9 @@ class Lexer {
       if (this.lineStart && this.syntax.blocks === 'indentation') {
         this.indent();
       }
+      if (this.closingTag()) {
+        break;
+      }
       this.readers.some((read) => read());
     }
     if (this.tokens.length && this.tokens.at(-1).type !== 'newline') {
@@ -184,6 +187,19 @@ class Lexer {
     }
     this.push('end', '');
     return this.tokens;
+  }
+
+  // PHP: the closing ?> tag ends the program when only whitespace follows
+  // it; text after it would be output, which is not read.
+  closingTag() {
+    if (this.syntax.id !== 'php' || !this.source.startsWith('?>', this.index)) {
+      return false;
+    }
+    if (this.source.slice(this.index + 2).trim()) {
+      throw new SyntaxError('Text after the closing "?>" tag', this.line);
+    }
+    this.index = this.source.length;
+    return true;
   }
 
   push(type, value, extra = {}) {
@@ -280,8 +296,29 @@ class Lexer {
     return end < 0 ? this.source.length : end;
   }
 
+  // The line comment marker here: Lua skips a first line that starts with
+  // "#" (a #! line), and fixed-form Fortran comments out a line with C or *
+  // in its first column (`C     Hello World`, not `c = 1`).
+  commentMarker() {
+    const { id, lineComment } = this.syntax;
+    if (id === 'lua' && this.index === 0 && this.source[0] === '#') {
+      return '#';
+    }
+    if (
+      id === 'fortran' &&
+      (this.index === 0 || this.source[this.index - 1] === '\n')
+    ) {
+      const line = this.source.slice(this.index, this.untilLineEnd());
+      const fixed = /^([Cc*])(?![^ \t\r])(?![ \t]*[=(])/.exec(line);
+      if (fixed) {
+        return fixed[1];
+      }
+    }
+    return lineComment;
+  }
+
   lineComment() {
-    const marker = this.syntax.lineComment;
+    const marker = this.commentMarker();
     if (
       !this.source.startsWith(marker, this.index) ||
       (this.syntax.id === 'lua' &&

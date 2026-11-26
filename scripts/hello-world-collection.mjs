@@ -202,6 +202,13 @@ export function measure(programs, translator = createTranslator()) {
   return results;
 }
 
+// Programs that are not standard code of their language, by language and
+// section, with why they stay unread.
+export const blocked = {
+  'objc/Objective-C':
+    'Portable Object Compiler code: clang rejects its { :each | ... } block and lacks its objpak classes Set and String (experiments/issue-14/objc-hello-check.sh), and it greets the command-line arguments, which the meta language does not have',
+};
+
 const quote = (text) => `'${text.replaceAll("'", '’')}'`;
 
 export function coverageText(programs, results) {
@@ -228,10 +235,13 @@ export function coverageText(programs, results) {
       `  ${key.replace(/-$/, '')}:`,
       `    language: ${id}`,
       `    section: ${quote(section)}`,
-      `    status: ${reason ? 'failed' : 'read'}`
+      `    status: ${blocked[`${id}/${section}`] ? 'blocked' : reason ? 'failed' : 'read'}`
     );
     if (reason) {
       lines.push(`    reason: ${quote(reason)}`);
+    }
+    if (blocked[`${id}/${section}`]) {
+      lines.push(`    blocked: ${quote(blocked[`${id}/${section}`])}`);
     }
   }
   return `${lines.join('\n')}\n`;

@@ -11,6 +11,9 @@ const modifiers = ['private', 'public', 'shared', 'friend'];
 // The operators Visual Basic binds at different levels: * and / above \,
 // and \ above Mod.
 const multiplicative = ['multiply', 'divide', 'realDivide', 'remainder'];
+// The console procedures Imports System.Console lets a program call bare.
+const consoleCallees = { writeline: 'WriteLine', write: 'Write' };
+const consoleNames = Object.keys(consoleCallees);
 
 // Statements: Dim, If, While, For, Return, assignments and calls.
 const statements = (Base) =>
@@ -46,7 +49,18 @@ const statements = (Base) =>
           return assignment;
         }
       }
-      return node('Evaluate', { expression: this.called(this.expression()) });
+      return node('Evaluate', {
+        expression: this.imported(this.called(this.expression())),
+      });
+    }
+
+    // After Imports System.Console, WriteLine and Write are the console's.
+    imported(expression) {
+      const callee = expression.kind === 'Call' ? expression.callee : '';
+      const name = consoleNames.find((word) => word === callee.toLowerCase());
+      return name && this.consoleImported
+        ? { ...expression, callee: `Console.${consoleCallees[name]}` }
+        : expression;
     }
 
     // name = value, name += value, and name \= value for integer division.
@@ -162,15 +176,22 @@ const statements = (Base) =>
 
 const parser = (Base) =>
   class VisualBasicParser extends statements(keywordParser(Base)) {
-    // Imports, then a module of procedures; Sub Main is the entry point.
+    // Imports, then a module (or a class) of procedures; Sub Main is the
+    // entry point.
     program() {
       const items = [];
       this.gatherComments(items);
       while (this.is('imports') || this.is('option')) {
+        this.consoleImported ||=
+          this.is('imports') &&
+          this.is('system', 1) &&
+          this.is('.', 2) &&
+          this.is('console', 3);
         this.skipLine();
         this.gatherComments(items);
       }
-      this.expect('module');
+      const container = this.is('class') ? 'class' : 'module';
+      this.expect(container);
       this.skipLine();
       this.gatherComments(items);
       while (!this.is('end')) {
@@ -178,7 +199,7 @@ const parser = (Base) =>
         this.gatherComments(items);
       }
       this.expect('end');
-      this.expect('module');
+      this.expect(container);
       this.gatherComments(items);
       return node('SourceProgram', { language: this.syntax.id, items });
     }

@@ -61,7 +61,7 @@ describe('the Hello World Collection', () => {
   it('reads every program that the coverage file does not list as failed', () => {
     const failed = new Map(
       coverage()
-        .filter((entry) => entry.status === 'failed')
+        .filter(({ status }) => status === 'failed' || status === 'blocked')
         .map((entry) => [`${entry.language}/${entry.section}`, entry])
     );
     for (const { id, section, program } of entries) {
@@ -84,10 +84,18 @@ describe('the Hello World Collection', () => {
       coverageText(programs, results)
     );
     for (const entry of coverage().filter(
-      ({ status }) => status === 'failed'
+      ({ status }) => status === 'failed' || status === 'blocked'
     )) {
       expect(entry.reason.length).toBeGreaterThan(0);
     }
+  });
+
+  it('reads every program but the blocked ones', () => {
+    const unread = coverage().filter(
+      ({ status }) => status === 'failed' || status === 'blocked'
+    );
+    expect(unread.map(({ status }) => status)).toEqual(['blocked']);
+    expect(unread[0].blocked.length).toBeGreaterThan(0);
   });
 
   it('decodes the entities of the page', () => {

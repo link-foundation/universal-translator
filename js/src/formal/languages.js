@@ -474,6 +474,8 @@ export const languages = {
     operators: braceOperators,
     integerDivision: { method: 'intdiv' },
     printCalls: { line: ['println'], text: ['print'] },
+    // println "Hello World"
+    commandCalls: ['println', 'print'],
     entryPoint: 'top-level',
     typed: 'prefix',
     types: {
@@ -609,7 +611,8 @@ export const languages = {
     blocks: 'keywords',
     caseInsensitive: true,
     lineComment: '!',
-    quotes: ["'"],
+    // Text is written in apostrophes and read in either quote.
+    quotes: ["'", '"'],
     doubledQuotes: true,
     declarations: [],
     // Integer literals passed to integer(8) arguments carry the kind 8.
@@ -622,6 +625,7 @@ export const languages = {
       not: '.not.',
       notEqual: '/=',
       integerDivide: '/',
+      concatenate: '//',
     },
     words: { true: '.true.', false: '.false.' },
     // print and write list their items one after another.

@@ -3,12 +3,12 @@
 
 use std::collections::HashMap;
 
-use super::shared::declared_variables;
+use super::shared::{comment_node, declared_variables};
 use super::{EmitterDialect, ParserDialect};
 use crate::formal::emitter::{Emitter, Result, field, spaced_after};
 use crate::formal::lexer::TokenType;
 use crate::formal::parser::{Parsed, Parser};
-use crate::meta::{Node, add, block, format_number, number};
+use crate::meta::{GrammarError, Node, add, block, format_number, number, text};
 
 pub(crate) struct Fortran;
 
@@ -25,22 +25,25 @@ fn type_word(word: &str) -> Option<&'static str> {
 
 const FORMAT: &str = "'(*(g0))'";
 
-/// The result variable of the function being read or written.
+/// The result variable of the function being read or written, and the
+/// text of each labelled format statement of the program being read.
 #[derive(Default)]
 struct Result_ {
     name: Option<String>,
+    formats: HashMap<String, String>,
 }
 
 // ---- reading ----
 
 impl ParserDialect for Fortran {
     fn program(&self, p: &mut Parser) -> Parsed {
+        p.state::<Result_>().formats = format_statements(p)?;
         let mut items = Vec::new();
         p.gather_comments(&mut items);
         p.expect("program")?;
         p.skip_line();
         specification(p, &mut items)?;
-        items.extend(p.statements_until(&|p| p.is("contains") || p.is("end"))?);
+        items.extend(statements_until(p, &|p| p.is("contains") || p.is("end"))?);
         if p.accept("contains") {
             p.gather_comments(&mut items);
             while !p.is("end") {
@@ -67,14 +70,10 @@ impl ParserDialect for Fortran {
         }
         if p.accept("print") {
             p.position += 1;
-            return output(p, "print");
+            return output(p, "print", false);
         }
         if p.accept("write") {
-            p.expect("(")?;
-            while !p.accept(")") {
-                p.next()?;
-            }
-            return output(p, "write");
+            return fortran_write(p);
         }
         if p.accept("call") {
             let expression = Parser::called(p.expression()?);
@@ -110,6 +109,13 @@ impl ParserDialect for Fortran {
             p.position += 1;
             return Ok(Node::new("Boolean").with("value", lower == ".true."));
         }
+        // new_line('a') is the line end character.
+        if p.is("new_line") && p.is_at("(", 1) {
+            p.position += 2;
+            skip_control_item(p)?;
+            p.expect(")")?;
+            return Ok(text("\n"));
+        }
         if p.is("mod") && p.is_at("(", 1) {
             p.position += 2;
             let left = p.expression()?;
@@ -125,11 +131,159 @@ impl ParserDialect for Fortran {
     }
 }
 
+/// write (unit, format, advance='no') items: a write ends its line unless
+/// it says advance='no'. A format given by the label of a format statement
+/// prints its text.
+fn fortran_write(p: &mut Parser) -> Parsed {
+    p.expect("(")?;
+    let mut position = 0;
+    let mut label = None;
+    let mut advance = true;
+    while !p.accept(")") {
+        if p.is("advance") && p.is_at("=", 1) {
+            p.position += 2;
+            advance = !p.next()?.value.eq_ignore_ascii_case("no");
+        } else if position == 1 && p.kind(0) == TokenType::Number {
+            label = Some(p.next()?.value);
+        } else {
+            skip_control_item(p)?;
+        }
+        if p.accept(",") {
+            position += 1;
+        }
+    }
+    let callee = if advance { "print" } else { "write" };
+    let Some(label) = label else {
+        return output(p, callee, true);
+    };
+    let line = p.current().line;
+    let Some(value) = p.state::<Result_>().formats.get(&label).cloned() else {
+        return Err(GrammarError::syntax(
+            format!("No format statement labelled {label}"),
+            line,
+        ));
+    };
+    if !matches!(p.kind(0), TokenType::Newline | TokenType::End) {
+        return Err(GrammarError::syntax(
+            "Items written with a format statement",
+            line,
+        ));
+    }
+    Ok(Node::new("Evaluate").with(
+        "expression",
+        Node::new("Call")
+            .with("callee", callee)
+            .with("arguments", vec![text(value)]),
+    ))
+}
+
+/// One item of a control list, up to the next "," or ")" outside
+/// parentheses.
+fn skip_control_item(p: &mut Parser) -> Parsed<()> {
+    let mut depth = 0;
+    while depth > 0 || (!p.is(",") && !p.is(")")) {
+        let token = p.next()?;
+        if token.value == "(" {
+            depth += 1;
+        } else if token.value == ")" {
+            depth -= 1;
+        }
+    }
+    Ok(())
+}
+
+/// A statement label (`100 format (...)`, `10 continue`) is read and
+/// dropped; format statements were read with the program. A stop that is
+/// the last statement of the main program ends it as its end does.
+fn statements_until(p: &mut Parser, done: &dyn Fn(&Parser) -> bool) -> Parsed<Vec<Node>> {
+    let mut statements = Vec::new();
+    p.skip_lines();
+    while !done(p) && p.kind(0) != TokenType::End {
+        if p.kind(0) == TokenType::Number {
+            p.position += 1;
+        }
+        if p.kind(0) == TokenType::Comment {
+            let comment = p.next()?;
+            statements.push(comment_node(&comment));
+        } else if p.is("format") || (p.is("stop") && is_last_statement(p)) {
+            p.skip_line();
+        } else {
+            statements.push(p.statement()?);
+        }
+        p.skip_lines_keeping(&mut statements);
+    }
+    Ok(statements)
+}
+
+/// Whether only comments, labelled format statements and the end of the
+/// main program follow this line.
+fn is_last_statement(p: &mut Parser) -> bool {
+    let mut offset = 1;
+    while p.kind(offset) != TokenType::End {
+        match p.kind(offset) {
+            TokenType::Newline | TokenType::Comment => offset += 1,
+            TokenType::Number if p.is_at("format", offset + 1) => {
+                while !matches!(p.kind(offset), TokenType::Newline | TokenType::End) {
+                    offset += 1;
+                }
+            }
+            _ => {
+                return p.is_at("end", offset)
+                    && !p.is_at("if", offset + 1)
+                    && !p.is_at("do", offset + 1)
+                    && p.state::<Result_>().name.is_none();
+            }
+        }
+    }
+    false
+}
+
+/// The text of each labelled format statement, by label: its quoted texts,
+/// with a line end for each "/" (fixed-form programs write
+/// `100 format (' Hello World! ' /)`).
+fn format_statements(p: &Parser) -> Parsed<HashMap<String, String>> {
+    let mut formats = HashMap::new();
+    let tokens = &p.tokens;
+    for (index, token) in tokens.iter().enumerate() {
+        let after_line = index == 0 || tokens[index - 1].kind == TokenType::Newline;
+        let is_format = tokens.get(index + 1).is_some_and(|word| {
+            word.kind == TokenType::Name && word.value.eq_ignore_ascii_case("format")
+        });
+        if token.kind != TokenType::Number || !after_line || !is_format {
+            continue;
+        }
+        let mut value = String::new();
+        let mut depth = 1;
+        for item in tokens.iter().skip(index + 3) {
+            match (item.kind, item.value.as_str()) {
+                (TokenType::Text, _) => value.push_str(&item.value),
+                (_, "/" | "//") => value.push_str(&"\n".repeat(item.value.len())),
+                (_, "(") => depth += 1,
+                (_, ")") => {
+                    depth -= 1;
+                    if depth == 0 {
+                        break;
+                    }
+                }
+                (_, ",") => {}
+                _ => {
+                    return Err(GrammarError::syntax(
+                        format!("Edit descriptor \"{}\" in a format statement", item.value),
+                        item.line,
+                    ));
+                }
+            }
+        }
+        formats.insert(token.value.clone(), value);
+    }
+    Ok(formats)
+}
+
 /// print '(*(g0))', a, b and write (...) a, b print their items one after
 /// another.
-fn output(p: &mut Parser, callee: &str) -> Parsed {
+fn output(p: &mut Parser, callee: &str, after_control_list: bool) -> Parsed {
     let mut values = Vec::new();
-    if callee == "write" && p.kind(0) != TokenType::Newline {
+    if after_control_list && p.kind(0) != TokenType::Newline {
         values.push(p.expression()?);
     }
     while p.accept(",") {
@@ -167,7 +321,7 @@ fn fortran_do(p: &mut Parser) -> Parsed {
 
 /// The statements of a block up to `end do` or `end if`.
 fn until(p: &mut Parser, word: &str) -> Parsed {
-    let statements = p.statements_until(&|p| p.is("end"))?;
+    let statements = statements_until(p, &|p| p.is("end"))?;
     p.expect("end")?;
     p.expect(word)?;
     Ok(block(statements))
@@ -178,7 +332,7 @@ fn until(p: &mut Parser, word: &str) -> Parsed {
 fn fortran_if(p: &mut Parser) -> Parsed {
     let condition = p.expression()?;
     p.expect("then")?;
-    let then = block(p.statements_until(&|p| p.is("else") || p.is("end"))?);
+    let then = block(statements_until(p, &|p| p.is("else") || p.is("end"))?);
     let found = Node::new("If")
         .with("condition", condition)
         .with("then", then);
@@ -263,7 +417,7 @@ fn procedure(p: &mut Parser) -> Parsed {
     }
     p.state::<Result_>().name = Some(result);
     let types = specification(p, &mut Vec::new())?;
-    let body = p.statements_until(&|p| p.is("end"))?;
+    let body = statements_until(p, &|p| p.is("end"))?;
     p.expect("end")?;
     p.expect(&kind)?;
     p.skip_line();
@@ -310,8 +464,18 @@ impl EmitterDialect for Fortran {
         ""
     }
 
+    /// A line end inside text is new_line('a'): `'a' // new_line('a')`.
     fn quote(&self, _: &Emitter, value: &str) -> String {
-        format!("'{}'", value.replace('\'', "''"))
+        let mut pieces = Vec::new();
+        for (index, line) in value.split('\n').enumerate() {
+            if index > 0 {
+                pieces.push("new_line('a')".to_owned());
+            }
+            if !line.is_empty() || value.is_empty() {
+                pieces.push(format!("'{}'", line.replace('\'', "''")));
+            }
+        }
+        pieces.join(" // ")
     }
 
     fn unary(&self, e: &mut Emitter, expression: &Node, parent: f64) -> Result<String> {

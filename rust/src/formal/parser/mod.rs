@@ -126,6 +126,9 @@ impl Parser {
                             surfaces
                                 .iter()
                                 .copied()
+                                // Fortran joins text with //, which divides
+                                // elsewhere.
+                                .filter(|surface| operators.concatenate != Some(*surface))
                                 .chain(extra)
                                 .chain(question)
                                 .collect(),
@@ -446,6 +449,11 @@ impl Parser {
         self.skip_modifiers();
         let form = self.next_value()?;
         let title = self.expect_name()?;
+        // Scala: the body of `object Hello extends App { ... }` is the
+        // program.
+        if self.syntax.id == "scala" && self.is("extends") && self.is_at("App", 1) {
+            self.position += 2;
+        }
         self.skip_newlines();
         self.expect("{")?;
         self.class_depth += 1;
@@ -1273,6 +1281,20 @@ impl Parser {
                         .with("callee", callee_name(&expression)?)
                         .with("arguments", values)
                 };
+                continue;
+            }
+            // Lua: a call with one text argument needs no parentheses, f "x".
+            if self.syntax.id == "lua"
+                && expression.is("Name")
+                && self.kind(0) == TokenType::Text
+                && self.position > 0
+                && self.current().line == self.tokens[self.position - 1].line
+            {
+                let token = self.next()?;
+                let argument = self.text_literal(&token)?;
+                expression = Node::new("Call")
+                    .with("callee", callee_name(&expression)?)
+                    .with("arguments", vec![argument]);
                 continue;
             }
             return Ok(expression);

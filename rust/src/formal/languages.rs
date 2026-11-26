@@ -896,6 +896,8 @@ pub static LANGUAGES: [Syntax; 32] = [
             text: &["print"],
             adjacent: false,
         }),
+        // println "Hello World"
+        command_calls: CommandCalls::Only(&["println", "print"]),
         typed: Typed::Prefix,
         types: Some(Types {
             integer: "long",
@@ -1070,7 +1072,7 @@ pub static LANGUAGES: [Syntax; 32] = [
         case_insensitive: true,
         line_comment: "!",
         block_comment: None,
-        quotes: &['\''],
+        quotes: &['\'', '"'],
         doubled_quotes: true,
         interpolation: &[],
         declarations: &[],
@@ -1086,7 +1088,7 @@ pub static LANGUAGES: [Syntax; 32] = [
             not_equal: "/=",
             equal: None,
             integer_divide: Some("/"),
-            concatenate: None,
+            concatenate: Some("//"),
             remainder: None,
         },
         words: Some((".true.", ".false.")),

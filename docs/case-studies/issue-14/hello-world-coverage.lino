@@ -30,13 +30,11 @@ hello-world-coverage:
   lua-lua:
     language: lua
     section: 'Lua'
-    status: failed
-    reason: 'Unexpected "World" after statement (line 1)'
+    status: read
   php-php:
     language: php
     section: 'PHP'
-    status: failed
-    reason: 'Unexpected "?" in expression (line 4)'
+    status: read
   c-c-ansi:
     language: c
     section: 'C (ANSI)'
@@ -84,8 +82,7 @@ hello-world-coverage:
   scala-scala:
     language: scala
     section: 'Scala'
-    status: failed
-    reason: 'Expected "{" but found "extends" (line 3)'
+    status: read
   julia-julia:
     language: julia
     section: 'Julia'
@@ -97,13 +94,13 @@ hello-world-coverage:
   groovy-groovy:
     language: groovy
     section: 'Groovy'
-    status: failed
-    reason: 'Unexpected "Hello World" after statement (line 3)'
+    status: read
   objc-objective-c:
     language: objc
     section: 'Objective-C'
-    status: failed
+    status: blocked
     reason: 'Expected "]" but found "new" (line 11)'
+    blocked: 'Portable Object Compiler code: clang rejects its { :each | ... } block and lacks its objpak classes Set and String (experiments/issue-14/objc-hello-check.sh), and it greets the command-line arguments, which the meta language does not have'
   nim-nim:
     language: nim
     section: 'Nim'
@@ -119,13 +116,11 @@ hello-world-coverage:
   fortran-fortran:
     language: fortran
     section: 'Fortran'
-    status: failed
-    reason: 'Expected "program" but found "C" (line 1)'
+    status: read
   fortran-fortran90:
     language: fortran
     section: 'Fortran90'
-    status: failed
-    reason: 'Unexpected character """ (line 4)'
+    status: read
   ada-ada:
     language: ada
     section: 'Ada'
@@ -133,8 +128,7 @@ hello-world-coverage:
   vb-visual-basic-net:
     language: vb
     section: 'Visual Basic .NET'
-    status: failed
-    reason: 'Expected "module" but found "Class" (line 5)'
+    status: read
   bash-unix-shell:
     language: bash
     section: 'Unix Shell'
@@ -146,8 +140,7 @@ hello-world-coverage:
   zig-zig:
     language: zig
     section: 'Zig'
-    status: failed
-    reason: 'Unexpected "%" in expression (line 6)'
+    status: read
   gml-gml:
     language: gml
     section: 'GML'

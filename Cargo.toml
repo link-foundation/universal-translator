@@ -14,6 +14,8 @@ include = [
     "/examples/programs/**",
     "/examples/layout/**",
     "/examples/rules/**",
+    "/docs/case-studies/issue-14/data/hello-world-collection/programs.json",
+    "/docs/case-studies/issue-14/hello-world-coverage.lino",
     "/README.md",
     "/LICENSE",
 ]
@@ -88,6 +90,14 @@ path = "rust/tests/issue_8.rs"
 [[test]]
 name = "natural_wordings"
 path = "rust/tests/natural_wordings.rs"
+
+[[test]]
+name = "hello_world_collection"
+path = "rust/tests/hello_world_collection.rs"
+
+[[test]]
+name = "hello_world_dialects"
+path = "rust/tests/hello_world_dialects.rs"
 
 [[test]]
 name = "issue_12"

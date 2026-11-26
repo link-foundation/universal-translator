@@ -105,12 +105,18 @@ class BaseParser {
     };
     this.levels = binaryLevels.map((level) =>
       Object.fromEntries(
-        Object.entries(level).map(([operator, surfaces]) => [
-          operator,
-          extra[operator] && !surfaces.includes(extra[operator])
-            ? [...surfaces, extra[operator]]
-            : surfaces,
-        ])
+        Object.entries(level).map(([operator, shared]) => {
+          // Fortran joins text with //, which divides elsewhere.
+          const surfaces = shared.filter(
+            (surface) => surface !== syntax.operators.concatenate
+          );
+          return [
+            operator,
+            extra[operator] && !surfaces.includes(extra[operator])
+              ? [...surfaces, extra[operator]]
+              : surfaces,
+          ];
+        })
       )
     );
   }
@@ -321,6 +327,10 @@ class BaseParser {
     }
     const kind = this.next().value;
     const title = this.expectName();
+    // Scala: the body of `object Hello extends App { ... }` is the program.
+    if (this.syntax.id === 'scala' && this.is('extends') && this.is('App', 1)) {
+      this.position += 2;
+    }
     while (this.peek().type === 'newline') {
       this.next();
     }
@@ -1144,29 +1154,7 @@ class BaseParser {
         continue;
       }
       if (this.is('(')) {
-        this.next();
-        const values = [];
-        while (!this.is(')')) {
-          // Where "=" compares (Pascal, Ada, Visual Basic), `f(a = b)`
-          // passes a truth value, not a named argument.
-          if (
-            this.syntax.operators.equal !== '=' &&
-            this.peek().type === 'name' &&
-            this.is('=', 1)
-          ) {
-            const label = this.next().value;
-            this.next();
-            values.push(
-              node('NamedArgument', { name: label, value: this.expression() })
-            );
-          } else {
-            values.push(this.expression());
-          }
-          if (!this.accept(',')) {
-            break;
-          }
-        }
-        this.expect(')');
+        const values = this.callArguments();
         expression =
           expression.kind === 'Method'
             ? node('Call', {
@@ -1179,8 +1167,53 @@ class BaseParser {
               });
         continue;
       }
+      if (this.isTextCall(expression)) {
+        expression = node('Call', {
+          callee: calleeName(expression),
+          arguments: [this.textLiteral(this.next())],
+        });
+        continue;
+      }
       return expression;
     }
+  }
+
+  // The arguments of a call, from its "(" to its ")".
+  callArguments() {
+    this.expect('(');
+    const values = [];
+    while (!this.is(')')) {
+      // Where "=" compares (Pascal, Ada, Visual Basic), `f(a = b)`
+      // passes a truth value, not a named argument.
+      if (
+        this.syntax.operators.equal !== '=' &&
+        this.peek().type === 'name' &&
+        this.is('=', 1)
+      ) {
+        const label = this.next().value;
+        this.next();
+        values.push(
+          node('NamedArgument', { name: label, value: this.expression() })
+        );
+      } else {
+        values.push(this.expression());
+      }
+      if (!this.accept(',')) {
+        break;
+      }
+    }
+    this.expect(')');
+    return values;
+  }
+
+  // Lua: a call with one text argument needs no parentheses, f "x".
+  isTextCall(expression) {
+    return (
+      this.syntax.id === 'lua' &&
+      expression.kind === 'Name' &&
+      this.peek().type === 'text' &&
+      this.peek().line === this.tokens[this.position - 1].line
+    );
   }
 
   primary() {
