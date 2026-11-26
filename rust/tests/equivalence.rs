@@ -5,7 +5,9 @@
 use std::fs;
 use std::path::Path;
 use universal_translator::meta::notation::format_meta;
-use universal_translator::{Difference, Options, Translator, check_equivalence, effect_of};
+use universal_translator::{
+    Difference, Mode, Options, Translator, check_equivalence, effect_of, translate,
+};
 
 const SUM: &str = "let total = 0;
 for (let i = 1; i <= 3; i++) {
@@ -91,8 +93,7 @@ fn keeps_what_a_program_does_in_the_meta_program() {
     assert!(effect.contains("declaration x"), "{effect}");
 }
 
-#[test]
-fn holds_for_the_example_programs() {
+fn example_programs() -> Vec<std::path::PathBuf> {
     let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("examples/programs");
     let mut files: Vec<_> = fs::read_dir(&directory)
         .expect("examples")
@@ -100,6 +101,12 @@ fn holds_for_the_example_programs() {
         .filter(|path| path.extension().is_some_and(|it| it == "js"))
         .collect();
     files.sort();
+    files
+}
+
+#[test]
+fn holds_for_the_example_programs() {
+    let files = example_programs();
     let translator = Translator::new();
     for to in ["python", "rust", "wat"] {
         for file in &files {
@@ -113,5 +120,29 @@ fn holds_for_the_example_programs() {
             .expect("both texts read");
             assert_eq!(result.differences, vec![], "{} -> {to}", file.display());
         }
+    }
+}
+
+/// JavaScript -> Rust -> JavaScript: the Rosetta tasks keep what they do,
+/// and writing the read-back JavaScript in Rust again gives the same Rust.
+#[test]
+fn keeps_the_example_programs_through_a_round_trip_in_rust() {
+    let translator = Translator::new();
+    let write = |text: &str, from: &str, to: &str| {
+        translate(text, from, to, Mode::default()).unwrap_or_else(|error| panic!("{error}"))
+    };
+    for file in example_programs() {
+        let source = fs::read_to_string(&file).expect("program");
+        let rust = write(&source, "javascript", "rust");
+        let back = write(&rust, "rust", "javascript");
+        let result = check_equivalence(
+            &translator,
+            (&source, "javascript"),
+            (Some(&back), "javascript"),
+            Options::default(),
+        )
+        .expect("both texts read");
+        assert_eq!(result.differences, vec![], "{}", file.display());
+        assert_eq!(write(&back, "javascript", "rust"), rust, "{}", file.display());
     }
 }

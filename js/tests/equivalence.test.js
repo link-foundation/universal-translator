@@ -3,7 +3,12 @@
 // and mutability left out.
 import { readFileSync, readdirSync } from 'node:fs';
 import { describe, it, expect } from 'test-anywhere';
-import { checkEquivalence, createTranslator, effectOf } from '../src/index.js';
+import {
+  checkEquivalence,
+  createTranslator,
+  effectOf,
+  translate,
+} from '../src/index.js';
 import { runCli } from '../../bin/universal-translator.js';
 
 const translator = createTranslator();
@@ -113,6 +118,29 @@ describe('Equivalence of the example programs', () => {
         });
         expect([file, result.differences]).toEqual([file, []]);
       }
+    });
+  }
+});
+
+// JavaScript -> Rust -> JavaScript: the Rosetta tasks keep what they do,
+// and writing the read-back JavaScript in Rust again gives the same Rust.
+describe('Round trip of the example programs through Rust', () => {
+  const directory = new URL('../../examples/programs/', import.meta.url);
+  for (const file of readdirSync(directory).filter((name) =>
+    name.endsWith('.js')
+  )) {
+    it(`keeps ${file}`, () => {
+      const source = readFileSync(new URL(file, directory), 'utf8');
+      const rust = translate(source, 'javascript', 'rust');
+      const back = translate(rust, 'rust', 'javascript');
+      const result = checkEquivalence(translator, {
+        source,
+        from: 'javascript',
+        to: 'javascript',
+        translation: back,
+      });
+      expect(result.differences).toEqual([]);
+      expect(translate(back, 'javascript', 'rust')).toBe(rust);
     });
   }
 });
