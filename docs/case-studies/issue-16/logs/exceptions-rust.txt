@@ -1,0 +1,26 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 16.76s
+     Running rust/tests/exceptions.rs (target/debug/deps/exceptions-145dfabb58e9b551)
+
+running 3 tests
+test exception_names_preserve_user_bindings ... ok
+test translated_cpp_exceptions_keep_the_exit_status ... ok
+test cpp_try_typed_catch_and_throw_keep_explicit_boundaries ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.22s
+
+     Running rust/tests/fragments.rs (target/debug/deps/fragments-d1408dc514edba73)
+
+running 9 tests
+test incomplete_fragments_fail_with_the_reason_and_the_line ... ok
+test reads_and_writes_a_sentence_as_a_statement ... ok
+test rejects_statements_and_functions_for_machine_targets ... ok
+test keeps_a_whole_program_with_its_main_function ... ok
+test reads_a_whole_program_functions_or_statements ... ok
+test writes_statements_and_functions_without_a_main_or_a_class ... ok
+test reads_the_length_of_an_array_the_fragment_only_indexes ... ok
+test ends_every_rocq_function_group_with_its_period ... ok
+test matches_the_shared_goldens_and_reads_them_back ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.02s
+

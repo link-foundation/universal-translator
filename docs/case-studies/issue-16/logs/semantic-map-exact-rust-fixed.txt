@@ -1,0 +1,22 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 10.47s
+     Running rust/tests/semantic_mapping.rs (target/debug/deps/semantic_mapping-1a812306b2000129)
+
+running 4 tests
+test source_lines_survive_fragment_wrappers_and_split_statements ... ok
+test java_print_maps_to_both_bash_command_and_echo_and_back ... ok
+test the_complete_fibonacci_interpolation_maps_to_call_and_echo ... ok
+test every_controlled_natural_language_maps_statements_in_both_directions ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.97s
+
+     Running rust/tests/style.rs (target/debug/deps/style-808850b446d11180)
+
+running 4 tests
+test indents_blocks_without_braces_and_leaves_their_lines_alone ... ok
+test rejects_styles_a_language_cannot_be_written_in ... ok
+test puts_each_opening_brace_of_csharp_on_a_line_of_its_own ... ok
+test indents_javascript_by_two_spaces_and_rust_by_a_tab ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.32s
+

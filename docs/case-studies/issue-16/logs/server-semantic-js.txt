@@ -1,0 +1,19 @@
+▶ translation server
+  ✔ lists programming and natural languages (315.000967ms)
+  ✔ translates like the library does (46.919342ms)
+  ✔ keeps the layout of the source and maps the lines (33.216281ms)
+  ✔ writes the braces and the indent asked for (23.019049ms)
+  ✔ returns semantic maps for prose, controlled words and instructions (369.493147ms)
+  ✔ translates only the comments to a comment language (131.536248ms)
+  ✔ rejects invalid requests with a message (13.508497ms)
+  ✔ is started by the serve command (28.300626ms)
+  ✔ reads its port from options, the environment and .lenv (10.707073ms)
+✔ translation server (975.229827ms)
+ℹ tests 9
+ℹ suites 1
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1530.856217

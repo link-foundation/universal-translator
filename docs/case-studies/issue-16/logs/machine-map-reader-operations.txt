@@ -1,0 +1,85 @@
+js/src/formal/machine-reader-wasm.js:39:  const body = literal.slice(1, -1);
+js/src/formal/machine-reader-wasm.js:41:  for (let index = 0; index < body.length; index += 1) {
+js/src/formal/machine-reader-wasm.js:42:    if (body[index] === '\\') {
+js/src/formal/machine-reader-wasm.js:43:      bytes.push(parseInt(body.slice(index + 1, index + 3), 16));
+js/src/formal/machine-reader-wasm.js:46:      bytes.push(body.charCodeAt(index));
+js/src/formal/machine-reader-wasm.js:77:        .slice(1, -1)
+js/src/formal/machine-reader-wasm.js:78:        .map((target) => target.slice(1));
+js/src/formal/machine-reader-wasm.js:194:  const parameters = [...parameterList.matchAll(/\(param \$(\S+) i64\)/g)].map(
+js/src/formal/machine-reader-wasm.js:198:  const body = [];
+js/src/formal/machine-reader-wasm.js:206:      body.push(line);
+js/src/formal/machine-reader-wasm.js:210:  const { labels, lines: instructions } = stripFrame(body);
+js/src/formal/machine-reader-wasm.js:254:          rest.slice(index + 1, end),
+js/src/formal/machine-reader-assembly.js:69:    const octal = characters.slice(index + 1, index + 4).join('');
+js/src/formal/machine-reader-assembly.js:104:      pending.push(line.slice(prefix.length).replace(/^ /, ''));
+js/src/formal/machine-reader-assembly.js:112:        body: lines.slice(index + 2, end),
+js/src/formal/machine-reader-assembly.js:125:function readSlots(name, body, target) {
+js/src/formal/machine-reader-assembly.js:128:  while (body[index]?.startsWith('.set ')) {
+js/src/formal/machine-reader-assembly.js:129:    const match = body[index].match(/^\.set ([\w.]+), -?\d+$/);
+js/src/formal/machine-reader-assembly.js:131:      throw readError(target, body[index], 'expected a stack slot');
+js/src/formal/machine-reader-assembly.js:154:    slotNames: [...slots.keys()].map((symbol) => symbol.slice(name.length + 1)),
+js/src/formal/machine-reader-assembly.js:170:        .slice(0, count)
+js/src/formal/machine-reader-assembly.js:172:        .map((register) => exact(`popq %${register}`)),
+js/src/formal/machine-reader-assembly.js:224:    ...gasArithmetic.map(([lines, operation]) => [
+js/src/formal/machine-reader-assembly.js:228:        ...lines.map(exact),
+js/src/formal/machine-reader-assembly.js:258:    ...[6, 5, 4, 3, 2, 1, 0].map(callRule),
+js/src/formal/machine-reader-assembly.js:263:function readGasFunction({ name, comments, body }, texts) {
+js/src/formal/machine-reader-assembly.js:264:  const { slots, index: first } = readSlots(name, body, 'gas');
+js/src/formal/machine-reader-assembly.js:268:    if (body[index] !== line) {
+js/src/formal/machine-reader-assembly.js:269:      throw readError('gas', body[index] ?? '', `expected ${line}`);
+js/src/formal/machine-reader-assembly.js:273:  if (/^subq \$\d+, %rsp$/.test(body[index])) {
+js/src/formal/machine-reader-assembly.js:278:    body[index]?.match(/^movq %(\w+), [\w.]+\(%rbp\)$/)?.[1] ===
+js/src/formal/machine-reader-assembly.js:285:    body.slice(index),
+js/src/formal/machine-reader-assembly.js:306:    assemblyFunctions(rest, '#').map((item) => readGasFunction(item, texts))
+js/src/formal/machine-reader-assembly.js:373:    ...armArithmetic.map(([lines, operation]) => [
+js/src/formal/machine-reader-assembly.js:374:      [armPop('x1'), armPop('x0'), ...lines.map(exact), armPush],
+js/src/formal/machine-reader-assembly.js:404:    ...[8, 7, 6, 5, 4, 3, 2, 1, 0].map(callRule),
+js/src/formal/machine-reader-assembly.js:409:function readArm64Function({ name, comments, body }, texts) {
+js/src/formal/machine-reader-assembly.js:410:  const { slots, index: first } = readSlots(name, body, 'arm64');
+js/src/formal/machine-reader-assembly.js:418:    if (!pattern.test(body[index] ?? '')) {
+js/src/formal/machine-reader-assembly.js:419:      throw readError('arm64', body[index] ?? '', `expected ${pattern}`);
+js/src/formal/machine-reader-assembly.js:425:    body[index]?.match(/^str x(\d+), \[x29, #[\w.]+\]$/)?.[1] ===
+js/src/formal/machine-reader-assembly.js:432:    body.slice(index),
+js/src/formal/machine-reader-assembly.js:453:    assemblyFunctions(rest, '//').map((item) => readArm64Function(item, texts))
+js/src/formal/machine-reader.js:88:        bytes.push(...[...part.slice(1, -1)].map((c) => c.charCodeAt(0)));
+js/src/formal/machine-reader.js:108:        .slice(0, count)
+js/src/formal/machine-reader.js:110:        .map((register) => new RegExp(`^pop ${register}$`)),
+js/src/formal/machine-reader.js:152:    ...nasmArithmetic.map(([lines, operation]) => [
+js/src/formal/machine-reader.js:156:        ...lines.map((line) => new RegExp(`^${line}$`)),
+js/src/formal/machine-reader.js:178:    ...[6, 5, 4, 3, 2, 1, 0].map(callRule),
+js/src/formal/machine-reader.js:219:    lines.slice(index, end),
+js/src/formal/machine-reader.js:238:  const text = rest.slice(rest.indexOf('section .text') + 1);
+js/src/formal/machine-reader.js:252:          text.slice(index + 1, end + 1),
+js/src/formal/machine-reader.js:272:    const values = bytes[1].split(' ').map((byte) => parseInt(byte, 16));
+js/src/formal/machine-reader.js:279:  return literal.slice(1, -1).replace(/\\(["\\])/g, '$1');
+js/src/formal/machine-reader.js:354:      ? parameterList.split(',').map((item) => item.trim().split(' ')[1])
+js/src/formal/machine-reader.js:357:    const body = rest
+js/src/formal/machine-reader.js:358:      .slice(index + 2, end)
+js/src/formal/machine-reader.js:359:      .filter((item) => !/^\.(entrypoint|maxstack)/.test(item));
+js/src/formal/machine-reader.js:361:    if (body[0]?.startsWith('.locals')) {
+js/src/formal/machine-reader.js:362:      const list = body.shift().match(/^\.locals init \((.*)\)$/)[1];
+js/src/formal/machine-reader.js:363:      locals.push(...list.split(',').map((item) => item.trim().split(' ')[1]));
+js/src/formal/machine-reader.js:366:    const code = readInstructions(body, cilRules(parameters.length), 'cil').map(
+js/src/formal/machine-reader.js:392:    .slice(1, -1)
+js/src/formal/machine-reader.js:475:    const body = rest
+js/src/formal/machine-reader.js:476:      .slice(index + 1, end)
+js/src/formal/machine-reader.js:477:      .filter((item) => !/^\.limit/.test(item));
+js/src/formal/machine-reader.js:479:    while (body[0]?.startsWith('.var')) {
+js/src/formal/machine-reader.js:480:      const [, number, slotName] = body
+js/src/formal/machine-reader.js:481:        .shift()
+js/src/formal/machine-reader.js:492:      code: readInstructions(body, jvmRules(slotOf), 'jvm'),
+js/src/formal/machine-reader-llvm.js:39:function llvmString(body) {
+js/src/formal/machine-reader-llvm.js:41:  for (let index = 0; index < body.length; index += 1) {
+js/src/formal/machine-reader-llvm.js:42:    if (body[index] === '\\') {
+js/src/formal/machine-reader-llvm.js:43:      bytes.push(parseInt(body.slice(index + 1, index + 3), 16));
+js/src/formal/machine-reader-llvm.js:46:      bytes.push(body.charCodeAt(index));
+js/src/formal/machine-reader-llvm.js:49:  return decodeBytes(bytes.slice(0, -1));
+js/src/formal/machine-reader-llvm.js:52:// `@text.0 = ... c"<body>"`: the body runs from the last ` c"` to the
+js/src/formal/machine-reader-llvm.js:62:    : [header[1], line.slice(start + 3, -1)];
+js/src/formal/machine-reader-llvm.js:204:    const values = args.map((argument) =>
+js/src/formal/machine-reader-llvm.js:273:      this.code.push(['print-text', this.texts.get(parts[1].slice(5))]);
+js/src/formal/machine-reader-llvm.js:394:  const parameters = argumentList(parameterList).map((item) =>
+js/src/formal/machine-reader-llvm.js:398:  const body = [];
+js/src/formal/machine-reader-llvm.js:404:      body.push(line);
+js/src/formal/machine-reader-llvm.js:407:  const code = new LlvmBody(body, texts, slots, new Set(parameters)).read();
+js/src/formal/machine-reader-llvm.js:436:        readLlvmFunction(header, pending, rest.slice(index + 1, end), texts)

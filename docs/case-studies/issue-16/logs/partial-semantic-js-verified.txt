@@ -1,0 +1,75 @@
+▶ fragment kinds
+  ✔ reads a whole program, functions or statements (20.707542ms)
+  ✔ keeps a whole program with its main function (5.595863ms)
+  ✔ writes statements and functions without a main or a class (4.617351ms)
+  ✔ is a method of the translator as well (7.913621ms)
+✔ fragment kinds (41.556868ms)
+▶ fragments in every language
+  ✔ match the shared goldens under examples/programs/fragments (185.294418ms)
+  ✔ read every golden back into the same JavaScript fragment (1297.392481ms)
+  ✔ cover every grammar language (0.676329ms)
+  ✔ end every Rocq function group with its period (4.677792ms)
+✔ fragments in every language (1490.410475ms)
+▶ incomplete fragments
+  ✔ fail with the reason and the line (9.435226ms)
+✔ incomplete fragments (9.883891ms)
+▶ fragments in natural languages and machine code
+  ✔ reads and writes a sentence as a statement (16.575235ms)
+  ✔ rejects statements and functions for machine targets (7.096689ms)
+✔ fragments in natural languages and machine code (24.045279ms)
+▶ fragments on the command line
+  ✔ translates a statement with --fragment (14.134688ms)
+✔ fragments on the command line (14.422956ms)
+▶ fragments that use an array they do not declare
+  ✔ reads the length of an indexed array in every language (46.548516ms)
+✔ fragments that use an array they do not declare (46.769389ms)
+▶ comparison wordings
+  ✔ reads the Russian examples of the issue (421.983627ms)
+  ✔ reads other obvious variations (27.172395ms)
+  ✔ keeps every language within its own rules (157.994886ms)
+  ✔ reads Python pass as an empty statement (15.00462ms)
+✔ comparison wordings (625.179351ms)
+▶ partial translation
+  ✔ translates what it can and marks the rest (45.060254ms)
+  ✔ counts the lines it reads (42.426597ms)
+  ✔ is complete when everything reads (9.398307ms)
+  ✔ marks untranslated natural sentences (38.438219ms)
+  ✔ is the default of the command line (26.87485ms)
+  ✔ reports coverage on the command line (18.448373ms)
+✔ partial translation (182.001424ms)
+▶ language detection
+  ✔ finds the language of a text (1631.439917ms)
+  ✔ detects nothing in an empty text (0.976439ms)
+  ✔ translates from "auto" on the command line (216.954402ms)
+✔ language detection (1850.276525ms)
+▶ rules as data
+  ✔ apply at every stage (25.918929ms)
+  ✔ rewrite the output with regular expressions (7.662714ms)
+  ✔ are checked (0.450849ms)
+  ✔ are read from a file on the command line (8.904386ms)
+✔ rules as data (43.45291ms)
+▶ translation server
+  ✔ translates partially, detects and applies rules (229.099836ms)
+  ✔ refuses regular expression rules unless allowed (20.495788ms)
+✔ translation server (251.041567ms)
+▶ cut texts
+  ✔ stop a dialect read at the end of the text (5.359834ms)
+✔ cut texts (5.632812ms)
+✔ maps every accepted partial fragment back to its original lines (580.056529ms)
+✔ maps independent statements to their full expansion in every machine target (173.333598ms)
+✔ retains ownership through machine arrays, conditions, loops and interpolated calls (333.031837ms)
+▶ semantic many-to-many line mapping
+  ✔ maps the complete Fibonacci interpolation reported in issue 16 (52.844041ms)
+  ✔ maps a Java print to both the Bash command and its echo, and back (12.661745ms)
+  ✔ maps translated sentences in every controlled natural language in both directions (450.298461ms)
+  ✔ preserves origin metadata through output style and fragment wrappers (9.907995ms)
+  ✔ restores the capture context after failure and reentrant translations (6.568985ms)
+✔ semantic many-to-many line mapping (534.164339ms)
+ℹ tests 41
+ℹ suites 13
+ℹ pass 41
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3947.565011

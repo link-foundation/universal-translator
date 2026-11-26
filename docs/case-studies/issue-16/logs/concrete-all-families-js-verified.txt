@@ -1,0 +1,54 @@
+▶ concrete syntax as the default source record
+  ✔ partitions every byte, including quotes, directives and trivia (24.738441ms)
+  ✔ exposes source syntax to decorators before semantic rewriting (223.220243ms)
+  ✔ retains source syntax when reading words and every machine format (147.85312ms)
+  ✔ keeps accepted regions and explicit errors in incomplete source (10.516979ms)
+  ✔ keeps a lossless record for empty and whitespace-only input (0.956755ms)
+✔ concrete syntax as the default source record (410.04774ms)
+▶ decorating the stages of the pipeline
+  ✔ runs a decorator that traces the calls of a stage (223.527205ms)
+  ✔ rewrites the output of the emitter (3.351743ms)
+  ✔ rewrites the input of the parser (3.618911ms)
+  ✔ composes the decorators of one stage in order, the last outermost (2.230922ms)
+  ✔ adds decorators with decorate() without changing the translator (5.041454ms)
+  ✔ keeps the decorators when the rules change (4.103946ms)
+✔ decorating the stages of the pipeline (244.189412ms)
+▶ decorating the other stages
+  ✔ wraps the readers and the writer of words (28.729877ms)
+  ✔ wraps the machine code reader, lifting and emitter (12.205851ms)
+  ✔ wraps a replacement of a stage (2.317194ms)
+  ✔ rejects unknown stages and decorators that are not functions (0.92717ms)
+✔ decorating the other stages (45.06913ms)
+▶ fragment kinds
+  ✔ reads a whole program, functions or statements (22.032934ms)
+  ✔ keeps a whole program with its main function (5.150067ms)
+  ✔ writes statements and functions without a main or a class (5.275682ms)
+  ✔ is a method of the translator as well (10.018239ms)
+✔ fragment kinds (46.172397ms)
+▶ fragments in every language
+  ✔ match the shared goldens under examples/programs/fragments (93.187547ms)
+  ✔ read every golden back into the same JavaScript fragment (1121.996277ms)
+  ✔ cover every grammar language (0.511925ms)
+  ✔ end every Rocq function group with its period (4.205105ms)
+✔ fragments in every language (1220.980488ms)
+▶ incomplete fragments
+  ✔ fail with the reason and the line (9.851459ms)
+✔ incomplete fragments (10.236447ms)
+▶ fragments in natural languages and machine code
+  ✔ reads and writes a sentence as a statement (19.154855ms)
+  ✔ rejects statements and functions for machine targets (5.383714ms)
+✔ fragments in natural languages and machine code (24.901666ms)
+▶ fragments on the command line
+  ✔ translates a statement with --fragment (8.93016ms)
+✔ fragments on the command line (9.193612ms)
+▶ fragments that use an array they do not declare
+  ✔ reads the length of an indexed array in every language (42.185249ms)
+✔ fragments that use an array they do not declare (42.447208ms)
+ℹ tests 28
+ℹ suites 9
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2858.279667

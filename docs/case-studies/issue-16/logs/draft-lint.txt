@@ -1,0 +1,15 @@
+
+/tmp/gh-issue-solver-1795726129025/examples/universal-app/src/App.js
+  704:8  warning  Function 'App' has too many lines (156). Maximum allowed is 150  max-lines-per-function
+
+/tmp/gh-issue-solver-1795726129025/examples/universal-app/src/report-issue.js
+  20:5  warning  Describe current behavior; keep source history in git, PRs, or docs  local/no-changelog-comments
+
+/tmp/gh-issue-solver-1795726129025/js/src/formal/emitter.js
+  248:3  warning  Method 'binary' has a complexity of 16. Maximum allowed is 15  complexity
+
+/tmp/gh-issue-solver-1795726129025/js/tests/issue-16.test.js
+  39:6  warning  Describe current behavior; keep source history in git, PRs, or docs  local/no-changelog-comments
+
+✖ 4 problems (0 errors, 4 warnings)
+

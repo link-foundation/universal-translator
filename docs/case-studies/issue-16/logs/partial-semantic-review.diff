@@ -1,0 +1,366 @@
+diff --git a/js/src/translation/emission-map.js b/js/src/translation/emission-map.js
+index 1aaf4b7..31ba7a4 100644
+--- a/js/src/translation/emission-map.js
++++ b/js/src/translation/emission-map.js
+@@ -86,6 +86,22 @@ export function renderLines(emitter, lines, ending = '\n') {
+   return text;
+ }
+ 
++// Partial recovery assembles separately emitted fragments. Retain their maps
++// as one emission so later layout and style changes can align the whole text.
++export function recordMapping(source, text, language, lines) {
++  if (contexts.length) {
++    contexts.at(-1).emissions.push({
++      language,
++      text,
++      mapped: lines.map(([from, target]) => ({
++        source,
++        lines: [from],
++        target,
++      })),
++    });
++  }
++}
++
+ // Layout, style, fragment extraction and output decorators can change target
+ // positions. Align the generated target with its final spelling in that same
+ // language; semantic source positions come from the tree, not token equality.
+diff --git a/js/src/translation/fragments.js b/js/src/translation/fragments.js
+index e83c4b1..66dfaa9 100644
+--- a/js/src/translation/fragments.js
++++ b/js/src/translation/fragments.js
+@@ -19,7 +19,7 @@ import { declaredVariables } from '../formal/dialects/shared.js';
+ import { languageSyntax } from '../formal/languages.js';
+ import { machineTargetIds } from '../formal/machine.js';
+ import { isNaturalLanguage } from '../natural/catalog.js';
+-import { remapOrigins } from './source-origins.js';
++import { remapOrigins, withOrigin } from './source-origins.js';
+ 
+ export const fragmentKinds = ['program', 'functions', 'statements'];
+ 
+@@ -453,11 +453,16 @@ export function createFragmentTranslator({ toMeta, adapt, write, emit }) {
+   // Comments that stand on their own as statements of the target (notes in
+   // a natural language). Partial translation marks what it cannot
+   // translate with them. The texts are kept as written (literal mode).
+-  function writeNotes(texts, to) {
++  function writeNotes(texts, to, source) {
+     const meta = program({
+-      statements: texts.map((text) =>
++      statements: texts.map((text, index) =>
+         // A comment must not close a block comment early.
+-        comment(text.replaceAll('*/', '* /'))
++        withOrigin(
++          comment(text.replaceAll('*/', '* /')),
++          source === undefined
++            ? undefined
++            : { source, lines: [Math.max(0, index - 1)] }
++        )
+       ),
+     });
+     const adapted = adapt(meta, to, { from: to, mode: 'literal' });
+diff --git a/js/src/translation/partial.js b/js/src/translation/partial.js
+index 1b4ec6c..9e41b2f 100644
+--- a/js/src/translation/partial.js
++++ b/js/src/translation/partial.js
+@@ -25,6 +25,10 @@
+ //    marked, and is listed in `prose`.
+ 
+ import { sourceSyntax } from './source-syntax.js';
++import { captureEmission, emittedMap, recordMapping } from './emission-map.js';
++import { languageSyntax } from '../formal/languages.js';
++import { splitVersion } from '../formal/versions.js';
++import { isNaturalLanguage } from '../natural/catalog.js';
+ 
+ const closers =
+   /^\s*(?:[}\])]|end\b|fi\b|done\b|esac\b|else\b|elif\b|elsif\b|elseif\b|until\b|loop\b|wend\b|next\b|catch\b|finally\b|except\b|rescue\b|ensure\b|then\b|begin\b|do\b)/iu;
+@@ -141,6 +145,20 @@ const freeParts = (parts) =>
+     .filter((part) => part.status === 'free')
+     .map(({ line, endLine }) => ({ line, endLine }));
+ 
++// A custom prose translator may join or split sentences. The complete part
++// owns its written output, so its region remains many-to-many in that case.
++function proseMap(source, target) {
++  return source
++    .split('\n')
++    .flatMap((line, from) =>
++      blank(line)
++        ? []
++        : target
++            .split('\n')
++            .flatMap((line, to) => (blank(line) ? [] : [[from, to]]))
++    );
++}
++
+ export function createPartialTranslator({
+   parseFragment,
+   translateFragment,
+@@ -262,26 +280,52 @@ export function createPartialTranslator({
+   // target that holds the reason and the original text.
+   function translatePartial(source, from, to, options = {}) {
+     const reading = parsePartial(source, from);
+-    const pieces = reading.parts.map((part) => {
+-      if (part.status === 'read') {
+-        try {
+-          return translateFragment(part.source, from, to, options);
+-        } catch (error) {
+-          // A part may read but not be writable in the target.
+-          part.status = 'failed';
+-          part.message = shiftLines(error.message, part.start);
++    const pieces = reading.parts.map((part) =>
++      captureEmission(() => {
++        if (part.status === 'read') {
++          try {
++            return translateFragment(part.source, from, to, options);
++          } catch (error) {
++            // A part may read but not be writable in the target.
++            part.status = 'failed';
++            part.message = shiftLines(error.message, part.start);
++          }
+         }
+-      }
+-      const prose = translateProse(part.source, from, to, options);
+-      if (prose !== undefined) {
+-        part.status = 'free';
+-        return prose;
+-      }
+-      return writeNotes(untranslated(part), to);
+-    });
++        const prose = translateProse(part.source, from, to, options);
++        if (prose !== undefined) {
++          part.status = 'free';
++          return prose;
++        }
++        return writeNotes(untranslated(part), to, part.source);
++      })
++    );
++    const syntax = isNaturalLanguage(to) ? {} : languageSyntax(to);
++    const language = splitVersion(to).id;
++    const lineMap = [];
++    let targetLine = 0;
++    for (const [index, piece] of pieces.entries()) {
++      const part = reading.parts[index];
++      const lines =
++        part.status === 'free'
++          ? proseMap(part.source, piece.result)
++          : emittedMap(
++              piece.emissions,
++              part.source,
++              piece.result,
++              language,
++              syntax
++            );
++      lineMap.push(
++        ...lines.map(([from, to]) => [from + part.start, to + targetLine])
++      );
++      targetLine += piece.result.split('\n').length - 1;
++    }
++    const text = pieces.map(({ result }) => result).join('');
++    recordMapping(source, text, language, lineMap);
+     const errors = errorsOf(reading.parts);
+     return {
+-      text: pieces.join(''),
++      text,
++      lineMap,
+       complete: errors.length === 0,
+       errors,
+       lines: reading.lines,
+diff --git a/rust/src/emission_map.rs b/rust/src/emission_map.rs
+index a68c9d1..4a79b87 100644
+--- a/rust/src/emission_map.rs
++++ b/rust/src/emission_map.rs
+@@ -58,6 +58,22 @@ pub(crate) fn source_records<T>(read: impl FnOnce() -> T) -> T {
+     }
+ }
+ 
++pub(crate) fn record_mapping(source: &str, text: &str, language: &str, lines: &[(usize, usize)]) {
++    CONTEXTS.with_borrow_mut(|contexts| {
++        if let Some(context) = contexts.last_mut() {
++            let locator = SourceLocator::new(source);
++            context.emissions.push(Emission {
++                language: language.to_owned(),
++                text: text.to_owned(),
++                mapped: lines
++                    .iter()
++                    .map(|(from, to)| (*to, locator.line(*from)))
++                    .collect(),
++            });
++        }
++    });
++}
++
+ pub(crate) struct Active(Option<Origins>);
+ 
+ impl Drop for Active {
+diff --git a/rust/src/fragments.rs b/rust/src/fragments.rs
+index e8a3e1a..8874bd2 100644
+--- a/rust/src/fragments.rs
++++ b/rust/src/fragments.rs
+@@ -729,10 +729,27 @@ pub fn write_notes(
+     texts: &[String],
+     to: &str,
+ ) -> Result<String, GrammarError> {
++    write_source_notes(translator, texts, to, None)
++}
++
++pub(crate) fn write_source_notes(
++    translator: &Translator,
++    texts: &[String],
++    to: &str,
++    source: Option<&str>,
++) -> Result<String, GrammarError> {
++    let locator = source.map(crate::source_origins::SourceLocator::new);
+     // A comment must not close a block comment early.
+     let notes = texts
+         .iter()
+-        .map(|text| comment(&text.replace("*/", "* /")))
++        .enumerate()
++        .map(|(index, text)| {
++            let mut note = comment(&text.replace("*/", "* /"));
++            if let Some(locator) = &locator {
++                note.origin = Some(locator.line(index.saturating_sub(1)));
++            }
++            note
++        })
+         .collect();
+     let meta = program(Vec::new(), notes, Vec::new());
+     let options = Options {
+diff --git a/rust/src/partial.rs b/rust/src/partial.rs
+index 2f3aea4..12de786 100644
+--- a/rust/src/partial.rs
++++ b/rust/src/partial.rs
+@@ -369,6 +369,64 @@ pub fn parse_partial(
+     })
+ }
+ 
++fn write_part(
++    translator: &Translator,
++    part: &mut Part,
++    from: &str,
++    to: &str,
++    options: Options,
++) -> Result<String, GrammarError> {
++    if part.status == PartStatus::Read {
++        match crate::fragments::translate_fragment(translator, &part.source, from, to, options) {
++            Ok(written) => return Ok(written),
++            Err(error) => {
++                part.status = PartStatus::Failed;
++                part.message = Some(shift_lines(&error.to_string(), part.start));
++            }
++        }
++    }
++    if is_natural_language(from)
++        && is_natural_language(to)
++        && let Ok(prose) = (translator.comment_translator())(&part.source, from, to)
++    {
++        part.status = PartStatus::Free;
++        return Ok(prose);
++    }
++    let place = if part.end_line > part.line {
++        format!("lines {}-{}", part.line, part.end_line)
++    } else {
++        format!("line {}", part.line)
++    };
++    let notes: Vec<String> = std::iter::once(format!(
++        "untranslated ({place}): {}",
++        part.message.as_deref().unwrap_or_default()
++    ))
++    .chain(
++        part.source
++            .strip_suffix('\n')
++            .unwrap_or(&part.source)
++            .split('\n')
++            .map(str::to_owned),
++    )
++    .collect();
++    crate::fragments::write_source_notes(translator, &notes, to, Some(&part.source))
++}
++
++fn prose_map(source: &str, target: &str) -> Vec<(usize, usize)> {
++    source
++        .split('\n')
++        .enumerate()
++        .filter(|(_, line)| !blank(line))
++        .flat_map(|(from, _)| {
++            target
++                .split('\n')
++                .enumerate()
++                .filter(|(_, line)| !blank(line))
++                .map(move |(to, _)| (from, to))
++        })
++        .collect()
++}
++
+ /// Translate what can be read; every other part becomes a comment in the
+ /// target that holds the reason and the original text.
+ pub fn translate_partial(
+@@ -380,52 +438,31 @@ pub fn translate_partial(
+ ) -> Result<PartialTranslation, GrammarError> {
+     let mut reading = parse_partial(translator, source, from)?;
+     let mut text = String::new();
++    let mut target_line = 0;
++    let mut line_map = Vec::new();
++    let language = crate::formal::versions::split_version(to).0;
+     for part in &mut reading.parts {
+-        if part.status == PartStatus::Read {
+-            match crate::fragments::translate_fragment(translator, &part.source, from, to, options)
+-            {
+-                Ok(written) => {
+-                    text.push_str(&written);
+-                    continue;
+-                }
+-                Err(error) => {
+-                    // A part may read but not be writable in the target.
+-                    part.status = PartStatus::Failed;
+-                    part.message = Some(shift_lines(&error.to_string(), part.start));
+-                }
+-            }
+-        }
+-        if is_natural_language(from)
+-            && is_natural_language(to)
+-            && let Ok(prose) = (translator.comment_translator())(&part.source, from, to)
+-        {
+-            part.status = PartStatus::Free;
+-            text.push_str(&prose);
+-            continue;
+-        }
+-        let place = if part.end_line > part.line {
+-            format!("lines {}-{}", part.line, part.end_line)
++        let (written, emissions) =
++            crate::emission_map::capture(|| write_part(translator, part, from, to, options));
++        let written = written?;
++        let lines = if part.status == PartStatus::Free {
++            prose_map(&part.source, &written)
+         } else {
+-            format!("line {}", part.line)
++            crate::emission_map::emitted_map(&emissions, &part.source, &written, language)
+         };
+-        let notes: Vec<String> = std::iter::once(format!(
+-            "untranslated ({place}): {}",
+-            part.message.as_deref().unwrap_or_default()
+-        ))
+-        .chain(
+-            part.source
+-                .strip_suffix('\n')
+-                .unwrap_or(&part.source)
+-                .split('\n')
+-                .map(str::to_owned),
+-        )
+-        .collect();
+-        text.push_str(&translator.write_notes(&notes, to)?);
++        line_map.extend(
++            lines
++                .into_iter()
++                .map(|(from, to)| (from + part.start, to + target_line)),
++        );
++        target_line += written.bytes().filter(|byte| *byte == b'\n').count();
++        text.push_str(&written);
+     }
+     let errors = errors_of(&reading.parts);
++    crate::emission_map::record_mapping(source, &text, language, &line_map);
+     Ok(PartialTranslation {
+         text,
+-        line_map: Vec::new(),
++        line_map,
+         complete: errors.is_empty(),
+         errors,
+         lines: reading.lines,

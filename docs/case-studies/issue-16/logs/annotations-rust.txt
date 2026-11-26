@@ -1,0 +1,28 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 9.42s
+     Running rust/tests/annotations.rs (target/debug/deps/annotations-2661d3a92e01210e)
+
+running 3 tests
+test generics_balance_commas_and_combined_closing_brackets ... ok
+test annotation_arguments_remain_expressions ... ok
+test spring_annotations_named_types_and_fluent_calls_survive_translation ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.43s
+
+     Running rust/tests/arrow_and_hints.rs (target/debug/deps/arrow_and_hints-81d5ea296cfdccc7)
+
+running 11 tests
+test arrows_leave_other_declarations_to_the_expression_reader ... ok
+test a_hint_without_a_value_is_nothing_to_do ... ok
+test arrows_translate_to_python_as_the_function_declaration_does ... ok
+test arrows_are_written_back_as_function_declarations ... ok
+test arrows_read_with_two_parameters_and_statements_before_the_result ... ok
+test hints_give_the_meta_types_of_parameters_results_and_assignments ... ok
+test arrows_read_as_the_function_a_declaration_reads_as ... ok
+test hints_map_builtins_and_retain_application_and_generic_types ... ok
+test hints_translate_as_the_unhinted_program_does ... ok
+test hints_leave_what_the_program_does_unchanged ... ok
+test arrows_do_what_the_function_declaration_does ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.82s
+

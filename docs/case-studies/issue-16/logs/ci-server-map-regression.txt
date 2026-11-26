@@ -1,0 +1,17 @@
+▶ comment languages and versions with partial translation
+  ✔ writes comments in another language into a version of a language (915.004422ms)
+  ✔ keeps comment languages and versions in parts that translate (69.728205ms)
+  ✔ passes --comment-language and --comment-from through the partial default (9.17404ms)
+  ✔ translates only the comments of a text whose language is detected (390.540236ms)
+  ✔ refuses a comment language that does not exist before reading (0.822124ms)
+  ✔ reads a version of a language with the rules of the language (15.941848ms)
+  ✔ serves comment languages with detection and rules (167.259934ms)
+✔ comment languages and versions with partial translation (1571.535844ms)
+ℹ tests 7
+ℹ suites 1
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2187.568316

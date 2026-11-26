@@ -1,0 +1,21 @@
+✖ maps every accepted partial fragment back to its original lines (296.945163ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 663.017004
+
+✖ failing tests:
+
+test at node_modules/test-anywhere/src/index.js:174:12
+✖ maps every accepted partial fragment back to its original lines (296.945163ms)
+  Error: Expected {"target":"english","line":1,"mapped":[]} to equal {"target":"english","line":1,"mapped":["Write first plus 2 and end the line."]}
+      at Object.toEqual (file:///tmp/gh-issue-solver-1795726129025/node_modules/test-anywhere/src/index.js:399:15)
+      at TestContext.<anonymous> (file:///tmp/gh-issue-solver-1795726129025/js/tests/semantic-mapping.test.js:37:40)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)

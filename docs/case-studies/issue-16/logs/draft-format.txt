@@ -1,0 +1,15 @@
+examples/universal-app/src/App.js 288ms
+examples/universal-app/src/report-issue.js 16ms
+examples/universal-app/src/line-map.js 57ms
+examples/universal-app/src/styles.css 227ms (unchanged)
+js/src/formal/power.js 11ms
+js/src/formal/parser.js 283ms
+js/src/formal/emitter.js 287ms (unchanged)
+js/src/formal/rules.js 174ms
+js/src/meta/types.js 70ms (unchanged)
+js/src/natural/reader.js 63ms
+js/src/translation/detect.js 32ms
+js/src/translation/layout.js 117ms
+js/tests/issue-16.test.js 14ms
+js/tests/issue-report.test.js 7ms
+js/tests/universal-app-editors.test.js 110ms

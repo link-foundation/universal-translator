@@ -1,0 +1,4 @@
+[issue-16-fb080613587e 4f4a6b5] fix: apply grammatical case without changing expression identity
+ 29 files changed, 426 insertions(+), 36 deletions(-)
+ create mode 100644 js/src/natural/agreement.js
+ create mode 100644 rust/src/natural/agreement.rs

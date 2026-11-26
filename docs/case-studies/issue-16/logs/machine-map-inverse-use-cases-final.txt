@@ -1,0 +1,42 @@
+{"name":"loop","target":"nasm","complete":[true,true],"sameText":true,"missing":[],"direct":"for x in range(2):\n    print(f\"value = {x}\")\n","restored":"for x in range(2):\n    print(f\"value = {x}\")\n"}
+{"name":"loop","target":"gas","complete":[true,true],"sameText":true,"missing":[],"direct":"for x in range(2):\n    print(f\"value = {x}\")\n","restored":"for x in range(2):\n    print(f\"value = {x}\")\n"}
+{"name":"loop","target":"arm64","complete":[true,true],"sameText":true,"missing":[],"direct":"for x in range(2):\n    print(f\"value = {x}\")\n","restored":"for x in range(2):\n    print(f\"value = {x}\")\n"}
+{"name":"loop","target":"cil","complete":[true,true],"sameText":true,"missing":[],"direct":"for x in range(2):\n    print(f\"value = {x}\")\n","restored":"for x in range(2):\n    print(f\"value = {x}\")\n"}
+{"name":"loop","target":"jvm","complete":[true,true],"sameText":true,"missing":[],"direct":"for x in range(2):\n    print(f\"value = {x}\")\n","restored":"for x in range(2):\n    print(f\"value = {x}\")\n"}
+{"name":"loop","target":"llvm","complete":[true,true],"sameText":true,"missing":[],"direct":"for x in range(2):\n    print(f\"value = {x}\")\n","restored":"for x in range(2):\n    print(f\"value = {x}\")\n"}
+{"name":"loop","target":"wat","complete":[true,true],"sameText":true,"missing":[],"direct":"for x in range(2):\n    print(f\"value = {x}\")\n","restored":"for x in range(2):\n    print(f\"value = {x}\")\n"}
+{"name":"counting","target":"nasm","complete":[true,true],"sameText":true,"missing":[],"direct":"for i in range(2):\n    print(i)\n","restored":"for i in range(2):\n    print(i)\n"}
+{"name":"counting","target":"gas","complete":[true,true],"sameText":true,"missing":[],"direct":"for i in range(2):\n    print(i)\n","restored":"for i in range(2):\n    print(i)\n"}
+{"name":"counting","target":"arm64","complete":[true,true],"sameText":true,"missing":[],"direct":"for i in range(2):\n    print(i)\n","restored":"for i in range(2):\n    print(i)\n"}
+{"name":"counting","target":"cil","complete":[true,true],"sameText":true,"missing":[],"direct":"for i in range(2):\n    print(i)\n","restored":"for i in range(2):\n    print(i)\n"}
+{"name":"counting","target":"jvm","complete":[true,true],"sameText":true,"missing":[],"direct":"for i in range(2):\n    print(i)\n","restored":"for i in range(2):\n    print(i)\n"}
+{"name":"counting","target":"llvm","complete":[true,true],"sameText":true,"missing":[],"direct":"for i in range(2):\n    print(i)\n","restored":"for i in range(2):\n    print(i)\n"}
+{"name":"counting","target":"wat","complete":[true,true],"sameText":true,"missing":[],"direct":"for i in range(2):\n    print(i)\n","restored":"for i in range(2):\n    print(i)\n"}
+{"name":"array","target":"nasm","complete":[true,true],"sameText":true,"missing":[],"direct":"values = [1, 2]\nprint(values[1])\n","restored":"values = [1, 2]\nprint(values[1])\n"}
+{"name":"array","target":"gas","complete":[true,true],"sameText":true,"missing":[],"direct":"values = [1, 2]\nprint(values[1])\n","restored":"values = [1, 2]\nprint(values[1])\n"}
+{"name":"array","target":"arm64","complete":[true,true],"sameText":true,"missing":[],"direct":"values = [1, 2]\nprint(values[1])\n","restored":"values = [1, 2]\nprint(values[1])\n"}
+{"name":"array","target":"cil","complete":[true,true],"sameText":true,"missing":[],"direct":"values = [1, 2]\nprint(values[1])\n","restored":"values = [1, 2]\nprint(values[1])\n"}
+{"name":"array","target":"jvm","complete":[true,true],"sameText":true,"missing":[],"direct":"values = [1, 2]\nprint(values[1])\n","restored":"values = [1, 2]\nprint(values[1])\n"}
+{"name":"array","target":"llvm","complete":[true,true],"sameText":true,"missing":[],"direct":"values = [1, 2]\nprint(values[1])\n","restored":"values = [1, 2]\nprint(values[1])\n"}
+{"name":"array","target":"wat","complete":[true,true],"sameText":true,"missing":[],"direct":"values = [1, 2]\nprint(values[1])\n","restored":"values = [1, 2]\nprint(values[1])\n"}
+{"name":"boolean","target":"nasm","complete":[true,true],"sameText":true,"missing":[],"direct":"flag = 2 < 3\nif flag:\n    print(1)\n","restored":"flag = 2 < 3\nif flag:\n    print(1)\n"}
+{"name":"boolean","target":"gas","complete":[true,true],"sameText":true,"missing":[],"direct":"flag = 2 < 3\nif flag:\n    print(1)\n","restored":"flag = 2 < 3\nif flag:\n    print(1)\n"}
+{"name":"boolean","target":"arm64","complete":[true,true],"sameText":true,"missing":[],"direct":"flag = 2 < 3\nif flag:\n    print(1)\n","restored":"flag = 2 < 3\nif flag:\n    print(1)\n"}
+{"name":"boolean","target":"cil","complete":[true,true],"sameText":true,"missing":[],"direct":"flag = 2 < 3\nif flag:\n    print(1)\n","restored":"flag = 2 < 3\nif flag:\n    print(1)\n"}
+{"name":"boolean","target":"jvm","complete":[true,true],"sameText":true,"missing":[],"direct":"flag = 2 < 3\nif flag:\n    print(1)\n","restored":"flag = 2 < 3\nif flag:\n    print(1)\n"}
+{"name":"boolean","target":"llvm","complete":[true,true],"sameText":true,"missing":[],"direct":"flag = 2 < 3\nif flag:\n    print(1)\n","restored":"flag = 2 < 3\nif flag:\n    print(1)\n"}
+{"name":"boolean","target":"wat","complete":[true,true],"sameText":true,"missing":[],"direct":"flag = 2 < 3\nif flag:\n    print(1)\n","restored":"flag = 2 < 3\nif flag:\n    print(1)\n"}
+{"name":"function","target":"nasm","complete":[true,true],"sameText":true,"missing":[],"direct":"def twice(value):\n    return value * 2\nprint(twice(3))\n","restored":"def twice(value):\n    return value * 2\n\nprint(twice(3))\n"}
+{"name":"function","target":"gas","complete":[true,true],"sameText":true,"missing":[],"direct":"def twice(value):\n    return value * 2\nprint(twice(3))\n","restored":"def twice(value):\n    return value * 2\n\nprint(twice(3))\n"}
+{"name":"function","target":"arm64","complete":[true,true],"sameText":true,"missing":[],"direct":"def twice(value):\n    return value * 2\nprint(twice(3))\n","restored":"def twice(value):\n    return value * 2\n\nprint(twice(3))\n"}
+{"name":"function","target":"cil","complete":[true,true],"sameText":true,"missing":[],"direct":"def twice(value):\n    return value * 2\nprint(twice(3))\n","restored":"def twice(value):\n    return value * 2\n\nprint(twice(3))\n"}
+{"name":"function","target":"jvm","complete":[true,true],"sameText":true,"missing":[],"direct":"def twice(value):\n    return value * 2\nprint(twice(3))\n","restored":"def twice(value):\n    return value * 2\n\nprint(twice(3))\n"}
+{"name":"function","target":"llvm","complete":[true,true],"sameText":true,"missing":[],"direct":"def twice(value):\n    return value * 2\nprint(twice(3))\n","restored":"def twice(value):\n    return value * 2\n\nprint(twice(3))\n"}
+{"name":"function","target":"wat","complete":[true,true],"sameText":true,"missing":[],"direct":"def twice(value):\n    return value * 2\nprint(twice(3))\n","restored":"def twice(value):\n    return value * 2\n\nprint(twice(3))\n"}
+{"name":"comment","target":"nasm","complete":[true,true],"sameText":true,"missing":[],"direct":"value = 1\n# Keep this comment\nprint(value)\n","restored":"value = 1\n# Keep this comment\nprint(value)\n"}
+{"name":"comment","target":"gas","complete":[true,true],"sameText":true,"missing":[],"direct":"value = 1\n# Keep this comment\nprint(value)\n","restored":"value = 1\n# Keep this comment\nprint(value)\n"}
+{"name":"comment","target":"arm64","complete":[true,true],"sameText":true,"missing":[],"direct":"value = 1\n# Keep this comment\nprint(value)\n","restored":"value = 1\n# Keep this comment\nprint(value)\n"}
+{"name":"comment","target":"cil","complete":[true,true],"sameText":true,"missing":[],"direct":"value = 1\n# Keep this comment\nprint(value)\n","restored":"value = 1\n# Keep this comment\nprint(value)\n"}
+{"name":"comment","target":"jvm","complete":[true,true],"sameText":true,"missing":[],"direct":"value = 1\n# Keep this comment\nprint(value)\n","restored":"value = 1\n# Keep this comment\nprint(value)\n"}
+{"name":"comment","target":"llvm","complete":[true,true],"sameText":true,"missing":[],"direct":"value = 1\n# Keep this comment\nprint(value)\n","restored":"value = 1\n# Keep this comment\nprint(value)\n"}
+{"name":"comment","target":"wat","complete":[true,true],"sameText":true,"missing":[],"direct":"value = 1\n# Keep this comment\nprint(value)\n","restored":"value = 1\n# Keep this comment\nprint(value)\n"}

@@ -1,0 +1,30 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 22.22s
+     Running rust/tests/machine_dialects.rs (target/debug/deps/machine_dialects-160fe56b3e8e5d5f)
+
+running 11 tests
+test lists_every_dialect_after_the_grammar_languages_flagged_as_machine ... ok
+test labels_the_dialects ... ok
+test refuses_statements_on_their_own_for_the_new_dialects ... ok
+test spells_each_dialect_in_its_own_syntax ... ok
+test reports_code_it_does_not_recognize ... ok
+test decodes_text_that_is_not_plain_ascii ... ok
+test reads_procedures_slots_and_text ... ok
+test writes_every_task_in_every_dialect_as_the_committed_translation ... ok
+test translates_between_every_pair_of_dialects ... ok
+test writes_every_task_again_from_its_own_lifted_program_in_every_dialect ... ok
+test lifts_every_task_from_every_dialect_to_the_program_lifted_from_nasm ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 28.08s
+
+     Running rust/tests/semantic_mapping.rs (target/debug/deps/semantic_mapping-1a812306b2000129)
+
+running 5 tests
+test source_lines_survive_fragment_wrappers_and_split_statements ... ok
+test java_print_maps_to_both_bash_command_and_echo_and_back ... ok
+test the_complete_fibonacci_interpolation_maps_to_call_and_echo ... ok
+test independent_statements_map_to_their_full_expansion_in_every_machine_target ... ok
+test every_controlled_natural_language_maps_statements_in_both_directions ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.93s
+

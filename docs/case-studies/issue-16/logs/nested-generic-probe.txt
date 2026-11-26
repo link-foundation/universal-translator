@@ -1,0 +1,31 @@
+[
+  {
+    "kind": "Function",
+    "name": "lookup",
+    "parameters": [
+      {
+        "name": "users",
+        "type": "source:Map < String , List < UserDto >>"
+      },
+      {
+        "name": "count",
+        "type": "integer"
+      }
+    ],
+    "returnType": "source:Map < String , List < UserDto >>",
+    "body": {
+      "kind": "Block",
+      "statements": [
+        {
+          "kind": "Return",
+          "value": {
+            "kind": "Name",
+            "name": "users",
+            "type": "source:Map < String , List < UserDto >>"
+          }
+        }
+      ]
+    },
+    "comments": []
+  }
+]

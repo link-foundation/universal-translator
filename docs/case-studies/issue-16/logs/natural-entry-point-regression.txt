@@ -1,0 +1,35 @@
+▶ grammatical case in controlled algorithms
+  ✔ reads nominative and accusative constants as the same boolean (38.359846ms)
+  ✔ keeps an inflected comparison operand tied to its declaration (8.387502ms)
+✔ grammatical case in controlled algorithms (48.591536ms)
+▶ everyday English wordings
+  ✔ read like the canonical sentences (7.703245ms)
+  ✔ read each statement (13.552894ms)
+  ✔ are written back in the canonical wording (12.03862ms)
+✔ everyday English wordings (33.895221ms)
+▶ symbols and unmarked headings in English
+  ✔ reads arithmetic written with symbols (3.788725ms)
+  ✔ opens a block after a heading without its colon (2.633351ms)
+  ✔ keeps a sentence without its full stop a statement (2.082914ms)
+✔ symbols and unmarked headings in English (9.311805ms)
+▶ increasing and decreasing a variable
+  ✔ reads English increase, add to, decrease and subtract from (1.667149ms)
+  ✔ is written back as the canonical assignment (0.839225ms)
+✔ increasing and decreasing a variable (2.795444ms)
+▶ everyday Russian wordings
+  ✔ read like the canonical sentences (7.671357ms)
+  ✔ read each statement (1.290656ms)
+  ✔ are detected as Russian that reads (1200.416475ms)
+✔ everyday Russian wordings (1209.733089ms)
+▶ everyday wordings in every natural language
+  ✔ give every language increase and decrease (0.500975ms)
+  ✔ read every wording of a statement as the statement (197.216053ms)
+✔ everyday wordings in every natural language (198.080034ms)
+ℹ tests 15
+ℹ suites 6
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2168.045942

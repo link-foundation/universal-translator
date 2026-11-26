@@ -1,0 +1,9 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 10.36s
+     Running rust/tests/serve.rs (target/debug/deps/serve-9466330408165eec)
+
+running 1 test
+test answers_the_same_bytes_as_the_javascript_server ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 4.58s
+

@@ -1,0 +1,1 @@
+Wrote sources.js, sources-vocabulary.js from 74 files

@@ -1,0 +1,7 @@
+js/src/natural/agreement.js 113ms (unchanged)
+js/src/natural/reader.js 144ms (unchanged)
+js/src/natural/vocabulary.js 64ms (unchanged)
+js/src/natural/writer.js 66ms (unchanged)
+js/tests/comments.test.js 27ms (unchanged)
+js/tests/natural-wordings.test.js 19ms (unchanged)
+.changeset/clear-conditions-and-actions.md 51ms (unchanged)

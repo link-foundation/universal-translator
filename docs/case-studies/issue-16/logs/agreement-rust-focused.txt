@@ -1,0 +1,19 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 18.29s
+     Running rust/tests/natural_wordings.rs (target/debug/deps/natural_wordings-9bd9fe4399994ac7)
+
+running 11 tests
+test gives_every_language_increase_and_decrease ... ok
+test keeps_a_sentence_without_its_full_stop_a_statement ... ok
+test read_like_the_canonical_sentences ... ok
+test opens_a_block_after_a_heading_without_its_colon ... ok
+test read_each_statement ... ok
+test reads_arithmetic_written_with_symbols ... ok
+test reads_english_increase_add_to_decrease_and_subtract_from ... ok
+test are_written_back_in_the_canonical_wording ... ok
+test reads_everyday_russian_wordings ... ok
+test reads_every_wording_of_a_statement_as_the_statement ... ok
+test detects_everyday_russian_as_russian_that_reads ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.45s
+

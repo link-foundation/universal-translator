@@ -1,0 +1,121 @@
+▶ comment language
+  ✔ translates comment words through the shared meanings (670.104912ms)
+  ✔ keeps the gaps and the case of each comment word (5.418351ms)
+  ✔ detects the language of the comments (118.318784ms)
+  ✔ changes only the comments when the code language stays (16.056964ms)
+  ✔ translates comments together with the code (31.565233ms)
+  ✔ takes a translator of its own for the comments (0.480317ms)
+  ✔ is available from the command line (10.287458ms)
+✔ comment language (855.039307ms)
+▶ comments inside indented blocks
+  ✔ keeps a comment that opens an indented block (15.430796ms)
+  ✔ keeps comments that close an indented block (5.413422ms)
+✔ comments inside indented blocks (21.427646ms)
+▶ empty lines around functions
+  ✔ keeps a comment right above a function with that function (14.081116ms)
+  ✔ keeps a comment right above an import as a file comment (6.668213ms)
+  ✔ typescript: keeps functions without an empty line between them (26.620186ms)
+  ✔ python: keeps functions without an empty line between them (4.706394ms)
+  ✔ ruby: keeps functions without an empty line between them (6.976469ms)
+  ✔ lua: keeps functions without an empty line between them (4.451217ms)
+  ✔ php: keeps functions without an empty line between them (5.580754ms)
+  ✔ c: keeps functions without an empty line between them (11.575642ms)
+  ✔ cpp: keeps functions without an empty line between them (4.053855ms)
+  ✔ csharp: keeps functions without an empty line between them (7.613086ms)
+  ✔ java: keeps functions without an empty line between them (13.743596ms)
+  ✔ go: keeps functions without an empty line between them (15.832004ms)
+  ✔ rust: keeps functions without an empty line between them (33.794263ms)
+  ✔ kotlin: keeps functions without an empty line between them (3.727646ms)
+  ✔ swift: keeps functions without an empty line between them (5.077886ms)
+  ✔ perl: keeps functions without an empty line between them (9.76868ms)
+  ✔ dart: keeps functions without an empty line between them (4.353093ms)
+  ✔ scala: keeps functions without an empty line between them (3.983673ms)
+  ✔ julia: keeps functions without an empty line between them (8.117728ms)
+  ✔ r: keeps functions without an empty line between them (4.166385ms)
+  ✔ groovy: keeps functions without an empty line between them (7.094208ms)
+  ✔ objc: keeps functions without an empty line between them (13.782571ms)
+  ✔ nim: keeps functions without an empty line between them (5.548865ms)
+  ✔ d: keeps functions without an empty line between them (7.653943ms)
+  ✔ pascal: keeps functions without an empty line between them (6.083723ms)
+  ✔ fortran: keeps functions without an empty line between them (7.279124ms)
+  ✔ ada: keeps functions without an empty line between them (13.836069ms)
+  ✔ vb: keeps functions without an empty line between them (6.25399ms)
+  ✔ bash: keeps functions without an empty line between them (7.992024ms)
+  ✔ matlab: keeps functions without an empty line between them (5.019116ms)
+  ✔ zig: keeps functions without an empty line between them (10.189024ms)
+  ✔ lean: keeps functions without an empty line between them (5.796466ms)
+  ✔ rocq: keeps functions without an empty line between them (7.204224ms)
+  ✔ gml: keeps functions without an empty line between them (4.030872ms)
+  ✔ reads a lone return 1 back as a number (1.702587ms)
+✔ empty lines around functions (309.458519ms)
+▶ everyday English wordings
+  ✔ read like the canonical sentences (41.473936ms)
+  ✔ read each statement (11.583606ms)
+  ✔ are written back in the canonical wording (17.584815ms)
+✔ everyday English wordings (72.936055ms)
+▶ symbols and unmarked headings in English
+  ✔ reads arithmetic written with symbols (7.806587ms)
+  ✔ opens a block after a heading without its colon (2.445584ms)
+  ✔ keeps a sentence without its full stop a statement (0.80925ms)
+✔ symbols and unmarked headings in English (11.577203ms)
+▶ increasing and decreasing a variable
+  ✔ reads English increase, add to, decrease and subtract from (2.656448ms)
+  ✔ is written back as the canonical assignment (0.644914ms)
+✔ increasing and decreasing a variable (3.694764ms)
+▶ everyday Russian wordings
+  ✔ read like the canonical sentences (11.645582ms)
+  ✔ read each statement (2.704437ms)
+  ✔ are detected as Russian that reads (1213.529595ms)
+✔ everyday Russian wordings (1228.442715ms)
+▶ everyday wordings in every natural language
+  ✔ give every language increase and decrease (0.740081ms)
+  ✔ read every wording of a statement as the statement (164.210954ms)
+✔ everyday wordings in every natural language (165.283294ms)
+▶ controlled natural languages
+  ✔ describes at least 30 natural languages and every named standard (1.766375ms)
+  ✔ lists the 65 semantic primes with English exponents (66.378809ms)
+  ✔ has the semantic primes and a minimal version in every language (1.275089ms)
+  ✔ keeps the rules of every language description (28.349573ms)
+✔ controlled natural languages (99.687476ms)
+▶ every task in every natural language
+  ✖ matches every file under examples/programs/natural (51.954953ms)
+  ✔ reads every text back to the same meaning (12035.845103ms)
+  ✔ keeps the rules of the controlled language in every text (270.680243ms)
+  ✔ translates every text to every programming language (23986.719877ms)
+  ✔ translates programming languages to words through the translator (10.977173ms)
+✖ every task in every natural language (36357.361098ms)
+▶ rule checks catch violations
+  ✔ limits sentence length (ASD-STE100) (0.832894ms)
+  ✔ forbids forms of "to be" (E-Prime) (0.230541ms)
+  ✔ forbids "shall" (plain language) (0.233916ms)
+  ✔ requires an allowed first word (Attempto Controlled English) (0.182801ms)
+  ✔ requires the Gellish relation phrases (1.208946ms)
+  ✔ rejects sentences outside the grammar (0.50933ms)
+✔ rule checks catch violations (3.72924ms)
+▶ command line
+  ✔ lists natural languages and translates words (4.355267ms)
+✔ command line (4.546034ms)
+ℹ tests 73
+ℹ suites 12
+ℹ pass 72
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 38900.241748
+
+✖ failing tests:
+
+test at node_modules/test-anywhere/src/index.js:174:12
+✖ matches every file under examples/programs/natural (51.954953ms)
+  Error: Expected "Примечание: Bubble sort in JavaScript: sort a list of numbers\n\nЕсть числа, это эти вещи (5, 3, 8, 1, 9, 2, 7).\nЕсть количество, это сколько частей в числа.\nДля всех проход от 0 до количество минус 1 минус 1 делать это:\n  Для всех индекс от 0 до количество минус 1 минус проход минус 1 делать это:\n    Если часть индекс из числа больше часть (индекс плюс 1) из числа, сделать это:\n      Есть обмен, это часть индекс из числа.\n      После этого часть индекс из числа будет часть (индекс плюс 1) из числа.\n      После этого часть (индекс плюс 1) из числа будет обмен.\nДля всех позиция от 0 до количество минус 1 делать это:\n  Сказать часть позиция из числа на одной строке.\n" to be "Примечание: Bubble sort in JavaScript: sort a list of numbers\n\nЕсть числа, это эти вещи (5, 3, 8, 1, 9, 2, 7).\nЕсть количество, это сколько частей в числа.\nДля всех проход от 0 до количество минус 1 минус 1 делать это:\n  Для всех индекс от 0 до количество минус 1 минус проход минус 1 делать это:\n    Если часть индекс из числа больше часть (индекса плюс 1) из числы, сделать это:\n      Есть обмен, это часть индекс из числа.\n      После этого часть индекс из числа будет часть (индекс плюс 1) из числа.\n      После этого часть (индекс плюс 1) из числа будет обмен.\nДля всех позиция от 0 до количество минус 1 делать это:\n  Сказать часть позицию из числу на одной строке.\n"
+      at Object.toBe (file:///tmp/gh-issue-solver-1795726129025/node_modules/test-anywhere/src/index.js:391:15)
+      at TestContext.<anonymous> (file:///tmp/gh-issue-solver-1795726129025/js/tests/natural.test.js:146:42)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at node:internal/test_runner/test:1903:71
+      at node:internal/per_context/primordials:505:82
+      at new Promise (<anonymous>)
+      at new SafePromise (node:internal/per_context/primordials:479:3)
+      at node:internal/per_context/primordials:505:9

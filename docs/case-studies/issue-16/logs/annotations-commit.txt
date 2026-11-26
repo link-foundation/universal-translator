@@ -1,0 +1,12 @@
+[issue-16-fb080613587e b150168] fix: retain annotations and application types across translation
+ 24 files changed, 830 insertions(+), 72 deletions(-)
+ create mode 100644 examples/translation/spring/README.md
+ create mode 100644 examples/translation/spring/create-user.java
+ create mode 100644 examples/translation/spring/create-user.py
+ create mode 100644 examples/translation/spring/verify.py
+ create mode 100644 js/src/formal/annotations.js
+ create mode 100644 js/src/formal/type-metadata.js
+ create mode 100644 js/tests/annotations.test.js
+ create mode 100644 rust/src/formal/parser/annotations.rs
+ create mode 100644 rust/src/formal/type_metadata.rs
+ create mode 100644 rust/tests/annotations.rs

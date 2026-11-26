@@ -1,0 +1,10 @@
+js/src/formal/lifting.js 291ms
+js/src/formal/machine-reader-llvm.js 81ms
+js/src/formal/machine-reader-shared.js 24ms
+js/src/formal/machine-reader-wasm.js 39ms (unchanged)
+js/src/formal/machine-reader.js 89ms
+js/src/formal/machine-source.js 18ms
+js/src/translation/source-origins.js 27ms
+js/tests/semantic-mapping.test.js 72ms
+examples/translation/machine-mapping.js 13ms (unchanged)
+experiments/issue-16-machine-origins.mjs 15ms

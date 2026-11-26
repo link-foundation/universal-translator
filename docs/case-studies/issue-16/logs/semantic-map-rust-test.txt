@@ -1,0 +1,26 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 32.01s
+     Running rust/tests/semantic_mapping.rs (target/debug/deps/semantic_mapping-1a812306b2000129)
+
+running 3 tests
+test source_lines_survive_fragment_wrappers_and_split_statements ... ok
+test java_print_maps_to_both_bash_command_and_echo_and_back ... FAILED
+test every_controlled_natural_language_maps_statements_in_both_directions ... ok
+
+failures:
+
+---- java_print_maps_to_both_bash_command_and_echo_and_back stdout ----
+
+thread 'java_print_maps_to_both_bash_command_and_echo_and_back' (26617) panicked at rust/tests/semantic_mapping.rs:40:5:
+assertion `left == right` failed
+  left: [(6, 6)]
+ right: [(5, 6), (6, 6)]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    java_print_maps_to_both_bash_command_and_echo_and_back
+
+test result: FAILED. 2 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.96s
+
+error: test failed, to rerun pass `--test semantic_mapping`

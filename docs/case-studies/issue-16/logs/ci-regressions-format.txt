@@ -1,0 +1,4 @@
+js/src/natural/reader.js 413ms (unchanged)
+js/tests/equivalence.test.js 79ms (unchanged)
+js/tests/translation.test.js 56ms (unchanged)
+js/tests/issue-6-with-8.test.js 55ms

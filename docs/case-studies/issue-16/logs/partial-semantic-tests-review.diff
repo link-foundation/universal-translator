@@ -1,0 +1,132 @@
+diff --git a/js/tests/semantic-mapping.test.js b/js/tests/semantic-mapping.test.js
+index e5b610a..535861a 100644
+--- a/js/tests/semantic-mapping.test.js
++++ b/js/tests/semantic-mapping.test.js
+@@ -16,6 +16,63 @@ const java = `class Main {
+ }
+ `;
+ 
++it('maps every accepted partial fragment back to its original lines', () => {
++  const source = [
++    'const first = 5;',
++    'console.log(first + 2);',
++    'const broken = ;',
++    'const second = 9;',
++    'console.log(second * 3);',
++    '',
++  ].join('\n');
++  for (const target of ['python', 'bash', 'english', 'russian']) {
++    const result = translator.translatePartial(source, 'javascript', target, {
++      layout: 'target',
++    });
++    expect(result.complete).toBe(false);
++    const lines = result.text.split('\n');
++    for (const [line, statement] of [
++      [1, 'console.log(first + 2);'],
++      [4, 'console.log(second * 3);'],
++    ]) {
++      const expected = translator
++        .translateFragment(statement, 'javascript', target)
++        .trim();
++      const mapped =
++        result.lineMap
++          ?.filter(([from]) => from === line)
++          .map(([, to]) => lines[to].trim()) ?? [];
++      expect({ target, line, mapped }).toEqual({
++        target,
++        line,
++        mapped: [expected],
++      });
++    }
++    expect(
++      result.lineMap.some(
++        ([from, to]) => from === 2 && lines[to].includes('const broken = ;')
++      )
++    ).toBe(true);
++  }
++});
++
++it('maps prose that a custom translator splits across output lines', () => {
++  const result = translator.translatePartial(
++    'Fly to the moon.\n',
++    'english',
++    'russian',
++    {
++      translateComment: () => 'Первая строка.\nВторая строка.\n',
++    }
++  );
++  expect(result.complete).toBe(true);
++  expect(result.prose).toEqual([{ line: 1, endLine: 1 }]);
++  expect(result.lineMap).toEqual([
++    [0, 0],
++    [0, 1],
++  ]);
++});
++
+ it('maps independent statements to their full expansion in every machine target', () => {
+   const source = 'const value = 5;\nconsole.log(value + 2);\n';
+   for (const target of machineTargetIds) {
+diff --git a/rust/tests/semantic_mapping.rs b/rust/tests/semantic_mapping.rs
+index f79fd38..a49903c 100644
+--- a/rust/tests/semantic_mapping.rs
++++ b/rust/tests/semantic_mapping.rs
+@@ -9,6 +9,59 @@ fn options() -> Options {
+     }
+ }
+ 
++#[test]
++fn partial_fragments_and_untranslated_notes_keep_their_original_lines() {
++    let source = "const first = 5;\nconsole.log(first + 2);\nconst broken = ;\nconst second = 9;\nconsole.log(second * 3);\n";
++    let translator = Translator::new();
++    for target in ["python", "bash", "english", "russian"] {
++        let result = translator
++            .translate_partial(source, "javascript", target, options(), false)
++            .unwrap();
++        assert!(!result.complete, "{target}");
++        let lines: Vec<_> = result.text.lines().collect();
++        for (line, statement) in [
++            (1, "console.log(first + 2);"),
++            (4, "console.log(second * 3);"),
++        ] {
++            let expected = translator
++                .translate_fragment(statement, "javascript", target, Options::default())
++                .unwrap();
++            let mapped: Vec<_> = result
++                .line_map
++                .iter()
++                .filter(|(from, _)| *from == line)
++                .map(|(_, to)| lines[*to].trim())
++                .collect();
++            assert_eq!(mapped, [expected.trim()], "{target}: {line}");
++        }
++        assert!(
++            result
++                .line_map
++                .iter()
++                .any(|(from, to)| *from == 2 && lines[*to].contains("const broken = ;")),
++            "{target}"
++        );
++    }
++}
++
++#[test]
++fn split_prose_retains_its_source_region() {
++    let translator = Translator::new()
++        .with_comment_translator(|_, _, _| Ok("Первая строка.\nВторая строка.\n".to_owned()));
++    let result = translator
++        .translate_partial(
++            "Fly to the moon.\n",
++            "english",
++            "russian",
++            Options::default(),
++            false,
++        )
++        .unwrap();
++    assert!(result.complete);
++    assert_eq!(result.prose, [(1, 1)]);
++    assert_eq!(result.line_map, [(0, 0), (0, 1)]);
++}
++
+ #[test]
+ fn independent_statements_map_to_their_full_expansion_in_every_machine_target() {
+     let source = "const value = 5;\nconsole.log(value + 2);\n";

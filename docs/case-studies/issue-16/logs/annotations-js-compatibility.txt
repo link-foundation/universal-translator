@@ -1,0 +1,28 @@
+▶ arrow functions
+  ✔ read as the Function a function declaration reads as (417.473072ms)
+  ✔ read with two parameters and statements before the result (4.891465ms)
+  ✔ translate to Python as the function declaration does (11.982466ms)
+  ✔ are written back as function declarations (2.300062ms)
+  ✔ leave other arrows and declarations to the expression reader (1.658194ms)
+  ✔ do what the function declaration does (30.735735ms)
+✔ arrow functions (471.952718ms)
+▶ Python type hints
+  ✔ give the meta types of parameters, results and assignments (3.278878ms)
+  ✔ map str, bool and list[int] and leave the others to inference (2.594711ms)
+  ✔ read a hint without a value as nothing to do (1.212784ms)
+  ✔ translate as the unhinted program does (29.294877ms)
+  ✔ leave what the program does unchanged (5.956534ms)
+✔ Python type hints (43.249502ms)
+▶ member calls on computed receivers
+  ✔ keeps the receiver before a member call (317.303344ms)
+  ✔ continues Java fluent calls on the next line (6.697336ms)
+  ✔ reads multiline calls back to the same expression (23.690259ms)
+✔ member calls on computed receivers (349.938221ms)
+ℹ tests 14
+ℹ suites 3
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1140.748472

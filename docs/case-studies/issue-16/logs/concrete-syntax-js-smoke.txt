@@ -1,0 +1,89 @@
+▶ declaration annotations and named types
+  ✔ keeps Spring annotations separate from names and types (645.164501ms)
+  ✔ writes annotations and fluent calls to Python and reads them back (80.401884ms)
+  ✔ balances nested generic commas and empty multiline parameter lists (6.79393ms)
+  ✔ preserves annotation arguments as expressions (6.729631ms)
+  ✔ requires an explicit mapping for targets without annotation syntax (18.242662ms)
+✔ declaration annotations and named types (765.160315ms)
+▶ typed exception handling
+  ✔ distinguishes a try body, typed handler and throw value (437.064287ms)
+  ✔ executes the issue example with the same exit status (518.901648ms)
+  ✔ detects the source as C++ after a complete parse (1636.675043ms)
+  ✔ matches the thrown type and skips mismatched handlers (414.583592ms)
+  ✔ preserves a catch-all and nested rethrow (442.135173ms)
+  ✔ preserves user bindings around runtime carriers (383.182611ms)
+  ✔ retains finally execution when a function returns (543.153486ms)
+  ✔ writes typed exception statements as fragments (34.087581ms)
+✔ typed exception handling (4413.897924ms)
+▶ grammar translator: the issue example
+  ✔ adapts comments to the target language by default (737.956991ms)
+  ✔ keeps comments word for word in literal mode (81.539244ms)
+  ✔ keeps only the behaviour in same-effect mode (10.172421ms)
+  ✔ rejects unknown modes and languages (10.034504ms)
+✔ grammar translator: the issue example (842.949597ms)
+▶ grammar translator: meaning is preserved
+  ✔ ackermann-function.js returns to the same meta program from every language (611.303081ms)
+  ✔ bubble-sort.js returns to the same meta program from every language (700.057892ms)
+  ✔ factorial.js returns to the same meta program from every language (269.804458ms)
+  ✔ fibonacci-sequence.js returns to the same meta program from every language (297.415961ms)
+  ✔ fizz-buzz.js returns to the same meta program from every language (287.177939ms)
+  ✔ greatest-common-divisor.js returns to the same meta program from every language (204.357343ms)
+  ✔ greatest-element-of-a-list.js returns to the same meta program from every language (224.578825ms)
+  ✔ hailstone-sequence.js returns to the same meta program from every language (335.902777ms)
+  ✔ hello-world.js returns to the same meta program from every language (64.713327ms)
+  ✔ leap-year.js returns to the same meta program from every language (271.689934ms)
+  ✔ linear-search.js returns to the same meta program from every language (342.331346ms)
+  ✔ loops-foreach.js returns to the same meta program from every language (146.115436ms)
+  ✔ mutual-recursion.js returns to the same meta program from every language (256.042282ms)
+  ✔ ninety-nine-bottles.js returns to the same meta program from every language (187.084309ms)
+  ✔ perfect-numbers.js returns to the same meta program from every language (351.240872ms)
+  ✔ primality-by-trial-division.js returns to the same meta program from every language (255.234956ms)
+  ✔ sieve-of-eratosthenes.js returns to the same meta program from every language (266.008599ms)
+  ✔ sum-and-product-of-an-array.js returns to the same meta program from every language (190.963394ms)
+  ✔ sum-digits-of-an-integer.js returns to the same meta program from every language (167.380314ms)
+  ✔ sum-multiples-of-3-and-5.js returns to the same meta program from every language (148.584211ms)
+  ✔ sum-of-squares.js returns to the same meta program from every language (200.995773ms)
+  ✔ towers-of-hanoi.js returns to the same meta program from every language (295.91914ms)
+  ✔ hand-written hand-written/factorial.rs means the same as the JavaScript program (15.594773ms)
+  ✔ hand-written hand-written/fizz-buzz.pl means the same as the JavaScript program (8.064419ms)
+  ✔ hand-written hand-written/fizz-buzz.rb means the same as the JavaScript program (7.296438ms)
+  ✔ hand-written hand-written/greatest-common-divisor.py means the same as the JavaScript program (6.968155ms)
+  ✔ hand-written hand-written/hello-world.c means the same as the JavaScript program (4.853851ms)
+  ✔ hand-written hand-written/hello-world.cs means the same as the JavaScript program (4.837011ms)
+  ✔ hand-written hand-written/sum-of-squares.go means the same as the JavaScript program (22.335194ms)
+  ✔ hand-written hand-written/sum-of-squares.jl means the same as the JavaScript program (14.357385ms)
+✔ grammar translator: meaning is preserved (6165.550696ms)
+▶ grammar translator: target conventions
+  ✔ spells declared names in each language convention (28.137795ms)
+  ✔ copies reassigned parameters where parameters are immutable (41.585605ms)
+  ✔ writes compound assignment only where the language has it (16.261647ms)
+  ✔ turns text concatenation into each language interpolation (16.078646ms)
+  ✔ escapes backslashes before braces in Lean interpolated text (2.279061ms)
+✔ grammar translator: target conventions (105.406405ms)
+▶ grammar translator: replaceable rule layers
+  ✔ applies custom meta to meta layers before the context rules (4.212566ms)
+  ✔ lets callers remove or decorate a rule (3.874105ms)
+  ✔ reports every stage through the trace hook (3.83956ms)
+  ✔ explains syntax errors with the line number (0.689606ms)
+✔ grammar translator: replaceable rule layers (13.216859ms)
+▶ shared golden translations
+  ✔ matches every file under examples/programs/translated (4488.805319ms)
+✔ shared golden translations (4489.205596ms)
+▶ machine targets
+  ✔ adapts comments and spells names for assembly, CIL and JVM (26.115574ms)
+  ✔ short-circuits conditions with jumps (5.736077ms)
+  ✔ refuses programs it cannot lower (1.215327ms)
+✔ machine targets (33.591205ms)
+▶ grammar translator: library spellings and names
+  ✔ reads integer division written by the JavaScript and PHP emitters (2.227976ms)
+  ✔ writes integer division in JavaScript, TypeScript and PHP (3.102665ms)
+  ✔ treats names inherited by JavaScript objects as ordinary names (1.355909ms)
+✔ grammar translator: library spellings and names (7.023448ms)
+ℹ tests 63
+ℹ suites 9
+ℹ pass 63
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 12387.36192

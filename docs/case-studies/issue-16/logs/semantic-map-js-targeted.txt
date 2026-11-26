@@ -1,0 +1,75 @@
+▶ decorating the stages of the pipeline
+  ✔ runs a decorator that traces the calls of a stage (586.655152ms)
+  ✔ rewrites the output of the emitter (23.127368ms)
+  ✔ rewrites the input of the parser (11.868602ms)
+  ✔ composes the decorators of one stage in order, the last outermost (22.513925ms)
+  ✔ adds decorators with decorate() without changing the translator (14.995464ms)
+  ✔ keeps the decorators when the rules change (10.694714ms)
+✔ decorating the stages of the pipeline (676.520385ms)
+▶ decorating the other stages
+  ✔ wraps the readers and the writer of words (27.12301ms)
+  ✔ wraps the machine code reader, lifting and emitter (17.576667ms)
+  ✔ wraps a replacement of a stage (2.846979ms)
+  ✔ rejects unknown stages and decorators that are not functions (2.68667ms)
+✔ decorating the other stages (53.754573ms)
+▶ fragment kinds
+  ✔ reads a whole program, functions or statements (13.115047ms)
+  ✔ keeps a whole program with its main function (4.946315ms)
+  ✔ writes statements and functions without a main or a class (7.021433ms)
+  ✔ is a method of the translator as well (11.771122ms)
+✔ fragment kinds (44.623536ms)
+▶ fragments in every language
+  ✔ match the shared goldens under examples/programs/fragments (12.339651ms)
+  ✔ read every golden back into the same JavaScript fragment (1271.397441ms)
+  ✔ cover every grammar language (0.550256ms)
+  ✔ end every Rocq function group with its period (4.456501ms)
+✔ fragments in every language (1289.663695ms)
+▶ incomplete fragments
+  ✔ fail with the reason and the line (15.908607ms)
+✔ incomplete fragments (16.885879ms)
+▶ fragments in natural languages and machine code
+  ✔ reads and writes a sentence as a statement (14.828111ms)
+  ✔ rejects statements and functions for machine targets (6.024174ms)
+✔ fragments in natural languages and machine code (21.271749ms)
+▶ fragments on the command line
+  ✔ translates a statement with --fragment (11.008589ms)
+✔ fragments on the command line (11.302067ms)
+▶ fragments that use an array they do not declare
+  ✔ reads the length of an indexed array in every language (42.485018ms)
+✔ fragments that use an array they do not declare (42.716319ms)
+▶ layout of the source (issue 14)
+  ✔ keeps the blank lines and the spaces of the issue example (631.771617ms)
+  ✔ keeps the blank line after a leading comment of a fragment (7.641601ms)
+  ✔ writes the layout of the target on request (4.438938ms)
+  ✔ matches every example under examples/layout (231.846074ms)
+  ✔ cuts operators, strings, comments and names into tokens (1.044167ms)
+  ✔ aligns unique tokens first and the rest between them (1.430757ms)
+  ✔ never joins a name and a string or a name and its call (6.857439ms)
+  ✔ leaves strings that span lines and space sensitive targets alone (1.22239ms)
+  ✔ keeps Windows line ends and the blank lines at the end (1.982867ms)
+  ✔ indents in the steps of the source (1.471584ms)
+  ✔ maps lines only when the source has no code (1.720047ms)
+✔ layout of the source (issue 14) (895.717953ms)
+▶ lines of the layout
+  ✔ maps each closing brace to the brace that closes its own block (0.640083ms)
+✔ lines of the layout (0.899759ms)
+▶ semantic many-to-many line mapping
+  ✔ maps a Java print to both the Bash command and its echo, and back (784.164463ms)
+  ✔ maps translated sentences in every controlled natural language in both directions (576.937471ms)
+  ✔ preserves origin metadata through output style and fragment wrappers (11.537726ms)
+  ✔ restores the capture context after failure and reentrant translations (12.486645ms)
+✔ semantic many-to-many line mapping (1388.310864ms)
+▶ brace placement and indent width
+  ✔ puts each opening brace of C# on a line of its own (612.294245ms)
+  ✔ indents JavaScript by two spaces and Rust by a tab (21.428711ms)
+  ✔ indents blocks without braces and leaves their lines alone (7.308238ms)
+  ✔ rejects styles a language cannot be written in (5.86616ms)
+✔ brace placement and indent width (649.614962ms)
+ℹ tests 43
+ℹ suites 12
+ℹ pass 43
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3891.615584

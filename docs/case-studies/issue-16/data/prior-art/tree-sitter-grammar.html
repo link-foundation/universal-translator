@@ -1,0 +1,416 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>The Grammar DSL - Tree-sitter</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="shortcut icon" href="../favicon-d87102d5.png">
+        <link rel="stylesheet" href="../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../css/general-e96d0476.css">
+        <link rel="stylesheet" href="../css/chrome-d279d366.css">
+        <link rel="stylesheet" href="../css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../src/assets/css/playground-72ff3079.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex-3c72a699.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc-f960aa8e.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Tree-sitter</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/tree-sitter/tree-sitter" title="Git repository" aria-label="Git repository">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/tree-sitter/tree-sitter/edit/master/docs/src/creating-parsers/2-the-grammar-dsl.md" title="Suggest an edit" aria-label="Suggest an edit" rel="edit">
+                            <span class=fa-svg id="git-edit-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M421.7 220.3l-11.3 11.3-22.6 22.6-205 205c-6.6 6.6-14.8 11.5-23.8 14.1L30.8 511c-8.4 2.5-17.5 .2-23.7-6.1S-1.5 489.7 1 481.2L38.7 353.1c2.6-9 7.5-17.2 14.1-23.8l205-205 22.6-22.6 11.3-11.3 33.9 33.9 62.1 62.1 33.9 33.9zM96 353.9l-9.3 9.3c-.9 .9-1.6 2.1-2 3.4l-25.3 86 86-25.3c1.3-.4 2.5-1.1 3.4-2l9.3-9.3H112c-8.8 0-16-7.2-16-16V353.9zM453.3 19.3l39.4 39.4c25 25 25 65.5 0 90.5l-14.5 14.5-22.6 22.6-11.3 11.3-33.9-33.9-62.1-62.1L314.3 67.7l11.3-11.3 22.6-22.6 14.5-14.5c25-25 65.5-25 90.5 0z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <h1 id="the-grammar-dsl"><a class="header" href="#the-grammar-dsl">The Grammar DSL</a></h1>
+<p>The following is a complete list of built-in functions you can use in your <code>grammar.js</code> to define rules. Use-cases for some
+of these functions will be explained in more detail in later sections.</p>
+<ul>
+<li>
+<p><strong>Symbols (the <code>$</code> object)</strong> — Every grammar rule is written as a JavaScript function that takes a parameter conventionally
+called <code>$</code>. The syntax <code>$.identifier</code> is how you refer to another grammar symbol within a rule. Names starting with <code>$.MISSING</code>
+or <code>$.UNEXPECTED</code> should be avoided as they have special meaning for the <code>tree-sitter test</code> command.</p>
+</li>
+<li>
+<p><strong>String and Regex literals</strong> — The terminal symbols in a grammar are described using JavaScript strings and regular
+expressions. Of course during parsing, Tree-sitter does not actually use JavaScript’s regex engine to evaluate these regexes;
+it generates its own regex-matching logic based on the Rust regex syntax as part of each parser. Regex literals are just
+used as a convenient way of writing regular expressions in your grammar. You can use Rust regular expressions in your grammar
+DSL through the <code>RustRegex</code> class. Simply pass your regex pattern as a string:</p>
+<pre><code class="language-js">new RustRegex('(?i)[a-z_][a-z0-9_]*') // matches a simple identifier
+</code></pre>
+<p>Unlike JavaScript’s builtin <code>RegExp</code> class, which takes a pattern and flags as separate arguments, <code>RustRegex</code> only
+accepts a single pattern string. While it doesn’t support separate flags, you can use inline flags within the pattern
+itself. For more details about Rust’s regex syntax and capabilities, check out the <a href="https://docs.rs/regex/1.1.8/regex/#grouping-and-flags">Rust regex documentation</a>.</p>
+<blockquote class="blockquote-tag blockquote-tag-note">
+<p class="blockquote-tag-title"><svg viewbox="0 0 16 16" width="18" height="18"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>Note</p>
+<p>Only a subset of the Regex engine is actually supported. This is due to certain features like lookahead and lookaround
+assertions not being feasible to use in an LR(1) grammar, as well as certain flags being unnecessary for tree-sitter. However,
+plenty of features are supported by default:</p>
+<ul>
+<li>Character classes</li>
+<li>Character ranges</li>
+<li>Character sets</li>
+<li>Quantifiers</li>
+<li>Alternation</li>
+<li>Grouping</li>
+<li>Unicode character escapes</li>
+<li>Unicode property escapes</li>
+</ul>
+</blockquote>
+</li>
+<li>
+<p><strong>Sequences : <code>seq(rule1, rule2, ...)</code></strong> — This function creates a rule that matches any number of other rules, one after
+another. It is analogous to simply writing multiple symbols next to each other in <a href="https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form">EBNF notation</a>.</p>
+</li>
+<li>
+<p><strong>Alternatives : <code>choice(rule1, rule2, ...)</code></strong> — This function creates a rule that matches <em>one</em> of a set of possible
+rules. The order of the arguments does not matter. This is analogous to the <code>|</code> (pipe) operator in EBNF notation.</p>
+</li>
+<li>
+<p><strong>Repetitions : <code>repeat(rule)</code></strong> — This function creates a rule that matches <em>zero-or-more</em> occurrences of a given rule.
+It is analogous to the <code>{x}</code> (curly brace) syntax in EBNF notation.</p>
+</li>
+<li>
+<p><strong>Repetitions : <code>repeat1(rule)</code></strong> — This function creates a rule that matches <em>one-or-more</em> occurrences of a given rule.
+The previous <code>repeat</code> rule is implemented in <code>repeat1</code> but is included because it is very commonly used.</p>
+</li>
+<li>
+<p><strong>Options : <code>optional(rule)</code></strong> — This function creates a rule that matches <em>zero or one</em> occurrence of a given rule.
+It is analogous to the <code>[x]</code> (square bracket) syntax in EBNF notation.</p>
+</li>
+<li>
+<p><strong>Precedence : <code>prec(number, rule)</code></strong> — This function marks the given rule with a numerical precedence, which will be
+used to resolve <a href="https://en.wikipedia.org/wiki/LR_parser#Conflicts_in_the_constructed_tables"><em>LR(1) Conflicts</em></a> at parser-generation time. When two rules overlap in a way that represents
+either a true ambiguity or a <em>local</em> ambiguity given one token of lookahead, Tree-sitter will try to resolve the conflict
+by matching the rule with the higher precedence. The default precedence of all rules is zero. This works similarly to the
+<a href="https://docs.oracle.com/cd/E19504-01/802-5880/6i9k05dh3/index.html">precedence directives</a> in Yacc grammars.</p>
+<p>This function can also be used to assign lexical precedence to a given
+token, but it must be wrapped in a <code>token</code> call, such as <code>token(prec(1, 'foo'))</code>. This reads as “the token <code>foo</code> has a
+lexical precedence of 1”. The purpose of lexical precedence is to solve the issue where multiple tokens can match the same
+set of characters, but one token should be preferred over the other. See <a href="./3-writing-the-grammar.html#lexical-precedence-vs-parse-precedence">Lexical Precedence vs Parse Precedence</a>
+for a more detailed explanation.</p>
+</li>
+<li>
+<p><strong>Left Associativity : <code>prec.left([number], rule)</code></strong> — This function marks the given rule as left-associative (and optionally
+applies a numerical precedence). When an LR(1) conflict arises in which all the rules have the same numerical precedence,
+Tree-sitter will consult the rules’ associativity. If there is a left-associative rule, Tree-sitter will prefer matching
+a rule that ends <em>earlier</em>. This works similarly to <a href="https://docs.oracle.com/cd/E19504-01/802-5880/6i9k05dh3/index.html">associativity directives</a> in Yacc grammars.</p>
+</li>
+<li>
+<p><strong>Right Associativity : <code>prec.right([number], rule)</code></strong> — This function is like <code>prec.left</code>, but it instructs Tree-sitter
+to prefer matching a rule that ends <em>later</em>.</p>
+</li>
+<li>
+<p><strong>Dynamic Precedence : <code>prec.dynamic(number, rule)</code></strong> — This function is similar to <code>prec</code>, but the given numerical precedence
+is applied at <em>runtime</em> instead of at parser generation time. This is only necessary when handling a conflict dynamically
+using the <code>conflicts</code> field in the grammar, and when there is a genuine <em>ambiguity</em>: multiple rules correctly match a given
+piece of code. In that event, Tree-sitter compares the total dynamic precedence associated with each rule, and selects the
+one with the highest total. This is similar to <a href="https://www.gnu.org/software/bison/manual/html_node/Generalized-LR-Parsing.html">dynamic precedence directives</a> in Bison grammars.</p>
+</li>
+<li>
+<p><strong>Tokens : <code>token(rule)</code></strong> — This function marks the given rule as producing only
+a single token. Tree-sitter’s default is to treat each String or RegExp literal
+in the grammar as a separate token. Each token is matched separately by the lexer
+and returned as its own leaf node in the tree. The <code>token</code> function allows you to
+express a complex rule using the functions described above (rather than as a single
+regular expression) but still have Tree-sitter treat it as a single token.
+The token function will only accept terminal rules, so <code>token($.foo)</code> will not work.
+You can think of it as a shortcut for squashing complex rules of strings or regexes
+down to a single token.</p>
+</li>
+<li>
+<p><strong>Immediate Tokens : <code>token.immediate(rule)</code></strong> — Usually, whitespace (and any other extras, such as comments) is optional
+before each token. This function means that the token will only match if there is no whitespace.</p>
+</li>
+<li>
+<p><strong>Aliases : <code>alias(rule, name)</code></strong> — This function causes the given rule to <em>appear</em> with an alternative name in the syntax
+tree. If <code>name</code> is a <em>symbol</em>, as in <code>alias($.foo, $.bar)</code>, then the aliased rule will <em>appear</em> as a <a href="../using-parsers/2-basic-parsing.html#named-vs-anonymous-nodes">named node</a>
+called <code>bar</code>. And if <code>name</code> is a <em>string literal</em>, as in <code>alias($.foo, 'bar')</code>, then the aliased rule will appear as an
+<a href="../using-parsers/2-basic-parsing.html#named-vs-anonymous-nodes">anonymous node</a>, as if the rule had been written as the simple string.</p>
+</li>
+<li>
+<p><strong>Field Names : <code>field(name, rule)</code></strong> — This function assigns a <em>field name</em> to the child node(s) matched by the given
+rule. In the resulting syntax tree, you can then use that field name to access specific children.</p>
+</li>
+<li>
+<p><strong>Reserved Keywords : <code>reserved(wordset, rule)</code></strong>  — This function will override the global reserved word set with the
+one passed into the <code>wordset</code> parameter. This is useful for contextual keywords, such as <code>if</code> in JavaScript, which cannot
+be used as a variable name in most contexts, but can be used as a property name.</p>
+</li>
+<li>
+<p><strong>End of Input : <code>eof()</code></strong> — This function creates a rule that matches the end of the input, without consuming any
+characters. It may only appear as the final symbol of a rule, and is useful when a rule should match either an explicit
+terminator (such as a newline) or the end of the file. Choice branches where other symbols follow <code>eof()</code> can never
+match, so they are dropped, and <code>eof()</code> is not allowed inside <code>token()</code>.</p>
+</li>
+</ul>
+<p>In addition to the <code>name</code> and <code>rules</code> fields, grammars have a few other optional public fields that influence the behavior
+of the parser. Each of these fields is a function that accepts the grammar object (<code>$</code>) as its only parameter, like the
+grammar rules themselves. These fields are:</p>
+<ul>
+<li>
+<p><strong><code>extras</code></strong> — an array of tokens that may appear <em>anywhere</em> in the language. This is often used for whitespace and
+comments. The default value of <code>extras</code> is to accept whitespace. To control whitespace explicitly, specify
+<code>extras: $ =&gt; []</code> in your grammar. See the section on <a href="./3-writing-the-grammar.html#using-extras">using extras</a> for more details.</p>
+</li>
+<li>
+<p><strong><code>inline</code></strong> — an array of rule names that should be automatically <em>removed</em> from the grammar by replacing all of their
+usages with a copy of their definition. This is useful for rules that are used in multiple places but for which you <em>don’t</em>
+want to create syntax tree nodes at runtime.</p>
+</li>
+<li>
+<p><strong><code>conflicts</code></strong> — an array of arrays of rule names. Each inner array represents a set of rules that’s involved in an
+<em>LR(1) conflict</em> that is <em>intended to exist</em> in the grammar. When these conflicts occur at runtime, Tree-sitter will use
+the GLR algorithm to explore all the possible interpretations. If <em>multiple</em> parses end up succeeding, Tree-sitter will
+pick the subtree whose corresponding rule has the highest total <em>dynamic precedence</em>.</p>
+</li>
+<li>
+<p><strong><code>externals</code></strong> — an array of token names which can be returned by an
+<a href="./4-external-scanners.html"><em>external scanner</em></a>. External scanners allow you to write custom C code which runs during the lexing
+process to handle lexical rules (e.g. Python’s indentation tokens) that cannot be described by regular expressions.</p>
+</li>
+<li>
+<p><strong><code>precedences</code></strong> — an array of arrays of strings, where each array of strings defines named precedence levels in descending
+order. These names can be used in the <code>prec</code> functions to define precedence relative only to other names in the array, rather
+than globally. Can only be used with parse precedence, not lexical precedence.</p>
+</li>
+<li>
+<p><strong><code>word</code></strong> — the name of a token that will match keywords to the
+<a href="./3-writing-the-grammar.html#keyword-extraction">keyword extraction</a> optimization.</p>
+</li>
+<li>
+<p><strong><code>supertypes</code></strong> — an array of rule names which should be considered to be ‘supertypes’ in the generated
+<a href="../using-parsers/6-static-node-types.html#supertype-nodes"><em>node types</em> file</a>. Supertype rules are automatically hidden from the parse tree, regardless
+of whether their names start with an underscore. The main use case for supertypes is to group together multiple different
+kinds of nodes under a single abstract category, such as “expression” or “declaration”. See the section on <a href="./3-writing-the-grammar.html#using-supertypes"><code>using supertypes</code></a>
+for more details.</p>
+</li>
+<li>
+<p><strong><code>reserved</code></strong> — similar in structure to the main <code>rules</code> property, an object of reserved word sets associated with an
+array of reserved rules. The reserved rule in the array must be a terminal token meaning it must be a string, regex, token,
+or terminal rule. The reserved rule must also exist and be used in the grammar, specifying arbitrary tokens will not work.
+The <em>first</em> reserved word set in the object is the global word set, meaning it applies to every rule in every parse state.
+However, certain keywords are contextual, depending on the rule. For example, in JavaScript, keywords are typically not
+allowed as ordinary variables, however, they <em>can</em> be used as a property name. In this situation, the <code>reserved</code> function
+would be used, and the word set to pass in would be the name of the word set that is declared in the <code>reserved</code> object that
+corresponds to an empty array, signifying <em>no</em> keywords are reserved.</p>
+</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../creating-parsers/1-getting-started.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="../creating-parsers/3-writing-the-grammar.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../creating-parsers/1-getting-started.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="../creating-parsers/3-writing-the-grammar.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../mark-09e88c2c.min.js"></script>
+        <script src="../searcher-09f2665d.js"></script>
+
+        <script src="../clipboard-1626706a.min.js"></script>
+        <script src="../highlight-abc7f01d.js"></script>
+        <script src="../book-609e4cb8.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../src/assets/js/playground-f85b9c46.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

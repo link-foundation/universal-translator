@@ -1,0 +1,59 @@
+▶ issue 16 regression cases
+  ✔ reads an isolated natural-language name and ranks English first on a tie (1556.639731ms)
+  ✔ keeps the complete exponentiation inside an interpolation (6.460625ms)
+  ✔ associates powers right and preserves a grouped left operand (11.291042ms)
+  ✔ requires every interpolation token to be read (1.274998ms)
+  ✔ keeps the blank line after a comment whose language changes (20.724891ms)
+  ✔ declares an array mutable in Rust when its JavaScript binding is const (9.264513ms)
+✔ issue 16 regression cases (1608.553502ms)
+▶ layout of the source (issue 14)
+  ✔ keeps the blank lines and the spaces of the issue example (427.161969ms)
+  ✔ keeps the blank line after a leading comment of a fragment (8.721662ms)
+  ✔ writes the layout of the target on request (5.864514ms)
+  ✔ matches every example under examples/layout (289.611731ms)
+  ✔ cuts operators, strings, comments and names into tokens (0.902172ms)
+  ✔ aligns unique tokens first and the rest between them (0.881363ms)
+  ✔ never joins a name and a string or a name and its call (1.667981ms)
+  ✔ leaves strings that span lines and space sensitive targets alone (0.886001ms)
+  ✔ keeps Windows line ends and the blank lines at the end (1.199978ms)
+  ✔ indents in the steps of the source (1.062201ms)
+  ✔ maps lines only when the source has no code (1.347983ms)
+✔ layout of the source (issue 14) (742.862291ms)
+▶ lines of the layout
+  ✔ maps each closing brace to the brace that closes its own block (0.613473ms)
+✔ lines of the layout (0.798067ms)
+▶ grammatical case in controlled algorithms
+  ✔ reads nominative and accusative constants as the same boolean (93.033168ms)
+  ✔ keeps an inflected comparison operand tied to its declaration (31.788128ms)
+✔ grammatical case in controlled algorithms (129.081138ms)
+▶ everyday English wordings
+  ✔ read like the canonical sentences (13.055752ms)
+  ✔ read each statement (24.793177ms)
+  ✔ are written back in the canonical wording (22.577585ms)
+✔ everyday English wordings (61.111029ms)
+▶ symbols and unmarked headings in English
+  ✔ reads arithmetic written with symbols (4.911719ms)
+  ✔ opens a block after a heading without its colon (6.423607ms)
+  ✔ keeps a sentence without its full stop a statement (2.181256ms)
+✔ symbols and unmarked headings in English (14.50267ms)
+▶ increasing and decreasing a variable
+  ✔ reads English increase, add to, decrease and subtract from (3.559977ms)
+  ✔ is written back as the canonical assignment (1.403496ms)
+✔ increasing and decreasing a variable (5.394588ms)
+▶ everyday Russian wordings
+  ✔ read like the canonical sentences (12.144683ms)
+  ✔ read each statement (5.149912ms)
+  ✔ are detected as Russian that reads (1402.205786ms)
+✔ everyday Russian wordings (1420.044896ms)
+▶ everyday wordings in every natural language
+  ✔ give every language increase and decrease (0.945133ms)
+  ✔ read every wording of a statement as the statement (211.12169ms)
+✔ everyday wordings in every natural language (212.432884ms)
+ℹ tests 33
+ℹ suites 9
+ℹ pass 33
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2767.365387

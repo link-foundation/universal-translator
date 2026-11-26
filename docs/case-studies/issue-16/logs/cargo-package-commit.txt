@@ -1,0 +1,2 @@
+[issue-16-fb080613587e 9702226] fix: include translation regression fixtures in Rust packages
+ 1 file changed, 1 insertion(+), 4 deletions(-)

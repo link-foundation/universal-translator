@@ -1,0 +1,55 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 17.65s
+     Running rust/tests/fragments.rs (target/debug/deps/fragments-d1408dc514edba73)
+
+running 9 tests
+test incomplete_fragments_fail_with_the_reason_and_the_line ... ok
+test reads_and_writes_a_sentence_as_a_statement ... ok
+test keeps_a_whole_program_with_its_main_function ... ok
+test rejects_statements_and_functions_for_machine_targets ... ok
+test reads_a_whole_program_functions_or_statements ... ok
+test writes_statements_and_functions_without_a_main_or_a_class ... ok
+test reads_the_length_of_an_array_the_fragment_only_indexes ... ok
+test ends_every_rocq_function_group_with_its_period ... ok
+test matches_the_shared_goldens_and_reads_them_back ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.42s
+
+     Running rust/tests/issue_8.rs (target/debug/deps/issue_8-598fb5d8812a00cf)
+
+running 19 tests
+test detects_nothing_in_an_empty_text ... ok
+test is_complete_when_everything_reads ... ok
+test counts_the_lines_it_reads ... ok
+test cut_texts_end_a_dialect_read_instead_of_looping ... ok
+test marks_untranslated_natural_sentences ... ok
+test reads_python_pass_as_an_empty_statement ... ok
+test reads_other_obvious_variations ... ok
+test keeps_every_language_within_its_own_rules ... ok
+test rules_apply_at_every_stage ... ok
+test rules_are_checked ... ok
+test reads_the_russian_examples_of_the_issue ... ok
+test rules_rewrite_the_output_with_regular_expressions ... ok
+test rules_are_read_from_a_file_on_the_command_line ... ok
+test translates_what_it_can_and_marks_the_rest ... ok
+test partial_translation_is_the_default_of_the_command_line ... ok
+test reports_coverage_on_the_command_line ... ok
+test an_isolated_name_is_parseable_as_english_and_wins_ambiguous_ties ... ok
+test finds_the_language_of_a_text ... ok
+test translates_from_auto_on_the_command_line ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.04s
+
+     Running rust/tests/semantic_mapping.rs (target/debug/deps/semantic_mapping-1a812306b2000129)
+
+running 7 tests
+test source_lines_survive_fragment_wrappers_and_split_statements ... ok
+test java_print_maps_to_both_bash_command_and_echo_and_back ... ok
+test the_complete_fibonacci_interpolation_maps_to_call_and_echo ... ok
+test partial_fragments_and_untranslated_notes_keep_their_original_lines ... ok
+test every_controlled_natural_language_maps_statements_in_both_directions ... ok
+test independent_statements_map_to_their_full_expansion_in_every_machine_target ... ok
+test machine_arrays_conditions_loops_and_interpolated_calls_keep_their_owners ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.90s
+

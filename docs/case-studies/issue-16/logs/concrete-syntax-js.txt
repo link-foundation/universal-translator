@@ -1,0 +1,12 @@
+▶ concrete syntax as the default source record
+  ✔ partitions every byte, including quotes, directives and trivia (19.451476ms)
+  ✔ exposes source syntax to decorators before semantic rewriting (211.928908ms)
+✔ concrete syntax as the default source record (233.646593ms)
+ℹ tests 2
+ℹ suites 1
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 633.266356

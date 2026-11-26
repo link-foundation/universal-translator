@@ -1,0 +1,21 @@
+▶ semantic many-to-many line mapping
+  ✔ maps the complete Fibonacci interpolation reported in issue 16 (475.552004ms)
+  ✔ maps a Java print to both the Bash command and its echo, and back (18.075037ms)
+  ✔ maps translated sentences in every controlled natural language in both directions (491.703015ms)
+  ✔ preserves origin metadata through output style and fragment wrappers (5.858696ms)
+  ✔ restores the capture context after failure and reentrant translations (8.554663ms)
+✔ semantic many-to-many line mapping (1003.52037ms)
+▶ brace placement and indent width
+  ✔ puts each opening brace of C# on a line of its own (456.21821ms)
+  ✔ indents JavaScript by two spaces and Rust by a tab (15.975081ms)
+  ✔ indents blocks without braces and leaves their lines alone (6.358398ms)
+  ✔ rejects styles a language cannot be written in (5.491942ms)
+✔ brace placement and indent width (486.572997ms)
+ℹ tests 9
+ℹ suites 2
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1429.408599

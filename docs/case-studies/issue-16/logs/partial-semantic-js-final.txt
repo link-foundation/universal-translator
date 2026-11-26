@@ -1,0 +1,19 @@
+✔ maps every accepted partial fragment back to its original lines (336.211057ms)
+✔ maps prose that a custom translator splits across output lines (3.84292ms)
+✔ maps independent statements to their full expansion in every machine target (91.928518ms)
+✔ retains ownership through machine arrays, conditions, loops and interpolated calls (225.159945ms)
+▶ semantic many-to-many line mapping
+  ✔ maps the complete Fibonacci interpolation reported in issue 16 (37.307737ms)
+  ✔ maps a Java print to both the Bash command and its echo, and back (8.021636ms)
+  ✔ maps translated sentences in every controlled natural language in both directions (504.042636ms)
+  ✔ preserves origin metadata through output style and fragment wrappers (8.258045ms)
+  ✔ restores the capture context after failure and reentrant translations (6.212704ms)
+✔ semantic many-to-many line mapping (566.140208ms)
+ℹ tests 9
+ℹ suites 1
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1621.875022

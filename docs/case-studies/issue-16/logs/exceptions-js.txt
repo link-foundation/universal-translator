@@ -1,0 +1,18 @@
+▶ typed exception handling
+  ✔ distinguishes a try body, typed handler and throw value (237.144838ms)
+  ✔ executes the issue example with the same exit status (371.892981ms)
+  ✔ detects the source as C++ after a complete parse (950.045006ms)
+  ✔ matches the thrown type and skips mismatched handlers (362.30357ms)
+  ✔ preserves a catch-all and nested rethrow (361.673604ms)
+  ✔ preserves user bindings around runtime carriers (319.976061ms)
+  ✔ retains finally execution when a function returns (376.636486ms)
+  ✔ writes typed exception statements as fragments (10.414859ms)
+✔ typed exception handling (2993.579899ms)
+ℹ tests 8
+ℹ suites 1
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3701.096239

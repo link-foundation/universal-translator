@@ -1,0 +1,15 @@
+▶ comment language
+  ✔ translates the vocabulary of iterative sequences (595.119971ms)
+✔ comment language (597.482359ms)
+▶ grammatical case in controlled algorithms
+  ✔ reads nominative and accusative constants as the same boolean (53.517362ms)
+  ✔ keeps an inflected comparison operand tied to its declaration (15.40724ms)
+✔ grammatical case in controlled algorithms (71.08423ms)
+ℹ tests 3
+ℹ suites 2
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1171.543093

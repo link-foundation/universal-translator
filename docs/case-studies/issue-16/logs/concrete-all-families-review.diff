@@ -1,0 +1,416 @@
+diff --git a/docs/concrete-syntax.md b/docs/concrete-syntax.md
+index 8af0834..83314a1 100644
+--- a/docs/concrete-syntax.md
++++ b/docs/concrete-syntax.md
+@@ -1,7 +1,7 @@
+ # Concrete syntax in the translation pipeline
+ 
+-The default formal-language parser retains a concrete source record in
+-`sourceTree.syntax`. Its token and trivia leaves partition the original text:
++The default readers retain a concrete source record in `sourceTree.syntax`.
++Its token and trivia leaves partition the original text:
+ quotes, comment markers, whitespace, line endings, directives and file headers
+ remain present. `reconstructConcrete(sourceTree.syntax)` in JavaScript, or
+ `reconstruct_concrete` in Rust, concatenates those leaves to reproduce the input.
+@@ -12,9 +12,11 @@ are views over the shared token stream, so a transformation can retain its sourc
+ without copying the entire text into every node. Synthetic indentation and
+ end-of-file tokens consume no source bytes.
+ 
+-The `parsed` trace callback and a decorator around the `parse` stage receive this
+-record before understanding rules derive a meta program. No tracing is enabled
+-by default. Existing custom parsers remain replaceable through the stage API.
++The `parsed` trace callback receives this record for formal languages, controlled
++natural languages and all seven machine formats. A decorator around the formal
++`parse` stage also receives it before understanding rules derive a meta program.
++No tracing is enabled by default. Existing custom readers remain replaceable
++through the stage API.
+ 
+ ```js
+ import {
+@@ -39,8 +41,21 @@ between source tokens and rewrites in
+ and the explicit source ranges used by
+ [tree-sitter](https://tree-sitter.github.io/tree-sitter/using-parsers/3-advanced-parsing.html).
+ 
+-The current record covers successful parses by the shared formal-language parser
+-and its dialects. Natural-language and machine readers, syntax-error recovery,
+-grammar import/update, and carrying ranges through all semantic rewrites and
+-emitters remain tracked work in issue 16. Retaining the concrete source alone
+-does not establish a semantic mapping between two translated programs.
++`translator.parsePartial(source, language).syntax` in JavaScript, or
++`translator.parse_partial(source, language)?.syntax` in Rust, also retains
++incomplete input, including unclosed literals and unsupported constructs. Its
++`productions` describe accepted fragments; its `errors` contain unread byte
++ranges and diagnostic messages. Whitespace-only and empty inputs have a complete
++record with no productions or errors. The original CRLF endings and indentation
++remain intact even though fragment recovery dedents its semantic inputs.
++
++The formal parser records its actual grammar tokens and production methods.
++Line-oriented readers and recovery use lossless word/symbol leaves and layout
++trivia; accepted semantic concepts have `source-lines` production views. A
++concept assembled from separate instruction ranges has separate views rather
++than claiming ownership of the instructions between them. Recovery's `fragment`
++views describe accepted parts, while unread parts appear only in `errors`.
++
++Grammar import/update and exact subline ranges through every semantic rewrite
++remain tracked work in issue 16. Retaining the concrete source alone does not
++establish a semantic mapping between two translated programs.
+diff --git a/examples/universal-app/vite.config.js b/examples/universal-app/vite.config.js
+index 519c744..d87feb5 100644
+--- a/examples/universal-app/vite.config.js
++++ b/examples/universal-app/vite.config.js
+@@ -60,7 +60,7 @@ const chunkGroups = [
+   ['links-notation', /[\\/]node_modules[\\/](links-notation|lino-i18n)[\\/]/],
+   [
+     'translator-source',
+-    /[\\/]js[\\/]src[\\/]translation[\\/](concrete-syntax|source-origins|emission-map|layout)\.js$/,
++    /[\\/]js[\\/]src[\\/]translation[\\/](concrete-syntax|source-syntax|source-origins|emission-map|layout)\.js$/,
+   ],
+   ['translator-formal', /[\\/]js[\\/]src[\\/](formal|meta)[\\/]/],
+   [
+diff --git a/js/src/index.d.ts b/js/src/index.d.ts
+index e463534..48dd8f2 100644
+--- a/js/src/index.d.ts
++++ b/js/src/index.d.ts
+@@ -29,6 +29,7 @@ export declare const delay: (ms: number) => Promise<void>;
+ export {
+   createGrammarTranslator as createTranslator,
+   parseFragment,
++  parsePartial,
+   translate,
+   translateCandidates,
+   translateFragment,
+@@ -48,6 +49,8 @@ export type {
+   TranslationCandidate,
+   Fragment,
+   FragmentKind,
++  PartialError,
++  PartialReading,
+   GrammarTranslator,
+   GrammarTranslatorOptions,
+   Decorator,
+diff --git a/js/src/translation/concrete-syntax.d.ts b/js/src/translation/concrete-syntax.d.ts
+index 5483570..1f358d3 100644
+--- a/js/src/translation/concrete-syntax.d.ts
++++ b/js/src/translation/concrete-syntax.d.ts
+@@ -20,6 +20,12 @@ export interface ConcreteSyntax {
+     start: number;
+     end: number;
+   }[];
++  errors: {
++    kind: 'Error';
++    start: number;
++    end: number;
++    message: string;
++  }[];
+ }
+ 
+ export declare function reconstructConcrete(syntax: ConcreteSyntax): string;
+diff --git a/js/src/translation/concrete-syntax.js b/js/src/translation/concrete-syntax.js
+index 0685e2d..c60aef5 100644
+--- a/js/src/translation/concrete-syntax.js
++++ b/js/src/translation/concrete-syntax.js
+@@ -2,7 +2,7 @@
+ // its token stream; semantic nodes can change without changing that record.
+ import { sourceLocator, withOrigin } from './source-origins.js';
+ 
+-function byteOffsets(source) {
++export function byteOffsets(source) {
+   const offsets = new Uint32Array(source.length + 1);
+   let position = 0;
+   let bytes = 0;
+@@ -78,7 +78,13 @@ function productions(tree, locations, offsets) {
+ 
+ // Token boundaries use the lexer's string offsets; the public CST uses UTF-8
+ // byte ranges, matching Meta Language and tree-sitter across both runtimes.
+-export function concreteSyntax(source, language, tokens, tree, locations) {
++export function concreteSyntax(
++  source,
++  language,
++  tokens,
++  tree,
++  locations = new WeakMap()
++) {
+   const offsets = byteOffsets(source);
+   const children = [];
+   let position = 0;
+@@ -111,6 +117,7 @@ export function concreteSyntax(source, language, tokens, tree, locations) {
+     end: offsets[source.length],
+     children,
+     productions: productions(tree, locations, offsets),
++    errors: [],
+   };
+ }
+ 
+diff --git a/js/src/translation/partial.js b/js/src/translation/partial.js
+index 1fbd63c..1b4ec6c 100644
+--- a/js/src/translation/partial.js
++++ b/js/src/translation/partial.js
+@@ -24,6 +24,8 @@
+ //    is prose: it is translated freely (`translateProse`), not
+ //    marked, and is listed in `prose`.
+ 
++import { sourceSyntax } from './source-syntax.js';
++
+ const closers =
+   /^\s*(?:[}\])]|end\b|fi\b|done\b|esac\b|else\b|elif\b|elsif\b|elseif\b|until\b|loop\b|wend\b|next\b|catch\b|finally\b|except\b|rescue\b|ensure\b|then\b|begin\b|do\b)/iu;
+ 
+@@ -234,7 +236,7 @@ export function createPartialTranslator({
+       parts = [{ start: 0, end: lines.length, status: 'read', kind }];
+     } catch (error) {
+       parts = segments(lines, from, 0, lines.length);
+-      if (!parts.length) {
++      if (!parts.length && written) {
+         throw error;
+       }
+     }
+@@ -252,6 +254,7 @@ export function createPartialTranslator({
+       readLines,
+       coverage: written ? readLines / written : 1,
+       errors: errorsOf(located),
++      syntax: sourceSyntax(source, from, undefined, located),
+     };
+   }
+ 
+diff --git a/js/src/translator.d.ts b/js/src/translator.d.ts
+index fc39ab1..69f8302 100644
+--- a/js/src/translator.d.ts
++++ b/js/src/translator.d.ts
+@@ -1,3 +1,5 @@
++import type { ConcreteSyntax } from './translation/concrete-syntax.js';
++
+ export type TranslationMode = 'context-dependent' | 'literal' | 'same-effect';
+ 
+ export interface TranslationOptions {
+@@ -111,6 +113,29 @@ export interface Fragment {
+   program: unknown;
+ }
+ 
++export interface PartialError {
++  line: number;
++  endLine: number;
++  message: string;
++  source: string;
++}
++
++export interface PartialReading {
++  complete: boolean;
++  syntax: ConcreteSyntax;
++  parts: (Omit<PartialError, 'message'> & {
++    start: number;
++    end: number;
++    status: 'read' | 'failed';
++    kind?: FragmentKind;
++    message?: string;
++  })[];
++  lines: number;
++  readLines: number;
++  coverage: number;
++  errors: PartialError[];
++}
++
+ export interface GrammarTranslator {
+   /**
+    * Programming languages and machine targets; `versions` lists the versions
+@@ -150,6 +175,8 @@ export interface GrammarTranslator {
+   /** Read a complete fragment: a whole program, function definitions or
+    * statements. */
+   parseFragment(source: string, from: string): Fragment;
++  /** Read accepted fragments while retaining every original source byte. */
++  parsePartial(source: string, from: string): PartialReading;
+   /** Translate a complete fragment into the same kind of fragment. */
+   translateFragment(
+     source: string,
+@@ -193,6 +220,11 @@ export declare function translate(
+ 
+ export declare function parseFragment(source: string, from: string): Fragment;
+ 
++export declare function parsePartial(
++  source: string,
++  from: string
++): PartialReading;
++
+ export declare function translateFragment(
+   source: string,
+   from: string,
+diff --git a/js/src/translator.js b/js/src/translator.js
+index d69cb45..1e70b2e 100644
+--- a/js/src/translator.js
++++ b/js/src/translator.js
+@@ -59,6 +59,7 @@ import {
+   mergeLineMaps,
+ } from './translation/emission-map.js';
+ import { markImprecision } from './meta/imprecision.js';
++import { sourceTree as concreteSourceTree } from './translation/source-syntax.js';
+ import { unnest } from './translation/nesting.js';
+ import { decorateStages, mergeDecorators } from './translation/decorators.js';
+ 
+@@ -369,11 +370,11 @@ export function createGrammarTranslator(settings = {}) {
+   function readMeta(text, from) {
+     const source = custom.source(text, from);
+     if (isNaturalLanguage(from)) {
+-      // A controlled natural language is read sentence by sentence straight
+-      // into the meta language; it has no source details to understand.
++      // Sentence reading supplies semantic nodes alongside the concrete record.
+       const read = inferMutability(
+         stages.readNatural(source, from, custom.naturalLanguage(from))
+       );
++      trace('parsed', concreteSourceTree(source, from, read));
+       trace('read', read);
+       const typed = applyRules(infer(read), meaning, {});
+       trace('typed', typed);
+@@ -381,11 +382,11 @@ export function createGrammarTranslator(settings = {}) {
+     }
+     const syntax = languageSyntax(from);
+     if (syntax.machine) {
+-      // Machine code has no grammar to parse: read its instructions, lift
+-      // them to the meta language and continue like any other source.
++      // Instruction reading and lifting retain their concrete source record.
+       const lifted = inferMutability(
+         raiseForEach(lift(stages.readMachine(source, from)))
+       );
++      trace('parsed', concreteSourceTree(source, from, lifted));
+       trace('lifted', lifted);
+       const typed = applyRules(infer(lifted), meaning, { from });
+       trace('typed', typed);
+diff --git a/rust/src/concrete_syntax.rs b/rust/src/concrete_syntax.rs
+index 9de6cbb..771f879 100644
+--- a/rust/src/concrete_syntax.rs
++++ b/rust/src/concrete_syntax.rs
+@@ -41,6 +41,15 @@ pub(crate) fn concrete_syntax(
+             production.set(field, offsets[character] as f64);
+         }
+     }
++    record(source, language, children, productions)
++}
++
++pub(crate) fn record(
++    source: &str,
++    language: &str,
++    children: Vec<Node>,
++    productions: Vec<Node>,
++) -> Node {
+     Node::new("ConcreteSyntax")
+         .with("language", language)
+         .with("unit", "utf8")
+@@ -48,6 +57,7 @@ pub(crate) fn concrete_syntax(
+         .with("end", source.len() as f64)
+         .with("children", children)
+         .with("productions", productions)
++        .with("errors", Vec::<Node>::new())
+ }
+ 
+ /// Reconstruct the exact original text from the concrete token stream.
+diff --git a/rust/src/emission_map.rs b/rust/src/emission_map.rs
+index 32615b0..a68c9d1 100644
+--- a/rust/src/emission_map.rs
++++ b/rust/src/emission_map.rs
+@@ -48,6 +48,16 @@ pub(crate) fn capture<T>(translate: impl FnOnce() -> T) -> (T, Vec<Emission>) {
+     (result, emissions)
+ }
+ 
++// Readers need instruction provenance for concrete production views even
++// when the caller has not requested an emitted line map.
++pub(crate) fn source_records<T>(read: impl FnOnce() -> T) -> T {
++    if CONTEXTS.with_borrow(|contexts| contexts.is_empty()) {
++        capture(read).0
++    } else {
++        read()
++    }
++}
++
+ pub(crate) struct Active(Option<Origins>);
+ 
+ impl Drop for Active {
+diff --git a/rust/src/lib.rs b/rust/src/lib.rs
+index a4fb2ce..40e22ba 100644
+--- a/rust/src/lib.rs
++++ b/rust/src/lib.rs
+@@ -22,6 +22,7 @@ mod referents;
+ pub mod server;
+ mod source_document;
+ mod source_origins;
++mod source_syntax;
+ pub mod stages;
+ pub mod style;
+ pub mod translator;
+diff --git a/rust/src/partial.rs b/rust/src/partial.rs
+index 11b5898..2f3aea4 100644
+--- a/rust/src/partial.rs
++++ b/rust/src/partial.rs
+@@ -92,6 +92,8 @@ pub struct PartError {
+ /// What [`Translator::parse_partial`] reads.
+ #[derive(Clone, Debug, PartialEq)]
+ pub struct PartialReading {
++    /// Lossless original source, accepted fragment views and unread regions.
++    pub syntax: crate::meta::Node,
+     pub complete: bool,
+     pub parts: Vec<Part>,
+     /// The written (non-blank) lines of the text.
+@@ -329,7 +331,7 @@ pub fn parse_partial(
+         Err(error) => {
+             let reader = Reader { translator, from };
+             let parts = reader.segments(&lines, 0, lines.len());
+-            if parts.is_empty() {
++            if parts.is_empty() && written > 0 {
+                 return Err(error);
+             }
+             parts
+@@ -353,6 +355,7 @@ pub fn parse_partial(
+         })
+         .sum();
+     Ok(PartialReading {
++        syntax: crate::source_syntax::source_syntax(source, from, None, &parts),
+         complete: parts.iter().all(|part| part.status == PartStatus::Read),
+         errors: errors_of(&parts),
+         parts,
+diff --git a/rust/src/translator.rs b/rust/src/translator.rs
+index c41552c..770364e 100644
+--- a/rust/src/translator.rs
++++ b/rust/src/translator.rs
+@@ -408,17 +408,23 @@ impl Translator {
+     }
+ 
+     fn read_meta(&self, text: &str, from: &str) -> Result<Node, GrammarError> {
++        crate::emission_map::source_records(|| self.read_source(text, from))
++    }
++
++    fn read_source(&self, text: &str, from: &str) -> Result<Node, GrammarError> {
+         let source = &self.rules.source(text, from);
+         if natural::is_natural_language(from) {
+-            // A controlled natural language is read sentence by sentence
+-            // straight into the meta language; it has no source details to
+-            // understand.
++            // Sentence reading supplies semantics alongside the concrete record.
+             let language = match self.rules.natural_language(from) {
+                 Some(language) => language,
+                 None => natural::natural_language(from).map_err(GrammarError::new)?,
+             };
+             let read = (self.stages.read_natural)(source, from, language)?;
+             let read = rules::infer_mutability(read);
++            self.report(
++                "parsed",
++                &crate::source_syntax::source_tree(source, from, &read),
++            );
+             self.report("read", &read);
+             let settings = Settings {
+                 from: from.to_owned(),
+@@ -440,14 +446,16 @@ impl Translator {
+             mode: Mode::default(),
+         };
+         if syntax.machine {
+-            // Machine code has no grammar to parse: read its instructions,
+-            // lift them to the meta language and continue like any other
+-            // source.
++            // Instruction reading and lifting retain the concrete source record.
+             let machine = (self.stages.read_machine)(source, from)?;
+             let lifted =
+                 rules::infer_mutability(meta::for_each::raise_for_each((self.stages.lift)(
+                     &machine,
+                 )?));
++            self.report(
++                "parsed",
++                &crate::source_syntax::source_tree(source, from, &lifted),
++            );
+             self.report("lifted", &lifted);
+             let typed = apply_rules((self.stages.infer)(lifted), &self.meaning, &settings);
+             self.report("typed", &typed);

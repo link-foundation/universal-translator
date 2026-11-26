@@ -1,0 +1,86 @@
+▶ comment language
+  ✔ translates the vocabulary of iterative sequences (767.481247ms)
+  ✔ translates comment words through the shared meanings (20.448618ms)
+  ✔ keeps the gaps and the case of each comment word (29.193225ms)
+  ✔ detects the language of the comments (167.223942ms)
+  ✔ changes only the comments when the code language stays (39.264517ms)
+  ✔ translates comments together with the code (36.598903ms)
+  ✔ takes a translator of its own for the comments (0.632522ms)
+  ✔ is available from the command line (16.056141ms)
+✔ comment language (1081.037526ms)
+▶ comments inside indented blocks
+  ✔ keeps a comment that opens an indented block (35.195826ms)
+  ✔ keeps comments that close an indented block (35.515913ms)
+✔ comments inside indented blocks (71.233833ms)
+▶ empty lines around functions
+  ✔ keeps a comment right above a function with that function (2.627845ms)
+  ✔ keeps a comment right above an import as a file comment (3.935313ms)
+  ✔ typescript: keeps functions without an empty line between them (5.603246ms)
+  ✔ python: keeps functions without an empty line between them (4.295506ms)
+  ✔ ruby: keeps functions without an empty line between them (4.759371ms)
+  ✔ lua: keeps functions without an empty line between them (5.890592ms)
+  ✔ php: keeps functions without an empty line between them (5.695648ms)
+  ✔ c: keeps functions without an empty line between them (6.858638ms)
+  ✔ cpp: keeps functions without an empty line between them (8.04458ms)
+  ✔ csharp: keeps functions without an empty line between them (9.456477ms)
+  ✔ java: keeps functions without an empty line between them (4.413224ms)
+  ✔ go: keeps functions without an empty line between them (6.405292ms)
+  ✔ rust: keeps functions without an empty line between them (4.54458ms)
+  ✔ kotlin: keeps functions without an empty line between them (3.995326ms)
+  ✔ swift: keeps functions without an empty line between them (3.899185ms)
+  ✔ perl: keeps functions without an empty line between them (6.812302ms)
+  ✔ dart: keeps functions without an empty line between them (3.776778ms)
+  ✔ scala: keeps functions without an empty line between them (3.309646ms)
+  ✔ julia: keeps functions without an empty line between them (3.64408ms)
+  ✔ r: keeps functions without an empty line between them (4.063242ms)
+  ✔ groovy: keeps functions without an empty line between them (19.450054ms)
+  ✔ objc: keeps functions without an empty line between them (8.037138ms)
+  ✔ nim: keeps functions without an empty line between them (5.207167ms)
+  ✔ d: keeps functions without an empty line between them (5.381943ms)
+  ✔ pascal: keeps functions without an empty line between them (8.736452ms)
+  ✔ fortran: keeps functions without an empty line between them (8.906239ms)
+  ✔ ada: keeps functions without an empty line between them (8.7513ms)
+  ✔ vb: keeps functions without an empty line between them (13.454916ms)
+  ✔ bash: keeps functions without an empty line between them (15.516163ms)
+  ✔ matlab: keeps functions without an empty line between them (7.935647ms)
+  ✔ zig: keeps functions without an empty line between them (17.599131ms)
+  ✔ lean: keeps functions without an empty line between them (8.579921ms)
+  ✔ rocq: keeps functions without an empty line between them (8.670409ms)
+  ✔ gml: keeps functions without an empty line between them (6.568927ms)
+  ✔ reads a lone return 1 back as a number (4.197784ms)
+✔ empty lines around functions (255.530673ms)
+▶ grammatical case in controlled algorithms
+  ✔ reads nominative and accusative constants as the same boolean (53.741712ms)
+  ✔ keeps an inflected comparison operand tied to its declaration (12.998455ms)
+✔ grammatical case in controlled algorithms (69.608019ms)
+▶ everyday English wordings
+  ✔ read like the canonical sentences (12.351958ms)
+  ✔ read each statement (14.217921ms)
+  ✔ are written back in the canonical wording (18.859622ms)
+✔ everyday English wordings (46.165665ms)
+▶ symbols and unmarked headings in English
+  ✔ reads arithmetic written with symbols (3.523225ms)
+  ✔ opens a block after a heading without its colon (6.262557ms)
+  ✔ keeps a sentence without its full stop a statement (1.074284ms)
+✔ symbols and unmarked headings in English (11.775013ms)
+▶ increasing and decreasing a variable
+  ✔ reads English increase, add to, decrease and subtract from (6.843581ms)
+  ✔ is written back as the canonical assignment (1.363215ms)
+✔ increasing and decreasing a variable (8.649661ms)
+▶ everyday Russian wordings
+  ✔ read like the canonical sentences (9.564518ms)
+  ✔ read each statement (5.844796ms)
+  ✔ are detected as Russian that reads (1320.877769ms)
+✔ everyday Russian wordings (1336.818035ms)
+▶ everyday wordings in every natural language
+  ✔ give every language increase and decrease (0.841551ms)
+  ✔ read every wording of a statement as the statement (194.556504ms)
+✔ everyday wordings in every natural language (195.810183ms)
+ℹ tests 60
+ℹ suites 9
+ℹ pass 60
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2397.224533

@@ -1,0 +1,7 @@
+
+/tmp/gh-issue-solver-1795726129025/js/tests/semantic-mapping.test.js
+  62:51  warning  Arrow function has too many lines (189). Maximum allowed is 150  max-lines-per-function
+
+✖ 1 problem (0 errors, 1 warning)
+
+ESLint found too many warnings (maximum: 0).

@@ -1,0 +1,14 @@
+▶ semantic many-to-many line mapping
+  ✔ maps a Java print to both the Bash command and its echo, and back (335.751435ms)
+  ✔ maps translated sentences in every controlled natural language in both directions (563.521967ms)
+  ✔ preserves origin metadata through output style and fragment wrappers (6.536829ms)
+  ✔ restores the capture context after failure and reentrant translations (8.053638ms)
+✔ semantic many-to-many line mapping (916.762001ms)
+ℹ tests 4
+ℹ suites 1
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1423.636713

@@ -1,0 +1,990 @@
+diff --git a/rust/src/emission_map.rs b/rust/src/emission_map.rs
+index 1008236..419d825 100644
+--- a/rust/src/emission_map.rs
++++ b/rust/src/emission_map.rs
+@@ -6,7 +6,7 @@ use std::ops::{Deref, DerefMut};
+ use std::sync::Arc;
+ 
+ use crate::meta::Node;
+-use crate::source_origins::{SourceOrigin, expression_origins};
++use crate::source_origins::{SourceLocator, SourceOrigin, expression_origins};
+ 
+ pub(crate) type Origins = Vec<Arc<SourceOrigin>>;
+ 
+@@ -15,6 +15,7 @@ struct Context {
+     emissions: Vec<Emission>,
+     active: Origins,
+     instructions: HashMap<usize, Origins>,
++    source_lines: HashMap<usize, Origins>,
+ }
+ 
+ thread_local! { static CONTEXTS: RefCell<Vec<Context>> = const { RefCell::new(Vec::new()) }; }
+@@ -78,6 +79,94 @@ pub(crate) fn current() -> Origins {
+     })
+ }
+ 
++pub(crate) fn active_origins(origins: Origins) -> Active {
++    Active(CONTEXTS.with_borrow_mut(|contexts| {
++        let context = contexts.last_mut()?;
++        Some(std::mem::replace(&mut context.active, origins))
++    }))
++}
++
++pub(crate) fn register_source_lines(source: &str, lines: &[String]) {
++    CONTEXTS.with_borrow_mut(|contexts| {
++        if let Some(context) = contexts.last_mut() {
++            let locator = SourceLocator::new(source);
++            for (index, line) in lines
++                .iter()
++                .enumerate()
++                .filter(|(_, line)| !line.is_empty())
++            {
++                context
++                    .source_lines
++                    .insert(line.as_ptr() as usize, vec![locator.line(index)]);
++            }
++        }
++    });
++}
++
++pub(crate) fn line_origins(line: &String) -> Origins {
++    if line.is_empty() {
++        return Vec::new();
++    }
++    CONTEXTS.with_borrow(|contexts| {
++        contexts
++            .last()
++            .and_then(|context| context.source_lines.get(&(line.as_ptr() as usize)))
++            .cloned()
++            .unwrap_or_default()
++    })
++}
++
++pub(crate) fn clone_source_line(line: &String) -> String {
++    let cloned = line.clone();
++    if !cloned.is_empty() {
++        let origins = line_origins(line);
++        CONTEXTS.with_borrow_mut(|contexts| {
++            if let Some(context) = contexts.last_mut() {
++                let address = cloned.as_ptr() as usize;
++                context.source_lines.remove(&address);
++                if !origins.is_empty() {
++                    context.source_lines.insert(address, origins);
++                }
++            }
++        });
++    }
++    cloned
++}
++
++pub(crate) fn cloned_source_lines(lines: &[String]) -> Vec<String> {
++    lines.iter().map(clone_source_line).collect()
++}
++
++pub(crate) fn include_source_line(line: &String, omitted: &String) {
++    if line.is_empty() {
++        return;
++    }
++    let origins = line_origins(omitted);
++    CONTEXTS.with_borrow_mut(|contexts| {
++        if let Some(context) = contexts.last_mut() {
++            context
++                .source_lines
++                .entry(line.as_ptr() as usize)
++                .or_default()
++                .extend(origins);
++        }
++    });
++}
++
++pub(crate) fn instruction_origins<T>(instruction: &T) -> Origins {
++    CONTEXTS.with_borrow(|contexts| {
++        contexts
++            .last()
++            .and_then(|context| {
++                context
++                    .instructions
++                    .get(&(instruction as *const T as usize))
++            })
++            .cloned()
++            .unwrap_or_default()
++    })
++}
++
+ // Instruction addresses remain stable while the completed code buffer is
+ // borrowed by a writer. Records live only within this capture, without
+ // changing the public stack-machine representation.
+@@ -103,15 +192,7 @@ pub(crate) fn register_instructions<T>(code: &[T], origins: Vec<(usize, Origins)
+ }
+ 
+ pub(crate) fn active_instruction<T>(instruction: &T) -> Active {
+-    Active(CONTEXTS.with_borrow_mut(|contexts| {
+-        let context = contexts.last_mut()?;
+-        let origins = context
+-            .instructions
+-            .get(&(instruction as *const T as usize))
+-            .cloned()
+-            .unwrap_or_default();
+-        Some(std::mem::replace(&mut context.active, origins))
+-    }))
++    active_origins(instruction_origins(instruction))
+ }
+ 
+ pub(crate) struct SourceLine(String, Origins);
+diff --git a/rust/src/formal/lifting.rs b/rust/src/formal/lifting.rs
+index 7354154..ea27fa7 100644
+--- a/rust/src/formal/lifting.rs
++++ b/rust/src/formal/lifting.rs
+@@ -22,9 +22,11 @@ use std::rc::Rc;
+ 
+ use super::lowering::{Instruction, LoweredProgram, Procedure};
+ use super::names::neutral_name;
++use crate::emission_map::{Origins, active_instruction, current, instruction_origins};
+ use crate::meta::GrammarError;
+ use crate::meta::truth::raise_truth_functions;
+ use crate::meta::{Node, Value, binary, block, name, number, text, walk};
++use crate::source_origins::{combine_origins, expression_origins};
+ 
+ type Result<T> = std::result::Result<T, GrammarError>;
+ 
+@@ -53,14 +55,22 @@ fn negate(condition: &Node) -> Node {
+         if operator == "and" || operator == "or" {
+             let side = |key| negate(condition.node(key).expect("binary operand"));
+             let swapped = if operator == "and" { "or" } else { "and" };
+-            return binary(swapped, side("left"), side("right"));
++            let mut result = binary(swapped, side("left"), side("right"));
++            result.origin = condition.origin.clone();
++            return result;
+         }
+     }
+     if condition.is("Unary")
+         && operator == "not"
+         && let Some(operand) = condition.node("operand")
+     {
+-        return operand.clone();
++        let mut result = operand.clone();
++        let origins = [result.origin.clone(), condition.origin.clone()]
++            .into_iter()
++            .flatten()
++            .collect::<Vec<_>>();
++        result.origin = combine_origins(&origins);
++        return result;
+     }
+     Node::new("Unary")
+         .with("operator", "not")
+@@ -166,6 +176,7 @@ struct BlockLifting {
+     statements: Vec<Node>,
+     stack: Vec<Node>,
+     prints: Vec<Node>,
++    print_origins: Origins,
+     /// Array literals whose elements are still being stored: their places
+     /// on the stack and their lengths.
+     building: Vec<(usize, usize)>,
+@@ -178,6 +189,7 @@ impl BlockLifting {
+             statements: Vec::new(),
+             stack: Vec::new(),
+             prints: Vec::new(),
++            print_origins: Vec::new(),
+             building: Vec::new(),
+         }
+     }
+@@ -198,15 +210,18 @@ impl BlockLifting {
+             1 => prints.into_iter().next().expect("one print"),
+             _ => Node::new("Interpolation").with("parts", prints),
+         };
+-        self.statements.push(
+-            Node::new("Print")
+-                .with("value", value)
+-                .with("newline", newline),
+-        );
++        let mut statement = Node::new("Print")
++            .with("value", value)
++            .with("newline", newline);
++        statement.origin = combine_origins(&std::mem::take(&mut self.print_origins));
++        self.statements.push(statement);
+     }
+ 
+-    fn add(&mut self, statement: Node) {
++    fn add(&mut self, mut statement: Node) {
+         self.flush(false);
++        if statement.origin.is_none() {
++            statement.origin = combine_origins(&current());
++        }
+         self.statements.push(statement);
+     }
+ 
+@@ -241,6 +256,9 @@ impl BlockLifting {
+         };
+         let at = size - 1;
+         if self.building.iter().any(|&(place, _)| place == at) && top.is("ArrayLiteral") {
++            let mut origins = current();
++            origins.extend(top.origin.clone());
++            self.stack[at].origin = combine_origins(&origins);
+             self.stack.push(building(at));
+             return Ok(());
+         }
+@@ -253,7 +271,10 @@ impl BlockLifting {
+             }
+             _ => return Err(lift_error("a dup that does not build an array literal")),
+         };
++        let mut origins = current();
++        origins.extend(expression_origins(top));
+         self.stack[at] = Node::new("ArrayLiteral").with("elements", Vec::<Node>::new());
++        self.stack[at].origin = combine_origins(&origins);
+         if length > 0.0 {
+             self.building.push((at, length as usize));
+         }
+@@ -279,6 +300,11 @@ impl BlockLifting {
+             if let Some(Value::List(elements)) = literal.fields.get_mut("elements") {
+                 elements.push(Value::Node(value));
+             }
++            let mut origins = current();
++            origins.extend(literal.origin.clone());
++            origins.extend(index.origin.clone());
++            origins.extend(array.origin.clone());
++            literal.origin = combine_origins(&origins);
+             // A full literal is no longer being built.
+             self.building
+                 .retain(|&(place, length)| place != at || count + 1 < length);
+@@ -301,13 +327,25 @@ impl BlockLifting {
+             && last.is("Text")
+         {
+             let joined = format!("{}{value}", last.str("value").unwrap_or_default());
++            let mut origins = current();
++            origins.extend(last.origin.clone());
+             *last = text(joined);
++            last.origin = combine_origins(&origins);
+         } else {
+-            self.prints.push(text(value));
++            let mut part = text(value);
++            part.origin = combine_origins(&current());
++            self.prints.push(part);
+         }
+     }
+ 
+     fn instruction(&mut self, lifting: &FunctionLifting, instruction: &Instruction) -> Result<()> {
++        let _origin = active_instruction(instruction);
++        if matches!(
++            instruction,
++            Instruction::PrintInteger | Instruction::PrintText(_) | Instruction::PrintNewline
++        ) {
++            self.print_origins.extend(current());
++        }
+         match instruction {
+             Instruction::Comment(comment) => {
+                 self.add(Node::new("Comment").with("text", comment.as_str()));
+@@ -426,8 +464,15 @@ impl<'a> FunctionLifting<'a> {
+                 Some(Instruction::CompareJump(relation, target)) if values.len() == 2 => {
+                     let right = values.pop().expect("two values");
+                     let left = values.pop().expect("two values");
++                    let mut test = self.relation(relation, left, right);
++                    let mut origins = self
++                        .at(position)
++                        .map(instruction_origins)
++                        .unwrap_or_default();
++                    origins.extend(test.origin.clone());
++                    test.origin = combine_origins(&origins);
+                     return Ok(Some(Comparison {
+-                        test: self.relation(relation, left, right),
++                        test,
+                         target: target.clone(),
+                         next: position + 1,
+                     }));
+@@ -457,11 +502,15 @@ impl<'a> FunctionLifting<'a> {
+             && self.is_boolean(&left)
+             && (operator == "equal" || operator == "notEqual")
+         {
+-            return if operator == "notEqual" {
++            let mut origins = expression_origins(&left);
++            origins.extend(expression_origins(&right));
++            let mut result = if operator == "notEqual" {
+                 left
+             } else {
+                 negate(&left)
+             };
++            result.origin = combine_origins(&origins);
++            return result;
+         }
+         binary(operator, left, right)
+     }
+@@ -590,6 +639,11 @@ impl<'a> FunctionLifting<'a> {
+             }
+             _ => return Err(lift_error(format!("\"{operation}\" is not an expression"))),
+         }
++        if let Some(value) = stack.last_mut() {
++            let mut origins = instruction_origins(instruction);
++            origins.extend(value.origin.clone());
++            value.origin = combine_origins(&origins);
++        }
+         Ok(())
+     }
+ 
+@@ -601,20 +655,31 @@ impl<'a> FunctionLifting<'a> {
+             let Some(instruction) = self.at(index) else {
+                 break;
+             };
++            let _origin = active_instruction(instruction);
+             match instruction {
+                 Instruction::Label(_) => index = self.while_loop(index, &mut lifted)?,
+                 Instruction::CompareJump(relation, target) => {
+                     let right = lifted.pop()?;
+                     let left = lifted.pop()?;
++                    let mut test = self.relation(relation, left, right);
++                    let mut origins = current();
++                    origins.extend(test.origin.clone());
++                    test.origin = combine_origins(&origins);
+                     let first = Comparison {
+-                        test: self.relation(relation, left, right),
++                        test,
+                         target: target.clone(),
+                         next: index + 1,
+                     };
+                     let found = self.condition(index, Some(first))?;
+                     if self.is_boolean_value(&found) {
+                         index = found.end + 5;
+-                        lifted.stack.push(found.condition);
++                        let mut condition = found.condition;
++                        let mut origins = condition.origin.clone().into_iter().collect::<Vec<_>>();
++                        for instruction in &self.item.code[found.end..index] {
++                            origins.extend(instruction_origins(instruction));
++                        }
++                        condition.origin = combine_origins(&origins);
++                        lifted.stack.push(condition);
+                     } else {
+                         index = self.branch(found, &mut lifted)?;
+                     }
+@@ -658,6 +723,11 @@ impl<'a> FunctionLifting<'a> {
+         let mut statement = Node::new("If")
+             .with("condition", found.condition)
+             .with("then", then);
++        let mut origins = current();
++        for index in [otherwise - 1, otherwise, done_index] {
++            origins.extend(instruction_origins(&self.item.code[index]));
++        }
++        statement.origin = combine_origins(&origins);
+         let mut rest_statements = rest.node_list("statements");
+         if rest_statements.len() == 1 && rest_statements[0].is("If") {
+             statement.set("otherwise", rest_statements.remove(0));
+@@ -685,11 +755,15 @@ impl<'a> FunctionLifting<'a> {
+             }
+         }
+         let body = self.block(found.end, exit - 1, &lifted.scope)?;
+-        lifted.add(
+-            Node::new("While")
+-                .with("condition", found.condition)
+-                .with("body", body),
+-        );
++        let mut statement = Node::new("While")
++            .with("condition", found.condition)
++            .with("body", body);
++        let mut origins = current();
++        for index in [exit - 1, exit] {
++            origins.extend(instruction_origins(&self.item.code[index]));
++        }
++        statement.origin = combine_origins(&origins);
++        lifted.add(statement);
+         Ok(exit + 1)
+     }
+ 
+@@ -887,7 +961,7 @@ pub(crate) fn counting_loops(statements: Vec<Node>) -> Vec<Node> {
+         let lifted = lifted.expect("the loop");
+         let mut body = lifted.node("body").cloned().expect("the loop body");
+         let mut inner = body.node_list("statements");
+-        inner.pop();
++        let step = inner.pop();
+         body.set("statements", inner);
+         let end = lifted
+             .node("condition")
+@@ -898,6 +972,12 @@ pub(crate) fn counting_loops(statements: Vec<Node>) -> Vec<Node> {
+             .with("variable", start.str("name").unwrap_or_default())
+             .with("end", end)
+             .with("body", body);
++        let mut origins = expression_origins(start);
++        origins.extend(expression_origins(lifted));
++        if let Some(step) = step {
++            origins.extend(expression_origins(&step));
++        }
++        counting.origin = combine_origins(&origins);
+         if let Some(value) = start.get("value") {
+             counting.set("start", value.clone());
+         }
+diff --git a/rust/src/formal/machine_reader.rs b/rust/src/formal/machine_reader.rs
+index 2e7916b..a24d591 100644
+--- a/rust/src/formal/machine_reader.rs
++++ b/rust/src/formal/machine_reader.rs
+@@ -17,9 +17,10 @@ use super::machine_reader_assembly::{read_arm64, read_gas};
+ use super::machine_reader_llvm::read_llvm;
+ use super::machine_reader_shared::{
+     ReadRule, Result, fixed, group, integer, leading_comments, pattern_regex, procedure, program,
+-    read_error, read_instructions, rule, trimmed_lines, without_results,
++    read_error, read_instructions, resolve_results, rule, trimmed_lines, without_results,
+ };
+ use super::machine_reader_wasm::read_wat;
++use crate::emission_map::clone_source_line;
+ use crate::meta::GrammarError;
+ 
+ fn arithmetic(operation: &str) -> Option<&'static str> {
+@@ -276,14 +277,7 @@ fn read_nasm_procedure(
+     )?;
+     // "call f; push rax" is a call whose result stays on the stack. A call
+     // without "push rax" is a call to a procedure that returns nothing.
+-    let mut code: Vec<Instruction> = Vec::new();
+-    for instruction in raw {
+-        match instruction {
+-            Some(instruction) => code.push(instruction),
+-            None if matches!(code.last(), Some(Instruction::Call(..))) => {}
+-            None => return Err(read_error("nasm", "push rax", "not after a call")),
+-        }
+-    }
++    let code = resolve_results(raw, "nasm", "push rax")?;
+     let returns = code.contains(&Instruction::Return);
+     Ok(procedure(
+         name.to_owned(),
+@@ -503,7 +497,7 @@ pub fn read_cil(source: &str) -> Result<LoweredProgram> {
+             .unwrap_or_default()
+             .iter()
+             .filter(|item| !directive.is_match(item))
+-            .cloned()
++            .map(clone_source_line)
+             .collect();
+         let mut slot_names = parameters.clone();
+         if body.first().is_some_and(|line| line.starts_with(".locals")) {
+@@ -694,7 +688,7 @@ pub fn read_jvm(source: &str) -> Result<LoweredProgram> {
+             .unwrap_or_default()
+             .iter()
+             .filter(|item| !item.starts_with(".limit"))
+-            .cloned()
++            .map(clone_source_line)
+             .collect();
+         let mut named: Vec<Option<String>> = Vec::new();
+         while body.first().is_some_and(|line| line.starts_with(".var")) {
+diff --git a/rust/src/formal/machine_reader_assembly.rs b/rust/src/formal/machine_reader_assembly.rs
+index ee3d83a..3778904 100644
+--- a/rust/src/formal/machine_reader_assembly.rs
++++ b/rust/src/formal/machine_reader_assembly.rs
+@@ -9,6 +9,7 @@ use super::machine_reader_shared::{
+     ReadRule, Result, decode_bytes, exact, fixed, group, integer, leading_comments, pattern_regex,
+     procedure, program, read_error, read_instructions, resolve_results, rule, trimmed_lines,
+ };
++use crate::emission_map::cloned_source_lines;
+ use crate::meta::GrammarError;
+ 
+ const GAS_ARGUMENTS: [&str; 6] = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"];
+@@ -144,7 +145,7 @@ fn assembly_functions(
+             items.push(AssemblyFunction {
+                 name,
+                 comments: std::mem::take(&mut pending),
+-                body: lines[(index + 2).min(end)..end].to_vec(),
++                body: cloned_source_lines(&lines[(index + 2).min(end)..end]),
+             });
+             index = end;
+         } else if !line.is_empty() {
+diff --git a/rust/src/formal/machine_reader_llvm.rs b/rust/src/formal/machine_reader_llvm.rs
+index 16d6477..dbc863a 100644
+--- a/rust/src/formal/machine_reader_llvm.rs
++++ b/rust/src/formal/machine_reader_llvm.rs
+@@ -16,6 +16,9 @@ use super::machine_reader_shared::{
+     Result, decode_bytes, group, integer, leading_comments, pattern_regex, procedure, program,
+     read_error, trimmed_lines,
+ };
++use crate::emission_map::{
++    Origins, active_origins, clone_source_line, current, line_origins, register_instructions,
++};
+ use crate::meta::GrammarError;
+ 
+ fn llvm_relation(relation: &str) -> Option<&'static str> {
+@@ -196,10 +199,13 @@ struct LlvmBody<'a> {
+     parameters: &'a HashSet<String>,
+     uses: HashMap<String, i64>,
+     defs: HashMap<String, Node>,
++    def_origins: HashMap<String, Origins>,
+     emitted: HashSet<String>,
+     remaining: HashMap<String, i64>,
+-    spills: Vec<(usize, Operand)>,
++    spills: Vec<(usize, Operand, Origins)>,
+     code: Vec<Instruction>,
++    code_origins: Vec<(usize, Origins)>,
++    pending_origins: Origins,
+     index: usize,
+ }
+ 
+@@ -217,14 +223,28 @@ impl<'a> LlvmBody<'a> {
+             parameters,
+             uses: use_counts(lines),
+             defs: HashMap::new(),
++            def_origins: HashMap::new(),
+             emitted: HashSet::new(),
+             remaining: HashMap::new(),
+             spills: Vec::new(),
+             code: Vec::new(),
++            code_origins: Vec::new(),
++            pending_origins: Vec::new(),
+             index: 0,
+         }
+     }
+ 
++    fn push(&mut self, instruction: Instruction) {
++        self.code_origins.push((self.code.len(), current()));
++        self.code.push(instruction);
++    }
++
++    fn attach_last(&mut self, origins: Origins) {
++        if let Some((_, previous)) = self.code_origins.last_mut() {
++            previous.extend(origins);
++        }
++    }
++
+     fn operand(&self, token: &str) -> Result<Operand> {
+         if pattern_regex(r"^-?\d+$").is_match(token) {
+             return Ok(Operand::Push(integer(token)?));
+@@ -246,7 +266,7 @@ impl<'a> LlvmBody<'a> {
+ 
+     fn emit_operand(&mut self, operand: &Operand) -> Result<()> {
+         match operand {
+-            Operand::Push(value) => self.code.push(Instruction::Push(*value)),
++            Operand::Push(value) => self.push(Instruction::Push(*value)),
+             Operand::Temp(name) => self.emit_temporary(name)?,
+         }
+         Ok(())
+@@ -255,6 +275,8 @@ impl<'a> LlvmBody<'a> {
+     /// A temporary with a single use is written at that use; a temporary
+     /// with several uses is written at the first and stays on the stack.
+     fn emit_temporary(&mut self, name: &str) -> Result<()> {
++        let enclosing = current();
++        let _origin = active_origins(self.def_origins.get(name).cloned().unwrap_or_default());
+         let node = self
+             .defs
+             .get(name)
+@@ -262,7 +284,9 @@ impl<'a> LlvmBody<'a> {
+             .ok_or_else(|| read_error("llvm", name, "unknown value"))?;
+         let total = self.uses.get(name).copied().unwrap_or(0);
+         if total <= 1 {
+-            return self.emit(&node);
++            self.emit(&node)?;
++            self.attach_last(enclosing);
++            return Ok(());
+         }
+         if !self.emitted.contains(name) {
+             self.emit(&node)?;
+@@ -272,54 +296,55 @@ impl<'a> LlvmBody<'a> {
+         let left = self.remaining.get(name).copied().unwrap_or(0) - 1;
+         self.remaining.insert(name.to_owned(), left);
+         if left > 0 {
+-            self.code.push(Instruction::Dup);
++            self.push(Instruction::Dup);
+         }
+         Ok(())
+     }
+ 
+     fn element(&mut self, address: &str) -> Result<()> {
++        let _origin = active_origins(self.def_origins.get(address).cloned().unwrap_or_default());
+         let Some(Node::Gep(array, index)) = self.defs.get(address).cloned() else {
+             return Err(read_error("llvm", address, "not an element address"));
+         };
+         self.emit_operand(&array)?;
+         self.emit_operand(&index)?;
+-        self.code.push(Instruction::ElementIndex);
++        self.push(Instruction::ElementIndex);
+         Ok(())
+     }
+ 
+     fn emit(&mut self, node: &Node) -> Result<()> {
+         match node {
+-            Node::OnStack | Node::Gep(..) | Node::LengthAddress(_) | Node::Compare(..) => {}
+-            Node::Load(slot) => self.code.push(Instruction::Load(*slot)),
++            Node::OnStack => self.attach_last(current()),
++            Node::Gep(..) | Node::LengthAddress(_) | Node::Compare(..) => {}
++            Node::Load(slot) => self.push(Instruction::Load(*slot)),
+             Node::Binary(operation, left, right) => {
+                 self.emit_operand(left)?;
+                 self.emit_operand(right)?;
+-                self.code.push(Instruction::Arithmetic(operation));
++                self.push(Instruction::Arithmetic(operation));
+             }
+             Node::Negate(value) => {
+                 self.emit_operand(value)?;
+-                self.code.push(Instruction::Negate);
++                self.push(Instruction::Negate);
+             }
+             Node::Call(name, arguments) => {
+                 for argument in arguments {
+                     self.emit_operand(argument)?;
+                 }
+-                self.code
+-                    .push(Instruction::Call(name.clone(), arguments.len()));
++                self.push(Instruction::Call(name.clone(), arguments.len()));
+             }
+             Node::NewArray(arguments) => {
+                 for argument in arguments {
+                     self.emit_operand(argument)?;
+                 }
+-                self.code.push(Instruction::NewArray);
++                self.push(Instruction::NewArray);
+             }
+             Node::LoadElement(address) => {
+                 self.element(address)?;
+-                self.code.push(Instruction::LoadElement);
++                self.push(Instruction::LoadElement);
+             }
+             Node::ArrayLength(array) => {
+                 self.emit_operand(array)?;
+-                self.code.push(Instruction::ArrayLength);
++                self.push(Instruction::ArrayLength);
+             }
+         }
+         Ok(())
+@@ -327,6 +352,7 @@ impl<'a> LlvmBody<'a> {
+ 
+     /// A value that is never used is dropped where it is made.
+     fn define(&mut self, name: &str, node: Node) -> Result<()> {
++        self.def_origins.insert(name.to_owned(), current());
+         self.defs.insert(name.to_owned(), node.clone());
+         let structural = matches!(
+             node,
+@@ -334,7 +360,7 @@ impl<'a> LlvmBody<'a> {
+         );
+         if !structural && self.uses.get(name).copied().unwrap_or(0) == 0 {
+             self.emit(&node)?;
+-            self.code.push(Instruction::Pop);
++            self.push(Instruction::Pop);
+         }
+         Ok(())
+     }
+@@ -371,16 +397,16 @@ impl<'a> LlvmBody<'a> {
+         if let Some(found) = spill.captures(address) {
+             let index = group(&found, 1).parse::<usize>().unwrap_or(0);
+             let node = self.operand(value)?;
+-            self.spills.push((index, node));
++            self.spills.push((index, node, current()));
+         } else if matches!(self.defs.get(address), Some(Node::Gep(..))) {
+             self.element(address)?;
+             let operand = self.operand(value)?;
+             self.emit_operand(&operand)?;
+-            self.code.push(Instruction::StoreElement);
++            self.push(Instruction::StoreElement);
+         } else {
+             let operand = self.operand(value)?;
+             self.emit_operand(&operand)?;
+-            self.code.push(Instruction::Store(self.slot(address)?));
++            self.push(Instruction::Store(self.slot(address)?));
+         }
+         Ok(())
+     }
+@@ -389,9 +415,11 @@ impl<'a> LlvmBody<'a> {
+     /// positions.
+     fn flush_spills(&mut self) -> Result<()> {
+         let mut spills = std::mem::take(&mut self.spills);
+-        spills.sort_by_key(|(index, _)| *index);
+-        for (_, operand) in spills {
++        spills.sort_by_key(|(index, _, _)| *index);
++        for (_, operand, origins) in spills {
++            let _origin = active_origins(origins.clone());
+             self.emit_operand(&operand)?;
++            self.attach_last(origins);
+         }
+         Ok(())
+     }
+@@ -400,20 +428,24 @@ impl<'a> LlvmBody<'a> {
+         self.flush_spills()?;
+         let next = format!("{target}:");
+         if self.lines.get(self.index + 1) != Some(&next) {
+-            self.code.push(Instruction::Jump(target.to_owned()));
++            self.push(Instruction::Jump(target.to_owned()));
++        } else {
++            self.pending_origins.extend(current());
+         }
+         Ok(())
+     }
+ 
+     fn conditional_branch(&mut self, condition: &str, target: &str) -> Result<()> {
++        let mut origins = current();
++        origins.extend(self.def_origins.get(condition).cloned().unwrap_or_default());
++        let _origin = active_origins(origins);
+         self.flush_spills()?;
+         let Some(Node::Compare(relation, left, right)) = self.defs.get(condition).cloned() else {
+             return Err(read_error("llvm", condition, "not a comparison"));
+         };
+         self.emit_operand(&left)?;
+         self.emit_operand(&right)?;
+-        self.code
+-            .push(Instruction::CompareJump(relation, target.to_owned()));
++        self.push(Instruction::CompareJump(relation, target.to_owned()));
+         Ok(())
+     }
+ 
+@@ -422,13 +454,13 @@ impl<'a> LlvmBody<'a> {
+         if parts[0] == "ptr @integer_format" {
+             let operand = self.operand(argument_value(parts.get(1).copied().unwrap_or("")))?;
+             self.emit_operand(&operand)?;
+-            self.code.push(Instruction::PrintInteger);
++            self.push(Instruction::PrintInteger);
+         } else if parts[0] == "ptr @text_format" {
+             let key = parts.get(1).and_then(|part| part.get(5..)).unwrap_or("");
+             let text = self.texts.get(key).cloned().unwrap_or_default();
+-            self.code.push(Instruction::PrintText(text));
++            self.push(Instruction::PrintText(text));
+         } else {
+-            self.code.push(Instruction::PrintNewline);
++            self.push(Instruction::PrintNewline);
+         }
+         Ok(())
+     }
+@@ -436,7 +468,7 @@ impl<'a> LlvmBody<'a> {
+     fn run(&mut self, kind: Line, found: &Captures) -> Result<()> {
+         let at = |index: usize| group(found, index);
+         match kind {
+-            Line::Comment => self.code.push(Instruction::Comment(at(1).into())),
++            Line::Comment => self.push(Instruction::Comment(at(1).into())),
+             Line::Load => self.load(at(1), at(2))?,
+             Line::Negate => {
+                 let value = self.operand(at(2))?;
+@@ -476,16 +508,18 @@ impl<'a> LlvmBody<'a> {
+             Line::Print => self.print(at(1))?,
+             Line::Branch => self.branch(at(1))?,
+             Line::ConditionalBranch => self.conditional_branch(at(1), at(2))?,
+-            Line::ReturnNothing => self.code.push(Instruction::ReturnNothing),
++            Line::ReturnNothing => self.push(Instruction::ReturnNothing),
+             Line::ReturnValue => {
+                 let operand = self.operand(at(1))?;
+                 self.emit_operand(&operand)?;
+-                self.code.push(Instruction::Return);
++                self.push(Instruction::Return);
+             }
+             Line::Unreachable => {}
+             Line::Label => {
+                 if !pattern_regex(r"^(entry|next|dead)\.\d+$").is_match(at(1)) {
+-                    self.code.push(Instruction::Label(at(1).into()));
++                    self.push(Instruction::Label(at(1).into()));
++                } else {
++                    self.attach_last(current());
+                 }
+             }
+         }
+@@ -497,13 +531,22 @@ impl<'a> LlvmBody<'a> {
+         let lines = self.lines;
+         while self.index < lines.len() {
+             let line = &lines[self.index];
++            let _origin = active_origins(line_origins(line));
+             let (kind, found) = rules
+                 .iter()
+                 .find_map(|(kind, pattern)| pattern.captures(line).map(|found| (*kind, found)))
+                 .ok_or_else(|| read_error("llvm", line, "unknown instruction"))?;
++            let start = self.code.len();
+             self.run(kind, &found)?;
++            if self.code.len() > start
++                && !self.pending_origins.is_empty()
++                && let Some((_, origins)) = self.code_origins.get_mut(start)
++            {
++                origins.extend(std::mem::take(&mut self.pending_origins));
++            }
+             self.index += 1;
+         }
++        register_instructions(&self.code, self.code_origins);
+         Ok(self.code)
+     }
+ }
+@@ -530,7 +573,7 @@ fn read_llvm_function(
+             slots.insert(group(&found, 1).to_owned(), slots.len());
+             slot_names.push(group(&found, 1).to_owned());
+         } else if !alloca.is_match(line) {
+-            body.push(line.clone());
++            body.push(clone_source_line(line));
+         }
+     }
+     let set: HashSet<String> = parameters.iter().cloned().collect();
+diff --git a/rust/src/formal/machine_reader_shared.rs b/rust/src/formal/machine_reader_shared.rs
+index 549776d..098a14f 100644
+--- a/rust/src/formal/machine_reader_shared.rs
++++ b/rust/src/formal/machine_reader_shared.rs
+@@ -4,6 +4,10 @@
+ use regex::{Captures, Regex};
+ 
+ use super::lowering::{Instruction, LoweredProgram, Procedure};
++use crate::emission_map::{
++    clone_source_line, cloned_source_lines, instruction_origins, line_origins,
++    register_instructions, register_source_lines,
++};
+ use crate::meta::GrammarError;
+ 
+ pub(super) type Result<T> = std::result::Result<T, GrammarError>;
+@@ -57,6 +61,7 @@ pub(super) fn read_instructions(
+     target: &str,
+ ) -> Result<Vec<Raw>> {
+     let mut code = Vec::new();
++    let mut origins = Vec::new();
+     let mut index = 0;
+     'lines: while index < lines.len() {
+         for rule in rules {
+@@ -73,18 +78,36 @@ pub(super) fn read_instructions(
+             if let Some(matches) = matches
+                 && let Some(built) = (rule.build)(&matches)?
+             {
+-                code.extend(built);
++                let source = lines[index..index + rule.patterns.len()]
++                    .iter()
++                    .flat_map(line_origins)
++                    .collect::<Vec<_>>();
++                for instruction in built {
++                    origins.push((code.len(), source.clone()));
++                    code.push(instruction);
++                }
+                 index += rule.patterns.len();
+                 continue 'lines;
+             }
+         }
+         return Err(read_error(target, &lines[index], "unknown instruction"));
+     }
++    register_instructions(&code, origins);
+     Ok(code)
+ }
+ 
+ pub(super) fn without_results(code: Vec<Raw>) -> Vec<Instruction> {
+-    code.into_iter().flatten().collect()
++    let owners: Vec<_> = code.iter().map(instruction_origins).collect();
++    let mut result = Vec::new();
++    let mut origins = Vec::new();
++    for (instruction, origin) in code.into_iter().zip(owners) {
++        if let Some(instruction) = instruction {
++            origins.push((result.len(), origin));
++            result.push(instruction);
++        }
++    }
++    register_instructions(&result, origins);
++    result
+ }
+ 
+ /// Split a file into the program comments (before the first line that
+@@ -102,9 +125,12 @@ pub(super) fn leading_comments(
+                 .filter_map(|line| line.strip_prefix(prefix))
+                 .map(|text| text.strip_prefix(' ').unwrap_or(text).to_owned())
+                 .collect();
+-            (comments, lines[first..].to_vec())
++            (comments, cloned_source_lines(&lines[first..]))
+         }
+-        None => (Vec::new(), lines.last().cloned().into_iter().collect()),
++        None => (
++            Vec::new(),
++            lines.last().map(clone_source_line).into_iter().collect(),
++        ),
+     }
+ }
+ 
+@@ -123,10 +149,12 @@ pub(super) fn group<'t>(captures: &'t Captures, index: usize) -> &'t str {
+ }
+ 
+ pub(super) fn trimmed_lines(source: &str) -> Vec<String> {
+-    source
++    let lines = source
+         .split('\n')
+         .map(|line| line.trim().to_owned())
+-        .collect()
++        .collect::<Vec<_>>();
++    register_source_lines(source, &lines);
++    lines
+ }
+ 
+ /// The program after reading: "main" is the entry point.
+@@ -168,14 +196,24 @@ pub(super) fn procedure(
+ /// result of f; the rules read that instruction as `None`. A call without it
+ /// is a call to a function that returns nothing.
+ pub(super) fn resolve_results(raw: Vec<Raw>, target: &str, line: &str) -> Result<Vec<Instruction>> {
++    let owners: Vec<_> = raw.iter().map(instruction_origins).collect();
+     let mut code: Vec<Instruction> = Vec::new();
+-    for instruction in raw {
++    let mut origins: Vec<(usize, crate::emission_map::Origins)> = Vec::new();
++    for (instruction, origin) in raw.into_iter().zip(owners) {
+         match instruction {
+-            Some(instruction) => code.push(instruction),
+-            None if matches!(code.last(), Some(Instruction::Call(..))) => {}
++            Some(instruction) => {
++                origins.push((code.len(), origin));
++                code.push(instruction);
++            }
++            None if matches!(code.last(), Some(Instruction::Call(..))) => {
++                if let Some((_, previous)) = origins.last_mut() {
++                    previous.extend(origin);
++                }
++            }
+             None => return Err(read_error(target, line, "not after a call")),
+         }
+     }
++    register_instructions(&code, origins);
+     Ok(code)
+ }
+ 
+diff --git a/rust/src/formal/machine_reader_wasm.rs b/rust/src/formal/machine_reader_wasm.rs
+index fa70995..764feb9 100644
+--- a/rust/src/formal/machine_reader_wasm.rs
++++ b/rust/src/formal/machine_reader_wasm.rs
+@@ -13,6 +13,7 @@ use super::machine_reader_shared::{
+     ReadRule, Result, decode_bytes, fixed, group, integer, leading_comments, pattern_regex,
+     procedure, program, read_error, read_instructions, rule, trimmed_lines, without_results,
+ };
++use crate::emission_map::{clone_source_line, include_source_line};
+ use crate::meta::GrammarError;
+ 
+ const RELATION_PATTERN: &str = r"^(i64\.(?:eq|ne|lt_s|le_s|gt_s|ge_s))$";
+@@ -81,6 +82,18 @@ fn strip_frame(lines: &[String]) -> (Vec<String>, Vec<String>) {
+     let block = pattern_regex(r"^(?:block|loop) \$\S+$");
+     let end = pattern_regex(r"^end ;; (?:start|dispatch)$");
+     let saved = pattern_regex(r"^local\.(?:set|get) \$\.stack\.\d+$");
++    for (index, line) in lines.iter().enumerate() {
++        let neighbor = if line.starts_with("local.set $.stack.") {
++            index.checked_sub(1).and_then(|at| lines.get(at))
++        } else if line.starts_with("local.get $.stack.") {
++            lines.get(index + 1)
++        } else {
++            None
++        };
++        if let Some(neighbor) = neighbor {
++            include_source_line(neighbor, line);
++        }
++    }
+     let mut kept = Vec::new();
+     let mut labels = Vec::new();
+     for (index, line) in lines.iter().enumerate() {
+@@ -102,7 +115,7 @@ fn strip_frame(lines: &[String]) -> (Vec<String>, Vec<String>) {
+                 .is_some_and(|next| next.starts_with("br_table "))
+             || saved.is_match(line);
+         if !frame {
+-            kept.push(line.clone());
++            kept.push(clone_source_line(line));
+         }
+     }
+     (labels, kept)
+@@ -316,7 +329,7 @@ fn read_wat_function(
+                 slot_names.push(group(&declared, 1).to_owned());
+             }
+         } else if !helper.is_match(line) {
+-            body.push(line.clone());
++            body.push(clone_source_line(line));
+         }
+     }
+     let (labels, instructions) = strip_frame(&body);
+diff --git a/rust/src/source_origins.rs b/rust/src/source_origins.rs
+index df9f0d4..4a5870d 100644
+--- a/rust/src/source_origins.rs
++++ b/rust/src/source_origins.rs
+@@ -11,6 +11,22 @@ pub(crate) struct SourceOrigin {
+     range: Option<(usize, usize)>,
+ }
+ 
++pub(crate) fn combine_origins(origins: &[Arc<SourceOrigin>]) -> Option<Arc<SourceOrigin>> {
++    let source = origins.first()?.source.clone();
++    let mut lines: Vec<_> = origins
++        .iter()
++        .filter(|origin| origin.source == source)
++        .flat_map(|origin| origin.lines.iter().copied())
++        .collect();
++    lines.sort_unstable();
++    lines.dedup();
++    Some(Arc::new(SourceOrigin {
++        source,
++        lines,
++        range: None,
++    }))
++}
++
+ pub(crate) struct SourceLocator {
+     source: Arc<str>,
+     starts: Vec<usize>,

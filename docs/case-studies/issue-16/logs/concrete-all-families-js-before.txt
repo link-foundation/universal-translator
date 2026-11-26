@@ -1,0 +1,54 @@
+▶ concrete syntax as the default source record
+  ✔ partitions every byte, including quotes, directives and trivia (24.116491ms)
+  ✔ exposes source syntax to decorators before semantic rewriting (203.380315ms)
+  ✖ retains source syntax when reading words and every machine format (15.77487ms)
+  ✖ keeps accepted regions and explicit errors in incomplete source (10.481174ms)
+  ✖ keeps a lossless record for empty and whitespace-only input (0.548173ms)
+✖ concrete syntax as the default source record (257.05462ms)
+ℹ tests 5
+ℹ suites 1
+ℹ pass 2
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 786.350861
+
+✖ failing tests:
+
+test at node_modules/test-anywhere/src/index.js:174:12
+✖ retains source syntax when reading words and every machine format (15.77487ms)
+  TypeError [Error]: Cannot read properties of undefined (reading 'children')
+      at reconstructConcrete (file:///tmp/gh-issue-solver-1795726129025/js/src/translation/concrete-syntax.js:118:10)
+      at TestContext.<anonymous> (file:///tmp/gh-issue-solver-1795726129025/js/tests/concrete-syntax.test.js:75:14)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Suite.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Suite.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at node_modules/test-anywhere/src/index.js:174:12
+✖ keeps accepted regions and explicit errors in incomplete source (10.481174ms)
+  TypeError [Error]: Cannot read properties of undefined (reading 'children')
+      at reconstructConcrete (file:///tmp/gh-issue-solver-1795726129025/js/src/translation/concrete-syntax.js:118:10)
+      at TestContext.<anonymous> (file:///tmp/gh-issue-solver-1795726129025/js/tests/concrete-syntax.test.js:88:12)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Suite.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Suite.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at node_modules/test-anywhere/src/index.js:174:12
+✖ keeps a lossless record for empty and whitespace-only input (0.548173ms)
+  Error: The fragment is empty
+      at parseFragment (file:///tmp/gh-issue-solver-1795726129025/js/src/translation/fragments.js:369:13)
+      at Object.parsePartial (file:///tmp/gh-issue-solver-1795726129025/js/src/translation/partial.js:233:24)
+      at TestContext.<anonymous> (file:///tmp/gh-issue-solver-1795726129025/js/tests/concrete-syntax.test.js:104:42)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Suite.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Suite.processPendingSubtests (node:internal/test_runner/test:974:7)

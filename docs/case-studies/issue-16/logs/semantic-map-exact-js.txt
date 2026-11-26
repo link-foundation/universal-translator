@@ -1,0 +1,31 @@
+▶ semantic many-to-many line mapping
+  ✖ maps the complete Fibonacci interpolation reported in issue 16 (355.63183ms)
+  ✔ maps a Java print to both the Bash command and its echo, and back (19.188013ms)
+  ✔ maps translated sentences in every controlled natural language in both directions (554.042086ms)
+  ✔ preserves origin metadata through output style and fragment wrappers (4.666533ms)
+  ✔ restores the capture context after failure and reentrant translations (5.525033ms)
+✖ semantic many-to-many line mapping (942.100556ms)
+ℹ tests 5
+ℹ suites 1
+ℹ pass 4
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1481.758457
+
+✖ failing tests:
+
+test at node_modules/test-anywhere/src/index.js:174:12
+✖ maps the complete Fibonacci interpolation reported in issue 16 (355.63183ms)
+  Error: Expected [[15,13],[15,14],[15,15],[16,13],[16,14],[16,15]] to equal [[15,14],[16,14]]
+      at Object.toEqual (file:///tmp/gh-issue-solver-1795726129025/node_modules/test-anywhere/src/index.js:399:15)
+      at TestContext.<anonymous> (file:///tmp/gh-issue-solver-1795726129025/js/tests/semantic-mapping.test.js:54:7)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at node:internal/test_runner/test:1903:71
+      at node:internal/per_context/primordials:505:82
+      at new Promise (<anonymous>)
+      at new SafePromise (node:internal/per_context/primordials:479:3)
+      at node:internal/per_context/primordials:505:9
