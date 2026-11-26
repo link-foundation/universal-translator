@@ -638,18 +638,34 @@ pub fn drop_text_conversions(program: Node, settings: &Settings) -> Node {
     if conversions.is_empty() {
         return program;
     }
-    let unwrap = |value: Node| -> Node {
-        if value.is("Call")
+    let is_conversion = |value: &Node| -> bool {
+        value.is("Call")
             && value
                 .str("callee")
                 .is_some_and(|callee| conversions.contains(&callee))
-        {
-            let arguments = value.node_list("arguments");
-            if let [only] = arguments.as_slice() {
-                return only.clone();
-            }
+            && value.node_list("arguments").len() == 1
+    };
+    let unwrap = |value: Node| -> Node {
+        if is_conversion(&value) {
+            return value.node_list("arguments").remove(0);
         }
         value
+    };
+    // `str(n) + str(n)` joins two texts: it is the interpolation of n and n,
+    // not the sum n + n.
+    let joined = |current: &Node| -> Node {
+        let parts: Vec<Node> = ["left", "right"]
+            .into_iter()
+            .filter_map(|side| current.node(side).cloned())
+            .flat_map(|value| {
+                if value.is("Interpolation") {
+                    value.node_list("parts")
+                } else {
+                    vec![unwrap(value)]
+                }
+            })
+            .collect();
+        Node::new("Interpolation").with("parts", parts)
     };
     fn is_text(value: &Node) -> bool {
         value.is("Text")
@@ -670,7 +686,14 @@ pub fn drop_text_conversions(program: Node, settings: &Settings) -> Node {
             let parts: Vec<Node> = current.node_list("parts").into_iter().map(unwrap).collect();
             return current.with("parts", parts);
         }
-        if current.is("Binary") && current.str("operator") == Some("add") && is_text(&current) {
+        let added = current.is("Binary") && current.str("operator") == Some("add");
+        if added
+            && (current.node("left").is_some_and(is_conversion)
+                || current.node("right").is_some_and(is_conversion))
+        {
+            return joined(&current);
+        }
+        if added && is_text(&current) {
             let mut changed = current;
             for side in ["left", "right"] {
                 if let Some(value) = changed.node(side).cloned() {

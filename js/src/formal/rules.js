@@ -407,12 +407,19 @@ export function dropTextConversions(program, { from } = {}) {
   if (!conversions) {
     return program;
   }
-  const unwrap = (value) =>
+  const isConversion = (value) =>
     value.kind === 'Call' &&
     conversions.includes(value.callee) &&
-    value.arguments.length === 1
-      ? value.arguments[0]
-      : value;
+    value.arguments.length === 1;
+  const unwrap = (value) => (isConversion(value) ? value.arguments[0] : value);
+  // `str(n) + str(n)` joins two texts: it is the interpolation of n and n,
+  // not the sum n + n.
+  const joined = (current) =>
+    node('Interpolation', {
+      parts: [current.left, current.right].flatMap((value) =>
+        value.kind === 'Interpolation' ? value.parts : [unwrap(value)]
+      ),
+    });
   const isText = (value) =>
     ['Text', 'Interpolation'].includes(value.kind) ||
     (value.kind === 'Binary' &&
@@ -424,6 +431,13 @@ export function dropTextConversions(program, { from } = {}) {
     }
     if (current.kind === 'Interpolation') {
       return { ...current, parts: current.parts.map(unwrap) };
+    }
+    if (
+      current.kind === 'Binary' &&
+      current.operator === 'add' &&
+      (isConversion(current.left) || isConversion(current.right))
+    ) {
+      return joined(current);
     }
     if (
       current.kind === 'Binary' &&

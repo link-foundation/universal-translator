@@ -236,3 +236,19 @@ fn joins_text_with_plus_and_str_in_python_3_5_before_f_strings() {
     );
     assert_eq!(written(source, "python"), "n = 7\nprint(f\"n is {n}\")\n");
 }
+
+#[test]
+fn reads_text_joined_from_conversions_as_text_not_as_a_sum() {
+    assert_eq!(
+        read(
+            "n = 7\nprint str(n) + str(n) + \" items\"\nprint str(n) + str(n)\nprint n + n\n",
+            "python"
+        ),
+        "const n = 7;\nconsole.log(`${n}${n} items`);\nconsole.log(`${n}${n}`);\nconsole.log(n + n);\n"
+    );
+    let source = "const n = 7;\nconsole.log(`${n}${n} items`);\n";
+    for version in ["python@2", "python@3.5", "csharp@5"] {
+        let text = written(source, version);
+        assert_eq!(read(&text, version), source, "{version}: {text}");
+    }
+}

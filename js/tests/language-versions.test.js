@@ -193,4 +193,21 @@ describe('versions of Java, Swift and Python 3', () => {
       'n = 7\nprint(f"n is {n}")\n'
     );
   });
+
+  it('reads text joined from conversions as text, not as a sum', () => {
+    expect(
+      translate(
+        'n = 7\nprint str(n) + str(n) + " items"\nprint str(n) + str(n)\nprint n + n\n',
+        'python',
+        'javascript'
+      )
+    ).toBe(
+      'const n = 7;\nconsole.log(`${n}${n} items`);\nconsole.log(`${n}${n}`);\nconsole.log(n + n);\n'
+    );
+    const source = 'const n = 7;\nconsole.log(`${n}${n} items`);\n';
+    for (const version of ['python@2', 'python@3.5', 'csharp@5']) {
+      const written = translate(source, 'javascript', version);
+      expect(translate(written, version, 'javascript')).toBe(source);
+    }
+  });
 });
