@@ -8,6 +8,9 @@ use universal_translator::formal::machine_reader_wasm::read_wat;
 use universal_translator::translator::{Translator, languages, machine_target_ids};
 use universal_translator::{GrammarError, Mode, Options, translate_fragment};
 
+/// A reader of one machine dialect.
+type Reader = fn(&str) -> Result<LoweredProgram, GrammarError>;
+
 /// The dialects added after NASM, CIL and JVM bytecode.
 const DIALECTS: [&str; 4] = ["gas", "arm64", "llvm", "wat"];
 
@@ -210,7 +213,7 @@ fn translates_between_every_pair_of_dialects() {
 
 #[test]
 fn reads_procedures_slots_and_text() {
-    let readers: [(&str, fn(&str) -> Result<LoweredProgram, GrammarError>); 4] = [
+    let readers: [(&str, Reader); 4] = [
         ("gas", read_gas),
         ("arm64", read_arm64),
         ("llvm", read_llvm),

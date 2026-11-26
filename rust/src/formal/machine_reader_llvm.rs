@@ -285,7 +285,7 @@ impl<'a> LlvmBody<'a> {
             Node::Binary(operation, left, right) => {
                 self.emit_operand(left)?;
                 self.emit_operand(right)?;
-                self.code.push(Instruction::Arithmetic(*operation));
+                self.code.push(Instruction::Arithmetic(operation));
             }
             Node::Negate(value) => {
                 self.emit_operand(value)?;
