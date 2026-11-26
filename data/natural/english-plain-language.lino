@@ -17,6 +17,7 @@ natural:
     else: 'If not, do this'
     while: 'As long as {condition}, keep doing this'
     for: 'For each {variable} from {start} to {last}, do this'
+    for-each: 'For each {variable} in {array}, do this'
     join: '{left} then {right}'
     equal: '{left} is {right}' '{left} = {right}' '{left} == {right}'
     not-equal: '{left} is not {right}' '{left} != {right}' '{left} ≠ {right}' '{left} <> {right}'

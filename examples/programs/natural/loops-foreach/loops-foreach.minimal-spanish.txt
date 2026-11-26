@@ -1,0 +1,6 @@
+Nota: Loops/Foreach in JavaScript: print every element of a collection
+
+Hay números, es estas cosas (1, 1, 2, 3, 5, 8, 13, 21).
+Para todos los índice desde 0 hasta cuántas partes hay en números menos 1, hacer esto:
+  Hay número, es la parte índice de números.
+  Decir número en una línea.

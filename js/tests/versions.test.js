@@ -98,13 +98,14 @@ describe('older versions of Lua, PHP and C#', () => {
       'return math.floor(n / 2)'
     );
     expect(translate(source, 'javascript', 'php@5')).toContain(
-      'return intval($n / 2);'
+      'return (int) ($n / 2);'
     );
   });
 
   it('joins text with + in C# 5', () => {
     expect(translate(source, 'javascript', 'csharp@5')).toContain(
-      'System.Console.WriteLine("" + Half(4) + Half(2) + " items");'
+      'System.Console.WriteLine(System.Convert.ToString(Half(4)) + ' +
+        'System.Convert.ToString(Half(2)) + " items");'
     );
     expect(translate(source, 'javascript', 'csharp')).toContain(
       'System.Console.WriteLine($"{Half(4)}{Half(2)} items");'

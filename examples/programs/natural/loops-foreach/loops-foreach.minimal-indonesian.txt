@@ -1,0 +1,6 @@
+Catatan: Loops/Foreach in JavaScript: print every element of a collection
+
+Ada angka, yaitu semua hal ini (1, 1, 2, 3, 5, 8, 13, 21).
+Untuk semua indeks dari 0 sampai berapa banyak bagian di dalam angka dikurangi 1, lakukan ini:
+  Ada bilangan, yaitu bagian indeks dari angka.
+  Katakan bilangan pada satu baris.

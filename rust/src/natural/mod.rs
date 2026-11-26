@@ -5,6 +5,7 @@
 pub mod catalog;
 pub mod comments;
 pub mod levels;
+pub mod probability;
 pub mod prose_reading;
 pub mod reader;
 pub mod rules;
@@ -18,7 +19,8 @@ pub use catalog::{
     Language, is_natural_language, natural_language, natural_language_ids, with_templates,
 };
 pub use comments::{
-    comment_dictionary, detect_comment_language, is_known_word, translate_comment_text, words_of,
+    RankedProse, comment_dictionary, detect_comment_language, is_known_word, rank_prose,
+    translate_comment_text, words_of,
 };
 pub use prose_reading::read_prose;
 pub use reader::{read_natural, read_natural_with};

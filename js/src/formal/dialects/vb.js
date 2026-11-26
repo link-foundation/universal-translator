@@ -4,12 +4,13 @@
 import { add, block, node, number } from '../../meta/tree.js';
 import { defaultValues, keywordParser } from './shared.js';
 import { offset } from '../arrays.js';
+import { realValue } from '../numbers.js';
 
 // Words before a procedure that do not change what it means.
 const modifiers = ['private', 'public', 'shared', 'friend'];
 // The operators Visual Basic binds at different levels: * and / above \,
 // and \ above Mod.
-const multiplicative = ['multiply', 'divide', 'remainder'];
+const multiplicative = ['multiply', 'divide', 'realDivide', 'remainder'];
 
 // Statements: Dim, If, While, For, Return, assignments and calls.
 const statements = (Base) =>
@@ -234,7 +235,11 @@ const statementEmitter = (Base) =>
 
     declaration({ name, type, value }) {
       const initial = this.expression(
-        value ?? defaultValues[type ?? 'integer']
+        realValue(
+          value ?? defaultValues[type ?? 'integer'] ?? defaultValues.integer,
+          type,
+          this.syntax
+        )
       );
       return `Dim ${name} As ${this.type(type ?? 'integer')} = ${initial}`;
     }

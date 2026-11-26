@@ -9,6 +9,7 @@ use super::dialects::{EmitterDialect, emitter_dialect};
 use super::languages::{
     Blocks, EntryPoint, ForwardDeclarations, IntegerDivision, Syntax, language_syntax,
 };
+use super::numbers::{rust_type, with_real_operands};
 use crate::meta::GrammarError;
 use crate::meta::{Node, add, block, format_number, later_calls, layout, number, text};
 
@@ -21,7 +22,7 @@ pub(crate) fn precedence(operator: &str) -> f64 {
         "equal" | "notEqual" => 3.0,
         "less" | "lessOrEqual" | "greater" | "greaterOrEqual" => 4.0,
         "add" | "subtract" => 5.0,
-        "multiply" | "divide" | "remainder" => 6.0,
+        "multiply" | "divide" | "realDivide" | "remainder" => 6.0,
         _ => f64::NAN,
     }
 }
@@ -31,7 +32,7 @@ pub(crate) fn symbol(operator: &str) -> &str {
         "add" => "+",
         "subtract" => "-",
         "multiply" => "*",
-        "divide" => "/",
+        "divide" | "realDivide" => "/",
         "remainder" => "%",
         "less" => "<",
         "lessOrEqual" => "<=",
@@ -48,7 +49,7 @@ pub(crate) fn compound_operator(operator: &str) -> Option<&'static str> {
         "add" => Some("+="),
         "subtract" => Some("-="),
         "multiply" => Some("*="),
-        "divide" => Some("/="),
+        "divide" | "realDivide" => Some("/="),
         "remainder" => Some("%="),
         _ => None,
     }
@@ -121,7 +122,7 @@ pub(crate) struct Emitter {
     /// Functions announced before the definitions, as Lua's `local male`.
     pub(crate) announced: HashSet<String>,
     /// The statements and layout of a language with a grammar of its own.
-    dialect: &'static dyn EmitterDialect,
+    pub(crate) dialect: &'static dyn EmitterDialect,
     /// What a dialect remembers while it writes (see `state`).
     state: Box<dyn Any>,
 }
@@ -274,6 +275,9 @@ impl Emitter {
         let Some(types) = self.syntax.types else {
             return String::new();
         };
+        if let Some(real) = self.real_type_name(meta) {
+            return real;
+        }
         match meta {
             "text" => types.text,
             "boolean" => types.boolean,
@@ -354,7 +358,10 @@ impl Emitter {
     }
 
     pub(crate) fn base_expression_in(&mut self, expression: &Node, parent: f64) -> Result<String> {
-        if let Some(written) = self.array_expression(expression, parent) {
+        if let Some(written) = self
+            .array_expression(expression, parent)
+            .or_else(|| self.real_expression(expression, parent))
+        {
             return written;
         }
         match expression.kind.as_str() {
@@ -412,6 +419,8 @@ impl Emitter {
     }
 
     pub(crate) fn base_binary(&mut self, expression: &Node, parent: f64) -> Result<String> {
+        let converted = with_real_operands(expression, &self.syntax);
+        let expression = converted.as_ref().unwrap_or(expression);
         let operator = expression.str("operator").unwrap_or_default();
         let level = precedence(operator);
         let left_node = field(expression, "left")?;
@@ -465,367 +474,6 @@ impl Emitter {
         } else {
             result
         })
-    }
-
-    /// Render an interpolation where literal parts are escaped and computed
-    /// parts sit between `open` and `close`.
-    pub(crate) fn render(
-        &mut self,
-        parts: &[Node],
-        open: &str,
-        close: &str,
-        format: Format,
-    ) -> Result<String> {
-        let mut out = String::from("\"");
-        for part in parts {
-            if part.is("Text") {
-                out.push_str(&self.escape(part.str("value").unwrap_or_default(), format));
-            } else {
-                out.push_str(open);
-                out.push_str(&self.expression(part)?);
-                out.push_str(close);
-            }
-        }
-        out.push('"');
-        Ok(out)
-    }
-
-    pub(crate) fn joined(&mut self, parts: &[Node], separator: &str) -> Result<String> {
-        let pieces = parts
-            .iter()
-            .map(|part| {
-                if part.is("Text") {
-                    Ok(self.quote(part.str("value").unwrap_or_default()))
-                } else {
-                    self.expression_in(part, 6.0)
-                }
-            })
-            .collect::<Result<Vec<_>>>()?;
-        Ok(pieces.join(separator))
-    }
-
-    /// Text built from literal and computed parts, outside of output calls.
-    pub(crate) fn interpolation(&mut self, parts: &[Node]) -> Result<String> {
-        let dialect = self.dialect;
-        dialect.interpolation(self, parts)
-    }
-
-    /// Text joined with `+`, computed parts converted with the language's
-    /// conversion (Python 2: `str(value)`). A language without a conversion
-    /// (C# 5) converts them itself; an empty text first keeps a sum of
-    /// numbers from being added.
-    pub(crate) fn concatenation(&mut self, parts: &[Node]) -> Result<String> {
-        let convert = self.syntax.text_conversions.first().copied();
-        let mut pieces = parts
-            .iter()
-            .map(|part| {
-                if part.is("Text") {
-                    Ok(self.quote(part.str("value").unwrap_or_default()))
-                } else if let (Some(convert), false) = (convert, part.str("type") == Some("text")) {
-                    Ok(format!("{convert}({})", self.expression(part)?))
-                } else {
-                    self.expression_in(part, 6.0)
-                }
-            })
-            .collect::<Result<Vec<_>>>()?;
-        if convert.is_none() && !parts.first().is_some_and(|part| part.is("Text")) {
-            pieces.insert(0, "\"\"".to_owned());
-        }
-        Ok(pieces.join(" + "))
-    }
-
-    pub(crate) fn base_interpolation(&mut self, parts: &[Node]) -> Result<String> {
-        if self.syntax.text_join_concatenation {
-            return self.concatenation(parts);
-        }
-        if let Some((prefix, open, close, format)) = embedding(self.id()) {
-            if self.id() == "nim" {
-                self.uses.insert("strformat");
-            }
-            return Ok(format!(
-                "{prefix}{}",
-                self.render(parts, open, close, format)?
-            ));
-        }
-        match self.id() {
-            "javascript" | "typescript" => {
-                let mut out = String::from("`");
-                for part in parts {
-                    if part.is("Text") {
-                        let value = part.str("value").unwrap_or_default();
-                        out.push_str(
-                            &value
-                                .replace('\\', "\\\\")
-                                .replace('`', "\\`")
-                                .replace("${", "\\${")
-                                .replace('\n', "\\n"),
-                        );
-                    } else {
-                        out.push_str(&format!("${{{}}}", self.expression(part)?));
-                    }
-                }
-                out.push('`');
-                Ok(out)
-            }
-            "r" => {
-                let pieces = parts
-                    .iter()
-                    .map(|part| self.expression(part))
-                    .collect::<Result<Vec<_>>>()?;
-                Ok(format!("paste0({})", pieces.join(", ")))
-            }
-            // PHP and Perl interpolate only variables, so computed parts are
-            // concatenated.
-            "php" | "perl" => self.joined(parts, " . "),
-            "d" => {
-                self.uses.insert("std.conv");
-                let pieces = parts
-                    .iter()
-                    .map(|part| self.expression(part))
-                    .collect::<Result<Vec<_>>>()?;
-                Ok(format!("text({})", pieces.join(", ")))
-            }
-            "rust" => Ok(format!(
-                "format!({})",
-                self.format_arguments(parts, Format::Braces)?
-            )),
-            "go" => {
-                self.uses.insert("fmt");
-                Ok(format!(
-                    "fmt.Sprintf({})",
-                    self.format_arguments(parts, Format::Percent)?
-                ))
-            }
-            "lua" => self.joined(parts, " .. "),
-            "cpp" => {
-                self.uses.insert("string");
-                let pieces = parts
-                    .iter()
-                    .enumerate()
-                    .map(|(index, part)| {
-                        if part.is("Text") {
-                            let quoted = self.quote(part.str("value").unwrap_or_default());
-                            Ok(if index == 0 {
-                                format!("std::string({quoted})")
-                            } else {
-                                quoted
-                            })
-                        } else if part.str("type") == Some("text") {
-                            self.expression_in(part, 6.0)
-                        } else {
-                            Ok(format!("std::to_string({})", self.expression(part)?))
-                        }
-                    })
-                    .collect::<Result<Vec<_>>>()?;
-                Ok(pieces.join(" + "))
-            }
-            "java" => {
-                let joined = self.joined(parts, " + ")?;
-                Ok(if parts.first().is_some_and(|part| part.is("Text")) {
-                    joined
-                } else if joined.is_empty() {
-                    "\"\"".to_owned()
-                } else {
-                    format!("\"\" + {joined}")
-                })
-            }
-            _ => Err(GrammarError::new(format!(
-                "{} has no text interpolation in this translator",
-                self.syntax.label
-            ))),
-        }
-    }
-
-    /// "format string", value, value  — for printf-like and format!-like calls.
-    pub(crate) fn format_arguments(&mut self, parts: &[Node], style: Format) -> Result<String> {
-        let mut format = String::new();
-        let mut values = Vec::new();
-        for part in parts {
-            if part.is("Text") {
-                format.push_str(&self.escape(part.str("value").unwrap_or_default(), style));
-                continue;
-            }
-            if style == Format::Braces {
-                format.push_str("{}");
-            } else {
-                format.push_str(match part.str("type") {
-                    Some("text") => "%s",
-                    Some("boolean") if self.id() == "go" => "%t",
-                    _ => "%d",
-                });
-            }
-        }
-        for part in parts.iter().filter(|part| !part.is("Text")) {
-            values.push(self.expression(part)?);
-        }
-        let mut all = vec![format!("\"{format}\"")];
-        all.extend(values);
-        Ok(all.join(", "))
-    }
-
-    // ---- statements ----
-    pub(crate) fn print(&mut self, statement: &Node) -> Result<String> {
-        let dialect = self.dialect;
-        dialect.print(self, statement)
-    }
-
-    pub(crate) fn base_print(&mut self, statement: &Node) -> Result<String> {
-        let value = field(statement, "value")?;
-        let newline = statement.flag("newline").unwrap_or(false);
-        let parts = if value.is("Interpolation") {
-            value.node_list("parts")
-        } else {
-            vec![value.clone()]
-        };
-        let mut line_parts = parts.clone();
-        if newline {
-            line_parts.push(text("\n"));
-        }
-        let pick = |yes: &'static str, no: &'static str| if newline { yes } else { no };
-        Ok(match self.id() {
-            "javascript" | "typescript" => {
-                let single = self.expression(value)?;
-                if newline {
-                    format!("console.log({single});")
-                } else if value.str("type") == Some("text") {
-                    format!("process.stdout.write({single});")
-                } else {
-                    format!("process.stdout.write(String({single}));")
-                }
-            }
-            "python" if !self.syntax.print_statement => {
-                let single = self.expression(value)?;
-                if newline {
-                    format!("print({single})")
-                } else {
-                    format!("print({single}, end=\"\")")
-                }
-            }
-            // Python 2: print is a statement.
-            "python" => {
-                if newline && value.is("Text") && value.str("value") == Some("") {
-                    "print".to_owned()
-                } else if newline {
-                    format!("print {}", self.expression(value)?)
-                } else {
-                    self.uses.insert("sys");
-                    let single = self.expression(value)?;
-                    if value.str("type") == Some("text") {
-                        format!("sys.stdout.write({single})")
-                    } else {
-                        format!("sys.stdout.write(str({single}))")
-                    }
-                }
-            }
-            "ruby" => format!("{} {}", pick("puts", "print"), self.expression(value)?),
-            "lua" => format!("{}({})", pick("print", "io.write"), self.expression(value)?),
-            "php" => format!("echo {};", self.interpolation_or_text(&line_parts)?),
-            "c" => {
-                self.uses.insert("stdio");
-                format!(
-                    "printf({});",
-                    self.format_arguments(&line_parts, Format::Percent)?
-                )
-            }
-            "cpp" => {
-                self.uses.insert("iostream");
-                let pieces = parts
-                    .iter()
-                    .map(|part| self.expression_in(part, 6.0))
-                    .collect::<Result<Vec<_>>>()?;
-                format!(
-                    "std::cout << {}{};",
-                    pieces.join(" << "),
-                    pick(" << std::endl", "")
-                )
-            }
-            "go" => {
-                self.uses.insert("fmt");
-                if parts.len() == 1 {
-                    format!(
-                        "fmt.{}({})",
-                        pick("Println", "Print"),
-                        self.expression(value)?
-                    )
-                } else {
-                    format!(
-                        "fmt.Printf({})",
-                        self.format_arguments(&line_parts, Format::Percent)?
-                    )
-                }
-            }
-            "rust" => format!(
-                "{}({});",
-                pick("println!", "print!"),
-                self.format_arguments(&parts, Format::Braces)?
-            ),
-            "csharp" => format!(
-                "System.Console.{}({});",
-                pick("WriteLine", "Write"),
-                self.expression(value)?
-            ),
-            "java" => format!(
-                "System.out.{}({});",
-                pick("println", "print"),
-                self.expression(value)?
-            ),
-            "kotlin" | "scala" | "groovy" | "julia" => {
-                format!("{}({})", pick("println", "print"), self.expression(value)?)
-            }
-            "perl" => format!("print {};", self.interpolation_or_text(&line_parts)?),
-            "dart" => {
-                let single = self.expression(value)?;
-                if newline {
-                    format!("print({single});")
-                } else {
-                    self.uses.insert("dart:io");
-                    format!("stdout.write({single});")
-                }
-            }
-            "r" => {
-                let pieces = merge_texts(&line_parts)
-                    .iter()
-                    .map(|part| self.expression(part))
-                    .collect::<Result<Vec<_>>>()?;
-                format!("cat({}, sep = \"\")", pieces.join(", "))
-            }
-            "swift" => {
-                let single = self.expression(value)?;
-                if newline {
-                    format!("print({single})")
-                } else {
-                    format!("print({single}, terminator: \"\")")
-                }
-            }
-            "nim" | "d" => {
-                let pieces = parts
-                    .iter()
-                    .map(|part| self.expression(part))
-                    .collect::<Result<Vec<_>>>()?
-                    .join(", ");
-                match (self.id(), newline) {
-                    ("nim", true) => format!("echo {pieces}"),
-                    ("nim", false) => format!("stdout.write({pieces})"),
-                    (_, true) => format!("writeln({pieces});"),
-                    (_, false) => format!("write({pieces});"),
-                }
-            }
-            _ => {
-                return Err(GrammarError::new(format!(
-                    "No output procedure for {}",
-                    self.syntax.label
-                )));
-            }
-        })
-    }
-
-    pub(crate) fn interpolation_or_text(&mut self, parts: &[Node]) -> Result<String> {
-        let merged = merge_texts(parts);
-        if merged.len() == 1 && merged[0].is("Text") {
-            Ok(self.quote(merged[0].str("value").unwrap_or_default()))
-        } else {
-            self.interpolation(&merged)
-        }
     }
 
     pub(crate) fn return_statement(&mut self, statement: &Node) -> Result<String> {
@@ -988,6 +636,7 @@ impl Emitter {
             "If" => self.if_statement(statement)?,
             "While" => self.while_statement(statement)?,
             "CountingLoop" => self.counting_loop(statement)?,
+            "ForEach" => self.for_each_loop(statement)?,
             kind => {
                 return Err(GrammarError::new(format!(
                     "Cannot emit {kind} as a statement"
@@ -1003,19 +652,21 @@ impl Emitter {
     }
 
     pub(crate) fn base_declaration(&mut self, statement: &Node) -> Result<String> {
-        let initial = match statement.node("value") {
-            Some(value) => self.expression(value)?,
-            None => self.expression(&number(0.0))?,
-        };
         let name = statement.str("name").unwrap_or_default();
         let kind = statement.str("type").unwrap_or_default();
+        let initial = match statement.node("value") {
+            Some(value) => self.initial_value(value, kind)?,
+            None => self.initial_value(&number(0.0), kind)?,
+        };
         let mutable = statement.flag("mutable").unwrap_or(false);
         Ok(match self.id() {
             "javascript" | "typescript" => {
-                format!(
-                    "{} {name} = {initial};",
-                    if mutable { "let" } else { "const" }
-                )
+                let keyword = self.syntax.declaration_keyword.unwrap_or(if mutable {
+                    "let"
+                } else {
+                    "const"
+                });
+                format!("{keyword} {name} = {initial};")
             }
             "python" | "ruby" => format!("{name} = {initial}"),
             "php" => format!("${name} = {initial};"),
@@ -1024,7 +675,7 @@ impl Emitter {
             "rust" => format!(
                 "let {}{name}{} = {initial};",
                 if mutable { "mut " } else { "" },
-                if kind == "integer" { ": i64" } else { "" }
+                rust_type(kind)
             ),
             "kotlin" => format!(
                 "{} {name} = {initial}{}",
@@ -1063,13 +714,11 @@ impl Emitter {
     pub(crate) fn base_assignment(&mut self, statement: &Node) -> Result<String> {
         let identifier = statement.str("name").unwrap_or_default();
         let target = self.variable(identifier);
-        let value = field(statement, "value")?;
+        let original = field(statement, "value")?;
+        let converted = with_real_operands(original, &self.syntax);
+        let value = converted.as_ref().unwrap_or(original);
         let compound = value.str("operator").and_then(compound_operator);
-        // Languages that spell integer division as a call or a wrapper, or with
-        // an operator of its own, would lose the truncation with `/=`.
-        let plain_division = value.str("operator") != Some("divide")
-            || (self.syntax.integer_division.is_none()
-                && self.syntax.operators.integer_divide.is_none());
+        let plain_division = self.plain_division(value);
         if let Some(compound) = compound
             && plain_division
             && self.syntax.compound_assignment
@@ -1178,7 +827,9 @@ impl Emitter {
         };
         let header = match self.id() {
             "c" | "cpp" | "csharp" | "java" => c_style("int"),
-            "javascript" | "typescript" => c_style("let"),
+            "javascript" | "typescript" => {
+                c_style(self.syntax.declaration_keyword.unwrap_or("let"))
+            }
             "php" => format!("for ({target} = {from}; {target} < {to}; {target}++)"),
             "go" => format!("for {identifier} := {from}; {identifier} < {to}; {identifier}++"),
             "python" => {
@@ -1217,6 +868,27 @@ impl Emitter {
             "d" => c_style("long"),
             _ => "undefined".to_owned(),
         };
+        self.open_block(&header);
+        self.body(field(statement, "body")?)?;
+        self.close_block();
+        Ok(())
+    }
+
+    /// The loop header is the language's `for_each` template with the loop
+    /// variable, its type and the array filled in.
+    pub(crate) fn for_each_loop(&mut self, statement: &Node) -> Result<()> {
+        let array = field(statement, "array")?;
+        let element = self.type_name("integer");
+        let variable = self.variable(statement.str("variable").unwrap_or_default());
+        let written = self.expression(array)?;
+        let header = self
+            .syntax
+            .for_each
+            .unwrap_or_default()
+            .replace("{type}", &element)
+            .replace("{variable}", &variable)
+            .replace("{array-name}", array.str("name").unwrap_or_default())
+            .replace("{array}", &written);
         self.open_block(&header);
         self.body(field(statement, "body")?)?;
         self.close_block();

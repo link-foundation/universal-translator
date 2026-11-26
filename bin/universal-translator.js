@@ -41,9 +41,9 @@ const TRANSLATION_COMMANDS = [
 const SOURCE_COMMANDS = [
   'encode-source',
   'decode-source',
-  'check-equivalence',
   ...GRAMMAR_COMMANDS,
   ...TRANSLATION_COMMANDS,
+  'check-equivalence',
 ];
 
 function usage() {
@@ -60,6 +60,8 @@ function usage() {
     '            --comment-from <natural> names the language of the comments (detected otherwise)',
     '            --identifier-language <natural> translates the declared names too (only them, in place, when <from> is <to>)',
     '            --identifier-from <natural> names the language of the declared names (detected otherwise)',
+    '            --candidates prints the candidate translations, the most probable first:',
+    '            (text ...) (probability p) (frequency f) (roundTrip r) (coverage c)',
     '            --layout source|target keeps the spaces and blank lines of the source',
     '            (source, the default) or writes the layout of the target',
     '            --braces same-line|next-line puts the brace that opens a block on',
@@ -76,15 +78,15 @@ function usage() {
     '            --json prints it as JSON instead',
     '            comments and strings are read with the grammars they are written in',
     '            (prose, quoted code); --shallow leaves them as plain text',
+    '  check-equivalence <from> <to> [file|-] [translation] [--json]  Check that a translation',
+    '            does what its source does: both read into the same meta program once',
+    '            comments, imports, blank lines, types and mutability are left out',
+    '            The translation is written by the translator unless a file is given;',
+    '            the exit code is 1 when they differ',
     '  coverage <language> [file|-] [--json]  Print which parts of a text can be read',
     '            as indented Links Notation; --json prints JSON',
     '  detect [file|-] [--json]  Print the most likely languages of a text, one per line',
     '            as Links Notation; --json prints JSON',
-    '  check-equivalence <from> <to> <source|-> [target]  Check that two programs mean the same',
-    '            both are read into the meta language and compared by meaning (comments,',
-    '            layout, imports and types an untyped language cannot spell are left out);',
-    '            without a target the translation of the source is checked. It fails with',
-    '            the first difference when they differ',
     '  encode-source <language> [file|-]  Write a Links Notation source document',
     '  decode-source [file|-]  Restore source from a Links Notation document',
     '  encode-cst <language> [file|-]  Parse source into a Meta Language CST',
@@ -182,6 +184,7 @@ const flagOptions = {
   '--common-library': 'commonLibrary',
   '--fragment': 'fragment',
   '--all-or-nothing': 'allOrNothing',
+  '--candidates': 'candidates',
 };
 
 function translationArguments(args) {
@@ -266,6 +269,12 @@ function translateCommand(
     braces: options.braces,
     indent: options.indent,
   };
+  if (options.candidates) {
+    write(
+      candidatesReport(translator, [source, language, to], options, settings)
+    );
+    return;
+  }
   if (options.allOrNothing) {
     const translation = options.fragment
       ? translator.translateFragment
@@ -308,6 +317,18 @@ function linoReport(report) {
   return lines.length ? `${lines.join('\n')}\n` : '';
 }
 
+// What `translate --candidates` prints: one candidate per line, the most
+// probable first.
+function candidatesReport(translator, [source, from, to], options, settings) {
+  if (options.allOrNothing || options.fragment) {
+    throw new Error('--candidates takes no --all-or-nothing or --fragment');
+  }
+  return translator
+    .translateCandidates(source, from, to, settings)
+    .map((candidate) => `${linoLinks(candidate)}\n`)
+    .join('');
+}
+
 const jsonReport = (value) => `${JSON.stringify(value, null, 2)}\n`;
 
 // What `coverage` prints: the summary and where each part starts and ends.
@@ -319,6 +340,29 @@ function coverageReport({ parts, ...summary }, { json }) {
   });
   const report = { ...summary, parts: located };
   return json ? jsonReport(report) : linoReport(report);
+}
+
+// What `check-equivalence` prints; it fails when the two differ.
+function equivalenceReport(translator, [from, to, file, translation], options) {
+  const result = checkEquivalence(translator, {
+    source: options.read(file),
+    from,
+    to,
+    ...(translation === undefined
+      ? {}
+      : { translation: options.read(translation) }),
+  });
+  const report = {
+    equivalent: result.equivalent,
+    metaLines: result.metaLines,
+    differences: result.differences,
+  };
+  options.write(options.json ? jsonReport(report) : linoReport(report));
+  if (!result.equivalent) {
+    throw new Error(
+      `The ${to} translation does not do what the ${from} source does`
+    );
+  }
 }
 
 // What `detect` prints: the likeliest languages first, one per line.
@@ -339,27 +383,6 @@ const textCommands = {
     coverageReport(translator.parsePartial(text, from), { json }),
 };
 
-// `check-equivalence`: the report when both programs mean the same, the
-// first difference as the error otherwise.
-function equivalenceCommand(args, read) {
-  const [from, to, file, targetFile] = args;
-  if (args.length < 3 || args.length > 4) {
-    throw new Error(usage());
-  }
-  const checked = checkEquivalence(createTranslator(), {
-    source: read(file),
-    from,
-    to,
-    ...(targetFile === undefined ? {} : { target: read(targetFile) }),
-  });
-  if (!checked.equivalent) {
-    throw new Error(
-      `The ${from} and ${to} programs are not equivalent: ${checked.difference}`
-    );
-  }
-  return `The ${from} and ${to} programs are equivalent\n`;
-}
-
 // --trace reports every pipeline stage as JSON, so a translation can be
 // followed rule layer by rule layer.
 const translatorFor = ({ trace, rules = {} }, stderr) =>
@@ -370,16 +393,30 @@ const translatorFor = ({ trace, rules = {} }, stderr) =>
     rules,
   });
 
-function runTranslation(command, allArgs, read, write, stderr) {
-  // Only the reports take --json; every other command reads it as a file
-  // name.
+// The report flags of a command and the arguments without them. Only the
+// reports take --json; every other command reads it as a file name.
+function reportFlags(command, allArgs) {
   const json =
-    ['meta', 'coverage', 'detect'].includes(command) &&
+    ['meta', 'coverage', 'detect', 'check-equivalence'].includes(command) &&
     allArgs.includes('--json');
   const shallow = command === 'meta' && allArgs.includes('--shallow');
   const args = allArgs.filter(
     (arg) => !(json && arg === '--json') && !(shallow && arg === '--shallow')
   );
+  return { json, shallow, args };
+}
+
+// check-equivalence <from> <to> [file|-] [translation] [--json]
+function runEquivalence(allArgs, read, write) {
+  const { json, args } = reportFlags('check-equivalence', allArgs);
+  if (args.length < 2 || args.length > 4) {
+    throw new Error(usage());
+  }
+  equivalenceReport(createTranslator(), args, { read, write, json });
+}
+
+function runTranslation(command, allArgs, read, write, stderr) {
+  const { json, shallow, args } = reportFlags(command, allArgs);
   const [from, to, ...trailing] = args;
   const { file, options = {} } =
     command === 'translate' ? translationArguments(trailing) : {};
@@ -475,12 +512,12 @@ function runSourceCommand(
     write(`${writeSourceDocument(language, read(file))}\n`);
   } else if (command === 'decode-source' && args.length <= 1) {
     write(readSourceDocument(read(language)).source);
-  } else if (command === 'check-equivalence') {
-    write(equivalenceCommand(args, read));
   } else if (GRAMMAR_COMMANDS.includes(command)) {
     runGrammarCommand(command, args, read, write, grammarEngine);
   } else if (TRANSLATION_COMMANDS.includes(command)) {
     runTranslation(command, args, read, write, stderr);
+  } else if (command === 'check-equivalence') {
+    runEquivalence(args, read, write);
   } else {
     throw new Error(usage());
   }

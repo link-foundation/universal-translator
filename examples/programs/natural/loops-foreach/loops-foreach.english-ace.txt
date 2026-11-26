@@ -1,0 +1,5 @@
+Note: Loops/Foreach in JavaScript: print every element of a collection
+
+There is a variable numbers whose value is the list (1, 1, 2, 3, 5, 8, 13, 21).
+For every number in numbers the program does the following:
+  The program writes a line that contains number.

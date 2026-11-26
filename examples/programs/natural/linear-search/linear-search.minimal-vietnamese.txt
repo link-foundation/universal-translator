@@ -1,0 +1,12 @@
+Ghi chú: Linear search in JavaScript: find the position of a value in a list
+
+Có các_số, nó là những thứ này (31, 41, 59, 26, 53, 58, 97, 93).
+Có wanted, nó là 53.
+Có vị_trí, nó là -1.
+Có hiện_tại, nó là 0.
+Với mọi chỉ_số từ 0 đến các_số có bao nhiêu phần trừ 1, làm điều này:
+  Có số, nó là phần chỉ_số của các_số.
+  Nếu số giống wanted và vị_trí ít hơn 0, làm điều này:
+    Sau đó, vị_trí là hiện_tại.
+  Sau đó, hiện_tại là hiện_tại cộng 1.
+Nói “Found ” rồi wanted rồi “ at position ” rồi vị_trí trên một dòng.

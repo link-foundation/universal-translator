@@ -1,0 +1,5 @@
+Note: Loops/Foreach in JavaScript: print every element of a collection
+
+Numbers is classified as a variable with initial value the list (1, 1, 2, 3, 5, 8, 13, 21).
+For each number in numbers the following is repeated:
+  The output has as next line number.

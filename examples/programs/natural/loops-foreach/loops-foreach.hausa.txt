@@ -1,0 +1,6 @@
+Lura: Loops/Foreach in JavaScript: print every element of a collection
+
+Ƙirƙiri adadai mai ƙima jeri (1, 1, 2, 3, 5, 8, 13, 21).
+Ga kowane fihirisa daga 0 zuwa tsawon adadai ragi 1, maimaita wannan:
+  Ƙirƙiri lamba mai ƙima abu fihirisa a cikin adadai.
+  Rubuta lamba kuma ka gama layi.

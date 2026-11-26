@@ -1,0 +1,6 @@
+注：Loops/Foreach in JavaScript: print every element of a collection
+
+数列 を 値 リスト (1、 1、 2、 3、 5、 8、 13、 21) で 作る。
+添字 を 0 から 数列 の 長さ 引く 1 まで 数えて 次 を 繰り返す：
+  数 を 値 数列 の 要素 添字 で 作る。
+  数 を 書いて 改行 する。

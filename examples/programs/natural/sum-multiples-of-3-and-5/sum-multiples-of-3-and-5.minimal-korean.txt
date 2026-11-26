@@ -1,0 +1,7 @@
+참고: Sum multiples of 3 and 5 in JavaScript: the sum of the multiples below 1000
+
+총계 이 있다, 그것은 0 이다.
+모든 수_ 에 대해 1 부터 999 까지 이것을 한다:
+  만약 수_ 모듈로 3 이 0 과 같다 또는 수_ 모듈로 5 이 0 과 같다 이면 이것을 한다:
+    이후 총계 은 총계 더하기 수_ 이다.
+총계 을 한 줄에 말한다.

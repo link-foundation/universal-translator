@@ -1,0 +1,9 @@
+Not: Greatest element of a list in JavaScript
+
+Sayılar değişkenini liste (17, 4, 93, 28, 65, 3, 80) değeriyle oluştur.
+Azami değişkenini sayılar listesinin 0 öğesi değeriyle oluştur.
+Her indeks için 0 ile sayılar uzunluğu eksi 1 arasında şunu tekrarla:
+  Sayı değişkenini sayılar listesinin indeks öğesi değeriyle oluştur.
+  Eğer sayı azami değerinden büyük ise şunu yap:
+    Azami değerini sayı yap.
+“The greatest element is ” ardından azami yaz ve satırı bitir.

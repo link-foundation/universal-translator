@@ -6,7 +6,7 @@
 //! A language id may name its version after "@": `python@2`. The JavaScript
 //! twin is js/src/formal/versions.js.
 
-use super::languages::{IntegerDivision, Syntax};
+use super::languages::{ArrayFill, IntegerDivision, Syntax};
 use crate::meta::GrammarError;
 
 /// One version of a language.
@@ -36,6 +36,31 @@ fn python_2(syntax: &mut Syntax) {
     syntax.print_statement = true;
 }
 
+/// ES5 has no let, const, template strings, Math.trunc,
+/// Array.prototype.fill or for...of: variables are `var`, text is joined
+/// with +, integers are truncated with `~~`, a filled array is created and
+/// then filled by a loop, and a for-each loop counts over the indexes of its
+/// array.
+fn javascript_es5(syntax: &mut Syntax) {
+    syntax.for_each = None;
+    syntax.declaration_keyword = Some("var");
+    syntax.text_join_concatenation = true;
+    syntax.integer_division = Some(IntegerDivision::Wrapper("~~"));
+    syntax.array_fill = Some(ArrayFill::Always);
+}
+
+/// PHP 5 has no intdiv() and writes arrays as `array(...)`.
+fn php_5(syntax: &mut Syntax) {
+    syntax.integer_division = Some(IntegerDivision::Wrapper("(int) "));
+}
+
+/// C# 5 has no `$"..."` strings: computed parts are converted with
+/// Convert.ToString and joined with +.
+fn csharp_5(syntax: &mut Syntax) {
+    syntax.text_join_concatenation = true;
+    syntax.text_conversions = &["System.Convert.ToString"];
+}
+
 /// Before 5.3 Lua has no `//` operator: `math.floor` rounds the quotient
 /// down, as `//` does.
 fn lua_5_1(syntax: &mut Syntax) {
@@ -43,70 +68,64 @@ fn lua_5_1(syntax: &mut Syntax) {
     syntax.integer_division = Some(IntegerDivision::Wrapper("math.floor"));
 }
 
-/// `intdiv` arrived in PHP 7; `intval` drops the fraction of the quotient
-/// the same way.
-fn php_5(syntax: &mut Syntax) {
-    syntax.integer_division = Some(IntegerDivision::Wrapper("intval"));
-}
-
-/// Before C# 6 there are no `$"..."` strings: text is joined with `+`,
-/// which converts the computed parts itself.
-fn csharp_5(syntax: &mut Syntax) {
-    syntax.text_join_concatenation = true;
-}
-
-/// A version that is written when none is named.
-const fn current(version: &'static str, label: &'static str) -> VersionChange {
-    (
-        Version {
-            version,
-            label,
-            default: true,
-        },
-        no_change,
-    )
-}
-
-/// A version that is only written when it is named.
-const fn older(
-    version: &'static str,
-    label: &'static str,
-    change: fn(&mut Syntax),
-) -> VersionChange {
-    (
-        Version {
-            version,
-            label,
-            default: false,
-        },
-        change,
-    )
+const fn version(version: &'static str, label: &'static str, default: bool) -> Version {
+    Version {
+        version,
+        label,
+        default,
+    }
 }
 
 const LANGUAGE_VERSIONS: &[LanguageVersions] = &[
     LanguageVersions {
+        id: "javascript",
+        versions: &[
+            (
+                version(
+                    "es6",
+                    "ECMAScript 2015 and later (let, const, template strings)",
+                    true,
+                ),
+                no_change,
+            ),
+            (version("es5", "ECMAScript 5", false), javascript_es5),
+        ],
+    },
+    LanguageVersions {
+        id: "php",
+        versions: &[
+            (
+                version("7", "PHP 7 and later (short arrays, intdiv)", true),
+                no_change,
+            ),
+            (version("5", "PHP 5", false), php_5),
+        ],
+    },
+    LanguageVersions {
+        id: "csharp",
+        versions: &[
+            (
+                version("6", "C# 6 and later (string interpolation)", true),
+                no_change,
+            ),
+            (version("5", "C# 5", false), csharp_5),
+        ],
+    },
+    LanguageVersions {
         id: "python",
         versions: &[
-            current("3", "Python 3 (3.6+, f-strings)"),
-            older("2", "Python 2.7", python_2),
+            (version("3", "Python 3 (3.6+, f-strings)", true), no_change),
+            (version("2", "Python 2.7", false), python_2),
         ],
     },
     LanguageVersions {
         id: "lua",
         versions: &[
-            current("5.3", "Lua 5.3+ (integer division //)"),
-            older("5.1", "Lua 5.1 and 5.2 (LuaJIT)", lua_5_1),
-        ],
-    },
-    LanguageVersions {
-        id: "php",
-        versions: &[current("7", "PHP 7+ (intdiv)"), older("5", "PHP 5", php_5)],
-    },
-    LanguageVersions {
-        id: "csharp",
-        versions: &[
-            current("6", "C# 6+ (interpolated strings)"),
-            older("5", "C# 5", csharp_5),
+            (
+                version("5.3", "Lua 5.3+ (integer division //)", true),
+                no_change,
+            ),
+            (version("5.1", "Lua 5.1 and 5.2 (LuaJIT)", false), lua_5_1),
         ],
     },
 ];

@@ -54,7 +54,8 @@ function naturalEntry(id) {
   };
 }
 
-// [{ id, label, group, versions: [{ id, label, kind }] }]
+// [{ id, label, group, machine?, versions: [{ id, label, kind }] }]
+// Machine code targets are programming entries with machine: true.
 export function languageEntries(translator) {
   return [
     ...translator.languages().map(programmingEntry),

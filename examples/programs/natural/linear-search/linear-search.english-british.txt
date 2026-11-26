@@ -1,0 +1,11 @@
+Note: Linear search in JavaScript: find the position of a value in a list
+
+Create numbers with value the list (31, 41, 59, 26, 53, 58, 97, 93).
+Create wanted with value 53.
+Create position with value -1.
+Create current with value 0.
+For each number in numbers, repeat this:
+  If number equals wanted and position falls below 0, do this:
+    Change position to current.
+  Change current to current plus 1.
+Write ‘Found ’ followed by wanted followed by ‘ at position ’ followed by position and end the line.

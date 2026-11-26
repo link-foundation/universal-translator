@@ -1,0 +1,8 @@
+Note: Greatest element of a list in JavaScript
+
+There is a variable numbers whose value is the list (17, 4, 93, 28, 65, 3, 80).
+There is a variable greatest whose value is item 0 of numbers.
+For every number in numbers the program does the following:
+  If number is greater than greatest then the program does the following:
+    The value of greatest becomes number.
+The program writes a line that contains “The greatest element is ” followed by greatest.

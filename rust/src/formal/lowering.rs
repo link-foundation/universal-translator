@@ -395,7 +395,7 @@ impl<'a> FunctionLowering<'a> {
         match node.kind.as_str() {
             "Number" => {
                 let value = node.number("value").unwrap_or(0.0);
-                if value.fract() != 0.0 || !value.is_finite() {
+                if value.fract() != 0.0 || !value.is_finite() || node.str("type") == Some("real") {
                     return Err(unsupported(&format!(
                         "the number {}",
                         crate::meta::format_number(value)
@@ -435,6 +435,9 @@ impl<'a> FunctionLowering<'a> {
                 } else {
                     self.boolean_value(node)?;
                 }
+            }
+            "Binary" if node.str("operator") == Some("realDivide") => {
+                return Err(unsupported("true division, which gives a real"));
             }
             "Binary" => match arithmetic(node.str("operator").unwrap_or_default()) {
                 Some(operation) => {

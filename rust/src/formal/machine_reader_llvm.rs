@@ -60,11 +60,20 @@ fn llvm_string(body: &str) -> String {
 }
 
 fn llvm_texts(lines: &[String]) -> HashMap<String, String> {
-    let declaration = pattern_regex(r#"^@(text\.\d+) = .* c"(.*)"$"#);
+    let header = pattern_regex(r"^@(text\.\d+) = ");
     lines
         .iter()
-        .filter_map(|line| declaration.captures(line))
-        .map(|found| (group(&found, 1).to_owned(), llvm_string(group(&found, 2))))
+        .filter_map(|line| {
+            // `@text.0 = ... c"<body>"`: the body runs from the last ` c"`
+            // to the closing quote (the JavaScript twin finds it the same way).
+            let found = header.captures(line)?;
+            let inner = line.strip_suffix('"')?;
+            let start = inner.rfind(" c\"").filter(|&at| at >= found[0].len())?;
+            Some((
+                group(&found, 1).to_owned(),
+                llvm_string(&inner[start + 3..]),
+            ))
+        })
         .collect()
 }
 

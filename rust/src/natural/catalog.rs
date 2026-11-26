@@ -360,6 +360,10 @@ pub const TEMPLATE_KEYS: [&str; 38] = [
     "remainder",
 ];
 
+/// Templates a language may leave out: a loop over an array is then written
+/// as the counting loop it lowers to.
+pub const OPTIONAL_TEMPLATE_KEYS: [&str; 1] = ["for-each"];
+
 const SCALAR_FIELDS: [&str; 16] = [
     "id",
     "label",
@@ -719,7 +723,8 @@ pub fn natural_language_ids() -> Vec<&'static str> {
 pub fn with_templates(id: &str, templates: &[(String, Vec<String>)]) -> Result<Language, String> {
     let mut language = natural_language(id)?.clone();
     for (key, variants) in templates {
-        if !TEMPLATE_KEYS.contains(&key.as_str()) {
+        if !TEMPLATE_KEYS.contains(&key.as_str()) && !OPTIONAL_TEMPLATE_KEYS.contains(&key.as_str())
+        {
             return Err(format!("No template \"{key}\" in natural languages"));
         }
         let mut merged = language.templates.get(key).cloned().unwrap_or_default();

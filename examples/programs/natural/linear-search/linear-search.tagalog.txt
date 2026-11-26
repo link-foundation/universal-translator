@@ -1,0 +1,12 @@
+Tala: Linear search in JavaScript: find the position of a value in a list
+
+Lumikha ng mga_numero na may halagang listahan (31, 41, 59, 26, 53, 58, 97, 93).
+Lumikha ng wanted na may halagang 53.
+Lumikha ng posisyon na may halagang -1.
+Lumikha ng kasalukuyan na may halagang 0.
+Para sa bawat indeks mula 0 hanggang haba ng mga_numero bawas 1, ulitin ito:
+  Lumikha ng numero na may halagang elemento indeks sa mga_numero.
+  Kung numero ay katumbas ng wanted at posisyon ay mas mababa sa 0, gawin ito:
+    Palitan ang posisyon ng kasalukuyan.
+  Palitan ang kasalukuyan ng kasalukuyan dagdag 1.
+Isulat ang “Found ” na sinusundan ng wanted na sinusundan ng “ at position ” na sinusundan ng posisyon at tapusin ang linya.

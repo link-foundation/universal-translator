@@ -7,6 +7,7 @@
 import { add, block, node, number, text, walk } from '../../meta/tree.js';
 import { decodeEscapes, SyntaxError } from '../lexer.js';
 import { sourceType } from '../parser.js';
+import { realValue } from '../numbers.js';
 
 // main opens the writer that every print uses; these lines are layout, not
 // part of the program.
@@ -17,7 +18,12 @@ const writerSetup = [
   'defer out.flush() catch {};',
 ];
 const writerNames = new Set(['out', 'buffer', 'writer']);
-const placeholders = { integer: '{d}', text: '{s}', boolean: '{}' };
+const placeholders = {
+  integer: '{d}',
+  real: '{d}',
+  text: '{s}',
+  boolean: '{}',
+};
 const builtins = { divTrunc: 'divide', rem: 'remainder' };
 // Arrays of n values live as long as the function, in pages of memory.
 const allocator = 'std.heap.page_allocator';
@@ -408,7 +414,9 @@ const statementEmitter = (Base) =>
     }
 
     declaration({ name, type, value, mutable }) {
-      const initial = this.expression(value ?? number(0));
+      const initial = this.expression(
+        realValue(value ?? number(0), type, this.syntax)
+      );
       if (this.declared(name)) {
         return `${name} = ${initial};`;
       }

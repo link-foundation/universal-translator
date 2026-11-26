@@ -30,14 +30,25 @@ export {
   createGrammarTranslator as createTranslator,
   parseFragment,
   translate,
+  translateCandidates,
   translateFragment,
 } from './translator.js';
 export declare const fragmentKinds: FragmentKind[];
+export declare const stageNames: import('./translator.js').StageName[];
+export declare function decorateStages(
+  stages: import('./translator.js').Stages,
+  decorate?: import('./translator.js').Decorators
+): import('./translator.js').Stages;
 export type {
+  TranslationCandidate,
   Fragment,
   FragmentKind,
   GrammarTranslator,
   GrammarTranslatorOptions,
+  Decorator,
+  Decorators,
+  StageName,
+  Stages,
   TranslationMode,
   TranslationOptions,
 } from './translator.js';
@@ -271,6 +282,16 @@ export declare function commentDictionary(
 export declare function detectCommentLanguage(texts: string[]): string;
 /** Translate a comment text word by word with the comment dictionary. */
 export declare const translateCommentText: CommentTranslator;
+/** The candidate translations of a text of prose, the most probable first. */
+export declare function rankProse(
+  text: string,
+  options: { from: string; to: string }
+): {
+  text: string;
+  probability: number;
+  frequency: number;
+  roundTrip: number;
+}[];
 /** Translate the comments of a source text in place. */
 export declare function translateComments(
   source: string,
@@ -367,6 +388,35 @@ export declare function nestGrammars<T>(
 ): T;
 /** The plain meta program of a nested one. */
 export declare function unnest<T>(program: T): T;
+/** A meta program without the parts that do not change what it does:
+ * comments, imports, blank lines, types and mutability. */
+export declare function effectOf<T>(program: T): T;
+/** Whether a translation does what its source does: both read into the same
+ * meta program once the parts without an effect are left out. The
+ * translation is written by the translator unless one is given. */
+export declare function checkEquivalence(
+  translator: {
+    translate(
+      source: string,
+      from: string,
+      to: string,
+      options?: object
+    ): string;
+    toMeta(source: string, from: string): unknown;
+  },
+  request: {
+    source: string;
+    from: string;
+    to: string;
+    translation?: string;
+    options?: object;
+  }
+): {
+  equivalent: boolean;
+  translation: string;
+  metaLines: number;
+  differences: { line: number; source: string; target: string }[];
+};
 /** The deep reading of a text as prose: sentences, words and meanings. */
 export declare function readProse(
   text: string,

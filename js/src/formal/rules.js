@@ -14,6 +14,7 @@ import { countingLoops } from './lifting.js';
 import { raiseTruthFunctions } from '../meta/truth.js';
 import { languageSyntax, namingConvention } from './languages.js';
 import { splitVersion, versionsOf } from './versions.js';
+import { slashOperator } from './numbers.js';
 import {
   asciiName,
   avoidReserved,
@@ -27,6 +28,7 @@ import {
   raiseArrayFills,
   recognizeArrays,
 } from './arrays.js';
+import { expandForEach, raiseForEach } from './for-each.js';
 
 // ---------------------------------------------------------------------------
 // Understanding layer
@@ -216,7 +218,9 @@ function joinWithSpaces(values) {
 
 function readFormat(format, values, style) {
   const pattern =
-    style === 'percent' ? /%(?:l{0,2}d|i|s|c|v|t|%)/g : /\{\{|\}\}|\{\}/g;
+    style === 'percent'
+      ? /%(?:l{0,2}d|i|s|c|v|t|%|(?:\.\d+)?l?[fgeG])/g
+      : /\{\{|\}\}|\{\}/g;
   const parts = [];
   let last = 0;
   let index = 0;
@@ -463,6 +467,11 @@ export function declareOnFirstAssignment(program) {
         scope.add(statement.variable);
         return { ...statement, body: visitBlock(statement.body) };
       }
+      if (statement.kind === 'ForEach') {
+        addReadNames(statement.array, read);
+        scope.add(statement.variable);
+        return { ...statement, body: visitBlock(statement.body) };
+      }
       // The value is read before the variable is assigned.
       addReadNames(statement, read);
       if (
@@ -472,8 +481,10 @@ export function declareOnFirstAssignment(program) {
         !read.has(statement.name)
       ) {
         scope.add(statement.name);
+        // A Python hint (`total: int = 0`) gives the declared type.
         return node('Declaration', {
           name: statement.name,
+          ...(statement.type ? { type: statement.type } : {}),
           value: statement.value,
           mutable: true,
         });
@@ -546,12 +557,17 @@ const compoundMeanings = {
 };
 
 // `x += v` means `x = x + v`; the meta language keeps only the plain form.
-export function expandCompoundAssignment(program) {
+// `/=` divides like the language's `/`.
+export function expandCompoundAssignment(program, { from } = {}) {
+  const meanings = {
+    ...compoundMeanings,
+    '/=': from ? slashOperator(languageSyntax(from)) : 'divide',
+  };
   return rewrite(program, (current) => {
     if (current.kind !== 'Assignment' || current.operator === '=') {
       return current;
     }
-    const operator = compoundMeanings[current.operator];
+    const operator = meanings[current.operator];
     if (!operator) {
       throw new Error(`Unknown assignment operator "${current.operator}"`);
     }
@@ -634,6 +650,8 @@ const copyName = (name) => ['initial', ...nameWords(name)].join('-');
 // the meta operator "divide". The language description names its spelling.
 const integerDivisionSpellings = [
   { wrapper: 'Math.trunc' },
+  { wrapper: '~~' },
+  { wrapper: 'int' },
   { call: 'intdiv' },
 ];
 
@@ -645,9 +663,9 @@ function integerDivision(call, { wrapper, call: callee, method }) {
     call.callee === wrapper &&
     call.arguments.length === 1 &&
     first.kind === 'Binary' &&
-    first.operator === 'divide'
+    ['divide', 'realDivide'].includes(first.operator)
   ) {
-    return first;
+    return { ...first, operator: 'divide' };
   }
   if (call.callee === callee && call.arguments.length === 2) {
     return divide(first, second);
@@ -755,6 +773,7 @@ export const understandingRules = [
   declareOnFirstAssignment,
   raiseCountingLoops,
   raiseArrayFills,
+  raiseForEach,
   raiseTruthValues,
   inferMutability,
   dropSourceDetails,
@@ -939,6 +958,7 @@ export const contextRules = [
   adaptComments,
   copyReassignedParameters,
   expandArrayFills,
+  expandForEach,
   spellNames,
   spellCommonLibrary,
 ];

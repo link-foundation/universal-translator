@@ -13,6 +13,9 @@ const targets = translator.languages().map((l) => l.id);
 const tally = new Map();
 let pairs = 0;
 let equal = 0;
+// The first line where the two meta programs differ.
+const firstDifference = ({ differences: [first] }) =>
+  `line ${first.line}: ${first.source} != ${first.target}`;
 for (const file of programs) {
   const source = readFileSync(`examples/programs/${file}`, 'utf8');
   for (const to of targets) {
@@ -28,7 +31,7 @@ for (const file of programs) {
     if (result.equivalent) {
       equal += 1;
     } else {
-      const key = `${to}: ${result.difference.replace(/\/\d+/g, '/#').slice(0, 120)}`;
+      const key = `${to}: ${firstDifference(result).slice(0, 120)}`;
       tally.set(key, [...(tally.get(key) ?? []), file]);
     }
   }
@@ -63,12 +66,15 @@ for (const file of programs) {
         source,
         from: 'javascript',
         to: language,
-        target,
+        translation: target,
       });
       if (result.equivalent) {
         goldenEqual += 1;
       } else {
-        goldens.set(`${name}${extension}`, result.difference.slice(0, 120));
+        goldens.set(
+          `${name}${extension}`,
+          firstDifference(result).slice(0, 120)
+        );
       }
     } catch (error) {
       goldens.set(

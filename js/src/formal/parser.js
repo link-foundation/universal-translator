@@ -8,6 +8,8 @@ import { block, name, node, number, text } from '../meta/tree.js';
 import { dialects } from './dialects/index.js';
 import { withArrays } from './array-parser.js';
 import { stepOperators, withLoops } from './loop-parser.js';
+import { withFunctionForms } from './function-forms.js';
+import { slashOperator } from './numbers.js';
 
 const binaryLevels = [
   { or: ['||', 'or'] },
@@ -77,6 +79,7 @@ const controlWords = new Set([
   'else',
   'while',
   'for',
+  'foreach',
   'switch',
   'return',
   'do',
@@ -755,6 +758,9 @@ class BaseParser {
     if (word && Object.hasOwn(keywords, word)) {
       return keywords[word]();
     }
+    if (word === 'foreach' && this.syntax.forEach?.startsWith('foreach')) {
+      return this.foreachStatement();
+    }
     if (this.syntax.id === 'ruby' && this.isRangeEach()) {
       return this.rangeEach();
     }
@@ -1085,7 +1091,12 @@ class BaseParser {
         return node('Binary', { operator: 'concatenate', left, right });
       }
       const right = this.binary(level + 1);
-      left = node('Binary', { operator: operator[0], left, right });
+      // `/` is true division or integer division, depending on the language.
+      const meaning =
+        token.value === '/' && operator[0] === 'divide'
+          ? slashOperator(this.syntax)
+          : operator[0];
+      left = node('Binary', { operator: meaning, left, right });
     }
   }
 
@@ -1093,7 +1104,7 @@ class BaseParser {
     if (this.accept('-')) {
       const operand = this.unary();
       return operand.kind === 'Number'
-        ? number(-operand.value)
+        ? { ...operand, value: -operand.value }
         : node('Unary', { operator: 'negate', operand });
     }
     if (
@@ -1102,6 +1113,11 @@ class BaseParser {
       this.accept(this.syntax.operators.not)
     ) {
       return node('Unary', { operator: 'not', operand: this.unary() });
+    }
+    // ECMAScript 5 truncates with ~~(a / b), which reads as a call of "~~".
+    if (this.is('~') && this.is('~', 1)) {
+      this.position += 2;
+      return node('Call', { callee: '~~', arguments: [this.unary()] });
     }
     return this.postfix();
   }
@@ -1171,7 +1187,7 @@ class BaseParser {
     const token = this.next();
     switch (token.type) {
       case 'number':
-        return number(Number(token.value));
+        return numberLiteral(token.value);
       case 'text':
         return this.textLiteral(token);
       case 'name':
@@ -1344,8 +1360,15 @@ function calleeName(expression) {
   return expression.name;
 }
 
-// Arrays and loops are read by mixins of their own, which the dialects inherit.
-const Parser = withLoops(withArrays(BaseParser));
+// A number as written: 1.5, 2.0 and 1e3 are reals, 7 is an integer.
+export function numberLiteral(written) {
+  const literal = number(Number(written));
+  return /[.eE]/.test(written) ? { ...literal, type: 'real' } : literal;
+}
+
+// Arrays, loops and type hints are read by mixins of their own, which the
+// dialects inherit.
+const Parser = withFunctionForms(withLoops(withArrays(BaseParser)));
 
 // Map a source type spelling to a meta type.
 export function sourceType(spelling) {
@@ -1371,6 +1394,13 @@ export function sourceType(spelling) {
     )
   ) {
     return 'array';
+  }
+  if (
+    /^(double|float|f32|f64|float32|float64|Double|Float|Float64|Long_Float|real|Real)$/.test(
+      words
+    )
+  ) {
+    return 'real';
   }
   if (/^(bool|boolean|Bool|Boolean)$/.test(words)) {
     return 'boolean';

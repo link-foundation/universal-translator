@@ -1,0 +1,7 @@
+Kumbuka: Sum multiples of 3 and 5 in JavaScript: the sum of the multiples below 1000
+
+Kuna kiasi, ni 0.
+Kwa kila nambari kutoka 1 hadi 999, fanya hivi:
+  Kama nambari modulo 3 ni sawa na 0 au nambari modulo 5 ni sawa na 0, fanya hivi:
+    Baada ya hii, kiasi ni kiasi jumlisha nambari.
+Sema kiasi kwenye mstari mmoja.

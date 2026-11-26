@@ -4,7 +4,8 @@
 //
 //   Prose     { language, sentences }
 //   Sentence  { words, question? }
-//   Word      { text, concept? | prime? | word?, part? }
+//   Word      { text, concept? | prime? | word?, part?, imprecision?,
+//               alternatives?, probability? }
 //   Code      { language, program }   a quoted piece of code, read
 //
 // A word's meaning is a concept of the everyday vocabulary
@@ -13,6 +14,12 @@
 // (comments.js): the longest known phrase of up to four words first, an
 // inflected word through its stem, and in a question the interrogative
 // meanings first. The Rust twin is rust/src/natural/prose_reading.rs.
+//
+// A word is read imprecisely when it may mean more than one thing
+// (imprecision ambiguous: how many meanings it has, and the probability of
+// the one read, its share of the frequencies, probability.js) or when no
+// meaning of it is known (imprecision untranslated: a translation keeps it
+// as it is).
 
 import {
   detectCommentLanguage,
@@ -20,6 +27,7 @@ import {
   meaningsOf,
   pieces,
 } from './comments.js';
+import { priors } from './probability.js';
 import { knownForm } from './vocabulary.js';
 
 const fold = (text) => text.toLocaleLowerCase();
@@ -31,23 +39,43 @@ const longestRun = 8;
 const terminators = /[.!?;。！？؟]/u;
 const questionMarks = /[?？؟]/u;
 
-// 'concept:print' -> { concept: 'print' }
-function meaningFields(meaning, language) {
+// 'concept:print' -> { concept: 'print' }, with the imprecision of a
+// reading out of several meanings.
+function meaningFields({ meaning, alternatives }, language) {
   const at = meaning.indexOf(':');
   return {
     [meaning.slice(0, at)]: meaning.slice(at + 1),
     part: language.parts.get(meaning),
+    ...(alternatives > 1
+      ? {
+          imprecision: 'ambiguous',
+          alternatives,
+          probability: priors(alternatives)[0],
+        }
+      : {}),
   };
 }
 
-// The meaning of a known phrase, through its stem for a single word.
+// A word no meaning is known for.
+const unknownWord = (text) => ({
+  kind: 'Word',
+  text,
+  imprecision: 'untranslated',
+});
+
+// The meaning of a known phrase, through its stem for a single word:
+// { meaning, alternatives } with the number of meanings it may have.
 function meaningOf(phrase, language, single, question) {
   const form = language.meanings.has(phrase)
     ? phrase
     : single
       ? knownForm(phrase, language.stems, language.grammar)
       : undefined;
-  return form === undefined ? undefined : likely(form, language, question)[0];
+  if (form === undefined) {
+    return undefined;
+  }
+  const meanings = likely(form, language, question);
+  return { meaning: meanings[0], alternatives: meanings.length };
 }
 
 // The words of a run of letters written without spaces: the longest known
@@ -80,7 +108,7 @@ function segmented(text, language, question) {
       words.at(-1).text += letters[at];
       at += 1;
     } else {
-      words.push({ kind: 'Word', text: letters[at] });
+      words.push(unknownWord(letters[at]));
       at += 1;
     }
   }
@@ -119,7 +147,7 @@ function sentenceWords(run, language, question) {
       words.push(...segmented(run[index].text, language, question));
       index += 1;
     } else {
-      words.push({ kind: 'Word', text: run[index].text });
+      words.push(unknownWord(run[index].text));
       index += 1;
     }
   }

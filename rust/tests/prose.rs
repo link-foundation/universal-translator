@@ -116,3 +116,81 @@ fn reads_the_verb_forms_and_the_cases_back() {
         "To print sum\n"
     );
 }
+
+#[test]
+fn translates_the_words_programmers_write_in_comments() {
+    // The imperative and the perfective infinitive are the bare verb.
+    assert_eq!(
+        translate_comments(
+            "// Вывести привет мир\n// Выведи привет мир\n\
+             // Вывести строку в консоль\n// Сложить два числа\nlet x = 1;\n",
+            "javascript",
+            None,
+            "english"
+        )
+        .expect("a translation"),
+        "// Print hello world\n// Print hello world\n\
+         // Print string in console\n// Add two numbers\nlet x = 1;\n"
+    );
+    let sentences = [
+        (
+            "Поменяй местами ключ и значение",
+            "russian",
+            "english",
+            "Swap key and value\n",
+        ),
+        ("Считать числа", "russian", "english", "To count numbers\n"),
+        (
+            "Сохранить таблицу в память",
+            "russian",
+            "english",
+            "Save table in memory\n",
+        ),
+        (
+            "Otherwise return zero",
+            "english",
+            "russian",
+            "Иначе возвращать ноль\n",
+        ),
+        (
+            "Initialize the counter",
+            "english",
+            "russian",
+            "Инициализировать счётчик\n",
+        ),
+        (
+            "Reverse the string",
+            "english",
+            "russian",
+            "Переворачивать строку\n",
+        ),
+        (
+            "Enter an integer",
+            "english",
+            "russian",
+            "Вводить целое число\n",
+        ),
+        (
+            "Виведи рядок у консоль",
+            "ukrainian",
+            "english",
+            "Print line in console\n",
+        ),
+        (
+            "Wypisz linię na konsolę",
+            "polish",
+            "english",
+            "Print line on console\n",
+        ),
+        (
+            "Sumar dos números",
+            "spanish",
+            "english",
+            "Add two numbers\n",
+        ),
+        ("Copy the array", "english", "french", "Copier le tableau\n"),
+    ];
+    for (source, from, to, expected) in sentences {
+        assert_eq!(free(source, from, to), expected);
+    }
+}

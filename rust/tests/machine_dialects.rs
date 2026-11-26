@@ -8,11 +8,11 @@ use universal_translator::formal::machine_reader_wasm::read_wat;
 use universal_translator::translator::{Translator, languages, machine_target_ids};
 use universal_translator::{GrammarError, Mode, Options, translate_fragment};
 
+/// A reader of one machine dialect.
+type Reader = fn(&str) -> Result<LoweredProgram, GrammarError>;
+
 /// The dialects added after NASM, CIL and JVM bytecode.
 const DIALECTS: [&str; 4] = ["gas", "arm64", "llvm", "wat"];
-
-/// A reader of one dialect.
-type Reader = fn(&str) -> Result<LoweredProgram, GrammarError>;
 
 fn programs() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("examples/programs")
@@ -102,7 +102,7 @@ fn lists_every_dialect_after_the_grammar_languages_flagged_as_machine() {
     assert_eq!(tail, machine);
     assert_eq!(
         listing.iter().filter(|language| !language.machine).count(),
-        32
+        33
     );
     for language in listing.iter().filter(|language| language.machine) {
         assert!(language.versions.is_empty(), "{}", language.id);

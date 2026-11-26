@@ -1,57 +1,133 @@
-//! Equivalence of two programs: both are read into the meta language, put in
-//! the general form of the standard library and compared by meaning. What a
-//! language writes but a program does not mean (comments, blank lines,
-//! imports, types an untyped language cannot spell, mutability) is left
-//! out, so a program and its translation are equivalent when they compute
-//! the same thing in the same way.
+//! Whether a translation does what its source does, as far as the meta
+//! language can tell: both texts are read into meta programs, and the two
+//! must be the same when the parts without an effect on a run are left out.
+//! Those parts are comments, imports, blank lines, declared types and
+//! whether a variable may change. Two programs with the same meta program
+//! run the same statements on the same values in the same order, so this is
+//! a proof of the same effect for the narrow set of programs the meta
+//! language reads; anything the meta language does not model (overflow,
+//! float formatting, library behaviour) stays outside it.
 //!
-//! The JavaScript twin is js/src/translation/equivalence.js.
+//! The same check as js/src/translation/equivalence.js.
 
-use crate::Mode;
-use crate::meta::library::generalize;
-use crate::meta::{GrammarError, Node, meaning_difference};
-use crate::translator::Translator;
+use crate::GrammarError;
+use crate::meta::notation::format_meta;
+use crate::meta::tree::{Node, Value};
+use crate::translator::{Options, Translator};
 
-/// Whether a target program means what its source means.
-#[derive(Clone, Debug, PartialEq)]
-pub struct Equivalence {
-    /// The first path where the programs differ ("/main/...: a != b"), or
-    /// `None` when they are equivalent.
-    pub difference: Option<String>,
-    /// The target program: the one given, or the translation of the source.
-    pub target: String,
+/// Fields that do not change what a program does.
+const WITHOUT_EFFECT: [&str; 7] = [
+    "blankAfter",
+    "comments",
+    "imports",
+    "mainComments",
+    "mutable",
+    "returnType",
+    "type",
+];
+
+/// Statements that do not change what a program does.
+const LAYOUT: [&str; 2] = ["Blank", "Comment"];
+
+const MAX_DIFFERENCES: usize = 5;
+
+fn is_layout(value: &Value) -> bool {
+    matches!(value, Value::Node(node) if LAYOUT.contains(&node.kind.as_str()))
 }
 
-impl Equivalence {
-    pub fn equivalent(&self) -> bool {
-        self.difference.is_none()
+fn value_effect(value: &Value) -> Value {
+    match value {
+        Value::List(items) => Value::List(
+            items
+                .iter()
+                .filter(|item| !is_layout(item))
+                .map(value_effect)
+                .collect(),
+        ),
+        Value::Node(node) => Value::Node(effect_of(node)),
+        other => other.clone(),
     }
 }
 
-/// The first path where two meta programs differ in meaning, or `None`.
-pub fn compare_meta(left: &Node, right: &Node) -> Option<String> {
-    meaning_difference(&generalize(left.clone()), &generalize(right.clone()))
+/// The meta program without the parts that have no effect.
+pub fn effect_of(node: &Node) -> Node {
+    Node {
+        kind: node.kind.clone(),
+        fields: node
+            .fields
+            .iter()
+            .filter(|(field, _)| !WITHOUT_EFFECT.contains(&field.as_str()))
+            .map(|(field, value)| (field.clone(), value_effect(value)))
+            .collect(),
+    }
 }
 
-/// Whether `target` in `to` means what `source` in `from` means. Without a
-/// target the source is translated first, so this checks a translation.
+/// A line where the two meta programs differ, 1-based and without its
+/// indentation.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Difference {
+    pub line: usize,
+    pub source: String,
+    pub target: String,
+}
+
+/// The outcome of a check.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Equivalence {
+    pub equivalent: bool,
+    /// The translation that was checked.
+    pub translation: String,
+    /// The lines of the meta program of the source.
+    pub meta_lines: usize,
+    /// At most five of the lines where the two differ.
+    pub differences: Vec<Difference>,
+}
+
+fn lines_of(program: &Node) -> Vec<String> {
+    format_meta(&effect_of(program))
+        .trim_end()
+        .split('\n')
+        .map(str::to_owned)
+        .collect()
+}
+
+fn differences_of(source: &[String], target: &[String]) -> Vec<Difference> {
+    let line = |lines: &[String], index: usize| {
+        lines
+            .get(index)
+            .map(|line| line.trim().to_owned())
+            .unwrap_or_default()
+    };
+    (0..source.len().max(target.len()))
+        .filter(|&index| source.get(index) != target.get(index))
+        .take(MAX_DIFFERENCES)
+        .map(|index| Difference {
+            line: index + 1,
+            source: line(source, index),
+            target: line(target, index),
+        })
+        .collect()
+}
+
+/// Compares a source with a translation of it, written by the translator
+/// when none is given (a hand-written one is checked the same way).
 pub fn check_equivalence(
     translator: &Translator,
-    source: &str,
-    from: &str,
-    to: &str,
-    target: Option<&str>,
+    (source, from): (&str, &str),
+    (translation, to): (Option<&str>, &str),
+    options: Options,
 ) -> Result<Equivalence, GrammarError> {
-    let written = match target {
+    let translation = match translation {
         Some(text) => text.to_owned(),
-        None => translator.translate(source, from, to, Mode::default())?,
+        None => translator.translate_with(source, from, to, options)?,
     };
-    let difference = compare_meta(
-        &translator.to_meta(source, from)?,
-        &translator.to_meta(&written, to)?,
-    );
+    let source_lines = lines_of(&translator.to_meta(source, from)?);
+    let target_lines = lines_of(&translator.to_meta(&translation, to)?);
+    let differences = differences_of(&source_lines, &target_lines);
     Ok(Equivalence {
-        difference,
-        target: written,
+        equivalent: differences.is_empty(),
+        translation,
+        meta_lines: source_lines.len(),
+        differences,
     })
 }

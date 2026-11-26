@@ -1,0 +1,9 @@
+Opmerking: Greatest element of a list in JavaScript
+
+Getallen is geclassificeerd als een variabele met beginwaarde de lijst (17, 4, 93, 28, 65, 3, 80).
+Grootste is geclassificeerd als een variabele met beginwaarde element 0 van getallen.
+Voor elke index van 0 tot en met de lengte van getallen min 1 wordt het volgende herhaald:
+  Getal is geclassificeerd als een variabele met beginwaarde element index van getallen.
+  Als getal is groter dan grootste dan wordt het volgende uitgevoerd:
+    Grootste heeft als nieuwe waarde getal.
+De uitvoer heeft als volgende regel “The greatest element is ” samengevoegd met grootste.

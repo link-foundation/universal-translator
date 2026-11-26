@@ -86,9 +86,21 @@ List the machine targets (NASM, CIL, JVM) in `languages()` with `machine: true`,
 
 The Rust command line has a `serve` command that answers the same JSON as the JavaScript server, and the Rust crate reads the Wikidata definition cache of the word standards in the same file format.
 
-### Program equivalence
+### Equivalence check
 
-`checkEquivalence` and `compareMeta` (Rust: `check_equivalence` and `compare_meta`) check that two programs mean the same. Both programs are read into the meta language and put in the general form of the standard library. Comments, layout, imports and types an untyped language cannot spell are left out. `universal-translator check-equivalence <from> <to> <source> [target]` reports equivalent programs. When they differ, it exits with status 1 and prints the first difference (`/main/statements/0/value/right/value: 3 != 4`). Without a target it checks the translation of the source. Every committed example translation is equivalent to its JavaScript source.
+`check-equivalence <from> <to> [file|-] [translation]` (and `checkEquivalence` / `check_equivalence` in the libraries) reads a source and its translation into meta programs and compares them without comments, imports, blank lines, declared types and mutability. It lists the first lines where the two differ and exits with 1 when they do, in both the JavaScript and Rust command lines. The web app lists the machine targets (NASM, GNU as, ARM64, LLVM IR, WebAssembly text, CIL, JVM) in an "Assembly and intermediate" group of their own.
+
+### For-each loops and more Rosetta tasks
+
+The meta language has a for-each loop, `ForEach { variable, array, body }`, read from `for…of`, `for x in a`, `foreach` and the like, and written natively in 21 languages; every other language (machine code and the natural languages without a for-each sentence included) writes it as a counting loop over a fresh index that reads back as the same for-each loop. Four more Rosetta Code tasks (`loops-foreach`, `greatest-element-of-a-list`, `sum-multiples-of-3-and-5`, `linear-search`) are translated into every language.
+
+### Decorators, language versions and the Hello World Collection
+
+Every stage of the translation pipeline (parser, readers and emitters) can be wrapped with decorators, in JavaScript with `createTranslator({ decorate })` and `translator.decorate`, and in Rust with `Translator::decorate_*`. Programming languages gain versions with real differences in the written program: `javascript@es5` (no `let`, `const`, template strings or `for…of`), `php@5` and `csharp@5`. The Hello World Collection can be downloaded with `scripts/hello-world-collection.mjs`, and every extracted program is read into the meta language and measured in a coverage file.
+
+### Ranking and imprecision
+
+Where prose admits several readings, each candidate translation is scored by the frequency of its readings (Zipf priors) and by how much survives the round trip, as relative-meta-logic truth values. The scores are combined by their product with the share of lines translated, and the most probable candidate is kept. New: `translateCandidates` / `Translator::translate_candidates`, `rankProse` / `rank_prose`, and `translate <from> <to> --candidates`. The meta program records `(imprecision ambiguous|untranslated|truncated|rounded)`, `(alternatives n)` and `(probability p)`; `meta` shows them and emitters ignore them.
 
 ### Language detection
 
@@ -108,7 +120,7 @@ JavaScript and TypeScript functions written as arrow functions (`const add = (a,
 
 ### Language versions
 
-Lua, PHP and C# have versions besides Python. `lua@5.1` divides integers with `math.floor(a / b)` (Lua 5.1 and 5.2 have no `//`), `php@5` with `intval($a / $b)` (no `intdiv`), and `csharp@5` joins text with `+` (no `$"..."` strings). Each language reads all of its versions, and every committed task written in an older version keeps its meaning.
+Lua has versions besides Python: `lua@5.1` divides integers with `math.floor(a / b)`, because Lua 5.1 and 5.2 have no `//` operator. `php@5` divides with `(int) ($a / $b)` (no `intdiv`), and `csharp@5` joins text with `System.Convert.ToString(...) + ...` (no `$"..."` strings). Each language reads all of its versions, and every committed task written in an older version keeps its meaning.
 
 ### Smaller fixes
 
@@ -116,4 +128,29 @@ Lua, PHP and C# have versions besides Python. `lua@5.1` divides integers with `m
 - `"" + year` in Java and similar languages keeps the type of `year`. The interpolation is text, not the name.
 - The LLVM IR reader matches text constants in linear time.
 - The Rust documentation builds without warnings again (`cargo doc` with `-D warnings`).
-- The web app lists the assembly and intermediate languages in a picker group of their own.
+- The Hello World Collection extractor strips HTML tags until none is left (a CodeQL finding).
+
+### Real numbers
+
+Real numbers in the meta language: literals such as `1.5`, `2.0` and `1e3` have the type real, and true division (`realDivide`) is distinct from integer division (`divide`). Targets write real types (`double`, `f64`, `float64`, `Double`…), convert integer operands where needed, and print reals with `%g`.
+
+### Python type hints
+
+Python type hints on parameters, results and assignments (`def square(n: int) -> int:`, `total: int = 0`) are read in both runtimes: `int`, `str`, `bool`, `None` and `list[int]` give the meta types integer, text, boolean, nothing and array, every other hint is left to type inference, and a hinted program translates as its unhinted twin does.
+
+### Programming words in comments
+
+Comments read the words programmers write in them. The vocabulary has 74 more concepts (console, screen, output, input, integer, string, character, maximum, average, key, object, class, type, table, largest, even, odd, true, false, else, search, iterate, enter, initialize, subtract, reverse, copy, insert, update, save, split, generate and more) in the twelve languages its programming words are written in. The verbs it had gain the imperative and perfective forms of Russian, Ukrainian and Polish, so `// Вывести привет мир`, `// Выведи привет мир` and `// Сложить два числа` become `// Print hello world` and `// Add two numbers`. A concept is written with the word that is also a program word (`count`, `swap`), not with a later form (`counts`).
+
+### More of the TIOBE top 50
+
+GameMaker Language (`gml`, number 42 in the TIOBE index of November 2026) is written and read back in both the JavaScript and Rust translators, with its own common library (`common-library/common_library.gml`). GameMaker runs GML only inside its IDE and game runner, so `verify-native.mjs` reports GML as skipped with that reason, and its translations are checked by reading them back into the same meta program.
+
+28 of the top 50 are now covered: Python, C, Java, C++, C#, JavaScript, R, Visual Basic (.NET), Go, Rust, PHP, Fortran, Perl, MATLAB, assembly language (the machine targets), Swift, Delphi/Object Pascal (through the Pascal profile), Dart, Julia, Ada, Objective-C, Ruby, Lua, Kotlin, D, Scala, TypeScript and GML. The other 22 are not supported yet:
+
+- Scratch, Ladder Logic and LabVIEW are graphical: their programs are blocks, rungs and wired diagrams, not text a parser can read or an emitter can write.
+- SQL and XSLT are declarative: standard SQL has no functions, loops or output statements, and XSLT has no assignable variables, so the examples would need an encoding of their own, like the Rocq runtime.
+- Transact-SQL functions cannot print and it has no arrays; PL/SQL needs an Oracle database to run. PL/SQL could be written like Ada (`DBMS_OUTPUT.PUT_LINE`), but it is not done.
+- ABAP, SAS, Xojo and (Visual) FoxPro run only in commercial or discontinued environments, so their translations could not be checked natively.
+- VBScript and Classic Visual Basic run only on Windows. A classic Visual Basic dialect is possible (no `Return`, so `Name = value: Exit Function`; `And` and `Or` that do not short-circuit; no `+=`; one `Dim` per procedure; `ByVal` parameters), but it is not done.
+- OCaml, Caml, ML, Lisp, Haskell, Clojure, Prolog, COBOL and Solidity each need a dialect module in both runtimes: functional and logic languages need a state encoding (as Lean and Rocq have), COBOL needs its division layout, and Solidity has no standard output outside a test framework. None of them is done yet.

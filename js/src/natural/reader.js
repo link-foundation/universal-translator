@@ -7,6 +7,7 @@
 // names), and literal words only match outside parentheses.
 
 import { add, block, name, node, number } from '../meta/tree.js';
+import { raiseForEach } from '../meta/for-each.js';
 import { naturalLanguage } from './catalog.js';
 import { tokenize } from './tokens.js';
 import { levelIndex, levels, operatorOfTemplate } from './levels.js';
@@ -248,7 +249,9 @@ export class SentenceReader {
   atom(token) {
     switch (token.type) {
       case 'number':
-        return number(token.value);
+        return token.real
+          ? { ...number(token.value), type: 'real' }
+          : number(token.value);
       case 'text':
         return node('Text', { value: token.value });
       case 'word': {
@@ -366,7 +369,7 @@ const statementKeys = [
   'nothing',
   'evaluate',
 ];
-const blockKeys = ['else-if', 'else', 'if', 'while', 'for'];
+const blockKeys = ['else-if', 'else', 'if', 'while', 'for', 'for-each'];
 const functionKeys = ['function', 'function-without-parameters'];
 
 function statementFromSentence({ key, slots }) {
@@ -517,6 +520,13 @@ class ProgramReader {
     if (key === 'while') {
       return node('While', { condition: slots.condition, body });
     }
+    if (key === 'for-each') {
+      return node('ForEach', {
+        variable: slots.variable,
+        array: slots.array,
+        body,
+      });
+    }
     if (key === 'for') {
       return node('CountingLoop', {
         variable: slots.variable,
@@ -611,6 +621,8 @@ class ProgramReader {
   }
 }
 
+// A language without a for-each sentence writes the counting loop over an
+// index; it is read back as the loop over the elements it stands for.
 export function readNatural(source, id, language = naturalLanguage(id)) {
-  return new ProgramReader(language).read(source);
+  return raiseForEach(new ProgramReader(language).read(source));
 }

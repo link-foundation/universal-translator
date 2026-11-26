@@ -1,0 +1,6 @@
+Ghi chú: Loops/Foreach in JavaScript: print every element of a collection
+
+Có các_số, nó là những thứ này (1, 1, 2, 3, 5, 8, 13, 21).
+Với mọi chỉ_số từ 0 đến các_số có bao nhiêu phần trừ 1, làm điều này:
+  Có số, nó là phần chỉ_số của các_số.
+  Nói số trên một dòng.

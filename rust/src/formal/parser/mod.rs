@@ -13,6 +13,7 @@ use super::dialects::{ParserDialect, parser_dialect, rocq_comparison};
 use super::interpolation::{Piece, split_interpolation};
 use super::languages::{Blocks, CommandCalls, ForwardDeclarations, Syntax, Typed};
 use super::lexer::{InterpolationStyle, Token, TokenType, decode_escapes, tokenize};
+use super::numbers::slash_operator;
 use crate::meta::GrammarError;
 use crate::meta::{Node, binary, block, name, number, text};
 
@@ -59,14 +60,15 @@ const MODIFIERS: [&str; 10] = [
     "local",
 ];
 
-const CONTROL_WORDS: [&str; 8] = [
-    "if", "else", "while", "for", "switch", "return", "do", "catch",
+const CONTROL_WORDS: [&str; 9] = [
+    "if", "else", "while", "for", "foreach", "switch", "return", "do", "catch",
 ];
 
 const ASSIGNMENT_SYMBOLS: [&str; 8] = ["=", "+=", "-=", "*=", "/=", "%=", "++", "--"];
 
 mod arrays;
 mod arrows;
+mod forms;
 mod loops;
 
 use loops::step_operator;
@@ -691,6 +693,9 @@ impl Parser {
     }
 
     pub(crate) fn base_type_expression(&mut self) -> Parsed<Option<String>> {
+        if self.syntax.id == "python" {
+            return self.type_hint();
+        }
         let mut words = Vec::new();
         let mut depth = 0i64;
         loop {
@@ -794,6 +799,14 @@ impl Parser {
             "if" => return self.if_statement(),
             "while" => return self.while_statement(),
             "for" => return self.for_statement(),
+            "foreach"
+                if self
+                    .syntax
+                    .for_each
+                    .is_some_and(|each| each.starts_with("foreach")) =>
+            {
+                return self.foreach_statement();
+            }
             "return" => return self.return_statement(),
             "echo" => return self.echo_statement(),
             _ => {}
@@ -1165,6 +1178,12 @@ impl Parser {
                 let right = self.binary(level)?;
                 return Ok(binary("concatenate", left, right));
             }
+            // `/` is true division or integer division, depending on the language.
+            let operator = if operator == "divide" && self.value(0) == "/" {
+                slash_operator(&self.syntax)
+            } else {
+                operator
+            };
             self.position += 1;
             let right = self.binary(level + 1)?;
             left = binary(operator, left, right);
@@ -1175,7 +1194,8 @@ impl Parser {
         if self.accept("-") {
             let operand = self.unary()?;
             if operand.is("Number") {
-                return Ok(number(-operand.number("value").unwrap_or(0.0)));
+                let value = -operand.number("value").unwrap_or(0.0);
+                return Ok(operand.with("value", value));
             }
             return Ok(Node::new("Unary")
                 .with("operator", "negate")
@@ -1187,6 +1207,14 @@ impl Parser {
             return Ok(Node::new("Unary")
                 .with("operator", "not")
                 .with("operand", operand));
+        }
+        // ECMAScript 5 truncates with ~~(a / b), which reads as a call of "~~".
+        if self.is("~") && self.is_at("~", 1) {
+            self.position += 2;
+            let operand = self.unary()?;
+            return Ok(Node::new("Call")
+                .with("callee", "~~")
+                .with("arguments", vec![operand]));
         }
         self.postfix()
     }
@@ -1259,7 +1287,7 @@ impl Parser {
     fn plain_primary(&mut self) -> Parsed {
         let token = self.next()?;
         match token.kind {
-            TokenType::Number => return Ok(number(token.value.parse().unwrap_or(0.0))),
+            TokenType::Number => return Ok(number_literal(&token.value)),
             TokenType::Text => return self.text_literal(&token),
             TokenType::Name => {
                 return Ok(match token.value.as_str() {
@@ -1345,6 +1373,16 @@ fn callee_name(expression: &Node) -> Parsed<String> {
     }
 }
 
+/// A number as written: 1.5, 2.0 and 1e3 are reals, 7 is an integer.
+pub fn number_literal(written: &str) -> Node {
+    let literal = number(written.parse().unwrap_or(0.0));
+    if written.contains(['.', 'e', 'E']) {
+        literal.with("type", "real")
+    } else {
+        literal
+    }
+}
+
 /// Map a source type spelling to a meta type: integer, text, boolean,
 /// nothing, `source:<spelling>` for other types, or `None` when the source
 /// leaves the type to inference.
@@ -1361,6 +1399,8 @@ pub fn source_type(spelling: &str) -> Option<String> {
         "string" | "String" | "&'static str" => "text",
         _ if is_spaced_variant(&words) => "text",
         _ if array_pattern().is_match(&words) => "array",
+        "double" | "float" | "f32" | "f64" | "float32" | "float64" | "Double" | "Float"
+        | "Float64" | "Long_Float" | "real" | "Real" => "real",
         "bool" | "boolean" | "Bool" | "Boolean" => "boolean",
         "void" | "()" | "Unit" | "Void" => "nothing",
         "" | "var" | "auto" => return None,

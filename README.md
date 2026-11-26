@@ -5,8 +5,8 @@ matching JavaScript and Rust implementations. The translator is built from
 grammar and rule tables, not from per-program templates. It reads JavaScript,
 TypeScript, Python, Ruby, Lua, PHP, C, C++, C#, Java, Go, Rust, Kotlin,
 Swift, Perl, Dart, Scala, Julia, R, Groovy, Objective-C, Nim, D, Pascal,
-Fortran, Ada, Visual Basic .NET, Bash, MATLAB/Octave, Zig, Lean 4 and Rocq
-(32 languages), and writes any of them. It can also lower a program to x86-64
+Fortran, Ada, Visual Basic .NET, Bash, MATLAB/Octave, Zig, Lean 4, Rocq and
+GameMaker Language (33 languages), and writes any of them. It can also lower a program to x86-64
 assembly (NASM or GNU as, AT&T), ARM64 assembly, CIL (ILAsm), JVM bytecode
 (Jasmin), LLVM IR or WebAssembly text. These machine targets appear in
 `languages()` flagged `machine: true`, after the programming languages.
@@ -58,7 +58,9 @@ Every program in `examples/programs` has been translated into every target
 in `examples/programs/translated`. These shared files are what the JavaScript
 and Rust tests check against. `node examples/programs/verify-native.mjs`
 compiles and runs each translation with its native toolchain, and CI runs it
-with `--require-all`.
+with `--require-all`. GameMaker Language has no runtime outside the
+GameMaker IDE, so its translations are only checked by reading them back
+into the same meta program.
 
 ## Translate a statement or a function on its own
 
@@ -276,19 +278,24 @@ output:
 
 ### Checking that two programs are equivalent
 
-`check-equivalence` reads two programs into the meta language, puts both in
-the general form of the standard library and compares their meaning.
-Comments, blank lines, imports, mutability and types that an untyped
-language cannot spell are left out. Without a target it checks the
-translation of the source. When the programs differ it exits with status 1
-and prints the first difference:
+`check-equivalence` reads a source and its translation into meta programs
+and compares them line by line. Comments, blank lines, imports, declared
+types and mutability are left out, because they do not change what a
+program does. Without a translation it checks what the translator writes.
+When the programs differ it prints the first differing lines of the meta
+programs and exits with status 1:
 
 ```bash
 universal-translator check-equivalence javascript python sum.js sum.py
-# The javascript and python programs are equivalent
+# equivalent: true
+# metaLines: 7
 universal-translator check-equivalence javascript rust sum.js   # checks the translation
 universal-translator check-equivalence javascript python sum.js changed.py
-# The javascript and python programs are not equivalent: /main/statements/0/value/right/value: 3 != 4
+# equivalent: false
+# metaLines: 7
+# differences:
+#   (line 5) (source 'number 3') (target 'number 4')
+# The python translation does not do what the javascript source does
 ```
 
 ```js
@@ -301,15 +308,17 @@ checkEquivalence(createTranslator(), {
   source,
   from: 'javascript',
   to: 'python',
-  target,
+  translation, // optional: the translator writes one when it is left out
 });
-// { equivalent: true, target } or { equivalent: false, difference, target }
+// { equivalent, translation, metaLines, differences: [{ line, source, target }] }
 ```
 
-In Rust this is `check_equivalence(&Translator::new(), source, from, to, target)`.
-It returns an `Equivalence { difference, target }`. Every committed
-translation in `examples/programs/translated` is equivalent to its
-JavaScript source (`js/tests/equivalence.test.js`, `rust/tests/equivalence.rs`).
+In Rust this is
+`check_equivalence(&Translator::new(), (source, from), (Some(translation), to), Options::default())`,
+which returns an `Equivalence { equivalent, translation, meta_lines, differences }`.
+Every committed translation in `examples/programs/translated` is equivalent
+to its JavaScript source (`experiments/issue-14/equivalence-matrix.mjs`; the tests are
+`js/tests/equivalence.test.js` and `rust/tests/equivalence.rs`).
 
 ### Layout: the source's whitespace, by default
 
@@ -366,6 +375,23 @@ universal-translator translate python python app.py --comment-language german  #
 universal-translator meta python app.py   # the meta language as an indented tree
 universal-translator meta python app.py --json   # the same program as JSON
 ```
+
+A version changes how a program is written, never how it is read. Besides
+`python@2`, `javascript@es5` writes `var`, `+` joins, `~~(a / b)` and a fill
+loop instead of `let`, `const`, template strings, `Math.trunc` and
+`Array(n).fill`; `php@5` writes `(int) (a / b)` and `array(...)` instead of
+`intdiv` and `[...]`; and `csharp@5` joins text with `Convert.ToString` and
+`+` instead of `$"..."`. Ask for `universal-translator languages` or
+`versionsOf(id)` to list the versions of a language, and an unknown version
+is an error (`php has no version "4"`).
+
+The Hello World Collection (http://helloworldcollection.de) is a test corpus:
+`node scripts/hello-world-collection.mjs --fetch` downloads the page (after
+asking `robots.txt`), caches it under
+`docs/case-studies/issue-14/data/hello-world-collection/`, extracts the
+program of every language id and records in
+`docs/case-studies/issue-14/hello-world-coverage.lino` which programs read
+into the meta language and why the others do not.
 
 The meta view is indented Links Notation: one line per node with its kind,
 its main value and its other plain fields as `(name value)` links, and its
@@ -493,6 +519,42 @@ parts and edits the same rules visually. `node scripts/rosetta-code.mjs all`
 measures coverage over every Rosetta Code task; see the
 [issue 8 case study](docs/case-studies/issue-8/README.md). Pull requests build the
 image and smoke test both the CLI and the API inside it.
+
+### Decorators
+
+Every stage of the pipeline is a replaceable function, and every stage can
+also be wrapped. A decorator receives the inner implementation of a stage
+and returns the wrapped one, so it can trace calls, rewrite the input or the
+output, cache or fall back. The stages are `parse`, `infer`, `lift`,
+`readMachine`, `readNatural`, `emit`, `emitMachineCode` and `writeNatural`.
+Decorators of one stage compose in the order they are added: the first is
+innermost, the last sees the input first and the output last.
+
+```js
+import { createTranslator } from '@link-foundation/universal-translator';
+
+const translator = createTranslator({
+  decorate: {
+    // trace every program that is emitted
+    emit: (next) => (meta, to) => {
+      console.error(`emit ${to}`);
+      return next(meta, to);
+    },
+  },
+})
+  // rewrite the output of the emitter
+  .decorate('emit', (next) => (meta, to) => next(meta, to).toUpperCase());
+
+translator.translate('console.log("Hi");\n', 'javascript', 'python');
+// 'PRINT("HI")\n', after "emit python" on stderr
+```
+
+`translator.decorate(stage, decorator)` and
+`translator.decorate({ stage: decorator | [decorators] })` return a new
+translator, and `withRules` keeps the decorators. The Rust crate has the
+same API: `Translator::new().decorate_emit(|next| Arc::new(move |meta, to|
+next(meta, to).map(|text| text.to_uppercase())))`, with one `decorate_*`
+method per stage and the stage types in `universal_translator::stages`.
 
 ## Features
 

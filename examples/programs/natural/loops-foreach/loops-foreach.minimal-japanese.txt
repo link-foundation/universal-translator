@@ -1,0 +1,6 @@
+注：Loops/Foreach in JavaScript: print every element of a collection
+
+数列 が ある、 それ は これら の もの (1、 1、 2、 3、 5、 8、 13、 21) だ。
+全て の 添字 について 0 から 数列 の 部分 の 数 引く 1 まで これ を する：
+  数_ が ある、 それ は 数列 の 部分 添字 だ。
+  数_ を 一つ の 行 に 言う。

@@ -1,0 +1,9 @@
+Remarque : Greatest element of a list in JavaScript
+
+Il y a nombres, c'est ces choses (17, 4, 93, 28, 65, 3, 80).
+Il y a maximal, c'est la partie 0 de nombres.
+Pour tous les indice de 0 à combien de parties dans nombres moins 1, faire ceci:
+  Il y a nombre, c'est la partie indice de nombres.
+  Si nombre est plus que maximal, faire ceci:
+    Après ceci, maximal est nombre.
+Dire «The greatest element is » puis maximal sur une ligne.

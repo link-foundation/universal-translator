@@ -43,14 +43,16 @@ fn translate(source: &str, from: &str, to: &str) -> String {
 fn divides_integers_in_lua_5_1_and_php_5_without_operators_and_intdiv() {
     assert!(translate(SOURCE, "javascript", "lua").contains("return n // 2"));
     assert!(translate(SOURCE, "javascript", "lua@5.1").contains("return math.floor(n / 2)"));
-    assert!(translate(SOURCE, "javascript", "php@5").contains("return intval($n / 2);"));
+    assert!(translate(SOURCE, "javascript", "php@5").contains("return (int) ($n / 2);"));
 }
 
 #[test]
 fn joins_text_with_plus_in_csharp_5() {
     assert!(
-        translate(SOURCE, "javascript", "csharp@5")
-            .contains("System.Console.WriteLine(\"\" + Half(4) + Half(2) + \" items\");")
+        translate(SOURCE, "javascript", "csharp@5").contains(concat!(
+            "System.Console.WriteLine(System.Convert.ToString(Half(4)) + ",
+            "System.Convert.ToString(Half(2)) + \" items\");"
+        ))
     );
     assert!(
         translate(SOURCE, "javascript", "csharp")

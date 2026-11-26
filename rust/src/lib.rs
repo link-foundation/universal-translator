@@ -2,6 +2,7 @@
 //! translator, exchange sources as Links Notation documents and concrete
 //! syntax trees, and rank dependent interpretations.
 
+mod candidates;
 pub mod comment_language;
 pub mod custom_rules;
 mod detect;
@@ -18,12 +19,14 @@ mod program;
 mod referents;
 pub mod server;
 mod source_document;
+pub mod stages;
 pub mod style;
 pub mod translator;
 
+pub use candidates::TranslationCandidate;
 pub use comment_language::{CommentTranslator, translate_comments};
 pub use custom_rules::CustomRules;
-pub use equivalence::{Equivalence, check_equivalence, compare_meta};
+pub use equivalence::{Difference, Equivalence, check_equivalence, effect_of};
 pub use formal::versions::{Version, split_version, versions_of};
 pub use fragments::{Fragment, FragmentKind};
 pub use identifier_language::{translate_identifiers, translate_program_identifiers};

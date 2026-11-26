@@ -87,7 +87,7 @@ pub fn declared_names(program: &Node) -> HashSet<String> {
     walk(program, |current| {
         let field = match current.kind.as_str() {
             "Declaration" => "name",
-            "CountingLoop" => "variable",
+            "CountingLoop" | "ForEach" => "variable",
             _ => return,
         };
         names.extend(current.str(field).map(str::to_owned));
@@ -125,7 +125,7 @@ pub fn rename_declared(program: Node, rename: impl Fn(&str, Role) -> String) -> 
     let mut renamed = rewrite(program, |current| match current.kind.as_str() {
         "Name" | "Declaration" | "Assignment" | "IndexAssignment" => rename_field(current, "name"),
         "Call" => rename_field(current, "callee"),
-        "CountingLoop" => rename_field(current, "variable"),
+        "CountingLoop" | "ForEach" => rename_field(current, "variable"),
         _ => current,
     });
     let functions: Vec<Node> = renamed
@@ -268,6 +268,10 @@ const RESERVED_WORDS: &[(&str, &str)] = &[
         "as at cofix definition else end eval exists fix fixpoint for forall fun if in let load match mod module return set struct then type where with pure stop bind loop_while for_range print print_line line_end digits show value call run item with_item with_item_at filled size default outcome going returned action tt unit negb andb orb list nil cons string bool true false nat length commonlibrary common_library main no_arguments",
     ),
     (
+        "gml",
+        "all and array_create array_length begin break case catch constructor continue default delete depth direction div do else end enum exit false finally for friction function global globalvar gravity health hspeed id if image_index lives local mod new noone not or other persistent repeat return score self show_debug_message solid speed sprite_index static string switch then throw true try until var visible vspeed while with x xor y",
+    ),
+    (
         "bash",
         "case coproc dirname do done echo elif else esac fi for function if in local printf return select then time until while",
     ),
@@ -296,9 +300,9 @@ pub fn avoid_reserved(spelled: String, language: &str) -> String {
 /// whose compilers accept other letters only with extra flags). A name in
 /// another script is transliterated for them; what has no transliteration
 /// is written as its code point ("u4e16").
-const ASCII_ONLY: [&str; 13] = [
-    "ada", "bash", "c", "cpp", "dart", "fortran", "lua", "matlab", "objc", "pascal", "perl", "r",
-    "zig",
+const ASCII_ONLY: [&str; 14] = [
+    "ada", "bash", "c", "cpp", "dart", "fortran", "gml", "lua", "matlab", "objc", "pascal", "perl",
+    "r", "zig",
 ];
 
 /// Whether a language (or a machine target) takes ASCII names only.

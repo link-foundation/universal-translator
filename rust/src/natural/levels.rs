@@ -92,7 +92,7 @@ pub fn level_of_template(key: &str) -> Option<usize> {
         .position(|level| level.templates.contains(&key))
 }
 
-const BINARY: [(&str, &str); 13] = [
+const BINARY: [(&str, &str); 14] = [
     ("or", "or"),
     ("and", "and"),
     ("equal", "equal"),
@@ -105,6 +105,8 @@ const BINARY: [(&str, &str); 13] = [
     ("subtract", "subtract"),
     ("multiply", "multiply"),
     ("divide", "divide"),
+    // Prose has one division; it reads back as the meta "divide".
+    ("realDivide", "divide"),
     ("remainder", "remainder"),
 ];
 

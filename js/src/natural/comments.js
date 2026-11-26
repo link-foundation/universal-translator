@@ -36,6 +36,7 @@
 // `translateComment(text, { from, to })`; the dictionary is the default.
 
 import { naturalLanguage, naturalLanguageIds } from './catalog.js';
+import { priors, product, similarity } from './probability.js';
 import { semanticPrimes } from './rules.js';
 import {
   grammarOf,
@@ -156,11 +157,14 @@ export function likely(phrase, language, question) {
 }
 
 // The phrase of `target` for a meaning: the first that reads back to it.
+// A phrase that reads back to the program word spelled the same (count ->
+// word:count) reads back to the concept too: both are written "count".
 function preferredPhrase(meaning, target, question) {
   const phrases = target.phrases.get(meaning);
   return (
-    phrases.find((phrase) => likely(phrase, target, question)[0] === meaning) ??
-    phrases[0]
+    phrases.find((phrase) =>
+      [meaning, `word:${phrase}`].includes(likely(phrase, target, question)[0])
+    ) ?? phrases[0]
   );
 }
 
@@ -174,27 +178,35 @@ function slotForm(phrase, meaning, source, target) {
   return at > 0 ? target.forms.get(meaning)?.[at] : undefined;
 }
 
-// The translation of one known phrase: { text, part, lemma, meaning } or
-// undefined. An article the target does not have becomes an empty text.
-function translatePhrase(phrase, source, target, question) {
-  const meanings = likely(phrase, source, question);
-  for (const meaning of meanings) {
+// The translations of one known phrase, one for each meaning the target
+// has, likeliest first, every text once: { text, part, lemma, meaning }.
+// An article the target does not have becomes an empty text.
+function phraseOptions(phrase, source, target, question) {
+  const options = [];
+  for (const meaning of likely(phrase, source, question)) {
     const part = source.parts.get(meaning);
+    let option;
     if (target.phrases.has(meaning)) {
       const form = part === 'verb' && slotForm(phrase, meaning, source, target);
-      return {
+      option = {
         text: form || preferredPhrase(meaning, target, question),
         part,
         meaning,
         lemma: !form && source.phrases.get(meaning)[0] === phrase,
       };
+    } else if (part === 'article') {
+      option = { text: '', part, lemma: true };
     }
-    if (part === 'article') {
-      return { text: '', part, lemma: true };
+    if (option && !options.some(({ text }) => text === option.text)) {
+      options.push(option);
     }
   }
-  return undefined;
+  return options;
 }
+
+// The likeliest translation of one known phrase, or undefined.
+const translatePhrase = (phrase, source, target, question) =>
+  phraseOptions(phrase, source, target, question)[0];
 
 // Phrase of `from` -> phrase of `to`, for every meaning both languages have
 // (outside questions).
@@ -257,12 +269,34 @@ function questionsOf(parts) {
   return questions;
 }
 
-// Phrase translation through the grammar of both languages.
+// Phrase translation through the grammar of both languages. A phrase with
+// more than one translation is a reading: `choices` names the option taken
+// for some readings (the likeliest otherwise), and `readings` lists every
+// reading met, in order, as { key, phrase, options }.
 class ProseTranslator {
-  constructor(from, to) {
+  constructor(from, to, choices = new Map()) {
     this.source = meaningsOf(from);
     this.target = meaningsOf(to);
+    this.choices = choices;
+    this.readings = [];
+    // The word piece being translated, and whether the words are only
+    // looked at (a look ahead makes no reading).
+    this.at = 0;
+    this.probing = false;
     this.disagree();
+  }
+
+  // The translation of a phrase in the option chosen for its reading.
+  choose(phrase, question) {
+    const options = phraseOptions(phrase, this.source, this.target, question);
+    if (options.length < 2 || this.probing) {
+      return options[0];
+    }
+    const key = `${this.at}:${phrase}`;
+    if (!this.readings.some((reading) => reading.key === key)) {
+      this.readings.push({ key, phrase, options: options.length });
+    }
+    return options[this.choices.get(key) ?? 0] ?? options[0];
   }
 
   // The written form of a translated phrase.
@@ -274,12 +308,7 @@ class ProseTranslator {
   }
 
   phrase(phrase, question) {
-    const translated = translatePhrase(
-      phrase,
-      this.source,
-      this.target,
-      question
-    );
+    const translated = this.choose(phrase, question);
     if (!translated) {
       return undefined;
     }
@@ -324,7 +353,11 @@ class ProseTranslator {
   // Whether the words at parts[index] are none the dictionary knows (the
   // name of something in the program).
   unknown(parts, index) {
-    return index < parts.length && !this.words(parts, index, false);
+    const probing = this.probing;
+    this.probing = true;
+    const unknown = index < parts.length && !this.words(parts, index, false);
+    this.probing = probing;
+    return unknown;
   }
 
   // The words around a verb agree in case: the first noun after a verb (an
@@ -379,16 +412,17 @@ class ProseTranslator {
         return undefined;
       }
     }
-    const translated = translatePhrase(
-      this.known(fold(parts[verbAt])),
-      this.source,
-      this.target,
-      question
-    );
+    const known = this.known(fold(parts[verbAt]));
+    const translated = known && this.choose(known, question);
     if (translated?.part !== 'verb') {
       return undefined;
     }
-    return { text: this.write(translated, true), end: verbAt, part: 'verb' };
+    return {
+      text: this.write(translated, true),
+      end: verbAt,
+      part: 'verb',
+      meaning: translated.meaning,
+    };
   }
 
   // A known form of a word, directly or through its stem.
@@ -399,7 +433,8 @@ class ProseTranslator {
   }
 
   // Known words inside a run of letters written without spaces, longest
-  // first; undefined when none is known.
+  // first: { text, keys } with the meaning of each run (the folded letters
+  // of an unknown one); undefined when none is known.
   segments(word, question) {
     if (this.source.grammar.spaced) {
       return undefined;
@@ -415,7 +450,11 @@ class ProseTranslator {
         const run = fold(letters.slice(at, at + size).join(''));
         translated = this.phrase(run, question);
         if (translated) {
-          found.push({ text: translated.text, known: true });
+          found.push({
+            text: translated.text,
+            known: true,
+            key: translated.meaning,
+          });
           at += size;
           known = true;
         }
@@ -434,7 +473,10 @@ class ProseTranslator {
       return undefined;
     }
     const joiner = this.target.grammar.spaced ? ' ' : '';
-    return found.map(({ text }) => text).join(joiner);
+    return {
+      text: found.map(({ text }) => text).join(joiner),
+      keys: found.map(({ text, key }) => key ?? fold(text)),
+    };
   }
 
   // The translation of the words starting at parts[index]:
@@ -464,7 +506,7 @@ class ProseTranslator {
     const segmented = this.segments(parts[index], question);
     return segmented === undefined
       ? undefined
-      : { text: segmented, end: index, part: 'segments' };
+      : { ...segmented, end: index, part: 'segments' };
   }
 
   inflected(word, question) {
@@ -474,13 +516,11 @@ class ProseTranslator {
 }
 
 // Translate the words of a text with the dictionary and the grammar of both
-// languages. Phrases of up to four words joined by single spaces are tried
-// longest first.
-export function translateCommentText(text, { from, to }) {
-  if (from === to) {
-    return text;
-  }
-  const translator = new ProseTranslator(from, to);
+// languages, every reading in the option `choices` names (the likeliest
+// otherwise): { text, readings }. Phrases of up to four words joined by
+// single spaces are tried longest first.
+export function translateWords(text, { from, to, choices }) {
+  const translator = new ProseTranslator(from, to, choices);
   const parts = pieces(text);
   const questions = questionsOf(parts);
   // Every word piece written: { text, translated }, between the gaps.
@@ -488,6 +528,7 @@ export function translateCommentText(text, { from, to }) {
   let capitalize = false;
   let index = 1;
   while (index < parts.length) {
+    translator.at = index;
     const found = translator.words(parts, index, questions[index]);
     if (!found) {
       translator.disagree();
@@ -515,7 +556,7 @@ export function translateCommentText(text, { from, to }) {
   }
   // Words of a language written without spaces are joined.
   const joined = !translator.target.grammar.spaced;
-  return written
+  const output = written
     .map((piece, at) => {
       if (typeof piece !== 'string') {
         return piece.text;
@@ -528,6 +569,106 @@ export function translateCommentText(text, { from, to }) {
         : piece;
     })
     .join('');
+  return { text: output, readings: translator.readings };
+}
+
+// The meanings a text stands for in a language, one key per phrase read
+// (the folded words of a phrase no meaning is known for).
+export function meaningKeys(text, language) {
+  const reader = new ProseTranslator(language, language);
+  reader.probing = true;
+  const parts = pieces(text);
+  const questions = questionsOf(parts);
+  const keys = [];
+  for (let index = 1; index < parts.length; ) {
+    const found = reader.words(parts, index, questions[index]);
+    const end = found?.end ?? index;
+    keys.push(
+      ...(found?.keys ?? [
+        found?.meaning ?? fold(parts.slice(index, end + 1).join('')),
+      ])
+    );
+    index = end + 2;
+  }
+  return keys;
+}
+
+// The most candidates one text is translated into while ranking.
+const searchLimit = 16;
+
+// The translation of a text with some choices, scored (probability.js):
+// its frequency is the product of the priors of the options taken, its
+// round trip how much of the meanings of the source a reader of the
+// translation reads back from it.
+function scored(text, { from, to, choices }, source) {
+  const { text: output, readings } = translateWords(text, {
+    from,
+    to,
+    choices,
+  });
+  const frequency = product(
+    readings.map(({ key, options }) => priors(options)[choices.get(key) ?? 0])
+  );
+  const roundTrip = similarity(source, meaningKeys(output, to));
+  const probability = product([frequency, roundTrip]);
+  return { text: output, probability, frequency, roundTrip, readings, choices };
+}
+
+// The candidate translations of a text, the most probable first: the
+// likeliest options, then, reading by reading, the other options of each.
+// An option replaces the one taken only when its candidate is strictly
+// more probable; at most `searchLimit` candidates are scored.
+export function rankProse(text, { from, to }) {
+  if (from === to) {
+    return [{ text, probability: 1, frequency: 1, roundTrip: 1 }];
+  }
+  const source = meaningKeys(text, from);
+  let best = scored(text, { from, to, choices: new Map() }, source);
+  const evaluated = [best];
+  for (
+    let at = 0;
+    at < best.readings.length && evaluated.length < searchLimit;
+    at += 1
+  ) {
+    const base = best;
+    const { key, options } = base.readings[at];
+    for (let option = 0; option < options; option += 1) {
+      if (option === (base.choices.get(key) ?? 0)) {
+        continue;
+      }
+      if (evaluated.length >= searchLimit) {
+        break;
+      }
+      const choices = new Map([...base.choices, [key, option]]);
+      const tried = scored(text, { from, to, choices }, source);
+      evaluated.push(tried);
+      if (tried.probability > best.probability) {
+        best = tried;
+      }
+    }
+  }
+  const seen = new Set();
+  return evaluated
+    .sort((left, right) => right.probability - left.probability)
+    .filter(({ text: output }) => !seen.has(output) && seen.add(output))
+    .map(({ text: output, probability, frequency, roundTrip }) => ({
+      text: output,
+      probability,
+      frequency,
+      roundTrip,
+    }));
+}
+
+// Translate the words of a text: the most probable candidate when some
+// phrase has more than one reading, the likeliest options otherwise.
+export function translateCommentText(text, { from, to }) {
+  if (from === to) {
+    return text;
+  }
+  const plain = translateWords(text, { from, to });
+  return plain.readings.length
+    ? rankProse(text, { from, to })[0].text
+    : plain.text;
 }
 
 // Translate a text of prose between two natural languages.

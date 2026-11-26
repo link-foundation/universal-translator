@@ -1,139 +1,205 @@
-import { describe, expect, it } from 'test-anywhere';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-
+// The equivalence check: a translation does what its source does when both
+// read into the same meta program, comments, imports, blank lines, types
+// and mutability left out.
+import { readFileSync, readdirSync } from 'node:fs';
+import { describe, it, expect } from 'test-anywhere';
 import {
   checkEquivalence,
-  compareMeta,
   createTranslator,
-} from '../../js/src/index.js';
+  effectOf,
+  translate,
+} from '../src/index.js';
 import { runCli } from '../../bin/universal-translator.js';
 import { extensions } from '../../examples/programs/verify-native.mjs';
 
 const translator = createTranslator();
-const programs = join(import.meta.dirname, '../../examples/programs');
-const read = (path) => readFileSync(join(programs, path), 'utf8');
-
-const sum = 'const total = 2 + 3;\nconsole.log(total);\n';
-const commented = '# the sum\n\ntotal = 2 + 3\nprint(total)\n';
-const changed = 'total = 2 + 4\nprint(total)\n';
-
-const cli = (argv, files) => {
-  const output = [];
-  const errors = [];
-  const status = runCli(argv, {
-    read: (file) => files[file],
-    write: (text) => output.push(text),
-    stderr: (text) => errors.push(text),
-  });
-  return { status, output: output.join(''), errors: errors.join('\n') };
-};
-
-describe('equivalence of two programs', () => {
-  for (const task of ['factorial', 'greatest-common-divisor']) {
-    it(`finds every committed translation of ${task} equivalent to its source`, () => {
-      const source = read(`${task}.js`);
-      for (const [to, extension] of Object.entries(extensions)) {
-        const target = read(`translated/${task}/${task}${extension}`);
-        const checked = checkEquivalence(translator, {
-          source,
-          from: 'javascript',
-          to,
-          target,
-        });
-        expect([to, checked.difference]).toEqual([to, undefined]);
-      }
-    });
-  }
-
-  it('leaves comments, blank lines and the translation layout out', () => {
-    expect(
-      checkEquivalence(translator, {
-        source: sum,
-        from: 'javascript',
-        to: 'python',
-        target: commented,
-      })
-    ).toEqual({ equivalent: true, target: commented });
+const SUM = `let total = 0;
+for (let i = 1; i <= 3; i++) {
+  total = total + i;
+}
+console.log(total);
+`;
+const check = (translation, to = 'python') =>
+  checkEquivalence(translator, {
+    source: SUM,
+    from: 'javascript',
+    to,
+    ...(translation === undefined ? {} : { translation }),
   });
 
-  it('translates the source when no target is given', () => {
-    const checked = checkEquivalence(translator, {
-      source: sum,
-      from: 'javascript',
-      to: 'rust',
-    });
-    expect(checked.equivalent).toBe(true);
-    expect(checked.target).toBe(
-      translator.translate(sum, 'javascript', 'rust')
+describe('Equivalence of a translation', () => {
+  it('holds for what the translator writes', () => {
+    const result = check();
+    expect(result.equivalent).toBe(true);
+    expect(result.differences).toEqual([]);
+    expect(result.translation).toContain('range(1, 4)');
+  });
+
+  it('leaves out comments, blank lines and the spelling of an update', () => {
+    const python =
+      '# sum\ntotal = 0\n\nfor i in range(1, 4):\n    total += i  # add\nprint(total)\n';
+    expect(check(python).equivalent).toBe(true);
+  });
+
+  it('leaves out types and mutability', () => {
+    const rust = `fn main() {
+    let mut total: i64 = 0;
+    for i in 1..=3 {
+        total += i;
+    }
+    println!("{}", total);
+}
+`;
+    expect(check(rust, 'rust').equivalent).toBe(true);
+  });
+
+  it('finds a bound that is one off', () => {
+    const result = check(
+      'total = 0\nfor i in range(1, 3):\n    total += i\nprint(total)\n'
     );
+    expect(result.equivalent).toBe(false);
+    expect(result.differences).toEqual([
+      { line: 6, source: 'number 4', target: 'number 3' },
+    ]);
   });
 
-  it('reports the first difference in meaning with its path', () => {
-    expect(
-      checkEquivalence(translator, {
-        source: sum,
-        from: 'javascript',
-        to: 'python',
-        target: changed,
-      })
-    ).toEqual({
-      equivalent: false,
-      difference: '/main/statements/0/value/right/value: 3 != 4',
-      target: changed,
-    });
-  });
-
-  it('compares two meta programs read from different languages', () => {
-    const javascript = translator.toMeta(sum, 'javascript');
-    expect(
-      compareMeta(javascript, translator.toMeta(commented, 'python'))
-    ).toBe(undefined);
-    expect(compareMeta(javascript, translator.toMeta(changed, 'python'))).toBe(
-      '/main/statements/0/value/right/value: 3 != 4'
+  it('finds another operator', () => {
+    const result = check(
+      'total = 0\nfor i in range(1, 4):\n    total = total * i\nprint(total)\n'
     );
+    expect(result.differences.map((it) => [it.source, it.target])).toEqual([
+      ['binary add', 'binary multiply'],
+    ]);
+  });
+
+  it('keeps what a program does in the meta program', () => {
+    const program = translator.toMeta(
+      '// note\nlet x: number = 1;\n\nconsole.log(x);\n',
+      'typescript'
+    );
+    const effect = JSON.stringify(effectOf(program));
+    for (const left of [
+      'note',
+      '"type"',
+      '"mutable"',
+      '"Blank"',
+      '"comments"',
+    ]) {
+      expect(effect.includes(left)).toBe(false);
+    }
+    expect(effect).toContain('"Declaration"');
   });
 });
 
-describe('the check-equivalence command', () => {
-  const files = { 'sum.js': sum, 'sum.py': commented, 'changed.py': changed };
-
-  it('reports equivalent programs', () => {
-    expect(
-      cli(
-        ['check-equivalence', 'javascript', 'python', 'sum.js', 'sum.py'],
-        files
-      )
-    ).toEqual({
-      status: 0,
-      output: 'The javascript and python programs are equivalent\n',
-      errors: '',
+describe('Equivalence of the example programs', () => {
+  const directory = new URL('../../examples/programs/', import.meta.url);
+  const programs = readdirSync(directory).filter((file) =>
+    file.endsWith('.js')
+  );
+  for (const to of [
+    'python',
+    'rust',
+    'c',
+    'java',
+    'go',
+    'ruby',
+    'haskell',
+    'nasm',
+    'wat',
+  ].filter((id) =>
+    translator.languages().some((language) => language.id === id)
+  )) {
+    it(`holds from JavaScript to ${to}`, () => {
+      for (const file of programs) {
+        const source = readFileSync(new URL(file, directory), 'utf8');
+        const result = checkEquivalence(translator, {
+          source,
+          from: 'javascript',
+          to,
+        });
+        expect([file, result.differences]).toEqual([file, []]);
+      }
     });
-  });
+  }
+});
 
-  it('checks the translation when no target is given', () => {
-    expect(
-      cli(['check-equivalence', 'javascript', 'go', 'sum.js'], files).status
-    ).toBe(0);
-  });
-
-  it('fails with the first difference', () => {
-    expect(
-      cli(
-        ['check-equivalence', 'javascript', 'python', 'sum.js', 'changed.py'],
-        files
-      )
-    ).toEqual({
-      status: 1,
-      output: '',
-      errors:
-        'The javascript and python programs are not equivalent: /main/statements/0/value/right/value: 3 != 4',
+// JavaScript -> Rust -> JavaScript: the Rosetta tasks keep what they do,
+// and writing the read-back JavaScript in Rust again gives the same Rust.
+describe('Equivalence of the committed translations', () => {
+  const directory = new URL('../../examples/programs/', import.meta.url);
+  for (const task of ['factorial', 'greatest-common-divisor']) {
+    it(`holds for every committed translation of ${task}`, () => {
+      const source = readFileSync(new URL(`${task}.js`, directory), 'utf8');
+      for (const [to, extension] of Object.entries(extensions)) {
+        const file = `translated/${task}/${task}${extension}`;
+        const result = checkEquivalence(translator, {
+          source,
+          from: 'javascript',
+          to,
+          translation: readFileSync(new URL(file, directory), 'utf8'),
+        });
+        expect([to, result.differences]).toEqual([to, []]);
+      }
     });
+  }
+});
+
+describe('Round trip of the example programs through Rust', () => {
+  const directory = new URL('../../examples/programs/', import.meta.url);
+  for (const file of readdirSync(directory).filter((name) =>
+    name.endsWith('.js')
+  )) {
+    it(`keeps ${file}`, () => {
+      const source = readFileSync(new URL(file, directory), 'utf8');
+      const rust = translate(source, 'javascript', 'rust');
+      const back = translate(rust, 'rust', 'javascript');
+      const result = checkEquivalence(translator, {
+        source,
+        from: 'javascript',
+        to: 'javascript',
+        translation: back,
+      });
+      expect(result.differences).toEqual([]);
+      expect(translate(back, 'javascript', 'rust')).toBe(rust);
+    });
+  }
+});
+
+describe('check-equivalence command', () => {
+  const run = (args, files) => {
+    const out = [];
+    const errors = [];
+    const code = runCli(['check-equivalence', ...args], {
+      read: (file) => files[file],
+      write: (text) => out.push(text),
+      stderr: (text) => errors.push(text),
+    });
+    return { code, out: out.join(''), errors };
+  };
+
+  it('reports an equivalent translation', () => {
+    const { code, out } = run(['javascript', 'python', 'sum.js'], {
+      'sum.js': SUM,
+    });
+    expect(code).toBe(0);
+    expect(out).toBe('equivalent: true\nmetaLines: 12\n');
   });
 
-  it('needs the two languages and a source', () => {
-    expect(
-      cli(['check-equivalence', 'javascript', 'python'], files).status
-    ).toBe(1);
+  it('fails on a translation that differs', () => {
+    const { code, out, errors } = run(
+      ['javascript', 'python', 'sum.js', 'sum.py'],
+      {
+        'sum.js': SUM,
+        'sum.py':
+          'total = 0\nfor i in range(1, 3):\n    total += i\nprint(total)\n',
+      }
+    );
+    expect(code).toBe(1);
+    expect(out).toBe(
+      "equivalent: false\nmetaLines: 12\ndifferences:\n  (line 6) (source 'number 4') (target 'number 3')\n"
+    );
+    expect(errors).toEqual([
+      'The python translation does not do what the javascript source does',
+    ]);
   });
 });

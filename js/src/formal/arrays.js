@@ -4,6 +4,7 @@
 // languages without a filled array constructor write instead.
 
 import { languageSyntax } from './languages.js';
+import { freshName, usedNames } from '../meta/for-each.js';
 import {
   block,
   essence,
@@ -98,13 +99,19 @@ const constructors = {
           fill: expression.arguments[1],
         })
       : undefined,
-  php: (expression) =>
-    call(expression, 'array_fill', 3) && isNumber(expression.arguments[0], 0)
+  php(expression) {
+    // PHP 5 writes the literal [1, 2] as array(1, 2).
+    if (call(expression, 'array')) {
+      return node('ArrayLiteral', { elements: expression.arguments });
+    }
+    return call(expression, 'array_fill', 3) &&
+      isNumber(expression.arguments[0], 0)
       ? node('NewArray', {
           length: expression.arguments[1],
           fill: expression.arguments[2],
         })
-      : undefined,
+      : undefined;
+  },
   go: (expression) =>
     call(expression, 'make', 2) && expression.arguments[0].kind === 'ArrayType'
       ? node('NewArray', { length: expression.arguments[1], fill: number(0) })
@@ -183,10 +190,25 @@ const constructors = {
       : undefined,
 };
 constructors.typescript = constructors.javascript;
+// GameMaker Language: array_create(n, fill).
+constructors.gml = (expression) =>
+  call(expression, 'array_create', 2)
+    ? node('NewArray', {
+        length: expression.arguments[0],
+        fill: expression.arguments[1],
+      })
+    : undefined;
 constructors.groovy = constructors.python;
 
 // Calls that return the length of the array they are given.
-const lengthCalls = new Set(['len', 'length', 'count', 'numel', 'scalar']);
+const lengthCalls = new Set([
+  'len',
+  'length',
+  'count',
+  'numel',
+  'scalar',
+  'array_length',
+]);
 // Properties and methods that return the length of their receiver.
 const lengthMembers = new Set(['length', 'Length', 'size', 'count', 'len']);
 
@@ -281,8 +303,10 @@ export function recognizeArrays(program, { from } = {}) {
     return program;
   }
   const syntax = languageSyntax(from);
-  // A version of a language (python@2) builds arrays like the language.
-  const construct = constructors[syntax.family ?? syntax.id];
+  // A version of a language (python@2) builds arrays like the language,
+  // unless it has constructors of its own (GameMaker Language).
+  const construct =
+    constructors[syntax.id] ?? constructors[syntax.family ?? syntax.id];
   const constructed = construct
     ? rewrite(program, (current) => construct(current) ?? current)
     : program;
@@ -390,25 +414,6 @@ export function raiseArrayFills(program) {
   });
 }
 
-// A name for the fill loop's variable that the function does not use.
-function freshName(body, parameters = []) {
-  const used = new Set(parameters.map((parameter) => parameter.name));
-  walk(body, (current) => {
-    for (const key of ['name', 'variable']) {
-      if (typeof current[key] === 'string') {
-        used.add(current[key]);
-      }
-    }
-  });
-  const candidates = ['index', 'position', 'slot', 'place'];
-  return (
-    candidates.find((candidate) => !used.has(candidate)) ??
-    [2, 3, 4, 5, 6, 7, 8, 9]
-      .map((count) => `index-${count}`)
-      .find((candidate) => !used.has(candidate))
-  );
-}
-
 const callFree = (expression) => {
   let free = true;
   walk(expression, (current) => {
@@ -424,8 +429,8 @@ const callFree = (expression) => {
 // and fill it with a counting loop. "always": the new array holds no
 // values yet (C's variable-length arrays); "nonzero": it starts with
 // zeros; "empty": the array is empty and grows as the loop fills it.
-export function expandArrayFills(program, { to }) {
-  const style = languageSyntax(to).arrayFill;
+export function expandArrayFills(program, { to, target = to }) {
+  const style = languageSyntax(target).arrayFill;
   if (!style) {
     return program;
   }
@@ -443,7 +448,7 @@ export function expandArrayFills(program, { to }) {
         ) {
           return [statement];
         }
-        variable ??= freshName(body, parameters);
+        variable ??= freshName(usedNames(body, parameters));
         const empty = style === 'empty';
         const declaration = {
           ...statement,

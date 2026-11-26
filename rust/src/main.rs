@@ -8,16 +8,16 @@ use universal_translator::natural::check_text;
 use universal_translator::server::{serve, serve_configuration};
 use universal_translator::translator::{Translator, languages, natural_languages};
 use universal_translator::{
-    CustomRules, Detection, Mode, Options, PartialReading, SourceDocument, check_equivalence,
-    nest_grammars, translate_program,
+    CustomRules, Detection, Equivalence, Mode, Options, PartialReading, SourceDocument,
+    check_equivalence, nest_grammars, translate_program,
 };
 
 const USAGE: &str = "Usage:
-  universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment] [--all-or-nothing] [--rules <file.lino>] [--comment-language <natural>] [--comment-from <natural>] [--identifier-language <natural>] [--identifier-from <natural>] [--layout source|target] [--braces same-line|next-line] [--indent <n|tab>]
+  universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment] [--all-or-nothing] [--rules <file.lino>] [--comment-language <natural>] [--comment-from <natural>] [--identifier-language <natural>] [--identifier-from <natural>] [--layout source|target] [--braces same-line|next-line] [--indent <n|tab>] [--candidates]
   universal-translator meta <language> [file|-] [--json] [--shallow]
+  universal-translator check-equivalence <from> <to> [file|-] [translation] [--json]
   universal-translator coverage <language> [file|-] [--json]
   universal-translator detect [file|-] [--json]
-  universal-translator check-equivalence <from> <to> <source|-> [target]
   universal-translator translate-program <from|cst> <to> [file|-]
   universal-translator encode-source <language> [file|-]
   universal-translator decode-source [file|-]
@@ -54,17 +54,20 @@ of the target.
 --braces same-line|next-line puts the brace that opens a block on the line
 of its statement or on a line of its own; --indent <n|tab> indents each
 block by n spaces or by a tab.
+--candidates prints the candidate translations, the most probable first:
+(text ...) (probability p) (frequency f) (roundTrip r) (coverage c)
 <to> may name a version: python@2.
 meta prints the meta program as indented Links Notation; --json prints JSON.
 It reads comments and strings with the grammars they are written in
 (prose, quoted code); --shallow leaves them as plain text.
+check-equivalence checks that a translation does what its source does:
+both read into the same meta program when comments, imports, blank
+lines, types and mutability are left out. The translation is written by
+the translator unless a file is given; the exit code is 1 when they
+differ.
 coverage prints which parts of a text can be read as indented Links
 Notation; detect prints the most likely languages of a text, one per
 line. --json prints either as JSON.
-check-equivalence reads both programs into the meta language and compares
-their meaning (comments, layout, imports and types an untyped language
-cannot spell are left out); without a target it checks the translation of
-the source. It fails with the first difference when they differ.
 serve answers GET /languages and POST /translate as JSON, like the
 JavaScript server. PORT, HOST or a .lenv file set the defaults (8080,
 0.0.0.0); --port 0 picks a free port.
@@ -251,6 +254,58 @@ fn coverage_report(reading: &PartialReading, json: bool) -> String {
     .report(json)
 }
 
+/// What `check-equivalence` prints.
+fn equivalence_report(result: &Equivalence, json: bool) -> String {
+    let differences = result
+        .differences
+        .iter()
+        .map(|difference| {
+            Json::Object(vec![
+                ("line", count(difference.line)),
+                ("source", Json::Text(difference.source.clone())),
+                ("target", Json::Text(difference.target.clone())),
+            ])
+        })
+        .collect();
+    Json::Object(vec![
+        ("equivalent", Json::Bool(result.equivalent)),
+        ("metaLines", count(result.meta_lines)),
+        ("differences", Json::List(differences)),
+    ])
+    .report(json)
+}
+
+/// `check-equivalence <from> <to> [file|-] [translation] [--json]`: the
+/// report, and an error after it when the two differ.
+fn check_equivalence_command(arguments: &[&str]) -> (String, Option<String>) {
+    let json = arguments.contains(&"--json");
+    let arguments = without(arguments, "--json");
+    let [from, to, files @ ..] = arguments.as_slice() else {
+        return (String::new(), Some(USAGE.into()));
+    };
+    if files.len() > 2 {
+        return (String::new(), Some(USAGE.into()));
+    }
+    let checked = source(files.first().copied()).and_then(|text| {
+        let translation = files.get(1).map(|file| source(Some(file))).transpose()?;
+        check_equivalence(
+            &Translator::new(),
+            (&text, from),
+            (translation.as_deref(), to),
+            Options::default(),
+        )
+        .map_err(|error| error.to_string())
+    });
+    match checked {
+        Ok(result) => {
+            let failure = (!result.equivalent)
+                .then(|| format!("The {to} translation does not do what the {from} source does"));
+            (equivalence_report(&result, json), failure)
+        }
+        Err(error) => (String::new(), Some(error)),
+    }
+}
+
 /// What `detect` prints: the likeliest languages first.
 fn detection_report(detections: &[Detection], json: bool) -> String {
     Json::List(
@@ -270,6 +325,35 @@ fn detection_report(detections: &[Detection], json: bool) -> String {
     .report(json)
 }
 
+/// What `translate --candidates` prints: one candidate per line, the most
+/// probable first.
+fn candidates_report(
+    translator: &Translator,
+    (source, from, to): (&str, &str, &str),
+    options: Options,
+    whole: bool,
+) -> Result<String, String> {
+    if whole {
+        return Err("--candidates takes no --all-or-nothing or --fragment".to_owned());
+    }
+    Ok(translator
+        .translate_candidates(source, from, to, options)
+        .map_err(|error| error.to_string())?
+        .into_iter()
+        .map(|candidate| {
+            Json::Object(vec![
+                ("text", Json::Text(candidate.text)),
+                ("probability", Json::Number(candidate.probability)),
+                ("frequency", Json::Number(candidate.frequency)),
+                ("roundTrip", Json::Number(candidate.round_trip)),
+                ("coverage", Json::Number(candidate.coverage)),
+            ])
+            .lino_links()
+                + "\n"
+        })
+        .collect())
+}
+
 fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String> {
     let mut file = None;
     let mut mode = None;
@@ -277,6 +361,7 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
     let mut common_library = false;
     let mut fragment = false;
     let mut all_or_nothing = false;
+    let mut candidates = false;
     let mut rules = None;
     let mut comment_language = None;
     let mut comment_from = None;
@@ -302,6 +387,7 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
             "--common-library" => common_library = true,
             "--fragment" => fragment = true,
             "--all-or-nothing" => all_or_nothing = true,
+            "--candidates" => candidates = true,
             "--rules" => {
                 let value = arguments
                     .next()
@@ -389,6 +475,14 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
     } else {
         from.to_owned()
     };
+    if candidates {
+        return candidates_report(
+            &translator,
+            (&source, &language, to),
+            options,
+            fragment || all_or_nothing,
+        );
+    }
     // --fragment translates a single statement, function definitions or a
     // whole program into the same kind of fragment. By default every part
     // that can be translated is, and the others are marked and listed on
@@ -506,26 +600,6 @@ fn run(arguments: &[String]) -> Result<String, String> {
             &Translator::new().detect_language(&source(report_file(trailing).flatten())?, 5),
             trailing.contains(&"--json"),
         )),
-        ["check-equivalence", from, to, file, trailing @ ..] if trailing.len() <= 1 => {
-            let target = trailing
-                .first()
-                .map(|path| source(Some(*path)))
-                .transpose()?;
-            let checked = check_equivalence(
-                &Translator::new(),
-                &source(Some(file))?,
-                from,
-                to,
-                target.as_deref(),
-            )
-            .map_err(|error| error.to_string())?;
-            match checked.difference {
-                None => Ok(format!("The {from} and {to} programs are equivalent\n")),
-                Some(difference) => Err(format!(
-                    "The {from} and {to} programs are not equivalent: {difference}"
-                )),
-            }
-        }
         ["encode-source", language, trailing @ ..] if trailing.len() <= 1 => {
             let document = SourceDocument {
                 language: (*language).to_owned(),
@@ -565,6 +639,23 @@ fn run(arguments: &[String]) -> Result<String, String> {
 }
 
 fn main() -> std::process::ExitCode {
+    let arguments: Vec<String> = std::env::args().skip(1).collect();
+    if arguments.first().map(String::as_str) == Some("check-equivalence") {
+        let arguments: Vec<&str> = arguments[1..].iter().map(String::as_str).collect();
+        let (output, failure) = check_equivalence_command(&arguments);
+        let written = io::stdout().write_all(output.as_bytes());
+        return match (failure, written) {
+            (None, Ok(())) => std::process::ExitCode::SUCCESS,
+            (Some(error), _) => {
+                eprintln!("{error}");
+                std::process::ExitCode::FAILURE
+            }
+            (None, Err(error)) => {
+                eprintln!("{error}");
+                std::process::ExitCode::FAILURE
+            }
+        };
+    }
     match run(&std::env::args().skip(1).collect::<Vec<_>>()).and_then(|output| {
         io::stdout()
             .write_all(output.as_bytes())

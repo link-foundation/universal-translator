@@ -687,9 +687,11 @@ const expressionEmitter = (Base) =>
 
     binary(expression, parent) {
       const { operator, left, right } = expression;
-      if (operator === 'divide' || operator === 'remainder') {
+      // Rocq programs compute with integers only, so true division
+      // truncates too.
+      if (['divide', 'realDivide', 'remainder'].includes(operator)) {
         return this.application(
-          operator === 'divide' ? 'Z.quot' : 'Z.rem',
+          operator === 'remainder' ? 'Z.rem' : 'Z.quot',
           [left, right],
           parent
         );

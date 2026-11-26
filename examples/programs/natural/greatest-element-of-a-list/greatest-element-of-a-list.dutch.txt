@@ -1,0 +1,9 @@
+Opmerking: Greatest element of a list in JavaScript
+
+Maak getallen met waarde de lijst (17, 4, 93, 28, 65, 3, 80).
+Maak grootste met waarde element 0 van getallen.
+Voor elke index van 0 tot en met de lengte van getallen min 1, herhaal dit:
+  Maak getal met waarde element index van getallen.
+  Als getal is groter dan grootste, doe dit:
+    Verander grootste in getal.
+Schrijf “The greatest element is ” gevolgd door grootste en beëindig de regel.

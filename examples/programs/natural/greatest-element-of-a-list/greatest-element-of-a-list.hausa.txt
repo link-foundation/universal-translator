@@ -1,0 +1,9 @@
+Lura: Greatest element of a list in JavaScript
+
+Ƙirƙiri adadai mai ƙima jeri (17, 4, 93, 28, 65, 3, 80).
+Ƙirƙiri babba mai ƙima abu 0 a cikin adadai.
+Ga kowane fihirisa daga 0 zuwa tsawon adadai ragi 1, maimaita wannan:
+  Ƙirƙiri lamba mai ƙima abu fihirisa a cikin adadai.
+  Idan lamba ya wuce babba, yi wannan:
+    Canza babba zuwa lamba.
+Rubuta “The greatest element is ” sannan babba kuma ka gama layi.

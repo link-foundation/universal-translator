@@ -17,7 +17,10 @@ const MODIFIERS: [&str; 4] = ["private", "public", "shared", "friend"];
 /// The operators Visual Basic binds at different levels: * and / above \,
 /// and \ above Mod.
 fn multiplicative(operator: Option<&str>) -> bool {
-    matches!(operator, Some("multiply" | "divide" | "remainder"))
+    matches!(
+        operator,
+        Some("multiply" | "divide" | "realDivide" | "remainder")
+    )
 }
 
 // ---- reading ----
@@ -340,8 +343,8 @@ impl EmitterDialect for VisualBasic {
         let name = statement.str("name").unwrap_or_default();
         let kind = statement.str("type").unwrap_or("integer");
         let initial = match statement.node("value") {
-            Some(value) => e.expression(value)?,
-            None => e.expression(&default_value(kind))?,
+            Some(value) => e.initial_value(value, kind)?,
+            None => e.initial_value(&default_value(kind), kind)?,
         };
         let written = e.type_name(kind);
         Ok(format!("Dim {name} As {written} = {initial}"))

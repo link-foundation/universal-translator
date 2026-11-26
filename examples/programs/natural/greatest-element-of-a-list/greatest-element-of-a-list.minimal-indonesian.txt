@@ -1,0 +1,9 @@
+Catatan: Greatest element of a list in JavaScript
+
+Ada angka, yaitu semua hal ini (17, 4, 93, 28, 65, 3, 80).
+Ada terbesar, yaitu bagian 0 dari angka.
+Untuk semua indeks dari 0 sampai berapa banyak bagian di dalam angka dikurangi 1, lakukan ini:
+  Ada bilangan, yaitu bagian indeks dari angka.
+  Jika bilangan lebih banyak dari terbesar, lakukan ini:
+    Setelah ini, terbesar adalah bilangan.
+Katakan “The greatest element is ” lalu terbesar pada satu baris.

@@ -192,6 +192,14 @@ const SIGNATURES: &[(&str, &[&str])] = &[
         &[r"\bFixpoint\b", r"\bDefinition\b", r"\bCompute\b"],
     ),
     (
+        "gml",
+        &[
+            r"\bshow_debug_message\s*\(",
+            r"\barray_create\s*\(",
+            r"\barray_length\s*\(",
+        ],
+    ),
+    (
         "nasm",
         &[
             r"(?m)^\s*section\s+\.text",

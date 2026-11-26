@@ -1,0 +1,12 @@
+Nota: Linear search in JavaScript: find the position of a value in a list
+
+Há números, é estas coisas (31, 41, 59, 26, 53, 58, 97, 93).
+Há wanted, é 53.
+Há posição, é -1.
+Há atual, é 0.
+Para todos os índice de 0 até quantas partes há em números menos 1, fazer isto:
+  Há número, é a parte índice de números.
+  Se número é o mesmo que wanted e posição é menos que 0, fazer isto:
+    Depois disto, posição é atual.
+  Depois disto, atual é atual mais 1.
+Dizer “Found ” depois wanted depois “ at position ” depois posição em uma linha.

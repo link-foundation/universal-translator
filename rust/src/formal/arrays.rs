@@ -7,6 +7,7 @@ use std::collections::HashSet;
 
 use super::languages::{ArrayFill, Syntax, language_syntax};
 use crate::meta::Settings;
+use crate::meta::for_each::{fresh_name, used_names};
 use crate::meta::{Node, block, essence, name, number, rewrite, walk};
 
 /// `index + delta` with the constants folded, so that adding 1 for a
@@ -61,7 +62,7 @@ fn same_expression(left: &Node, right: &Node) -> bool {
     essence(left) == essence(right)
 }
 
-fn mentions(tree: &Node, identifier: &str) -> bool {
+pub fn mentions(tree: &Node, identifier: &str) -> bool {
     let mut found = false;
     walk(tree, |current| {
         if current.is_name(identifier) {
@@ -125,6 +126,10 @@ fn construct(language: &str, expression: &Node) -> Option<Node> {
                 .flatten()
         }
         "ruby" => filled("Array.new", 0, 1),
+        // PHP 5 writes the literal [1, 2] as array(1, 2).
+        "php" if call(expression, "array", None) => {
+            Some(array_literal(expression.node_list("arguments")))
+        }
         "php" => (call(expression, "array_fill", Some(3)) && arguments[0].is_number(0.0))
             .then(|| new_array(argument(expression, 1), argument(expression, 2))),
         "go" => (call(expression, "make", Some(2)) && arguments[0].is("ArrayType"))
@@ -162,12 +167,14 @@ fn construct(language: &str, expression: &Node) -> Option<Node> {
         }
         "matlab" => (call(expression, "repmat", Some(3)) && arguments[1].is_number(1.0))
             .then(|| new_array(argument(expression, 2), argument(expression, 0))),
+        // GameMaker Language: array_create(n, fill).
+        "gml" => filled("array_create", 0, 1),
         _ => None,
     }
 }
 
 /// Calls that return the length of the array they are given.
-const LENGTH_CALLS: [&str; 5] = ["len", "length", "count", "numel", "scalar"];
+const LENGTH_CALLS: [&str; 6] = ["len", "length", "count", "numel", "scalar", "array_length"];
 /// Properties and methods that return the length of their receiver.
 const LENGTH_MEMBERS: [&str; 5] = ["length", "Length", "size", "count", "len"];
 
@@ -258,7 +265,13 @@ pub fn recognize_arrays(program: Node, settings: &Settings) -> Node {
     let Ok(syntax) = language_syntax(&settings.from) else {
         return program;
     };
-    let language = syntax.family.unwrap_or(syntax.id);
+    // A version of a language (python@2) builds arrays like the language,
+    // unless it has constructors of its own (GameMaker Language).
+    let language = if syntax.id == "gml" {
+        syntax.id
+    } else {
+        syntax.family.unwrap_or(syntax.id)
+    };
     let functions: HashSet<String> = program
         .nodes("functions")
         .iter()
@@ -376,25 +389,6 @@ pub fn raise_array_fills(program: Node) -> Node {
     })
 }
 
-/// A name for the fill loop's variable that the function does not use.
-fn fresh_name(body: &Node, parameters: &[&Node]) -> String {
-    let mut used: HashSet<String> = parameters
-        .iter()
-        .filter_map(|parameter| parameter.str("name").map(str::to_owned))
-        .collect();
-    walk(body, |current| {
-        for key in ["name", "variable"] {
-            used.extend(current.str(key).map(str::to_owned));
-        }
-    });
-    ["index", "position", "slot", "place"]
-        .into_iter()
-        .map(str::to_owned)
-        .chain((2..=9).map(|count| format!("index-{count}")))
-        .find(|candidate| !used.contains(candidate))
-        .unwrap_or_else(|| "index-10".into())
-}
-
 fn call_free(expression: &Node) -> bool {
     let mut free = true;
     walk(expression, |current| {
@@ -409,7 +403,7 @@ fn call_free(expression: &Node) -> bool {
 /// Bash and others, as `array_fill` in languages.rs says) create the array
 /// and fill it with a counting loop.
 pub fn expand_array_fills(mut program: Node, settings: &Settings) -> Node {
-    let Some(style) = language_syntax(&settings.to)
+    let Some(style) = language_syntax(&settings.target)
         .ok()
         .and_then(|syntax| syntax.array_fill)
     else {
@@ -437,7 +431,7 @@ pub fn expand_array_fills(mut program: Node, settings: &Settings) -> Node {
                     continue;
                 };
                 let variable = variable
-                    .get_or_insert_with(|| fresh_name(&original, parameters))
+                    .get_or_insert_with(|| fresh_name(&used_names(&original, parameters)))
                     .clone();
                 let empty = style == ArrayFill::Empty;
                 let length = created

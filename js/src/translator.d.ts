@@ -58,16 +58,44 @@ export interface TranslationRules {
   output?: TextRule[];
 }
 
-export interface GrammarTranslatorOptions {
-  parse?: (source: string, syntax: Record<string, unknown>) => unknown;
+/** The replaceable stages of the pipeline, each a function. */
+export interface Stages {
+  parse: (source: string, syntax: Record<string, unknown>) => unknown;
+  infer: (meta: unknown) => unknown;
+  lift: (machine: unknown) => unknown;
+  readMachine: (source: string, from: string) => unknown;
+  readNatural: (
+    source: string,
+    from: string,
+    language?: Record<string, unknown>
+  ) => unknown;
+  emit: (meta: unknown, to: string) => string;
+  emitMachineCode: (meta: unknown, to: string) => string;
+  writeNatural: (meta: unknown, to: string) => string;
+}
+
+export type StageName = keyof Stages;
+
+/** A decorator receives the inner implementation of a stage and returns the
+ * wrapped one. */
+export type Decorator<Stage extends StageName> = (
+  inner: Stages[Stage]
+) => Stages[Stage];
+
+/** Decorators by stage: one decorator or a list. A list is composed in
+ * order: the first is innermost and the last sees the input first and the
+ * output last. */
+export type Decorators = {
+  [Stage in StageName]?: Decorator<Stage> | Decorator<Stage>[];
+};
+
+export interface GrammarTranslatorOptions extends Partial<Stages> {
   understanding?: Rule[];
-  infer?: (meta: unknown) => unknown;
   meaning?: Rule[];
   context?: Rule[];
   layers?: Rule[][];
-  emit?: (meta: unknown, to: string) => string;
-  emitMachineCode?: (meta: unknown, to: string) => string;
-  lift?: (machine: unknown) => unknown;
+  /** Wrappers around the stages (also replaced ones). */
+  decorate?: Decorators;
   trace?: (stage: string, tree: unknown) => void;
   /** Rules as indented Links Notation text (see readRules) or an object. */
   rules?: TranslationRules | string;
@@ -100,6 +128,14 @@ export interface GrammarTranslator {
   toMeta(source: string, from: string): unknown;
   /** The same translator with other data rules. */
   withRules(rules: TranslationRules | string): GrammarTranslator;
+  /** The same translator with a decorator around one stage; it wraps the
+   * decorators the translator already has. */
+  decorate<Stage extends StageName>(
+    stage: Stage,
+    decorator: Decorator<Stage>
+  ): GrammarTranslator;
+  /** The same translator with decorators around several stages. */
+  decorate(decorators: Decorators): GrammarTranslator;
   fromMeta(
     meta: unknown,
     to: string,
@@ -121,6 +157,27 @@ export interface GrammarTranslator {
     to: string,
     options?: TranslationOptions
   ): string;
+  /** The candidate translations of a text, the most probable first (the
+   * first is the default translation). */
+  translateCandidates(
+    source: string,
+    from: string,
+    to: string,
+    options?: TranslationOptions
+  ): TranslationCandidate[];
+}
+
+/** A candidate translation and its scores, truth values in [0, 1]:
+ * probability = frequency x roundTrip x coverage. */
+export interface TranslationCandidate {
+  text: string;
+  probability: number;
+  /** How often the readings chosen in its prose are meant. */
+  frequency: number;
+  /** How much of the meanings of its prose a reader reads back. */
+  roundTrip: number;
+  /** The share of the lines translated. */
+  coverage: number;
 }
 
 export declare function createGrammarTranslator(
@@ -142,3 +199,10 @@ export declare function translateFragment(
   to: string,
   options?: TranslationOptions
 ): string;
+
+export declare function translateCandidates(
+  source: string,
+  from: string,
+  to: string,
+  options?: TranslationOptions
+): TranslationCandidate[];

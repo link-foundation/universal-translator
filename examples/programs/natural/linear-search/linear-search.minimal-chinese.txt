@@ -1,0 +1,12 @@
+注：Linear search in JavaScript: find the position of a value in a list
+
+有 数列 它 是 这些 东西 (31， 41， 59， 26， 53， 58， 97， 93)。
+有 wanted 它 是 53。
+有 位置 它 是 -1。
+有 当前 它 是 0。
+对 所有 索引 从 0 到 数列 有 多少 部分 减 1 做 这个：
+  有 数 它 是 数列 的 第 索引 部分。
+  如果 数 跟 wanted 一样 并且 位置 比 0 少 就 做 这个：
+    这 以后 位置 是 当前。
+  这 以后 当前 是 当前 加 1。
+说 “Found ” 然后 wanted 然后 “ at position ” 然后 位置 在 一 行 上。

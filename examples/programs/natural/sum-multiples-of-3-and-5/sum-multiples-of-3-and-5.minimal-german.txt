@@ -1,0 +1,7 @@
+Hinweis: Sum multiples of 3 and 5 in JavaScript: the sum of the multiples below 1000
+
+Es gibt Gesamt, es ist 0.
+Für alle Zahl von 1 bis 999, tue dies:
+  Wenn Zahl modulo 3 ist dasselbe wie 0 oder Zahl modulo 5 ist dasselbe wie 0, tue dies:
+    Danach ist Gesamt jetzt Gesamt plus Zahl.
+Sage Gesamt auf einer Zeile.

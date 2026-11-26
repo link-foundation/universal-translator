@@ -10,11 +10,13 @@ use std::sync::Arc;
 
 use super::arrays::{expand_array_fills, raise_array_fills, recognize_arrays};
 use super::common_library::{recognize_common_library, spell_common_library};
+use super::for_each::{expand_for_each, raise_for_each};
 use super::languages::{Blocks, ImmutableParameters, IntegerDivision, Syntax, language_syntax};
 use super::lifting::counting_loops;
 use super::names::{
     ascii_name, avoid_reserved, name_words, neutral_name, rename_declared, spell_name,
 };
+use super::numbers::slash_operator;
 use super::versions::{split_version, versions_of, with_version};
 use crate::meta::truth::raise_truth_functions;
 use crate::meta::{Mode, Rule, Settings};
@@ -40,8 +42,9 @@ pub fn understanding_rules() -> Vec<Rule> {
         rule("recognizePrint", recognize_print),
         rule("dropTextConversions", drop_text_conversions),
         rule("dropEmptyStatements", drop_empty_statements),
-        rule("expandCompoundAssignment", |program, _| {
-            expand_compound_assignment(program)
+        rule("expandCompoundAssignment", |program, settings| {
+            let syntax = language_syntax(&settings.from).ok();
+            expand_compound_assignment(program, syntax.as_ref())
         }),
         rule("dropParameterCopies", |program, _| {
             drop_parameter_copies(program)
@@ -53,6 +56,7 @@ pub fn understanding_rules() -> Vec<Rule> {
             raise_counting_loops(program)
         }),
         rule("raiseArrayFills", |program, _| raise_array_fills(program)),
+        rule("raiseForEach", |program, _| raise_for_each(program)),
         rule("raiseTruthValues", raise_truth_values),
         rule("inferMutability", |program, _| infer_mutability(program)),
         rule("dropSourceDetails", |program, _| {
@@ -75,6 +79,7 @@ pub fn context_rules() -> Vec<Rule> {
         rule("adaptComments", adapt_comments),
         rule("copyReassignedParameters", copy_reassigned_parameters),
         rule("expandArrayFills", expand_array_fills),
+        rule("expandForEach", expand_for_each),
         rule("spellNames", spell_names),
         rule("spellCommonLibrary", spell_common_library),
     ]
@@ -346,7 +351,18 @@ fn placeholder_length(format: &[char], index: usize, style: FormatStyle) -> Opti
             if length == 1 && matches!(at(1), Some('i' | 's' | 'c' | 'v' | 't' | '%')) {
                 return Some(2);
             }
-            None
+            // A real: %f, %g, %e, %G, with a precision such as %.2f.
+            let mut length = 1;
+            if at(1) == Some('.') && at(2).is_some_and(|c| c.is_ascii_digit()) {
+                length = 2;
+                while at(length).is_some_and(|c| c.is_ascii_digit()) {
+                    length += 1;
+                }
+            }
+            if at(length) == Some('l') {
+                length += 1;
+            }
+            matches!(at(length), Some('f' | 'g' | 'e' | 'G')).then_some(length + 1)
         }
         FormatStyle::Braces => match (at(0), at(1)) {
             (Some('{'), Some('{' | '}')) | (Some('}'), Some('}')) => Some(2),
@@ -739,6 +755,14 @@ impl Declarer {
                 self.visit_field(&mut statement, "body");
                 return statement;
             }
+            "ForEach" => {
+                self.read_field(&statement, "array");
+                if let Some(variable) = statement.str("variable") {
+                    self.scope.insert(variable.to_owned());
+                }
+                self.visit_field(&mut statement, "body");
+                return statement;
+            }
             _ => {}
         }
         // The value is read before the variable is assigned.
@@ -750,8 +774,10 @@ impl Declarer {
             && !self.read.contains(&name)
         {
             self.scope.insert(name.clone());
+            // A Python hint (`total: int = 0`) gives the declared type.
             return Node::new("Declaration")
                 .with("name", name)
+                .with_opt("type", statement.str("type"))
                 .with_opt("value", statement.node("value").cloned())
                 .with("mutable", true);
         }
@@ -815,12 +841,12 @@ pub fn drop_source_details(program: Node) -> Node {
     })
 }
 
-fn compound_meaning(operator: &str) -> Option<&'static str> {
+fn compound_meaning(operator: &str, from: Option<&Syntax>) -> Option<&'static str> {
     match operator {
         "+=" => Some("add"),
         "-=" => Some("subtract"),
         "*=" => Some("multiply"),
-        "/=" => Some("divide"),
+        "/=" => Some(from.map_or("divide", slash_operator)),
         "%=" => Some("remainder"),
         _ => None,
     }
@@ -828,12 +854,16 @@ fn compound_meaning(operator: &str) -> Option<&'static str> {
 
 /// `x += v` means `x = x + v`; the meta language keeps only the plain form.
 /// Operators without a meaning (the parser produces none) stay as written.
-pub fn expand_compound_assignment(program: Node) -> Node {
+/// `/=` divides like the `/` of the source language.
+pub fn expand_compound_assignment(program: Node, from: Option<&Syntax>) -> Node {
     rewrite(program, |current| {
         if !current.is("Assignment") {
             return current;
         }
-        let Some(operator) = current.str("operator").and_then(compound_meaning) else {
+        let meaning = current
+            .str("operator")
+            .and_then(|operator| compound_meaning(operator, from));
+        let Some(operator) = meaning else {
             return current;
         };
         let name = current.str("name").unwrap_or_default().to_owned();
@@ -888,8 +918,10 @@ pub fn concatenation_operator(program: Node, settings: &Settings) -> Node {
 /// JavaScript writes `Math.trunc(a / b)`, Perl `int(a / b)`, PHP
 /// `intdiv(a, b)`, Julia `div(a, b)` and Groovy `a.intdiv(b)`. Each means
 /// the meta operator "divide". The language description names its spelling.
-const INTEGER_DIVISION_SPELLINGS: [IntegerDivision; 2] = [
+const INTEGER_DIVISION_SPELLINGS: [IntegerDivision; 4] = [
     IntegerDivision::Wrapper("Math.trunc"),
+    IntegerDivision::Wrapper("~~"),
+    IntegerDivision::Wrapper("int"),
     IntegerDivision::Call("intdiv"),
 ];
 
@@ -901,9 +933,9 @@ fn integer_division(call: &Node, spelling: IntegerDivision) -> Option<Node> {
         (IntegerDivision::Wrapper(wrapper), [first])
             if callee == wrapper
                 && first.is("Binary")
-                && first.str("operator") == Some("divide") =>
+                && matches!(first.str("operator"), Some("divide" | "realDivide")) =>
         {
-            Some(first.clone())
+            Some(first.clone().with("operator", "divide"))
         }
         (IntegerDivision::Call(own), [first, second]) if callee == own => {
             Some(divide(first.clone(), second.clone()))

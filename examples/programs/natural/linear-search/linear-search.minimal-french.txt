@@ -1,0 +1,12 @@
+Remarque : Linear search in JavaScript: find the position of a value in a list
+
+Il y a nombres, c'est ces choses (31, 41, 59, 26, 53, 58, 97, 93).
+Il y a wanted, c'est 53.
+Il y a position, c'est -1.
+Il y a courant, c'est 0.
+Pour tous les indice de 0 à combien de parties dans nombres moins 1, faire ceci:
+  Il y a nombre, c'est la partie indice de nombres.
+  Si nombre est le même que wanted et position est moins que 0, faire ceci:
+    Après ceci, position est courant.
+  Après ceci, courant est courant plus 1.
+Dire «Found » puis wanted puis « at position » puis position sur une ligne.

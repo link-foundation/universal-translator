@@ -4,8 +4,9 @@
 //     --type inference--> typed meta program --meaning rules-->
 //     --custom meta layers--> --context rules--> --emit--> target text
 //
-// Every stage is a replaceable function, and every rule list is ordinary
-// data, so callers can add, remove, reorder or decorate rules.
+// Every stage is a replaceable function that can also be decorated (see
+// translation/decorators.js), and every rule list is ordinary data, so
+// callers can add, remove, reorder or decorate rules.
 
 import { grammarLanguageIds, languageSyntax } from './formal/languages.js';
 import { parseProgram } from './formal/parser.js';
@@ -24,6 +25,7 @@ import {
 } from './formal/machine.js';
 import { machineReaders } from './formal/machine-reader.js';
 import { liftProgram } from './formal/lifting.js';
+import { raiseForEach } from './meta/for-each.js';
 import { useCommonLibrary } from './formal/common-library.js';
 import { splitVersion, versionsOf } from './formal/versions.js';
 import {
@@ -45,14 +47,42 @@ import {
 import { declaredNames } from './formal/names.js';
 import { createFragmentTranslator } from './translation/fragments.js';
 import { createPartialTranslator } from './translation/partial.js';
+import { createCandidateTranslator } from './translation/candidates.js';
 import { createLanguageDetector } from './translation/detect.js';
 import { compileCustomRules } from './translation/custom-rules.js';
 import { transferLayout } from './translation/layout.js';
 import { applyStyle, checkStyle, hasStyle } from './translation/style.js';
 import { specialize } from './meta/library.js';
+import { markImprecision } from './meta/imprecision.js';
 import { unnest } from './translation/nesting.js';
+import { decorateStages, mergeDecorators } from './translation/decorators.js';
 
 const readMachine = (source, from) => machineReaders[from](source);
+
+// The replaceable stages, in the form decorators wrap.
+const defaultStages = {
+  parse: parseProgram,
+  infer: inferTypes,
+  lift: liftProgram,
+  readMachine,
+  readNatural,
+  emit: emitProgram,
+  emitMachineCode: emitMachine,
+  writeNatural,
+};
+
+// The stages a translator runs: the ones given in the settings or the
+// defaults, wrapped by the decorators of the settings.
+const buildStages = (settings) =>
+  decorateStages(
+    Object.fromEntries(
+      Object.entries(defaultStages).map(([stage, standard]) => [
+        stage,
+        settings[stage] ?? standard,
+      ])
+    ),
+    settings.decorate
+  );
 
 const modes = ['context-dependent', 'literal', 'same-effect'];
 
@@ -294,31 +324,37 @@ function listLanguages() {
   ];
 }
 
+const listNaturalLanguages = () =>
+  naturalLanguageIds().map((id) => {
+    const { label, base } = naturalLanguage(id);
+    return { id, label, ...(base ? { base } : {}) };
+  });
+
 export function createGrammarTranslator(settings = {}) {
   const {
-    parse = parseProgram,
     understanding = understandingRules,
-    infer = inferTypes,
     meaning = meaningRules,
     context = contextRules,
     layers = [],
-    emit = emitProgram,
-    emitMachineCode = emitMachine,
-    lift = liftProgram,
     trace = () => {},
     rules = {},
   } = settings;
+  const stages = buildStages(settings);
+  const { parse, infer, lift, emit, emitMachineCode } = stages;
   // Rules given as data (see translation/custom-rules.js).
   const custom = compileCustomRules(rules);
   const metaLayers = [...layers, ...custom.layers];
 
-  function toMeta(text, from) {
+  // The typed meta program of a text, with what its reading lost marked.
+  const toMeta = (text, from) => markImprecision(readMeta(text, from));
+
+  function readMeta(text, from) {
     const source = custom.source(text, from);
     if (isNaturalLanguage(from)) {
       // A controlled natural language is read sentence by sentence straight
       // into the meta language; it has no source details to understand.
       const read = inferMutability(
-        readNatural(source, from, custom.naturalLanguage(from))
+        stages.readNatural(source, from, custom.naturalLanguage(from))
       );
       trace('read', read);
       const typed = applyRules(infer(read), meaning, {});
@@ -329,7 +365,9 @@ export function createGrammarTranslator(settings = {}) {
     if (syntax.machine) {
       // Machine code has no grammar to parse: read its instructions, lift
       // them to the meta language and continue like any other source.
-      const lifted = inferMutability(lift(readMachine(source, from)));
+      const lifted = inferMutability(
+        raiseForEach(lift(stages.readMachine(source, from)))
+      );
       trace('lifted', lifted);
       const typed = applyRules(infer(lifted), meaning, { from });
       trace('typed', typed);
@@ -361,6 +399,8 @@ export function createGrammarTranslator(settings = {}) {
     const settings = {
       from: splitVersion(isNaturalLanguage(from) ? to : from).id,
       to: splitVersion(to).id,
+      // The target with its version, for the rules that depend on it.
+      target: to,
       mode,
     };
     // Custom layers are meta -> meta transformations, so they see the target
@@ -402,7 +442,7 @@ export function createGrammarTranslator(settings = {}) {
 
   function writeTarget(adapted, to) {
     if (isNaturalLanguage(to)) {
-      return writeNatural(adapted, to);
+      return stages.writeNatural(adapted, to);
     }
     return machineTargetIds.includes(to)
       ? emitMachineCode(adapted, to)
@@ -431,22 +471,31 @@ export function createGrammarTranslator(settings = {}) {
   const partial = createPartialTranslator({ ...fragments, translateProse });
 
   const translatePartial = partialTranslator(translate, fragments, partial);
+  const translateCandidates = createCandidateTranslator(translatePartial);
 
   return {
     languages: listLanguages,
-    naturalLanguages: () =>
-      naturalLanguageIds().map((id) => {
-        const { label, base } = naturalLanguage(id);
-        return { id, label, ...(base ? { base } : {}) };
-      }),
+    naturalLanguages: listNaturalLanguages,
     toMeta,
     fromMeta,
     translate: styledText(translate),
     translatePartial,
+    translateCandidates,
     parsePartial: partial.parsePartial,
     // The same translator with other data rules.
     withRules: (other) =>
       createGrammarTranslator({ ...settings, rules: other }),
+    // The same translator with decorators around some stages: one stage and
+    // its decorator, or an object of stages and decorators (or lists of
+    // them). They wrap the decorators the translator already has.
+    decorate: (stage, decorator) =>
+      createGrammarTranslator({
+        ...settings,
+        decorate: mergeDecorators(
+          settings.decorate,
+          typeof stage === 'string' ? { [stage]: decorator } : stage
+        ),
+      }),
     detectLanguage: createLanguageDetector({
       parseFragment: fragments.parseFragment,
       parsePartial: partial.parsePartial,
@@ -476,6 +525,13 @@ export function parseFragment(source, from) {
 export function translatePartial(source, from, to, options) {
   defaultTranslator ??= createGrammarTranslator();
   return defaultTranslator.translatePartial(source, from, to, options);
+}
+
+// The candidate translations of a text, the most probable first, with the
+// default rule layers.
+export function translateCandidates(source, from, to, options) {
+  defaultTranslator ??= createGrammarTranslator();
+  return defaultTranslator.translateCandidates(source, from, to, options);
 }
 
 // Read what can be read, with the default rule layers.

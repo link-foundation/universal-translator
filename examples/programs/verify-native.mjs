@@ -68,6 +68,7 @@ export const libraryFiles = {
   zig: 'common_library.zig',
   lean: 'CommonLibrary.lean',
   rocq: 'common_library.v',
+  gml: 'common_library.gml',
 };
 const libraryFolder = join(folder, '..', '..', 'common-library');
 
@@ -105,6 +106,7 @@ export const extensions = {
   zig: '.zig',
   lean: '.lean',
   rocq: '.v',
+  gml: '.gml',
   nasm: '.asm',
   gas: '.s',
   arm64: '.arm64',
@@ -443,6 +445,9 @@ const runners = {
     run: (file) =>
       rocqOutput(run(rocq, ['compile', file], { cwd: dirname(file) })),
   },
+  // No command-line runtime: GameMaker runs GML only inside its IDE and its
+  // game runner, so the translations are checked by reading them back.
+  gml: { unavailable: 'GameMaker runs GML only inside its IDE' },
   nasm: {
     tool: 'nasm',
     run: (file) => (
@@ -580,6 +585,12 @@ if (
       }
       const runner = runners[target];
       const label = `${file} -> ${target}`;
+      // A language with no runtime outside its own environment is skipped
+      // everywhere, so it does not count as missing.
+      if (runner.unavailable) {
+        console.log(`SKIP ${label}: ${runner.unavailable}`);
+        continue;
+      }
       if (!available(runner.tool)) {
         console.log(`SKIP ${label}: ${runner.tool} is not installed`);
         failures += requireAll ? 1 : 0;

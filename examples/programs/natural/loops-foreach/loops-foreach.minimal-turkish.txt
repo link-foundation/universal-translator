@@ -1,0 +1,6 @@
+Not: Loops/Foreach in JavaScript: print every element of a collection
+
+Sayılar var, bu şu şeyler (1, 1, 2, 3, 5, 8, 13, 21).
+Her indeks için 0 ile sayılar şeyinin kaç parçası var eksi 1 arasında bunu yap:
+  Sayı var, bu sayılar şeyinin indeks parçası.
+  Sayı bir satırda söyle.

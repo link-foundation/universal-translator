@@ -1,141 +1,192 @@
-//! Equivalence of two programs, in the library and on the command line.
-//! The JavaScript twin is js/tests/equivalence.test.js.
+//! The equivalence check: a translation does what its source does when both
+//! read into the same meta program, comments, imports, blank lines, types
+//! and mutability left out. The same cases as js/tests/equivalence.test.js.
 
 use std::fs;
-use std::path::PathBuf;
-use std::process::Command;
-
+use std::path::Path;
+use universal_translator::meta::notation::format_meta;
 use universal_translator::{
-    Equivalence, GrammarError, Mode, Translator, check_equivalence, compare_meta,
+    Difference, Mode, Options, Translator, check_equivalence, effect_of, translate,
 };
 
-const SUM: &str = "const total = 2 + 3;\nconsole.log(total);\n";
-const COMMENTED: &str = "# the sum\n\ntotal = 2 + 3\nprint(total)\n";
-const CHANGED: &str = "total = 2 + 4\nprint(total)\n";
-const DIFFERENCE: &str = "/main/statements/0/value/right/value: 3 != 4";
-
-fn programs() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("examples/programs")
+const SUM: &str = "let total = 0;
+for (let i = 1; i <= 3; i++) {
+  total = total + i;
 }
+console.log(total);
+";
 
-/// The file extension of every language, as examples/programs/verify-native.mjs
-/// names them (`  python: '.py',`).
-fn extensions() -> Vec<(String, String)> {
-    let script = fs::read_to_string(programs().join("verify-native.mjs")).expect("the script");
-    let start = script
-        .find("export const extensions = {")
-        .expect("the extensions");
-    script[start..]
-        .lines()
-        .skip(1)
-        .take_while(|line| !line.starts_with('}'))
-        .filter_map(|line| {
-            let (language, rest) = line.trim().split_once(": '")?;
-            Some((language.to_owned(), rest.strip_suffix("',")?.to_owned()))
-        })
-        .collect()
-}
-
-fn check(source: &str, to: &str, target: Option<&str>) -> Result<Equivalence, GrammarError> {
-    check_equivalence(&Translator::new(), source, "javascript", to, target)
+fn check(translation: Option<&str>, to: &str) -> universal_translator::Equivalence {
+    check_equivalence(
+        &Translator::new(),
+        (SUM, "javascript"),
+        (translation, to),
+        Options::default(),
+    )
+    .expect("both texts read")
 }
 
 #[test]
-fn finds_every_committed_translation_equivalent_to_its_source() {
-    let languages = extensions();
-    assert_eq!(languages.len(), 39);
-    for task in ["factorial", "greatest-common-divisor"] {
-        let source = fs::read_to_string(programs().join(format!("{task}.js"))).expect("source");
-        for (language, extension) in &languages {
-            let target = fs::read_to_string(
-                programs()
-                    .join("translated")
-                    .join(task)
-                    .join(format!("{task}{extension}")),
+fn holds_for_what_the_translator_writes() {
+    let result = check(None, "python");
+    assert!(result.equivalent);
+    assert!(result.differences.is_empty());
+    assert!(result.translation.contains("range(1, 4)"));
+    assert_eq!(result.meta_lines, 12);
+}
+
+#[test]
+fn leaves_out_comments_blank_lines_and_the_spelling_of_an_update() {
+    let python = "# sum\ntotal = 0\n\nfor i in range(1, 4):\n    total += i  # add\nprint(total)\n";
+    assert!(check(Some(python), "python").equivalent);
+}
+
+#[test]
+fn leaves_out_types_and_mutability() {
+    let rust = "fn main() {\n    let mut total: i64 = 0;\n    for i in 1..=3 {\n        total += i;\n    }\n    println!(\"{}\", total);\n}\n";
+    assert!(check(Some(rust), "rust").equivalent);
+}
+
+#[test]
+fn finds_a_bound_that_is_one_off() {
+    let result = check(
+        Some("total = 0\nfor i in range(1, 3):\n    total += i\nprint(total)\n"),
+        "python",
+    );
+    assert!(!result.equivalent);
+    assert_eq!(
+        result.differences,
+        vec![Difference {
+            line: 6,
+            source: "number 4".into(),
+            target: "number 3".into(),
+        }]
+    );
+}
+
+#[test]
+fn finds_another_operator() {
+    let result = check(
+        Some("total = 0\nfor i in range(1, 4):\n    total = total * i\nprint(total)\n"),
+        "python",
+    );
+    let pairs: Vec<(&str, &str)> = result
+        .differences
+        .iter()
+        .map(|it| (it.source.as_str(), it.target.as_str()))
+        .collect();
+    assert_eq!(pairs, vec![("binary add", "binary multiply")]);
+}
+
+#[test]
+fn keeps_what_a_program_does_in_the_meta_program() {
+    let program = Translator::new()
+        .to_meta(
+            "// note\nlet x: number = 1;\n\nconsole.log(x);\n",
+            "typescript",
+        )
+        .expect("reads");
+    let effect = format_meta(&effect_of(&program));
+    for left in ["note", "type", "mutable", "blank", "comments"] {
+        assert!(!effect.contains(left), "{left} in {effect}");
+    }
+    assert!(effect.contains("declaration x"), "{effect}");
+}
+
+fn example_programs() -> Vec<std::path::PathBuf> {
+    let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("examples/programs");
+    let mut files: Vec<_> = fs::read_dir(&directory)
+        .expect("examples")
+        .filter_map(|entry| entry.ok().map(|entry| entry.path()))
+        .filter(|path| path.extension().is_some_and(|it| it == "js"))
+        .collect();
+    files.sort();
+    files
+}
+
+#[test]
+fn holds_for_the_example_programs() {
+    let files = example_programs();
+    let translator = Translator::new();
+    for to in ["python", "rust", "wat"] {
+        for file in &files {
+            let source = fs::read_to_string(file).expect("program");
+            let result = check_equivalence(
+                &translator,
+                (&source, "javascript"),
+                (None, to),
+                Options::default(),
             )
-            .expect("golden");
-            let checked = check(&source, language, Some(&target)).expect("read");
-            assert_eq!((language, task, checked.difference), (language, task, None));
+            .expect("both texts read");
+            assert_eq!(result.differences, vec![], "{} -> {to}", file.display());
         }
     }
 }
 
-#[test]
-fn leaves_comments_blank_lines_and_layout_out() {
-    let checked = check(SUM, "python", Some(COMMENTED)).expect("read");
-    assert!(checked.equivalent());
-    assert_eq!(checked.target, COMMENTED);
+/// The language id and file extension of every committed translation, as
+/// examples/programs/verify-native.mjs lists them (`  python: '.py',`).
+fn committed_extensions(root: &Path) -> Vec<(String, String)> {
+    let script = fs::read_to_string(root.join("examples/programs/verify-native.mjs")).unwrap();
+    let start = script.find("export const extensions = {").unwrap();
+    let end = start + script[start..].find("};").unwrap();
+    script[start..end]
+        .lines()
+        .filter_map(|line| {
+            let (id, extension) = line.trim().trim_end_matches(',').split_once(": '")?;
+            Some((id.to_owned(), extension.trim_end_matches('\'').to_owned()))
+        })
+        .collect()
 }
 
 #[test]
-fn translates_the_source_when_no_target_is_given() {
-    let checked = check(SUM, "rust", None).expect("read");
-    assert!(checked.equivalent());
-    let translated = Translator::new()
-        .translate(SUM, "javascript", "rust", Mode::default())
-        .expect("translation");
-    assert_eq!(checked.target, translated);
-}
-
-#[test]
-fn reports_the_first_difference_with_its_path() {
-    let checked = check(SUM, "python", Some(CHANGED)).expect("read");
-    assert_eq!(checked.difference.as_deref(), Some(DIFFERENCE));
+fn holds_for_every_committed_translation_of_two_tasks() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let extensions = committed_extensions(root);
+    assert!(extensions.len() > 30, "{extensions:?}");
     let translator = Translator::new();
-    let javascript = translator.to_meta(SUM, "javascript").expect("meta");
-    let python = translator.to_meta(COMMENTED, "python").expect("meta");
-    assert_eq!(compare_meta(&javascript, &python), None);
+    for task in ["factorial", "greatest-common-divisor"] {
+        let programs = root.join("examples/programs");
+        let source = fs::read_to_string(programs.join(format!("{task}.js"))).unwrap();
+        for (to, extension) in &extensions {
+            let file = programs.join(format!("translated/{task}/{task}{extension}"));
+            let translation = fs::read_to_string(&file).unwrap();
+            let result = check_equivalence(
+                &translator,
+                (&source, "javascript"),
+                (Some(&translation), to),
+                Options::default(),
+            )
+            .unwrap_or_else(|error| panic!("{}: {error}", file.display()));
+            assert_eq!(result.differences, vec![], "{}", file.display());
+        }
+    }
 }
 
-fn cli(arguments: &[&str]) -> (i32, String, String) {
-    let output = Command::new(env!("CARGO_BIN_EXE_universal-translator"))
-        .args(arguments)
-        .output()
-        .expect("the command line");
-    (
-        output.status.code().unwrap_or(-1),
-        String::from_utf8(output.stdout).expect("UTF-8 output"),
-        String::from_utf8(output.stderr).expect("UTF-8 errors"),
-    )
-}
-
+/// JavaScript -> Rust -> JavaScript: the Rosetta tasks keep what they do,
+/// and writing the read-back JavaScript in Rust again gives the same Rust.
 #[test]
-fn the_command_reports_equivalence_and_the_first_difference() {
-    let directory = std::env::temp_dir().join(format!("ut-equivalence-{}", std::process::id()));
-    fs::create_dir_all(&directory).expect("directory");
-    let file = |name: &str, text: &str| {
-        let path = directory.join(name);
-        fs::write(&path, text).expect("file");
-        path.to_string_lossy().into_owned()
+fn keeps_the_example_programs_through_a_round_trip_in_rust() {
+    let translator = Translator::new();
+    let write = |text: &str, from: &str, to: &str| {
+        translate(text, from, to, Mode::default()).unwrap_or_else(|error| panic!("{error}"))
     };
-    let (sum, commented, changed) = (
-        file("sum.js", SUM),
-        file("sum.py", COMMENTED),
-        file("changed.py", CHANGED),
-    );
-    assert_eq!(
-        cli(&[
-            "check-equivalence",
-            "javascript",
-            "python",
-            &sum,
-            &commented
-        ]),
-        (
-            0,
-            "The javascript and python programs are equivalent\n".to_owned(),
-            String::new()
+    for file in example_programs() {
+        let source = fs::read_to_string(&file).expect("program");
+        let rust = write(&source, "javascript", "rust");
+        let back = write(&rust, "rust", "javascript");
+        let result = check_equivalence(
+            &translator,
+            (&source, "javascript"),
+            (Some(&back), "javascript"),
+            Options::default(),
         )
-    );
-    assert_eq!(cli(&["check-equivalence", "javascript", "go", &sum]).0, 0);
-    assert_eq!(
-        cli(&["check-equivalence", "javascript", "python", &sum, &changed]),
-        (
-            1,
-            String::new(),
-            format!("The javascript and python programs are not equivalent: {DIFFERENCE}\n")
-        )
-    );
-    assert_eq!(cli(&["check-equivalence", "javascript", "python"]).0, 1);
-    fs::remove_dir_all(&directory).expect("cleanup");
+        .expect("both texts read");
+        assert_eq!(result.differences, vec![], "{}", file.display());
+        assert_eq!(
+            write(&back, "javascript", "rust"),
+            rust,
+            "{}",
+            file.display()
+        );
+    }
 }

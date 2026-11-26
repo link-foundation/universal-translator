@@ -1,0 +1,6 @@
+Tala: Loops/Foreach in JavaScript: print every element of a collection
+
+May mga_numero, ito ay itong mga bagay (1, 1, 2, 3, 5, 8, 13, 21).
+Para sa bawat indeks mula 0 hanggang ang dami ng bahagi ng mga_numero bawas 1, gawin ito:
+  May numero, ito ay bahagi indeks ng mga_numero.
+  Sabihin ang numero sa isang linya.

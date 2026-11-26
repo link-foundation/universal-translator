@@ -76,6 +76,7 @@ fn extension(target: &str) -> &'static str {
         "zig" => "zig",
         "lean" => "lean",
         "rocq" => "v",
+        "gml" => "gml",
         "nasm" => "asm",
         "gas" => "s",
         "arm64" => "arm64",
@@ -126,7 +127,7 @@ fn matches_every_golden_file_for_all_targets() {
         .into_iter()
         .chain(machine_target_ids())
         .collect();
-    assert_eq!(targets.len(), 39);
+    assert_eq!(targets.len(), 40);
     let mut mismatches = Vec::new();
     for task in tasks() {
         let task = task.as_str();
@@ -365,6 +366,7 @@ fn lets_callers_remove_or_decorate_a_rule() {
         [
             "copyReassignedParameters",
             "expandArrayFills",
+            "expandForEach",
             "spellNames",
             "spellCommonLibrary"
         ]

@@ -1,0 +1,9 @@
+Ghi chú: Greatest element of a list in JavaScript
+
+Tạo các_số với giá trị danh sách (17, 4, 93, 28, 65, 3, 80).
+Tạo lớn_nhất với giá trị phần tử 0 trong các_số.
+Với mỗi chỉ_số từ 0 đến độ dài các_số trừ 1, lặp lại điều này:
+  Tạo số_ với giá trị phần tử chỉ_số trong các_số.
+  Nếu số_ lớn hơn lớn_nhất, làm điều này:
+    Đổi lớn_nhất thành số_.
+Viết “The greatest element is ” nối với lớn_nhất và xuống dòng.

@@ -1,0 +1,6 @@
+Opmerking: Loops/Foreach in JavaScript: print every element of a collection
+
+Er is getallen, het is deze dingen (1, 1, 2, 3, 5, 8, 13, 21).
+Voor alle index van 0 tot en met hoeveel delen getallen heeft min 1, doe dit:
+  Er is getal, het is deel index van getallen.
+  Zeg getal op één regel.
