@@ -176,7 +176,8 @@ assert.deepEqual(
   programmingLanguages(success(jsCli(['languages']))),
   languageIds
 );
-assert.equal(languageIds.length, 32);
+// At least the 40 languages; a language added later needs no edit here.
+assert.ok(languageIds.length >= 40, `${languageIds.length} languages`);
 const programsFolder = new URL('../examples/programs/', import.meta.url);
 const goldenTasks = ['hello-world', 'mutual-recursion'];
 for (const task of goldenTasks) {
@@ -189,8 +190,16 @@ for (const task of goldenTasks) {
       )
     );
     const golden = readFileSync(goldenPath, 'utf8');
+    // The committed translations are written in the layout of each target.
     for (const cli of [jsCli, rustCli]) {
-      const written = cli(['translate', 'javascript', language, sourcePath]);
+      const written = cli([
+        'translate',
+        'javascript',
+        language,
+        sourcePath,
+        '--layout',
+        'target',
+      ]);
       assert.equal(success(written), golden, `${task} in ${language}`);
     }
     const [fromJs, fromRust] = [jsCli, rustCli].map((cli) =>
