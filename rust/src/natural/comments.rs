@@ -33,12 +33,14 @@
 //!
 //! The JavaScript twin is js/src/natural/comments.js.
 
+use std::cell::{Cell, RefCell};
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, LazyLock, Mutex};
 
 use regex::Regex;
 
 use super::catalog::{natural_language, natural_language_ids};
+use super::probability::{priors, product, similarity};
 use super::rules::semantic_primes;
 use super::vocabulary::{Grammar, grammar_of, known_form, stem_index, vocabulary_concepts};
 
@@ -219,8 +221,8 @@ fn preferred_phrase(meaning: &str, target: &Meanings, question: bool) -> String 
         .clone()
 }
 
-/// The translation of one known phrase. An article the target does not
-/// have becomes an empty text.
+/// A translation of one known phrase. An article the target does not have
+/// becomes an empty text.
 struct Translated {
     text: String,
     part: String,
@@ -251,38 +253,56 @@ fn slot_form(phrase: &str, meaning: &str, source: &Meanings, target: &Meanings) 
         .cloned()
 }
 
+/// The translations of one known phrase, one for each meaning the target
+/// has, likeliest first, every text once.
+fn phrase_options(
+    phrase: &str,
+    source: &Meanings,
+    target: &Meanings,
+    question: bool,
+) -> Vec<Translated> {
+    let mut options: Vec<Translated> = Vec::new();
+    for meaning in likely(phrase, source, question) {
+        let part = source.part(meaning).to_owned();
+        let option = if target.phrases.contains_key(meaning.as_str()) {
+            let form = if part == "verb" {
+                slot_form(phrase, meaning, source, target)
+            } else {
+                None
+            };
+            Translated {
+                lemma: form.is_none() && source.phrases[meaning.as_str()][0] == phrase,
+                text: form.unwrap_or_else(|| preferred_phrase(meaning, target, question)),
+                part,
+                meaning: meaning.clone(),
+            }
+        } else if part == "article" {
+            Translated {
+                text: String::new(),
+                part,
+                meaning: meaning.clone(),
+                lemma: true,
+            }
+        } else {
+            continue;
+        };
+        if !options.iter().any(|known| known.text == option.text) {
+            options.push(option);
+        }
+    }
+    options
+}
+
+/// The likeliest translation of one known phrase.
 fn translate_phrase(
     phrase: &str,
     source: &Meanings,
     target: &Meanings,
     question: bool,
 ) -> Option<Translated> {
-    source.meanings.get(phrase)?;
-    for meaning in likely(phrase, source, question) {
-        let part = source.part(meaning).to_owned();
-        if target.phrases.contains_key(meaning.as_str()) {
-            let form = if part == "verb" {
-                slot_form(phrase, meaning, source, target)
-            } else {
-                None
-            };
-            return Some(Translated {
-                lemma: form.is_none() && source.phrases[meaning.as_str()][0] == phrase,
-                text: form.unwrap_or_else(|| preferred_phrase(meaning, target, question)),
-                part,
-                meaning: meaning.clone(),
-            });
-        }
-        if part == "article" {
-            return Some(Translated {
-                text: String::new(),
-                part,
-                meaning: meaning.clone(),
-                lemma: true,
-            });
-        }
-    }
-    None
+    phrase_options(phrase, source, target, question)
+        .into_iter()
+        .next()
 }
 
 type Dictionary = Arc<HashMap<String, String>>;
@@ -377,15 +397,28 @@ fn questions_of(parts: &[&str]) -> Vec<bool> {
 }
 
 /// The translation of the words starting at a piece: `end` is the index of
-/// the last word read.
+/// the last word read; `keys` holds the meaning of each run of a text
+/// written without spaces (the folded letters of an unknown one).
 struct Words {
     text: String,
     end: usize,
     part: String,
     meaning: String,
+    keys: Option<Vec<String>>,
 }
 
-/// Phrase translation through the grammar of both languages.
+/// A phrase with more than one translation met while translating: its key
+/// (the word piece and the phrase) and how many options it has.
+#[derive(Clone)]
+struct Reading {
+    key: String,
+    options: usize,
+}
+
+/// Phrase translation through the grammar of both languages. A phrase with
+/// more than one translation is a reading: `choices` names the option taken
+/// for some readings (the likeliest otherwise), and `readings` lists every
+/// reading met, in order.
 struct ProseTranslator {
     source: Arc<Meanings>,
     target: Arc<Meanings>,
@@ -393,6 +426,12 @@ struct ProseTranslator {
     object: bool,
     /// the part of the word just written, when only blanks follow it
     last: Option<String>,
+    choices: HashMap<String, usize>,
+    readings: RefCell<Vec<Reading>>,
+    /// the word piece being translated
+    at: Cell<usize>,
+    /// the words are only looked at: a look ahead makes no reading
+    probing: Cell<bool>,
 }
 
 /// A translated phrase: its written text, its part of speech and its meaning.
@@ -403,6 +442,38 @@ struct Phrase {
 }
 
 impl ProseTranslator {
+    fn new(from: &str, to: &str, choices: HashMap<String, usize>) -> Result<Self, String> {
+        Ok(ProseTranslator {
+            source: meanings_of(from)?,
+            target: meanings_of(to)?,
+            object: false,
+            last: None,
+            choices,
+            readings: RefCell::new(Vec::new()),
+            at: Cell::new(0),
+            probing: Cell::new(false),
+        })
+    }
+
+    /// The translation of a phrase in the option chosen for its reading.
+    fn choose(&self, phrase: &str, question: bool) -> Option<Translated> {
+        let mut options = phrase_options(phrase, &self.source, &self.target, question);
+        if options.len() < 2 || self.probing.get() {
+            return options.into_iter().next();
+        }
+        let key = format!("{}:{phrase}", self.at.get());
+        let mut readings = self.readings.borrow_mut();
+        if !readings.iter().any(|reading| reading.key == key) {
+            readings.push(Reading {
+                key: key.clone(),
+                options: options.len(),
+            });
+        }
+        let chosen = self.choices.get(&key).copied().unwrap_or(0);
+        let at = if chosen < options.len() { chosen } else { 0 };
+        Some(options.swap_remove(at))
+    }
+
     /// The written form of a translated phrase.
     fn write(&self, translated: &Translated, infinitive: bool) -> String {
         match &self.target.grammar.infinitive {
@@ -414,7 +485,7 @@ impl ProseTranslator {
     }
 
     fn phrase(&self, phrase: &str, question: bool) -> Option<Phrase> {
-        let translated = translate_phrase(phrase, &self.source, &self.target, question)?;
+        let translated = self.choose(phrase, question)?;
         let infinitive =
             translated.lemma && self.source.grammar.verb_lemma.as_deref() == Some("infinitive");
         Some(Phrase {
@@ -470,7 +541,10 @@ impl ProseTranslator {
     /// Whether the words at parts[index] are none the dictionary knows (the
     /// name of something in the program).
     fn unknown(&self, parts: &[&str], index: usize) -> bool {
-        index < parts.len() && self.words(parts, index, false).is_none()
+        let probing = self.probing.replace(true);
+        let unknown = index < parts.len() && self.words(parts, index, false).is_none();
+        self.probing.set(probing);
+        unknown
     }
 
     /// The words around a verb agree in case: the first noun after a verb
@@ -528,7 +602,7 @@ impl ProseTranslator {
             }
         }
         let known = self.known(&fold(parts[verb_at]))?;
-        let translated = translate_phrase(&known, &self.source, &self.target, question)?;
+        let translated = self.choose(&known, question)?;
         if translated.part != "verb" {
             return None;
         }
@@ -537,6 +611,7 @@ impl ProseTranslator {
             end: verb_at,
             part: "verb".to_owned(),
             meaning: translated.meaning,
+            keys: None,
         })
     }
 
@@ -549,14 +624,15 @@ impl ProseTranslator {
     }
 
     /// Known words inside a run of letters written without spaces, longest
-    /// first; None when none is known.
-    fn segments(&self, word: &str, question: bool) -> Option<String> {
+    /// first: the text and the meaning of each run (the folded letters of an
+    /// unknown one); None when none is known.
+    fn segments(&self, word: &str, question: bool) -> Option<(String, Vec<String>)> {
         if self.source.grammar.spaced {
             return None;
         }
         let letters: Vec<char> = word.chars().collect();
-        // (text, known)
-        let mut found: Vec<(String, bool)> = Vec::new();
+        // (text, the meaning of a known run)
+        let mut found: Vec<(String, Option<String>)> = Vec::new();
         let mut any = false;
         let mut at = 0;
         while at < letters.len() {
@@ -564,18 +640,18 @@ impl ProseTranslator {
             for size in (1..=LONGEST_RUN.min(letters.len() - at)).rev() {
                 let run = fold(&letters[at..at + size].iter().collect::<String>());
                 if let Some(found) = self.phrase(&run, question) {
-                    translated = Some((found.text, size));
+                    translated = Some((found, size));
                     break;
                 }
             }
-            if let Some((text, size)) = translated {
-                found.push((text, true));
+            if let Some((phrase, size)) = translated {
+                found.push((phrase.text, Some(phrase.meaning)));
                 at += size;
                 any = true;
             } else {
                 match found.last_mut() {
-                    Some((text, false)) => text.push(letters[at]),
-                    _ => found.push((letters[at].to_string(), false)),
+                    Some((text, None)) => text.push(letters[at]),
+                    _ => found.push((letters[at].to_string(), None)),
                 }
                 at += 1;
             }
@@ -584,13 +660,16 @@ impl ProseTranslator {
             return None;
         }
         let joiner = if self.target.grammar.spaced { " " } else { "" };
-        Some(
-            found
-                .into_iter()
-                .map(|(text, _)| text)
-                .collect::<Vec<_>>()
-                .join(joiner),
-        )
+        let keys = found
+            .iter()
+            .map(|(text, key)| key.clone().unwrap_or_else(|| fold(text)))
+            .collect();
+        let text = found
+            .into_iter()
+            .map(|(text, _)| text)
+            .collect::<Vec<_>>()
+            .join(joiner);
+        Some((text, keys))
     }
 
     fn words(&self, parts: &[&str], index: usize, question: bool) -> Option<Words> {
@@ -624,15 +703,18 @@ impl ProseTranslator {
                     end,
                     part,
                     meaning,
+                    keys: None,
                 });
             }
         }
-        self.segments(parts[index], question).map(|text| Words {
-            text,
-            end: index,
-            part: "segments".to_owned(),
-            meaning: String::new(),
-        })
+        self.segments(parts[index], question)
+            .map(|(text, keys)| Words {
+                text,
+                end: index,
+                part: "segments".to_owned(),
+                meaning: String::new(),
+                keys: Some(keys),
+            })
     }
 
     fn inflected(&self, word: &str, question: bool) -> Option<Phrase> {
@@ -648,26 +730,23 @@ enum Written {
 }
 
 /// Translate the words of a text with the dictionary and the grammar of
-/// both languages. Phrases of up to four words joined by single spaces are
-/// tried longest first.
-pub fn translate_comment_text(text: &str, from: &str, to: &str) -> Result<String, String> {
-    natural_language(from)?;
-    natural_language(to)?;
-    if from == to {
-        return Ok(text.to_owned());
-    }
-    let mut translator = ProseTranslator {
-        source: meanings_of(from)?,
-        target: meanings_of(to)?,
-        object: false,
-        last: None,
-    };
+/// both languages, every reading in the option `choices` names (the
+/// likeliest otherwise): the text and the readings met. Phrases of up to
+/// four words joined by single spaces are tried longest first.
+fn translate_words(
+    text: &str,
+    from: &str,
+    to: &str,
+    choices: HashMap<String, usize>,
+) -> Result<(String, Vec<Reading>), String> {
+    let mut translator = ProseTranslator::new(from, to, choices)?;
     let parts = pieces(text);
     let questions = questions_of(&parts);
     let mut written = vec![Written::Gap(parts[0].to_owned())];
     let mut capitalize = false;
     let mut index = 1;
     while index < parts.len() {
+        translator.at.set(index);
         let Some(found) = translator.words(&parts, index, questions[index]) else {
             translator.disagree();
             written.push(Written::Word(parts[index].to_owned(), false));
@@ -714,7 +793,143 @@ pub fn translate_comment_text(text: &str, from: &str, to: &str) -> Result<String
             }
         }
     }
-    Ok(output)
+    Ok((output, translator.readings.into_inner()))
+}
+
+/// The meanings a text stands for in a language, one key per phrase read
+/// (the folded words of a phrase no meaning is known for).
+fn meaning_keys(text: &str, language: &str) -> Result<Vec<String>, String> {
+    let reader = ProseTranslator::new(language, language, HashMap::new())?;
+    reader.probing.set(true);
+    let parts = pieces(text);
+    let questions = questions_of(&parts);
+    let mut keys = Vec::new();
+    let mut index = 1;
+    while index < parts.len() {
+        let found = reader.words(&parts, index, questions[index]);
+        let end = found.as_ref().map_or(index, |found| found.end);
+        match found {
+            Some(Words {
+                keys: Some(found), ..
+            }) => keys.extend(found),
+            Some(found) => keys.push(found.meaning),
+            None => keys.push(fold(parts[index])),
+        }
+        index = end + 2;
+    }
+    Ok(keys)
+}
+
+/// A candidate translation of prose and its scores (truth values):
+/// probability = frequency x round trip.
+#[derive(Clone, Debug, PartialEq)]
+pub struct RankedProse {
+    pub text: String,
+    pub probability: f64,
+    /// How often the readings chosen are meant.
+    pub frequency: f64,
+    /// How much of the meanings of the source a reader of the translation
+    /// reads back.
+    pub round_trip: f64,
+}
+
+/// A translation scored, with the readings it met and the choices made.
+struct Scored {
+    ranked: RankedProse,
+    readings: Vec<Reading>,
+    choices: HashMap<String, usize>,
+}
+
+/// The most candidates one text is translated into while ranking.
+const SEARCH_LIMIT: usize = 16;
+
+/// The translation of a text with some choices, scored: its frequency is
+/// the product of the priors of the options taken, its round trip how much
+/// of the meanings of the source a reader of the translation reads back.
+fn scored(
+    text: &str,
+    from: &str,
+    to: &str,
+    choices: HashMap<String, usize>,
+    source: &[String],
+) -> Result<Scored, String> {
+    let (output, readings) = translate_words(text, from, to, choices.clone())?;
+    let frequency = product(
+        &readings
+            .iter()
+            .map(|reading| priors(reading.options)[choices.get(&reading.key).copied().unwrap_or(0)])
+            .collect::<Vec<_>>(),
+    );
+    let round_trip = similarity(source, &meaning_keys(&output, to)?);
+    Ok(Scored {
+        ranked: RankedProse {
+            text: output,
+            probability: product(&[frequency, round_trip]),
+            frequency,
+            round_trip,
+        },
+        readings,
+        choices,
+    })
+}
+
+/// The candidate translations of a text, the most probable first: the
+/// likeliest options, then, reading by reading, the other options of each.
+/// An option replaces the one taken only when its candidate is strictly
+/// more probable; at most 16 candidates are scored.
+pub fn rank_prose(text: &str, from: &str, to: &str) -> Result<Vec<RankedProse>, String> {
+    natural_language(from)?;
+    natural_language(to)?;
+    if from == to {
+        return Ok(vec![RankedProse {
+            text: text.to_owned(),
+            probability: 1.0,
+            frequency: 1.0,
+            round_trip: 1.0,
+        }]);
+    }
+    let source = meaning_keys(text, from)?;
+    let mut best = 0;
+    let mut evaluated = vec![scored(text, from, to, HashMap::new(), &source)?];
+    let mut at = 0;
+    while at < evaluated[best].readings.len() && evaluated.len() < SEARCH_LIMIT {
+        let base = best;
+        let Reading { key, options } = evaluated[base].readings[at].clone();
+        let taken = evaluated[base].choices.get(&key).copied().unwrap_or(0);
+        for option in (0..options).filter(|option| *option != taken) {
+            if evaluated.len() >= SEARCH_LIMIT {
+                break;
+            }
+            let mut choices = evaluated[base].choices.clone();
+            choices.insert(key.clone(), option);
+            let tried = scored(text, from, to, choices, &source)?;
+            if tried.ranked.probability > evaluated[best].ranked.probability {
+                best = evaluated.len();
+            }
+            evaluated.push(tried);
+        }
+        at += 1;
+    }
+    let mut ranked: Vec<RankedProse> = evaluated.into_iter().map(|found| found.ranked).collect();
+    ranked.sort_by(|left, right| right.probability.total_cmp(&left.probability));
+    let mut seen = HashSet::new();
+    ranked.retain(|candidate| seen.insert(candidate.text.clone()));
+    Ok(ranked)
+}
+
+/// Translate the words of a text: the most probable candidate when some
+/// phrase has more than one reading, the likeliest options otherwise.
+pub fn translate_comment_text(text: &str, from: &str, to: &str) -> Result<String, String> {
+    natural_language(from)?;
+    natural_language(to)?;
+    if from == to {
+        return Ok(text.to_owned());
+    }
+    let (plain, readings) = translate_words(text, from, to, HashMap::new())?;
+    if readings.is_empty() {
+        return Ok(plain);
+    }
+    Ok(rank_prose(text, from, to)?.swap_remove(0).text)
 }
 
 fn known_words(id: &str) -> Result<Arc<HashSet<String>>, String> {

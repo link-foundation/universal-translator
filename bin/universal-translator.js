@@ -58,6 +58,8 @@ function usage() {
     '            --comment-from <natural> names the language of the comments (detected otherwise)',
     '            --identifier-language <natural> translates the declared names too (only them, in place, when <from> is <to>)',
     '            --identifier-from <natural> names the language of the declared names (detected otherwise)',
+    '            --candidates prints the candidate translations, the most probable first:',
+    '            (text ...) (probability p) (frequency f) (roundTrip r) (coverage c)',
     '            --layout source|target keeps the spaces and blank lines of the source',
     '            (source, the default) or writes the layout of the target',
     '            <to> may name a version: python@2',
@@ -170,6 +172,7 @@ const flagOptions = {
   '--common-library': 'commonLibrary',
   '--fragment': 'fragment',
   '--all-or-nothing': 'allOrNothing',
+  '--candidates': 'candidates',
 };
 
 function translationArguments(args) {
@@ -252,6 +255,12 @@ function translateCommand(
     identifierFrom: options.identifierFrom,
     layout: options.layout,
   };
+  if (options.candidates) {
+    write(
+      candidatesReport(translator, [source, language, to], options, settings)
+    );
+    return;
+  }
   if (options.allOrNothing) {
     const translation = options.fragment
       ? translator.translateFragment
@@ -292,6 +301,18 @@ function linoReport(report) {
     }
   }
   return lines.length ? `${lines.join('\n')}\n` : '';
+}
+
+// What `translate --candidates` prints: one candidate per line, the most
+// probable first.
+function candidatesReport(translator, [source, from, to], options, settings) {
+  if (options.allOrNothing || options.fragment) {
+    throw new Error('--candidates takes no --all-or-nothing or --fragment');
+  }
+  return translator
+    .translateCandidates(source, from, to, settings)
+    .map((candidate) => `${linoLinks(candidate)}\n`)
+    .join('');
 }
 
 const jsonReport = (value) => `${JSON.stringify(value, null, 2)}\n`;

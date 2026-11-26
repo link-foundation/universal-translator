@@ -165,3 +165,77 @@ layout pass. That is how the architecture avoids later rewrites.
   planned layer on top of `Sentence`; today a sentence is a list of words.
 - The router and formal-ai cases are covered by the API, but are not yet in
   CI as a corpus (`prior-art.md` section 6.5 recommends that).
+
+## Ranking and imprecision
+
+Where a source can be read more than one way, the translator lists the
+candidate translations, scores each one and keeps the most probable. The
+scores are truth values in the style of relative-meta-logic: numbers in
+[0, 1] on a grid of six decimals, combined by their product
+(`js/src/natural/probability.js`; the Rust twin uses the package's
+`TruthValue` and `Aggregator::Product`).
+
+- **Frequency.** A phrase's meanings are listed most frequent first. Each
+  one gets a Zipf prior, 1 / rank normalized to sum 1 (two meanings:
+  0.666667 and 0.333333). The frequency of a translation is the product of
+  the priors of the readings it takes.
+- **Round trip.** The meanings of the translation are read back in the
+  target language and compared with the meanings of the source: the longest
+  common subsequence of the two lists over the longer length.
+- **Coverage.** The share of lines translated, 1 when the translation is
+  complete.
+- **Probability.** frequency × round trip × coverage.
+
+The choices are in prose: comments, declared names, and the sentences of a
+natural language that no template reads. Code is translated one way by its
+rules. `rankProse` (`rank_prose`) searches the readings of one prose part
+greedily. It starts from the most frequent reading of every phrase and
+tries the other readings of one phrase at a time. A reading is kept only
+when the probability gets strictly higher. At most 16 translations are
+scored. So the default translation changes only when another reading
+survives the round trip strictly better.
+
+`translateCandidates` (`Translator::translate_candidates`) ranks every prose
+part of a text. Its first candidate is the text `translatePartial` writes.
+Each other candidate takes one other translation of one part. A translator
+that has its own comment translator gives a single candidate. On the
+command line, `translate <from> <to> --candidates` prints one candidate per
+line:
+
+```text
+$ printf 'Привет мир. Как дела?' | universal-translator translate russian english - --candidates
+(text 'Hello world. How do?
+') (probability 0.296297) (frequency 0.296297) (roundTrip 1) (coverage 1)
+(text 'Hello peace. How do?
+') (probability 0.111111) (frequency 0.148148) (roundTrip 0.75) (coverage 1)
+(text 'Hello world. Like do?
+') (probability 0.111111) (frequency 0.148148) (roundTrip 0.75) (coverage 1)
+(text 'Hello world. How to make?
+') (probability 0.111111) (frequency 0.148148) (roundTrip 0.75) (coverage 1)
+```
+
+The meta program records what a reading loses (`js/src/meta/imprecision.js`
+and `js/src/natural/prose-reading.js`) as attributes of the node:
+
+| Kind                         | Where                                                              | Attributes                                                               |
+| ---------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------ |
+| `(imprecision ambiguous)`    | a word of prose with more than one meaning                         | `(alternatives n)`, and `(probability p)`, the prior of the reading kept |
+| `(imprecision untranslated)` | a word of prose with no known meaning; a translation keeps it      |                                                                          |
+| `(imprecision truncated)`    | a number with a fraction, typed as an integer                      |                                                                          |
+| `(imprecision rounded)`      | an integer beyond 2^53 − 1, the largest one a double keeps exactly |                                                                          |
+
+`meta` prints these attributes, in Links Notation and with `--json`.
+Emitters ignore them: `imprecision` is one of the keys that the essence of
+a node leaves out, and `alternatives` and `probability` are only set on
+words of a prose reading, which no emitter writes.
+
+Limits:
+
+- In a long text with many ambiguous words, the frequency product falls
+  towards 0. Every candidate is then close to 0, and the default is kept.
+- Only prose is ranked. The structure of code, and the templates of the
+  controlled languages, have one reading each.
+- A run of letters inside one word of a language written without spaces
+  shares one reading key with the same run elsewhere in that word.
+- `truncated` is recorded only while type inference calls a number with a
+  fraction an integer.

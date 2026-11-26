@@ -416,7 +416,7 @@ pub fn later_calls(functions: &[Node]) -> Vec<Node> {
 
 /// Fields that do not change behaviour: types that an untyped language cannot
 /// express, comments, imports and mutability.
-const IGNORED_KEYS: [&str; 8] = [
+const IGNORED_KEYS: [&str; 9] = [
     "type",
     "returnType",
     "comments",
@@ -425,6 +425,7 @@ const IGNORED_KEYS: [&str; 8] = [
     "mutable",
     "elementsAssigned",
     "blankAfter",
+    "imprecision",
 ];
 
 /// The meaning of a program, without details that do not change behaviour:

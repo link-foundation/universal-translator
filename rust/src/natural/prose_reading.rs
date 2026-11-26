@@ -5,7 +5,8 @@
 //! ```text
 //!   Prose     { language, sentences }
 //!   Sentence  { words, question? }
-//!   Word      { text, concept? | prime? | word?, part? }
+//!   Word      { text, concept? | prime? | word?, part?, imprecision?,
+//!               alternatives?, probability? }
 //!   Code      { language, program }   a quoted piece of code, read
 //! ```
 //!
@@ -15,12 +16,19 @@
 //! (comments.rs): the longest known phrase of up to four words first, an
 //! inflected word through its stem, and in a question the interrogative
 //! meanings first. The JavaScript twin is js/src/natural/prose-reading.js.
+//!
+//! A word is read imprecisely when it may mean more than one thing
+//! (imprecision ambiguous: how many meanings it has, and the probability of
+//! the one read, its share of the frequencies, probability.rs) or when no
+//! meaning of it is known (imprecision untranslated: a translation keeps it
+//! as it is).
 
 use std::sync::LazyLock;
 
 use regex::Regex;
 
 use super::comments::{Meanings, detect_comment_language, fold, likely, meanings_of, pieces};
+use super::probability::priors;
 use super::vocabulary::known_form;
 use crate::meta::tree::{Node, Value};
 
@@ -33,19 +41,37 @@ static TERMINATORS: LazyLock<Regex> =
 static QUESTION_MARKS: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"[?？؟]").expect("question marks"));
 
-/// A word and its meaning: `concept:print` -> `(concept print)`.
-fn word(text: &str, meaning: Option<&str>, language: &Meanings) -> Node {
+/// The meaning a phrase is read in, and how many meanings it may have.
+struct Reading {
+    meaning: String,
+    alternatives: usize,
+}
+
+/// A word and its meaning: `concept:print` -> `(concept print)`, with the
+/// imprecision of a reading out of several meanings.
+fn word(text: &str, reading: &Reading, language: &Meanings) -> Node {
     let mut node = Node::new("Word").with("text", text);
-    if let Some(meaning) = meaning
-        && let Some((field, value)) = meaning.split_once(':')
-    {
+    let meaning = reading.meaning.as_str();
+    if let Some((field, value)) = meaning.split_once(':') {
         node.set(field, value);
         let part = language.part(meaning);
         if !part.is_empty() {
             node.set("part", part);
         }
     }
+    if reading.alternatives > 1 {
+        node.set("imprecision", "ambiguous");
+        node.set("alternatives", reading.alternatives as f64);
+        node.set("probability", priors(reading.alternatives)[0]);
+    }
     node
+}
+
+/// A word no meaning is known for.
+fn unknown_word(text: &str) -> Node {
+    Node::new("Word")
+        .with("text", text)
+        .with("imprecision", "untranslated")
 }
 
 fn understood(word: &Node) -> bool {
@@ -53,7 +79,7 @@ fn understood(word: &Node) -> bool {
 }
 
 /// The meaning of a known phrase, through its stem for a single word.
-fn meaning_of(phrase: &str, language: &Meanings, single: bool, question: bool) -> Option<String> {
+fn meaning_of(phrase: &str, language: &Meanings, single: bool, question: bool) -> Option<Reading> {
     let form = if language.meanings.contains_key(phrase) {
         Some(phrase.to_owned())
     } else if single {
@@ -61,10 +87,10 @@ fn meaning_of(phrase: &str, language: &Meanings, single: bool, question: bool) -
     } else {
         None
     };
-    form.and_then(|form| {
-        likely(&form, language, question)
-            .first()
-            .map(|it| (*it).clone())
+    let meanings = likely(&form?, language, question);
+    meanings.first().map(|meaning| Reading {
+        meaning: (*meaning).clone(),
+        alternatives: meanings.len(),
     })
 }
 
@@ -83,7 +109,7 @@ fn segmented(text: &str, language: &Meanings, question: bool) -> Vec<Node> {
             });
         if let Some((size, meaning)) = found {
             let run: String = letters[at..at + size].iter().collect();
-            words.push(word(&run, Some(&meaning), language));
+            words.push(word(&run, &meaning, language));
             at += size;
             continue;
         }
@@ -92,7 +118,7 @@ fn segmented(text: &str, language: &Meanings, question: bool) -> Vec<Node> {
                 let joined = format!("{}{}", last.str("text").unwrap_or(""), letters[at]);
                 last.set("text", joined);
             }
-            _ => words.push(word(&letters[at].to_string(), None, language)),
+            _ => words.push(unknown_word(&letters[at].to_string())),
         }
         at += 1;
     }
@@ -132,13 +158,13 @@ fn sentence_words(run: &[(&str, &str)], language: &Meanings, question: bool) -> 
                 .map(|meaning| (text, meaning, size))
         });
         if let Some((text, meaning, size)) = found {
-            words.push(word(&text, Some(&meaning), language));
+            words.push(word(&text, &meaning, language));
             index += size;
         } else if !language.grammar.spaced {
             words.extend(segmented(run[index].0, language, question));
             index += 1;
         } else {
-            words.push(word(run[index].0, None, language));
+            words.push(unknown_word(run[index].0));
             index += 1;
         }
     }
@@ -200,7 +226,8 @@ fn read_sentence(
             Item::Code(code) => {
                 words.extend(sentence_words(&run, language, sentence.question));
                 run.clear();
-                words.push(read_code(code).unwrap_or_else(|| word(code, None, language)));
+                words
+                    .push(read_code(code).unwrap_or_else(|| Node::new("Word").with("text", *code)));
             }
         }
     }

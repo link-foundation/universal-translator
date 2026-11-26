@@ -307,8 +307,14 @@ impl Translator {
         }
     }
 
-    /// Read a source text into a typed meta program.
+    /// Read a source text into a typed meta program, with what its reading
+    /// lost marked.
     pub fn to_meta(&self, text: &str, from: &str) -> Result<Node, GrammarError> {
+        self.read_meta(text, from)
+            .map(crate::meta::imprecision::mark_imprecision)
+    }
+
+    fn read_meta(&self, text: &str, from: &str) -> Result<Node, GrammarError> {
         let source = &self.rules.source(text, from);
         if natural::is_natural_language(from) {
             // A controlled natural language is read sentence by sentence

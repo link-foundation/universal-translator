@@ -12,7 +12,7 @@ use universal_translator::{
 };
 
 const USAGE: &str = "Usage:
-  universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment] [--all-or-nothing] [--rules <file.lino>] [--comment-language <natural>] [--comment-from <natural>] [--identifier-language <natural>] [--identifier-from <natural>] [--layout source|target]
+  universal-translator translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment] [--all-or-nothing] [--rules <file.lino>] [--comment-language <natural>] [--comment-from <natural>] [--identifier-language <natural>] [--identifier-from <natural>] [--layout source|target] [--candidates]
   universal-translator meta <language> [file|-] [--json] [--shallow]
   universal-translator coverage <language> [file|-] [--json]
   universal-translator detect [file|-] [--json]
@@ -48,6 +48,8 @@ the language of the names (detected otherwise).
 --layout source (the default) keeps the spaces and blank lines of the
 source between programming languages; --layout target writes the layout
 of the target.
+--candidates prints the candidate translations, the most probable first:
+(text ...) (probability p) (frequency f) (roundTrip r) (coverage c)
 <to> may name a version: python@2.
 meta prints the meta program as indented Links Notation; --json prints JSON.
 It reads comments and strings with the grammars they are written in
@@ -257,6 +259,35 @@ fn detection_report(detections: &[Detection], json: bool) -> String {
     .report(json)
 }
 
+/// What `translate --candidates` prints: one candidate per line, the most
+/// probable first.
+fn candidates_report(
+    translator: &Translator,
+    (source, from, to): (&str, &str, &str),
+    options: Options,
+    whole: bool,
+) -> Result<String, String> {
+    if whole {
+        return Err("--candidates takes no --all-or-nothing or --fragment".to_owned());
+    }
+    Ok(translator
+        .translate_candidates(source, from, to, options)
+        .map_err(|error| error.to_string())?
+        .into_iter()
+        .map(|candidate| {
+            Json::Object(vec![
+                ("text", Json::Text(candidate.text)),
+                ("probability", Json::Number(candidate.probability)),
+                ("frequency", Json::Number(candidate.frequency)),
+                ("roundTrip", Json::Number(candidate.round_trip)),
+                ("coverage", Json::Number(candidate.coverage)),
+            ])
+            .lino_links()
+                + "\n"
+        })
+        .collect())
+}
+
 fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String> {
     let mut file = None;
     let mut mode = None;
@@ -264,6 +295,7 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
     let mut common_library = false;
     let mut fragment = false;
     let mut all_or_nothing = false;
+    let mut candidates = false;
     let mut rules = None;
     let mut comment_language = None;
     let mut comment_from = None;
@@ -288,6 +320,7 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
             "--common-library" => common_library = true,
             "--fragment" => fragment = true,
             "--all-or-nothing" => all_or_nothing = true,
+            "--candidates" => candidates = true,
             "--rules" => {
                 let value = arguments
                     .next()
@@ -366,6 +399,14 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
     } else {
         from.to_owned()
     };
+    if candidates {
+        return candidates_report(
+            &translator,
+            (&source, &language, to),
+            options,
+            fragment || all_or_nothing,
+        );
+    }
     // --fragment translates a single statement, function definitions or a
     // whole program into the same kind of fragment. By default every part
     // that can be translated is, and the others are marked and listed on
