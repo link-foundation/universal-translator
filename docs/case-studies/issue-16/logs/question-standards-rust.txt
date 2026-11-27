@@ -1,0 +1,15 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 9.72s
+     Running rust/tests/questions.rs (target/debug/deps/questions-409af048b37cc244)
+
+running 7 tests
+test documentation_must_be_text_at_the_start_of_a_definition ... ok
+test introspection_questions_keep_distinct_aspects_and_subjects ... ok
+test formatted_strings_are_not_python_docstrings ... ok
+test imports_are_resolved_and_custom_names_stay_calls ... ok
+test documentation_editions_keep_the_source_runtime_value ... ok
+test documentation_is_runtime_metadata_and_retains_multiline_contents ... ok
+test questions_round_trip_every_natural_language ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.66s
+

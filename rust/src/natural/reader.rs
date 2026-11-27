@@ -18,8 +18,8 @@ use super::catalog::{Language, natural_language};
 use super::levels::{Associativity, LEVELS, level_index, operator_of_template};
 use super::lines::sentence_lines;
 use super::tokens::{Kind, Token};
-use crate::formal::questions::ASPECTS;
 use crate::meta::for_each::raise_for_each;
+use crate::meta::questions::ASPECTS;
 use crate::meta::{Node, Value, add, binary, block, name, number};
 
 const NAME_SLOTS: [&str; 3] = ["name", "variable", "callee"];

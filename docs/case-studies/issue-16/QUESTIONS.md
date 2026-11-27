@@ -14,6 +14,21 @@ The controlled natural grammars have distinct question and answer phrases. The
 same recursive expression reader handles their subject slots; these are not
 whole-program examples or name-specific substitutions.
 
+Restricted profiles (including NSM and ASD-STE100) keep their declared
+vocabularies. They compose their existing evaluation instruction with a quoted
+operation tag, for example `Do “type” (meaning)?`, and use `“type” (meaning)`
+as an answer expression. The tags `type`, `documentation`, `source`, `details`
+and `__doc__` are technical data, not new prose words. A profile may explicitly
+override these forms. Ordinary question words are contextual: introducing
+`the source of ...` does not reserve the program identifier `source`.
+
+CI at `2198d53` exposed the inherited-vocabulary error and corresponding golden
+identifier drift. The new tests check both description and generated question
+text against every profile's unchanged rules; the existing natural examples
+have no output drift. The browser job also exposed a missing render barrier:
+an active region exists for a cursor before a selection has been painted.
+The subline browser assertion now waits for Monaco's selected text first.
+
 Python readers recognize built-in `type`, the `__doc__` property, imported
 `inspect.getsource` (including module/member aliases), and IPython `meaning??`.
 Declared names, parameters, and conflicting imports prevent mistaking a custom

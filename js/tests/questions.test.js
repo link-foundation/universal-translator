@@ -2,7 +2,12 @@ import { describe, it } from 'test-anywhere';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { cleanDocumentation } from '../src/formal/documentation.js';
-import { createTranslator, naturalLanguageIds } from '../src/index.js';
+import {
+  checkDescription,
+  checkText,
+  createTranslator,
+  naturalLanguageIds,
+} from '../src/index.js';
 
 const translator = createTranslator();
 const question = (source, from = 'python') =>
@@ -64,6 +69,8 @@ describe('compositional introspection questions', () => {
     for (const language of naturalLanguageIds()) {
       for (const [source, aspect] of aspects) {
         const text = translator.translate(source, 'python', language);
+        assert.deepEqual(checkDescription(language), [], language);
+        assert.deepEqual(checkText(text, language), [], `${language}: ${text}`);
         assert.ok(text.trimEnd().endsWith('?'), `${language}: ${text}`);
         assert.equal(question(text, language).aspect, aspect, language);
         assert.equal(
@@ -84,6 +91,20 @@ describe('compositional introspection questions', () => {
         'python'
       ),
       '(meaning).__doc__\n'
+    );
+  });
+
+  it('keeps existing identifiers when introducing contextual question words', () => {
+    const text = translator.translate(
+      'const source = 1; const information = source; console.log(information);',
+      'javascript',
+      'english'
+    );
+    assert.ok(text.includes('Create source with value 1.'), text);
+    assert.ok(text.includes('Create information with value source.'), text);
+    assert.equal(
+      translator.toMeta(text, 'english').main.statements[1].value.name,
+      'source'
     );
   });
 
@@ -112,6 +133,9 @@ describe('runtime documentation', () => {
       ...naturalLanguageIds(),
     ]) {
       const text = translator.translate(documented, 'python@3.12', language);
+      if (naturalLanguageIds().includes(language)) {
+        assert.deepEqual(checkText(text, language), [], `${language}: ${text}`);
+      }
       const read = translator.toMeta(text, language);
       assert.equal(read.functions[0].documentation.value, docstring, language);
       const python = translator.translate(text, language, 'python');

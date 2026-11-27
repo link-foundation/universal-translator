@@ -1,0 +1,11 @@
+▶ requirements gate
+  ✔ reports every requirement as done or blocked with a reason (491.688217ms)
+✔ requirements gate (493.694157ms)
+ℹ tests 1
+ℹ suites 1
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 661.013017

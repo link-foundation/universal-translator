@@ -290,7 +290,8 @@ pub fn check_text(text: &str, id: &str) -> Result<Vec<String>, String> {
     let average = numeric_rule(language, "average-sentence-words");
     let mut problems = Vec::new();
     let mut lengths = Vec::new();
-    for line in text.split('\n').map(|line| line.trim()) {
+    for (_, raw) in super::lines::sentence_lines(text, language) {
+        let line = raw.trim();
         if line.is_empty() || is_note(line, language) {
             continue;
         }

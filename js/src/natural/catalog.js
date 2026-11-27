@@ -73,6 +73,40 @@ export const optionalTemplateKeys = [
 // what they say.
 const everydayTemplateKeys = ['increase', 'decrease'];
 
+// Reflection words only introduce complete phrases; they do not prevent a
+// program from using an ordinary name such as "source" or "information".
+const contextualTemplate = (key) =>
+  key === 'documentation' || /^(question|answer)-/u.test(key);
+
+// Restricted standards can invoke the same operations without adding words to
+// their vocabulary. Quoted operation names are technical data, like program
+// names, and the surrounding instruction comes from the standard itself.
+function reflectionTemplates(base, description, templates) {
+  const constrained = [
+    'vocabulary',
+    'primes',
+    'forbidden-words',
+    'sentence-starts',
+  ].some((key) => description.rules[key]?.length);
+  if (!constrained) {
+    return;
+  }
+  const [open, close] = description.quotes ?? base.quotes ?? ['"', '"'];
+  const instruction =
+    description.templates.evaluate?.[0] ?? templates.evaluate[0];
+  const operation = (name, slot) => `${open}${name}${close} ({${slot}})`;
+  for (const aspect of ['type', 'documentation', 'source', 'details']) {
+    const answer = operation(aspect, 'subject');
+    templates[`answer-${aspect}`] = [answer];
+    templates[`question-${aspect}`] = [
+      instruction.replace('{expression}', answer),
+    ];
+  }
+  templates.documentation = [
+    instruction.replace('{expression}', operation('__doc__', 'value')),
+  ];
+}
+
 function inheritedTemplates(base, description) {
   const templates = { ...base.templates };
   if (Object.keys(description.rules ?? {}).length > 0) {
@@ -80,6 +114,7 @@ function inheritedTemplates(base, description) {
       delete templates[key];
     }
   }
+  reflectionTemplates(base, description, templates);
   return { ...templates, ...description.templates };
 }
 
@@ -207,11 +242,13 @@ function compile(description) {
   for (const key of optionalTemplateKeys) {
     language.compiled[key] ??= [];
   }
-  // Every word that appears literally in a template is reserved: a program
-  // name spelled the same way gets a trailing "_" so it stays a name.
+  // Core syntax words are reserved. Reflection phrases use contextual words
+  // so adding a question does not change the spelling of existing names.
   language.reserved = new Set(
     [
-      ...Object.values(language.compiled)
+      ...Object.entries(language.compiled)
+        .filter(([key]) => !contextualTemplate(key))
+        .map(([, variants]) => variants)
         .flat(2)
         .filter((token) => token.type === 'word')
         .map((token) => token.folded),

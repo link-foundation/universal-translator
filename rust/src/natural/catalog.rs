@@ -611,7 +611,59 @@ fn inherited_templates(base: &Description, description: &Description) -> Ordered
             .entries
             .retain(|(key, _)| !EVERYDAY_TEMPLATE_KEYS.contains(&key.as_str()));
     }
+    reflection_templates(base, description, &mut templates);
     templates.merged(&description.templates)
+}
+
+// Quoted operation names are technical data. Restricted standards reuse their
+// own instruction syntax instead of inheriting words outside their vocabulary.
+fn reflection_templates(
+    base: &Description,
+    description: &Description,
+    templates: &mut Ordered<Vec<String>>,
+) {
+    let constrained = ["vocabulary", "primes", "forbidden-words", "sentence-starts"]
+        .iter()
+        .any(|key| {
+            description
+                .rules
+                .get(key)
+                .is_some_and(|words| !words.is_empty())
+        });
+    if !constrained {
+        return;
+    }
+    let quotes = description.quotes.as_ref().or(base.quotes.as_ref());
+    let open = quotes
+        .and_then(|pair| pair.first())
+        .map_or("\"", String::as_str);
+    let close = quotes
+        .and_then(|pair| pair.get(1))
+        .map_or("\"", String::as_str);
+    let instruction = description
+        .templates
+        .get("evaluate")
+        .or_else(|| templates.get("evaluate"))
+        .and_then(|variants| variants.first())
+        .cloned()
+        .unwrap_or_default();
+    let operation = |name: &str, slot: &str| format!("{open}{name}{close} ({{{slot}}})");
+    for aspect in ["type", "documentation", "source", "details"] {
+        let answer = operation(aspect, "subject");
+        templates.insert(&format!("answer-{aspect}"), vec![answer.clone()]);
+        templates.insert(
+            &format!("question-{aspect}"),
+            vec![instruction.replace("{expression}", &answer)],
+        );
+    }
+    templates.insert(
+        "documentation",
+        vec![instruction.replace("{expression}", &operation("__doc__", "value"))],
+    );
+}
+
+fn contextual_template(key: &str) -> bool {
+    key == "documentation" || key.starts_with("question-") || key.starts_with("answer-")
 }
 
 /// Templates become token lists once, with slot tokens for the holes.
@@ -661,12 +713,12 @@ fn compile(description: Description) -> Result<Language, String> {
             .collect::<Result<Vec<_>, _>>()?;
         language.compiled.insert(key.clone(), variants);
     }
-    // Every word that appears literally in a template is reserved: a program
-    // name spelled the same way gets a trailing "_" so it stays a name.
+    // Reflection phrases use contextual words so existing names stay stable.
     let mut reserved: HashSet<String> = language
         .compiled
-        .values()
-        .flatten()
+        .iter()
+        .filter(|(key, _)| !contextual_template(key))
+        .flat_map(|(_, variants)| variants)
         .flatten()
         .filter(|token| token.kind == super::tokens::Kind::Word)
         .map(|token| fold(&token.folded))
@@ -768,7 +820,7 @@ pub fn with_templates(id: &str, templates: &[(String, Vec<String>)]) -> Result<L
             .map(|text| tokenize(text, &language.spelling(), true))
             .collect::<Result<Vec<_>, _>>()?;
         for token in compiled.iter().flatten() {
-            if token.kind == super::tokens::Kind::Word {
+            if token.kind == super::tokens::Kind::Word && !contextual_template(key) {
                 language.reserved.insert(fold(&token.folded));
             }
         }

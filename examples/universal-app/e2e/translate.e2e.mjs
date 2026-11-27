@@ -619,6 +619,9 @@ async function linkedSublineRegions(tab) {
   for (let at = 0; at < 6; at++) {
     await tab.keyboard.press('Shift+ArrowRight');
   }
+  // The cursor already paints an active region. Wait for Monaco to render
+  // the selection too before inspecting its line and width.
+  await tab.waitForSelector('#target-text .selected-text');
   await tab.waitForSelector('#target-text .map-region.map-active');
   assert.equal(await lineAt(tab, '#target-text', '.selected-text'), 4);
   const selected = await tab

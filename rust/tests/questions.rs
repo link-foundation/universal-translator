@@ -1,4 +1,4 @@
-use universal_translator::natural::natural_language_ids;
+use universal_translator::natural::{check_description, check_text, natural_language_ids};
 use universal_translator::{Mode, Translator};
 
 const CASES: [(&str, &str); 4] = [
@@ -39,6 +39,14 @@ fn questions_round_trip_every_natural_language() {
             let text = translator
                 .translate(source, "python", language, Mode::ContextDependent)
                 .unwrap();
+            assert!(
+                check_description(language).unwrap().is_empty(),
+                "{language}"
+            );
+            assert!(
+                check_text(&text, language).unwrap().is_empty(),
+                "{language}: {text}"
+            );
             assert!(text.trim_end().ends_with('?'), "{language}: {text}");
             assert_eq!(aspect(&text, language), expected, "{language}");
             let python = translator
@@ -61,6 +69,12 @@ fn documentation_is_runtime_metadata_and_retains_multiline_contents() {
         let text = translator
             .translate(source, "python", language, Mode::ContextDependent)
             .unwrap();
+        if natural_language_ids().contains(&language) {
+            assert!(
+                check_text(&text, language).unwrap().is_empty(),
+                "{language}: {text}"
+            );
+        }
         let read = translator.to_meta(&text, language).unwrap();
         assert_eq!(
             read.nodes("functions")[0].node("documentation"),

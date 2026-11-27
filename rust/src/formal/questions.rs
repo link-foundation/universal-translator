@@ -4,8 +4,6 @@ use std::collections::{HashMap, HashSet};
 use super::emitter::Emitter;
 use crate::meta::{GrammarError, Node, Settings, name, rewrite, walk};
 
-pub(crate) const ASPECTS: [&str; 4] = ["type", "documentation", "source", "details"];
-
 fn bindings(tree: &Node, initial: impl IntoIterator<Item = String>) -> HashSet<String> {
     let mut names: HashSet<_> = initial.into_iter().collect();
     walk(tree, |current| {

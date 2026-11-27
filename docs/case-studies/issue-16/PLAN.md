@@ -115,3 +115,16 @@ from comments and retains multiline values. A native regression exposed Python
 restoration preserve the runtime value. SQL/LINQ and other targets remain open.
 See `QUESTIONS.md` for architecture, primary sources and focused evidence.
 Rust CI at `a415de3` found an unnecessary test-helper lifetime, now elided.
+
+Current verification repair: `2198d53` CI found inherited reflection words
+outside restricted natural vocabularies, global reservation of new words that
+changed old identifiers, a stale Python-edition assertion, and a browser
+assertion that did not wait for Monaco to render its selection. JS/Rust now
+compose restricted reflection forms from the profile's own evaluation syntax
+and quoted technical operation names; vocabulary rules stay unchanged. New
+questions use contextual words. Focused checks pass (30 JavaScript tests,
+7 Rust tests, Clippy, golden examples and the real-browser suite). The existing
+natural checks passed; their requirements gate caught a Rust natural-reader
+dependency on the formal question constants. Those constants now belong to meta,
+and the requirements gate passes. Multiline quoted documentation is also checked
+as one logical sentence by both standards validators. Broader CI is pending.

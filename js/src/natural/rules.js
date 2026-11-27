@@ -26,6 +26,7 @@ import { parseLinks } from '../meta/links.js';
 import { naturalLanguage } from './catalog.js';
 import { naturalSources } from './sources.js';
 import { tokenize } from './tokens.js';
+import { sentenceLines } from './lines.js';
 
 let primes;
 
@@ -170,7 +171,8 @@ export function checkText(text, id) {
   const average = Number(rules['average-sentence-words']?.[0] ?? Infinity);
   const problems = [];
   const lengths = [];
-  for (const line of text.split('\n').map((value) => value.trim())) {
+  for (const { raw } of sentenceLines(text, language)) {
+    const line = raw.trim();
     if (!line || isNote(line, language)) {
       continue;
     }

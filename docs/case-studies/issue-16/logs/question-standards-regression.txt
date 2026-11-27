@@ -1,0 +1,54 @@
+▶ compositional introspection questions
+  ✔ distinguishes all four aspects and keeps the ordinary subject expression (410.705804ms)
+  ✔ resolves inspect imports and aliases without capturing shadowed procedures (17.44583ms)
+  ✔ round trips questions through every natural-language grammar (1128.417084ms)
+  ✔ keeps existing identifiers when introducing contextual question words (11.504779ms)
+  ✔ composes question answers inside expressions and print statements (203.385955ms)
+✔ compositional introspection questions (1774.502678ms)
+▶ runtime documentation
+  ✔ preserves multiline runtime documentation across code and natural languages (599.664801ms)
+  ✔ distinguishes Python docstring editions and preserves their runtime values (843.416654ms)
+  ✔ rejects documentation outside a definition or with a non-text value (1.171165ms)
+  ✔ keeps f-strings distinct from Python docstring literals (13.526339ms)
+  ✔ retains later documentation assignments after earlier reads (5.803084ms)
+  ✔ executes translated documentation reads with the original contents (947.740018ms)
+  ✔ reads native JavaScript reflection back into the same question (14.6686ms)
+✔ runtime documentation (2427.247735ms)
+▶ requirements gate
+  ✔ reports every requirement as done or blocked with a reason (548.263847ms)
+✔ requirements gate (550.381287ms)
+▶ standards of programming languages
+  ✔ lists every word of a language with the concept it spells (2.889079ms)
+  ✔ saves a changed standard as a version of its own and translates with it (364.400056ms)
+  ✔ makes a version of one own from another version (7.609683ms)
+  ✔ keeps built-in versions and rejects unknown concepts (0.704073ms)
+✔ standards of programming languages (377.904654ms)
+▶ standards of natural languages
+  ✔ shows every word of every language with its meta concept (100.307572ms)
+  ✔ registers a standard of one own, extending the closest language (45.575226ms)
+✔ standards of natural languages (146.374927ms)
+▶ natural standards crafted in an editor
+  ✔ writes only the changed entries over the closest language (10.185337ms)
+✔ natural standards crafted in an editor (10.672807ms)
+▶ words defined through other words
+  ✔ starts every standard from the semantic primes of its language (22.606396ms)
+  ✔ adds composite words only through words it has (3.447479ms)
+  ✔ keeps a standard within its word limit (1.489028ms)
+  ✔ defines unknown words recursively, in real time (2.346607ms)
+  ✔ reports the words it cannot reach and does not loop on cycles (1.23807ms)
+  ✔ finds the dictionary form of inflected English words (0.345424ms)
+✔ words defined through other words (35.407112ms)
+▶ definitions from Wikidata
+  ✔ reads the glosses of lexemes spelled like the word, once (2.361455ms)
+  ✔ waits and retries when Wikidata asks to slow down (1.539241ms)
+  ✔ gives up on a request without an answer (28.667601ms)
+  ✔ defines words offline from the Wikidata pre-cache (6.447706ms)
+✔ definitions from Wikidata (41.611453ms)
+ℹ tests 30
+ℹ suites 8
+ℹ pass 30
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4879.626602
