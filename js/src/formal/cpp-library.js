@@ -1,3 +1,5 @@
+import { inheritOrigin } from '../translation/source-origins.js';
+
 // An explicit C++ type template-id can precede the call's value arguments.
 // A fundamental type has no expression reading, so it distinguishes this
 // subset from comparisons such as `left < middle > (right)`.
@@ -101,7 +103,7 @@ export function declarationTypeFields(syntax, words, type, value) {
 
 // Copy C++ header imports and using-declarations from the source program
 // when its emitted code still uses the same library and namespace.
-export function keepCppImports(program, { from, to }) {
+function keepCppImports(program, { from, to }) {
   if (from !== 'cpp' || to !== 'cpp' || !program.imports?.length) {
     return program;
   }
@@ -130,4 +132,59 @@ export function keepCppImports(program, { from, to }) {
         ],
       }
     : program;
+}
+
+export function markCppFileItems(items) {
+  if (!items.some(({ kind }) => kind === 'Declaration')) {
+    return items;
+  }
+  let order = 0;
+  return items.map((item) => {
+    if (
+      item.kind !== 'Declaration' &&
+      (item.kind !== 'Function' || item.name === 'main')
+    ) {
+      return item;
+    }
+    const marked = inheritOrigin({ ...item, cppFileOrder: order }, item);
+    order += 1;
+    return marked;
+  });
+}
+
+function keepCppFileScope(program, { from, to }) {
+  if (from !== 'cpp' || to !== 'cpp' || !program.main) {
+    return program;
+  }
+  const declarations = [];
+  const statements = [];
+  for (const item of program.main.statements) {
+    const scope = item.cppFileOrder === undefined ? statements : declarations;
+    scope.push(item);
+  }
+  return declarations.length
+    ? inheritOrigin(
+        {
+          ...program,
+          globalDeclarations: declarations,
+          main: inheritOrigin({ ...program.main, statements }, program.main),
+        },
+        program
+      )
+    : program;
+}
+
+export function adaptCppProgram(program, settings) {
+  return keepCppFileScope(keepCppImports(program, settings), settings);
+}
+
+export function cppFileItems(program) {
+  const declarations = program.globalDeclarations;
+  if (!declarations?.length) {
+    return program.functions;
+  }
+  const order = (item) => item.cppFileOrder ?? Number.MAX_SAFE_INTEGER;
+  return [...declarations, ...program.functions].sort(
+    (a, b) => order(a) - order(b)
+  );
 }

@@ -15,6 +15,7 @@ import { languageSyntax } from './languages.js';
 import { splitVersion } from './versions.js';
 import { dialects } from './dialects/index.js';
 import { objectiveCRuntimeHeader } from './dialects/objc.js';
+import { cppFileItems } from './cpp-library.js';
 import { withArrays } from './array-spellings.js';
 import { writePower } from './power.js';
 import { writeQuestion, writePropertyAccess } from './questions.js';
@@ -972,6 +973,7 @@ class BaseEmitter {
   }
 
   program(program) {
+    const items = this.id === 'cpp' ? cppFileItems(program) : program.functions;
     const insideClass = this.syntax.entryPoint === 'class-method';
     if (insideClass) {
       this.openBlock(
@@ -982,7 +984,7 @@ class BaseEmitter {
     // C, Pascal and Ada read from top to bottom, so a function called
     // before its definition is announced by a prototype.
     if (this.syntax.forwardDeclarations) {
-      const announced = laterCalls(program.functions);
+      const announced = laterCalls(items);
       this.announced = new Set(announced.map((item) => item.name));
       for (const item of announced) {
         this.line(this.forwardDeclaration(item));
@@ -991,12 +993,16 @@ class BaseEmitter {
         this.line();
       }
     }
-    program.functions.forEach((item, index) => {
+    items.forEach((item, index) => {
+      if (item.kind !== 'Function') {
+        this.statement(item);
+        return;
+      }
       this.functionDefinition(item);
       // A main procedure of its own is set apart from the functions.
       if (
         item.blankAfter !== false ||
-        (index === program.functions.length - 1 && this.mainHeader())
+        (index === items.length - 1 && this.mainHeader())
       ) {
         this.line();
       }

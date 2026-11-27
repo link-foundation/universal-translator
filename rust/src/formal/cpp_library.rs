@@ -1,5 +1,4 @@
-//! Pass through C++ library imports when the emitted code uses the same
-//! library and namespace as the source program.
+//! Preserve C++ library imports and file scope for C++ output.
 
 use std::sync::LazyLock;
 
@@ -18,7 +17,7 @@ static USING: LazyLock<Regex> = LazyLock::new(|| {
     .expect("using directive or declaration")
 });
 
-pub(crate) fn keep_cpp_imports(mut program: Node, settings: &Settings) -> Node {
+fn keep_cpp_imports(mut program: Node, settings: &Settings) -> Node {
     if settings.from != "cpp" || settings.to != "cpp" {
         return program;
     }
@@ -43,4 +42,53 @@ pub(crate) fn keep_cpp_imports(mut program: Node, settings: &Settings) -> Node {
         program.set("libraryImports", imports);
     }
     program
+}
+
+pub(crate) fn mark_cpp_file_items(items: &mut [Node]) {
+    if !items.iter().any(|item| item.is("Declaration")) {
+        return;
+    }
+    let mut order = 0.0;
+    for item in items {
+        if item.is("Declaration") || (item.is("Function") && item.str("name") != Some("main")) {
+            item.set("cppFileOrder", order);
+            order += 1.0;
+        }
+    }
+}
+
+fn keep_cpp_file_scope(mut program: Node, settings: &Settings) -> Node {
+    if settings.from != "cpp" || settings.to != "cpp" {
+        return program;
+    }
+    if let Some(main) = program.node("main") {
+        let (declarations, statements): (Vec<_>, Vec<_>) = main
+            .nodes("statements")
+            .into_iter()
+            .partition(|item| item.number("cppFileOrder").is_some());
+        if !declarations.is_empty() {
+            let declarations: Vec<_> = declarations.into_iter().cloned().collect();
+            let statements: Vec<_> = statements.into_iter().cloned().collect();
+            let mut main = main.clone();
+            main.set("statements", statements);
+            program.set("globalDeclarations", declarations);
+            program.set("main", main);
+        }
+    }
+    program
+}
+
+pub(crate) fn adapt_cpp_program(program: Node, settings: &Settings) -> Node {
+    keep_cpp_file_scope(keep_cpp_imports(program, settings), settings)
+}
+
+pub(crate) fn cpp_file_items(program: &Node) -> Vec<&Node> {
+    let mut items = program.nodes("globalDeclarations");
+    if items.is_empty() {
+        return program.nodes("functions");
+    }
+    items.extend(program.nodes("functions"));
+    let order = |item: &Node| item.number("cppFileOrder").unwrap_or(f64::MAX);
+    items.sort_by(|left, right| order(left).total_cmp(&order(right)));
+    items
 }

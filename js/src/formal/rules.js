@@ -37,6 +37,7 @@ import {
   recognizeArrays,
 } from './arrays.js';
 import { expandForEach, raiseForEach } from './for-each.js';
+import { markCppFileItems } from './cpp-library.js';
 import {
   attachComments,
   inheritOrigin,
@@ -146,6 +147,12 @@ function collectItems(items) {
         attachComments(inheritOrigin({ ...item }, item), 'comments', pending)
       );
     } else {
+      if (item.cppFileOrder !== undefined) {
+        pending = mapOrigins(pending, (trivia) => ({
+          ...trivia,
+          cppFileOrder: item.cppFileOrder,
+        }));
+      }
       program.main.statements.push(...pending, item);
     }
     pending = [];
@@ -163,9 +170,13 @@ const isExitSuccess = (statement) =>
 // Collect functions, the entry point and file comments into a Program. The
 // body of `main` becomes the program's main block.
 export function findEntryPoint(source, { from } = {}) {
+  const items =
+    from && splitVersion(from).id === 'cpp'
+      ? markCppFileItems(source.items)
+      : source.items;
   const program = unqualifyClassCalls(
-    collectItems(flattenClasses(source.items)),
-    source.items
+    collectItems(flattenClasses(items)),
+    items
   );
   const own = from && languageSyntax(from).mainName;
   const entry = program.functions.find(

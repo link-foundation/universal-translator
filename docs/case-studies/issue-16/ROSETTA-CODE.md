@@ -95,7 +95,21 @@ node experiments/issue-16-ascending-primes.mjs /tmp/ascending-primes-revision.js
   ./target/debug/universal-translator
 ```
 
-This adds one task type to the verified total. The C++ emitter still moves
-those file-scope declarations into `main`. This task's helper never reads
-them. Programs with shared file-scope state and translations of these
-containers to other languages still need implementation and verification.
+This adds one task type to the verified total. Translating these container
+types to other languages still requires a semantic mapping.
+
+## C++ file-scope declarations
+
+Previously, the readers placed file-scope declarations in the entry-point
+body. The C++ emitter consequently printed them as local variables. In the
+[shared state fixture](../../../examples/programs/library/cpp-file-scope.cpp),
+the compiler rejected the output from `4d268d9` because `advance` could no
+longer see `shared_value`. Both translators now retain the declaration's
+file scope and its position relative to function definitions. The emitter
+also recognizes calls from initializers when generating forward declarations.
+
+The original fixture and the emitted C++ both print `10` and `11`. The
+native regression runs alongside the three cases above. Focused JavaScript
+and Rust tests check that the declaration and its comment remain between
+the original function definitions. Cross-language library and declaration
+mapping remains open.

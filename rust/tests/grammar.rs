@@ -138,6 +138,43 @@ int main() {
     );
 }
 
+#[test]
+fn cpp_file_scope_initializers_preserve_source_order_and_dependencies() {
+    let source = r"int later();
+int earlier() { return 7; }
+// Shared by the two calls from main.
+int shared_value = earlier() + later();
+int later() { return 2; }
+int advance() { shared_value += 1; return shared_value; }
+int main() { return advance() + advance(); }
+";
+    let translator = Translator::new();
+    let emitted = translator
+        .translate(source, "cpp", "cpp", Mode::default())
+        .unwrap();
+    let mut remainder = emitted.as_str();
+    for section in [
+        "int later();",
+        "int earlier() {",
+        "// Shared by the two calls from main.\nint shared_value = earlier() + later();",
+        "int later() {",
+        "int advance() {",
+        "int main() {",
+    ] {
+        remainder = remainder
+            .split_once(section)
+            .unwrap_or_else(|| panic!("Missing ordered section {section:?}:\n{emitted}"))
+            .1;
+    }
+    assert_eq!(
+        meaning_difference(
+            &translator.to_meta(source, "cpp").unwrap(),
+            &translator.to_meta(&emitted, "cpp").unwrap()
+        ),
+        None
+    );
+}
+
 /// Every task with goldens under `examples/programs/translated`.
 fn tasks() -> Vec<String> {
     let folder = Path::new(env!("CARGO_MANIFEST_DIR")).join("examples/programs/translated");

@@ -1306,6 +1306,11 @@ impl Emitter {
 
     pub(crate) fn base_program(&mut self, program: &Node) -> Result<String> {
         self.prepare_exceptions(program);
+        let items = if self.id() == "cpp" {
+            super::cpp_library::cpp_file_items(program)
+        } else {
+            program.nodes("functions")
+        };
         let inside_class = self.syntax.entry_point == EntryPoint::ClassMethod;
         if inside_class {
             let container = self.syntax.container.unwrap_or(if self.id() == "csharp" {
@@ -1316,7 +1321,7 @@ impl Emitter {
             self.open_block(container);
         }
         if self.syntax.forward_declarations != ForwardDeclarations::None {
-            let announced = later_calls(&program.node_list("functions"));
+            let announced = later_calls(items.iter().copied());
             for item in &announced {
                 let name = item.str("name").unwrap_or_default().to_owned();
                 let announcement = self.forward_declaration(item);
@@ -1327,12 +1332,15 @@ impl Emitter {
                 self.line("");
             }
         }
-        let functions = program.nodes("functions");
-        for (index, item) in functions.iter().enumerate() {
+        for (index, item) in items.iter().enumerate() {
+            if !item.is("Function") {
+                self.statement(item)?;
+                continue;
+            }
             self.function_definition(item)?;
             // A main procedure of its own is set apart from the functions.
             if item.flag("blankAfter") != Some(false)
-                || (index + 1 == functions.len() && self.main_header().is_some())
+                || (index + 1 == items.len() && self.main_header().is_some())
             {
                 self.line("");
             }

@@ -36,6 +36,10 @@ const container = readFileSync(
   ),
   'utf8'
 );
+const fileScope = readFileSync(
+  new URL('../examples/programs/library/cpp-file-scope.cpp', import.meta.url),
+  'utf8'
+);
 const directory = mkdtempSync(join(tmpdir(), 'cpp-member-calls-'));
 const options = { encoding: 'utf8', maxBuffer: 32 * 1024 };
 
@@ -55,6 +59,7 @@ try {
     ['member calls', source, '2\n'],
     ['explicit template call', template, '1\n'],
     ['template object initialization', container, '0\n7\n'],
+    ['file-scope initialization and mutation', fileScope, '10\n11\n'],
   ]) {
     const original = run(program);
     assert.equal(original, expected);

@@ -37,7 +37,9 @@ pub fn understanding_rules() -> Vec<Rule> {
         rule("recognizeDocumentation", recognize_documentation),
         rule("recognizeSqlValues", super::sql_values::recognize),
         rule("recognizeObjpak", super::objpak::recognize_objpak),
-        rule("findEntryPoint", |program, _| find_entry_point(program)),
+        rule("findEntryPoint", |program, settings| {
+            entry_point(program, split_version(&settings.from).0 == "cpp")
+        }),
         rule("recognizeQuestions", recognize_questions),
         rule("concatenationOperator", concatenation_operator),
         rule("integerDivisionCalls", integer_division_calls),
@@ -234,6 +236,11 @@ fn collect_items(items: Vec<Node>) -> Node {
                 item, "comments", &pending,
             ));
         } else {
+            if let Some(order) = item.number("cppFileOrder") {
+                for trivia in &mut pending {
+                    trivia.set("cppFileOrder", order);
+                }
+            }
             statements.append(&mut pending);
             statements.push(item);
         }
@@ -262,7 +269,14 @@ fn is_exit_success(statement: Option<&Node>) -> bool {
 /// Collect functions, the entry point and file comments into a Program. The
 /// body of `main` becomes the program's main block.
 pub fn find_entry_point(source: Node) -> Node {
-    let items = source.node_list("items");
+    entry_point(source, false)
+}
+
+fn entry_point(source: Node, cpp: bool) -> Node {
+    let mut items = source.node_list("items");
+    if cpp {
+        super::cpp_library::mark_cpp_file_items(&mut items);
+    }
     let mut program = unqualify_class_calls(collect_items(flatten_classes(items.clone())), &items);
     let mut functions = program.node_list("functions");
     let Some(index) = functions

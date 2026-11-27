@@ -40,7 +40,7 @@ import { readWasmBinary } from './formal/machine-reader-wasm-binary.js';
 import { liftProgram } from './formal/lifting.js';
 import { raiseForEach } from './meta/for-each.js';
 import { useCommonLibrary } from './formal/common-library.js';
-import { keepCppImports } from './formal/cpp-library.js';
+import { adaptCppProgram } from './formal/cpp-library.js';
 import { splitVersion, versionsOf } from './formal/versions.js';
 import {
   isNaturalLanguage,
@@ -532,7 +532,7 @@ export function createGrammarTranslator(settings = {}) {
       return inCommentLanguage(rounded, options);
     }
     const sequenced = lowerEvaluationOrder(rounded, settings);
-    const adapted = keepCppImports(
+    const adapted = adaptCppProgram(
       applyRules(sequenced, context, settings),
       settings
     );

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'test-anywhere';
 import { createTranslator } from '../src/index.js';
+import { meaningDifference } from '../src/meta/tree.js';
 
 const translator = createTranslator();
 
@@ -102,5 +103,36 @@ int main() {
     expect(() => translator.translate(source, 'cpp', 'python')).toThrow(
       'C++ template type requires a library mapping for python'
     );
+  });
+
+  it('keeps C++ file-scope initialization and its dependencies in source order', () => {
+    const source = `int later();
+int earlier() { return 7; }
+// Shared by the two calls from main.
+int shared_value = earlier() + later();
+int later() { return 2; }
+int advance() { shared_value += 1; return shared_value; }
+int main() { return advance() + advance(); }
+`;
+    const emitted = translator.translate(source, 'cpp', 'cpp');
+    let previous = -1;
+    for (const section of [
+      'int later();',
+      'int earlier() {',
+      '// Shared by the two calls from main.\nint shared_value = earlier() + later();',
+      'int later() {',
+      'int advance() {',
+      'int main() {',
+    ]) {
+      const current = emitted.indexOf(section);
+      expect(current > previous).toBe(true);
+      previous = current;
+    }
+    expect(
+      meaningDifference(
+        translator.toMeta(source, 'cpp'),
+        translator.toMeta(emitted, 'cpp')
+      )
+    ).toBe(undefined);
   });
 });
