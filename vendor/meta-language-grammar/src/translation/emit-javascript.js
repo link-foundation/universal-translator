@@ -85,6 +85,11 @@ const ml_small_nat = [0n, 1n, 2n];
 const ml_small_int = [-1n, 0n, 1n];
 function ml_product(lists) {
   return lists.reduce((rows, list) => rows.flatMap((row) => list.map((value) => [...row, value])), [[]]);
+}
+function ml_ctorDomain(tag, fields, domains) {
+  return ml_product(domains).map((args) => Object.freeze(
+    Object.fromEntries([['$', tag], ...fields.map((field, index) => [field, args[index]])]),
+  ));
 }`,
 };
 
@@ -245,9 +250,8 @@ class JavaScriptEmitter {
           const recursive = ctor.fields.some((field) => field.type.kind === 'data');
           if (recursive && depth <= 1) return [];
           const fields = ctor.fields.map((field) => this.domain(field.type, field.type.kind === 'data' ? depth - 1 : 1));
-          const object = (args) => this.ctorObject(entry, ctor, args);
-          if (!fields.length) return [`[${object([])}]`];
-          return [`ml_product([${fields.join(', ')}]).map((args) => ${object(ctor.fields.map((_, index) => `args[${index}]`))})`];
+          const keys = JSON.stringify(ctor.fields.map((field) => fieldKey(field.name)));
+          return [`ml_ctorDomain(${JSON.stringify(ctor.name)}, ${keys}, [${fields.join(', ')}])`];
         });
         return values.length ? `[${values.map((value) => `...${value}`).join(', ')}]` : '[]';
       }

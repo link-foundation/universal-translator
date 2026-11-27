@@ -53,11 +53,25 @@ function javascriptEmitter(bytes) {
   const helperOrder = "'toNatChecked', 'abort'";
   const theoremError = "'theorem ${source} fails on a bounded input'";
   const theoremSuccess = "'theorem ${source}: holds on the bounded domain'";
+  const domainHelper = `function ml_product(lists) {
+  return lists.reduce((rows, list) => rows.flatMap((row) => list.map((value) => [...row, value])), [[]]);
+}`;
+  const domainConstructor = [
+    '          const object = (args) => this.ctorObject(entry, ctor, args);',
+    '          if (!fields.length) return [`[${object([])}]`];',
+    "          return [`ml_product([${fields.join(', ')}]).map((args) => ${object(ctor.fields.map((_, index) => `args[${index}]`))})`];",
+  ].join('\n');
   if (
     source.split(constructor).length !== 3 ||
-    [clampedCast, helperSlot, helperOrder, theoremError, theoremSuccess].some(
-      (part) => source.split(part).length !== 2
-    )
+    [
+      clampedCast,
+      helperSlot,
+      helperOrder,
+      theoremError,
+      theoremSuccess,
+      domainHelper,
+      domainConstructor,
+    ].some((part) => source.split(part).length !== 2)
   ) {
     throw new Error('Review the JavaScript generation patch against upstream');
   }
@@ -80,6 +94,19 @@ function javascriptEmitter(bytes) {
       .replace(
         clampedCast,
         "    if (e.flavor === 'clamp') {\n      this.helpers.add('toNatClamped');\n      return `ml_toNatClamped(${arg})`;\n    }"
+      )
+      .replace(
+        domainHelper,
+        () => `${domainHelper}
+function ml_ctorDomain(tag, fields, domains) {
+  return ml_product(domains).map((args) => Object.freeze(
+    Object.fromEntries([['$', tag], ...fields.map((field, index) => [field, args[index]])]),
+  ));
+}`
+      )
+      .replace(
+        domainConstructor,
+        "          const keys = JSON.stringify(ctor.fields.map((field) => fieldKey(field.name)));\n          return [`ml_ctorDomain(${JSON.stringify(ctor.name)}, ${keys}, [${fields.join(', ')}])`];"
       )
   );
 }

@@ -373,7 +373,7 @@
     },
     "src/translation/emit-javascript.js": {
       "upstreamSha256": "29d6c50b92acf568dbbdbce4bf6e68a2ad08c04157dcb57994a5a75ce0195c13",
-      "sha256": "0b50726fef9370c55d16d0d76d38f524db723a7efdb38717a06d1d021dbf085c"
+      "sha256": "add97cedbfe8d0d03191f12c514b4783d7bd20e28b282206aa3b10032b08c652"
     },
     "src/translation/emit-lean.js": {
       "upstreamSha256": "c7586ac250bf411bcec5585e11d3d54e82e2d26a5dbda96b58a797b96692d3c7",

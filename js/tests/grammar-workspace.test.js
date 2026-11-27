@@ -65,7 +65,7 @@ describe('executable grammar interchange', () => {
     expect(theorem.stderr).toBe('');
     expect(theorem.status).toBe(0);
     expect(theorem.stdout).toBe(
-      "theorem answer': holds on the bounded domain\n"
+      "theorem answer': holds on the bounded domain\ntheorem allPackets: holds on the bounded domain\n"
     );
   });
 
