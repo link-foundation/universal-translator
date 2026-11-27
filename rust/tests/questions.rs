@@ -8,6 +8,32 @@ const CASES: [(&str, &str); 4] = [
     ("meaning??\n", "details"),
 ];
 
+#[test]
+fn recursive_grammar_phrases_compose_through_formal_operators_and_back() {
+    let source = "Tell me the source of the kind of (the documentation of meaning)?\n";
+    let canonical = "What is the source of the type of the documentation of meaning?\n";
+    let translator = Translator::new();
+    let read = translator.to_meta(source, "english").unwrap();
+    let statements = read.node("main").unwrap().nodes("statements");
+    let mut subject = statements[0].node("expression").unwrap();
+    for expected in ["source", "type", "documentation"] {
+        assert_eq!(subject.str("aspect"), Some(expected));
+        subject = subject.node("subject").unwrap();
+    }
+    assert_eq!(subject.str("name"), Some("meaning"));
+    for target in ["english", "python", "javascript", "typescript"] {
+        let rendered = translator
+            .translate(source, "english", target, Mode::ContextDependent)
+            .unwrap();
+        assert_eq!(
+            translator
+                .translate(&rendered, target, "english", Mode::ContextDependent)
+                .unwrap(),
+            canonical,
+        );
+    }
+}
+
 fn aspect(source: &str, from: &str) -> String {
     let read = Translator::new().to_meta(source, from).unwrap();
     let statements = read.node("main").unwrap().nodes("statements");

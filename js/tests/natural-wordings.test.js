@@ -4,14 +4,72 @@
 // writes the canonical wording, the first template of each key. The Rust twin
 // is rust/tests/natural_wordings.rs.
 import { describe, expect, it } from 'test-anywhere';
+import assert from 'node:assert/strict';
 
 import { detectLanguage, translate } from '../src/index.js';
-import { naturalLanguage, naturalLanguageIds } from '../src/natural/catalog.js';
+import {
+  naturalLanguage,
+  naturalLanguageIds,
+  registerNaturalLanguage,
+  unregisterNaturalLanguage,
+} from '../src/natural/catalog.js';
 
 const everyday =
   'Let n be 0.\nWhile n is less than 3, do this:\n  Set n to n plus 1.\nPrint n.\n';
 const canonical =
   'Create n with value 0.\nWhile n falls below 3, repeat this:\n  Change n to n plus 1.\nWrite n and end the line.\n';
+
+describe('declarative controlled grammar', () => {
+  const prefix =
+    'natural:\n  id: message-grammar\n  extends: english\n  grammar:\n';
+
+  it('allows profile productions to reuse terms through several levels', () => {
+    const id = registerNaturalLanguage(`${prefix}    terms:
+      message: 'message' 'notice'
+      send-message: 'Send @message'
+      message-value: '@send-message {value}'
+    productions:
+      print-line: '@message-value now'
+`);
+    try {
+      const output = 'console.log(7);\n';
+      assert.equal(translate('Send notice 7 now.', id, 'javascript'), output);
+      assert.equal(
+        translate(output, 'javascript', id),
+        'Send message 7 now.\n'
+      );
+    } finally {
+      unregisterNaturalLanguage(id);
+    }
+  });
+
+  it('rejects missing terms, cycles, excessive alternatives and unclosed slots', () => {
+    for (const [grammar, error] of [
+      [
+        '    productions:\n      print-line: "@absent {value}"',
+        /Unknown natural grammar term "absent"/u,
+      ],
+      [
+        '    terms:\n      one: "@two"\n      two: "@one"',
+        /Natural grammar recursion at "one"/u,
+      ],
+      [
+        '    terms:\n      word: a b c d e\n    productions:\n      print-line: "@word @word @word {value}"',
+        /Too many natural grammar alternatives/u,
+      ],
+      [
+        '    productions:\n      print-line: "Say {value"',
+        /Unclosed slot in a template/u,
+      ],
+    ]) {
+      assert.throws(
+        () => registerNaturalLanguage(`${prefix}${grammar}\n`),
+        error
+      );
+    }
+    assert.ok(!naturalLanguageIds().includes('message-grammar'));
+  });
+});
 
 describe('grammatical case in controlled algorithms', () => {
   it('reads nominative and accusative constants as the same boolean', () => {

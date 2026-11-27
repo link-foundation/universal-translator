@@ -556,6 +556,10 @@ fn read_description(source: &str) -> Result<Description, String> {
                     .templates
                     .insert(label_of(entry), plain(values_of(entry)));
             }
+        } else if id == "grammar" {
+            for (key, variants) in super::grammar::productions(values)?.entries {
+                description.templates.insert(&key, variants);
+            }
         } else if id == "words" {
             for entry in values {
                 description

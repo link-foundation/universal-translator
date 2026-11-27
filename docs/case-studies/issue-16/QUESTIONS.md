@@ -15,6 +15,17 @@ The controlled natural grammars have distinct question and answer phrases. The
 same recursive expression reader handles their subject slots; these are not
 whole-program examples or name-specific substitutions.
 
+The English description shares grammar terms across query scope, branching,
+loops, comparisons, and question and answer forms. A named term can refer to
+another named term. A production assigns the resulting phrase and its typed
+slots to a semantic role. Term expansion rejects cycles, missing references,
+and oversized alternatives in both engines. A typed subject slot can in turn
+read another question. The tests translate `Tell me the source of the kind of
+(the documentation of meaning)?` through native Python, JavaScript and
+TypeScript reflection spellings, preserving all three operations on the way
+back to canonical English. Other language descriptions still support the
+previous format. [English grammar](../../../data/natural/english.lino)
+
 Restricted profiles (including NSM and ASD-STE100) keep their declared
 vocabularies. They compose their existing evaluation instruction with a quoted
 operation tag, for example `Do “type” (meaning)?`, and use `“type” (meaning)`

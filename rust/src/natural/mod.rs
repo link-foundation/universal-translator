@@ -6,6 +6,7 @@ mod agreement;
 pub mod catalog;
 mod collection_templates;
 pub mod comments;
+mod grammar;
 pub mod levels;
 mod lines;
 pub(crate) use lines::note_spans;

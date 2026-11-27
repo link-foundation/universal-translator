@@ -45,3 +45,7 @@ Preserve nullable SQL numeric values with three-valued logic, null-safe IS predi
 Preserve numerator and denominator grouping inside integer-division wrappers in both engines.
 
 Distinguish floor division and divisor-signed modulo from truncation and dividend-signed remainder, lower missing integer operations through verified shared algorithms, and preserve their structure through all seven machine formats.
+
+Sequence effectful Python scalar operands in C, C++, and Objective-C and retain explicit sequencing when reading C-family programs.
+
+Compose English controlled grammar from reusable phrase rules and accept alternative wording for recursively nested introspection questions in both engines.

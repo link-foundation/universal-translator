@@ -23,6 +23,25 @@ const aspects = [
 ];
 
 describe('compositional introspection questions', () => {
+  it('composes recursive grammar phrases through formal operators and back', () => {
+    const source =
+      'Tell me the source of the kind of (the documentation of meaning)?\n';
+    const read = question(source, 'english');
+    assert.equal(read.aspect, 'source');
+    assert.equal(read.subject.aspect, 'type');
+    assert.equal(read.subject.subject.aspect, 'documentation');
+    assert.equal(read.subject.subject.subject.name, 'meaning');
+    const canonical =
+      'What is the source of the type of the documentation of meaning?\n';
+    for (const target of ['english', 'python', 'javascript', 'typescript']) {
+      const rendered = translator.translate(source, 'english', target);
+      assert.equal(
+        translator.translate(rendered, target, 'english'),
+        canonical
+      );
+    }
+  });
+
   it('distinguishes all four aspects and keeps the ordinary subject expression', () => {
     for (const [source, aspect] of aspects) {
       const result = question(source);

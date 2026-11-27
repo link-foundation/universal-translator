@@ -12,6 +12,7 @@ import { tokenize } from './tokens.js';
 import { naturalSources } from './sources.js';
 import { derivedQueryTemplates, queryKeys } from '../meta/queries.js';
 import { collectionTemplates } from '../meta/collection-phrases.js';
+import { grammarProductions } from './grammar.js';
 
 // Every statement and expression form a language must describe.
 export const templateKeys = [
@@ -161,6 +162,11 @@ function readDescription(source) {
       for (const entry of values) {
         description.templates[entry.id] = plain(entry.values);
       }
+    } else if (id === 'grammar') {
+      Object.assign(
+        description.templates,
+        grammarProductions(values, [...templateKeys, ...optionalTemplateKeys])
+      );
     } else if (id === 'words') {
       for (const entry of values) {
         description.words[entry.id] = plain(entry.values).join(' ');
