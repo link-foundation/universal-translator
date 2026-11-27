@@ -1,0 +1,47 @@
+[
+  {
+    "conclusion": "success",
+    "createdAt": "2026-11-27T05:06:18Z",
+    "databaseId": 45943776720,
+    "headSha": "08e200cb7b92ed9f87e2dca9b762b6fd55a5d436",
+    "status": "completed",
+    "updatedAt": "2026-11-27T05:07:51Z",
+    "workflowName": "Example app"
+  },
+  {
+    "conclusion": "success",
+    "createdAt": "2026-11-27T05:06:18Z",
+    "databaseId": 45943776803,
+    "headSha": "08e200cb7b92ed9f87e2dca9b762b6fd55a5d436",
+    "status": "completed",
+    "updatedAt": "2026-11-27T05:19:07Z",
+    "workflowName": "Checks and release"
+  },
+  {
+    "conclusion": "success",
+    "createdAt": "2026-11-27T05:06:17Z",
+    "databaseId": 45943776579,
+    "headSha": "08e200cb7b92ed9f87e2dca9b762b6fd55a5d436",
+    "status": "completed",
+    "updatedAt": "2026-11-27T05:08:06Z",
+    "workflowName": "Security"
+  },
+  {
+    "conclusion": "success",
+    "createdAt": "2026-11-27T05:06:17Z",
+    "databaseId": 45943776580,
+    "headSha": "08e200cb7b92ed9f87e2dca9b762b6fd55a5d436",
+    "status": "completed",
+    "updatedAt": "2026-11-27T05:06:53Z",
+    "workflowName": "Broken Link Checker"
+  },
+  {
+    "conclusion": "success",
+    "createdAt": "2026-11-27T05:06:17Z",
+    "databaseId": 45943776546,
+    "headSha": "08e200cb7b92ed9f87e2dca9b762b6fd55a5d436",
+    "status": "completed",
+    "updatedAt": "2026-11-27T05:07:01Z",
+    "workflowName": "Workflows"
+  }
+]

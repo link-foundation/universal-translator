@@ -250,3 +250,9 @@ and partial-comment regressions pass with existing dialect/comment checks
 (24 JS and 26 Rust tests), lint and Clippy. Primary manuals and evidence are in
 `RUNTIME-HEADERS.md`. General mixed-HTML/mode-switch grammar coverage remains
 under the broader language inventory; continue all open acceptance work.
+
+All five workflows at `08e200c` pass for that exact commit, including the full
+Node/Bun/Deno, Rust and native translation checks, Security, and the web/desktop
+example builds. The Rocq/PHP fixes have focused and native local verification;
+their combined head still requires its own CI after pushing. The latest default
+branch is an ancestor of the prepared branch. Continue the open inventory.
