@@ -7,6 +7,7 @@ import { fileURLToPath, pathToFileURL, URL } from 'node:url';
 import { extensions } from '../examples/programs/verify-native.mjs';
 import {
   createSourceSyntaxCodec,
+  queryLanguageIds,
   writeSourceDocument,
 } from '../js/src/index.js';
 import { linkFields, parseLinks, references } from '../js/src/meta/links.js';
@@ -171,11 +172,34 @@ const programmingLanguages = (output) =>
     .map((line) => line.split('\t'))
     .filter(([, label]) => !label.endsWith('(natural)'))
     .map(([id]) => id);
-const languageIds = programmingLanguages(rust(['languages']));
+const allLanguageIds = programmingLanguages(rust(['languages']));
 assert.deepEqual(
   programmingLanguages(success(jsCli(['languages']))),
-  languageIds
+  allLanguageIds
 );
+const languageIds = allLanguageIds.filter((id) => extensions[id]);
+assert.deepEqual(
+  allLanguageIds.filter((id) => !extensions[id]).sort(),
+  [...queryLanguageIds].sort(),
+  'Every non-imperative grammar needs dedicated parity cases'
+);
+for (const target of [
+  'sql',
+  'python',
+  'javascript',
+  'typescript',
+  'csharp',
+  'english',
+  'russian',
+]) {
+  const args = ['translate', 'sql', target];
+  const input = 'SELECT age + 1 FROM people AS person WHERE age >= 18;';
+  assert.equal(
+    success(rustCli(args, input)),
+    success(jsCli(args, input)),
+    `SQL query to ${target}`
+  );
+}
 // At least the 40 languages; a language added later needs no edit here.
 assert.ok(languageIds.length >= 40, `${languageIds.length} languages`);
 const programsFolder = new URL('../examples/programs/', import.meta.url);

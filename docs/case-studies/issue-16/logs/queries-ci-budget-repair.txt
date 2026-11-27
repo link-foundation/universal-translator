@@ -1,0 +1,27 @@
+▶ CI timeout policy
+  ✔ sets timeout-minutes for every release workflow job (7.119861ms)
+  ✔ sets timeout-minutes for every link workflow job (0.500544ms)
+  ✔ parses workflow files checked out with Windows line endings (0.37019ms)
+  ✔ caps individual Node.js and Bun tests at 30 seconds (0.361504ms)
+  ✔ documents that the Bun flag bounds a test and not the suite (1.097447ms)
+✔ CI timeout policy (11.855133ms)
+▶ CI execution budgets
+  ✔ lets publish and Docker waits complete their default propagation window (7.11415ms)
+  ✔ keeps every declared step budget under the job backstop (15.044983ms)
+  ✔ warns at the same share of the budget that the invariant allows (1.820366ms)
+✔ CI execution budgets (24.718176ms)
+▶ step budget grouping
+  ✔ sums exclusive matrix legs as alternatives, not as a sequence (0.620988ms)
+  ✔ still fails when a single leg exceeds the allowance (0.291523ms)
+  ✔ adds unconditional budgets to the largest conditional group (0.317393ms)
+  ✔ resolves a "$VAR" budget from the step, job, or workflow env (0.512555ms)
+  ✔ reports a budget it cannot read and never skips one silently (0.274512ms)
+✔ step budget grouping (2.548904ms)
+ℹ tests 13
+ℹ suites 3
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 201.720567

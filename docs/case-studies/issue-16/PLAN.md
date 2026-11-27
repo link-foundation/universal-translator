@@ -149,3 +149,22 @@ See `QUERIES.md` for the implementation, evidence and remaining limits.
 
 All CI checks at `e982e39` pass, including the prior native run. The query changes
 require their own current-commit CI after the next push.
+
+CI integration at `e9d44f3`: native queries and Rust tests passed, but the
+workflow's native step budgets totaled 4,320 seconds against a 4,200-second
+policy limit (`logs/ci-checks-e9d44f3.txt:12798`). The query execution now shares
+the existing 540-second native translation budget, instead of adding another
+two-minute step. All 13 timeout-policy regressions pass. CLI parity attempted a
+nonexistent SQL Hello World extension (`:19927`); it now inventories query
+languages explicitly and compares dedicated SQL cases across both CLIs and
+seven target grammars. The complete parity experiment passes (seven CST
+specimens, 27 ranked grammars, two native exchanged programs and 80 imperative
+golden write/read pairs). These infrastructure repairs do not change the open
+acceptance criteria.
+
+Current draft: compositional Portable Object Compiler messages, process
+arguments, numeric updates and Objpak string sets. Six finite native argument
+sets match the original compiler output across Python, JavaScript and Rust;
+8 JavaScript and 6 Rust focused regressions pass, including 71 natural grammar
+round-trips. Generated formal readers, Objective-C emission, source pinning and
+CI integration remain under development; the 34th collection criterion is open.

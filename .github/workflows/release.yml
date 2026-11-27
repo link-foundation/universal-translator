@@ -629,7 +629,7 @@ jobs:
           LUA: lua5.4
         run: |
           bash scripts/run-with-budget-warning.sh 540 "Native translations" \
-            node examples/programs/verify-native.mjs --require-all
+            bash -e -c 'node examples/programs/verify-native.mjs --require-all; node examples/queries/verify-native.mjs'
 
       - name: Run every common library translation with its native toolchain
         timeout-minutes: 10
@@ -638,10 +638,6 @@ jobs:
         run: |
           bash scripts/run-with-budget-warning.sh 540 "Common library translations" \
             node examples/programs/verify-native.mjs --require-all --common-library
-
-      - name: Verify native selection queries and evaluation strategy
-        timeout-minutes: 2
-        run: node examples/queries/verify-native.mjs
 
   # === DOCKER IMAGE BUILD CHECK (pull requests) ===
   # Builds the Dockerfile without pushing so a broken image fails the pull
