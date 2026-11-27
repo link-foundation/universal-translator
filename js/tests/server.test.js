@@ -168,7 +168,9 @@ describe('translation server', () => {
       expect(unknown.status).toBe(404);
     });
   });
+});
 
+describe('serve command', () => {
   it('is started by the serve command', () => {
     const started = [];
     const quiet = () => {};
