@@ -138,18 +138,29 @@ integer vector as empty, and direct brace initialization retains the listed
 elements. Other element types retain their C++ type and use the ordinary
 template-declaration reader. The writers emit one `<vector>` header when
 both the original code and the generated array syntax require it.
+
+The first C++ solution for [Jewels and stones revision 419626](https://rosettacode.org/w/index.php?title=Jewels_and_stones&oldid=419626)
+prints `3` and `0` through both CLIs. The prior writer rejected its
+block-scoped `using namespace std;`. Preserving that declaration exposed a
+second failure. GCC could no longer bind a string literal to the parameter
+after the reader had removed `const` from `const std::string&`. Both engines
+now preserve recognized using directives and declarations in the original
+block, and they retain the original C++ type for const reference and pointer
+parameters. Both CLI checks forbid partial output. Native CI also compares
+the original and translated scoped-library fixture.
+[C++ working draft](https://eel.is/c++draft/namespace.udir)
 [Recorded results](logs/rosetta-containers-native.txt)
 
 ```sh
 curl --fail --silent --show-error --get https://rosettacode.org/w/api.php \
-  --data 'action=query' --data 'prop=revisions' --data 'revids=420325|417505' \
+  --data 'action=query' --data 'prop=revisions' --data 'revids=420325|417505|419626' \
   --data 'rvprop=ids|content' --data 'rvslots=main' --data 'format=json' \
   --data 'formatversion=2' > /tmp/rosetta-containers-revisions.json
 node experiments/issue-16-rosetta-containers.mjs /tmp/rosetta-containers-revisions.json \
   ./target/debug/universal-translator
 ```
 
-These three pinned same-language task round trips count toward the behavioral
+These four pinned same-language task round trips count toward the behavioral
 goal. Cross-language container and comparison semantics still require testing
 and implementation.
 

@@ -11,7 +11,7 @@ import { extractSolutions } from '../scripts/rosetta-code.mjs';
 const [wikiResponse, rustTranslator] = process.argv.slice(2);
 assert.ok(
   wikiResponse,
-  'Pass the MediaWiki response for revisions 420325 and 417505'
+  'Pass the MediaWiki response for revisions 420325, 417505 and 419626'
 );
 const { query } = JSON.parse(readFileSync(wikiResponse, 'utf8'));
 const digest = (text) => createHash('sha256').update(text).digest('hex');
@@ -30,6 +30,14 @@ const tasks = [
     sourceSha256:
       '4752e59fbf4d6f7eb603159f34df8553a7ee092bd612124bcad36cb0c3953fd0',
     stdout: 'false\n',
+    assertions: 0,
+  },
+  {
+    title: 'Jewels and stones',
+    revid: 419626,
+    sourceSha256:
+      'ca42e7b599a3fb251aef227a867e801cf3fa6062fe0cf924711d4e732561361e',
+    stdout: '3\n0\n',
     assertions: 0,
   },
 ];
@@ -73,7 +81,7 @@ try {
     for (const [engine, command, args] of translators) {
       const program = execFileSync(
         command,
-        [...args, 'translate', 'cpp', 'cpp', '-'],
+        [...args, 'translate', 'cpp', 'cpp', '-', '--all-or-nothing'],
         { ...options, input: source }
       );
       assert.equal(run(program, task), original, `${task.title} via ${engine}`);

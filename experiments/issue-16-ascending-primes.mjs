@@ -61,7 +61,7 @@ try {
   for (const [engine, command, args] of translators) {
     const program = execFileSync(
       command,
-      [...args, 'translate', 'cpp', 'cpp', '-'],
+      [...args, 'translate', 'cpp', 'cpp', '-', '--all-or-nothing'],
       {
         ...options,
         input: source,
