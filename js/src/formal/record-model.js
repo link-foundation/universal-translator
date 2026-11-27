@@ -6,7 +6,7 @@ const strictWords =
     ' '
   );
 
-function portableRecordName(name) {
+export function portableRecordName(name) {
   return (
     typeof name === 'string' &&
     /^[A-Za-z_][A-Za-z0-9_]*$/.test(name) &&

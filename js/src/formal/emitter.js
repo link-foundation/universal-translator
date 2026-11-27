@@ -30,7 +30,7 @@ import {
   requireRecordSupport,
   supportsRecords,
 } from './record-model.js';
-import { writeRecord } from './record-writer.js';
+import { writeRecord, writeRecordExpression } from './record-writer.js';
 import {
   mappedComments,
   mappedEmitter,
@@ -307,11 +307,14 @@ class BaseEmitter {
           ? writePower(this, expression, parent)
           : this.binary(expression, parent);
       default:
-        return this.cFamilyExpression(expression);
+        return this.specialExpression(expression);
     }
   }
 
-  cFamilyExpression(expression) {
+  specialExpression(expression) {
+    if (['RecordConstruction', 'RecordFieldRead'].includes(expression.kind)) {
+      return writeRecordExpression(this, expression);
+    }
     if (expression.kind === 'CppTemplateCall') {
       if (this.id !== 'cpp') {
         throw new Error(

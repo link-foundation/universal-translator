@@ -1,11 +1,19 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'test-anywhere';
 
-import { parseFragment, translateFragment } from '../src/index.js';
+import {
+  createTranslator,
+  parseFragment,
+  translateFragment,
+} from '../src/index.js';
 import { sameMeaning } from '../src/meta/tree.js';
 
 const point = readFileSync(
   new URL('../../examples/translation/point-class.txt', import.meta.url),
+  'utf8'
+);
+const pointInstances = readFileSync(
+  new URL('../../examples/translation/point-instances.txt', import.meta.url),
   'utf8'
 );
 const pair = `pub struct Pair<A, B> {
@@ -83,12 +91,62 @@ describe('record definitions', () => {
     ).toThrow();
     expect(() => translateFragment(point, 'javascript@es5', 'rust')).toThrow();
     expect(() => translateFragment(point, 'javascript', 'python')).toThrow();
-    expect(() =>
-      translateFragment(
-        `${point}\nconst p = new Point(2, 3);\n`,
-        'javascript',
-        'rust'
-      )
-    ).toThrow(/instance translation/u);
+  });
+
+  it('round trips a program constructing different instances and reading fields', () => {
+    const translator = createTranslator();
+    const original = translator.toMeta(pointInstances, 'javascript');
+    const statements = original.main.statements.filter(
+      ({ kind }) => kind !== 'Blank'
+    );
+    expect(statements[0].value.kind).toBe('RecordConstruction');
+    expect(statements[2].value.kind).toBe('RecordFieldRead');
+    expect(statements[2].type).toBe('integer');
+    const rust = translator.fromMeta(original, 'rust');
+    expect(rust).toContain(
+      'let first_point = Point::new(-8 as i64, 6 as i64);'
+    );
+    expect(rust).toContain('let horizontal: i64 = first_point.x;');
+    const reread = translator.toMeta(rust, 'rust');
+    expect(sameMeaning(original, reread)).toBe(true);
+    const recovered = translator.fromMeta(reread, 'javascript');
+    expect(recovered).toContain('const horizontal = firstPoint.x;');
+    expect(
+      sameMeaning(original, translator.toMeta(recovered, 'javascript'))
+    ).toBe(true);
+  });
+
+  it('rejects instance aliases, writes, unknown fields, and forward class references', () => {
+    const binding = 'const p = new Point(2, 3);';
+    const unsupported = [
+      `${point}\n${binding}\nconst alias = p;`,
+      `${point}\n${binding}\np.x = 9;`,
+      `${point}\n${binding}\nconsole.log(p.unknown);`,
+      `${binding}\n${point}`,
+      `${point}\nconst p = new Point(-0, 3);`,
+      `${point}\nconst p = new Point(2147483648, 3);`,
+      `${point}\nconst p = new Point(2);`,
+      `${point}\nconst console = new Point(2, 3);`,
+      `${point}\nconst p = new Point('%s', 'value');\nconsole.log(p.x, p.y);`,
+      `${point}\nconst p = new Point('\\x25s', 'value');\nconsole.log(p.x);`,
+    ];
+    for (const source of unsupported) {
+      expect(() => translateFragment(source, 'javascript', 'rust')).toThrow();
+    }
+  });
+
+  it('rejects Rust narrowing casts, boolean casts and custom formatting', () => {
+    const record = translateFragment(point, 'javascript', 'rust');
+    for (const [argument, format] of [
+      ['270 as u8', '{}'],
+      ['true as i64', '{}'],
+      ['2', '{:?}'],
+    ]) {
+      const source = `${record}\nfn main() {
+        let p = Point::new(${argument}, 3);
+        println!("${format}", p.x);
+      }`;
+      expect(() => translateFragment(source, 'rust', 'javascript')).toThrow();
+    }
   });
 });

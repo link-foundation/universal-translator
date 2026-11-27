@@ -45,6 +45,7 @@ pub(crate) mod power;
 pub mod query_languages;
 pub(crate) mod query_writer;
 pub(crate) mod questions;
+mod record_instances;
 mod records;
 pub mod rocq_runtime;
 pub mod rules;

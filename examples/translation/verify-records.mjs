@@ -1,4 +1,4 @@
-// Compare the class fragment and both engines' translations in real runtimes.
+// Run both engines’ class fragments and complete instance programs.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
@@ -9,6 +9,10 @@ import { createTranslator } from '../../js/src/index.js';
 const temporary = mkdtempSync(join(tmpdir(), 'translator-records-'));
 const source = readFileSync(
   new URL('point-class.txt', import.meta.url),
+  'utf8'
+);
+const instanceProgram = readFileSync(
+  new URL('point-instances.txt', import.meta.url),
   'utf8'
 );
 const jsHarness = `
@@ -35,17 +39,27 @@ const translator = createTranslator();
 const implementations = [
   [
     'JavaScript',
-    (text, from, to) => translator.translateFragment(text, from, to),
+    (text, from, to, fragment) =>
+      fragment
+        ? translator.translateFragment(text, from, to)
+        : translator.translate(text, from, to, { allowPartial: false }),
   ],
 ];
 if (process.argv[2]) {
   const binary = resolve(process.argv[2]);
   implementations.push([
     'Rust',
-    (text, from, to) =>
+    (text, from, to, fragment) =>
       run(
         binary,
-        ['translate', from, to, '-', '--fragment', '--all-or-nothing'],
+        [
+          'translate',
+          from,
+          to,
+          '-',
+          '--all-or-nothing',
+          ...(fragment ? ['--fragment'] : []),
+        ],
         text
       ),
   ]);
@@ -54,20 +68,31 @@ if (process.argv[2]) {
 try {
   const original = run(process.execPath, ['-'], source + jsHarness);
   assert.equal(original, '8 6 west true\n');
+  const originalInstances = run(process.execPath, ['-'], instanceProgram);
+  assert.equal(originalInstances, '-8 6 west true\n');
   for (const [implementation, translate] of implementations) {
-    const rust = translate(source, 'javascript', 'rust');
+    const rust = translate(source, 'javascript', 'rust', true);
     const binary = join(temporary, 'point');
     run('rustc', ['--edition=2021', '-o', binary, '-'], rust + rustHarness);
     assert.equal(run(binary, []), original, rust);
 
-    const javascript = translate(rust, 'rust', 'javascript');
+    const javascript = translate(rust, 'rust', 'javascript', true);
     assert.equal(
       run(process.execPath, ['-'], javascript + jsHarness),
       original,
       javascript
     );
+    const rustProgram = translate(instanceProgram, 'javascript', 'rust');
+    run('rustc', ['--edition=2021', '-o', binary, '-'], rustProgram);
+    assert.equal(run(binary, []), originalInstances, rustProgram);
+    const recovered = translate(rustProgram, 'rust', 'javascript');
+    assert.equal(
+      run(process.execPath, ['-'], recovered),
+      originalInstances,
+      recovered
+    );
     console.log(
-      `${implementation}: JavaScript, Rust and recovered JavaScript agree`
+      `${implementation}: fragment and complete program agree in original JavaScript, Rust and recovered JavaScript`
     );
   }
 } finally {

@@ -185,3 +185,57 @@ pub(super) fn check_record_references(program: &Node) -> Result<(), GrammarError
     }
     Ok(())
 }
+
+pub(super) fn write_expression(
+    emitter: &mut Emitter,
+    expression: &Node,
+) -> Result<String, GrammarError> {
+    if !supports_records(&emitter.syntax) {
+        return Err(GrammarError::new(format!(
+            "Record instances cannot be emitted in {}",
+            emitter.id()
+        )));
+    }
+    if expression.is("RecordFieldRead") {
+        let property = expression
+            .str("property")
+            .filter(|name| portable_name(name));
+        let object = expression.node("object").filter(|node| node.is("Name"));
+        let (Some(property), Some(object)) = (property, object) else {
+            return Err(GrammarError::new(
+                "A record field read requires a named object and field",
+            ));
+        };
+        return Ok(format!("{}.{property}", emitter.expression(object)?));
+    }
+    let record = expression.str("record").filter(|name| portable_name(name));
+    let arguments = expression.get("arguments").and_then(Value::as_list);
+    let (Some(record), Some(arguments)) = (record, arguments) else {
+        return Err(GrammarError::new(
+            "A record constructor requires a named record and scalar literal arguments",
+        ));
+    };
+    let rust = emitter.id() == "rust";
+    let values = arguments
+        .iter()
+        .map(|argument| {
+            let value = argument
+                .as_node()
+                .filter(|value| super::record_instances::literal_type(value).is_some())
+                .ok_or_else(|| {
+                    GrammarError::new("A record constructor requires scalar literal arguments")
+                })?;
+            let mut written = emitter.expression(value)?;
+            if rust && value.is("Number") {
+                written.push_str(" as i64");
+            }
+            Ok(written)
+        })
+        .collect::<Result<Vec<_>, GrammarError>>()?;
+    let name = if rust {
+        format!("{record}::new")
+    } else {
+        format!("new {record}")
+    };
+    Ok(format!("{name}({})", values.join(", ")))
+}

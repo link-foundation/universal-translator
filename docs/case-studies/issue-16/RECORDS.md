@@ -40,7 +40,22 @@ argument types in Node.js, compiles and executes each engine's Rust output, then
 runs the recovered JavaScript. Each prints `8 6 west true`. CI runs the native
 check in its JavaScript–Rust lane.
 
-Open scope includes instance expressions in translated programs, shared object
-identity, methods, inheritance, dynamic fields, constructor effects and
-additional targets. The supported constructor fragment assigns each distinct
-parameter to one field.
+## Complete programs
+
+`examples/translation/point-instances.txt` constructs two different instances,
+reads one field into a named scalar and prints four values. Both engines
+represent construction and field reads explicitly. The Rust writer uses
+inferred record types at the bindings and `i64` for integer constructor
+arguments. The native verifier also translates and runs this complete program
+without an added harness. The three executions agree on `-8 6 west true`.
+
+This program path supports linear local bindings, independent constructors
+with signed 32-bit integer, boolean or text literals, and read-only access to
+known fields. It retains source order and refuses uses that require shared
+identity, mutation, dynamic dispatch, coercion, custom formatting, or an
+unresolved class or property. Regressions cover forward references, aliases,
+writes, unknown fields, unsupported values and lossy Rust casts.
+
+Open scope also includes methods, inheritance, constructor effects,
+cross-scope object lifetimes, further numeric and text contracts, and
+additional targets.

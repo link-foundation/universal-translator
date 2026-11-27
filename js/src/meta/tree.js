@@ -5,6 +5,8 @@
 //   Function       { name, parameters: [{ name, type, annotations? }], returnType, body, comments, annotations? }
 //   RecordDefinition { name, parameters, fields, comments?, constructorComments? }
 //   RecordField    { name, parameter }
+//   RecordConstruction { record, arguments }
+//   RecordFieldRead { object, property, type }
 //   Annotation     { expression }       method or parameter metadata
 //   Block          { statements }
 //   Declaration    { name, type, value, mutable }

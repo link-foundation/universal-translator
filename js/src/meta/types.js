@@ -33,6 +33,7 @@ const fixedTypes = new Map([
   ['SqlBinary', 'object'],
   ['SqlUnary', 'object'],
   ['SqlTruth', 'boolean'],
+  ['RecordConstruction', 'record'],
 ]);
 
 function binaryType(expression, scope, signatures) {
@@ -87,6 +88,8 @@ function expressionType(expression, scope, signatures) {
   switch (expression.kind) {
     case 'Number':
       return numberType(expression);
+    case 'RecordFieldRead':
+      return expression.type;
     case 'Name':
       return scope.get(expression.name);
     case 'Question':

@@ -32,6 +32,8 @@ fn is_comparison(operator: &str) -> bool {
 fn expression_type(expression: &Node, scope: &Scope, signatures: &Signatures) -> Option<String> {
     match expression.kind.as_str() {
         "Number" => Some(number_type(expression).into()),
+        "RecordConstruction" => Some("record".into()),
+        "RecordFieldRead" => expression.str("type").map(str::to_owned),
         "Text" | "Interpolation" => Some("text".into()),
         "Boolean" => Some("boolean".into()),
         "Null" | "SqlBinary" | "SqlUnary" => Some("object".into()),

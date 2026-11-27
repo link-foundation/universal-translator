@@ -2,6 +2,7 @@ use universal_translator::meta::same_meaning;
 use universal_translator::{FragmentKind, Options, parse_fragment, translate_fragment};
 
 const POINT: &str = include_str!("../../examples/translation/point-class.txt");
+const POINT_INSTANCES: &str = include_str!("../../examples/translation/point-instances.txt");
 const PAIR: &str = r#"pub struct Pair<A, B> {
     pub letter: A,
     pub count: B,
@@ -86,7 +87,68 @@ fn rejects_constructor_effects_and_targets_outside_supported_class_syntax() {
     assert!(translate_fragment(POINT, "javascript", "javascript@es5", options).is_err());
     assert!(translate_fragment(POINT, "javascript@es5", "rust", options).is_err());
     assert!(translate_fragment(POINT, "javascript", "python", options).is_err());
-    let program = format!("{POINT}\nconst p = new Point(2, 3);\n");
-    let error = translate_fragment(&program, "javascript", "rust", options).unwrap_err();
-    assert!(error.message.contains("instance translation"), "{error}");
+}
+
+#[test]
+fn round_trips_a_program_constructing_different_instances_and_reading_fields() {
+    let original = parse_fragment(POINT_INSTANCES, "javascript").unwrap();
+    assert_eq!(original.kind, FragmentKind::Program);
+    let statements: Vec<_> = original
+        .program
+        .node("main")
+        .unwrap()
+        .nodes("statements")
+        .into_iter()
+        .filter(|statement| !statement.is("Blank"))
+        .collect();
+    assert!(
+        statements[0]
+            .node("value")
+            .unwrap()
+            .is("RecordConstruction")
+    );
+    assert!(statements[2].node("value").unwrap().is("RecordFieldRead"));
+    assert_eq!(statements[2].str("type"), Some("integer"));
+    let rust = translate(POINT_INSTANCES, "javascript", "rust");
+    assert!(rust.contains("let first_point = Point::new(-8 as i64, 6 as i64);"));
+    assert!(rust.contains("let horizontal: i64 = first_point.x;"));
+    let reread = parse_fragment(&rust, "rust").unwrap();
+    assert!(same_meaning(&original.program, &reread.program));
+    let javascript = translate(&rust, "rust", "javascript");
+    assert!(javascript.contains("const horizontal = firstPoint.x;"));
+    let recovered = parse_fragment(&javascript, "javascript").unwrap();
+    assert!(same_meaning(&original.program, &recovered.program));
+}
+
+#[test]
+fn rejects_aliases_writes_unknown_fields_and_forward_class_references() {
+    const BINDING: &str = "const p = new Point(2, 3);";
+    let unsupported = [
+        format!("{POINT}\n{BINDING}\nconst alias = p;"),
+        format!("{POINT}\n{BINDING}\np.x = 9;"),
+        format!("{POINT}\n{BINDING}\nconsole.log(p.unknown);"),
+        format!("{BINDING}\n{POINT}"),
+        format!("{POINT}\nconst p = new Point(-0, 3);"),
+        format!("{POINT}\nconst p = new Point(2147483648, 3);"),
+        format!("{POINT}\nconst p = new Point(2);"),
+        format!("{POINT}\nconst console = new Point(2, 3);"),
+        format!("{POINT}\nconst p = new Point('%s', 'value'); console.log(p.x, p.y);"),
+        format!("{POINT}\nconst p = new Point('\\x25s', 'value'); console.log(p.x);"),
+    ];
+    for source in unsupported {
+        let result = translate_fragment(&source, "javascript", "rust", Options::default());
+        assert!(result.is_err(), "{source} unexpectedly produced {result:?}");
+    }
+}
+
+#[test]
+fn rejects_rust_narrowing_casts_boolean_casts_and_custom_formatting() {
+    let record = translate(POINT, "javascript", "rust");
+    for (argument, format) in [("270 as u8", "{}"), ("true as i64", "{}"), ("2", "{:?}")] {
+        let source = format!(
+            "{record}\nfn main() {{ let p = Point::new({argument}, 3); println!(\"{format}\", p.x); }}"
+        );
+        let result = translate_fragment(&source, "rust", "javascript", Options::default());
+        assert!(result.is_err(), "{source} unexpectedly produced {result:?}");
+    }
 }

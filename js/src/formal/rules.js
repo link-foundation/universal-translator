@@ -19,6 +19,7 @@ import { recognizeQuestions } from './questions.js';
 import { recognizeDocumentation } from './documentation.js';
 import { normalizeObjectiveCConditions, recognizeObjpak } from './objpak.js';
 import { recognizeSqlValues } from './sql-values.js';
+import { recognizeRecordInstances } from './record-instances.js';
 import {
   floorDivision,
   raiseIntegerArithmetic,
@@ -883,6 +884,7 @@ export const understandingRules = [
   raiseForEach,
   raiseTruthValues,
   inferMutability,
+  recognizeRecordInstances,
   dropSourceDetails,
   neutralNames,
 ];

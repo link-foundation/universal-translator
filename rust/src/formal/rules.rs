@@ -67,6 +67,10 @@ pub fn understanding_rules() -> Vec<Rule> {
         rule("raiseForEach", |program, _| raise_for_each(program)),
         rule("raiseTruthValues", raise_truth_values),
         rule("inferMutability", |program, _| infer_mutability(program)),
+        rule(
+            "recognizeRecordInstances",
+            super::record_instances::recognize,
+        ),
         rule("dropSourceDetails", |program, _| {
             drop_source_details(program)
         }),

@@ -408,6 +408,9 @@ impl Emitter {
                     shown
                 })
             }
+            "RecordConstruction" | "RecordFieldRead" => {
+                super::records::write_expression(self, expression)
+            }
             "Text" => Ok(self.quote(expression.str("value").unwrap_or_default())),
             "Boolean" => {
                 let value = expression.flag("value").unwrap_or(false);

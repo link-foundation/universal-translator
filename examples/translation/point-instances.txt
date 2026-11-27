@@ -1,0 +1,11 @@
+class Point {
+  constructor(horizontal, vertical) {
+    this.x = horizontal;
+    this.y = vertical;
+  }
+}
+
+const firstPoint = new Point(-8, 6);
+const secondPoint = new Point("west", true);
+const horizontal = firstPoint.x;
+console.log(horizontal, firstPoint.y, secondPoint.x, secondPoint.y);
