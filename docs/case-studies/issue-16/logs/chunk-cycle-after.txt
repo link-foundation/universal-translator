@@ -1,0 +1,25 @@
+✔ keeps translator production chunks free of dependency cycles (26.042156ms)
+▶ universal React example app
+  ✔ defines the expected app package and build targets (2.886696ms)
+  ✔ renders the translator with every language and fragments (25.42242ms)
+  ✔ bundles skin data and fails the build on any warning (2.191138ms)
+  ✔ shares the Vite build output with Capacitor and GitHub Pages (1.102086ms)
+  ✔ adds root scripts and a workflow for web, desktop, and mobile checks (2.13774ms)
+  ✔ documents local validation without store credentials (1.681327ms)
+  ✔ regenerates preview screenshots with browser-commander on every push to main (1.711294ms)
+  ✔ waits for preview selectors that the app renders (3.434068ms)
+✔ universal React example app (43.991049ms)
+▶ the web build of the example app
+  ✔ keeps every chunk but Monaco below 500 kB (2.972536ms)
+✔ the web build of the example app (3.589769ms)
+▶ the language pickers of the example app
+  ✔ lists assembly and intermediate languages in a group of their own (413.439979ms)
+✔ the language pickers of the example app (413.781356ms)
+ℹ tests 11
+ℹ suites 3
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 641.805184

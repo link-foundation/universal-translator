@@ -66,6 +66,12 @@ Current work: continue broader region precision, language semantics, questions a
 every historical gap below. Keep the PR draft
 and the native goal active until the complete inventory is verified.
 
+The production build at `c94b178` failed on four circular chunk warnings
+(`logs/ci-example-c94b178.txt:221–224`). The new span helper was assigned to
+the translator entry chunk while source records imported it. The shared source
+chunk now includes it. A dependency graph regression fails before that change
+and passes afterward; production verification runs in the existing CI workflow.
+
 The C++ gutter investigation found a separate target-failure coverage bug.
 JavaScript and Rust now count successfully written parts after emission,
 including free prose; the UI retains zero-coverage error details. Baseline

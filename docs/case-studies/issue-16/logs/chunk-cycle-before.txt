@@ -1,0 +1,30 @@
+✖ keeps translator production chunks free of dependency cycles (33.885532ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 182.155397
+
+✖ failing tests:
+
+test at node_modules/.deno/test-anywhere@0.8.50/node_modules/test-anywhere/src/index.js:174:12
+✖ keeps translator production chunks free of dependency cycles (33.885532ms)
+  AssertionError [ERR_ASSERTION]: translator -> translator-source -> translator
+      at visit (file:///tmp/gh-issue-solver-1795726129025/js/tests/universal-app-chunks.test.js:35:12)
+      at visit (file:///tmp/gh-issue-solver-1795726129025/js/tests/universal-app-chunks.test.js:37:7)
+      at visit (file:///tmp/gh-issue-solver-1795726129025/js/tests/universal-app-chunks.test.js:37:7)
+      at TestContext.<anonymous> (file:///tmp/gh-issue-solver-1795726129025/js/tests/universal-app-chunks.test.js:41:5)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
