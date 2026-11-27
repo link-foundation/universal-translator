@@ -1,0 +1,177 @@
+{
+  "repository": "https://github.com/link-foundation/meta-language",
+  "revision": "a79782093cae3b33606483ac9f3e1d05faf36de0",
+  "patches": [
+    "Use browser-compatible SHA-256 for unchanged deterministic merge fingerprints."
+  ],
+  "files": {
+    "src/grammar-importers.js": {
+      "upstreamSha256": "3668a301352dda4a838dfb6e3bf4f6ce73243c4564a87e6518bb85ba23ff6bb0",
+      "sha256": "3668a301352dda4a838dfb6e3bf4f6ce73243c4564a87e6518bb85ba23ff6bb0"
+    },
+    "src/grammar-emitters.js": {
+      "upstreamSha256": "48feb0651e4b916b99a41c74be7ac18057e600894ca745a1c789e60e83908229",
+      "sha256": "48feb0651e4b916b99a41c74be7ac18057e600894ca745a1c789e60e83908229"
+    },
+    "src/grammar-runtime.js": {
+      "upstreamSha256": "9157c49c2d917dff5d3e13dbbbf60940971a837f6edc588fc80bf2682362cef1",
+      "sha256": "9157c49c2d917dff5d3e13dbbbf60940971a837f6edc588fc80bf2682362cef1"
+    },
+    "src/grammar-merge.js": {
+      "upstreamSha256": "699f07bef199913623818704c5fe2627b4efc7f31b95d44a748d73d08f27b751",
+      "sha256": "c7755c51c7afd7da579f6387f8ffa05220d2e8e3dd242645d9a58adc0fa622f8"
+    },
+    "src/grammar-rename.js": {
+      "upstreamSha256": "b57d5d59d49d5b53f61fa0ba8bd2788047866e7a9cdc5d136c602f558d6a09d9",
+      "sha256": "b57d5d59d49d5b53f61fa0ba8bd2788047866e7a9cdc5d136c602f558d6a09d9"
+    },
+    "src/grammar-interchange.js": {
+      "upstreamSha256": "dae77978886db93cdef9aeeb577839543c0d9edf78ade9618476b89d025ec7ec",
+      "sha256": "dae77978886db93cdef9aeeb577839543c0d9edf78ade9618476b89d025ec7ec"
+    },
+    "src/grammar-importers/abnf.js": {
+      "upstreamSha256": "67c5e1201f6b69e5087b177e01117ea9a30836d07b9db35250f6884231875310",
+      "sha256": "67c5e1201f6b69e5087b177e01117ea9a30836d07b9db35250f6884231875310"
+    },
+    "src/grammar-importers/antlr.js": {
+      "upstreamSha256": "91004bf19d14ca9658b9315ec6c47af3b8ae6fe5e61debd486a732cc94fa8801",
+      "sha256": "91004bf19d14ca9658b9315ec6c47af3b8ae6fe5e61debd486a732cc94fa8801"
+    },
+    "src/grammar-importers/bnf-ebnf.js": {
+      "upstreamSha256": "01138b6dc43be2146b2dfbd8e85697c8e07eeff5bf721b7eb394af0742edc239",
+      "sha256": "01138b6dc43be2146b2dfbd8e85697c8e07eeff5bf721b7eb394af0742edc239"
+    },
+    "src/grammar-importers/common.js": {
+      "upstreamSha256": "201c023470c7552f6a70ed693a20a33963b293e805cb608876591c5c27c16a95",
+      "sha256": "201c023470c7552f6a70ed693a20a33963b293e805cb608876591c5c27c16a95"
+    },
+    "src/grammar-importers/gbnf.js": {
+      "upstreamSha256": "9ae70860256c1f7e995a6fbe766ca13c16d4cd286086e00c3c09fae9ff07ef9d",
+      "sha256": "9ae70860256c1f7e995a6fbe766ca13c16d4cd286086e00c3c09fae9ff07ef9d"
+    },
+    "src/grammar-importers/lark.js": {
+      "upstreamSha256": "5e358770f05cf2c25ae1d0f692f94ea3448cf9c9931981c36acf1e22d9f6c0ee",
+      "sha256": "5e358770f05cf2c25ae1d0f692f94ea3448cf9c9931981c36acf1e22d9f6c0ee"
+    },
+    "src/grammar-importers/pest.js": {
+      "upstreamSha256": "75f5e821c3664e07d8bc92a9a3dbda152e422cb86b4d486e0a0d96a90cf09c92",
+      "sha256": "75f5e821c3664e07d8bc92a9a3dbda152e422cb86b4d486e0a0d96a90cf09c92"
+    },
+    "src/grammar-importers/tree-sitter-json.js": {
+      "upstreamSha256": "296cef1fec1e936fec5b5a99a70c58aac8ce1a3b1f35faf934485202695755b7",
+      "sha256": "296cef1fec1e936fec5b5a99a70c58aac8ce1a3b1f35faf934485202695755b7"
+    },
+    "src/grammar-emitters/abnf.js": {
+      "upstreamSha256": "b5b2682e79eb197fcc1db1963de90b9316f9e40b8a63c4420542f639c342a893",
+      "sha256": "b5b2682e79eb197fcc1db1963de90b9316f9e40b8a63c4420542f639c342a893"
+    },
+    "src/grammar-emitters/antlr.js": {
+      "upstreamSha256": "3d1b25aca65df5a6bd9d0ae6da056dd7f6451df26199cc045597394cbdced29e",
+      "sha256": "3d1b25aca65df5a6bd9d0ae6da056dd7f6451df26199cc045597394cbdced29e"
+    },
+    "src/grammar-emitters/bnf-ebnf.js": {
+      "upstreamSha256": "2906a6a3590b3c5ceec7ea7c063eb627d986f25605a2a1f901adb5834972e7bc",
+      "sha256": "2906a6a3590b3c5ceec7ea7c063eb627d986f25605a2a1f901adb5834972e7bc"
+    },
+    "src/grammar-emitters/common.js": {
+      "upstreamSha256": "921c9ecffd86e476f0503e1129ef8653e1fb4582c799109d10c73a84cfaa53d0",
+      "sha256": "921c9ecffd86e476f0503e1129ef8653e1fb4582c799109d10c73a84cfaa53d0"
+    },
+    "src/grammar-emitters/gbnf.js": {
+      "upstreamSha256": "75c8d7723795292b20839be333cdb75eb42145bbafffd7b8e32b81b9e30dc604",
+      "sha256": "75c8d7723795292b20839be333cdb75eb42145bbafffd7b8e32b81b9e30dc604"
+    },
+    "src/grammar-emitters/lark.js": {
+      "upstreamSha256": "06ba6edd0bed371085cb7e5676d63fdb69de9c8af30f0467bb30e9693446b48a",
+      "sha256": "06ba6edd0bed371085cb7e5676d63fdb69de9c8af30f0467bb30e9693446b48a"
+    },
+    "src/grammar-emitters/pest.js": {
+      "upstreamSha256": "b2796a76c7653979153632b97dcaaeb7868ad4663c7a76b53970e2becb9fc4ed",
+      "sha256": "b2796a76c7653979153632b97dcaaeb7868ad4663c7a76b53970e2becb9fc4ed"
+    },
+    "src/grammar-emitters/tree-sitter-json.js": {
+      "upstreamSha256": "080b71be2e3e4a1829f387ab7a3efdfa88253f677ebb8acabbbc5d4313c7185a",
+      "sha256": "080b71be2e3e4a1829f387ab7a3efdfa88253f677ebb8acabbbc5d4313c7185a"
+    },
+    "src/grammar-runtime/executor.js": {
+      "upstreamSha256": "4865669668b754878ad17e9f39cb0ac8bf73086af5c8e114d4c646c7eb52aeab",
+      "sha256": "4865669668b754878ad17e9f39cb0ac8bf73086af5c8e114d4c646c7eb52aeab"
+    },
+    "src/grammar-runtime/load.js": {
+      "upstreamSha256": "190ddcc664fd04d2a1ff34458788e59a3d89a2f0a623a2bcac36d84fad8e3dd4",
+      "sha256": "190ddcc664fd04d2a1ff34458788e59a3d89a2f0a623a2bcac36d84fad8e3dd4"
+    },
+    "src/grammar-decorators.js": {
+      "upstreamSha256": "c793d4ec2e498a598e2844f5e60ca44b5ed4e3c253c6717974224d4c41b2e523",
+      "sha256": "c793d4ec2e498a598e2844f5e60ca44b5ed4e3c253c6717974224d4c41b2e523"
+    },
+    "src/grammar-runtime/syntax-tree.js": {
+      "upstreamSha256": "40c1621e428e11660bdfffa6eee1bc9bdb535a4ff07a0d9afa7b8b76559a6a5a",
+      "sha256": "40c1621e428e11660bdfffa6eee1bc9bdb535a4ff07a0d9afa7b8b76559a6a5a"
+    },
+    "src/grammar-runtime/text.js": {
+      "upstreamSha256": "445388c8a0bb21c4f41f2a4408edee9e505b47e72032d4966daea3d04f5a5829",
+      "sha256": "445388c8a0bb21c4f41f2a4408edee9e505b47e72032d4966daea3d04f5a5829"
+    },
+    "src/grammar.js": {
+      "upstreamSha256": "4a5cd4523f32df492d9b07ffd0199d73b999902450b65cc1e1bf3f1febed70f1",
+      "sha256": "4a5cd4523f32df492d9b07ffd0199d73b999902450b65cc1e1bf3f1febed70f1"
+    },
+    "src/grammar-feature-forms.js": {
+      "upstreamSha256": "719bf9ea947202cf3595ca09fefd21e30086c69c12fd8c76aaa946706d4fa3e1",
+      "sha256": "719bf9ea947202cf3595ca09fefd21e30086c69c12fd8c76aaa946706d4fa3e1"
+    },
+    "src/grammar-links.js": {
+      "upstreamSha256": "6c475fe2d636378845f46a10f3dda2c34ec108bbfa0c813a421540597d7af175",
+      "sha256": "6c475fe2d636378845f46a10f3dda2c34ec108bbfa0c813a421540597d7af175"
+    },
+    "src/decorators.js": {
+      "upstreamSha256": "e8e66c56c16a93e21e9eb5bb0cf46bcc32345a9df6576abfa1b1c9ee09316cec",
+      "sha256": "e8e66c56c16a93e21e9eb5bb0cf46bcc32345a9df6576abfa1b1c9ee09316cec"
+    },
+    "src/grammar-merge-normalize.js": {
+      "upstreamSha256": "3f394714d9b5b35e4f34da446f9c573b41ffe590253f58d31eadd4fd27519056",
+      "sha256": "3f394714d9b5b35e4f34da446f9c573b41ffe590253f58d31eadd4fd27519056"
+    },
+    "src/grammar-reconcile.js": {
+      "upstreamSha256": "0121d740a82664c2535c2dbcf6f0df1738436a8fd1f5dad963995fb360c2c72d",
+      "sha256": "0121d740a82664c2535c2dbcf6f0df1738436a8fd1f5dad963995fb360c2c72d"
+    },
+    "src/grammar-round-trip.js": {
+      "upstreamSha256": "f86c41b3363274d46d60382062a10bcc5f45307d315ba38f610bf56bcc13c9a1",
+      "sha256": "f86c41b3363274d46d60382062a10bcc5f45307d315ba38f610bf56bcc13c9a1"
+    },
+    "src/grammar-validate.js": {
+      "upstreamSha256": "19cd7e6369ea7ed1a844eddecacebb60bfef7fc30c02a7b45d67bfa47267034c",
+      "sha256": "19cd7e6369ea7ed1a844eddecacebb60bfef7fc30c02a7b45d67bfa47267034c"
+    },
+    "src/grammar-importers/antlr-lexer.js": {
+      "upstreamSha256": "7d771f1409b9e3de150ce683d5099cb4ff897700740d71f14f6f3a04956d62bc",
+      "sha256": "7d771f1409b9e3de150ce683d5099cb4ff897700740d71f14f6f3a04956d62bc"
+    },
+    "src/grammar-importers/lark-lexer.js": {
+      "upstreamSha256": "09b9d3183a6f5cbca622af7fdf6b7ad80798283c366ee4e75c3fc819ab02fcff",
+      "sha256": "09b9d3183a6f5cbca622af7fdf6b7ad80798283c366ee4e75c3fc819ab02fcff"
+    },
+    "src/grammar-emitters/structural.js": {
+      "upstreamSha256": "fbde4c977e9d1f8b143497b1d1a3f7ec3c622e1ff9e50bef11a6cd6252e42fde",
+      "sha256": "fbde4c977e9d1f8b143497b1d1a3f7ec3c622e1ff9e50bef11a6cd6252e42fde"
+    },
+    "src/grammar-runtime/operations.js": {
+      "upstreamSha256": "40da01ef401a395099c92ed41c05e4f9e55971c3cae6af9282313b538842cbf8",
+      "sha256": "40da01ef401a395099c92ed41c05e4f9e55971c3cae6af9282313b538842cbf8"
+    },
+    "src/lino-serialization.js": {
+      "upstreamSha256": "54256f24e35df374d8ffc47aaf4cebdbb3e9e65b8c36d5dd96bc4baa84286e94",
+      "sha256": "54256f24e35df374d8ffc47aaf4cebdbb3e9e65b8c36d5dd96bc4baa84286e94"
+    },
+    "src/primitives.js": {
+      "upstreamSha256": "46f8d0850d5e0a1fc13e9651fca8c7cc3efbd1d4c40fcee2f87608dc2d172247",
+      "sha256": "46f8d0850d5e0a1fc13e9651fca8c7cc3efbd1d4c40fcee2f87608dc2d172247"
+    },
+    "LICENSE": {
+      "upstreamSha256": "6b0382b16279f26ff69014300541967a356a666eb0b91b422f6862f6b7dad17e",
+      "sha256": "6b0382b16279f26ff69014300541967a356a666eb0b91b422f6862f6b7dad17e"
+    }
+  }
+}

@@ -527,6 +527,16 @@ measures coverage over every Rosetta Code task; see the
 [issue 8 case study](docs/case-studies/issue-8/README.md). Pull requests build the
 image and smoke test both the CLI and the API inside it.
 
+### External grammar workspaces
+
+The [grammar workspace](docs/grammar-workspace.md) imports nine grammar formats
+into an executable shared IR, preserves concrete source trees and provenance,
+and supports updates, dependency resolution, merges, editions and transforms
+in JavaScript and Rust. Custom semantic readers join the existing translation
+stages. The browser-safe JavaScript entry is
+`@link-foundation/universal-translator/grammar`; a runnable example is
+`node examples/grammars/import-and-translate.mjs`.
+
 ### Decorators
 
 Every stage of the pipeline is a replaceable function, and every stage can

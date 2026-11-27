@@ -1,5 +1,5 @@
 export interface ConcreteLeaf {
-  kind: 'Token' | 'Trivia';
+  kind: 'Token' | 'Trivia' | 'Error';
   type: string;
   start: number;
   end: number;
@@ -16,7 +16,7 @@ export interface ConcreteSyntax {
   productions: {
     kind: 'Production';
     rule: string;
-    concept: string;
+    concept?: string;
     start: number;
     end: number;
   }[];

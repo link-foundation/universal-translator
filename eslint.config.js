@@ -129,6 +129,8 @@ export default [
     ignores: [
       'node_modules/**',
       '**/node_modules/**',
+      // Pinned external grammar sources are verified by their digest gate.
+      'vendor/meta-language-grammar/**',
       'coverage/**',
       'dist/**',
       '**/dist/**',

@@ -33,8 +33,15 @@ condition; JavaScript HTTP and Rust server parity regressions pass. The new
 commit is pushed and its CI is pending. Source-record chunk separation repairs the circular web
 build; the example-app workflow passes at both commits.
 
-Current work: finish the primary-source architecture comparison and implement
-grammar interoperability. Continue mapping comment headers and exact subline
+Grammar interoperability now has a reusable JS/Rust workspace: nine executable
+import formats, update/dependency refresh, structurally justified merges with
+stable identities, separate editions/sources, conversion-loss rejection, six
+transform stages, bounded parsing/recovery, concrete records/provenance and
+semantic readers installed into the ordinary translator. Focused JS, Deno,
+Rust and browser checks pass; final checks and commit are in progress. The
+broader complete-grammar and semantic-coverage criteria remain open.
+
+Current work: continue mapping comment headers and exact subline
 regions, language semantics, questions and every historical gap below. Keep the PR draft
 and the native goal active until the complete inventory is verified.
 

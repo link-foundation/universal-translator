@@ -5,6 +5,7 @@
   "mode": "weak",
   "ignore": [
     "**/node_modules/**",
+    "**/vendor/meta-language-grammar/**",
     "**/build/**",
     "**/dist/**",
     "**/*.min.js",

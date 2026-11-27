@@ -96,5 +96,18 @@ emitting a canned answer or a probability alone would miss the requirement.
    target behavior. Count original corpus programs actually read, not generated
    source or stored-source reconstruction. Preserve failures in the inventory.
 
-Steps 2–6 are required implementation work. This comparison supplies their
-design and constraints; it does not mark those acceptance criteria complete.
+The [grammar workspace](../../grammar-workspace.md) now implements the common
+import/update/merge/execution path in steps 2–3 and a reusable semantic-reader
+binding for step 4. Nine shared interchange fixtures execute in both runtimes,
+including a complete import-to-translation example, failed updates, dependency
+refreshes, separate editions, stable merge identities, byte-preserving concrete
+records, bounded recovery and stage transforms. JavaScript uses the 41-file
+grammar-only closure at `a79782093cae3b33606483ac9f3e1d05faf36de0`, matching the
+published Rust 1.0.0 source. Digests, original source and the explicit portable
+SHA-256 patch are recorded rather than depending on an unpublished npm release.
+
+The adapter rejects conversion losses reported by the target emitter; it does
+not claim that every feature has a lowering to every grammar notation. The
+fixtures verify the implemented infrastructure, not full language grammars or
+all their semantic readers. Steps 4–6 therefore still require implementation
+and coverage across the complete issue inventory.

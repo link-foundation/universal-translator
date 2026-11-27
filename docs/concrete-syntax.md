@@ -56,6 +56,10 @@ concept assembled from separate instruction ranges has separate views rather
 than claiming ownership of the instructions between them. Recovery's `fragment`
 views describe accepted parts, while unread parts appear only in `errors`.
 
-Grammar import/update and exact subline ranges through every semantic rewrite
+The [grammar workspace](grammar-workspace.md) additionally imports, updates,
+merges and executes nine grammar formats. It retains nested executor trees,
+production ranges, recovered errors and source provenance, and connects custom
+semantic readers to the translation stages. Complete production coverage for
+every requested language and exact subline ranges through every semantic rewrite
 remain tracked work in issue 16. Retaining the concrete source alone does not
 establish a semantic mapping between two translated programs.

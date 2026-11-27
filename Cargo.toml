@@ -181,3 +181,7 @@ path = "rust/tests/real_numbers.rs"
 [[test]]
 name = "semantic_mapping"
 path = "rust/tests/semantic_mapping.rs"
+
+[[test]]
+name = "grammar_workspace"
+path = "rust/tests/grammar_workspace.rs"

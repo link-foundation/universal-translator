@@ -325,6 +325,8 @@ export declare function commentGlossary(
 ): Rule;
 export * from './translation/source-document.js';
 export * from './translation/program.js';
+export * as grammarEngine from './grammar/engine.js';
+export * from './grammar/workspace.js';
 export declare const commonLibraryOperations: string[];
 export declare const commonLibraryAccess: Record<
   string,

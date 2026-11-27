@@ -11,6 +11,7 @@ mod emission_map;
 pub mod equivalence;
 pub mod formal;
 pub mod fragments;
+pub mod grammar_workspace;
 pub mod identifier_language;
 pub mod layout;
 pub mod meta;

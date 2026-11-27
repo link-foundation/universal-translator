@@ -88,7 +88,7 @@ At `34cad04`, native translation, Node, Bun, Deno, web, security and link
 checks pass. Rust fails at the HTTP parity assertion because its server
 suppresses natural/machine line maps (`logs/ci-rust-34cad04.txt:1304–1307`).
 Commit `28bd803` repairs that condition, and the expanded JavaScript HTTP and
-Rust parity tests pass locally. Its new CI run is pending. Run snapshots retain
+Rust parity tests pass locally. The archive commit `4cb1de8` then exposed formatting errors in three preserved experiments (`logs/ci-lint-4cb1de8.txt:282–311`). Commit `1601592` formats them and splits an oversized server test group; focused lint and all nine server tests pass. Run snapshots retain
 timestamps and head SHAs rather than relying on an older green badge.
 
 Browser evidence is committed under `docs/screenshots/issue-16/` and embedded
@@ -99,7 +99,7 @@ those states; they do not prove every language or the entire inherited corpus.
 ## Remaining solution work
 
 The acceptance inventory remains authoritative. Major open areas include
-grammar import/update/merge/execution across both runtimes, recursive natural
+complete upstream grammar production/semantic coverage and faithful conversion lowering, recursive natural
 clauses and general agreement, questions/introspection/SQL/LINQ, complete
 operators and exceptions across targets, exact subline maps and comment
 headers, binary machine readers and dialect versions, missing top-50 languages,
@@ -119,3 +119,21 @@ default. Reusable experiments under `experiments/issue-16-*` capture targeted
 evidence; additional unknown failures should add similarly scoped diagnostics.
 The PR must remain unmerged and unready until every open criterion has actual
 implementation and verification evidence.
+
+## Executable grammar adapter, 2026-11-27
+
+The new workspace uses the pinned grammar subsystem shared with Rust 1.0.0. It
+imports and executes nine formats; updates only after a successful import;
+resolves updated dependencies; retains separate language editions and source
+entry points; merges structurally equivalent rules with stable identities; and
+exposes six transform stages with opt-in tracing. Every parse retains UTF-8
+concrete ranges, recovered/missing tokens, nested productions and provenance. A
+semantic reader maps imported productions into the ordinary translator.
+
+The JavaScript source closure is 41 files (680,224 original bytes), with a
+manifest, upstream license and one explicit browser SHA-256 patch. The digest
+gate verifies all 42 pinned source/license files. The runtime passes JS, Deno,
+Rust, Node TypeScript and Deno type checks, real browser execution and the
+production web build. The runnable example translates `say 7.` and updates to
+accept `say 9.`. Conversion losses are rejected explicitly; this infrastructure
+does not yet establish every requested complete grammar or semantic reader.
