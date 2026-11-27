@@ -5,6 +5,7 @@ const active = 'REQUIREMENTS.md';
 const archive = 'requirements-archive/';
 const docs = new URL('../docs/', import.meta.url);
 const requirement = /^## (UT-\d+(?:\.\d+)+) \S/u;
+const checklistMarker = /^- \[[^\]]?\](?!\(|\[)/u;
 const checklistItem = /^- \[([ xX])\] \S/u;
 const ids = new Set();
 
@@ -29,7 +30,7 @@ function readRequirements(file) {
       ids.add(id);
       groups.push({ id, tasks: 0, open: 0 });
     }
-    if (line.startsWith('- [')) {
+    if (checklistMarker.test(line)) {
       const [, state] = checklistItem.exec(line) ?? [];
       const group = groups.at(-1);
       if (!group || !state) {
