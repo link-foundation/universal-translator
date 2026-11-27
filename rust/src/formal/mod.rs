@@ -49,6 +49,7 @@ mod record_instances;
 mod records;
 pub mod rocq_runtime;
 pub mod rules;
+mod rust_print;
 mod sql_values;
 mod text_writing;
 mod type_metadata;

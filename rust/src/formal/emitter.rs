@@ -478,6 +478,12 @@ impl Emitter {
                 };
                 let callee = expression.str("callee").unwrap_or_default();
                 let values = expression.nodes("arguments");
+                if super::rust_print::is_print(callee) && self.id() != "rust" {
+                    return Err(GrammarError::new(format!(
+                        "Rust format requires a native macro in {}",
+                        self.id()
+                    )));
+                }
                 let member = callee.starts_with('.');
                 let receiver = if member {
                     self.expression_in(
@@ -492,7 +498,14 @@ impl Emitter {
                 let arguments = values
                     .into_iter()
                     .skip(usize::from(member))
-                    .map(|argument| self.expression(argument))
+                    .map(|argument| {
+                        if super::rust_print::is_print(callee) && argument.is("NamedArgument") {
+                            let name = argument.str("name").unwrap_or_default();
+                            let value = self.expression(field(argument, "value")?)?;
+                            return Ok(format!("{name} = {value}"));
+                        }
+                        self.expression(argument)
+                    })
                     .collect::<Result<Vec<_>>>()?;
                 Ok(format!(
                     "{receiver}{callee}{types}({})",

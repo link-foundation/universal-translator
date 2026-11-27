@@ -20,6 +20,7 @@ import { recognizeDocumentation } from './documentation.js';
 import { normalizeObjectiveCConditions, recognizeObjpak } from './objpak.js';
 import { recognizeSqlValues } from './sql-values.js';
 import { recognizeRecordInstances } from './record-instances.js';
+import { isRustPrint, nativeRustPrint, rustPrintParts } from './rust-print.js';
 import {
   floorDivision,
   raiseIntegerArithmetic,
@@ -232,12 +233,7 @@ const textCalls = new Set([
   'sys.stdout.write',
   'io.write',
 ]);
-const formatCalls = {
-  printf: 'percent',
-  'fmt.Printf': 'percent',
-  'println!': 'braces',
-  'print!': 'braces',
-};
+const percentCalls = new Set(['printf', 'fmt.Printf']);
 
 function joinWithSpaces(values, separator = text(' ')) {
   if (values.length === 1) {
@@ -253,11 +249,8 @@ function joinWithSpaces(values, separator = text(' ')) {
   return node('Interpolation', { parts });
 }
 
-function readFormat(format, values, style) {
-  const pattern =
-    style === 'percent'
-      ? /%(?:l{0,2}d|i|s|c|v|t|%|(?:\.\d+)?l?[fgeG])/g
-      : /\{\{|\}\}|\{\}/g;
+function readPercentFormat(format, values) {
+  const pattern = /%(?:l{0,2}d|i|s|c|v|t|%|(?:\.\d+)?l?[fgeG])/g;
   const parts = [];
   let last = 0;
   let index = 0;
@@ -267,10 +260,6 @@ function readFormat(format, values, style) {
     }
     if (match[0] === '%%') {
       parts.push(text('%'));
-    } else if (match[0] === '{{') {
-      parts.push(text('{'));
-    } else if (match[0] === '}}') {
-      parts.push(text('}'));
     } else {
       parts.push(values[index++]);
     }
@@ -322,7 +311,8 @@ function streamParts(expression) {
 const knownPrint = (callee) =>
   lineCalls.has(callee) ||
   textCalls.has(callee) ||
-  Object.hasOwn(formatCalls, callee) ||
+  percentCalls.has(callee) ||
+  isRustPrint(callee) ||
   callee === 'echo';
 
 // Which kind of output procedure a call names: 'line' when it ends the line,
@@ -374,10 +364,14 @@ function printFromCall(call, syntax) {
   const values = call.arguments.filter(
     (value) => value.kind !== 'NamedArgument'
   );
+  const namedArguments = call.arguments.filter(
+    (value) => value.kind === 'NamedArgument'
+  );
+  if (isRustPrint(call.callee)) {
+    return printFromRust(call, values, namedArguments);
+  }
   const named = Object.fromEntries(
-    call.arguments
-      .filter((value) => value.kind === 'NamedArgument')
-      .map((value) => [value.name, value.value])
+    namedArguments.map((value) => [value.name, value.value])
   );
   // D's writeln prints its arguments one after another, without spaces.
   if (kind === 'line' && syntax.printCalls?.adjacent) {
@@ -396,19 +390,33 @@ function printFromCall(call, syntax) {
     const { parts, newline } = withoutTrailingNewline(flat);
     return node('Print', { value: partsToValue(parts), newline });
   }
-  const style = Object.hasOwn(formatCalls, call.callee)
-    ? formatCalls[call.callee]
-    : undefined;
-  if (style && values[0]?.kind === 'Text') {
+  if (percentCalls.has(call.callee) && values[0]?.kind === 'Text') {
     const { parts, newline } = withoutTrailingNewline(
-      readFormat(values[0].value, values.slice(1), style)
+      readPercentFormat(values[0].value, values.slice(1))
     );
-    return node('Print', {
-      value: partsToValue(parts),
-      newline: newline || call.callee === 'println!',
-    });
+    return node('Print', { value: partsToValue(parts), newline });
   }
   return undefined;
+}
+
+function printFromRust(call, [format, ...values], named) {
+  const line = call.callee === 'println!';
+  if (line && !format && named.length === 0) {
+    return node('Print', { value: text(''), newline: true });
+  }
+  if (format?.kind !== 'Text') {
+    return undefined;
+  }
+  const formatParts = rustPrintParts(format.value, values, named);
+  if (formatParts === undefined) {
+    return node('Evaluate', {
+      expression: nativeRustPrint(call, format.value, named),
+    });
+  }
+  const { parts, newline } = line
+    ? { parts: formatParts, newline: true }
+    : withoutTrailingNewline(formatParts);
+  return node('Print', { value: partsToValue(parts), newline });
 }
 
 // Replace each known output procedure with the Print concept.

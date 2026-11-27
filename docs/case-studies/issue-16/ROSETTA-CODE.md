@@ -172,9 +172,36 @@ node experiments/issue-16-rosetta-containers.mjs /tmp/rosetta-containers-revisio
   ./target/debug/universal-translator
 ```
 
-These five pinned same-language task round trips count toward the behavioral
-goal. Cross-language container and comparison semantics still require testing
-and implementation.
+The first Rust solution for [String interpolation (included), revision 416065](<https://rosettacode.org/w/index.php?title=String_interpolation_(included)&oldid=416065>)
+has three print calls. At `6b73060`, the JavaScript CLI emitted the indexed
+and named placeholders as literal text. Both engines now resolve default
+Display fields with automatic indices, explicit indices, named arguments and
+direct captures. Escaped braces and the extra newline from `println!` retain
+their native semantics. When a field order would move or repeat a call, Rust
+output keeps the original macro and argument order. Formatting options such as
+alignment also stay in native Rust output.
+[Rust formatting rules](https://doc.rust-lang.org/std/fmt/index.html#usage)
+
+Both CLIs preserve all three lines of `Mary had a little lamb` in native Rust
+and Python, including the Rust outputs restored from Python. The regression
+fixture also verifies captured names, native alignment and observable calls
+through reordered and repeated fields. Native CI runs the fixture with the
+JavaScript CLI. The experiment accepts the built Rust CLI and the pinned
+MediaWiki revision for the full comparison.
+[Native comparison fixture](../../../examples/printing/rust-format.rs)
+[Recorded results](logs/rosetta-rust-print-native.txt)
+
+```sh
+curl --fail --silent --show-error --get https://rosettacode.org/w/api.php \
+  --data 'action=query' --data 'prop=revisions' --data 'revids=416065' \
+  --data 'rvprop=ids|content' --data 'rvslots=main' --data 'format=json' \
+  --data 'formatversion=2' > /tmp/rosetta-rust-print-revision.json
+node experiments/issue-16-rust-print.mjs --revision /tmp/rosetta-rust-print-revision.json \
+  --rust-translator ./target/debug/universal-translator
+```
+
+These six pinned task round trips count toward the behavioral goal. Portable
+format modifiers, containers and comparisons need broader native verification.
 
 ## C++ file-scope declarations
 

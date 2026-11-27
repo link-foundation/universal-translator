@@ -348,20 +348,6 @@ const TEXT_CALLS: [&str; 7] = [
     "io.write",
 ];
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum FormatStyle {
-    Percent,
-    Braces,
-}
-
-fn format_call(callee: &str) -> Option<FormatStyle> {
-    match callee {
-        "printf" | "fmt.Printf" => Some(FormatStyle::Percent),
-        "println!" | "print!" => Some(FormatStyle::Braces),
-        _ => None,
-    }
-}
-
 fn join_with_spaces(values: Vec<Node>) -> Node {
     join_with(values, &text(" "))
 }
@@ -381,51 +367,43 @@ fn join_with(mut values: Vec<Node>, separator: &Node) -> Node {
 }
 
 /// The length of the placeholder starting at `index`, if one does.
-fn placeholder_length(format: &[char], index: usize, style: FormatStyle) -> Option<usize> {
+fn percent_placeholder_length(format: &[char], index: usize) -> Option<usize> {
     let at = |offset: usize| format.get(index + offset).copied();
-    match style {
-        FormatStyle::Percent => {
-            if at(0) != Some('%') {
-                return None;
-            }
-            let mut length = 1;
-            while length < 3 && at(length) == Some('l') {
-                length += 1;
-            }
-            if at(length) == Some('d') {
-                return Some(length + 1);
-            }
-            if length == 1 && matches!(at(1), Some('i' | 's' | 'c' | 'v' | 't' | '%')) {
-                return Some(2);
-            }
-            // A real: %f, %g, %e, %G, with a precision such as %.2f.
-            let mut length = 1;
-            if at(1) == Some('.') && at(2).is_some_and(|c| c.is_ascii_digit()) {
-                length = 2;
-                while at(length).is_some_and(|c| c.is_ascii_digit()) {
-                    length += 1;
-                }
-            }
-            if at(length) == Some('l') {
-                length += 1;
-            }
-            matches!(at(length), Some('f' | 'g' | 'e' | 'G')).then_some(length + 1)
-        }
-        FormatStyle::Braces => match (at(0), at(1)) {
-            (Some('{'), Some('{' | '}')) | (Some('}'), Some('}')) => Some(2),
-            _ => None,
-        },
+    if at(0) != Some('%') {
+        return None;
     }
+    let mut length = 1;
+    while length < 3 && at(length) == Some('l') {
+        length += 1;
+    }
+    if at(length) == Some('d') {
+        return Some(length + 1);
+    }
+    if length == 1 && matches!(at(1), Some('i' | 's' | 'c' | 'v' | 't' | '%')) {
+        return Some(2);
+    }
+    // A real: %f, %g, %e, %G, with a precision such as %.2f.
+    let mut length = 1;
+    if at(1) == Some('.') && at(2).is_some_and(|c| c.is_ascii_digit()) {
+        length = 2;
+        while at(length).is_some_and(|c| c.is_ascii_digit()) {
+            length += 1;
+        }
+    }
+    if at(length) == Some('l') {
+        length += 1;
+    }
+    matches!(at(length), Some('f' | 'g' | 'e' | 'G')).then_some(length + 1)
 }
 
-fn read_format(format: &str, values: &[Node], style: FormatStyle) -> Vec<Node> {
+fn read_percent_format(format: &str, values: &[Node]) -> Vec<Node> {
     let characters: Vec<char> = format.chars().collect();
     let mut parts = Vec::new();
     let mut literal = String::new();
     let mut next_value = values.iter();
     let mut index = 0;
     while index < characters.len() {
-        let Some(length) = placeholder_length(&characters, index, style) else {
+        let Some(length) = percent_placeholder_length(&characters, index) else {
             literal.push(characters[index]);
             index += 1;
             continue;
@@ -436,8 +414,6 @@ fn read_format(format: &str, values: &[Node], style: FormatStyle) -> Vec<Node> {
         let placeholder: String = characters[index..index + length].iter().collect();
         match placeholder.as_str() {
             "%%" => parts.push(text("%")),
-            "{{" => parts.push(text("{")),
-            "}}" => parts.push(text("}")),
             _ => parts.extend(next_value.next().cloned()),
         }
         index += length;
@@ -606,13 +582,37 @@ fn print_from_call(call: &Node, syntax: Option<&Syntax>) -> Option<Node> {
         let (parts, newline) = without_trailing_newline(spread_interpolations(values));
         return Some(print(parts_to_value(parts), newline));
     }
-    let style = format_call(callee)?;
-    let format = values.first().and_then(text_value)?;
-    let (parts, newline) = without_trailing_newline(read_format(format, &values[1..], style));
-    Some(print(
-        parts_to_value(parts),
-        newline || callee == "println!",
-    ))
+    if super::rust_print::is_print(callee) {
+        return print_from_rust(call, &values, &named);
+    }
+    if !matches!(callee, "printf" | "fmt.Printf") {
+        return None;
+    }
+    let (format, values) = values.split_first()?;
+    let (parts, newline) =
+        without_trailing_newline(read_percent_format(text_value(format)?, values));
+    Some(print(parts_to_value(parts), newline))
+}
+
+fn print_from_rust(call: &Node, values: &[Node], named: &[Node]) -> Option<Node> {
+    let line = call.str("callee") == Some("println!");
+    if line && values.is_empty() && named.is_empty() {
+        return Some(print(text(""), true));
+    }
+    let (format, values) = values.split_first()?;
+    let format = text_value(format)?;
+    let Some(parts) = super::rust_print::parts(format, values, named) else {
+        return Some(Node::new("Evaluate").with(
+            "expression",
+            super::rust_print::native_call(call, format, named),
+        ));
+    };
+    let (parts, newline) = if line {
+        (parts, true)
+    } else {
+        without_trailing_newline(parts)
+    };
+    Some(print(parts_to_value(parts), newline))
 }
 
 fn ends_with(node: Option<&Node>, suffix: &str) -> bool {

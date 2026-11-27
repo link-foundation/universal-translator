@@ -31,6 +31,7 @@ import {
   supportsRecords,
 } from './record-model.js';
 import { writeRecord, writeRecordExpression } from './record-writer.js';
+import { isRustPrint } from './rust-print.js';
 import {
   mappedComments,
   mappedEmitter,
@@ -338,6 +339,17 @@ class BaseEmitter {
   }
 
   call({ callee, arguments: values, typeArguments }) {
+    if (isRustPrint(callee)) {
+      if (this.id !== 'rust') {
+        throw new Error(`Rust format requires a native macro in ${this.id}`);
+      }
+      const written = values.map((value) =>
+        value.kind === 'NamedArgument'
+          ? `${value.name} = ${this.expression(value.value)}`
+          : this.expression(value)
+      );
+      return `${callee}(${written.join(', ')})`;
+    }
     const member = callee.startsWith('.');
     const receiver = member ? `${this.expression(values[0], 9)}` : '';
     const arguments0 = member ? values.slice(1) : values;

@@ -38,6 +38,66 @@ fn member_calls_keep_computed_receivers_and_java_continuations() {
 }
 
 #[test]
+fn rust_print_resolves_display_fields_and_literal_braces() {
+    let translator = Translator::new();
+    let source = r#"
+        fn main() {
+            let forestOwner: &str = "Fox";
+            println!("{{{1}}} is {} with {name}/{forestOwner}", "first", "second", name = "third");
+        }
+    "#;
+    let target = translator
+        .translate(source, "rust", "python", Mode::default())
+        .unwrap();
+    assert!(target.contains("with third/{forest_owner}"), "{target}");
+    assert!(target.contains("{{second}} is first"), "{target}");
+    assert!(target.contains("forest_owner = \"Fox\""), "{target}");
+}
+
+#[test]
+fn rust_println_keeps_its_own_newline() {
+    let translator = Translator::new();
+    let source = r#"fn main() { println!("line\n"); println!(); }"#;
+    let target = translator
+        .translate(source, "rust", "rust", Mode::default())
+        .unwrap();
+    assert!(target.contains(r#"println!("line\n");"#), "{target}");
+    assert!(target.contains(r#"println!("");"#), "{target}");
+}
+
+#[test]
+fn rust_print_reordering_calls_retains_native_argument_order() {
+    let translator = Translator::new();
+    let single_call = r#"println!("{item}/{0}/{item}", take(1), item = take(2));"#;
+    let source = format!("fn main() {{ {single_call} }}");
+    let target = translator
+        .translate(&source, "rust", "rust", Mode::default())
+        .unwrap();
+    assert!(target.contains(single_call), "{target}");
+    let error = translator
+        .translate(&source, "rust", "python", Mode::default())
+        .unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("Rust format requires a native macro in python")
+    );
+}
+
+#[test]
+fn rust_print_retains_native_formatting_and_renames_captures() {
+    let translator = Translator::new();
+    let source = r#"fn main() { let itemName: &str = "wide"; println!("{itemName:>6}"); }"#;
+    let target = translator
+        .translate(source, "rust", "rust", Mode::default())
+        .unwrap();
+    assert!(
+        target.contains(r#"println!("{itemName:>6}", itemName = item_name);"#),
+        "{target}"
+    );
+}
+
+#[test]
 fn standalone_cpp_member_and_namespace_calls_survive_beside_prototypes() {
     let translator = Translator::new();
     let source = r#"
