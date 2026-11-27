@@ -1,18 +1,18 @@
 # Greatest common divisor in Python, using the Euclidean algorithm
 
 def ut_integer_divide(first, second):
-    result = first // second
-    residue = first - result * second
+    quotient = first // second
+    residue = first - quotient * second
     if residue != 0:
-        if result < 0:
-            result += 1
-    if result == 0:
-        result = 0
-    return result
+        if quotient < 0:
+            quotient += 1
+    if quotient == 0:
+        quotient = 0
+    return quotient
 
 def ut_integer_remainder(first, second):
-    result = ut_integer_divide(first, second)
-    return first - result * second
+    quotient = ut_integer_divide(first, second)
+    return first - quotient * second
 
 def greatest_common_divisor(first, second):
     while second != 0:

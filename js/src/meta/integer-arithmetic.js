@@ -2,6 +2,19 @@
 import data from '../../../data/integer-arithmetic.json' with { type: 'json' };
 import { node, rewrite, walk, sameMeaning } from './tree.js';
 
+const helperBodies = Object.entries(data.helpers).map(
+  ([operator, template]) => [
+    operator,
+    [
+      template.body,
+      // Legacy helpers spell the local "result", which Nim reserves.
+      rewrite(template.body, (item) =>
+        item.name === 'quotient' ? { ...item, name: 'result' } : item
+      ),
+    ],
+  ]
+);
+
 export const floorDivision = (id) => data.floorDivision.includes(id);
 export const floorModulo = (id) => data.floorModulo.includes(id);
 
@@ -96,8 +109,8 @@ export function raiseIntegerArithmetic(program) {
       ) {
         continue;
       }
-      for (const [operator, template] of Object.entries(data.helpers)) {
-        if (sameMeaning(item.body, template.body)) {
+      for (const [operator, bodies] of helperBodies) {
+        if (bodies.some((body) => sameMeaning(item.body, body))) {
           candidates.set(item.name, operator);
         }
       }

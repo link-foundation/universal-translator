@@ -258,6 +258,16 @@ const statements = (Base) =>
 
 const parser = (Base) =>
   class FortranParser extends statements(keywordParser(Base)) {
+    // Logical equivalence binds less tightly than OR and AND in Fortran.
+    expression() {
+      let left = super.expression();
+      while (this.is('.eqv.') || this.is('.neqv.')) {
+        const operator =
+          this.next().value.toLowerCase() === '.eqv.' ? 'equal' : 'notEqual';
+        left = node('Binary', { operator, left, right: super.expression() });
+      }
+      return left;
+    }
     program() {
       this.formats = this.formatStatements();
       const items = [];
@@ -502,6 +512,13 @@ const emitter = (Base) =>
     }
 
     binary(expression, parent) {
+      if (
+        ['equal', 'notEqual'].includes(expression.operator) &&
+        expression.left.type === 'boolean'
+      ) {
+        const operator = expression.operator === 'equal' ? '.eqv.' : '.neqv.';
+        return `(${this.expression(expression.left)} ${operator} ${this.expression(expression.right)})`;
+      }
       if (expression.operator !== 'remainder') {
         return super.binary(expression, parent);
       }

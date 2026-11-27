@@ -1,22 +1,22 @@
 # FizzBuzz in R
 
 ut_integer_divide <- function(first, second) {
-    result <- first %/% second
-    residue <- first - result * second
+    quotient <- first %/% second
+    residue <- first - quotient * second
     if (residue != 0L) {
-        if (result < 0L) {
-            result <- result + 1L
+        if (quotient < 0L) {
+            quotient <- quotient + 1L
         }
     }
-    if (result == 0L) {
-        result <- 0L
+    if (quotient == 0L) {
+        quotient <- 0L
     }
-    return(result)
+    return(quotient)
 }
 
 ut_integer_remainder <- function(first, second) {
-    result <- ut_integer_divide(first, second)
-    return(first - result * second)
+    quotient <- ut_integer_divide(first, second)
+    return(first - quotient * second)
 }
 
 for (number in 1L:100L) {

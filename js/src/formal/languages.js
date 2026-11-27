@@ -647,7 +647,16 @@ export const languages = {
     declarations: [],
     // Integer literals passed to integer(8) arguments carry the kind 8.
     longSuffix: '_8',
-    symbols: ['.and.', '.or.', '.not.', '.true.', '.false.', '/='],
+    symbols: [
+      '.and.',
+      '.or.',
+      '.not.',
+      '.true.',
+      '.false.',
+      '.eqv.',
+      '.neqv.',
+      '/=',
+    ],
     compoundAssignment: false,
     operators: {
       and: '.and.',

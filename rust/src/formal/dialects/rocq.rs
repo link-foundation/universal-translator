@@ -328,6 +328,7 @@ fn application(callee: String, values: Vec<Node>) -> Node {
     let first = values.next().unwrap_or(Node::new("Number"));
     let mut second = || values.next().unwrap_or(Node::new("Number"));
     match callee.as_str() {
+        "Bool.eqb" => binary("equal", first, second()),
         "Z.quot" => binary("divide", first, second()),
         "Z.rem" => binary("remainder", first, second()),
         "show" => first,
@@ -791,6 +792,9 @@ impl EmitterDialect for Rocq {
         let left = field(expression, "left")?;
         let right = field(expression, "right")?;
         match operator {
+            "equal" if left.str("type") == Some("boolean") => {
+                return call(e, "Bool.eqb", &[left, right], parent);
+            }
             // Rocq programs compute with integers only, so true division
             // truncates too.
             "divide" | "realDivide" => return call(e, "Z.quot", &[left, right], parent),

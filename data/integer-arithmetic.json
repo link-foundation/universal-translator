@@ -15,7 +15,7 @@
         "statements": [
           {
             "kind": "Declaration",
-            "name": "result",
+            "name": "quotient",
             "value": {
               "kind": "Binary",
               "operator": "divide",
@@ -36,7 +36,11 @@
               "right": {
                 "kind": "Binary",
                 "operator": "multiply",
-                "left": { "kind": "Name", "name": "result", "type": "integer" },
+                "left": {
+                  "kind": "Name",
+                  "name": "quotient",
+                  "type": "integer"
+                },
                 "right": {
                   "kind": "Name",
                   "name": "second",
@@ -103,14 +107,14 @@
                     "statements": [
                       {
                         "kind": "Assignment",
-                        "name": "result",
+                        "name": "quotient",
                         "operator": "=",
                         "value": {
                           "kind": "Binary",
                           "operator": "subtract",
                           "left": {
                             "kind": "Name",
-                            "name": "result",
+                            "name": "quotient",
                             "type": "integer"
                           },
                           "right": {
@@ -132,7 +136,7 @@
             "condition": {
               "kind": "Binary",
               "operator": "equal",
-              "left": { "kind": "Name", "name": "result", "type": "integer" },
+              "left": { "kind": "Name", "name": "quotient", "type": "integer" },
               "right": { "kind": "Number", "value": 0, "type": "integer" },
               "type": "boolean"
             },
@@ -141,7 +145,7 @@
               "statements": [
                 {
                   "kind": "Assignment",
-                  "name": "result",
+                  "name": "quotient",
                   "operator": "=",
                   "value": { "kind": "Number", "value": 0, "type": "integer" }
                 }
@@ -150,7 +154,7 @@
           },
           {
             "kind": "Return",
-            "value": { "kind": "Name", "name": "result", "type": "integer" }
+            "value": { "kind": "Name", "name": "quotient", "type": "integer" }
           }
         ]
       },
@@ -169,7 +173,7 @@
         "statements": [
           {
             "kind": "Declaration",
-            "name": "result",
+            "name": "quotient",
             "value": {
               "kind": "Binary",
               "operator": "floorDivide",
@@ -190,7 +194,11 @@
               "right": {
                 "kind": "Binary",
                 "operator": "multiply",
-                "left": { "kind": "Name", "name": "result", "type": "integer" },
+                "left": {
+                  "kind": "Name",
+                  "name": "quotient",
+                  "type": "integer"
+                },
                 "right": {
                   "kind": "Name",
                   "name": "second",
@@ -222,7 +230,7 @@
                     "operator": "less",
                     "left": {
                       "kind": "Name",
-                      "name": "result",
+                      "name": "quotient",
                       "type": "integer"
                     },
                     "right": {
@@ -237,14 +245,14 @@
                     "statements": [
                       {
                         "kind": "Assignment",
-                        "name": "result",
+                        "name": "quotient",
                         "operator": "=",
                         "value": {
                           "kind": "Binary",
                           "operator": "add",
                           "left": {
                             "kind": "Name",
-                            "name": "result",
+                            "name": "quotient",
                             "type": "integer"
                           },
                           "right": {
@@ -266,7 +274,7 @@
             "condition": {
               "kind": "Binary",
               "operator": "equal",
-              "left": { "kind": "Name", "name": "result", "type": "integer" },
+              "left": { "kind": "Name", "name": "quotient", "type": "integer" },
               "right": { "kind": "Number", "value": 0, "type": "integer" },
               "type": "boolean"
             },
@@ -275,7 +283,7 @@
               "statements": [
                 {
                   "kind": "Assignment",
-                  "name": "result",
+                  "name": "quotient",
                   "operator": "=",
                   "value": { "kind": "Number", "value": 0, "type": "integer" }
                 }
@@ -284,7 +292,7 @@
           },
           {
             "kind": "Return",
-            "value": { "kind": "Name", "name": "result", "type": "integer" }
+            "value": { "kind": "Name", "name": "quotient", "type": "integer" }
           }
         ]
       },
@@ -303,7 +311,7 @@
         "statements": [
           {
             "kind": "Declaration",
-            "name": "result",
+            "name": "quotient",
             "value": {
               "kind": "Binary",
               "operator": "floorDivide",
@@ -323,7 +331,11 @@
               "right": {
                 "kind": "Binary",
                 "operator": "multiply",
-                "left": { "kind": "Name", "name": "result", "type": "integer" },
+                "left": {
+                  "kind": "Name",
+                  "name": "quotient",
+                  "type": "integer"
+                },
                 "right": {
                   "kind": "Name",
                   "name": "second",
@@ -351,7 +363,7 @@
         "statements": [
           {
             "kind": "Declaration",
-            "name": "result",
+            "name": "quotient",
             "value": {
               "kind": "Binary",
               "operator": "divide",
@@ -371,7 +383,11 @@
               "right": {
                 "kind": "Binary",
                 "operator": "multiply",
-                "left": { "kind": "Name", "name": "result", "type": "integer" },
+                "left": {
+                  "kind": "Name",
+                  "name": "quotient",
+                  "type": "integer"
+                },
                 "right": {
                   "kind": "Name",
                   "name": "second",

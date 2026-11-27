@@ -36,6 +36,21 @@ struct Result_ {
 // ---- reading ----
 
 impl ParserDialect for Fortran {
+    fn expression(&self, p: &mut Parser) -> Parsed {
+        let mut left = p.base_expression()?;
+        while p.is(".eqv.") || p.is(".neqv.") {
+            let operator = if p.next_value()?.eq_ignore_ascii_case(".eqv.") {
+                "equal"
+            } else {
+                "notEqual"
+            };
+            left = Node::new("Binary")
+                .with("operator", operator)
+                .with("left", left)
+                .with("right", p.base_expression()?);
+        }
+        Ok(left)
+    }
     fn program(&self, p: &mut Parser) -> Parsed {
         p.state::<Result_>().formats = format_statements(p)?;
         let mut items = Vec::new();
@@ -492,6 +507,20 @@ impl EmitterDialect for Fortran {
     }
 
     fn binary(&self, e: &mut Emitter, expression: &Node, parent: f64) -> Result<String> {
+        let operator = expression.str("operator");
+        let left = field(expression, "left")?;
+        if matches!(operator, Some("equal" | "notEqual")) && left.str("type") == Some("boolean") {
+            let spelled = if operator == Some("equal") {
+                ".eqv."
+            } else {
+                ".neqv."
+            };
+            return Ok(format!(
+                "({} {spelled} {})",
+                e.expression(left)?,
+                e.expression(field(expression, "right")?)?
+            ));
+        }
         if expression.str("operator") != Some("remainder") {
             return e.base_binary(expression, parent);
         }

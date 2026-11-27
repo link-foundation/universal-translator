@@ -9,6 +9,25 @@ static DATA: LazyLock<Json> = LazyLock::new(|| {
         .expect("integer arithmetic data")
 });
 
+static HELPER_BODIES: LazyLock<Vec<(String, Node, Node)>> = LazyLock::new(|| {
+    DATA["helpers"]
+        .as_object()
+        .expect("helpers")
+        .iter()
+        .map(|(operator, template)| {
+            let body = json_node(&template["body"]);
+            // Earlier releases used "result", an implicit variable reserved by Nim.
+            let legacy = rewrite(body.clone(), |mut item| {
+                if item.str("name") == Some("quotient") {
+                    item.set("name", "result");
+                }
+                item
+            });
+            (operator.clone(), body, legacy)
+        })
+        .collect()
+});
+
 fn profile(key: &str, id: &str) -> bool {
     DATA[key]
         .as_array()
@@ -170,14 +189,11 @@ pub(crate) fn raise(mut program: Node, _: &Settings) -> Node {
             {
                 continue;
             }
-            for (operator, template) in DATA["helpers"].as_object().expect("helpers") {
-                let definition = json_node(template);
-                if item
-                    .node("body")
-                    .zip(definition.node("body"))
-                    .is_some_and(|(a, b)| same_meaning(a, b))
-                {
-                    candidates.insert(name.to_owned(), operator.clone());
+            if let Some(candidate) = item.node("body") {
+                for (operator, body, legacy) in HELPER_BODIES.iter() {
+                    if same_meaning(candidate, body) || same_meaning(candidate, legacy) {
+                        candidates.insert(name.to_owned(), operator.clone());
+                    }
                 }
             }
         }

@@ -74,6 +74,9 @@ describe('integer arithmetic rounding', () => {
         'java',
         'go',
         'rust',
+        'nim',
+        'fortran',
+        'rocq',
         'nasm',
         'gas',
         'arm64',
@@ -86,6 +89,17 @@ describe('integer arithmetic rounding', () => {
         equivalent(meta, language);
       }
     }
+  });
+
+  it('recognizes signed-integer helpers with a local named result', () => {
+    const meta = translator.toMeta(floor, 'python');
+    const written = translator.fromMeta(meta, 'javascript');
+    assert.match(written, /\bquotient\b/);
+    const legacy = written.replace(/\bquotient\b/g, 'result');
+    assert.equal(
+      meaningDifference(meta, translator.toMeta(legacy, 'javascript')),
+      undefined
+    );
   });
 
   it('preserves floor and modulo compound assignments', () => {
@@ -118,8 +132,8 @@ describe('integer arithmetic rounding', () => {
     equivalent(meta, 'javascript');
     const written = translator.translate(floor, 'python', 'javascript');
     for (const invalid of [
-      written.replace('result -= 1', 'result += 1'),
-      written.replace('return result;', 'return\nresult;'),
+      written.replace('quotient -= 1', 'quotient += 1'),
+      written.replace('return quotient;', 'return\nquotient;'),
       `${written}\nconst escaped = utIntegerFloorDivide;`,
       `${written}\nfunction shadow(utIntegerFloorDivide) { return 1; }`,
       `${written}\nfunction utIntegerFloorDivide(first, second) { return 1; }`,

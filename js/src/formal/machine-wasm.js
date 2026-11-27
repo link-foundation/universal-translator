@@ -43,7 +43,7 @@ const stackEffect = {
   store: -1,
   pop: -1,
   arithmetic: -1,
-  'compare-jump': -2,
+  // compareJump consumes its operands before it records branch stack depths.
   return: -1,
   'print-integer': -1,
   'new-array': -1,

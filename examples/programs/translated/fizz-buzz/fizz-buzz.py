@@ -1,18 +1,18 @@
 # FizzBuzz in Python
 
 def ut_integer_divide(first, second):
-    result = first // second
-    residue = first - result * second
+    quotient = first // second
+    residue = first - quotient * second
     if residue != 0:
-        if result < 0:
-            result += 1
-    if result == 0:
-        result = 0
-    return result
+        if quotient < 0:
+            quotient += 1
+    if quotient == 0:
+        quotient = 0
+    return quotient
 
 def ut_integer_remainder(first, second):
-    result = ut_integer_divide(first, second)
-    return first - result * second
+    quotient = ut_integer_divide(first, second)
+    return first - quotient * second
 
 for number in range(1, 101):
     if ut_integer_remainder(number, 15) == 0:

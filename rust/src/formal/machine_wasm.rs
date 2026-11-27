@@ -51,7 +51,7 @@ fn stack_effect(instruction: &Instruction) -> i64 {
         | Instruction::PrintInteger
         | Instruction::NewArray
         | Instruction::LoadElement => -1,
-        Instruction::CompareJump(..) => -2,
+        // compare_jump already consumes operands before recording branch depths.
         Instruction::StoreElement => -3,
         _ => 0,
     }

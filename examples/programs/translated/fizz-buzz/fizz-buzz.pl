@@ -5,8 +5,8 @@ use warnings;
 
 sub ut_integer_remainder {
     my ($first, $second) = @_;
-    my $result = int($first / $second);
-    return $first - $result * $second;
+    my $quotient = int($first / $second);
+    return $first - $quotient * $second;
 }
 
 for my $number (1 .. 100) {

@@ -291,6 +291,12 @@ const expressionParser = (Base) =>
     application(callee, values) {
       const [first, second] = values;
       switch (callee) {
+        case 'Bool.eqb':
+          return node('Binary', {
+            operator: 'equal',
+            left: first,
+            right: second,
+          });
         case 'Z.quot':
           return node('Binary', {
             operator: 'divide',
@@ -704,6 +710,9 @@ const expressionEmitter = (Base) =>
       }
       if (operator === 'and' || operator === 'or') {
         return this.logical(expression, parent);
+      }
+      if (operator === 'equal' && left.type === 'boolean') {
+        return this.application('Bool.eqb', [left, right], parent);
       }
       if (operator === 'notEqual') {
         return this.applied(

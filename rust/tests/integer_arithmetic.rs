@@ -70,6 +70,9 @@ fn round_trips_both_contracts_through_shared_helper_algorithms() {
             "java",
             "go",
             "rust",
+            "nim",
+            "fortran",
+            "rocq",
             "nasm",
             "gas",
             "arm64",
@@ -84,6 +87,19 @@ fn round_trips_both_contracts_through_shared_helper_algorithms() {
             equivalent(&t, &meta, language);
         }
     }
+}
+
+#[test]
+fn recognizes_previously_emitted_helpers_with_the_local_result_name() {
+    let t = Translator::new();
+    let meta = t.to_meta(FLOOR, "python").unwrap();
+    let written = t
+        .from_meta(&meta, "javascript", None, Mode::default())
+        .unwrap();
+    assert!(written.contains("quotient"));
+    let legacy = written.replace("quotient", "result");
+    let read = t.to_meta(&legacy, "javascript").unwrap();
+    assert!(same_meaning(&meta, &read));
 }
 #[test]
 fn preserves_floor_and_modulo_compound_assignments() {
@@ -127,8 +143,8 @@ fn fresh_names_and_complete_unshadowed_algorithms() {
         .translate(FLOOR, "python", "javascript", Mode::default())
         .unwrap();
     for invalid in [
-        written.replace("result -= 1", "result += 1"),
-        written.replace("return result;", "return\nresult;"),
+        written.replace("quotient -= 1", "quotient += 1"),
+        written.replace("return quotient;", "return\nquotient;"),
         format!("{written}\nconst escaped = utIntegerFloorDivide;"),
         format!("{written}\nfunction shadow(utIntegerFloorDivide) {{ return 1; }}"),
         format!("{written}\nfunction utIntegerFloorDivide(first, second) {{ return 1; }}"),

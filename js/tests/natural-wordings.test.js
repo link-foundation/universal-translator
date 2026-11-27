@@ -82,7 +82,7 @@ describe('symbols and unmarked headings in English', () => {
     const cases = [
       ['Let n be 0.\nSet n to n + 1.\n', 'n += 1'],
       ['Let n be 2 * 3 + 1.\nPrint n.\n', 'n = 2 * 3 + 1'],
-      ['Let n be 7 - 2.\nPrint n % 4.\n', 'print(n % 4)'],
+      ['Let n be 7 - 2.\nPrint n % 4.\n', 'print(ut_integer_remainder(n, 4))'],
     ];
     for (const [source, expected] of cases) {
       expect(translate(source, 'english', 'python')).toContain(expected);

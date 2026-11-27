@@ -1,22 +1,22 @@
 -- Hailstone sequence in Lua: count the steps to reach 1
 
 local function ut_integer_divide(first, second)
-    local result = first // second
-    local residue = first - result * second
+    local quotient = first // second
+    local residue = first - quotient * second
     if residue ~= 0 then
-        if result < 0 then
-            result = result + 1
+        if quotient < 0 then
+            quotient = quotient + 1
         end
     end
-    if result == 0 then
-        result = 0
+    if quotient == 0 then
+        quotient = 0
     end
-    return result
+    return quotient
 end
 
 local function ut_integer_remainder(first, second)
-    local result = ut_integer_divide(first, second)
-    return first - result * second
+    local quotient = ut_integer_divide(first, second)
+    return first - quotient * second
 end
 
 local function hailstone_steps(number)

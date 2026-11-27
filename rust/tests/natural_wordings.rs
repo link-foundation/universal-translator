@@ -82,7 +82,10 @@ fn reads_arithmetic_written_with_symbols() {
     let cases = [
         ("Let n be 0.\nSet n to n + 1.\n", "n += 1"),
         ("Let n be 2 * 3 + 1.\nPrint n.\n", "n = 2 * 3 + 1"),
-        ("Let n be 7 - 2.\nPrint n % 4.\n", "print(n % 4)"),
+        (
+            "Let n be 7 - 2.\nPrint n % 4.\n",
+            "print(ut_integer_remainder(n, 4))",
+        ),
     ];
     for (source, expected) in cases {
         let output = to(source, "english", "python");

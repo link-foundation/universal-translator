@@ -10,7 +10,7 @@ const residual = () =>
   binary(
     'subtract',
     name('first'),
-    binary('multiply', name('result'), name('second'))
+    binary('multiply', name('quotient'), name('second'))
   );
 const differentSigns = () =>
   binary(
@@ -33,7 +33,7 @@ const helpers = Object.fromEntries(
       : 'divide';
     const statements = [
       declaration(
-        'result',
+        'quotient',
         value(division),
         ['divide', 'floorDivide'].includes(operator)
       ),
@@ -47,15 +47,15 @@ const helpers = Object.fromEntries(
             node('If', {
               condition:
                 operator === 'divide'
-                  ? binary('less', name('result'), number(0))
+                  ? binary('less', name('quotient'), number(0))
                   : differentSigns(),
               then: block([
                 node('Assignment', {
-                  name: 'result',
+                  name: 'quotient',
                   operator: '=',
                   value: binary(
                     operator === 'divide' ? 'add' : 'subtract',
-                    name('result'),
+                    name('quotient'),
                     number(1)
                   ),
                 }),
@@ -68,10 +68,10 @@ const helpers = Object.fromEntries(
     if (['divide', 'floorDivide'].includes(operator)) {
       statements.push(
         node('If', {
-          condition: binary('equal', name('result'), number(0)),
+          condition: binary('equal', name('quotient'), number(0)),
           then: block([
             node('Assignment', {
-              name: 'result',
+              name: 'quotient',
               operator: '=',
               value: number(0),
             }),
@@ -83,7 +83,7 @@ const helpers = Object.fromEntries(
       node('Return', {
         value: ['modulo', 'remainder'].includes(operator)
           ? residual()
-          : name('result'),
+          : name('quotient'),
       })
     );
     const helper = node('Function', {

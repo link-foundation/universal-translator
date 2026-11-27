@@ -1091,7 +1091,9 @@ pub static LANGUAGES: [Syntax; 32] = [
         declarations: &[],
         // Integer literals passed to integer(8) arguments carry the kind 8.
         long_suffix: Some("_8"),
-        symbols: &[".and.", ".or.", ".not.", ".true.", ".false.", "/="],
+        symbols: &[
+            ".and.", ".or.", ".not.", ".true.", ".false.", ".eqv.", ".neqv.", "/=",
+        ],
         function_keyword: None,
         compound_assignment: false,
         operators: Operators {
