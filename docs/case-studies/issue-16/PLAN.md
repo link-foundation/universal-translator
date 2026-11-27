@@ -12,6 +12,12 @@ acceptance decision. All 22 referenced solver gists were downloaded using
 authenticated `gh gist view`, compressed, and indexed with checksums in
 `data/solver-logs/manifest.json`.
 
+The later recovery run is archived separately in
+[`data/solver-logs/recovery-manifest.json`](data/solver-logs/recovery-manifest.json).
+Its complete 19,121-line log decompresses to the published SHA-256. Line 19101
+records recovery commit `c66c3996`; its source changes were reviewed, repaired,
+verified and pushed through `47bc918` and `bb51dcf`.
+
 Completed changes have focused JavaScript and Rust regression coverage: explicit
 meta fields, comment whitespace, complete interpolation parsing, const-container
 mutation, isolated-name detection, Russian case agreement, missing comment
