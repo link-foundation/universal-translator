@@ -56,7 +56,7 @@ before it can be checked off. Completed groups are stored in
 
 ## UT-16.18 Expand inherited program coverage
 
-- [ ] Increase verified Rosetta Code coverage by more than 100 distinct task types against the existing baseline. Both engines pass the pinned C++ solutions for `Ascending primes`, `Queue/Usage`, `Order two numerical lists` and `Jewels and stones`.
+- [ ] Increase verified Rosetta Code coverage by more than 100 distinct task types against the existing baseline. Both engines pass the pinned C++ solutions for `Ascending primes`, `Queue/Usage`, `Order two numerical lists`, `Jewels and stones` and `String append`.
 - [ ] Extend original-source round trips and behavioral equivalence through all 1,758 historical Rosetta Code tasks, including strings, data structures, I/O, objects and concurrency.
 - [ ] Finish native Portable Object Compiler collection translations through the remaining target families.
 - [x] Deliver the verified portable Meta Language commands in the default JavaScript package. The npm artifact includes the pinned 1.0.0 engine, and the JavaScript, Rust, Lean and Rocq fixtures pass direct and CST-mediated interoperability checks.

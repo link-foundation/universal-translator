@@ -75,7 +75,11 @@ impl Parser {
 
     pub(super) fn prototype_length(&self) -> usize {
         let offset = self.prefix_head_length();
-        if offset < 2 || !self.is_at("(", offset) || self.kind(offset - 1) != TokenType::Name {
+        if offset < 2
+            || !self.is_at("(", offset)
+            || self.kind(offset - 1) != TokenType::Name
+            || self.cpp_string_initializer(offset)
+        {
             return 0;
         }
         // A dotted or namespace-qualified callee is a single declarator.

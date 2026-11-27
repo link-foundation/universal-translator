@@ -160,6 +160,39 @@ int main() {
 });
 
 describe('C++ library scope and types', () => {
+  it('reads direct string initialization alongside C++ function prototypes', () => {
+    const source = String.raw`#include <string>
+std::string empty();
+std::string suggest(const char* text);
+int main() {
+  std::string greeting(
+    "Hello\0ignored"
+  );
+  greeting.append(" , world!");
+  return 0;
+}
+`;
+    const program = translator.toMeta(source, 'cpp');
+    expect(program.functions).toEqual([]);
+    const { kind, name, type, value } = program.main.statements[0];
+    expect([kind, name, type, value.kind, value.value]).toEqual([
+      'Declaration',
+      'greeting',
+      'text',
+      'Text',
+      'Hello',
+    ]);
+    const emitted = translator.translate(source, 'cpp', 'cpp');
+    expect(emitted).toContain('std::string greeting = "Hello";');
+    expect(emitted).toContain('greeting.append(" , world!");');
+    expect(translator.toMeta(emitted, 'cpp').main.statements).toEqual(
+      program.main.statements
+    );
+    expect(() =>
+      translator.toMeta(String.raw`std::string greeting("\07");`, 'cpp')
+    ).toThrow('Unsupported C++ string initializer escape');
+  });
+
   it('keeps C++ using directives and declarations in their original blocks', () => {
     const source = `#include <iostream>
 int main() {

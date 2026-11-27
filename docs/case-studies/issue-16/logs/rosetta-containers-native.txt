@@ -4,3 +4,5 @@
 {"title":"Order two numerical lists","revid":417505,"sourceSha256":"4752e59fbf4d6f7eb603159f34df8553a7ee092bd612124bcad36cb0c3953fd0","engine":"Rust","stdout":"false\n","assertions":0}
 {"title":"Jewels and stones","revid":419626,"sourceSha256":"ca42e7b599a3fb251aef227a867e801cf3fa6062fe0cf924711d4e732561361e","engine":"JavaScript","stdout":"3\n0\n","assertions":0}
 {"title":"Jewels and stones","revid":419626,"sourceSha256":"ca42e7b599a3fb251aef227a867e801cf3fa6062fe0cf924711d4e732561361e","engine":"Rust","stdout":"3\n0\n","assertions":0}
+{"title":"String append","revid":420026,"sourceSha256":"a3bbf3d8933188b5ec5a14214c4bf5464cb07dafa97e79b8783b50f3133b638b","engine":"JavaScript","stdout":"Hello , world!\n","assertions":0}
+{"title":"String append","revid":420026,"sourceSha256":"a3bbf3d8933188b5ec5a14214c4bf5464cb07dafa97e79b8783b50f3133b638b","engine":"Rust","stdout":"Hello , world!\n","assertions":0}

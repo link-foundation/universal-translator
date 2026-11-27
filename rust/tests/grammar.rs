@@ -139,6 +139,45 @@ int main() {
 }
 
 #[test]
+fn reads_direct_string_initialization_alongside_cpp_prototypes() {
+    let source = r#"#include <string>
+std::string empty();
+std::string suggest(const char* text);
+int main() {
+    std::string greeting(
+        "Hello\0ignored"
+    );
+    greeting.append(" , world!");
+    return 0;
+}
+"#;
+    let translator = Translator::new();
+    let program = translator.to_meta(source, "cpp").unwrap();
+    assert!(program.nodes("functions").is_empty());
+    let statements = program.node("main").unwrap().nodes("statements");
+    let greeting = &statements[0];
+    assert!(greeting.is("Declaration"));
+    assert_eq!(greeting.str("name"), Some("greeting"));
+    assert_eq!(greeting.str("type"), Some("text"));
+    assert_eq!(greeting.node("value").unwrap().str("value"), Some("Hello"));
+    let emitted = translator
+        .translate(source, "cpp", "cpp", Mode::default())
+        .unwrap();
+    assert!(emitted.contains("std::string greeting = \"Hello\";"));
+    assert!(emitted.contains("greeting.append(\" , world!\");"));
+    let reread = translator.to_meta(&emitted, "cpp").unwrap();
+    assert_eq!(reread.node("main").unwrap().nodes("statements"), statements);
+    let error = translator
+        .to_meta(r#"std::string greeting("\07");"#, "cpp")
+        .unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("Unsupported C++ string initializer escape")
+    );
+}
+
+#[test]
 fn cpp_file_scope_initializers_preserve_source_order_and_dependencies() {
     let source = r"int later();
 int earlier() { return 7; }

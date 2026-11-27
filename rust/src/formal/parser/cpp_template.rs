@@ -1,9 +1,9 @@
 //! Explicit type template-ids with a fundamental type that disambiguates
 //! them from ordinary comparisons, as in `left < middle > (right)`.
 
-use super::Parser;
+use super::{Parsed, Parser};
 use crate::formal::lexer::TokenType;
-use crate::meta::Node;
+use crate::meta::{GrammarError, Node};
 
 const FUNDAMENTAL: &[&str] = &[
     "bool", "char", "char8_t", "char16_t", "char32_t", "double", "float", "int", "long", "short",
@@ -26,6 +26,65 @@ pub(super) fn cpp_declaration_type(
 }
 
 impl Parser {
+    // A single string literal disambiguates an object declaration from a prototype.
+    pub(super) fn cpp_string_initializer(&self, head: usize) -> bool {
+        if self.syntax.id != "cpp"
+            || head != 4
+            || !["std", "::", "string"]
+                .iter()
+                .enumerate()
+                .all(|(index, token)| self.is_at(token, index))
+            || self.kind(3) != TokenType::Name
+            || !self.is_at("(", head)
+        {
+            return false;
+        }
+        let mut offset = head + 1;
+        while self.kind(offset) == TokenType::Newline {
+            offset += 1;
+        }
+        if self.kind(offset) != TokenType::Text {
+            return false;
+        }
+        offset += 1;
+        while self.kind(offset) == TokenType::Newline {
+            offset += 1;
+        }
+        self.kind(offset) == TokenType::Symbol && self.is_at(")", offset)
+    }
+
+    pub(super) fn read_cpp_string_initializer(&mut self) -> Parsed {
+        self.expect("(")?;
+        self.skip_newlines();
+        let literal = self.current();
+        let mut chars = literal.value.chars().peekable();
+        while let Some(character) = chars.next() {
+            let valid = match character {
+                '\r' | '\n' => false,
+                '\\' => match chars.next() {
+                    Some('n' | 'r' | 't' | '?' | '"' | '\'' | '\\') => true,
+                    Some('0') => !matches!(chars.peek(), Some('0'..='7')),
+                    _ => false,
+                },
+                _ => true,
+            };
+            if !valid {
+                return Err(GrammarError::syntax(
+                    "Unsupported C++ string initializer escape",
+                    literal.line,
+                ));
+            }
+        }
+        let mut value = self.expression()?;
+        // This overload reads characters up to the first null byte.
+        if let Some((prefix, _)) = value.str("value").and_then(|text| text.split_once('\0')) {
+            value.set("value", prefix.to_owned());
+        }
+        self.skip_newlines();
+        self.expect(")")?;
+        Ok(value)
+    }
+
     pub(super) fn cpp_template_arguments(&mut self, callee: &Node) -> Option<String> {
         if self.syntax.id != "cpp"
             || !matches!(callee.kind.as_str(), "Name" | "Method")

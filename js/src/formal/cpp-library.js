@@ -1,4 +1,50 @@
 import { inheritOrigin } from '../translation/source-origins.js';
+import { SyntaxError } from './lexer.js';
+
+// A single text literal cannot be a parameter declaration. `std::string f()`
+// and `std::string f(const char*)` are still function declarations.
+export function cppStringInitializer(parser, head) {
+  if (
+    parser.syntax.id !== 'cpp' ||
+    head !== 4 ||
+    !['std', '::', 'string'].every((token, offset) =>
+      parser.is(token, offset)
+    ) ||
+    parser.peek(3).type !== 'name' ||
+    !parser.is('(', head)
+  ) {
+    return false;
+  }
+  let offset = head + 1;
+  while (parser.peek(offset).type === 'newline') {
+    offset += 1;
+  }
+  if (parser.peek(offset).type !== 'text') {
+    return false;
+  }
+  do {
+    offset += 1;
+  } while (parser.peek(offset).type === 'newline');
+  return parser.peek(offset).type === 'symbol' && parser.is(')', offset);
+}
+
+export function readCppStringInitializer(parser) {
+  parser.expect('(');
+  parser.skipLineEnds();
+  const literal = parser.peek();
+  if (!/^(?:[^\\\r\n]|\\(?:[nrt?"'\\]|0(?![0-7])))*$/u.test(literal.value)) {
+    throw new SyntaxError(
+      'Unsupported C++ string initializer escape',
+      literal.line
+    );
+  }
+  const value = parser.expression();
+  // The selected constructor takes a null-terminated character pointer.
+  value.value = value.value.split('\0', 1)[0];
+  parser.skipLineEnds();
+  parser.expect(')');
+  return value;
+}
 
 // An explicit C++ type template-id can precede the call's value arguments.
 // A fundamental type has no expression reading, so it distinguishes this

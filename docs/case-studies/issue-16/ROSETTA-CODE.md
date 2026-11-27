@@ -151,16 +151,28 @@ the original and translated scoped-library fixture.
 [C++ working draft](https://eel.is/c++draft/namespace.udir)
 [Recorded results](logs/rosetta-containers-native.txt)
 
+The first C++ solution for [String append revision 420026](https://rosettacode.org/w/index.php?title=String_append&oldid=420026)
+uses a string literal in a parenthesized initializer. At `a82f53c`, the
+reader dropped the declaration of `greeting` as a function prototype.
+GCC then reported that `greeting` was undeclared in the `append` call.
+The readers now recognize a `std::string` declaration with a single string
+literal, including a literal on its own line. A named parameter or empty
+parameter list retains the function-prototype reading. Both CLIs emit
+standalone C++ that prints `Hello , world!` and a newline, matching the
+original. The native CI fixture also covers the constructor's embedded-null
+behavior. Other constructors and cross-language library mappings remain open.
+[Native comparison fixture](../../../examples/programs/library/cpp-string-initialization.cpp)
+
 ```sh
 curl --fail --silent --show-error --get https://rosettacode.org/w/api.php \
-  --data 'action=query' --data 'prop=revisions' --data 'revids=420325|417505|419626' \
+  --data 'action=query' --data 'prop=revisions' --data 'revids=420325|417505|419626|420026' \
   --data 'rvprop=ids|content' --data 'rvslots=main' --data 'format=json' \
   --data 'formatversion=2' > /tmp/rosetta-containers-revisions.json
 node experiments/issue-16-rosetta-containers.mjs /tmp/rosetta-containers-revisions.json \
   ./target/debug/universal-translator
 ```
 
-These four pinned same-language task round trips count toward the behavioral
+These five pinned same-language task round trips count toward the behavioral
 goal. Cross-language container and comparison semantics still require testing
 and implementation.
 

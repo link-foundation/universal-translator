@@ -23,7 +23,12 @@ import { questionSuffix, propertyAssignment } from './question-parser.js';
 import { withObjpakParser } from './objpak-reader.js';
 import { withQueryParser } from './query-parser.js';
 import { parseSource } from './source-parser.js';
-import { cppTemplateArguments, declarationTypeFields } from './cpp-library.js';
+import {
+  cppStringInitializer,
+  cppTemplateArguments,
+  declarationTypeFields,
+  readCppStringInitializer,
+} from './cpp-library.js';
 import {
   isNamespaceOrClass,
   readClass,
@@ -796,7 +801,9 @@ class BaseParser {
     return (
       offset >= 2 &&
       this.peek(offset - 1).type === 'name' &&
-      (this.is('=', offset) || this.is(';', offset)) &&
+      (this.is('=', offset) ||
+        this.is(';', offset) ||
+        cppStringInitializer(this, offset)) &&
       (typeWords.has(this.peek().value) ||
         this.peek(1).type === 'name' ||
         this.is('<', 1))
@@ -804,13 +811,20 @@ class BaseParser {
   }
 
   typedDeclaration() {
+    const head = typeHeadLength(this);
+    const directString = cppStringInitializer(this, head);
     const words = [];
-    while (!this.is('=') && !this.is(';')) {
+    for (let offset = 0; offset < head; offset += 1) {
       words.push(this.next().value);
     }
     const variable = words.pop();
     const type = sourceType(words.join(' '));
-    const value = this.accept('=') ? this.expression() : undefined;
+    let value;
+    if (directString) {
+      value = readCppStringInitializer(this);
+    } else if (this.accept('=')) {
+      value = this.expression();
+    }
     this.endStatement();
     return node('Declaration', {
       name: variable,

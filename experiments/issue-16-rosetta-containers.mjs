@@ -11,7 +11,7 @@ import { extractSolutions } from '../scripts/rosetta-code.mjs';
 const [wikiResponse, rustTranslator] = process.argv.slice(2);
 assert.ok(
   wikiResponse,
-  'Pass the MediaWiki response for revisions 420325, 417505 and 419626'
+  'Pass the MediaWiki response for revisions 420325, 417505, 419626 and 420026'
 );
 const { query } = JSON.parse(readFileSync(wikiResponse, 'utf8'));
 const digest = (text) => createHash('sha256').update(text).digest('hex');
@@ -38,6 +38,14 @@ const tasks = [
     sourceSha256:
       'ca42e7b599a3fb251aef227a867e801cf3fa6062fe0cf924711d4e732561361e',
     stdout: '3\n0\n',
+    assertions: 0,
+  },
+  {
+    title: 'String append',
+    revid: 420026,
+    sourceSha256:
+      'a3bbf3d8933188b5ec5a14214c4bf5464cb07dafa97e79b8783b50f3133b638b',
+    stdout: 'Hello , world!\n',
     assertions: 0,
   },
 ];

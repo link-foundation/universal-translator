@@ -2,7 +2,7 @@
 import { node } from '../meta/tree.js';
 import { sourceType } from './parser.js';
 import { tokenize } from './lexer.js';
-import { cppQualifiedParameter } from './cpp-library.js';
+import { cppQualifiedParameter, cppStringInitializer } from './cpp-library.js';
 
 const annotatedLanguages = new Set(['java', 'kotlin', 'python']);
 
@@ -40,7 +40,11 @@ export function typeHeadLength(parser) {
 
 export function prototypeLength(parser) {
   const offset = parser.prefixHeadLength();
-  if (offset < 2 || parser.peek(offset - 1).type !== 'name') {
+  if (
+    offset < 2 ||
+    parser.peek(offset - 1).type !== 'name' ||
+    cppStringInitializer(parser, offset)
+  ) {
     return 0;
   }
   // A dotted or namespace-qualified callee is a single declarator.

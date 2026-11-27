@@ -50,6 +50,13 @@ const scopedLibrary = readFileSync(
   ),
   'utf8'
 );
+const stringInitialization = readFileSync(
+  new URL(
+    '../examples/programs/library/cpp-string-initialization.cpp',
+    import.meta.url
+  ),
+  'utf8'
+);
 const directory = mkdtempSync(join(tmpdir(), 'cpp-member-calls-'));
 const options = { encoding: 'utf8', maxBuffer: 32 * 1024 };
 
@@ -71,6 +78,7 @@ try {
     ['template object initialization', container, '0\n7\n'],
     ['file-scope initialization and mutation', fileScope, '10\n11\n'],
     ['scoped library declarations and const parameters', scopedLibrary, '1\n'],
+    ['direct string initialization', stringInitialization, 'Hello, world!\n'],
   ]) {
     const original = run(program);
     assert.equal(original, expected);

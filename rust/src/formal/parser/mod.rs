@@ -869,17 +869,26 @@ impl Parser {
         let offset = self.type_head_length();
         offset >= 2
             && self.kind(offset - 1) == TokenType::Name
-            && (self.is_at("=", offset) || self.is_at(";", offset))
+            && (self.is_at("=", offset)
+                || self.is_at(";", offset)
+                || self.cpp_string_initializer(offset))
             && (TYPE_WORDS.contains(&self.value(0))
                 || self.kind(1) == TokenType::Name
                 || self.is_at("<", 1))
     }
 
     fn plain_typed_declaration(&mut self) -> Parsed {
-        let mut words = self.words_until(&["=", ";"])?;
+        let direct_string = self.cpp_string_initializer(self.type_head_length());
+        let mut words = if direct_string {
+            self.words_until(&["("])?
+        } else {
+            self.words_until(&["=", ";"])?
+        };
         let variable = words.pop().unwrap_or_default();
         let kind = source_type(&words.join(" "));
-        let value = if self.accept("=") {
+        let value = if direct_string {
+            Some(self.read_cpp_string_initializer()?)
+        } else if self.accept("=") {
             Some(self.expression()?)
         } else {
             None
