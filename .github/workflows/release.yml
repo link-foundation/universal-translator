@@ -643,6 +643,7 @@ jobs:
               OBJC=gcc node experiments/issue-16-evaluation-order.mjs
               node experiments/issue-16-cpp-member-calls.mjs
               node experiments/issue-16-wasm-binary.mjs
+              node experiments/issue-16-jvm-class.mjs
             '
 
       - name: Run every common library translation with its native toolchain

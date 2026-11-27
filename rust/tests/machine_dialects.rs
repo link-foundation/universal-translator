@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 
 use universal_translator::formal::lowering::{Instruction, LoweredProgram};
 use universal_translator::formal::machine_reader_assembly::{read_arm64, read_gas};
+use universal_translator::formal::machine_reader_jvm_class::read_jvm_class;
 use universal_translator::formal::machine_reader_llvm::read_llvm;
 use universal_translator::formal::machine_reader_wasm::read_wat;
 use universal_translator::formal::machine_reader_wasm_binary::read_wasm_binary;
@@ -51,6 +52,75 @@ fn rejects_invalid_webassembly_binary() {
         (&invalid_size[..], "invalid unsigned LEB128 integer"),
     ] {
         let error = read_wasm_binary(input).unwrap_err().to_string();
+        assert!(error.contains(message), "{error}");
+    }
+}
+
+const JVM_FIXTURE: &[u8] = include_bytes!("../../examples/programs/binary/StackArithmetic.class");
+
+fn replace_bytes(original: &[u8], replacement: &[u8]) -> Vec<u8> {
+    let mut source = JVM_FIXTURE.to_vec();
+    let offset = JVM_FIXTURE
+        .windows(original.len())
+        .position(|window| window == original)
+        .unwrap();
+    source[offset..offset + replacement.len()].copy_from_slice(replacement);
+    source
+}
+
+#[test]
+fn lifts_jvm_class_instructions_into_the_translation_pipeline() {
+    let machine = read_jvm_class(JVM_FIXTURE).unwrap();
+    for instruction in [
+        Instruction::Push(-130.0),
+        Instruction::Arithmetic("divide"),
+        Instruction::Arithmetic("remainder"),
+        Instruction::PrintText("Café 😀 ".into()),
+    ] {
+        assert!(machine.main.code.contains(&instruction));
+    }
+    let translator = Translator::new();
+    assert!(
+        translator
+            .to_meta_jvm_class(JVM_FIXTURE)
+            .unwrap()
+            .is("Program")
+    );
+    let javascript = translator
+        .translate_jvm_class(JVM_FIXTURE, "javascript", Options::default())
+        .unwrap();
+    assert!(javascript.contains("Math.trunc("));
+    assert!(javascript.contains("Café 😀 "));
+}
+
+#[test]
+fn rejects_unsupported_and_malformed_jvm_classes() {
+    let mut invalid_version = JVM_FIXTURE.to_vec();
+    invalid_version[7] = 66;
+    for (source, message) in [
+        (invalid_version, "unsupported class file version 66.0"),
+        (
+            JVM_FIXTURE[..JVM_FIXTURE.len() - 1].to_vec(),
+            "truncated field",
+        ),
+        (
+            replace_bytes(&[0x11, 0xff, 0x7e, 0x3c], &[0xff]),
+            "unsupported opcode 0xff",
+        ),
+        (
+            replace_bytes(&[0x11, 0xff, 0x7e, 0x3c], &[0x75]),
+            "expected long on the instruction stack",
+        ),
+        (
+            replace_bytes(&[3, 0, 0, 0x9c, 0x40], &[3, 0x80, 0, 0, 1]),
+            "exceeds the portable signed range",
+        ),
+        (
+            replace_bytes(&[0xc3, 0xa9, 0x20, 0xed], &[0xc0, 0x80]),
+            "printed string contains an unsupported control character",
+        ),
+    ] {
+        let error = read_jvm_class(&source).unwrap_err().to_string();
         assert!(error.contains(message), "{error}");
     }
 }

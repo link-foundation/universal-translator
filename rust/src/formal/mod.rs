@@ -24,6 +24,7 @@ mod machine_languages;
 pub mod machine_llvm;
 pub mod machine_reader;
 pub mod machine_reader_assembly;
+pub mod machine_reader_jvm_class;
 pub mod machine_reader_llvm;
 pub mod machine_reader_shared;
 pub mod machine_reader_wasm;

@@ -36,6 +36,7 @@ import {
   machineTargets,
 } from './formal/machine.js';
 import { machineReaders } from './formal/machine-reader.js';
+import { readJvmClass } from './formal/machine-reader-jvm-class.js';
 import { readWasmBinary } from './formal/machine-reader-wasm-binary.js';
 import { liftProgram } from './formal/lifting.js';
 import { raiseForEach } from './meta/for-each.js';
@@ -428,16 +429,29 @@ function createMachineTyper({ lift, infer }, meaning, trace) {
   };
 }
 
-function createWasmTranslator(toMetaWasm, writeMeta) {
+function createBinaryTranslator(toMeta, from, writeMeta) {
   const styled = styledText((bytes, from, to, options) => {
-    const meta = toMetaWasm(bytes);
+    const meta = toMeta(bytes);
     const id = splitVersion(to).id;
     const adjusted = ['javascript', 'typescript'].includes(id)
       ? normalizeMachineIntegerZero(meta)
       : meta;
     return writeMeta(adjusted, to, { ...options, from });
   });
-  return (bytes, to, options) => styled(bytes, 'wat', to, options);
+  return (bytes, to, options) => styled(bytes, from, to, options);
+}
+
+function binaryMethods(typeMachine, writeMeta) {
+  const toMetaWasm = (bytes) =>
+    markImprecision(typeMachine(readWasmBinary(bytes), 'wat'));
+  const toMetaJvmClass = (bytes) =>
+    markImprecision(typeMachine(readJvmClass(bytes), 'jvm'));
+  return {
+    toMetaWasm,
+    toMetaJvmClass,
+    translateWasm: createBinaryTranslator(toMetaWasm, 'wat', writeMeta),
+    translateJvmClass: createBinaryTranslator(toMetaJvmClass, 'jvm', writeMeta),
+  };
 }
 
 export function createGrammarTranslator(settings = {}) {
@@ -459,8 +473,6 @@ export function createGrammarTranslator(settings = {}) {
 
   // The typed meta program of a text, with what its reading lost marked.
   const toMeta = (text, from) => markImprecision(readMeta(text, from));
-  const toMetaWasm = (bytes) =>
-    markImprecision(typeMachine(readWasmBinary(bytes), 'wat'));
 
   function readMeta(text, from) {
     const source = custom.source(text, from);
@@ -593,10 +605,9 @@ export function createGrammarTranslator(settings = {}) {
     languages: listLanguages,
     naturalLanguages: listNaturalLanguages,
     toMeta,
-    toMetaWasm,
+    ...binaryMethods(typeMachine, writeMeta),
     fromMeta,
     translate: styledText(translate),
-    translateWasm: createWasmTranslator(toMetaWasm, writeMeta),
     translatePartial,
     translateCandidates,
     parsePartial: partial.parsePartial,

@@ -74,6 +74,7 @@ export declare function readNasm(source: string): unknown;
 export declare function readCil(source: string): unknown;
 export declare function readJvm(source: string): unknown;
 export declare function readWasmBinary(source: Uint8Array): unknown;
+export declare function readJvmClass(source: Uint8Array): unknown;
 export declare const machineReaders: Record<
   string,
   (source: string) => unknown

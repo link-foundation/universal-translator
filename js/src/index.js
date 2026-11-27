@@ -69,6 +69,7 @@ export {
   readNasm,
 } from './formal/machine-reader.js';
 export { readWasmBinary } from './formal/machine-reader-wasm-binary.js';
+export { readJvmClass } from './formal/machine-reader-jvm-class.js';
 export {
   commentGlossary,
   contextRules,

@@ -41,6 +41,13 @@ Translations for this subset use integers representable by the target and
 assume valid, nontrapping operations. See the
 [binary case study](docs/case-studies/issue-16/WASM-BINARY.md) for coverage.
 
+Use `translate jvm-class python examples/programs/binary/StackArithmetic.class`
+in either CLI to read a compiled JVM class. The supported Java 8 through 21
+class file subset has a straight-line `main` with integer arithmetic, locals
+and `System.out` printing. The API methods are `translateJvmClass` and
+`toMetaJvmClass` in JavaScript, and `translate_jvm_class` and
+`to_meta_jvm_class` in Rust. See the [JVM class file case study](docs/case-studies/issue-16/JVM-CLASS.md).
+
 Each translation runs these stages:
 
 1. A lexer and a table-driven parser read the source language.

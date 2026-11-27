@@ -1,0 +1,51 @@
+Baseline JavaScript CLI at 3e70604, translating the committed .class to Python (exit 1)
+The encoded data was not valid for encoding utf-8
+
+Expected UTF-8 stdout from Java (identical for each comparison below)
+Café 😀 39740
+-7
+-1
+0
+-1
+
+Both CLI engines, file and stdin, compared to Java
+PASS committed Java 8 class 52.0 → javascript using JavaScript
+PASS committed Java 8 class 52.0 → python using JavaScript
+PASS committed Java 8 class 52.0 → c using JavaScript
+PASS committed Java 8 class 52.0 → wat using JavaScript
+PASS committed Java 8 class 52.0 → javascript using Rust
+PASS committed Java 8 class 52.0 → python using Rust
+PASS committed Java 8 class 52.0 → c using Rust
+PASS committed Java 8 class 52.0 → wat using Rust
+PASS Java 8 class 52.0 → javascript using JavaScript
+PASS Java 8 class 52.0 → python using JavaScript
+PASS Java 8 class 52.0 → c using JavaScript
+PASS Java 8 class 52.0 → wat using JavaScript
+PASS Java 8 class 52.0 → javascript using Rust
+PASS Java 8 class 52.0 → python using Rust
+PASS Java 8 class 52.0 → c using Rust
+PASS Java 8 class 52.0 → wat using Rust
+PASS Java 17 class 61.0 → javascript using JavaScript
+PASS Java 17 class 61.0 → python using JavaScript
+PASS Java 17 class 61.0 → c using JavaScript
+PASS Java 17 class 61.0 → wat using JavaScript
+PASS Java 17 class 61.0 → javascript using Rust
+PASS Java 17 class 61.0 → python using Rust
+PASS Java 17 class 61.0 → c using Rust
+PASS Java 17 class 61.0 → wat using Rust
+PASS Java 21 class 65.0 → javascript using JavaScript
+PASS Java 21 class 65.0 → python using JavaScript
+PASS Java 21 class 65.0 → c using JavaScript
+PASS Java 21 class 65.0 → wat using JavaScript
+PASS Java 21 class 65.0 → javascript using Rust
+PASS Java 21 class 65.0 → python using Rust
+PASS Java 21 class 65.0 → c using Rust
+PASS Java 21 class 65.0 → wat using Rust
+
+Embedded modified UTF-8 NUL probe
+
+Java stdout bytes: 61 00 62 1b 63 08 64 0c 65 09 0a
+
+Before the diagnostic, C stdout bytes: 61
+
+Current readers reject this printed string at the invocation.

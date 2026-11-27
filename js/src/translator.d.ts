@@ -184,6 +184,8 @@ export interface GrammarTranslator {
   toMeta(source: string, from: string): unknown;
   /** Read the supported WebAssembly version 1 binary instructions. */
   toMetaWasm(source: Uint8Array): unknown;
+  /** Read the supported straight-line JVM class file instructions. */
+  toMetaJvmClass(source: Uint8Array): unknown;
   /** The same translator with other data rules. */
   withRules(rules: TranslationRules | string): GrammarTranslator;
   /** The same translator with a decorator around one stage; it wraps the
@@ -206,6 +208,11 @@ export interface GrammarTranslator {
     options?: TranslationOptions
   ): string;
   translateWasm(
+    source: Uint8Array,
+    to: string,
+    options?: TranslationOptions
+  ): string;
+  translateJvmClass(
     source: Uint8Array,
     to: string,
     options?: TranslationOptions

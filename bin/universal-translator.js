@@ -72,6 +72,7 @@ function usage() {
     '            on standard error; --all-or-nothing fails instead',
     '            The source language may be "auto" to detect it',
     '            Use "wasm" for the supported WebAssembly version 1 binary subset',
+    '            Use "jvm-class" for the supported JVM class file subset',
     '            --rules <file.lino> adds source, templates, names and output rules',
     '            (indented Links Notation; JSON files are read too)',
     '  translate-program <from|cst> <to> [file|-]  Translate a checked JavaScript or Rust program',
@@ -240,6 +241,23 @@ function checkWords(text, language) {
   return `The text keeps the rules of ${language}\n`;
 }
 
+const binaryTranslation = new Map([
+  [
+    'wasm',
+    [
+      'translateWasm',
+      'WebAssembly binary translation requires a complete module and one reading',
+    ],
+  ],
+  [
+    'jvm-class',
+    [
+      'translateJvmClass',
+      'JVM class translation requires a complete class and one reading',
+    ],
+  ],
+]);
+
 // --fragment translates a single statement, function definitions or a
 // whole program into the same kind of fragment. By default every part that
 // can be translated is, and the others are marked and listed on standard
@@ -261,13 +279,13 @@ function translateCommand(
     braces: options.braces,
     indent: options.indent,
   };
-  if (from === 'wasm') {
+  const binary = binaryTranslation.get(from);
+  if (binary) {
+    const [method, usage] = binary;
     if (options.fragment || options.candidates) {
-      throw new Error(
-        'WebAssembly binary translation requires a complete module and one reading'
-      );
+      throw new Error(usage);
     }
-    write(translator.translateWasm(readBytes(file), to, settings));
+    write(translator[method](readBytes(file), to, settings));
     return;
   }
   const source = read(file);

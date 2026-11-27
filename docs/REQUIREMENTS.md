@@ -41,7 +41,7 @@ before it can be checked off. Completed groups are stored in
 - [ ] Extend the executable grammar workspace to full upstream productions and semantically faithful adapters with lossless CSTs.
 - [ ] Implement and verify the missing top-50 language grammars and editions, including controlled natural grammar variants.
 - [ ] Preserve scoped source declarations, calls and imports when translating standard and other libraries.
-- [ ] Read binary machine formats and implement supported machine and bytecode editions with finite native fixtures.
+- [ ] Read binary machine formats and implement supported machine and bytecode editions with finite native fixtures. Straight-line WebAssembly 1.0 and JVM class files from Java 8 through 21 are covered.
 
 ## UT-16.10 Measure competing readings
 

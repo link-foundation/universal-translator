@@ -26,7 +26,10 @@ use crate::comment_language::{self, CommentTranslator};
 use crate::custom_rules::CustomRules;
 pub use crate::detect::Detection;
 use crate::formal::versions::{Version, split_version, versions_of};
-use crate::formal::{lowering::LoweredProgram, machine_reader_wasm_binary::read_wasm_binary};
+use crate::formal::{
+    lowering::LoweredProgram, machine_reader_jvm_class::read_jvm_class,
+    machine_reader_wasm_binary::read_wasm_binary,
+};
 use crate::fragments;
 pub use crate::fragments::{Fragment, FragmentKind};
 pub use crate::partial::{PartError, PartStatus, PartialReading, PartialTranslation};
@@ -414,14 +417,22 @@ impl Translator {
 
     /// Read the supported WebAssembly version 1 binary instructions.
     pub fn to_meta_wasm(&self, bytes: &[u8]) -> Result<Node, GrammarError> {
-        let machine = read_wasm_binary(bytes)?;
+        self.type_binary(&read_wasm_binary(bytes)?, "wat")
+    }
+
+    /// Read the supported straight-line JVM class file instructions.
+    pub fn to_meta_jvm_class(&self, bytes: &[u8]) -> Result<Node, GrammarError> {
+        self.type_binary(&read_jvm_class(bytes)?, "jvm")
+    }
+
+    fn type_binary(&self, machine: &LoweredProgram, from: &str) -> Result<Node, GrammarError> {
         let settings = Settings {
-            from: "wat".to_owned(),
-            to: "wat".to_owned(),
-            target: "wat".to_owned(),
+            from: from.to_owned(),
+            to: from.to_owned(),
+            target: from.to_owned(),
             mode: Mode::default(),
         };
-        self.type_machine(&machine, None, &settings)
+        self.type_machine(machine, None, &settings)
             .map(crate::meta::imprecision::mark_imprecision)
     }
 
@@ -763,11 +774,30 @@ impl Translator {
         to: &str,
         options: Options,
     ) -> Result<String, GrammarError> {
-        let mut meta = self.to_meta_wasm(bytes)?;
+        self.write_binary(self.to_meta_wasm(bytes)?, "wat", to, options)
+    }
+
+    /// Translate a supported JVM class file into a text target.
+    pub fn translate_jvm_class(
+        &self,
+        bytes: &[u8],
+        to: &str,
+        options: Options,
+    ) -> Result<String, GrammarError> {
+        self.write_binary(self.to_meta_jvm_class(bytes)?, "jvm", to, options)
+    }
+
+    fn write_binary(
+        &self,
+        mut meta: Node,
+        from: &str,
+        to: &str,
+        options: Options,
+    ) -> Result<String, GrammarError> {
         if matches!(split_version(to).0, "javascript" | "typescript") {
             meta = meta::integer_arithmetic::normalize_machine_integer_zero(meta);
         }
-        let adapted = self.adapt(&meta, to, Some("wat"), options)?;
+        let adapted = self.adapt(&meta, to, Some(from), options)?;
         styled(self.write(&adapted, to)?, to, options.style)
     }
 
