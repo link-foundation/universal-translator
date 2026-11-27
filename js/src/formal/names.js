@@ -91,6 +91,7 @@ export function renameDeclared(program, rename) {
       case 'Declaration':
       case 'Catch':
       case 'Assignment':
+      case 'AssignmentExpression':
       case 'IndexAssignment':
         return { ...current, name: change(current.name) };
       case 'CountingLoop':

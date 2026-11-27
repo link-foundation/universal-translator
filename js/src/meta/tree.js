@@ -7,6 +7,8 @@
 //   Block          { statements }
 //   Declaration    { name, type, value, mutable }
 //   Assignment     { name, operator, value }
+//   AssignmentExpression { name, value }     assigns and yields the value
+//   ExpressionSequence { steps, value }     evaluates steps, then yields value
 //   If             { condition, then, otherwise }
 //   While          { condition, body }
 //   CountingLoop   { variable, start, end (exclusive), body }

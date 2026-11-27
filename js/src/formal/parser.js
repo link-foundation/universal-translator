@@ -11,6 +11,7 @@ import { assignmentSymbols, stepOperators, withLoops } from './loop-parser.js';
 import { withFunctionForms } from './function-forms.js';
 import { arithmeticOperator } from './numbers.js';
 import { powerSymbol } from './power.js';
+import { withEvaluationParser } from './evaluation-parser.js';
 import { typeDepth, typeHeadLength, withAnnotations } from './annotations.js';
 import { withExceptionParser } from './exception-parser.js';
 import { questionSuffix, propertyAssignment } from './question-parser.js';
@@ -1435,7 +1436,11 @@ export function numberLiteral(written) {
 const Parser = withObjpakParser(
   withQueryParser(
     withExceptionParser(
-      withAnnotations(withFunctionForms(withLoops(withArrays(BaseParser))))
+      withAnnotations(
+        withFunctionForms(
+          withLoops(withArrays(withEvaluationParser(BaseParser)))
+        )
+      )
     )
   )
 );

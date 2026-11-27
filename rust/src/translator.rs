@@ -582,11 +582,18 @@ impl Translator {
         }
         let transformed = self.in_identifier_language(transformed, options)?;
         self.report("transformed", &transformed);
+        let transformed = if matches!(settings.to.as_str(), "python" | "javascript" | "typescript")
+        {
+            crate::meta::evaluation_order::raise(transformed)
+        } else {
+            transformed
+        };
         let transformed = crate::meta::integer_arithmetic::lower(transformed, to)?;
         if natural {
             return self.in_comment_language(transformed, options);
         }
-        let adapted = apply_rules(transformed, &self.context, &settings);
+        let sequenced = crate::meta::evaluation_order::lower(transformed, &settings);
+        let adapted = apply_rules(sequenced, &self.context, &settings);
         self.report("adapted", &adapted);
         self.in_comment_language(adapted, options)
     }

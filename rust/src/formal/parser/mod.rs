@@ -68,6 +68,7 @@ mod annotations;
 mod arrays;
 mod arrows;
 mod concrete;
+mod evaluation;
 mod exceptions;
 mod forms;
 mod loops;
@@ -1176,7 +1177,8 @@ impl Parser {
         if let Some(lambda) = self.query_lambda()? {
             return Ok(lambda);
         }
-        self.binary(0)
+        let value = self.binary(0)?;
+        self.assignment_expression(value)
     }
 
     /// The meta operator spelled by the current token at a precedence level.
@@ -1399,9 +1401,7 @@ impl Parser {
                 });
             }
             TokenType::Symbol if token.value == "(" => {
-                let inner = self.expression()?;
-                self.expect(")")?;
-                return Ok(inner);
+                return self.evaluation_parenthesized();
             }
             _ => {}
         }

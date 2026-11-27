@@ -22,6 +22,10 @@ import {
 } from './formal/rules.js';
 import { inferTypes } from './meta/types.js';
 import { lowerIntegerArithmetic } from './meta/integer-arithmetic.js';
+import {
+  lowerEvaluationOrder,
+  raiseEvaluationOrder,
+} from './meta/evaluation-order.js';
 import { emitProgram } from './formal/emitter.js';
 import {
   emitMachine,
@@ -494,11 +498,15 @@ export function createGrammarTranslator(settings = {}) {
       options
     );
     trace('transformed', transformed);
-    const rounded = lowerIntegerArithmetic(transformed, to);
+    const ordered = ['python', 'javascript', 'typescript'].includes(settings.to)
+      ? raiseEvaluationOrder(transformed)
+      : transformed;
+    const rounded = lowerIntegerArithmetic(ordered, to);
     if (natural) {
       return inCommentLanguage(rounded, options);
     }
-    const adapted = applyRules(rounded, context, settings);
+    const sequenced = lowerEvaluationOrder(rounded, settings);
+    const adapted = applyRules(sequenced, context, settings);
     trace('adapted', adapted);
     return inCommentLanguage(adapted, options);
   }

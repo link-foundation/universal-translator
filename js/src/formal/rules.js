@@ -572,7 +572,7 @@ export function inferMutability(program) {
   const assigned = new Set();
   const stored = new Set();
   rewrite(program, (current) => {
-    if (current.kind === 'Assignment') {
+    if (['Assignment', 'AssignmentExpression'].includes(current.kind)) {
       assigned.add(current.name);
     }
     if (current.kind === 'Update' && current.operand.kind === 'Name') {

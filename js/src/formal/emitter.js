@@ -300,8 +300,23 @@ class BaseEmitter {
           ? writePower(this, expression, parent)
           : this.binary(expression, parent);
       default:
-        throw new Error(`Cannot emit ${expression.kind} as an expression`);
+        return this.sequencedExpression(expression);
     }
+  }
+
+  sequencedExpression(expression) {
+    if (['c', 'cpp', 'objc'].includes(this.id)) {
+      if (expression.kind === 'AssignmentExpression') {
+        return `(${this.variable(expression.name)} = ${this.expression(expression.value)})`;
+      }
+      if (expression.kind === 'ExpressionSequence') {
+        const values = [...expression.steps, expression.value];
+        return `(${values.map((value) => this.expression(value)).join(', ')})`;
+      }
+    }
+    throw new Error(
+      `Cannot emit ${expression.kind} as an expression in ${this.id}`
+    );
   }
 
   call({ callee, arguments: values }) {

@@ -4,6 +4,7 @@
 //! Notation reading ([`links`]), and the
 //! rule and error types that every stage uses.
 
+pub(crate) mod evaluation_order;
 pub mod for_each;
 pub mod imprecision;
 pub(crate) mod integer_arithmetic;

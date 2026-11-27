@@ -42,6 +42,7 @@ function atom(value) {
 // The field written as a plain word right after the kind.
 const mainField = {
   Assignment: 'name',
+  AssignmentExpression: 'name',
   Binary: 'operator',
   Blank: 'lines',
   Boolean: 'value',
@@ -88,6 +89,7 @@ const childOrder = [
   'fill',
   'expression',
   'subject',
+  'steps',
   'value',
   'arguments',
   'elements',

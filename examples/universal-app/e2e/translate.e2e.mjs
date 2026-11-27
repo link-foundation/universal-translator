@@ -566,6 +566,7 @@ async function linksTheEditors() {
     });
     await tab.waitForSelector('#target-text .monaco-editor');
     assert.equal(await tab.getAttribute('html', 'data-editor'), 'monaco');
+    await wrapsInFreshMonaco(tab);
     // The options are below both editors.
     const editors = await tab.locator('#target-text').boundingBox();
     for (const id of ['#mode', '#fragment', '#show-meta', '#word-wrap']) {
@@ -593,6 +594,20 @@ async function linksTheEditors() {
   } finally {
     await fresh.close();
   }
+}
+
+async function wrapsInFreshMonaco(tab) {
+  assert.equal(await tab.getAttribute('html', 'data-wrap'), 'true');
+  assert.ok(await tab.isChecked('#word-wrap'));
+  const source = `const message = "${'Long text wraps in the source editor. '.repeat(8).trimEnd()}";`;
+  await typeInMonaco(tab, source);
+  await tab.waitForFunction((text) => {
+    const pane = globalThis.document.querySelector('#source-text');
+    return (
+      pane.dataset.value === text &&
+      pane.querySelectorAll('.view-line').length > 1
+    );
+  }, source);
 }
 
 async function linkedSublineRegions(tab) {

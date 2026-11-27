@@ -74,14 +74,20 @@ fn main_field(kind: &str) -> Option<&'static str> {
         "CountingLoop" | "ForEach" | "Query" => "variable",
         "Paragraph" => "id",
         "Word" => "text",
-        "Assignment" | "Declaration" | "Function" | "IndexAssignment" | "Name" | "Parameter"
+        "Assignment"
+        | "AssignmentExpression"
+        | "Declaration"
+        | "Function"
+        | "IndexAssignment"
+        | "Name"
+        | "Parameter"
         | "" => "name",
         _ => return None,
     })
 }
 
 /// The order in which child nodes are read; other fields follow by name.
-const CHILD_ORDER: [&str; 35] = [
+const CHILD_ORDER: [&str; 36] = [
     "comments",
     "source",
     "condition",
@@ -100,6 +106,7 @@ const CHILD_ORDER: [&str; 35] = [
     "fill",
     "expression",
     "subject",
+    "steps",
     "value",
     "arguments",
     "elements",

@@ -426,6 +426,20 @@ impl Emitter {
                     },
                 )
             }
+            "AssignmentExpression" if matches!(self.id(), "c" | "cpp" | "objc") => Ok(format!(
+                "({} = {})",
+                self.variable(expression.str("name").unwrap_or_default()),
+                self.expression(field(expression, "value")?)?
+            )),
+            "ExpressionSequence" if matches!(self.id(), "c" | "cpp" | "objc") => {
+                let mut values = expression.node_list("steps");
+                values.push(field(expression, "value")?.clone());
+                let written = values
+                    .iter()
+                    .map(|v| self.expression(v))
+                    .collect::<Result<Vec<_>>>()?;
+                Ok(format!("({})", written.join(", ")))
+            }
             "Query" => super::query_writer::write_query(self, expression),
             "Null" | "SqlBinary" | "SqlUnary" | "SqlTruth" => {
                 super::sql_values::expression(self, expression)

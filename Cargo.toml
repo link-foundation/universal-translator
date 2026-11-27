@@ -17,6 +17,7 @@ include = [
     "/examples/objpak/conditions.m",
     "/examples/printing/arithmetic.py",
     "/examples/arithmetic/division.c",
+    "/examples/arithmetic/evaluation.py",
     "/examples/runtime-headers/php-modes.json",
     "/examples/queries/negation.json",
     "/examples/queries/nullable.json",
@@ -188,6 +189,10 @@ path = "rust/tests/real_numbers.rs"
 [[test]]
 name = "integer_arithmetic"
 path = "rust/tests/integer_arithmetic.rs"
+
+[[test]]
+name = "evaluation_order"
+path = "rust/tests/evaluation_order.rs"
 
 [[test]]
 name = "semantic_mapping"

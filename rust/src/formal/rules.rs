@@ -901,6 +901,9 @@ pub fn infer_mutability(program: Node) -> Node {
     let mut assigned = assigned_names(&program, "Assignment");
     let mut stored = assigned_names(&program, "IndexAssignment");
     walk(&program, |current| {
+        if current.is("AssignmentExpression") {
+            assigned.extend(current.str("name").map(str::to_owned));
+        }
         if current.is("Update")
             && let Some(operand) = current.node("operand")
             && operand.is("Name")

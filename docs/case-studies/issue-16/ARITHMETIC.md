@@ -109,14 +109,41 @@ remainder. Their golden translations now include the required arithmetic
 helpers. Tests of hand-written positive-input examples compare their actual
 native arithmetic contracts rather than falsely declaring full signed equivalence.
 
+## Effectful operand order
+
+Python evaluates expressions from left to right. C11 permits either order for
+call arguments and most binary operands. Its comma operator sequences its left
+operand before its right operand. [Python expression reference](https://docs.python.org/3/reference/expressions.html#evaluation-order) · [C11 draft §§6.5.2.2, 6.5.17](data/prior-art/arithmetic/c11-n1570.pdf)
+
+Both engines now sequence typed scalar operands of Python calls and binary
+operators translated to C, C++ or Objective-C when more than one operand is
+nonliteral and an operand may have effects. Assignments to fresh temporaries
+run within the original expression. In a loop test or a short-circuited branch,
+the assignments therefore run only when the expression is evaluated. A C-family
+reader retains explicit sequences in meta, so translating through another
+C-family target retains the order. Writers with left-to-right operand evaluation
+recover the compact form from the generated sequence when each temporary is
+private to that sequence and its assignment preserves its type.
+
+```sh
+node experiments/issue-16-evaluation-order.mjs --without-source-order
+node experiments/issue-16-evaluation-order.mjs
+node --test js/tests/evaluation-order.test.js
+cargo test --locked --test evaluation_order
+```
+
+The comparison without the sequencing pass reverses observable markers in
+both GCC and G++ at `-O0` and `-O2`. With the pass, both optimizations match all
+19 CPython output lines for C, C++, Objective-C, and the Python→C→C++ chain.
+The native CI job uses the same example under `examples/arithmetic/`.
+[Native results](logs/evaluation-order-native.txt) · [Comparison output](logs/evaluation-order-without-source-order.jsonl)
+
 ## Remaining semantic review
 
 JavaScript truncation and exact negative remainders can produce observable -0
-where an integer source requires 0. The current example reports that gap instead
-of normalizing captured output. The native operand-order probe also found that
-C's unspecified helper-call argument order can reverse Python's left-to-right
-side effects (`logs/integer-operand-order-observation.txt`). The example's equal
-markers verify evaluation count only; evaluation-order preservation is unfinished.
+where an integer source requires 0. The current example reports that gap.
+Evaluation order for additional source and target families, addressable values,
+and arbitrary comma expressions outside the C family remains open.
 
 Numeric widths, overflow, zero divisors, real floor/modulo, floating-point
 rounding, Perl integer mode and additional operators remain in the acceptance

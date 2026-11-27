@@ -40,6 +40,9 @@ fn expression_type(expression: &Node, scope: &Scope, signatures: &Signatures) ->
             Some("text".into())
         }
         "Name" => scope.get(expression.str("name")?).cloned(),
+        "AssignmentExpression" | "ExpressionSequence" => expression
+            .node("value")
+            .and_then(|v| expression_type(v, scope, signatures)),
         "Query" => {
             let local = query_scope(expression, scope, signatures);
             let element = expression

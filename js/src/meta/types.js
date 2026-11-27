@@ -57,6 +57,10 @@ const numberType = ({ type, value }) =>
   type === 'real' || !Number.isInteger(value) ? 'real' : 'integer';
 
 const dependentTypes = {
+  AssignmentExpression: (expression, scope, signatures) =>
+    expressionType(expression.value, scope, signatures),
+  ExpressionSequence: (expression, scope, signatures) =>
+    expressionType(expression.value, scope, signatures),
   Index: (expression, scope, signatures) =>
     /^(?:array|sequence|set)<(.+)>$/u.exec(
       expressionType(expression.array, scope, signatures)

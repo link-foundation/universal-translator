@@ -472,6 +472,9 @@ jobs:
       - name: Check the requirements of issue 1
         run: node scripts/check-requirements.mjs
 
+      - name: Validate the active requirements and completed archive
+        run: node scripts/check-active-requirements.mjs
+
       - name: Check Rust formatting
         run: cargo fmt --check
 
@@ -638,6 +641,12 @@ jobs:
         run: |
           bash scripts/run-with-budget-warning.sh 540 "Common library translations" \
             node examples/programs/verify-native.mjs --require-all --common-library
+
+      - name: Verify C-family operand evaluation order
+        timeout-minutes: 1
+        env:
+          OBJC: gcc
+        run: node experiments/issue-16-evaluation-order.mjs
 
   # === DOCKER IMAGE BUILD CHECK (pull requests) ===
   # Builds the Dockerfile without pushing so a broken image fails the pull
