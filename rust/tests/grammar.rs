@@ -37,6 +37,35 @@ fn member_calls_keep_computed_receivers_and_java_continuations() {
     }
 }
 
+#[test]
+fn standalone_cpp_member_and_namespace_calls_survive_beside_prototypes() {
+    let translator = Translator::new();
+    let source = r#"
+        int helper(int value);
+        int main() {
+            values.push(1);
+            values.pop();
+            std::puts("kept");
+            return 0;
+        }
+    "#;
+    let program = translator.to_meta(source, "cpp").unwrap();
+    assert!(program.nodes("functions").is_empty());
+    let main = program.node("main").unwrap();
+    let calls: Vec<_> = main
+        .nodes("statements")
+        .iter()
+        .map(|item| item.node("expression").unwrap().str("callee").unwrap())
+        .collect();
+    assert_eq!(calls, ["values.push", "values.pop", "std::puts"]);
+    let emitted = translator
+        .from_meta(&program, "cpp", None, Mode::default())
+        .unwrap();
+    for call in ["values.push(1);", "values.pop();", "std::puts(\"kept\");"] {
+        assert!(emitted.contains(call), "missing {call} in\n{emitted}");
+    }
+}
+
 /// Every task with goldens under `examples/programs/translated`.
 fn tasks() -> Vec<String> {
     let folder = Path::new(env!("CARGO_MANIFEST_DIR")).join("examples/programs/translated");

@@ -12,7 +12,12 @@ import { withFunctionForms } from './function-forms.js';
 import { arithmeticOperator } from './numbers.js';
 import { powerSymbol } from './power.js';
 import { withEvaluationParser } from './evaluation-parser.js';
-import { typeDepth, typeHeadLength, withAnnotations } from './annotations.js';
+import {
+  prototypeLength,
+  typeDepth,
+  typeHeadLength,
+  withAnnotations,
+} from './annotations.js';
 import { withExceptionParser } from './exception-parser.js';
 import { questionSuffix, propertyAssignment } from './question-parser.js';
 import { withObjpakParser } from './objpak-reader.js';
@@ -499,7 +504,7 @@ class BaseParser {
   announcementLength() {
     switch (this.syntax.forwardDeclarations) {
       case 'prototype':
-        return this.prototypeLength();
+        return prototypeLength(this);
       case 'heading':
         return this.headingLength();
       case 'local':
@@ -507,14 +512,6 @@ class BaseParser {
       default:
         return 0;
     }
-  }
-
-  prototypeLength() {
-    const offset = this.prefixHeadLength();
-    const end = offset > 1 && this.closingParenthesis(offset);
-    return end && this.peek(offset - 1).type === 'name' && this.is(';', end + 1)
-      ? end + 2
-      : 0;
   }
 
   // A function heading whose line ends before the body marker.

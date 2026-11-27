@@ -22,6 +22,8 @@ CI for a subset does not close that scope.
   shared meanings, native execution, scope/evaluation rules and remaining limits.
 - [Portable Object Compiler and Objpak](OBJPAK.md): the unchanged collection
   source, scoped library contracts, pinned native toolchain and comparison logs.
+- [Rosetta Code coverage and behavior](ROSETTA-CODE.md) records the identical-input
+  coverage comparison and the native regression for dropped C++ calls.
 - `data/issue-*.json`, `data/discussion-*.md` and `data/pulls-*`: complete issue
   and PR descriptions, conversation comments, inline comments and reviews.
   Long discussions are split into parts of at most 1,400 lines for review.

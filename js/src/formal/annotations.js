@@ -37,6 +37,24 @@ export function typeHeadLength(parser) {
   }
 }
 
+export function prototypeLength(parser) {
+  const offset = parser.prefixHeadLength();
+  if (offset < 2 || parser.peek(offset - 1).type !== 'name') {
+    return 0;
+  }
+  // A dotted or namespace-qualified callee is a single declarator.
+  let nameStart = offset - 1;
+  while (
+    nameStart > 0 &&
+    ['.', '::'].includes(parser.peek(nameStart - 1).value)
+  ) {
+    nameStart -=
+      nameStart > 1 && parser.peek(nameStart - 2).type === 'name' ? 2 : 1;
+  }
+  const end = nameStart > 0 && parser.closingParenthesis(offset);
+  return end && parser.is(';', end + 1) ? end + 2 : 0;
+}
+
 export const withAnnotations = (Base) =>
   class extends Base {
     annotations() {

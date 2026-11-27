@@ -64,6 +64,28 @@ impl Parser {
         }
     }
 
+    pub(super) fn prototype_length(&self) -> usize {
+        let offset = self.prefix_head_length();
+        if offset < 2 || !self.is_at("(", offset) || self.kind(offset - 1) != TokenType::Name {
+            return 0;
+        }
+        // A dotted or namespace-qualified callee is a single declarator.
+        let mut name_start = offset - 1;
+        while name_start > 0 && matches!(self.value(name_start - 1), "." | "::") {
+            name_start -= if name_start > 1 && self.kind(name_start - 2) == TokenType::Name {
+                2
+            } else {
+                1
+            };
+        }
+        let after = self.after_parentheses(offset);
+        if name_start > 0 && self.is_at(";", after) {
+            after + 1
+        } else {
+            0
+        }
+    }
+
     pub(crate) fn annotated_parameters(&mut self) -> Parsed<Vec<Node>> {
         self.expect("(")?;
         self.skip_newlines();

@@ -31,4 +31,25 @@ describe('member calls on computed receivers', () => {
       'factory().first(1).second(2);\n'
     );
   });
+
+  it('keeps standalone C++ member and namespace calls beside prototypes', () => {
+    const source = `
+      int helper(int value);
+      int main() {
+        values.push(1);
+        values.pop();
+        std::puts("kept");
+        return 0;
+      }
+    `;
+    const program = translator.toMeta(source, 'cpp');
+    expect(program.functions).toEqual([]);
+    expect(
+      program.main.statements.map(({ expression }) => expression.callee)
+    ).toEqual(['values.push', 'values.pop', 'std::puts']);
+    const emitted = translator.fromMeta(program, 'cpp');
+    expect(emitted).toContain('values.push(1);');
+    expect(emitted).toContain('values.pop();');
+    expect(emitted).toContain('std::puts("kept");');
+  });
 });

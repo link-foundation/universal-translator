@@ -524,15 +524,7 @@ impl Parser {
     fn plain_announcement_length(&self) -> usize {
         match self.syntax.forward_declarations {
             ForwardDeclarations::None => 0,
-            ForwardDeclarations::Prototype => {
-                let offset = self.prefix_head_length();
-                let after = self.after_parentheses(offset);
-                let prototype = offset > 1
-                    && self.is_at("(", offset)
-                    && self.kind(offset - 1) == TokenType::Name
-                    && self.is_at(";", after);
-                if prototype { after + 1 } else { 0 }
-            }
+            ForwardDeclarations::Prototype => self.prototype_length(),
             ForwardDeclarations::Heading => self.heading_length(),
             ForwardDeclarations::Local => {
                 let announced = self.value(1);
