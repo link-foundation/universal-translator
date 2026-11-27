@@ -1,5 +1,5 @@
-// Resolve reusable phrase rules before compiling the language's semantic
-// productions. The existing typed slots continue to parse nested expressions.
+// Resolve reusable lexical rules and productions before compiling the
+// language. Typed slots continue to parse nested expressions at runtime.
 const maxDepth = 24;
 const maxVariants = 64;
 const maxLength = 4096;
@@ -83,18 +83,24 @@ export function grammarProductions(fields, productionKeys) {
     }
   }
 
+  for (const key of productions.keys()) {
+    if (terms.has(key)) {
+      throw new Error(`Repeated natural grammar rule "${key}"`);
+    }
+  }
+  const rules = new Map([...terms, ...productions]);
   const resolved = new Map();
   const resolve = (key, path = []) => {
     if (path.length >= maxDepth || path.includes(key)) {
       throw new Error(`Natural grammar recursion at "${key}"`);
     }
-    if (!terms.has(key)) {
-      throw new Error(`Unknown natural grammar term "${key}"`);
+    if (!rules.has(key)) {
+      throw new Error(`Unknown natural grammar rule "${key}"`);
     }
     if (!resolved.has(key)) {
       resolved.set(
         key,
-        expandRule(terms.get(key), (term) => resolve(term, [...path, key]))
+        expandRule(rules.get(key), (rule) => resolve(rule, [...path, key]))
       );
     }
     return resolved.get(key);
@@ -103,9 +109,6 @@ export function grammarProductions(fields, productionKeys) {
     resolve(key);
   }
   return Object.fromEntries(
-    [...productions].map(([key, patterns]) => [
-      key,
-      expandRule(patterns, resolve),
-    ])
+    [...productions.keys()].map((key) => [key, resolve(key)])
   );
 }

@@ -78,6 +78,19 @@ Python minor version and selects the corresponding source edition.
 
 ## Reproduction and verification
 
+The base grammars for all 30 natural languages declare each reflection term
+once. For example, Japanese uses `{subject} の型` as the result expression and
+`@answer-type @interrogative` for the complete question. Spanish places the
+same reference after its introductory clause. Russian reuses the entity and
+property terms while choosing a different possessive phrase for some questions.
+Both grammar loaders resolve these dependencies and reject overlapping names,
+cycles and excessive expansions. Typed subject slots parse nested queries,
+questions and ordinary expressions recursively at runtime. Comparing the full
+expanded grammar tables before and after the migration found identical phrases
+for all 71 profiles. The comparison serialized the catalog’s `templates` table
+in `naturalLanguageIds()` order. Both snapshots had SHA-256
+`882932d01bb48faa65692f7f1ba9c6e594e4ad9fc557f72266a78a05b917d3b3`.
+
 - `node experiments/issue-16-questions.mjs`: five finite original examples;
   `logs/questions-before.txt` records missing recognition and parse failures,
   and `logs/questions-after.txt` records translated questions/documentation.

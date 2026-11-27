@@ -23,13 +23,14 @@ describe('declarative controlled grammar', () => {
   const prefix =
     'natural:\n  id: message-grammar\n  extends: english\n  grammar:\n';
 
-  it('allows profile productions to reuse terms through several levels', () => {
+  it('allows profile productions to reuse terms and other productions', () => {
     const id = registerNaturalLanguage(`${prefix}    terms:
       message: 'message' 'notice'
       send-message: 'Send @message'
       message-value: '@send-message {value}'
     productions:
-      print-line: '@message-value now'
+      print: '@message-value'
+      print-line: '@print now'
 `);
     try {
       const output = 'console.log(7);\n';
@@ -47,11 +48,19 @@ describe('declarative controlled grammar', () => {
     for (const [grammar, error] of [
       [
         '    productions:\n      print-line: "@absent {value}"',
-        /Unknown natural grammar term "absent"/u,
+        /Unknown natural grammar rule "absent"/u,
       ],
       [
         '    terms:\n      one: "@two"\n      two: "@one"',
         /Natural grammar recursion at "one"/u,
+      ],
+      [
+        '    terms:\n      print-line: "Say"\n    productions:\n      print-line: "Print {value}"',
+        /Repeated natural grammar rule "print-line"/u,
+      ],
+      [
+        '    terms:\n      action: "@print-line"\n    productions:\n      print-line: "@action {value}"',
+        /Natural grammar recursion at "action"/u,
       ],
       [
         '    terms:\n      word: a b c d e\n    productions:\n      print-line: "@word @word @word {value}"',

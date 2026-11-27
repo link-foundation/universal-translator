@@ -1,5 +1,5 @@
-//! Resolve reusable phrase rules before compiling semantic productions.
-//! Typed slots in the expanded phrases still parse nested expressions.
+//! Resolve reusable lexical rules and productions before compiling the
+//! language. Typed slots still parse nested expressions at runtime.
 
 use crate::meta::links::Link;
 use std::collections::HashMap;
@@ -86,8 +86,8 @@ fn expand_rule(
     Ok(variants)
 }
 
-fn resolve_term(
-    terms: &Ordered<Vec<String>>,
+fn resolve_rule(
+    rules: &HashMap<&str, &[String]>,
     resolved: &mut HashMap<String, Vec<String>>,
     path: &mut Vec<String>,
     key: &str,
@@ -98,11 +98,11 @@ fn resolve_term(
     if let Some(known) = resolved.get(key) {
         return Ok(known.clone());
     }
-    let patterns = terms
+    let patterns = rules
         .get(key)
-        .ok_or_else(|| format!("Unknown natural grammar term \"{key}\""))?;
+        .ok_or_else(|| format!("Unknown natural grammar rule \"{key}\""))?;
     path.push(key.to_owned());
-    let variants = expand_rule(patterns, |term| resolve_term(terms, resolved, path, term))?;
+    let variants = expand_rule(patterns, |rule| resolve_rule(rules, resolved, path, rule))?;
     path.pop();
     resolved.insert(key.to_owned(), variants.clone());
     Ok(variants)
@@ -140,17 +140,22 @@ pub(super) fn productions(fields: &[Link]) -> Result<Ordered<Vec<String>>, Strin
             entries.insert(key, plain(phrases));
         }
     }
+    let mut rules = HashMap::new();
+    for (key, patterns) in terms.entries.iter().chain(&productions.entries) {
+        if rules.insert(key.as_str(), patterns.as_slice()).is_some() {
+            return Err(format!("Repeated natural grammar rule \"{key}\""));
+        }
+    }
     let mut resolved = HashMap::new();
     let mut path = Vec::new();
     for (key, _) in &terms.entries {
-        resolve_term(&terms, &mut resolved, &mut path, key)?;
+        resolve_rule(&rules, &mut resolved, &mut path, key)?;
     }
-    for (_, patterns) in &mut productions.entries {
-        *patterns = expand_rule(patterns, |term| {
-            resolve_term(&terms, &mut resolved, &mut path, term)
-        })?;
+    let mut compiled = Ordered::default();
+    for (key, _) in &productions.entries {
+        compiled.insert(key, resolve_rule(&rules, &mut resolved, &mut path, key)?);
     }
-    Ok(productions)
+    Ok(compiled)
 }
 
 #[cfg(test)]
@@ -159,15 +164,36 @@ mod tests {
     use crate::natural::catalog::parse_root;
 
     #[test]
+    fn productions_reuse_terms_and_other_productions() {
+        let root = parse_root(
+            "grammar:\n  terms:\n    message: 'message' 'notice'\n    send: 'Send @message'\n  productions:\n    print-line: '@print now'\n    print: '@send {value}'\n",
+        )
+        .unwrap();
+        let compiled = productions(values_of(&root)).unwrap();
+        assert_eq!(
+            compiled.get("print-line").unwrap(),
+            &["Send message {value} now", "Send notice {value} now"]
+        );
+    }
+
+    #[test]
     fn rejects_unknown_cyclic_and_combinatorial_expansions() {
         let cases = [
             (
                 "  productions:\n    print-line: '@missing {value}'",
-                "Unknown natural grammar term \"missing\"",
+                "Unknown natural grammar rule \"missing\"",
             ),
             (
                 "  terms:\n    one: '@two'\n    two: '@one'",
                 "Natural grammar recursion at \"one\"",
+            ),
+            (
+                "  terms:\n    print-line: 'Say'\n  productions:\n    print-line: 'Print {value}'",
+                "Repeated natural grammar rule \"print-line\"",
+            ),
+            (
+                "  terms:\n    action: '@print-line'\n  productions:\n    print-line: '@action {value}'",
+                "Natural grammar recursion at \"action\"",
             ),
             (
                 "  terms:\n    word: a b c d e\n  productions:\n    print-line: '@word @word @word {value}'",
