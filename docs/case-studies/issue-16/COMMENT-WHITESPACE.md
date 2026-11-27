@@ -62,12 +62,10 @@ After:
 ![preserved blank line](../../screenshots/issue-16/comment-whitespace-after.png)
 
 Broader grammar-production review remains open under requirement 16.2. The
-audit also exposed separate reader questions requiring their own regressions:
-generated PHP headers with leading output text. Rocq header layout is now
-verified separately in `RUNTIME-HEADERS.md`.
-The separate Perl print failure is fixed and documented in `PRINT-EXPRESSIONS.md`. The finite audit
-keeps valid generated headers intact and uses a simple variable print; it does
-not count those unrelated failures as resolved.
+audit also exposed separate executable-semantic failures. Perl print arguments
+are repaired in `PRINT-EXPRESSIONS.md`; Rocq runtime layout and PHP outside-tag
+whitespace are repaired in `RUNTIME-HEADERS.md`. Those cases have their own
+native regressions instead of being counted by the 551-case layout audit.
 
 ## Native nested comments
 
@@ -108,5 +106,4 @@ the shared scanner belongs to the existing source-processing chunk.
 
 Evidence is in `logs/nested-comments-{audit-before,audit-after}.json`,
 `logs/nested-comments-{js,rust}-final.txt`, and the matching lint/Clippy logs.
-The broader grammar-production review and the separate reader questions above
-remain open.
+The broader grammar-production review and the wider language inventory remain open.

@@ -240,3 +240,13 @@ JS/Rust semantic/concrete/partial regressions and six native Rocq/Python output
 comparisons pass. Modified helper tokens and literal values are rejected.
 `RUNTIME-HEADERS.md` records evidence. PHP leading text needs its own semantic
 repair; the wider acceptance inventory remains active.
+
+The PHP header investigation now preserves emitted whitespace before opening
+and after closing tags, including PHP's consumed first newline. Native-tokenizer
+probes also distinguish real opening separators from literal lookalike tags.
+The previous reader fails seven of nine finite native cases; the corrected
+reader and all native PHP/Python round trips pass. Matching semantic, concrete
+and partial-comment regressions pass with existing dialect/comment checks
+(24 JS and 26 Rust tests), lint and Clippy. Primary manuals and evidence are in
+`RUNTIME-HEADERS.md`. General mixed-HTML/mode-switch grammar coverage remains
+under the broader language inventory; continue all open acceptance work.

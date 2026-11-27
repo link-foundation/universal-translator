@@ -22,6 +22,7 @@ pub enum TokenType {
     Comment,
     Directive,
     Text,
+    InlineText,
     Number,
     Name,
     Symbol,
@@ -37,6 +38,7 @@ impl TokenType {
             TokenType::Comment => "comment",
             TokenType::Directive => "directive",
             TokenType::Text => "text",
+            TokenType::InlineText => "inlineText",
             TokenType::Number => "number",
             TokenType::Name => "name",
             TokenType::Symbol => "symbol",
@@ -279,11 +281,30 @@ type Reader<'a> = fn(&mut Lexer<'a>) -> Result<bool, GrammarError>;
 
 impl<'a> Lexer<'a> {
     fn new(source: &str, syntax: &'a Syntax) -> Self {
-        let index = match syntax.header {
-            Some(header) if source.starts_with(header) => header.chars().count(),
-            _ => 0,
+        let leading = source.len()
+            - source
+                .trim_start_matches([' ', '\t', '\r', '\n', '\x0c', '\x0b'])
+                .len();
+        let php = syntax.id == "php"
+            && source
+                .get(leading..leading + 5)
+                .is_some_and(|tag| tag.eq_ignore_ascii_case("<?php"));
+        let invalid_php = php
+            && source[leading + 5..]
+                .chars()
+                .next()
+                .is_some_and(|c| !matches!(c, ' ' | '\t' | '\r' | '\n'));
+        let index = if invalid_php {
+            source.chars().count()
+        } else if php {
+            source[..leading].chars().count() + 5
+        } else {
+            match syntax.header {
+                Some(header) if source.starts_with(header) => header.chars().count(),
+                _ => 0,
+            }
         };
-        Lexer {
+        let mut lexer = Lexer {
             source: source.chars().collect(),
             syntax,
             tokens: Vec::new(),
@@ -293,7 +314,21 @@ impl<'a> Lexer<'a> {
             indentation: vec![0],
             depth: 0,
             pending: Vec::new(),
+        };
+        let outside_end = if invalid_php {
+            source.len()
+        } else if php {
+            leading
+        } else {
+            0
+        };
+        if outside_end > 0 {
+            lexer.push(TokenType::InlineText, &source[..outside_end]);
+            let token = lexer.tokens.last_mut().unwrap();
+            token.line = 1;
+            token.raw_span = Some((0, source[..outside_end].chars().count()));
         }
+        lexer
     }
 
     fn run(mut self) -> Result<Vec<Token>, GrammarError> {
@@ -341,8 +376,8 @@ impl<'a> Lexer<'a> {
         Ok(self.tokens)
     }
 
-    /// PHP: the closing ?> tag ends the program when only whitespace follows
-    /// it; text after it would be output, which is not read.
+    /// PHP consumes the first newline after ?>; remaining outside whitespace
+    /// is literal output, as is whitespace before its opening tag.
     fn closing_tag(&mut self) -> Result<bool, GrammarError> {
         if self.syntax.id != "php" || !self.starts_with("?>", self.index) {
             return Ok(false);
@@ -355,6 +390,36 @@ impl<'a> Lexer<'a> {
                 "Text after the closing \"?>\" tag",
                 self.line,
             ));
+        }
+        let after = self.index + 2;
+        let newline = if self.starts_with("\r\n", after) {
+            2
+        } else if self
+            .source
+            .get(after)
+            .is_some_and(|c| matches!(c, '\r' | '\n'))
+        {
+            1
+        } else {
+            0
+        };
+        let start = after + newline;
+        self.line += self.source[self.index..start]
+            .iter()
+            .filter(|c| **c == '\n')
+            .count();
+        if start < self.source.len() {
+            if self
+                .tokens
+                .last()
+                .is_none_or(|token| token.kind != TokenType::Newline)
+            {
+                self.push(TokenType::Newline, "\n");
+            }
+            let text = self.slice(start, self.source.len());
+            self.push(TokenType::InlineText, &text);
+            self.tokens.last_mut().unwrap().raw_span = Some((start, self.source.len()));
+            self.line += text.matches('\n').count();
         }
         self.index = self.source.len();
         Ok(true)

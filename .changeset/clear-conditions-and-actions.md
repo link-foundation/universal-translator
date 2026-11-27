@@ -33,3 +33,5 @@ Preserve boolean Objective-C conditions after type inference, read BOOL paramete
 Enclose complete Perl print arguments so grouped arithmetic and trailing text retain their execution and round-trip semantics.
 
 Recognize token-equivalent Rocq runtime headers with native layout and comments, retain their source ranges, and count actual header lines in diagnostics.
+
+Retain the output effect of PHP whitespace outside opening and closing tags, consume the native closing-tag newline, and distinguish valid opening separators from literal lookalikes.

@@ -1,0 +1,8 @@
+{"source":"<?php echo \"ok\";","open":true}
+{"source":"<?php\techo \"ok\";","open":true}
+{"source":"<?php\recho \"ok\";","open":true}
+{"source":"<?php\necho \"ok\";","open":true}
+{"source":"<?php\fecho \"ok\";","open":false}
+{"source":"<?php\u000becho \"ok\";","open":false}
+{"source":"<?php\u00a0echo \"ok\";","open":false}
+{"source":"<?phpecho \"ok\";","open":false}

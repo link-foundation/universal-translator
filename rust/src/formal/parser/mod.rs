@@ -819,6 +819,12 @@ impl Parser {
     }
 
     pub(crate) fn base_statement(&mut self) -> Parsed {
+        if self.kind(0) == TokenType::InlineText {
+            let token = self.next()?;
+            return Ok(Node::new("Print")
+                .with("value", text(&token.value))
+                .with("newline", false));
+        }
         if self.is_exception_start() {
             return self.exception_statement();
         }

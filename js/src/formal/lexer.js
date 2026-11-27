@@ -190,10 +190,25 @@ class Lexer {
     this.source = source;
     this.syntax = syntax;
     this.tokens = [];
-    this.index =
-      syntax.header && source.startsWith(syntax.header)
+    const php = syntax.id === 'php' && /^([ \t\r\n\f\v]*)<\?php/i.exec(source);
+    const invalidPhp =
+      php && !/^(?:[ \t\r\n]|$)/.test(source.slice(php[0].length));
+    this.index = php
+      ? invalidPhp
+        ? source.length
+        : php[0].length
+      : syntax.header && source.startsWith(syntax.header)
         ? syntax.header.length
         : 0;
+    const outside = invalidPhp ? source : php?.[1];
+    if (outside) {
+      this.tokens.push({
+        type: 'inlineText',
+        value: outside,
+        line: 1,
+        rawSpan: [0, outside.length],
+      });
+    }
     this.line = source.slice(0, this.index).split('\n').length;
     this.lineStart = true;
     this.indentation = [0];
@@ -238,14 +253,27 @@ class Lexer {
     return this.tokens;
   }
 
-  // PHP: the closing ?> tag ends the program when only whitespace follows
-  // it; text after it would be output, which is not read.
+  // PHP consumes the first newline after ?>. Other outside whitespace is
+  // literal output, just like whitespace before its opening tag.
   closingTag() {
     if (this.syntax.id !== 'php' || !this.source.startsWith('?>', this.index)) {
       return false;
     }
     if (this.source.slice(this.index + 2).trim()) {
       throw new SyntaxError('Text after the closing "?>" tag', this.line);
+    }
+    const after = this.index + 2;
+    const newline = /^(?:\r\n|\n|\r)/.exec(this.source.slice(after))?.[0] ?? '';
+    const start = after + newline.length;
+    this.line += this.source.slice(this.index, start).split('\n').length - 1;
+    if (start < this.source.length) {
+      if (this.tokens.at(-1)?.type !== 'newline') {
+        this.push('newline', '\n');
+      }
+      this.push('inlineText', this.source.slice(start), {
+        rawSpan: [start, this.source.length],
+      });
+      this.line += this.source.slice(start).split('\n').length - 1;
     }
     this.index = this.source.length;
     return true;

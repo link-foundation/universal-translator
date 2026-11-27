@@ -1,0 +1,38 @@
+✔ changes only comment contents in every current reader family (1192.461713ms)
+✔ keeps source layout in partial translations through every reader family (700.149477ms)
+✔ leaves note-looking lines inside multiline natural text alone (402.947652ms)
+✔ retains machine strings, Unicode offsets, inline and nested comments (10.698954ms)
+✔ keeps SQL query comments and whitespace in place (13.918108ms)
+✔ reads nested block comments according to each language grammar (35.795884ms)
+✔ honours Rocq strings inside comments while other grammars treat quotes as text (20.872769ms)
+▶ concrete syntax as the default source record
+  ✔ partitions every byte, including quotes, directives and trivia (33.099695ms)
+  ✔ exposes source syntax to decorators before semantic rewriting (591.011633ms)
+  ✔ retains source syntax when reading words and every machine format (275.402025ms)
+  ✔ keeps accepted regions and explicit errors in incomplete source (21.978262ms)
+  ✔ keeps a lossless record for empty and whitespace-only input (1.097087ms)
+✔ concrete syntax as the default source record (925.219006ms)
+▶ Fortran output statements
+  ✔ reads write control lists, new_line and the // operator (593.385709ms)
+  ✔ writes a line end inside text with new_line (36.730607ms)
+  ✔ reads fixed-form comments, labelled formats and a final stop (4.465038ms)
+  ✔ keeps an assignment to c a statement, not a comment (5.309963ms)
+  ✔ reports formats it cannot print (1.653945ms)
+✔ Fortran output statements (648.03138ms)
+▶ calls and layouts of the other collection programs
+  ✔ reads PHP up to its closing tag (4.546459ms)
+  ✔ reads a Lua #! line and a call with one text argument (3.655739ms)
+  ✔ reads Groovy println without parentheses (3.025793ms)
+  ✔ reads a Scala object that extends App (5.544791ms)
+  ✔ reads a Visual Basic class after Imports System.Console (19.331065ms)
+  ✔ reads Zig before 0.1 (8.382493ms)
+✔ calls and layouts of the other collection programs (45.760438ms)
+✔ retains PHP output whitespace outside its opening and closing tags (1210.041892ms)
+ℹ tests 24
+ℹ suites 3
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3306.353885

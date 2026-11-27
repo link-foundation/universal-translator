@@ -754,6 +754,10 @@ class BaseParser {
   // ---- statements ----
   statement() {
     const token = this.peek();
+    if (token.type === 'inlineText') {
+      this.next();
+      return node('Print', { value: text(token.value), newline: false });
+    }
     const word = token.type === 'name' ? token.value : undefined;
     const keywords = {
       if: () => this.ifStatement(),

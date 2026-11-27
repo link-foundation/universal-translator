@@ -40,5 +40,39 @@ translation and rejection of modified helper values. The focused JavaScript
 header/comment/concrete checks pass (14 tests), as do the matching Rust targets,
 ESLint and Clippy. Evidence is preserved in `logs/runtime-headers-*`.
 
-The separate PHP opening-tag failure remains under investigation. Whitespace
-before a PHP tag is emitted text and must retain its runtime effect.
+## PHP outside whitespace
+
+PHP whitespace before an opening tag is output, rather than ordinary source
+layout. The previous reader either failed on the tag or silently dropped
+whitespace after a closing tag. Both readers now represent that whitespace as
+literal print statements, preserving LF/CRLF, tabs and exact output bytes.
+The first newline immediately after `?>` is consumed according to PHP's grammar;
+remaining whitespace is output. Opening tags are case-insensitive and require
+PHP's native separator characters. A lookalike such as `<?phpecho` is literal
+output, as is a tag followed by formfeed or a nonbreaking space.
+
+The primary [PHP tags](https://www.php.net/manual/en/language.basic-syntax.phptags.php)
+and [escaping from HTML](https://www.php.net/manual/en/language.basic-syntax.phpmode.php)
+manual pages are archived with URLs/checksums in `data/prior-art/php-tags/`.
+The finite `experiments/issue-16-php-tags.mjs` probe asks native PHP's tokenizer
+which separators open code; it is bounded to eight strings and 32 MiB.
+
+```sh
+node experiments/issue-16-php-output.mjs --before
+node experiments/issue-16-php-output.mjs
+node examples/runtime-headers/verify-native.mjs
+```
+
+The old-reader audit loads three reader modules from `69a91ce` with current
+dependencies. Seven of nine native cases fail: lost output whitespace, failed
+leading tags and misread lookalike tags. The current reader passes all nine.
+The native example also compares direct PHP-to-PHP output and PHP-to-Python-to-PHP
+round trips. It runs under the existing native CI step. The JS regression checks
+semantic rereading, concrete reconstruction and partial comment translation;
+Rust has matching coverage in `runtime_headers.rs`. Focused checks pass:
+24 JavaScript tests, 26 Rust tests, ESLint and Clippy. Evidence is in
+`logs/php-output-*`. This also formats the newly registered Rocq test target.
+
+This change handles the known outside-whitespace failure. General mixed HTML,
+repeated PHP mode changes and short echo tags remain part of the broader
+language-grammar inventory; existing unsupported-text diagnostics are retained.
