@@ -30,6 +30,30 @@ The second run consumes 32 more lines across 12 titles. That comparison
 establishes parser progress. Verification of the solutions requires meaningful
 readings, successful emission and executable comparisons with the originals.
 
+## Full parser measurement
+
+The JavaScript parser at `663b040` read 429,633 of 1,292,940 source lines
+across 1,783 tasks (33.2%). The corpus contains 28,827 first solutions in
+supported languages. The 140-line cap skipped 1,577 solutions, and zero tasks
+were read completely in every represented language. The earlier Issue 8 total
+uses a 400-line cap and a different live corpus. [Issue 8 report](../issue-8/data/rosetta-code/README.md)
+
+```sh
+node scripts/rosetta-code.mjs download --cache .cache/issue-16-rosetta-full
+node --max-old-space-size=384 scripts/rosetta-code.mjs coverage \
+  --cache .cache/issue-16-rosetta-full --out .cache/issue-16-rosetta-full/report \
+  --max-lines 140 --verbose
+```
+
+The measured input `solutions.json` has SHA-256
+`6d80508f501f130acc186a8aa1a3deec16c667d672afe63b5e46a63cd2efbf1d`.
+The decompressed report has SHA-256
+`550278fccbeb2ff3d4c9c950dedeee8641f4ee331093ef0caa86c10a7aec681c`.
+The 1,784-line log has SHA-256
+`78e2cd546364097a7b9ba9e16a5ac139a5003bb5736ac7ade26d72a6fc1ffa61`.
+The download API serves live revisions and the generated report retains
+counts by task and language. [Coverage report](data/rosetta-code/coverage-663b040.json.gz) · [Timing log](data/rosetta-code/coverage-663b040.log.gz)
+
 ## C++ standalone calls
 
 The C++ solution for [Ascending primes](https://rosettacode.org/wiki/Ascending_primes)
@@ -46,10 +70,12 @@ cargo test --test grammar standalone_cpp_member_and_namespace_calls_survive_besi
 node experiments/issue-16-cpp-member-calls.mjs
 ```
 
-The compiled experiment calls `push_back`, `pop_back` and `push_back` on a
-vector. The original prints `2`. Output translated at `16f5217` prints `1`,
-and the repaired output prints `2`. The experiment accepts an alternate
-checkout's `js/src/index.js` as its first argument.
+The original member-call experiment calls `push_back`, `pop_back` and
+`push_back` on a vector. The original prints `2`. Output translated at
+`16f5217` prints `1`, and the repaired output prints `2`. The current
+experiment also prints `0 3 4` to check an empty vector and the two elements
+of a list-initialized vector. It accepts an alternate checkout's
+`js/src/index.js` as its first argument.
 
 ## C++ template calls and headers
 
@@ -68,7 +94,7 @@ found "," (line 7)` on the template call; its partial output had no enclosing
 function, and the C++ compiler rejected it. The same experiment checks the two
 cases during native CI.
 
-## Verified Rosetta task beyond the baseline
+## Verified Rosetta tasks beyond the baseline
 
 Both engines retained `unsigned` inside the template call but stripped it from
 the declared `queue<unsigned>` and `vector<unsigned>`. The C++ writer also
@@ -95,8 +121,37 @@ node experiments/issue-16-ascending-primes.mjs /tmp/ascending-primes-revision.js
   ./target/debug/universal-translator
 ```
 
-This adds one task type to the verified total. Translating these container
-types to other languages still requires a semantic mapping.
+The first C++ solution for [Queue/Usage revision 420325](https://rosettacode.org/w/index.php?title=Queue/Usage&oldid=420325)
+also compiles and runs through both CLIs. Each emitted program retains all
+19 queue state assertions, which execute with assertions enabled. Both
+programs exit successfully with empty stdout, matching the original.
+Output from `16f5217` omitted `<queue>` and `<cassert>` and emitted
+`std::queue<int> q = 0;`. GCC rejected that output.
+
+The first C++ solution for [Order two numerical lists revision 417505](https://rosettacode.org/w/index.php?title=Order_two_numerical_lists&oldid=417505)
+emits `false` followed by a newline in the original and both translated
+programs. Previously, the special parser for integer vectors built a
+declaration without a value for `std::vector<int> a;`. The JavaScript
+writer tried to read the missing value's kind, and the Rust writer raised
+`Declaration has no value`. Both readers now represent the default
+integer vector as empty, and direct brace initialization retains the listed
+elements. Other element types retain their C++ type and use the ordinary
+template-declaration reader. The writers emit one `<vector>` header when
+both the original code and the generated array syntax require it.
+[Recorded results](logs/rosetta-containers-native.txt)
+
+```sh
+curl --fail --silent --show-error --get https://rosettacode.org/w/api.php \
+  --data 'action=query' --data 'prop=revisions' --data 'revids=420325|417505' \
+  --data 'rvprop=ids|content' --data 'rvslots=main' --data 'format=json' \
+  --data 'formatversion=2' > /tmp/rosetta-containers-revisions.json
+node experiments/issue-16-rosetta-containers.mjs /tmp/rosetta-containers-revisions.json \
+  ./target/debug/universal-translator
+```
+
+These three pinned same-language task round trips count toward the behavioral
+goal. Cross-language container and comparison semantics still require testing
+and implementation.
 
 ## C++ file-scope declarations
 

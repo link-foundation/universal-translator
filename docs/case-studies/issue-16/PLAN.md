@@ -119,6 +119,15 @@ machine text targets pass their lifted-program regression suites. The
 [binary case study](WASM-BINARY.md) records the baseline rejection, format
 scope, reproduction commands and remaining requirements.
 
+The `4d268d9` Rust run found unequal regions in the two HTTP responses for
+JavaScript `console.log(add(1, 2))` translated to Python. The JS parser's
+concrete-method observer took its opening parenthesis as the start of the
+procedure call after the C++ template parser extracted a helper. Moving node
+construction outside that observer restores the complete postfix region.
+The new JS region regression fails before `43541cd` and passes with it.
+The exact Rust/JavaScript HTTP parity test and 26 focused JavaScript tests
+pass locally. [Failing job, lines 1483–1496](https://github.com/link-foundation/universal-translator/actions/runs/46061903545/job/140718306530)
+
 ## Work sequence
 
 - [x] Archive and read issue 16, every comment, screenshots, PR 17 discussion/reviews, and earlier issues/PR requirements; preserve all referenced solver logs. Refresh feedback after each push.
