@@ -49,3 +49,5 @@ Distinguish floor division and divisor-signed modulo from truncation and dividen
 Sequence effectful Python scalar operands in C, C++, and Objective-C and retain explicit sequencing when reading C-family programs.
 
 Compose English controlled grammar from reusable phrase rules and accept alternative wording for recursively nested introspection questions in both engines.
+
+Read a bounded straight-line WebAssembly 1.0 binary subset through both CLIs and libraries, retaining local snapshots, call order, and integer rounding in verified JavaScript and Python translations.

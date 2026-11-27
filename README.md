@@ -26,6 +26,21 @@ cargo run --locked -- translate-grammar javascript kotlin examples/programs/fact
 Both CLIs read a file, or standard input when you omit the file or pass `-`.
 The JavaScript package supports Node.js 20 and later, Bun and Deno.
 
+```sh
+node bin/universal-translator.js translate wasm python examples/programs/binary/wasm-stack.wasm
+cargo run --locked -- translate wasm javascript examples/programs/binary/wasm-stack.wasm
+```
+
+The binary reader accepts a straight-line WebAssembly 1.0 subset with signed
+`i64` arithmetic, functions, locals, and the `env.print_integer` and
+`env.print_newline` host imports. It requires an exported `main` function.
+The JavaScript API accepts bytes with `translateWasm(bytes, target)` and
+`toMetaWasm(bytes)` on a translator instance. The Rust methods are
+`translate_wasm(bytes, target, options)` and `to_meta_wasm(bytes)`.
+Translations for this subset use integers representable by the target and
+assume valid, nontrapping operations. See the
+[binary case study](docs/case-studies/issue-16/WASM-BINARY.md) for coverage.
+
 Each translation runs these stages:
 
 1. A lexer and a table-driven parser read the source language.

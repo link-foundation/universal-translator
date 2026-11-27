@@ -54,10 +54,10 @@ fn may_produce_negative_zero(item: &Node) -> bool {
     };
     let dividend = left + 0.0;
     let divisor = right + 0.0;
-    let value = if item.str("operator") == Some("divide") {
-        (dividend / divisor).trunc()
-    } else {
-        dividend % divisor
+    let value = match item.str("operator") {
+        Some("divide") => (dividend / divisor).trunc(),
+        Some("multiply") => dividend * divisor,
+        _ => dividend % divisor,
     };
     value == 0.0 && value.is_sign_negative()
 }
@@ -69,6 +69,21 @@ fn normalize_integer_zero(item: Node) -> Node {
     } else {
         item
     }
+}
+
+pub(crate) fn normalize_machine_integer_zero(program: Node) -> Node {
+    rewrite(program, |item| {
+        if item.is("Binary")
+            && matches!(
+                item.str("operator"),
+                Some("divide" | "remainder" | "multiply")
+            )
+        {
+            normalize_integer_zero(item)
+        } else {
+            item
+        }
+    })
 }
 
 fn native(operator: &str, id: &str) -> bool {

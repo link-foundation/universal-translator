@@ -71,6 +71,7 @@ function usage() {
     '            Parts that cannot be translated become comments and are listed',
     '            on standard error; --all-or-nothing fails instead',
     '            The source language may be "auto" to detect it',
+    '            Use "wasm" for the supported WebAssembly version 1 binary subset',
     '            --rules <file.lino> adds source, templates, names and output rules',
     '            (indented Links Notation; JSON files are read too)',
     '  translate-program <from|cst> <to> [file|-]  Translate a checked JavaScript or Rust program',
@@ -155,15 +156,17 @@ export function readStandardInput(read = readSync) {
   return Buffer.concat(chunks);
 }
 
+function readBytes(file) {
+  return file === '-' || file === undefined
+    ? readStandardInput()
+    : readFileSync(file);
+}
+
 function readSource(file) {
-  const input =
-    file === '-' || file === undefined
-      ? readStandardInput()
-      : readFileSync(file);
   return new globalThis.TextDecoder('utf-8', {
     fatal: true,
     ignoreBOM: true,
-  }).decode(input);
+  }).decode(readBytes(file));
 }
 
 // Options with a value, and the translation option each one sets.
@@ -244,19 +247,8 @@ function checkWords(text, language) {
 function translateCommand(
   translator,
   { from, to, file, options },
-  read,
-  write,
-  stderr
+  { read, write, stderr }
 ) {
-  const source = read(file);
-  const language =
-    from === 'auto' ? translator.detectLanguage(source)[0]?.id : from;
-  if (!language) {
-    throw new Error('The language of the text could not be detected');
-  }
-  if (from === 'auto') {
-    stderr(`Detected language: ${language}`);
-  }
   const settings = {
     mode: options.mode,
     commonLibrary: options.commonLibrary,
@@ -269,6 +261,24 @@ function translateCommand(
     braces: options.braces,
     indent: options.indent,
   };
+  if (from === 'wasm') {
+    if (options.fragment || options.candidates) {
+      throw new Error(
+        'WebAssembly binary translation requires a complete module and one reading'
+      );
+    }
+    write(translator.translateWasm(readBytes(file), to, settings));
+    return;
+  }
+  const source = read(file);
+  const language =
+    from === 'auto' ? translator.detectLanguage(source)[0]?.id : from;
+  if (!language) {
+    throw new Error('The language of the text could not be detected');
+  }
+  if (from === 'auto') {
+    stderr(`Detected language: ${language}`);
+  }
   if (options.candidates) {
     write(
       candidatesReport(translator, [source, language, to], options, settings)
@@ -415,7 +425,8 @@ function runEquivalence(allArgs, read, write) {
   equivalenceReport(createTranslator(), args, { read, write, json });
 }
 
-function runTranslation(command, allArgs, read, write, stderr) {
+function runTranslation(command, allArgs, io) {
+  const { read, write, stderr } = io;
   const { json, shallow, args } = reportFlags(command, allArgs);
   const [from, to, ...trailing] = args;
   const { file, options = {} } =
@@ -429,13 +440,7 @@ function runTranslation(command, allArgs, read, write, stderr) {
   } else if (command === 'detect' && args.length <= 1) {
     write(detectionReport(translator.detectLanguage(read(from)), { json }));
   } else if (command === 'translate' && from && to) {
-    translateCommand(
-      translator,
-      { from, to, file, options },
-      read,
-      write,
-      stderr
-    );
+    translateCommand(translator, { from, to, file, options }, io);
   } else {
     throw new Error(usage());
   }
@@ -515,7 +520,7 @@ function runSourceCommand(
   } else if (GRAMMAR_COMMANDS.includes(command)) {
     runGrammarCommand(command, args, read, write, grammarEngine);
   } else if (TRANSLATION_COMMANDS.includes(command)) {
-    runTranslation(command, args, read, write, stderr);
+    runTranslation(command, args, { read, write, stderr });
   } else if (command === 'check-equivalence') {
     runEquivalence(args, read, write);
   } else {

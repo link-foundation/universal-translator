@@ -40,6 +40,7 @@ Modes: context-dependent (default), literal, same-effect
 Parts that cannot be translated become comments and are listed on
 standard error; --all-or-nothing fails instead.
 The source language may be \"auto\" to detect it.
+Use \"wasm\" for the supported WebAssembly version 1 binary subset.
 --rules <file.lino> adds source, templates, names and output rules
 (indented Links Notation; JSON files are read too).
 --comment-language <natural> translates the comments too (only them when
@@ -97,6 +98,18 @@ fn source(file: Option<&str>) -> Result<String, String> {
         let mut input = String::new();
         io::stdin()
             .read_to_string(&mut input)
+            .map_err(|error| error.to_string())?;
+        Ok(input)
+    }
+}
+
+fn source_bytes(file: Option<&str>) -> Result<Vec<u8>, String> {
+    if let Some(file) = file.filter(|file| *file != "-") {
+        fs::read(file).map_err(|error| format!("{file}: {error}"))
+    } else {
+        let mut input = Vec::new();
+        io::stdin()
+            .read_to_end(&mut input)
             .map_err(|error| error.to_string())?;
         Ok(input)
     }
@@ -461,6 +474,16 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
         options = options
             .with_identifier_language(identifier_language, identifier_from)
             .map_err(|error| error.to_string())?;
+    }
+    if from == "wasm" {
+        if fragment || candidates {
+            return Err(
+                "WebAssembly binary translation requires a complete module and one reading".into(),
+            );
+        }
+        return translator
+            .translate_wasm(&source_bytes(file)?, to, options)
+            .map_err(|error| error.to_string());
     }
     let source = source(file)?;
     let language = if from == "auto" {

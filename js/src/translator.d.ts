@@ -182,6 +182,8 @@ export interface GrammarTranslator {
   /** Controlled natural languages and profiles (base is the language a profile extends). */
   naturalLanguages(): { id: string; label: string; base?: string }[];
   toMeta(source: string, from: string): unknown;
+  /** Read the supported WebAssembly version 1 binary instructions. */
+  toMetaWasm(source: Uint8Array): unknown;
   /** The same translator with other data rules. */
   withRules(rules: TranslationRules | string): GrammarTranslator;
   /** The same translator with a decorator around one stage; it wraps the
@@ -200,6 +202,11 @@ export interface GrammarTranslator {
   translate(
     source: string,
     from: string,
+    to: string,
+    options?: TranslationOptions
+  ): string;
+  translateWasm(
+    source: Uint8Array,
     to: string,
     options?: TranslationOptions
   ): string;

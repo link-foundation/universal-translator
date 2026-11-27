@@ -5,6 +5,7 @@ use universal_translator::formal::lowering::{Instruction, LoweredProgram};
 use universal_translator::formal::machine_reader_assembly::{read_arm64, read_gas};
 use universal_translator::formal::machine_reader_llvm::read_llvm;
 use universal_translator::formal::machine_reader_wasm::read_wat;
+use universal_translator::formal::machine_reader_wasm_binary::read_wasm_binary;
 use universal_translator::translator::{Translator, languages, machine_target_ids};
 use universal_translator::{GrammarError, Mode, Options, translate_fragment};
 
@@ -13,6 +14,46 @@ type Reader = fn(&str) -> Result<LoweredProgram, GrammarError>;
 
 /// The dialects added after NASM, CIL and JVM bytecode.
 const DIALECTS: [&str; 4] = ["gas", "arm64", "llvm", "wat"];
+const WASM_FIXTURE: &[u8] = include_bytes!("../../examples/programs/binary/wasm-stack.wasm");
+
+#[test]
+fn reads_and_translates_a_webassembly_binary() {
+    let machine = read_wasm_binary(WASM_FIXTURE).unwrap();
+    assert_eq!(machine.functions[0].parameter_count, 2);
+    assert_eq!(machine.functions[1].parameter_count, 0);
+    assert!(machine.main.code.contains(&Instruction::Push(-130.0)));
+    let translator = Translator::new();
+    assert!(translator.to_meta_wasm(WASM_FIXTURE).unwrap().is("Program"));
+    let javascript = translator
+        .translate_wasm(WASM_FIXTURE, "javascript", Options::default())
+        .unwrap();
+    assert!(
+        javascript
+            .find("const wasmValue7 = wasmInternal0(")
+            .unwrap()
+            < javascript.find("wasmInternal1();").unwrap()
+    );
+    assert!(javascript.contains("Math.trunc(-1 / 2) + 0"));
+}
+
+#[test]
+fn rejects_invalid_webassembly_binary() {
+    let wrong_version = [0, 0x61, 0x73, 0x6d, 2, 0, 0, 0];
+    let invalid_size = [
+        0, 0x61, 0x73, 0x6d, 1, 0, 0, 0, 1, 0x80, 0x80, 0x80, 0x80, 0x10,
+    ];
+    for (input, message) in [
+        (&wrong_version[..], "expected WebAssembly binary version 1"),
+        (
+            &WASM_FIXTURE[..WASM_FIXTURE.len() - 1],
+            "truncated length-delimited field",
+        ),
+        (&invalid_size[..], "invalid unsigned LEB128 integer"),
+    ] {
+        let error = read_wasm_binary(input).unwrap_err().to_string();
+        assert!(error.contains(message), "{error}");
+    }
+}
 
 fn programs() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("examples/programs")

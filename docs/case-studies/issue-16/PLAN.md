@@ -103,6 +103,22 @@ failure logs, focused regression results, and WebKit before/after screenshots
 are recorded. Current Chromium and WebKit do not reproduce the original full
 gutter block, so that criterion remains open. All CI checks at `283f16a` pass.
 
+The restored arithmetic changes initially failed six checks at `16f5217`.
+Native logs identified Nim, Rocq, WebAssembly and Fortran failures. The
+repaired fixtures pass the focused native checks. At `161a654`, the native
+verifier passed a program starting with a Lua comment to `lua5.4 -e`
+(job log lines 2848 and 2863). Lua interpreted the leading `--` as an
+option. Feeding the same program through standard input restored all 28
+rounding comparisons and three real signed-zero comparisons. All five
+workflows pass at [`a2b93f6`](https://github.com/link-foundation/universal-translator/actions/runs/46056080659).
+
+Both engines decode the first bounded binary format subset and lift it using
+the ordinary machine pipeline. A native WebAssembly fixture, JavaScript and
+Python agree on all seven output lines through both CLIs. The seven existing
+machine text targets pass their lifted-program regression suites. The
+[binary case study](WASM-BINARY.md) records the baseline rejection, format
+scope, reproduction commands and remaining requirements.
+
 ## Work sequence
 
 - [x] Archive and read issue 16, every comment, screenshots, PR 17 discussion/reviews, and earlier issues/PR requirements; preserve all referenced solver logs. Refresh feedback after each push.

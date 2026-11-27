@@ -26,6 +26,7 @@ use crate::comment_language::{self, CommentTranslator};
 use crate::custom_rules::CustomRules;
 pub use crate::detect::Detection;
 use crate::formal::versions::{Version, split_version, versions_of};
+use crate::formal::{lowering::LoweredProgram, machine_reader_wasm_binary::read_wasm_binary};
 use crate::fragments;
 pub use crate::fragments::{Fragment, FragmentKind};
 pub use crate::partial::{PartError, PartStatus, PartialReading, PartialTranslation};
@@ -411,8 +412,41 @@ impl Translator {
             .map(crate::meta::imprecision::mark_imprecision)
     }
 
+    /// Read the supported WebAssembly version 1 binary instructions.
+    pub fn to_meta_wasm(&self, bytes: &[u8]) -> Result<Node, GrammarError> {
+        let machine = read_wasm_binary(bytes)?;
+        let settings = Settings {
+            from: "wat".to_owned(),
+            to: "wat".to_owned(),
+            target: "wat".to_owned(),
+            mode: Mode::default(),
+        };
+        self.type_machine(&machine, None, &settings)
+            .map(crate::meta::imprecision::mark_imprecision)
+    }
+
     fn read_meta(&self, text: &str, from: &str) -> Result<Node, GrammarError> {
         crate::emission_map::source_records(|| self.read_source(text, from))
+    }
+
+    fn type_machine(
+        &self,
+        machine: &LoweredProgram,
+        source: Option<&str>,
+        settings: &Settings,
+    ) -> Result<Node, GrammarError> {
+        let lifted =
+            rules::infer_mutability(meta::for_each::raise_for_each((self.stages.lift)(machine)?));
+        if let Some(source) = source {
+            self.report(
+                "parsed",
+                &crate::source_syntax::source_tree(source, &settings.from, &lifted),
+            );
+        }
+        self.report("lifted", &lifted);
+        let typed = apply_rules((self.stages.infer)(lifted), &self.meaning, settings);
+        self.report("typed", &typed);
+        Ok(typed)
     }
 
     fn read_source(&self, text: &str, from: &str) -> Result<Node, GrammarError> {
@@ -452,18 +486,7 @@ impl Translator {
         if syntax.machine {
             // Instruction reading and lifting retain the concrete source record.
             let machine = (self.stages.read_machine)(source, from)?;
-            let lifted =
-                rules::infer_mutability(meta::for_each::raise_for_each((self.stages.lift)(
-                    &machine,
-                )?));
-            self.report(
-                "parsed",
-                &crate::source_syntax::source_tree(source, from, &lifted),
-            );
-            self.report("lifted", &lifted);
-            let typed = apply_rules((self.stages.infer)(lifted), &self.meaning, &settings);
-            self.report("typed", &typed);
-            return Ok(typed);
+            return self.type_machine(&machine, Some(source), &settings);
         }
         let source_tree = (self.stages.parse)(source, &syntax)?;
         self.report("parsed", &source_tree);
@@ -728,6 +751,21 @@ impl Translator {
     ) -> Result<String, GrammarError> {
         let text = self.translate_plain(source, from, to, options)?;
         styled(text, to, options.style)
+    }
+
+    /// Translate a WebAssembly version 1 binary into a text target.
+    pub fn translate_wasm(
+        &self,
+        bytes: &[u8],
+        to: &str,
+        options: Options,
+    ) -> Result<String, GrammarError> {
+        let mut meta = self.to_meta_wasm(bytes)?;
+        if matches!(split_version(to).0, "javascript" | "typescript") {
+            meta = meta::integer_arithmetic::normalize_machine_integer_zero(meta);
+        }
+        let adapted = self.adapt(&meta, to, Some("wat"), options)?;
+        styled(self.write(&adapted, to)?, to, options.style)
     }
 
     /// The translation as the emitter writes it.

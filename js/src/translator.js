@@ -21,7 +21,10 @@ import {
   understandingRules,
 } from './formal/rules.js';
 import { inferTypes } from './meta/types.js';
-import { lowerIntegerArithmetic } from './meta/integer-arithmetic.js';
+import {
+  lowerIntegerArithmetic,
+  normalizeMachineIntegerZero,
+} from './meta/integer-arithmetic.js';
 import {
   lowerEvaluationOrder,
   raiseEvaluationOrder,
@@ -33,6 +36,7 @@ import {
   machineTargets,
 } from './formal/machine.js';
 import { machineReaders } from './formal/machine-reader.js';
+import { readWasmBinary } from './formal/machine-reader-wasm-binary.js';
 import { liftProgram } from './formal/lifting.js';
 import { raiseForEach } from './meta/for-each.js';
 import { useCommonLibrary } from './formal/common-library.js';
@@ -410,6 +414,31 @@ const listNaturalLanguages = () =>
     return { id, label, ...(base ? { base } : {}) };
   });
 
+function createMachineTyper({ lift, infer }, meaning, trace) {
+  return (machine, from, source) => {
+    const lifted = inferMutability(raiseForEach(lift(machine)));
+    if (source !== undefined) {
+      trace('parsed', concreteSourceTree(source, from, lifted));
+    }
+    trace('lifted', lifted);
+    const typed = applyRules(infer(lifted), meaning, { from });
+    trace('typed', typed);
+    return typed;
+  };
+}
+
+function createWasmTranslator(toMetaWasm, writeMeta) {
+  const styled = styledText((bytes, from, to, options) => {
+    const meta = toMetaWasm(bytes);
+    const id = splitVersion(to).id;
+    const adjusted = ['javascript', 'typescript'].includes(id)
+      ? normalizeMachineIntegerZero(meta)
+      : meta;
+    return writeMeta(adjusted, to, { ...options, from });
+  });
+  return (bytes, to, options) => styled(bytes, 'wat', to, options);
+}
+
 export function createGrammarTranslator(settings = {}) {
   const {
     understanding = understandingRules,
@@ -421,13 +450,16 @@ export function createGrammarTranslator(settings = {}) {
   } = settings;
   const { trace, withoutTrace } = scopedTrace(reportTrace);
   const stages = buildStages(settings);
-  const { parse, infer, lift, emit, emitMachineCode } = stages;
+  const { parse, infer, emit, emitMachineCode } = stages;
+  const typeMachine = createMachineTyper(stages, meaning, trace);
   // Rules given as data (see translation/custom-rules.js).
   const custom = compileCustomRules(rules);
   const metaLayers = [...layers, ...custom.layers];
 
   // The typed meta program of a text, with what its reading lost marked.
   const toMeta = (text, from) => markImprecision(readMeta(text, from));
+  const toMetaWasm = (bytes) =>
+    markImprecision(typeMachine(readWasmBinary(bytes), 'wat'));
 
   function readMeta(text, from) {
     const source = custom.source(text, from);
@@ -445,14 +477,7 @@ export function createGrammarTranslator(settings = {}) {
     const syntax = languageSyntax(from);
     if (syntax.machine) {
       // Instruction reading and lifting retain their concrete source record.
-      const lifted = inferMutability(
-        raiseForEach(lift(stages.readMachine(source, from)))
-      );
-      trace('parsed', concreteSourceTree(source, from, lifted));
-      trace('lifted', lifted);
-      const typed = applyRules(infer(lifted), meaning, { from });
-      trace('typed', typed);
-      return typed;
+      return typeMachine(stages.readMachine(source, from), from, source);
     }
     const sourceTree = parse(source, syntax);
     trace('parsed', sourceTree);
@@ -564,8 +589,10 @@ export function createGrammarTranslator(settings = {}) {
     languages: listLanguages,
     naturalLanguages: listNaturalLanguages,
     toMeta,
+    toMetaWasm,
     fromMeta,
     translate: styledText(translate),
+    translateWasm: createWasmTranslator(toMetaWasm, writeMeta),
     translatePartial,
     translateCandidates,
     parsePartial: partial.parsePartial,

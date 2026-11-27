@@ -24,10 +24,12 @@ function mayProduceNegativeZero({ operator, left, right }) {
   }
   const dividend = left.value + 0;
   const divisor = right.value + 0;
-  return Object.is(
-    operator === 'divide' ? Math.trunc(dividend / divisor) : dividend % divisor,
-    -0
-  );
+  const values = {
+    divide: () => Math.trunc(dividend / divisor),
+    remainder: () => dividend % divisor,
+    multiply: () => dividend * divisor,
+  };
+  return Object.is(values[operator](), -0);
 }
 
 function normalizeIntegerZero(item) {
@@ -40,6 +42,15 @@ function normalizeIntegerZero(item) {
         type: 'integer',
       })
     : item;
+}
+
+export function normalizeMachineIntegerZero(program) {
+  return rewrite(program, (item) =>
+    item.kind === 'Binary' &&
+    ['divide', 'remainder', 'multiply'].includes(item.operator)
+      ? normalizeIntegerZero(item)
+      : item
+  );
 }
 
 const native = (operator, id) => {
