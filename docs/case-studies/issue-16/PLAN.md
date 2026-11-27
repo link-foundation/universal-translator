@@ -18,6 +18,15 @@ Its complete 19,121-line log decompresses to the published SHA-256. Line 19101
 records recovery commit `c66c3996`; its source changes were reviewed, repaired,
 verified and pushed through `47bc918` and `bb51dcf`.
 
+Formal AI v0.356.11 and v0.357.2 both failed before launching the coding
+agent because the released CLI looked for its classifier in the target
+repository. Restoring the classifier in a scratch checkout advanced to an
+agent session that never produced the requested file. The missing classifier
+has [a reproducible upstream report](https://github.com/link-assistant/formal-ai/issues/1645),
+with the later behavior cross-referenced to the existing upstream report.
+The [comparison transcript](logs/formal-ai-requirements-comparison.txt) records
+four successful boundary checks on the same task completed with Codex.
+
 Completed changes have focused JavaScript and Rust regression coverage: explicit
 meta fields, comment whitespace, complete interpolation parsing, const-container
 mutation, isolated-name detection, Russian case agreement, missing comment

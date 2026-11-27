@@ -632,7 +632,16 @@ jobs:
           LUA: lua5.4
         run: |
           bash scripts/run-with-budget-warning.sh 540 "Native translations" \
-            bash -e -c 'node examples/programs/verify-native.mjs --require-all; node examples/queries/verify-native.mjs; node examples/objpak/verify-native.mjs; node examples/printing/verify-native.mjs; node examples/arithmetic/verify-native.mjs; node examples/arithmetic/verify-rounding.mjs --require-all; node examples/runtime-headers/verify-native.mjs'
+            bash -e -c '
+              node examples/programs/verify-native.mjs --require-all
+              node examples/queries/verify-native.mjs
+              node examples/objpak/verify-native.mjs
+              node examples/printing/verify-native.mjs
+              node examples/arithmetic/verify-native.mjs
+              node examples/arithmetic/verify-rounding.mjs --require-all
+              node examples/runtime-headers/verify-native.mjs
+              OBJC=gcc node experiments/issue-16-evaluation-order.mjs
+            '
 
       - name: Run every common library translation with its native toolchain
         timeout-minutes: 10
@@ -641,12 +650,6 @@ jobs:
         run: |
           bash scripts/run-with-budget-warning.sh 540 "Common library translations" \
             node examples/programs/verify-native.mjs --require-all --common-library
-
-      - name: Verify C-family operand evaluation order
-        timeout-minutes: 1
-        env:
-          OBJC: gcc
-        run: node experiments/issue-16-evaluation-order.mjs
 
   # === DOCKER IMAGE BUILD CHECK (pull requests) ===
   # Builds the Dockerfile without pushing so a broken image fails the pull

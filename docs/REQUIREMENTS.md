@@ -65,5 +65,4 @@ before it can be checked off. Completed groups are stored in
 ## UT-16.22 Maintain issue evidence and verification
 
 - [ ] Update the case study with current investigation evidence, requirement decisions, exact reproductions and final-commit CI.
-- [ ] Exercise Formal AI on bounded coding tasks, group demonstrated failures by cause and document reproducible upstream reports with successful comparison evidence.
 - [ ] Verify that the default-branch pipeline exposes required human actions explicitly and that all checks pass at the final issue-branch commit.
