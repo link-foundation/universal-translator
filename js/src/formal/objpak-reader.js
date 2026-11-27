@@ -7,19 +7,26 @@ import { byteOffsets } from '../translation/source-spans.js';
 import { tokenize } from './lexer.js';
 
 function libraryTokens(source, syntax) {
+  if (['javascript', 'typescript'].includes(syntax.id)) {
+    source = source.replace(/[\u2028\u2029]/gu, '\n');
+  }
   return tokenize(source, {
     ...syntax,
     symbols: ['>>>', '^', '~', ...(syntax.symbols ?? [])],
   }).filter(
     (token) =>
       token.type !== 'end' &&
+      !(
+        ['javascript', 'typescript'].includes(syntax.id) &&
+        token.type === 'comment'
+      ) &&
       (syntax.blocks === 'indentation' || token.type !== 'newline')
   );
 }
 
 function libraryTokenValue(token, previous, language) {
   const significantBreak =
-    language === 'javascript' &&
+    ['javascript', 'typescript'].includes(language) &&
     previous &&
     (['return', 'throw', 'break', 'continue', 'yield'].includes(
       previous.value
@@ -38,7 +45,7 @@ function libraryTokenValue(token, previous, language) {
   ]);
 }
 
-function libraryEnd(source, start, definition, syntax) {
+export function libraryEnd(source, start, definition, syntax) {
   try {
     const expected = libraryTokens(definition, syntax);
     const actual = libraryTokens(source.slice(start), syntax).slice(
@@ -61,7 +68,7 @@ function libraryEnd(source, start, definition, syntax) {
   }
 }
 
-function topLevel(source, start, syntax) {
+export function topLevel(source, start, syntax) {
   if (start > 0 && !['\r', '\n'].includes(source[start - 1])) {
     return false;
   }
@@ -116,7 +123,9 @@ export function objpakSource(source, language, syntax) {
     definitions.push([start, end]);
     masked =
       masked.slice(0, start) +
-      source.slice(start, end).replace(/[^\r\n]/gu, ' ') +
+      source
+        .slice(start, end)
+        .replace(/[^\r\n]/gu, (character) => ' '.repeat(character.length)) +
       masked.slice(end);
   }
   return { source: masked, bindings, definitions };
@@ -124,7 +133,12 @@ export function objpakSource(source, language, syntax) {
 
 // A verified library has an opaque grammar production.
 // Its concrete spelling remains available even when its contract is portable.
-export function objpakConcrete(syntax, source, definitions) {
+export function objpakConcrete(
+  syntax,
+  source,
+  definitions,
+  rule = 'objpakLibrary'
+) {
   const offsets = byteOffsets(source);
   for (const [start, end] of definitions) {
     const from = offsets[start];
@@ -158,7 +172,7 @@ export function objpakConcrete(syntax, source, definitions) {
     });
     syntax.productions.push({
       kind: 'Production',
-      rule: 'objpakLibrary',
+      rule,
       concept: 'LibraryDefinition',
       start: from,
       end: to,

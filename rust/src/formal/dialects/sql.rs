@@ -28,9 +28,24 @@ const OPERATORS: &[(&str, &str, usize)] = &[
     ("%", "remainder", 7),
 ];
 
+fn real_expression(part: &Node) -> bool {
+    part.str("type") == Some("real")
+        || part.str("operator") == Some("realDivide")
+        || (part.is("SqlUnary")
+            && part.str("operator") == Some("negate")
+            && part.node("operand").is_some_and(real_expression))
+        || (part.is("SqlBinary")
+            && matches!(
+                part.str("operator"),
+                Some("add" | "subtract" | "multiply" | "remainder")
+            )
+            && (part.node("left").is_some_and(real_expression)
+                || part.node("right").is_some_and(real_expression)))
+}
+
 fn expression(p: &mut Parser, minimum: usize) -> Parsed {
     let mut left = if p.accept("not") {
-        Node::new("Unary")
+        Node::new("SqlUnary")
             .with("operator", "not")
             .with("operand", expression(p, 3)?)
     } else if p.accept("-") {
@@ -39,7 +54,7 @@ fn expression(p: &mut Parser, minimum: usize) -> Parsed {
             let value = -operand.number("value").unwrap_or_default();
             operand.with("value", value)
         } else {
-            Node::new("Unary")
+            Node::new("SqlUnary")
                 .with("operator", "negate")
                 .with("operand", operand)
         }
@@ -47,6 +62,31 @@ fn expression(p: &mut Parser, minimum: usize) -> Parsed {
         p.postfix()?
     };
     loop {
+        if minimum <= 4 && p.accept("is") {
+            let operator = if p.accept("not") { "isNot" } else { "is" };
+            let right = expression(p, 5)?;
+            left = if right.is("Boolean") {
+                Node::new("SqlUnary")
+                    .with(
+                        "operator",
+                        format!(
+                            "{operator}{}",
+                            if right.flag("value") == Some(true) {
+                                "True"
+                            } else {
+                                "False"
+                            }
+                        ),
+                    )
+                    .with("operand", left)
+            } else {
+                Node::new("SqlBinary")
+                    .with("operator", operator)
+                    .with("left", left)
+                    .with("right", right)
+            };
+            continue;
+        }
         let Some(&(_, operator, level)) = OPERATORS.iter().find(|(spelling, _, _)| p.is(spelling))
         else {
             return Ok(left);
@@ -55,10 +95,17 @@ fn expression(p: &mut Parser, minimum: usize) -> Parsed {
             return Ok(left);
         }
         p.position += 1;
-        left = Node::new("Binary")
+        let right = expression(p, level + 1)?;
+        let operator =
+            if operator == "divide" && (real_expression(&left) || real_expression(&right)) {
+                "realDivide"
+            } else {
+                operator
+            };
+        left = Node::new("SqlBinary")
             .with("operator", operator)
             .with("left", left)
-            .with("right", expression(p, level + 1)?);
+            .with("right", right);
     }
 }
 
@@ -107,7 +154,9 @@ impl ParserDialect for Sql {
                 source,
                 &variable,
                 projection.map_or_else(|| name(&variable), |p| row_members(p, &variable, true)),
-                condition.map(|c| row_members(c, &variable, true)),
+                condition.map(|c| {
+                    Node::new("SqlTruth").with("operand", row_members(c, &variable, true))
+                }),
                 true,
             ),
         ))
@@ -117,11 +166,8 @@ impl ParserDialect for Sql {
         if p.current().quote == Some('"') {
             return Ok(name(p.next_value()?));
         }
-        if p.is("null") {
-            return Err(GrammarError::syntax(
-                "SQL NULL expressions require three-valued logic",
-                p.current().line,
-            ));
+        if p.accept("null") {
+            return Ok(Node::new("Null"));
         }
         p.base_primary()
     }
@@ -144,6 +190,57 @@ impl EmitterDialect for Sql {
     }
 
     fn expression_in(&self, e: &mut Emitter, expression: &Node, parent: f64) -> Result<String> {
+        match expression.kind.as_str() {
+            "Null" => return Ok("NULL".into()),
+            "SqlTruth" => {
+                return Ok(format!(
+                    "({}) IS TRUE",
+                    e.expression(field(expression, "operand")?)?
+                ));
+            }
+            "SqlUnary" => {
+                let truth = match expression.str("operator") {
+                    Some("isTrue") => Some("IS TRUE"),
+                    Some("isFalse") => Some("IS FALSE"),
+                    Some("isNotTrue") => Some("IS NOT TRUE"),
+                    Some("isNotFalse") => Some("IS NOT FALSE"),
+                    _ => None,
+                };
+                if let Some(truth) = truth {
+                    return Ok(format!(
+                        "({} {truth})",
+                        e.expression(field(expression, "operand")?)?
+                    ));
+                }
+                let operator = match expression.str("operator") {
+                    Some("not") => "NOT ",
+                    Some("negate") => "-",
+                    _ => return Err(GrammarError::new("Unknown SQL unary operation")),
+                };
+                return Ok(format!(
+                    "({operator}({}))",
+                    e.expression(field(expression, "operand")?)?
+                ));
+            }
+            "SqlBinary" => {
+                let operator = expression.str("operator").unwrap_or_default();
+                if matches!(operator, "is" | "isNot") {
+                    let not = if operator == "isNot" { " NOT" } else { "" };
+                    return Ok(format!(
+                        "({} IS{not} {})",
+                        e.expression(field(expression, "left")?)?,
+                        e.expression(field(expression, "right")?)?
+                    ));
+                }
+                let mut binary = expression.clone();
+                binary.kind = "Binary".into();
+                if operator == "realDivide" {
+                    binary.set("operator", "divide");
+                }
+                return Ok(format!("({})", e.base_binary(&binary, 0.0)?));
+            }
+            _ => {}
+        }
         if expression.is("Name") {
             return Ok(table(expression.str("name").unwrap_or_default()));
         }
@@ -182,7 +279,14 @@ impl EmitterDialect for Sql {
         let filter = if condition.is("Boolean") && condition.flag("value") == Some(true) {
             String::new()
         } else {
-            format!(" WHERE {}", e.expression(condition)?)
+            format!(
+                " WHERE {}",
+                e.expression(if condition.is("SqlTruth") {
+                    field(condition, "operand")?
+                } else {
+                    condition
+                })?
+            )
         };
         Ok(format!(
             "SELECT {selected} FROM {relation} AS {}{filter}",

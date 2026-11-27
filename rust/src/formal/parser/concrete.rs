@@ -50,18 +50,36 @@ impl Parser {
 
 // Parsing and library contracts share one lossless concrete source record.
 pub(super) fn parse_program(source: &str, syntax: &Syntax) -> Parsed {
+    let sql_library = crate::formal::sql_values::prepare_source(source, syntax);
     let library = objpak_reader::prepare(source, syntax);
-    let tokens = tokenize(&library.masked, syntax)?;
+    let definitions = library
+        .definitions
+        .iter()
+        .chain(&sql_library.definitions)
+        .copied()
+        .collect::<Vec<_>>();
+    let masked = objpak_reader::mask_definitions(source, &definitions);
+    let tokens = tokenize(&masked, syntax)?;
     let mut parser = Parser::new(tokens.clone(), syntax.clone()).with_source(source);
     let mut tree = parser.program()?;
     if !library.bindings.is_empty() {
         tree.set("objpakBindings", library.bindings.clone());
     }
+    if !sql_library.bindings.is_empty() {
+        tree.set("sqlValueBindings", sql_library.bindings.clone());
+    }
+    crate::formal::sql_values::validate_bindings(&tree)?;
     if syntax.id == "objc" {
         objpak::validate_entries(&tree)?;
     }
     crate::source_origins::register_origins(&mut tree);
-    let concrete =
-        objpak_reader::concrete(source, syntax.id, &tokens, parser.productions, &library);
+    let concrete = objpak_reader::concrete(
+        source,
+        syntax.id,
+        &tokens,
+        parser.productions,
+        &library,
+        &sql_library,
+    );
     Ok(tree.with("syntax", concrete))
 }

@@ -7,14 +7,18 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createTranslator } from '../../js/src/index.js';
+import { nativeExpression } from './native-expression.mjs';
+import nullableCases from './nullable.json' with { type: 'json' };
 import negationPredicates from './negation.json' with { type: 'json' };
 
 const translator = createTranslator();
 const sql =
   'SELECT age + 1 FROM people AS person WHERE age >= 18 AND age < 65;';
 const people = [{ age: 12 }, { age: 18 }, { age: 42 }, { age: 70 }];
-const python = translator.translate(sql, 'sql', 'python');
-const javascript = translator.translate(sql, 'sql', 'javascript');
+const python = nativeExpression(translator.translate(sql, 'sql', 'python'));
+const javascript = nativeExpression(
+  translator.translate(sql, 'sql', 'javascript')
+);
 const run = (command, args, options = {}) =>
   execFileSync(command, args, {
     encoding: 'utf8',
@@ -29,25 +33,30 @@ const negationCases = negationPredicates.map((predicate) => {
   const sql = `SELECT age FROM people AS negationPerson WHERE ${predicate};`;
   return {
     sql,
-    python: translator.translate(sql, 'sql', 'python'),
-    javascript: translator.translate(sql, 'sql', 'javascript'),
+    python: nativeExpression(translator.translate(sql, 'sql', 'python')),
+    javascript: nativeExpression(
+      translator.translate(sql, 'sql', 'javascript')
+    ),
   };
 });
 const negationResults = JSON.parse(
-  run('python3', [
-    '-c',
-    'import json,sqlite3,sys\n' +
-      'd=json.loads(sys.argv[1]); people=d["people"]\n' +
-      'db=sqlite3.connect(":memory:"); db.execute("create table people(age integer not null)")\n' +
-      'db.executemany("insert into people values(?)",[(p["age"],) for p in people])\n' +
-      'print(json.dumps([[[r[0] for r in db.execute(c["sql"])],eval(c["python"])] for c in d["cases"]]))',
-    JSON.stringify({ people: negationPeople, cases: negationCases }),
-  ])
+  run(
+    'python3',
+    [
+      '-c',
+      'import json,sqlite3,sys\n' +
+        'd=json.load(sys.stdin); people=d["people"]\n' +
+        'db=sqlite3.connect(":memory:"); db.execute("create table people(age integer not null)")\n' +
+        'db.executemany("insert into people values(?)",[(p["age"],) for p in people])\n' +
+        'results=[]\nfor c in d["cases"]:\n exec(c["python"]["prefix"]); results.append([[r[0] for r in db.execute(c["sql"])],eval(c["python"]["expression"])])\nprint(json.dumps(results))',
+    ],
+    { input: JSON.stringify({ people: negationPeople, cases: negationCases }) }
+  )
 );
 const negationJavascript = JSON.parse(
   run('node', [
     '-e',
-    `const people=${JSON.stringify(negationPeople)}; console.log(JSON.stringify([${negationCases.map((c) => c.javascript.trim().replace(/;$/u, '')).join(',')}]));`,
+    `${[...new Set(negationCases.map((c) => c.javascript.prefix))].join('\n')}\nconst people=${JSON.stringify(negationPeople)}; console.log(JSON.stringify([${negationCases.map((c) => c.javascript.expression).join(',')}]));`,
   ])
 );
 for (const [index, [sqlite, python]] of negationResults.entries()) {
@@ -59,28 +68,69 @@ for (const [index, [sqlite, python]] of negationResults.entries()) {
   );
 }
 const pythonResults = JSON.parse(
-  run('python3', [
-    '-c',
-    'import json,sqlite3,sys\n' +
-      'd=json.loads(sys.argv[1]); people=d["people"]\n' +
-      'db=sqlite3.connect(":memory:"); db.execute("create table people(age integer not null)")\n' +
-      'db.executemany("insert into people values(?)",[(p["age"],) for p in people])\n' +
-      'print(json.dumps([[r[0] for r in db.execute(d["sql"])],eval(d["python"])]))',
-    JSON.stringify({ sql, python, people }),
-  ])
+  run(
+    'python3',
+    [
+      '-c',
+      'import json,sqlite3,sys\n' +
+        'd=json.load(sys.stdin); people=d["people"]\n' +
+        'db=sqlite3.connect(":memory:"); db.execute("create table people(age integer not null)")\n' +
+        'db.executemany("insert into people values(?)",[(p["age"],) for p in people])\n' +
+        'exec(d["python"]["prefix"]); print(json.dumps([[r[0] for r in db.execute(d["sql"])],eval(d["python"]["expression"])]))',
+    ],
+    { input: JSON.stringify({ sql, python, people }) }
+  )
 );
 for (const result of pythonResults) {
   assert.deepEqual(result, expected);
 }
 assert.deepEqual(
   JSON.parse(
-    run(process.execPath, [
+    run('node', [
       '-e',
-      `const people=${JSON.stringify(people)}; console.log(JSON.stringify(${javascript.trim().replace(/;$/u, '')}));`,
+      `${javascript.prefix}\nconst people=${JSON.stringify(people)}; console.log(JSON.stringify(${javascript.expression}));`,
     ])
   ),
   expected
 );
+
+const nullablepeople = [null, -7, -1, 0, 1, 2, 17, 18, 19].map((age) => ({
+  age,
+}));
+const nullable = nullableCases.map(({ projection, condition }) => {
+  const sql = `SELECT ${projection} FROM nullablepeople AS nullablePerson${condition ? ` WHERE ${condition}` : ''};`;
+  return {
+    sql,
+    python: nativeExpression(translator.translate(sql, 'sql', 'python')),
+    javascript: nativeExpression(
+      translator.translate(sql, 'sql', 'javascript')
+    ),
+  };
+});
+const nullableResults = JSON.parse(
+  run(
+    'python3',
+    [
+      '-c',
+      'import json,sqlite3,sys\n' +
+        'd=json.load(sys.stdin); nullablepeople=d["people"]\n' +
+        'db=sqlite3.connect(":memory:"); db.execute("create table nullablepeople(age integer)")\n' +
+        'db.executemany("insert into nullablepeople values(?)",[(p["age"],) for p in nullablepeople])\n' +
+        'results=[]\nfor c in d["cases"]:\n exec(c["python"]["prefix"]); results.append([[r[0] for r in db.execute(c["sql"])],eval(c["python"]["expression"])])\nprint(json.dumps(results))',
+    ],
+    { input: JSON.stringify({ people: nullablepeople, cases: nullable }) }
+  )
+);
+const nullableJavascript = JSON.parse(
+  run('node', [
+    '-e',
+    `${[...new Set(nullable.map((c) => c.javascript.prefix))].join('\n')}\nconst nullablepeople=${JSON.stringify(nullablepeople)}; console.log(JSON.stringify([${nullable.map((c) => c.javascript.expression).join(',')}]));`,
+  ])
+);
+for (const [index, [sqlite, python]] of nullableResults.entries()) {
+  assert.deepEqual(python, sqlite, nullable[index].sql);
+  assert.deepEqual(nullableJavascript[index], sqlite, nullable[index].sql);
+}
 
 const folder = mkdtempSync(join(tmpdir(), 'universal-query-'));
 try {
@@ -97,6 +147,12 @@ try {
     '(person["age"] + 1 for person in people if person["age"] >= 18 and person["age"] < 65)',
     'python'
   );
+  const runtime = translator
+    .translate(sql, 'sql', 'csharp')
+    .split('class Program')[0]
+    .split('\n')
+    .filter((line) => !line.startsWith('using '))
+    .join('\n');
   const functions = translator.translate(
     [
       'def integers():',
@@ -121,9 +177,11 @@ try {
   );
   writeFileSync(
     join(folder, 'Program.cs'),
-    `using System;\nusing System.Collections.Generic;\n${functions.replace(
-      'static void Main() {',
-      `static void Main() {
+    `using System;\nusing System.Collections.Generic;\n${functions
+      .replace('class Program', `${runtime}\nclass Program`)
+      .replace(
+        'static void Main() {',
+        `static void Main() {
     var people = new[] { ${people.map((p) => `new Dictionary<string,int> { ["age"] = ${p.age} }`).join(', ')} };
     var eager = ${eager};
     var deferred = ${deferred};
@@ -139,8 +197,10 @@ try {
     Console.WriteLine(string.Join(";", Nested().Select(row => string.Join(",", row))));
     people = new[] { ${negationPeople.map((p) => `new Dictionary<string,int> { ["age"] = ${p.age} }`).join(', ')} };
     ${negationCases.map((c) => `Console.WriteLine(string.Join(",", ${queryLine(c.sql, 'sql')}));`).join('\n    ')}
+    var nullablepeople = new[] { ${nullablepeople.map((p) => `new Dictionary<string,object> { ["age"] = ${p.age === null ? 'null' : p.age} }`).join(', ')} };
+    ${nullable.map((c) => `Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(${queryLine(c.sql, 'sql')}));`).join('\n    ')}
 `
-    )} `
+      )} `
   );
   const env = {
     ...process.env,
@@ -157,7 +217,7 @@ try {
     { env }
   ).split('\n');
   assert.deepEqual(
-    lines.map((line) => line.trim()),
+    lines.slice(0, 8 + negationCases.length).map((line) => line.trim()),
     [
       '19,43',
       '19,43',
@@ -169,6 +229,13 @@ try {
       '2,3;2,3',
       ...negationResults.map(([sqlite]) => sqlite.join(',')),
     ]
+  );
+  assert.deepEqual(
+    lines.slice(8 + negationCases.length).map((line) => JSON.parse(line)),
+    nullableResults.map(([sqlite]) => sqlite)
+  );
+  console.log(
+    `PASS ${nullable.length} nullable SQL value/WHERE cases across SQLite, Python, Node and C#`
   );
   console.log('PASS SQLite, Python, Node and C# filtered projections: [19,43]');
   console.log(

@@ -35,6 +35,7 @@ fn rule(name: &str, apply: impl Fn(Node, &Settings) -> Node + Send + Sync + 'sta
 pub fn understanding_rules() -> Vec<Rule> {
     vec![
         rule("recognizeDocumentation", recognize_documentation),
+        rule("recognizeSqlValues", super::sql_values::recognize),
         rule("recognizeObjpak", super::objpak::recognize_objpak),
         rule("findEntryPoint", |program, _| find_entry_point(program)),
         rule("recognizeQuestions", recognize_questions),

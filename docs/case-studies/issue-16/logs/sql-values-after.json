@@ -1,0 +1,3766 @@
+{
+  "reader": "current",
+  "people": [
+    {
+      "age": null
+    },
+    {
+      "age": -7
+    },
+    {
+      "age": -1
+    },
+    {
+      "age": 0
+    },
+    {
+      "age": 1
+    },
+    {
+      "age": 2
+    },
+    {
+      "age": 17
+    },
+    {
+      "age": 18
+    },
+    {
+      "age": 19
+    }
+  ],
+  "results": [
+    {
+      "sql": "SELECT NULL FROM people AS p;",
+      "python": "[UtSqlValue.nullValue() for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.nullValue())",
+      "restoredSql": "SELECT NULL FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "restoredResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "pythonResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "javascriptResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p;",
+      "python": "[p[\"age\"] for p in people]",
+      "javascript": "(people).map(p => p[\"age\"])",
+      "restoredSql": "SELECT \"p\".\"age\" FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        -7,
+        -1,
+        0,
+        1,
+        2,
+        17,
+        18,
+        19
+      ],
+      "restoredResult": [
+        null,
+        -7,
+        -1,
+        0,
+        1,
+        2,
+        17,
+        18,
+        19
+      ],
+      "pythonResult": [
+        null,
+        -7,
+        -1,
+        0,
+        1,
+        2,
+        17,
+        18,
+        19
+      ],
+      "javascriptResult": [
+        null,
+        -7,
+        -1,
+        0,
+        1,
+        2,
+        17,
+        18,
+        19
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT -age FROM people AS p;",
+      "python": "[UtSqlValue.unary(\"negate\", p[\"age\"]) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.unary(\"negate\", p[\"age\"]))",
+      "restoredSql": "SELECT (-(\"p\".\"age\")) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        7,
+        1,
+        0,
+        -1,
+        -2,
+        -17,
+        -18,
+        -19
+      ],
+      "restoredResult": [
+        null,
+        7,
+        1,
+        0,
+        -1,
+        -2,
+        -17,
+        -18,
+        -19
+      ],
+      "pythonResult": [
+        null,
+        7,
+        1,
+        0,
+        -1,
+        -2,
+        -17,
+        -18,
+        -19
+      ],
+      "javascriptResult": [
+        null,
+        7,
+        1,
+        0,
+        -1,
+        -2,
+        -17,
+        -18,
+        -19
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT NOT age FROM people AS p;",
+      "python": "[UtSqlValue.unary(\"not\", p[\"age\"]) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.unary(\"not\", p[\"age\"]))",
+      "restoredSql": "SELECT (NOT (\"p\".\"age\")) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "restoredResult": [
+        null,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "pythonResult": [
+        null,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "javascriptResult": [
+        null,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age + 1 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"add\", p[\"age\"], 1) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"add\", p[\"age\"], 1))",
+      "restoredSql": "SELECT (\"p\".\"age\" + 1) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        -6,
+        0,
+        1,
+        2,
+        3,
+        18,
+        19,
+        20
+      ],
+      "restoredResult": [
+        null,
+        -6,
+        0,
+        1,
+        2,
+        3,
+        18,
+        19,
+        20
+      ],
+      "pythonResult": [
+        null,
+        -6,
+        0,
+        1,
+        2,
+        3,
+        18,
+        19,
+        20
+      ],
+      "javascriptResult": [
+        null,
+        -6,
+        0,
+        1,
+        2,
+        3,
+        18,
+        19,
+        20
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age - 1 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"subtract\", p[\"age\"], 1) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"subtract\", p[\"age\"], 1))",
+      "restoredSql": "SELECT (\"p\".\"age\" - 1) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        -8,
+        -2,
+        -1,
+        0,
+        1,
+        16,
+        17,
+        18
+      ],
+      "restoredResult": [
+        null,
+        -8,
+        -2,
+        -1,
+        0,
+        1,
+        16,
+        17,
+        18
+      ],
+      "pythonResult": [
+        null,
+        -8,
+        -2,
+        -1,
+        0,
+        1,
+        16,
+        17,
+        18
+      ],
+      "javascriptResult": [
+        null,
+        -8,
+        -2,
+        -1,
+        0,
+        1,
+        16,
+        17,
+        18
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age * 2 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"multiply\", p[\"age\"], 2) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"multiply\", p[\"age\"], 2))",
+      "restoredSql": "SELECT (\"p\".\"age\" * 2) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        -14,
+        -2,
+        0,
+        2,
+        4,
+        34,
+        36,
+        38
+      ],
+      "restoredResult": [
+        null,
+        -14,
+        -2,
+        0,
+        2,
+        4,
+        34,
+        36,
+        38
+      ],
+      "pythonResult": [
+        null,
+        -14,
+        -2,
+        0,
+        2,
+        4,
+        34,
+        36,
+        38
+      ],
+      "javascriptResult": [
+        null,
+        -14,
+        -2,
+        0,
+        2,
+        4,
+        34,
+        36,
+        38
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age / 2 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"divide\", p[\"age\"], 2) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"divide\", p[\"age\"], 2))",
+      "restoredSql": "SELECT (\"p\".\"age\" / 2) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        -3,
+        0,
+        0,
+        0,
+        1,
+        8,
+        9,
+        9
+      ],
+      "restoredResult": [
+        null,
+        -3,
+        0,
+        0,
+        0,
+        1,
+        8,
+        9,
+        9
+      ],
+      "pythonResult": [
+        null,
+        -3,
+        0,
+        0,
+        0,
+        1,
+        8,
+        9,
+        9
+      ],
+      "javascriptResult": [
+        null,
+        -3,
+        0,
+        0,
+        0,
+        1,
+        8,
+        9,
+        9
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age / -2 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"divide\", p[\"age\"], -2) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"divide\", p[\"age\"], -2))",
+      "restoredSql": "SELECT (\"p\".\"age\" / (-2)) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        3,
+        0,
+        0,
+        0,
+        -1,
+        -8,
+        -9,
+        -9
+      ],
+      "restoredResult": [
+        null,
+        3,
+        0,
+        0,
+        0,
+        -1,
+        -8,
+        -9,
+        -9
+      ],
+      "pythonResult": [
+        null,
+        3,
+        0,
+        0,
+        0,
+        -1,
+        -8,
+        -9,
+        -9
+      ],
+      "javascriptResult": [
+        null,
+        3,
+        0,
+        0,
+        0,
+        -1,
+        -8,
+        -9,
+        -9
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age % 2 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"remainder\", p[\"age\"], 2) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"remainder\", p[\"age\"], 2))",
+      "restoredSql": "SELECT (\"p\".\"age\" % 2) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        -1,
+        -1,
+        0,
+        1,
+        0,
+        1,
+        0,
+        1
+      ],
+      "restoredResult": [
+        null,
+        -1,
+        -1,
+        0,
+        1,
+        0,
+        1,
+        0,
+        1
+      ],
+      "pythonResult": [
+        null,
+        -1,
+        -1,
+        0,
+        1,
+        0,
+        1,
+        0,
+        1
+      ],
+      "javascriptResult": [
+        null,
+        -1,
+        -1,
+        0,
+        1,
+        0,
+        1,
+        0,
+        1
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age = 18 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"equal\", p[\"age\"], 18) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"equal\", p[\"age\"], 18))",
+      "restoredSql": "SELECT (\"p\".\"age\" = 18) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      "restoredResult": [
+        null,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      "pythonResult": [
+        null,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      "javascriptResult": [
+        null,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age != 18 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"notEqual\", p[\"age\"], 18) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"notEqual\", p[\"age\"], 18))",
+      "restoredSql": "SELECT (\"p\".\"age\" <> 18) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      "restoredResult": [
+        null,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      "pythonResult": [
+        null,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      "javascriptResult": [
+        null,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age < 18 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"less\", p[\"age\"], 18) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"less\", p[\"age\"], 18))",
+      "restoredSql": "SELECT (\"p\".\"age\" < 18) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "restoredResult": [
+        null,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "pythonResult": [
+        null,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "javascriptResult": [
+        null,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age <= 18 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"lessOrEqual\", p[\"age\"], 18) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"lessOrEqual\", p[\"age\"], 18))",
+      "restoredSql": "SELECT (\"p\".\"age\" <= 18) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0
+      ],
+      "restoredResult": [
+        null,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0
+      ],
+      "pythonResult": [
+        null,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0
+      ],
+      "javascriptResult": [
+        null,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age > 18 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"greater\", p[\"age\"], 18) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"greater\", p[\"age\"], 18))",
+      "restoredSql": "SELECT (\"p\".\"age\" > 18) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "restoredResult": [
+        null,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "pythonResult": [
+        null,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "javascriptResult": [
+        null,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age >= 18 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"greaterOrEqual\", p[\"age\"], 18) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"greaterOrEqual\", p[\"age\"], 18))",
+      "restoredSql": "SELECT (\"p\".\"age\" >= 18) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1
+      ],
+      "restoredResult": [
+        null,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1
+      ],
+      "pythonResult": [
+        null,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1
+      ],
+      "javascriptResult": [
+        null,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age = NULL FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"equal\", p[\"age\"], UtSqlValue.nullValue()) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"equal\", p[\"age\"], UtSqlValue.nullValue()))",
+      "restoredSql": "SELECT (\"p\".\"age\" = NULL) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "restoredResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "pythonResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "javascriptResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age <> NULL FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"notEqual\", p[\"age\"], UtSqlValue.nullValue()) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"notEqual\", p[\"age\"], UtSqlValue.nullValue()))",
+      "restoredSql": "SELECT (\"p\".\"age\" <> NULL) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "restoredResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "pythonResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "javascriptResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age < NULL FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"less\", p[\"age\"], UtSqlValue.nullValue()) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"less\", p[\"age\"], UtSqlValue.nullValue()))",
+      "restoredSql": "SELECT (\"p\".\"age\" < NULL) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "restoredResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "pythonResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "javascriptResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age + NULL FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"add\", p[\"age\"], UtSqlValue.nullValue()) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"add\", p[\"age\"], UtSqlValue.nullValue()))",
+      "restoredSql": "SELECT (\"p\".\"age\" + NULL) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "restoredResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "pythonResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "javascriptResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT NULL - age FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"subtract\", UtSqlValue.nullValue(), p[\"age\"]) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"subtract\", UtSqlValue.nullValue(), p[\"age\"]))",
+      "restoredSql": "SELECT (NULL - \"p\".\"age\") FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "restoredResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "pythonResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "javascriptResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age * NULL FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"multiply\", p[\"age\"], UtSqlValue.nullValue()) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"multiply\", p[\"age\"], UtSqlValue.nullValue()))",
+      "restoredSql": "SELECT (\"p\".\"age\" * NULL) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "restoredResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "pythonResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "javascriptResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age / 0 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"divide\", p[\"age\"], 0) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"divide\", p[\"age\"], 0))",
+      "restoredSql": "SELECT (\"p\".\"age\" / 0) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "restoredResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "pythonResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "javascriptResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age % 0 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"remainder\", p[\"age\"], 0) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"remainder\", p[\"age\"], 0))",
+      "restoredSql": "SELECT (\"p\".\"age\" % 0) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "restoredResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "pythonResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "javascriptResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age IS NULL FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"is\", p[\"age\"], UtSqlValue.nullValue()) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"is\", p[\"age\"], UtSqlValue.nullValue()))",
+      "restoredSql": "SELECT (\"p\".\"age\" IS NULL) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "restoredResult": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "pythonResult": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "javascriptResult": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age IS NOT NULL FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"isNot\", p[\"age\"], UtSqlValue.nullValue()) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"isNot\", p[\"age\"], UtSqlValue.nullValue()))",
+      "restoredSql": "SELECT (\"p\".\"age\" IS NOT NULL) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "restoredResult": [
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "pythonResult": [
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "javascriptResult": [
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT NULL IS NULL FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"is\", UtSqlValue.nullValue(), UtSqlValue.nullValue()) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"is\", UtSqlValue.nullValue(), UtSqlValue.nullValue()))",
+      "restoredSql": "SELECT (NULL IS NULL) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "restoredResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "pythonResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "javascriptResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age IS 18 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"is\", p[\"age\"], 18) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"is\", p[\"age\"], 18))",
+      "restoredSql": "SELECT (\"p\".\"age\" IS 18) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      "restoredResult": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      "pythonResult": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      "javascriptResult": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age IS NOT 18 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"isNot\", p[\"age\"], 18) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"isNot\", p[\"age\"], 18))",
+      "restoredSql": "SELECT (\"p\".\"age\" IS NOT 18) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      "restoredResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      "pythonResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      "javascriptResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age IS TRUE FROM people AS p;",
+      "python": "[UtSqlValue.unary(\"isTrue\", p[\"age\"]) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.unary(\"isTrue\", p[\"age\"]))",
+      "restoredSql": "SELECT (\"p\".\"age\" IS TRUE) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        0,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "restoredResult": [
+        0,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "pythonResult": [
+        0,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "javascriptResult": [
+        0,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age IS FALSE FROM people AS p;",
+      "python": "[UtSqlValue.unary(\"isFalse\", p[\"age\"]) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.unary(\"isFalse\", p[\"age\"]))",
+      "restoredSql": "SELECT (\"p\".\"age\" IS FALSE) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "restoredResult": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "pythonResult": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "javascriptResult": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age IS NOT TRUE FROM people AS p;",
+      "python": "[UtSqlValue.unary(\"isNotTrue\", p[\"age\"]) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.unary(\"isNotTrue\", p[\"age\"]))",
+      "restoredSql": "SELECT (\"p\".\"age\" IS NOT TRUE) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "restoredResult": [
+        1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "pythonResult": [
+        1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "javascriptResult": [
+        1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age IS NOT FALSE FROM people AS p;",
+      "python": "[UtSqlValue.unary(\"isNotFalse\", p[\"age\"]) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.unary(\"isNotFalse\", p[\"age\"]))",
+      "restoredSql": "SELECT (\"p\".\"age\" IS NOT FALSE) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "restoredResult": [
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "pythonResult": [
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "javascriptResult": [
+        1,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT NOT (age IS NULL) FROM people AS p;",
+      "python": "[UtSqlValue.unary(\"not\", UtSqlValue.binary(\"is\", p[\"age\"], UtSqlValue.nullValue())) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.unary(\"not\", UtSqlValue.binary(\"is\", p[\"age\"], UtSqlValue.nullValue())))",
+      "restoredSql": "SELECT (NOT ((\"p\".\"age\" IS NULL))) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "restoredResult": [
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "pythonResult": [
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "javascriptResult": [
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT NULL / 0 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"divide\", UtSqlValue.nullValue(), 0) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"divide\", UtSqlValue.nullValue(), 0))",
+      "restoredSql": "SELECT (NULL / 0) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "restoredResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "pythonResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "javascriptResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT 7 / 2 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"divide\", 7, 2) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"divide\", 7, 2))",
+      "restoredSql": "SELECT (7 / 2) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "restoredResult": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "pythonResult": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "javascriptResult": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT -7 / 2 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"divide\", -7, 2) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"divide\", -7, 2))",
+      "restoredSql": "SELECT (-7 / 2) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3
+      ],
+      "restoredResult": [
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3
+      ],
+      "pythonResult": [
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3
+      ],
+      "javascriptResult": [
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT 7 / -2 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"divide\", 7, -2) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"divide\", 7, -2))",
+      "restoredSql": "SELECT (7 / (-2)) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3
+      ],
+      "restoredResult": [
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3
+      ],
+      "pythonResult": [
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3
+      ],
+      "javascriptResult": [
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3,
+        -3
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT -7 % 2 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"remainder\", -7, 2) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"remainder\", -7, 2))",
+      "restoredSql": "SELECT (-7 % 2) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ],
+      "restoredResult": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ],
+      "pythonResult": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ],
+      "javascriptResult": [
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT 7 % -2 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"remainder\", 7, -2) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"remainder\", 7, -2))",
+      "restoredSql": "SELECT (7 % (-2)) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "restoredResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "pythonResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "javascriptResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT 2.0 / 2 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"realDivide\", 2.0, 2) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"realDivide\", 2.0, 2))",
+      "restoredSql": "SELECT (2.0 / 2) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "restoredResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "pythonResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "javascriptResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT (2.0 + 0) / 2 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"realDivide\", UtSqlValue.binary(\"add\", 2.0, 0), 2) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"realDivide\", UtSqlValue.binary(\"add\", 2.0, 0), 2))",
+      "restoredSql": "SELECT ((2.0 + 0) / 2) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "restoredResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "pythonResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "javascriptResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT 7.5 % 2 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"remainder\", 7.5, 2) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"remainder\", 7.5, 2))",
+      "restoredSql": "SELECT (7.5 % 2) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "restoredResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "pythonResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "javascriptResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT 0 AND 0 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"and\", 0, 0) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"and\", 0, 0))",
+      "restoredSql": "SELECT (0 and 0) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "restoredResult": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "pythonResult": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "javascriptResult": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT 0 OR 0 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"or\", 0, 0) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"or\", 0, 0))",
+      "restoredSql": "SELECT (0 or 0) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "restoredResult": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "pythonResult": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "javascriptResult": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT 0 AND 1 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"and\", 0, 1) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"and\", 0, 1))",
+      "restoredSql": "SELECT (0 and 1) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "restoredResult": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "pythonResult": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "javascriptResult": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT 0 OR 1 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"or\", 0, 1) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"or\", 0, 1))",
+      "restoredSql": "SELECT (0 or 1) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "restoredResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "pythonResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "javascriptResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT 0 AND NULL FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"and\", 0, UtSqlValue.nullValue()) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"and\", 0, UtSqlValue.nullValue()))",
+      "restoredSql": "SELECT (0 and NULL) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "restoredResult": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "pythonResult": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "javascriptResult": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT 0 OR NULL FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"or\", 0, UtSqlValue.nullValue()) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"or\", 0, UtSqlValue.nullValue()))",
+      "restoredSql": "SELECT (0 or NULL) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "restoredResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "pythonResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "javascriptResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT 1 AND 0 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"and\", 1, 0) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"and\", 1, 0))",
+      "restoredSql": "SELECT (1 and 0) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "restoredResult": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "pythonResult": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "javascriptResult": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT 1 OR 0 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"or\", 1, 0) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"or\", 1, 0))",
+      "restoredSql": "SELECT (1 or 0) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "restoredResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "pythonResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "javascriptResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT 1 AND 1 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"and\", 1, 1) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"and\", 1, 1))",
+      "restoredSql": "SELECT (1 and 1) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "restoredResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "pythonResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "javascriptResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT 1 OR 1 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"or\", 1, 1) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"or\", 1, 1))",
+      "restoredSql": "SELECT (1 or 1) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "restoredResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "pythonResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "javascriptResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT 1 AND NULL FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"and\", 1, UtSqlValue.nullValue()) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"and\", 1, UtSqlValue.nullValue()))",
+      "restoredSql": "SELECT (1 and NULL) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "restoredResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "pythonResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "javascriptResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT 1 OR NULL FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"or\", 1, UtSqlValue.nullValue()) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"or\", 1, UtSqlValue.nullValue()))",
+      "restoredSql": "SELECT (1 or NULL) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "restoredResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "pythonResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "javascriptResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT NULL AND 0 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"and\", UtSqlValue.nullValue(), 0) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"and\", UtSqlValue.nullValue(), 0))",
+      "restoredSql": "SELECT (NULL and 0) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "restoredResult": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "pythonResult": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "javascriptResult": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT NULL OR 0 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"or\", UtSqlValue.nullValue(), 0) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"or\", UtSqlValue.nullValue(), 0))",
+      "restoredSql": "SELECT (NULL or 0) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "restoredResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "pythonResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "javascriptResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT NULL AND 1 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"and\", UtSqlValue.nullValue(), 1) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"and\", UtSqlValue.nullValue(), 1))",
+      "restoredSql": "SELECT (NULL and 1) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "restoredResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "pythonResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "javascriptResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT NULL OR 1 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"or\", UtSqlValue.nullValue(), 1) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"or\", UtSqlValue.nullValue(), 1))",
+      "restoredSql": "SELECT (NULL or 1) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "restoredResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "pythonResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "javascriptResult": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT NULL AND NULL FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"and\", UtSqlValue.nullValue(), UtSqlValue.nullValue()) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"and\", UtSqlValue.nullValue(), UtSqlValue.nullValue()))",
+      "restoredSql": "SELECT (NULL and NULL) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "restoredResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "pythonResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "javascriptResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT NULL OR NULL FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"or\", UtSqlValue.nullValue(), UtSqlValue.nullValue()) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"or\", UtSqlValue.nullValue(), UtSqlValue.nullValue()))",
+      "restoredSql": "SELECT (NULL or NULL) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "restoredResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "pythonResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "javascriptResult": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE age;",
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(p[\"age\"])]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(p[\"age\"])).map(p => p[\"age\"])",
+      "restoredSql": "SELECT \"p\".\"age\" FROM \"people\" AS \"p\" WHERE \"p\".\"age\";\n",
+      "expected": [
+        -7,
+        -1,
+        1,
+        2,
+        17,
+        18,
+        19
+      ],
+      "restoredResult": [
+        -7,
+        -1,
+        1,
+        2,
+        17,
+        18,
+        19
+      ],
+      "pythonResult": [
+        -7,
+        -1,
+        1,
+        2,
+        17,
+        18,
+        19
+      ],
+      "javascriptResult": [
+        -7,
+        -1,
+        1,
+        2,
+        17,
+        18,
+        19
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE NOT age;",
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.unary(\"not\", p[\"age\"]))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.unary(\"not\", p[\"age\"]))).map(p => p[\"age\"])",
+      "restoredSql": "SELECT \"p\".\"age\" FROM \"people\" AS \"p\" WHERE (NOT (\"p\".\"age\"));\n",
+      "expected": [
+        0
+      ],
+      "restoredResult": [
+        0
+      ],
+      "pythonResult": [
+        0
+      ],
+      "javascriptResult": [
+        0
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE age = 18;",
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.binary(\"equal\", p[\"age\"], 18))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.binary(\"equal\", p[\"age\"], 18))).map(p => p[\"age\"])",
+      "restoredSql": "SELECT \"p\".\"age\" FROM \"people\" AS \"p\" WHERE (\"p\".\"age\" = 18);\n",
+      "expected": [
+        18
+      ],
+      "restoredResult": [
+        18
+      ],
+      "pythonResult": [
+        18
+      ],
+      "javascriptResult": [
+        18
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE NOT age = 18;",
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"equal\", p[\"age\"], 18)))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"equal\", p[\"age\"], 18)))).map(p => p[\"age\"])",
+      "restoredSql": "SELECT \"p\".\"age\" FROM \"people\" AS \"p\" WHERE (NOT ((\"p\".\"age\" = 18)));\n",
+      "expected": [
+        -7,
+        -1,
+        0,
+        1,
+        2,
+        17,
+        19
+      ],
+      "restoredResult": [
+        -7,
+        -1,
+        0,
+        1,
+        2,
+        17,
+        19
+      ],
+      "pythonResult": [
+        -7,
+        -1,
+        0,
+        1,
+        2,
+        17,
+        19
+      ],
+      "javascriptResult": [
+        -7,
+        -1,
+        0,
+        1,
+        2,
+        17,
+        19
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE age IS NULL;",
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.binary(\"is\", p[\"age\"], UtSqlValue.nullValue()))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.binary(\"is\", p[\"age\"], UtSqlValue.nullValue()))).map(p => p[\"age\"])",
+      "restoredSql": "SELECT \"p\".\"age\" FROM \"people\" AS \"p\" WHERE (\"p\".\"age\" IS NULL);\n",
+      "expected": [
+        null
+      ],
+      "restoredResult": [
+        null
+      ],
+      "pythonResult": [
+        null
+      ],
+      "javascriptResult": [
+        null
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE age IS NOT NULL;",
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.binary(\"isNot\", p[\"age\"], UtSqlValue.nullValue()))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.binary(\"isNot\", p[\"age\"], UtSqlValue.nullValue()))).map(p => p[\"age\"])",
+      "restoredSql": "SELECT \"p\".\"age\" FROM \"people\" AS \"p\" WHERE (\"p\".\"age\" IS NOT NULL);\n",
+      "expected": [
+        -7,
+        -1,
+        0,
+        1,
+        2,
+        17,
+        18,
+        19
+      ],
+      "restoredResult": [
+        -7,
+        -1,
+        0,
+        1,
+        2,
+        17,
+        18,
+        19
+      ],
+      "pythonResult": [
+        -7,
+        -1,
+        0,
+        1,
+        2,
+        17,
+        18,
+        19
+      ],
+      "javascriptResult": [
+        -7,
+        -1,
+        0,
+        1,
+        2,
+        17,
+        18,
+        19
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE age IS TRUE;",
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.unary(\"isTrue\", p[\"age\"]))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.unary(\"isTrue\", p[\"age\"]))).map(p => p[\"age\"])",
+      "restoredSql": "SELECT \"p\".\"age\" FROM \"people\" AS \"p\" WHERE (\"p\".\"age\" IS TRUE);\n",
+      "expected": [
+        -7,
+        -1,
+        1,
+        2,
+        17,
+        18,
+        19
+      ],
+      "restoredResult": [
+        -7,
+        -1,
+        1,
+        2,
+        17,
+        18,
+        19
+      ],
+      "pythonResult": [
+        -7,
+        -1,
+        1,
+        2,
+        17,
+        18,
+        19
+      ],
+      "javascriptResult": [
+        -7,
+        -1,
+        1,
+        2,
+        17,
+        18,
+        19
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE age IS FALSE;",
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.unary(\"isFalse\", p[\"age\"]))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.unary(\"isFalse\", p[\"age\"]))).map(p => p[\"age\"])",
+      "restoredSql": "SELECT \"p\".\"age\" FROM \"people\" AS \"p\" WHERE (\"p\".\"age\" IS FALSE);\n",
+      "expected": [
+        0
+      ],
+      "restoredResult": [
+        0
+      ],
+      "pythonResult": [
+        0
+      ],
+      "javascriptResult": [
+        0
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE age IS NOT TRUE;",
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.unary(\"isNotTrue\", p[\"age\"]))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.unary(\"isNotTrue\", p[\"age\"]))).map(p => p[\"age\"])",
+      "restoredSql": "SELECT \"p\".\"age\" FROM \"people\" AS \"p\" WHERE (\"p\".\"age\" IS NOT TRUE);\n",
+      "expected": [
+        null,
+        0
+      ],
+      "restoredResult": [
+        null,
+        0
+      ],
+      "pythonResult": [
+        null,
+        0
+      ],
+      "javascriptResult": [
+        null,
+        0
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE age IS NOT FALSE;",
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.unary(\"isNotFalse\", p[\"age\"]))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.unary(\"isNotFalse\", p[\"age\"]))).map(p => p[\"age\"])",
+      "restoredSql": "SELECT \"p\".\"age\" FROM \"people\" AS \"p\" WHERE (\"p\".\"age\" IS NOT FALSE);\n",
+      "expected": [
+        null,
+        -7,
+        -1,
+        1,
+        2,
+        17,
+        18,
+        19
+      ],
+      "restoredResult": [
+        null,
+        -7,
+        -1,
+        1,
+        2,
+        17,
+        18,
+        19
+      ],
+      "pythonResult": [
+        null,
+        -7,
+        -1,
+        1,
+        2,
+        17,
+        18,
+        19
+      ],
+      "javascriptResult": [
+        null,
+        -7,
+        -1,
+        1,
+        2,
+        17,
+        18,
+        19
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE age <> 18 AND NULL;",
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.binary(\"and\", UtSqlValue.binary(\"notEqual\", p[\"age\"], 18), UtSqlValue.nullValue()))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.binary(\"and\", UtSqlValue.binary(\"notEqual\", p[\"age\"], 18), UtSqlValue.nullValue()))).map(p => p[\"age\"])",
+      "restoredSql": "SELECT \"p\".\"age\" FROM \"people\" AS \"p\" WHERE ((\"p\".\"age\" <> 18) and NULL);\n",
+      "expected": [],
+      "restoredResult": [],
+      "pythonResult": [],
+      "javascriptResult": [],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE age <> 18 OR NULL;",
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.binary(\"or\", UtSqlValue.binary(\"notEqual\", p[\"age\"], 18), UtSqlValue.nullValue()))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.binary(\"or\", UtSqlValue.binary(\"notEqual\", p[\"age\"], 18), UtSqlValue.nullValue()))).map(p => p[\"age\"])",
+      "restoredSql": "SELECT \"p\".\"age\" FROM \"people\" AS \"p\" WHERE ((\"p\".\"age\" <> 18) or NULL);\n",
+      "expected": [
+        -7,
+        -1,
+        0,
+        1,
+        2,
+        17,
+        19
+      ],
+      "restoredResult": [
+        -7,
+        -1,
+        0,
+        1,
+        2,
+        17,
+        19
+      ],
+      "pythonResult": [
+        -7,
+        -1,
+        0,
+        1,
+        2,
+        17,
+        19
+      ],
+      "javascriptResult": [
+        -7,
+        -1,
+        0,
+        1,
+        2,
+        17,
+        19
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE age > 1 AND age < 19;",
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.binary(\"and\", UtSqlValue.binary(\"greater\", p[\"age\"], 1), UtSqlValue.binary(\"less\", p[\"age\"], 19)))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.binary(\"and\", UtSqlValue.binary(\"greater\", p[\"age\"], 1), UtSqlValue.binary(\"less\", p[\"age\"], 19)))).map(p => p[\"age\"])",
+      "restoredSql": "SELECT \"p\".\"age\" FROM \"people\" AS \"p\" WHERE ((\"p\".\"age\" > 1) and (\"p\".\"age\" < 19));\n",
+      "expected": [
+        2,
+        17,
+        18
+      ],
+      "restoredResult": [
+        2,
+        17,
+        18
+      ],
+      "pythonResult": [
+        2,
+        17,
+        18
+      ],
+      "javascriptResult": [
+        2,
+        17,
+        18
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE age > 1 OR NULL;",
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.binary(\"or\", UtSqlValue.binary(\"greater\", p[\"age\"], 1), UtSqlValue.nullValue()))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.binary(\"or\", UtSqlValue.binary(\"greater\", p[\"age\"], 1), UtSqlValue.nullValue()))).map(p => p[\"age\"])",
+      "restoredSql": "SELECT \"p\".\"age\" FROM \"people\" AS \"p\" WHERE ((\"p\".\"age\" > 1) or NULL);\n",
+      "expected": [
+        2,
+        17,
+        18,
+        19
+      ],
+      "restoredResult": [
+        2,
+        17,
+        18,
+        19
+      ],
+      "pythonResult": [
+        2,
+        17,
+        18,
+        19
+      ],
+      "javascriptResult": [
+        2,
+        17,
+        18,
+        19
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE NOT (age = NULL);",
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"equal\", p[\"age\"], UtSqlValue.nullValue())))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"equal\", p[\"age\"], UtSqlValue.nullValue())))).map(p => p[\"age\"])",
+      "restoredSql": "SELECT \"p\".\"age\" FROM \"people\" AS \"p\" WHERE (NOT ((\"p\".\"age\" = NULL)));\n",
+      "expected": [],
+      "restoredResult": [],
+      "pythonResult": [],
+      "javascriptResult": [],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE NULL;",
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.nullValue())]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.nullValue())).map(p => p[\"age\"])",
+      "restoredSql": "SELECT \"p\".\"age\" FROM \"people\" AS \"p\" WHERE NULL;\n",
+      "expected": [],
+      "restoredResult": [],
+      "pythonResult": [],
+      "javascriptResult": [],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE TRUE;",
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(True)]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(true)).map(p => p[\"age\"])",
+      "restoredSql": "SELECT \"p\".\"age\" FROM \"people\" AS \"p\" WHERE true;\n",
+      "expected": [
+        null,
+        -7,
+        -1,
+        0,
+        1,
+        2,
+        17,
+        18,
+        19
+      ],
+      "restoredResult": [
+        null,
+        -7,
+        -1,
+        0,
+        1,
+        2,
+        17,
+        18,
+        19
+      ],
+      "pythonResult": [
+        null,
+        -7,
+        -1,
+        0,
+        1,
+        2,
+        17,
+        18,
+        19
+      ],
+      "javascriptResult": [
+        null,
+        -7,
+        -1,
+        0,
+        1,
+        2,
+        17,
+        18,
+        19
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE FALSE;",
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(False)]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(false)).map(p => p[\"age\"])",
+      "restoredSql": "SELECT \"p\".\"age\" FROM \"people\" AS \"p\" WHERE false;\n",
+      "expected": [],
+      "restoredResult": [],
+      "pythonResult": [],
+      "javascriptResult": [],
+      "passed": true
+    },
+    {
+      "sql": "SELECT 2.0 / 4 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"realDivide\", 2.0, 4) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"realDivide\", 2.0, 4))",
+      "restoredSql": "SELECT (2.0 / 4) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5
+      ],
+      "restoredResult": [
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5
+      ],
+      "pythonResult": [
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5
+      ],
+      "javascriptResult": [
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5
+      ],
+      "passed": true
+    },
+    {
+      "sql": "SELECT (2.0 + 0) / 4 FROM people AS p;",
+      "python": "[UtSqlValue.binary(\"realDivide\", UtSqlValue.binary(\"add\", 2.0, 0), 4) for p in people]",
+      "javascript": "(people).map(p => UtSqlValue.binary(\"realDivide\", UtSqlValue.binary(\"add\", 2.0, 0), 4))",
+      "restoredSql": "SELECT ((2.0 + 0) / 4) FROM \"people\" AS \"p\";\n",
+      "expected": [
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5
+      ],
+      "restoredResult": [
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5
+      ],
+      "pythonResult": [
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5
+      ],
+      "javascriptResult": [
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.5
+      ],
+      "passed": true
+    }
+  ],
+  "failures": 0
+}

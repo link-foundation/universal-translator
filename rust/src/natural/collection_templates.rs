@@ -2,12 +2,16 @@
 use super::catalog::Language;
 use crate::meta::{Node, number};
 
-pub(super) const KEYS: [&str; 5] = [
+pub(super) const KEYS: [&str; 9] = [
     "process-arguments",
     "objpak-string-set",
     "set-insert",
     "prefix-update",
     "postfix-update",
+    "sql-null",
+    "sql-binary",
+    "sql-unary",
+    "sql-truth",
 ];
 
 pub(super) fn derive(language: &mut Language) {
@@ -17,6 +21,10 @@ pub(super) fn derive(language: &mut Language) {
         ("set-insert", vec!["collection", "value"]),
         ("prefix-update", vec!["operand", "delta"]),
         ("postfix-update", vec!["operand", "delta"]),
+        ("sql-null", vec![]),
+        ("sql-binary", vec!["operator", "left", "right"]),
+        ("sql-unary", vec!["operator", "operand"]),
+        ("sql-truth", vec!["operand"]),
     ] {
         if language.templates.get(key).is_some() {
             continue;
@@ -49,6 +57,29 @@ pub(super) fn phrase(expression: &Node) -> Result<Option<Phrase>, String> {
             .ok_or_else(|| format!("A {} without {key}", expression.kind))
     };
     Ok(Some(match expression.kind.as_str() {
+        "Null" => ("sql-null", vec![]),
+        "SqlTruth" => ("sql-truth", vec![("operand", child("operand")?)]),
+        "SqlUnary" => (
+            "sql-unary",
+            vec![
+                (
+                    "operator",
+                    crate::meta::text(expression.str("operator").unwrap_or_default()),
+                ),
+                ("operand", child("operand")?),
+            ],
+        ),
+        "SqlBinary" => (
+            "sql-binary",
+            vec![
+                (
+                    "operator",
+                    crate::meta::text(expression.str("operator").unwrap_or_default()),
+                ),
+                ("left", child("left")?),
+                ("right", child("right")?),
+            ],
+        ),
         "ProcessArguments" => (
             "process-arguments",
             vec![(

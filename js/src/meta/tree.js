@@ -26,6 +26,10 @@
 //   Name           { name }             Interpolation { parts }
 //   Binary         { operator, left, right }
 //   Unary          { operator, operand }
+//   Null           {}                    SQL absence of a value
+//   SqlBinary      { operator, left, right }   NULL-propagating SQL operation
+//   SqlUnary       { operator, operand }      NULL-propagating SQL operation
+//   SqlTruth       { operand }           SQL WHERE retains only true rows
 //   Call           { callee, arguments }
 //   Question       { aspect: type | documentation | source | details, subject }
 //   Query          { source, variable, condition, projection, eager }

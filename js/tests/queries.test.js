@@ -9,6 +9,7 @@ import {
   queryLanguageIds,
 } from '../src/index.js';
 import { sameMeaning } from '../src/meta/tree.js';
+import { nativeExpression } from '../../examples/queries/native-expression.mjs';
 import negationPredicates from '../../examples/queries/negation.json' with { type: 'json' };
 
 const translator = createTranslator();
@@ -23,9 +24,10 @@ describe('compositional selection queries', () => {
       'SELECT age FROM people WHERE NOT age = 18;',
       'sql'
     ).condition;
-    assert.equal(condition.kind, 'Unary');
-    assert.equal(condition.operator, 'not');
-    assert.equal(condition.operand.operator, 'equal');
+    assert.equal(condition.kind, 'SqlTruth');
+    assert.equal(condition.operand.kind, 'SqlUnary');
+    assert.equal(condition.operand.operator, 'not');
+    assert.equal(condition.operand.operand.operator, 'equal');
     for (const predicate of negationPredicates) {
       const meta = translator.toMeta(
         `SELECT age FROM people AS p WHERE ${predicate};`,
@@ -74,7 +76,7 @@ describe('compositional selection queries', () => {
     assert.equal(result.projection.operator, 'add');
     assert.equal(result.projection.left.kind, 'Index');
     assert.equal(result.projection.left.index.value, 'age');
-    assert.equal(result.condition.operator, 'and');
+    assert.equal(result.condition.operand.operator, 'and');
     assert.equal(result.eager, true);
     for (const language of [
       'sql',
@@ -210,9 +212,9 @@ describe('selection data, scopes and execution', () => {
       query('SELECT "true" FROM people;', 'sql').projection.kind,
       'Index'
     );
-    assert.throws(
-      () => translator.toMeta('SELECT NULL FROM people;', 'sql'),
-      /three-valued/u
+    assert.equal(
+      query('SELECT NULL FROM people;', 'sql').projection.kind,
+      'Null'
     );
   });
 
@@ -293,8 +295,10 @@ describe('selection data, scopes and execution', () => {
 
   it('agrees with native SQLite, Python and JavaScript on filtered projections', () => {
     const people = [{ age: 12 }, { age: 18 }, { age: 42 }, { age: 70 }];
-    const python = translator.translate(sql, 'sql', 'python');
-    const javascript = translator.translate(sql, 'sql', 'javascript');
+    const python = nativeExpression(translator.translate(sql, 'sql', 'python'));
+    const javascript = nativeExpression(
+      translator.translate(sql, 'sql', 'javascript')
+    );
     const native = execFileSync(
       'python3',
       [
@@ -303,7 +307,7 @@ describe('selection data, scopes and execution', () => {
           'data=json.loads(sys.argv[1]); people=data["people"]\n' +
           'db=sqlite3.connect(":memory:"); db.execute("create table people(age integer)")\n' +
           'db.executemany("insert into people values(?)",[(p["age"],) for p in people])\n' +
-          'print(json.dumps([[r[0] for r in db.execute(data["sql"])],eval(data["python"])]))',
+          'exec(data["python"]["prefix"]); print(json.dumps([[r[0] for r in db.execute(data["sql"])],eval(data["python"]["expression"])]))',
         JSON.stringify({ people, sql, python }),
       ],
       { encoding: 'utf8' }
@@ -314,7 +318,7 @@ describe('selection data, scopes and execution', () => {
         'node',
         [
           '-e',
-          `const people=${JSON.stringify(people)}; console.log(JSON.stringify(${javascript.trim().replace(/;$/u, '')}));`,
+          `${javascript.prefix}\nconst people=${JSON.stringify(people)}; console.log(JSON.stringify(${javascript.expression}));`,
         ],
         { encoding: 'utf8' }
       )

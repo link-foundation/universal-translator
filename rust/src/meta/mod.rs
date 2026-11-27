@@ -11,6 +11,7 @@ pub mod links;
 pub mod notation;
 pub(crate) mod queries;
 pub(crate) mod questions;
+pub(crate) mod sql_values;
 pub mod tree;
 pub mod truth;
 pub mod types;

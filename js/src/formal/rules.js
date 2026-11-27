@@ -18,6 +18,7 @@ import { slashOperator } from './numbers.js';
 import { recognizeQuestions } from './questions.js';
 import { recognizeDocumentation } from './documentation.js';
 import { normalizeObjectiveCConditions, recognizeObjpak } from './objpak.js';
+import { recognizeSqlValues } from './sql-values.js';
 import {
   asciiName,
   avoidReserved,
@@ -827,6 +828,7 @@ export function dropEmptyStatements(program, { from } = {}) {
 
 export const understandingRules = [
   recognizeDocumentation,
+  recognizeSqlValues,
   recognizeObjpak,
   findEntryPoint,
   recognizeQuestions,

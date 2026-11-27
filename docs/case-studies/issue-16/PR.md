@@ -28,7 +28,7 @@ Implemented and checked so far:
 - Partial coverage excludes parts rejected by the target writer and includes successfully translated prose. A wholly rejected program reports 0% and retains its detailed line errors. JavaScript and Rust regressions cover reader failures, writer failures, mixed success and blank lines.
 - JavaScript and Rust grammar workspaces import and execute nine formats, preserve concrete syntax/provenance, update sources and dependencies, merge equivalent rules with stable identities, retain separate editions, apply six transform stages and install semantic readers into translation. The browser-safe `/grammar` entry, public types, bounded recovery and runnable example are verified.
 - Four introspection question aspects keep their subject expressions through Python, JavaScript/TypeScript and every natural grammar. Runtime documentation is separate from comments; Python 3.12/3.13 editions, multiline contents, aliases, shadowing and native execution are covered.
-- Selection queries compose scoped predicates and projections across SQL, C# LINQ, Python comprehensions, JavaScript/TypeScript filter/map chains and all 71 natural grammars. Collection types, nested binders, C# range-name rules and eager/deferred execution are covered. A native SQLite/Python/Node/C# example checks results and mutation between construction and enumeration. SQL NULL semantics, broader clauses and other targets remain unfinished.
+- Selection queries compose scoped predicates and projections across SQL, C# LINQ, Python comprehensions, JavaScript/TypeScript filter/map chains and all 71 natural grammars. Collection types, nested binders, C# range-name rules and eager/deferred execution are covered. A native SQLite/Python/Node/C# example checks results and mutation between construction and enumeration. SQL value contracts now preserve nullable numeric rows, three-valued logic, IS tests and WHERE truth, with 81 native cases across SQLite/Python/Node/C#. Verified helpers retain concrete source and survive formal/natural rereading. Schema-dependent SQL values, broader clauses and other targets remain unfinished.
 - Both engines read all 34 original Hello World Collection programs. The original Portable Object Compiler example now composes message sends, blocks, process arguments, unit updates and ordered Objpak string sets. A pinned original compiler agrees with generated Python, JavaScript, Rust and Objective-C for duplicates, Unicode, growth, aliases and live iteration; all 71 natural grammars round-trip its algorithm. Other set/library targets remain unfinished.
 - Exact UTF-8 subline regions accompany line maps in both libraries and HTTP APIs. Editor selections map individual names and split constructs, with unit and real-browser checks.
 - The case study archives all issue/PR discussions, eight attachments, 22 compressed solver logs, local/CI evidence, root-cause analysis and primary-source architecture research. The Rust package includes the new regression fixtures.
@@ -73,8 +73,8 @@ those boundaries. `node experiments/issue-16-sql-negation.mjs --before` fails
 16/23 cases with the old SQL reader; `--before-writer` independently fails four
 with the old writer. The current path passes all 23, including native SQLite,
 Python, Node and C# execution in the query example. Matching JS/Rust regressions,
-number checks, lint and Clippy pass. NULL semantics remain open. Evidence is in
-the query case study.
+number checks, lint and Clippy pass. The nullable numeric extension below
+adds separate SQL value contracts. Evidence is in the query case study.
 
 ## Browser evidence
 
@@ -123,3 +123,15 @@ After: the same rejected program reports 0% with the affected lines and reason:
 ![coverage after](https://github.com/link-foundation/universal-translator/blob/issue-16-fb080613587e/docs/screenshots/issue-16/partial-coverage-after.png?raw=true)
 
 Question reproduction: translate `type(meaning)`, `meaning.__doc__`, imported `inspect.getsource(meaning)` or `meaning??` from Python to a natural grammar. `js/tests/questions.test.js` and `rust/tests/questions.rs` cover these cases; the runnable source-file example is `examples/questions/meaning.py`. The focused JavaScript question/version/chunk checks (26 tests), Rust question/version checks (13 tests), and targeted Clippy checks pass. Python → JavaScript → Python execution retains the original runtime documentation. See the case study `QUESTIONS.md` for edition handling and archived primary research.
+
+Nullable SQL reproduction: `SELECT age FROM people WHERE NOT age = 18;` must
+exclude a NULL row; `SELECT NULL OR 1 FROM people;` returns numeric one and
+`SELECT age / 0 FROM people;` returns NULL in the verified SQLite profile.
+`node experiments/issue-16-sql-values.mjs --before` fails 65/81 finite cases at
+`c739a05`; the current experiment passes all cases, including SQL restored from
+JavaScript. Run `node examples/queries/verify-native.mjs` for all 81 cases in
+SQLite, Python, Node and compiled C#. New JS/Rust SQL-value tests cover four host
+grammars, all 71 natural grammars, exact UTF-8 helper productions, name collisions,
+invalid caller contracts and significant JS/TS return newlines. Shared runtime
+sources and the existing native CI job cover this subset. Broader SQL schemas,
+type coercion, dialects and clauses remain open; see [the query case study](docs/case-studies/issue-16/QUERIES.md).

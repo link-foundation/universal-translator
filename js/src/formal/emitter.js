@@ -21,6 +21,7 @@ import { writeQuestion, writePropertyAccess } from './questions.js';
 import { writeDocumentationAssignment } from './documentation.js';
 import { withQueryWriter } from './query-writer.js';
 import { withObjpakWriter } from './objpak-writer.js';
+import { withSqlValueWriter } from './sql-values.js';
 import { namedType, withTypeMetadata } from './type-metadata.js';
 import { withExceptions } from './exceptions.js';
 import {
@@ -1062,9 +1063,11 @@ const compoundOperators = {
 };
 
 // Arrays are written by a mixin of their own, which the dialects inherit.
-const Emitter = withQueryWriter(
-  withObjpakWriter(
-    withExceptions(withTypeMetadata(withReals(withArrays(BaseEmitter))))
+const Emitter = withSqlValueWriter(
+  withQueryWriter(
+    withObjpakWriter(
+      withExceptions(withTypeMetadata(withReals(withArrays(BaseEmitter))))
+    )
   )
 );
 

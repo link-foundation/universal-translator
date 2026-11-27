@@ -34,6 +34,8 @@ fn expression_type(expression: &Node, scope: &Scope, signatures: &Signatures) ->
         "Number" => Some(number_type(expression).into()),
         "Text" | "Interpolation" => Some("text".into()),
         "Boolean" => Some("boolean".into()),
+        "Null" | "SqlBinary" | "SqlUnary" => Some("object".into()),
+        "SqlTruth" => Some("boolean".into()),
         "Question" if matches!(expression.str("aspect"), Some("documentation" | "source")) => {
             Some("text".into())
         }
@@ -453,8 +455,8 @@ fn child_order(kind: &str) -> &'static [&'static str] {
         "Lambda" => &["body"],
         "PropertyAssignment" => &["object", "value"],
         "While" => &["condition", "body"],
-        "Binary" => &["left", "right"],
-        "Unary" => &["operand"],
+        "Binary" | "SqlBinary" => &["left", "right"],
+        "Unary" | "SqlUnary" | "SqlTruth" => &["operand"],
         "Call" => &["arguments"],
         "IndexAssignment" => &["index", "value"],
         "ArrayLiteral" => &["elements"],

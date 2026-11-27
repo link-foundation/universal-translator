@@ -116,6 +116,7 @@ pub(crate) type Result<T> = std::result::Result<T, GrammarError>;
 
 pub(crate) struct Emitter {
     pub(crate) objpak_name: String,
+    pub(crate) sql_value_name: String,
     pub(crate) syntax: Syntax,
     pub(crate) unit: &'static str,
     pub(crate) lines: crate::emission_map::SourceLines,
@@ -198,6 +199,7 @@ impl Emitter {
         let unit = if syntax.id == "go" { "\t" } else { "    " };
         Emitter {
             objpak_name: String::new(),
+            sql_value_name: String::new(),
             syntax,
             unit,
             lines: Default::default(),
@@ -425,6 +427,9 @@ impl Emitter {
                 )
             }
             "Query" => super::query_writer::write_query(self, expression),
+            "Null" | "SqlBinary" | "SqlUnary" | "SqlTruth" => {
+                super::sql_values::expression(self, expression)
+            }
             "ProcessArguments" | "Update" | "SetLiteral" | "SetInsert" => {
                 super::objpak_writer::expression(self, expression)
             }
@@ -1347,6 +1352,7 @@ impl Emitter {
         }
         self.array_prelude(&mut lines);
         super::objpak_writer::prelude(self, &mut lines);
+        super::sql_values::prelude(self, &mut lines);
         lines
     }
 }
@@ -1362,6 +1368,7 @@ pub fn emit_program(program: &Node, language: &str) -> Result<String> {
     let syntax = language_syntax(language)?;
     let mut emitter = Emitter::new(syntax);
     super::objpak_writer::prepare(&mut emitter, program);
+    super::sql_values::prepare_emitter(&mut emitter, program);
     if emitter.syntax.id == "csharp" {
         emitter.program(&super::query_writer::csharp_query_names(program.clone()))
     } else {

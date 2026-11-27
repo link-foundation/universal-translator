@@ -18,6 +18,7 @@ include = [
     "/examples/printing/arithmetic.py",
     "/examples/runtime-headers/php-modes.json",
     "/examples/queries/negation.json",
+    "/examples/queries/nullable.json",
     "/docs/case-studies/issue-14/data/hello-world-collection/programs.json",
     "/docs/case-studies/issue-14/hello-world-coverage.lino",
     "/README.md",
@@ -222,3 +223,7 @@ path = "rust/tests/objpak.rs"
 [[test]]
 name = "meta_notation"
 path = "rust/tests/meta_notation.rs"
+
+[[test]]
+name = "sql_values"
+path = "rust/tests/sql_values.rs"

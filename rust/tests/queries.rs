@@ -22,10 +22,12 @@ fn sql_negation_binds_below_comparisons_and_retains_explicit_groups() {
     let t = Translator::new();
     let q = expression("SELECT age FROM people WHERE NOT age = 18;", "sql");
     let condition = q.node("condition").unwrap();
-    assert!(condition.is("Unary"));
-    assert_eq!(condition.str("operator"), Some("not"));
+    assert!(condition.is("SqlTruth"));
+    let negation = condition.node("operand").unwrap();
+    assert!(negation.is("SqlUnary"));
+    assert_eq!(negation.str("operator"), Some("not"));
     assert_eq!(
-        condition.node("operand").unwrap().str("operator"),
+        negation.node("operand").unwrap().str("operator"),
         Some("equal")
     );
     let predicates: Vec<String> =
@@ -190,7 +192,12 @@ fn sql_quoted_keywords_strings_and_case_are_data() {
             .unwrap()
             .is("Index")
     );
-    assert!(t.to_meta("SELECT NULL FROM people;", "sql").is_err());
+    assert!(
+        expression("SELECT NULL FROM people;", "sql")
+            .node("projection")
+            .unwrap()
+            .is("Null")
+    );
 }
 
 #[test]

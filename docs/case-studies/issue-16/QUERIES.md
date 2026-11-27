@@ -107,16 +107,92 @@ through SQL, Python, JavaScript, TypeScript, C#, English and Russian. Focused
 checks pass: 17 JavaScript query/number tests, eight Rust query tests, ESLint,
 Clippy and the native verifier. Logs are `logs/sql-negation-{before,before-writer,after}.json`,
 `logs/sql-negation-{js,rust,native,lint,clippy}.txt`. The primary reference is
-checksummed in the questions manifest. NULL propagation and general SQL
+checksummed in the questions manifest. Nullable numeric rows now have their own contracts, described below; general SQL
 semantics remain unfinished under requirement 16.12.
+
+## Nullable SQL values
+
+The earlier shared binary nodes conflated SQL NULL with host values. Rejecting
+an explicit NULL literal did not protect a query whose source column contained
+NULL: Python could raise on comparison and JavaScript could coerce null to zero.
+SQL readers now retain `Null`, `SqlBinary`, `SqlUnary` and `SqlTruth` concepts.
+SQL operators propagate NULL; AND/OR use their complete three-valued tables;
+NOT preserves unknown. IS/IS NOT are null-safe, and IS TRUE/FALSE and their
+negations test truth rather than compare with the integer one. WHERE retains
+only true rows, including when the predicate is a nullable number rather than
+an explicit comparison. These are the [SQLite expression rules](https://www.sqlite.org/lang_expr.html).
+
+Python, JavaScript, TypeScript and C# writers share independently executable
+helper definitions in `data/runtime/sql-values.json`; both translator engines
+consume the same source. The helpers retain numeric 0/1 comparison results,
+integer division truncation, real-literal division, signed remainder and SQLite
+NULL results for zero divisors. SQL value nodes infer a nullable object result,
+while the WHERE truth test yields a host boolean. Ordinary host binary nodes
+retain their existing meaning. Real literal spellings inside SQL helper calls
+survive JavaScript/TypeScript rereading, including integer-valued real operands.
+
+Readers verify native helper tokens before assigning a contract to calls. They
+retain every helper byte as a separate `sqlValueLibrary` concrete production.
+Fresh class names avoid user bindings; reassignment, escaping, shadowing and
+unknown helper calls are rejected. JavaScript and TypeScript return-line
+boundaries, including Unicode line separators, participate in verification.
+Rust masks all embedded definitions together using original source ranges and
+lexer character positions; multiple independent libraries and Unicode
+whitespace cannot shift later definitions or source locations. Verified pure
+filter/map clauses merge after helper recognition; arbitrary calls keep their
+separate evaluation stages.
+
+`examples/queries/nullable.json` defines 81 finite cases over nine nullable
+integer rows. It includes all nine input pairs for both AND and OR, nullable
+NOT/comparisons/arithmetic, IS predicates, WHERE truth, zero divisors and
+integer/real literal division. The prior reader at `c739a05` fails 65 cases:
+
+```sh
+node experiments/issue-16-sql-values.mjs --before
+node experiments/issue-16-sql-values.mjs
+node examples/queries/verify-native.mjs
+```
+
+The corrected experiment has zero failures across native SQLite, generated
+Python/Node, and SQL restored after JavaScript rereading. The native example
+also compiles generated C# and agrees on every case. Both engines round-trip
+all cases through SQL and the four host grammars, plus a composite query through
+all 71 natural grammars. Small independent forms satisfy each restricted
+vocabulary/length limit. Complex forms still need the broader natural-grammar
+work in the inventory.
+
+Focused checks pass: 36 JavaScript tests (query, NULL, helper, Objpak and chunk
+contracts), 32 Rust tests, ESLint, Clippy and the native verifier. Evidence is
+`logs/sql-values-{before,after}.json`, `logs/sql-values-{js,rust,native,lint,clippy}.txt`.
+The earlier negation reproducer retains its 16 old-reader failures and four
+independent old-writer failures with the former non-nullable meta contract;
+`logs/sql-values-negation-{before,before-writer,after}.json` preserves that rerun.
+The SQLite primary reference is already archived and checksummed in the
+questions manifest.
 
 ## Remaining work
 
-The supported SQL subset assumes non-null records; its current binary
-comparisons do not implement SQL three-valued logic. Explicit NULL expressions
-are rejected. SQLite's [SELECT documentation](https://www.sqlite.org/lang_select.html)
-provides the basis for extending filtering, grouping and result semantics.
+The verified nullable subset uses complete numeric/NULL input records and finite
+numbers within the host runtimes' exact common range. SQL dialect selection,
+schema affinity, text-to-number conversion, mixed storage classes, floating
+column type tags in JavaScript, integer overflow and full text collations need
+further modeling. SQLite's zero-divisor behavior is explicit here; other SQL
+dialects can raise instead. A translated binding supplies the same typed values
+used in the verified SQLite table. These checks do not establish full SQL NULL
+semantics for arbitrary schemas or runtimes.
+
 Joins, grouping, aggregation, ordering, multiple projections, complete SQL
 syntax, general object/record types, other target families, arbitrary natural
-questions and complete natural-language agreement remain unfinished. These
-limits keep requirement 16.12 open even when its focused regressions pass.
+questions and complete natural-language agreement remain unfinished. SQLite's
+[SELECT documentation](https://www.sqlite.org/lang_select.html) provides the basis
+for extending clause and result semantics. These limits keep requirement 16.12
+open even when its focused regressions pass.
+
+Final helper review adds ordinary JS/TS comments to token matching while
+retaining significant return-line checks, including line breaks inside block
+comments. This exposed a JavaScript offset error with emoji in comments inside
+multiple verified definitions. Masking now preserves UTF-16
+code-unit counts in both SQL and Objpak helpers; Rust masks from the original
+source once using its lexer character offsets. The shared multiple-library
+regression checks exact UTF-8 reconstruction and subsequent query meaning.
+`logs/sql-values-utf16-before.txt` preserves the failing pre-fix check.

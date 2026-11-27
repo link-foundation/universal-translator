@@ -1,12 +1,17 @@
 // Technical operation names stay quoted inside the language's own expression
 // syntax. Profiles can supply their own phrases without changing vocabulary.
 import { node, number } from './tree.js';
+import { sqlBinaryOperators, sqlUnaryOperators } from './sql-values.js';
 export const collectionKeys = [
   'process-arguments',
   'objpak-string-set',
   'set-insert',
   'prefix-update',
   'postfix-update',
+  'sql-null',
+  'sql-binary',
+  'sql-unary',
+  'sql-truth',
 ];
 const slots = {
   'process-arguments': ['includeProgram'],
@@ -14,6 +19,10 @@ const slots = {
   'set-insert': ['collection', 'value'],
   'prefix-update': ['operand', 'delta'],
   'postfix-update': ['operand', 'delta'],
+  'sql-null': [],
+  'sql-binary': ['operator', 'left', 'right'],
+  'sql-unary': ['operator', 'operand'],
+  'sql-truth': ['operand'],
 };
 export function collectionTemplates(language) {
   const [open, close] = language.quotes;
@@ -26,8 +35,25 @@ export function collectionTemplates(language) {
     ])
   );
 }
+function sqlOperation(key, values) {
+  const [kind, operators] =
+    key === 'sql-binary'
+      ? ['SqlBinary', sqlBinaryOperators]
+      : ['SqlUnary', sqlUnaryOperators];
+  return values.operator?.kind === 'Text' &&
+    operators.has(values.operator.value)
+    ? node(kind, { ...values, operator: values.operator.value })
+    : undefined;
+}
 export function collectionNode(key, values) {
   switch (key) {
+    case 'sql-null':
+      return node('Null');
+    case 'sql-truth':
+      return node('SqlTruth', values);
+    case 'sql-binary':
+    case 'sql-unary':
+      return sqlOperation(key, values);
     case 'process-arguments':
       return values.includeProgram?.kind === 'Boolean'
         ? node('ProcessArguments', {
@@ -52,6 +78,27 @@ export function collectionNode(key, values) {
 }
 export function collectionPhrase(expression) {
   switch (expression.kind) {
+    case 'Null':
+      return { key: 'sql-null', slots: {} };
+    case 'SqlTruth':
+      return { key: 'sql-truth', slots: { operand: expression.operand } };
+    case 'SqlUnary':
+      return {
+        key: 'sql-unary',
+        slots: {
+          operator: node('Text', { value: expression.operator }),
+          operand: expression.operand,
+        },
+      };
+    case 'SqlBinary':
+      return {
+        key: 'sql-binary',
+        slots: {
+          operator: node('Text', { value: expression.operator }),
+          left: expression.left,
+          right: expression.right,
+        },
+      };
     case 'ProcessArguments':
       return {
         key: 'process-arguments',

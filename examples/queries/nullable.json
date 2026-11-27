@@ -1,0 +1,263 @@
+[
+  {
+    "projection": "NULL"
+  },
+  {
+    "projection": "age"
+  },
+  {
+    "projection": "-age"
+  },
+  {
+    "projection": "NOT age"
+  },
+  {
+    "projection": "age + 1"
+  },
+  {
+    "projection": "age - 1"
+  },
+  {
+    "projection": "age * 2"
+  },
+  {
+    "projection": "age / 2"
+  },
+  {
+    "projection": "age / -2"
+  },
+  {
+    "projection": "age % 2"
+  },
+  {
+    "projection": "age = 18"
+  },
+  {
+    "projection": "age != 18"
+  },
+  {
+    "projection": "age < 18"
+  },
+  {
+    "projection": "age <= 18"
+  },
+  {
+    "projection": "age > 18"
+  },
+  {
+    "projection": "age >= 18"
+  },
+  {
+    "projection": "age = NULL"
+  },
+  {
+    "projection": "age <> NULL"
+  },
+  {
+    "projection": "age < NULL"
+  },
+  {
+    "projection": "age + NULL"
+  },
+  {
+    "projection": "NULL - age"
+  },
+  {
+    "projection": "age * NULL"
+  },
+  {
+    "projection": "age / 0"
+  },
+  {
+    "projection": "age % 0"
+  },
+  {
+    "projection": "age IS NULL"
+  },
+  {
+    "projection": "age IS NOT NULL"
+  },
+  {
+    "projection": "NULL IS NULL"
+  },
+  {
+    "projection": "age IS 18"
+  },
+  {
+    "projection": "age IS NOT 18"
+  },
+  {
+    "projection": "age IS TRUE"
+  },
+  {
+    "projection": "age IS FALSE"
+  },
+  {
+    "projection": "age IS NOT TRUE"
+  },
+  {
+    "projection": "age IS NOT FALSE"
+  },
+  {
+    "projection": "NOT (age IS NULL)"
+  },
+  {
+    "projection": "NULL / 0"
+  },
+  {
+    "projection": "7 / 2"
+  },
+  {
+    "projection": "-7 / 2"
+  },
+  {
+    "projection": "7 / -2"
+  },
+  {
+    "projection": "-7 % 2"
+  },
+  {
+    "projection": "7 % -2"
+  },
+  {
+    "projection": "2.0 / 2"
+  },
+  {
+    "projection": "(2.0 + 0) / 2"
+  },
+  {
+    "projection": "7.5 % 2"
+  },
+  {
+    "projection": "0 AND 0"
+  },
+  {
+    "projection": "0 OR 0"
+  },
+  {
+    "projection": "0 AND 1"
+  },
+  {
+    "projection": "0 OR 1"
+  },
+  {
+    "projection": "0 AND NULL"
+  },
+  {
+    "projection": "0 OR NULL"
+  },
+  {
+    "projection": "1 AND 0"
+  },
+  {
+    "projection": "1 OR 0"
+  },
+  {
+    "projection": "1 AND 1"
+  },
+  {
+    "projection": "1 OR 1"
+  },
+  {
+    "projection": "1 AND NULL"
+  },
+  {
+    "projection": "1 OR NULL"
+  },
+  {
+    "projection": "NULL AND 0"
+  },
+  {
+    "projection": "NULL OR 0"
+  },
+  {
+    "projection": "NULL AND 1"
+  },
+  {
+    "projection": "NULL OR 1"
+  },
+  {
+    "projection": "NULL AND NULL"
+  },
+  {
+    "projection": "NULL OR NULL"
+  },
+  {
+    "projection": "age",
+    "condition": "age"
+  },
+  {
+    "projection": "age",
+    "condition": "NOT age"
+  },
+  {
+    "projection": "age",
+    "condition": "age = 18"
+  },
+  {
+    "projection": "age",
+    "condition": "NOT age = 18"
+  },
+  {
+    "projection": "age",
+    "condition": "age IS NULL"
+  },
+  {
+    "projection": "age",
+    "condition": "age IS NOT NULL"
+  },
+  {
+    "projection": "age",
+    "condition": "age IS TRUE"
+  },
+  {
+    "projection": "age",
+    "condition": "age IS FALSE"
+  },
+  {
+    "projection": "age",
+    "condition": "age IS NOT TRUE"
+  },
+  {
+    "projection": "age",
+    "condition": "age IS NOT FALSE"
+  },
+  {
+    "projection": "age",
+    "condition": "age <> 18 AND NULL"
+  },
+  {
+    "projection": "age",
+    "condition": "age <> 18 OR NULL"
+  },
+  {
+    "projection": "age",
+    "condition": "age > 1 AND age < 19"
+  },
+  {
+    "projection": "age",
+    "condition": "age > 1 OR NULL"
+  },
+  {
+    "projection": "age",
+    "condition": "NOT (age = NULL)"
+  },
+  {
+    "projection": "age",
+    "condition": "NULL"
+  },
+  {
+    "projection": "age",
+    "condition": "TRUE"
+  },
+  {
+    "projection": "age",
+    "condition": "FALSE"
+  },
+  {
+    "projection": "2.0 / 4"
+  },
+  {
+    "projection": "(2.0 + 0) / 4"
+  }
+]

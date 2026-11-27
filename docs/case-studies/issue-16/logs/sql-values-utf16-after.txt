@@ -1,0 +1,11 @@
+▶ SQL value helper contracts
+  ✔ retains ranges with Unicode whitespace and multiple independent helper libraries (439.494768ms)
+✔ SQL value helper contracts (443.057261ms)
+ℹ tests 1
+ℹ suites 1
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 965.238469

@@ -43,6 +43,7 @@ pub(crate) mod query_writer;
 pub(crate) mod questions;
 pub mod rocq_runtime;
 pub mod rules;
+mod sql_values;
 mod text_writing;
 mod type_metadata;
 pub mod versions;

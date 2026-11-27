@@ -1,0 +1,676 @@
+{
+  "reader": "current",
+  "writer": "current",
+  "results": [
+    {
+      "sql": "SELECT age FROM people AS p WHERE NOT age = 18;",
+      "expected": [
+        0,
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "pythonResult": [
+        0,
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "javascriptResult": [
+        0,
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"equal\", p[\"age\"], 18)))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"equal\", p[\"age\"], 18)))).map(p => p[\"age\"])",
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE NOT age <> 18;",
+      "expected": [
+        18
+      ],
+      "pythonResult": [
+        18
+      ],
+      "javascriptResult": [
+        18
+      ],
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"notEqual\", p[\"age\"], 18)))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"notEqual\", p[\"age\"], 18)))).map(p => p[\"age\"])",
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE NOT age != 18;",
+      "expected": [
+        18
+      ],
+      "pythonResult": [
+        18
+      ],
+      "javascriptResult": [
+        18
+      ],
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"notEqual\", p[\"age\"], 18)))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"notEqual\", p[\"age\"], 18)))).map(p => p[\"age\"])",
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE NOT age == 18;",
+      "expected": [
+        0,
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "pythonResult": [
+        0,
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "javascriptResult": [
+        0,
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"equal\", p[\"age\"], 18)))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"equal\", p[\"age\"], 18)))).map(p => p[\"age\"])",
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE NOT age < 18;",
+      "expected": [
+        18,
+        19,
+        64,
+        65,
+        70
+      ],
+      "pythonResult": [
+        18,
+        19,
+        64,
+        65,
+        70
+      ],
+      "javascriptResult": [
+        18,
+        19,
+        64,
+        65,
+        70
+      ],
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"less\", p[\"age\"], 18)))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"less\", p[\"age\"], 18)))).map(p => p[\"age\"])",
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE NOT age <= 18;",
+      "expected": [
+        19,
+        64,
+        65,
+        70
+      ],
+      "pythonResult": [
+        19,
+        64,
+        65,
+        70
+      ],
+      "javascriptResult": [
+        19,
+        64,
+        65,
+        70
+      ],
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"lessOrEqual\", p[\"age\"], 18)))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"lessOrEqual\", p[\"age\"], 18)))).map(p => p[\"age\"])",
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE NOT age > 18;",
+      "expected": [
+        0,
+        1,
+        2,
+        17,
+        18
+      ],
+      "pythonResult": [
+        0,
+        1,
+        2,
+        17,
+        18
+      ],
+      "javascriptResult": [
+        0,
+        1,
+        2,
+        17,
+        18
+      ],
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"greater\", p[\"age\"], 18)))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"greater\", p[\"age\"], 18)))).map(p => p[\"age\"])",
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE NOT age >= 18;",
+      "expected": [
+        0,
+        1,
+        2,
+        17
+      ],
+      "pythonResult": [
+        0,
+        1,
+        2,
+        17
+      ],
+      "javascriptResult": [
+        0,
+        1,
+        2,
+        17
+      ],
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"greaterOrEqual\", p[\"age\"], 18)))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"greaterOrEqual\", p[\"age\"], 18)))).map(p => p[\"age\"])",
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE NOT NOT age = 18;",
+      "expected": [
+        18
+      ],
+      "pythonResult": [
+        18
+      ],
+      "javascriptResult": [
+        18
+      ],
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.unary(\"not\", UtSqlValue.binary(\"equal\", p[\"age\"], 18))))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.unary(\"not\", UtSqlValue.binary(\"equal\", p[\"age\"], 18))))).map(p => p[\"age\"])",
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE NOT (age = 18);",
+      "expected": [
+        0,
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "pythonResult": [
+        0,
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "javascriptResult": [
+        0,
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"equal\", p[\"age\"], 18)))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"equal\", p[\"age\"], 18)))).map(p => p[\"age\"])",
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE NOT age = 18 AND age > 0;",
+      "expected": [
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "pythonResult": [
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "javascriptResult": [
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.binary(\"and\", UtSqlValue.unary(\"not\", UtSqlValue.binary(\"equal\", p[\"age\"], 18)), UtSqlValue.binary(\"greater\", p[\"age\"], 0)))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.binary(\"and\", UtSqlValue.unary(\"not\", UtSqlValue.binary(\"equal\", p[\"age\"], 18)), UtSqlValue.binary(\"greater\", p[\"age\"], 0)))).map(p => p[\"age\"])",
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE age > 0 AND NOT age = 18;",
+      "expected": [
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "pythonResult": [
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "javascriptResult": [
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.binary(\"and\", UtSqlValue.binary(\"greater\", p[\"age\"], 0), UtSqlValue.unary(\"not\", UtSqlValue.binary(\"equal\", p[\"age\"], 18))))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.binary(\"and\", UtSqlValue.binary(\"greater\", p[\"age\"], 0), UtSqlValue.unary(\"not\", UtSqlValue.binary(\"equal\", p[\"age\"], 18))))).map(p => p[\"age\"])",
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE NOT age = 18 OR age = 0;",
+      "expected": [
+        0,
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "pythonResult": [
+        0,
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "javascriptResult": [
+        0,
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.binary(\"or\", UtSqlValue.unary(\"not\", UtSqlValue.binary(\"equal\", p[\"age\"], 18)), UtSqlValue.binary(\"equal\", p[\"age\"], 0)))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.binary(\"or\", UtSqlValue.unary(\"not\", UtSqlValue.binary(\"equal\", p[\"age\"], 18)), UtSqlValue.binary(\"equal\", p[\"age\"], 0)))).map(p => p[\"age\"])",
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE age = 0 OR NOT age = 18;",
+      "expected": [
+        0,
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "pythonResult": [
+        0,
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "javascriptResult": [
+        0,
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.binary(\"or\", UtSqlValue.binary(\"equal\", p[\"age\"], 0), UtSqlValue.unary(\"not\", UtSqlValue.binary(\"equal\", p[\"age\"], 18))))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.binary(\"or\", UtSqlValue.binary(\"equal\", p[\"age\"], 0), UtSqlValue.unary(\"not\", UtSqlValue.binary(\"equal\", p[\"age\"], 18))))).map(p => p[\"age\"])",
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE NOT (age = 18 OR age = 0);",
+      "expected": [
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "pythonResult": [
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "javascriptResult": [
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"or\", UtSqlValue.binary(\"equal\", p[\"age\"], 18), UtSqlValue.binary(\"equal\", p[\"age\"], 0))))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"or\", UtSqlValue.binary(\"equal\", p[\"age\"], 18), UtSqlValue.binary(\"equal\", p[\"age\"], 0))))).map(p => p[\"age\"])",
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE NOT age + 1 < 18;",
+      "expected": [
+        17,
+        18,
+        19,
+        64,
+        65,
+        70
+      ],
+      "pythonResult": [
+        17,
+        18,
+        19,
+        64,
+        65,
+        70
+      ],
+      "javascriptResult": [
+        17,
+        18,
+        19,
+        64,
+        65,
+        70
+      ],
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"less\", UtSqlValue.binary(\"add\", p[\"age\"], 1), 18)))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"less\", UtSqlValue.binary(\"add\", p[\"age\"], 1), 18)))).map(p => p[\"age\"])",
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE NOT -age < -18;",
+      "expected": [
+        0,
+        1,
+        2,
+        17,
+        18
+      ],
+      "pythonResult": [
+        0,
+        1,
+        2,
+        17,
+        18
+      ],
+      "javascriptResult": [
+        0,
+        1,
+        2,
+        17,
+        18
+      ],
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"less\", UtSqlValue.unary(\"negate\", p[\"age\"]), -18)))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.unary(\"not\", UtSqlValue.binary(\"less\", UtSqlValue.unary(\"negate\", p[\"age\"]), -18)))).map(p => p[\"age\"])",
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE (age = 1) = NOT (age = 0);",
+      "expected": [
+        0,
+        1
+      ],
+      "pythonResult": [
+        0,
+        1
+      ],
+      "javascriptResult": [
+        0,
+        1
+      ],
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.binary(\"equal\", UtSqlValue.binary(\"equal\", p[\"age\"], 1), UtSqlValue.unary(\"not\", UtSqlValue.binary(\"equal\", p[\"age\"], 0))))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.binary(\"equal\", UtSqlValue.binary(\"equal\", p[\"age\"], 1), UtSqlValue.unary(\"not\", UtSqlValue.binary(\"equal\", p[\"age\"], 0))))).map(p => p[\"age\"])",
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE (NOT (age < 18)) = (age >= 18);",
+      "expected": [
+        0,
+        1,
+        2,
+        17,
+        18,
+        19,
+        64,
+        65,
+        70
+      ],
+      "pythonResult": [
+        0,
+        1,
+        2,
+        17,
+        18,
+        19,
+        64,
+        65,
+        70
+      ],
+      "javascriptResult": [
+        0,
+        1,
+        2,
+        17,
+        18,
+        19,
+        64,
+        65,
+        70
+      ],
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.binary(\"equal\", UtSqlValue.unary(\"not\", UtSqlValue.binary(\"less\", p[\"age\"], 18)), UtSqlValue.binary(\"greaterOrEqual\", p[\"age\"], 18)))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.binary(\"equal\", UtSqlValue.unary(\"not\", UtSqlValue.binary(\"less\", p[\"age\"], 18)), UtSqlValue.binary(\"greaterOrEqual\", p[\"age\"], 18)))).map(p => p[\"age\"])",
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE (age = 18) = (age >= 18);",
+      "expected": [
+        0,
+        1,
+        2,
+        17,
+        18
+      ],
+      "pythonResult": [
+        0,
+        1,
+        2,
+        17,
+        18
+      ],
+      "javascriptResult": [
+        0,
+        1,
+        2,
+        17,
+        18
+      ],
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.binary(\"equal\", UtSqlValue.binary(\"equal\", p[\"age\"], 18), UtSqlValue.binary(\"greaterOrEqual\", p[\"age\"], 18)))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.binary(\"equal\", UtSqlValue.binary(\"equal\", p[\"age\"], 18), UtSqlValue.binary(\"greaterOrEqual\", p[\"age\"], 18)))).map(p => p[\"age\"])",
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE (age < 18) = (age <= 18);",
+      "expected": [
+        0,
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "pythonResult": [
+        0,
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "javascriptResult": [
+        0,
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.binary(\"equal\", UtSqlValue.binary(\"less\", p[\"age\"], 18), UtSqlValue.binary(\"lessOrEqual\", p[\"age\"], 18)))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.binary(\"equal\", UtSqlValue.binary(\"less\", p[\"age\"], 18), UtSqlValue.binary(\"lessOrEqual\", p[\"age\"], 18)))).map(p => p[\"age\"])",
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE (age = 18) <> (age > 0);",
+      "expected": [
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "pythonResult": [
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "javascriptResult": [
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.binary(\"notEqual\", UtSqlValue.binary(\"equal\", p[\"age\"], 18), UtSqlValue.binary(\"greater\", p[\"age\"], 0)))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.binary(\"notEqual\", UtSqlValue.binary(\"equal\", p[\"age\"], 18), UtSqlValue.binary(\"greater\", p[\"age\"], 0)))).map(p => p[\"age\"])",
+      "passed": true
+    },
+    {
+      "sql": "SELECT age FROM people AS p WHERE nOt age = 18 aNd age > 0;",
+      "expected": [
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "pythonResult": [
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "javascriptResult": [
+        1,
+        2,
+        17,
+        19,
+        64,
+        65,
+        70
+      ],
+      "python": "[p[\"age\"] for p in people if UtSqlValue.isTrue(UtSqlValue.binary(\"and\", UtSqlValue.unary(\"not\", UtSqlValue.binary(\"equal\", p[\"age\"], 18)), UtSqlValue.binary(\"greater\", p[\"age\"], 0)))]",
+      "javascript": "(people).filter(p => UtSqlValue.isTrue(UtSqlValue.binary(\"and\", UtSqlValue.unary(\"not\", UtSqlValue.binary(\"equal\", p[\"age\"], 18)), UtSqlValue.binary(\"greater\", p[\"age\"], 0)))).map(p => p[\"age\"])",
+      "passed": true
+    }
+  ],
+  "failures": 0
+}

@@ -1,5 +1,5 @@
 // Query clauses retain ordinary expressions and a scoped range variable.
-import { name, node, text, walk } from '../meta/tree.js';
+import { name, node, text, walk, rewrite } from '../meta/tree.js';
 import { rewriteFree } from '../meta/queries.js';
 
 export const query = (source, variable, projection, condition, eager = true) =>
@@ -59,12 +59,48 @@ function pure(expression) {
         'Index',
         'Binary',
         'Unary',
+        'Null',
+        'SqlBinary',
+        'SqlUnary',
+        'SqlTruth',
       ].includes(current.kind)
     ) {
       result = false;
     }
   });
   return result;
+}
+
+// Verified value-library calls become pure operations after understanding.
+export function mergePureQueries(program) {
+  return rewrite(program, (current) => {
+    const inner = current.source;
+    if (
+      current.kind !== 'Query' ||
+      inner?.kind !== 'Query' ||
+      !inner.eager ||
+      !current.eager ||
+      current.condition.kind !== 'Boolean' ||
+      !current.condition.value ||
+      inner.projection.kind !== 'Name' ||
+      inner.projection.name !== inner.variable ||
+      !pure(inner.condition) ||
+      !pure(current.projection)
+    ) {
+      return current;
+    }
+    return {
+      ...current,
+      source: inner.source,
+      variable: inner.variable,
+      condition: inner.condition,
+      projection: rewriteFree(current.projection, current.variable, (part) =>
+        part.kind === 'Name' && part.name === current.variable
+          ? name(inner.variable)
+          : part
+      ),
+    };
+  });
 }
 
 function queryCall(expression) {

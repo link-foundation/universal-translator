@@ -4,6 +4,76 @@ use crate::meta::queries::rewrite_free;
 use crate::meta::{GrammarError, Node, name, rewrite, walk};
 use std::collections::HashSet;
 
+fn pure(expression: &Node) -> bool {
+    let mut result = true;
+    walk(expression, |current| {
+        if ![
+            "Number",
+            "Text",
+            "Boolean",
+            "Name",
+            "Index",
+            "Binary",
+            "Unary",
+            "Null",
+            "SqlBinary",
+            "SqlUnary",
+            "SqlTruth",
+        ]
+        .contains(&current.kind.as_str())
+        {
+            result = false;
+        }
+    });
+    result
+}
+
+pub(crate) fn merge_pure_queries(program: Node) -> Node {
+    rewrite(program, |current| {
+        let Some(inner) = current.node("source") else {
+            return current;
+        };
+        if !current.is("Query")
+            || !inner.is("Query")
+            || inner.flag("eager") != Some(true)
+            || current.flag("eager") != Some(true)
+            || !current
+                .node("condition")
+                .is_some_and(|c| c.is("Boolean") && c.flag("value") == Some(true))
+            || !inner
+                .node("projection")
+                .is_some_and(|p| p.is_name(inner.str("variable").unwrap_or_default()))
+            || !inner.node("condition").is_some_and(pure)
+            || !current.node("projection").is_some_and(pure)
+        {
+            return current;
+        }
+        let variable = current.str("variable").unwrap_or_default();
+        let range = inner.str("variable").unwrap_or_default().to_owned();
+        let (Some(projection), Some(source), Some(condition)) = (
+            current.node("projection"),
+            inner.node("source"),
+            inner.node("condition"),
+        ) else {
+            return current;
+        };
+        let projection = rewrite_free(projection.clone(), variable, &mut |part| {
+            if part.is_name(variable) {
+                name(&range)
+            } else {
+                part
+            }
+        });
+        let source = source.clone();
+        let condition = condition.clone();
+        current
+            .with("source", source)
+            .with("variable", range)
+            .with("condition", condition)
+            .with("projection", projection)
+    })
+}
+
 pub(crate) fn csharp_query_names(program: Node) -> Node {
     let mut used = HashSet::new();
     let mut occupied = HashSet::new();

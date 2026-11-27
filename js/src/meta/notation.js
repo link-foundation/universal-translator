@@ -62,6 +62,8 @@ const mainField = {
   Prose: 'language',
   Text: 'value',
   Unary: 'operator',
+  SqlBinary: 'operator',
+  SqlUnary: 'operator',
   Word: 'text',
   '': 'name',
 };

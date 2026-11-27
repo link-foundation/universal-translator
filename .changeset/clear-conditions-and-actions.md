@@ -39,3 +39,5 @@ Retain the output effect of PHP whitespace outside opening and closing tags, con
 Read PHP markup, repeated code sections and short echoes with shared block scope, retain code mode when comments contain closing tags, and preserve separate concrete output/code regions.
 
 Respect SQL NOT precedence and preserve nested comparison and negation operands in Python output.
+
+Preserve nullable SQL numeric values with three-valued logic, null-safe IS predicates, WHERE truth and verified Python/JavaScript/TypeScript/C# helpers; retain their concrete source and original Unicode ranges across multiple embedded libraries.

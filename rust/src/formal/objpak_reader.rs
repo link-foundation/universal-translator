@@ -10,17 +10,26 @@ use crate::meta::{GrammarError, Node, name};
 fn library_tokens(source: &str, syntax: &Syntax) -> Result<Vec<Token>, GrammarError> {
     let mut lexical = syntax.clone();
     lexical.symbols = &[">>>", "^", "~"];
+    let normalized;
+    let source = if matches!(syntax.id, "javascript" | "typescript") {
+        normalized = source.replace(['\u{2028}', '\u{2029}'], "\n");
+        normalized.as_str()
+    } else {
+        source
+    };
     Ok(tokenize(source, &lexical)?
         .into_iter()
         .filter(|token| {
             token.kind != TokenType::End
+                && !(matches!(syntax.id, "javascript" | "typescript")
+                    && token.kind == TokenType::Comment)
                 && (syntax.blocks == Blocks::Indentation || token.kind != TokenType::Newline)
         })
         .collect())
 }
 
 fn significant_break(tokens: &[Token], index: usize, language: &str) -> bool {
-    if language != "javascript" || index == 0 {
+    if !matches!(language, "javascript" | "typescript") || index == 0 {
         return false;
     }
     let previous = &tokens[index - 1];
@@ -32,7 +41,12 @@ fn significant_break(tokens: &[Token], index: usize, language: &str) -> bool {
         && previous.line != token.line
 }
 
-fn library_end(source: &str, start: usize, definition: &str, syntax: &Syntax) -> Option<usize> {
+pub(crate) fn library_end(
+    source: &str,
+    start: usize,
+    definition: &str,
+    syntax: &Syntax,
+) -> Option<usize> {
     let expected = library_tokens(definition, syntax).ok()?;
     let actual = library_tokens(&source[start..], syntax).ok()?;
     if actual.len() < expected.len()
@@ -78,7 +92,7 @@ fn joined_words(tokens: &[Token], index: usize) -> bool {
             .is_some_and(|((_, end), (start, _))| end == start)
 }
 
-fn top_level(source: &str, start: usize, syntax: &Syntax) -> bool {
+pub(crate) fn top_level(source: &str, start: usize, syntax: &Syntax) -> bool {
     if start > 0 && !matches!(source.as_bytes()[start - 1], b'\r' | b'\n') {
         return false;
     }
@@ -102,9 +116,8 @@ fn top_level(source: &str, start: usize, syntax: &Syntax) -> bool {
 }
 
 pub(crate) struct LibrarySource {
-    pub masked: String,
     pub bindings: Vec<String>,
-    definitions: Vec<(usize, usize)>,
+    pub definitions: Vec<(usize, usize)>,
 }
 
 pub(crate) fn prepare(source: &str, syntax: &Syntax) -> LibrarySource {
@@ -116,7 +129,6 @@ pub(crate) fn prepare(source: &str, syntax: &Syntax) -> LibrarySource {
         "rust" => objpak_runtime::RUST,
         _ => {
             return LibrarySource {
-                masked: source.into(),
                 bindings: Vec::new(),
                 definitions: Vec::new(),
             };
@@ -129,7 +141,6 @@ pub(crate) fn prepare(source: &str, syntax: &Syntax) -> LibrarySource {
     } else {
         "class UtObjpakSet"
     };
-    let mut masked = source.to_owned();
     let mut bindings = Vec::new();
     let mut definitions = Vec::new();
     for (position, _) in source.match_indices(prefix) {
@@ -165,19 +176,32 @@ pub(crate) fn prepare(source: &str, syntax: &Syntax) -> LibrarySource {
         let Some(end) = library_end(source, start, &definition, syntax) else {
             continue;
         };
-        let blank = source[start..end]
-            .chars()
-            .map(|c| if matches!(c, '\n' | '\r') { c } else { ' ' })
-            .collect::<String>();
-        masked.replace_range(start..end, &blank);
         bindings.push(binding.to_owned());
         definitions.push((start, end));
     }
     LibrarySource {
-        masked,
         bindings,
         definitions,
     }
+}
+
+// Lexer offsets count characters; definition ranges count original UTF-8 bytes.
+// Mask once from the original source so multiple libraries cannot shift ranges.
+pub(crate) fn mask_definitions(source: &str, definitions: &[(usize, usize)]) -> String {
+    source
+        .char_indices()
+        .map(|(offset, c)| {
+            if !matches!(c, '\n' | '\r')
+                && definitions
+                    .iter()
+                    .any(|&(from, to)| offset >= from && offset < to)
+            {
+                ' '
+            } else {
+                c
+            }
+        })
+        .collect()
 }
 
 pub(crate) fn concrete(
@@ -186,10 +210,12 @@ pub(crate) fn concrete(
     tokens: &[Token],
     productions: Vec<Node>,
     library: &LibrarySource,
+    sql_library: &LibrarySource,
 ) -> Node {
     let ranges = library
         .definitions
         .iter()
+        .chain(&sql_library.definitions)
         .map(|&(start, end)| {
             (
                 source[..start].chars().count(),
@@ -210,48 +236,53 @@ pub(crate) fn concrete(
         crate::concrete_syntax::concrete_syntax(source, language, &tokens, productions);
     let mut children = syntax.node_list("children");
     let mut productions = syntax.node_list("productions");
-    for &(start, end) in &library.definitions {
-        children = children
-            .into_iter()
-            .flat_map(|child| {
-                let from = child.number("start").unwrap_or_default() as usize;
-                let to = child.number("end").unwrap_or_default() as usize;
-                if !child.is("Trivia") || from > start || to < end {
-                    return vec![child];
-                }
-                let mut split = Vec::new();
-                if from < start {
+    for (definitions, rule) in [
+        (&library.definitions, "objpakLibrary"),
+        (&sql_library.definitions, "sqlValueLibrary"),
+    ] {
+        for &(start, end) in definitions {
+            children = children
+                .into_iter()
+                .flat_map(|child| {
+                    let from = child.number("start").unwrap_or_default() as usize;
+                    let to = child.number("end").unwrap_or_default() as usize;
+                    if !child.is("Trivia") || from > start || to < end {
+                        return vec![child];
+                    }
+                    let mut split = Vec::new();
+                    if from < start {
+                        split.push(
+                            child
+                                .clone()
+                                .with("end", start as f64)
+                                .with("text", &source[from..start]),
+                        );
+                    }
                     split.push(
-                        child
-                            .clone()
-                            .with("end", start as f64)
-                            .with("text", &source[from..start]),
+                        Node::new("Token")
+                            .with("type", "library-definition")
+                            .with("start", start as f64)
+                            .with("end", end as f64)
+                            .with("text", &source[start..end]),
                     );
-                }
-                split.push(
-                    Node::new("Token")
-                        .with("type", "library-definition")
-                        .with("start", start as f64)
-                        .with("end", end as f64)
-                        .with("text", &source[start..end]),
-                );
-                if to > end {
-                    split.push(
-                        child
-                            .with("start", end as f64)
-                            .with("text", &source[end..to]),
-                    );
-                }
-                split
-            })
-            .collect();
-        productions.push(
-            Node::new("Production")
-                .with("rule", "objpakLibrary")
-                .with("concept", "LibraryDefinition")
-                .with("start", start as f64)
-                .with("end", end as f64),
-        );
+                    if to > end {
+                        split.push(
+                            child
+                                .with("start", end as f64)
+                                .with("text", &source[end..to]),
+                        );
+                    }
+                    split
+                })
+                .collect();
+            productions.push(
+                Node::new("Production")
+                    .with("rule", rule)
+                    .with("concept", "LibraryDefinition")
+                    .with("start", start as f64)
+                    .with("end", end as f64),
+            );
+        }
     }
     syntax.set("children", children);
     syntax.set("productions", productions);

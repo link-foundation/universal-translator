@@ -288,3 +288,20 @@ writer fails four independently, and the current path passes all 23 across
 SQLite, Python, Node and C#. Matching regressions, number regressions, lint and
 Clippy pass. See `QUERIES.md`. Continue NULL semantics and all open inventory
 rows; this atomic correction does not finish the query requirement.
+
+Nullable SQL values now have explicit NULL, SQL unary/binary and WHERE-truth
+contracts in both engines. The previous reader fails 65/81 finite cases; the
+corrected path agrees across SQLite, Python, Node, C# and SQL restored after
+JavaScript rereading. All nine AND/OR truth pairs, null-safe IS, IS TRUE/FALSE,
+nullable arithmetic and zero divisors are covered. Token-verified helpers retain
+CST productions, reject rebinding/unknown calls and respect TypeScript/JavaScript
+return newlines. Rust now masks multiple libraries from original ranges,
+preserving Unicode whitespace offsets. Thirty-six focused JS tests, 32 Rust
+tests, lint, Clippy and native checks pass. `QUERIES.md` records the exact numeric
+subset and remaining schema/affinity/type/dialect limits. Continue all open
+inventory rows; current-SHA CI is required after pushing this atomic change.
+
+All five workflows for `c739a05` pass, including Node/Bun/Deno, Rust, native
+translation, Security and web/desktop builds. The review window elapsed and fresh
+conversation, inline and review API responses have no new findings. The native
+goal stays active and PR 17 stays draft until the full inventory is verified.

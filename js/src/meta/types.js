@@ -29,6 +29,10 @@ const fixedTypes = new Map([
   ['Length', 'integer'],
   ['ProcessArguments', 'array<text>'],
   ['SetLiteral', 'set<text>'],
+  ['Null', 'object'],
+  ['SqlBinary', 'object'],
+  ['SqlUnary', 'object'],
+  ['SqlTruth', 'boolean'],
 ]);
 
 function binaryType(expression, scope, signatures) {

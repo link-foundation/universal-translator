@@ -1,0 +1,27 @@
+▶ SQL value helper contracts
+  ✖ retains ranges with Unicode whitespace and multiple independent helper libraries (426.883545ms)
+✖ SQL value helper contracts (429.360074ms)
+ℹ tests 1
+ℹ suites 1
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 946.568054
+
+✖ failing tests:
+
+test at node_modules/.deno/test-anywhere@0.8.50/node_modules/test-anywhere/src/index.js:174:12
+✖ retains ranges with Unicode whitespace and multiple independent helper libraries (426.883545ms)
+  TypeError [Error]: Cannot read properties of undefined (reading 'kind')
+      at TestContext.<anonymous> (file:///tmp/gh-issue-solver-1795726129025/js/tests/sql-values.test.js:199:20)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at node:internal/test_runner/test:1903:71
+      at node:internal/per_context/primordials:505:82
+      at new Promise (<anonymous>)
+      at new SafePromise (node:internal/per_context/primordials:479:3)
+      at node:internal/per_context/primordials:505:9
+      at Array.map (<anonymous>)

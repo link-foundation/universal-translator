@@ -64,7 +64,7 @@ fn atom(value: &Value) -> String {
 /// The field written as a plain word right after the kind.
 fn main_field(kind: &str) -> Option<&'static str> {
     Some(match kind {
-        "Binary" | "Unary" => "operator",
+        "Binary" | "Unary" | "SqlBinary" | "SqlUnary" => "operator",
         "Blank" => "lines",
         "Boolean" | "Number" | "Text" => "value",
         "Call" => "callee",

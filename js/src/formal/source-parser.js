@@ -1,6 +1,7 @@
 // Parsing and library contracts retain a separate lossless concrete record.
 import { tokenize } from './lexer.js';
 import { objpakSource, objpakConcrete } from './objpak-reader.js';
+import { sqlValueSource } from './sql-values.js';
 import {
   concreteParser,
   concreteSyntax,
@@ -8,7 +9,8 @@ import {
 import { registerOrigins } from '../translation/source-origins.js';
 
 export function parseSource(source, syntax, LanguageParser) {
-  const library = objpakSource(source, syntax.id, syntax);
+  const sqlLibrary = sqlValueSource(source, syntax);
+  const library = objpakSource(sqlLibrary.source, syntax.id, syntax);
   const tokens = tokenize(library.source, syntax);
   const { parser, locations } = concreteParser(
     new LanguageParser(tokens, syntax),
@@ -18,19 +20,27 @@ export function parseSource(source, syntax, LanguageParser) {
   if (library.bindings.length) {
     tree.objpakBindings = library.bindings;
   }
+  if (sqlLibrary.bindings.length) {
+    tree.sqlValueBindings = sqlLibrary.bindings;
+  }
   registerOrigins(tree, locations, source);
   const concreteTokens = tokens.filter(
     ({ rawSpan }) =>
-      !library.definitions.some(
+      ![...library.definitions, ...sqlLibrary.definitions].some(
         ([start, end]) => rawSpan && rawSpan[0] >= start && rawSpan[1] <= end
       )
   );
   return {
     ...tree,
     syntax: objpakConcrete(
-      concreteSyntax(source, syntax.id, concreteTokens, tree, locations),
+      objpakConcrete(
+        concreteSyntax(source, syntax.id, concreteTokens, tree, locations),
+        source,
+        library.definitions
+      ),
       source,
-      library.definitions
+      sqlLibrary.definitions,
+      'sqlValueLibrary'
     ),
   };
 }

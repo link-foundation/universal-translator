@@ -558,6 +558,29 @@ fn expression_slot(slots: &mut Captured, name: &str) -> Option<Node> {
 
 fn collection_node(key: &str, mut slots: Captured) -> Option<Node> {
     Some(match key {
+        "sql-null" => Node::new("Null"),
+        "sql-truth" => {
+            Node::new("SqlTruth").with("operand", expression_slot(&mut slots, "operand")?)
+        }
+        "sql-unary" => {
+            let operator = expression_slot(&mut slots, "operator")?;
+            if !operator.is("Text") || !crate::meta::sql_values::unary(operator.str("value")?) {
+                return None;
+            }
+            Node::new("SqlUnary")
+                .with("operator", operator.str("value")?)
+                .with("operand", expression_slot(&mut slots, "operand")?)
+        }
+        "sql-binary" => {
+            let operator = expression_slot(&mut slots, "operator")?;
+            if !operator.is("Text") || !crate::meta::sql_values::binary(operator.str("value")?) {
+                return None;
+            }
+            Node::new("SqlBinary")
+                .with("operator", operator.str("value")?)
+                .with("left", expression_slot(&mut slots, "left")?)
+                .with("right", expression_slot(&mut slots, "right")?)
+        }
         "process-arguments" => {
             let include = expression_slot(&mut slots, "includeProgram")?;
             Node::new("ProcessArguments").with("includeProgram", include.flag("value")?)
