@@ -6,6 +6,7 @@
 // differently.
 
 import { naturalLanguage } from './catalog.js';
+import { questionKey, answerKey } from '../meta/questions.js';
 import {
   binaryTemplates,
   levelIndex,
@@ -118,6 +119,10 @@ function separated(expressions, language) {
 
 function primary(expression, language) {
   switch (expression.kind) {
+    case 'Question':
+      return fill(language, answerKey(expression.aspect), {
+        subject: operand(expression.subject, language),
+      });
     case 'Number':
       return [{ type: 'number', value: expression.value }];
     case 'Text':
@@ -231,7 +236,11 @@ class Writer {
   sentence(depth, key, slots, opensBlock = false) {
     const { language } = this;
     const text = renderTokens(fill(language, key, slots), language);
-    const end = opensBlock ? language.blockEnd : language.sentenceEnd;
+    const end = opensBlock
+      ? language.blockEnd
+      : key.startsWith('question-')
+        ? '?'
+        : language.sentenceEnd;
     this.lines.push(
       mappedLine(this, `${indentUnit.repeat(depth)}${capitalize(text)}${end}`)
     );
@@ -292,9 +301,7 @@ class Writer {
       case 'Return':
         return this.giveBack(statement, depth);
       case 'Evaluate':
-        return this.sentence(depth, 'evaluate', {
-          expression: this.expression(statement.expression),
-        });
+        return this.evaluation(statement.expression, depth);
       case 'If':
         return this.conditional(statement, depth);
       case 'While':
@@ -306,6 +313,17 @@ class Writer {
       default:
         throw new Error(`Cannot write a ${statement.kind} statement in words`);
     }
+  }
+
+  evaluation(expression, depth) {
+    if (expression.kind === 'Question') {
+      return this.sentence(depth, questionKey(expression.aspect), {
+        subject: this.expression(expression.subject),
+      });
+    }
+    return this.sentence(depth, 'evaluate', {
+      expression: this.expression(expression),
+    });
   }
 
   printing(statement, depth) {
@@ -400,6 +418,11 @@ class Writer {
       this.sentence(0, 'function', { name, parameters }, true);
     } else {
       this.sentence(0, 'function-without-parameters', { name }, true);
+    }
+    if (item.documentation) {
+      this.sentence(1, 'documentation', {
+        value: this.expression(item.documentation),
+      });
     }
     this.block(item.body, 1);
   }

@@ -16,6 +16,8 @@
 //!   Return         { value }
 //!   Print          { value, newline }
 //!   Evaluate       { expression }
+//!   Question       { aspect: type | documentation | source | details, subject }
+//!   PropertyAssignment { object, property, value }
 //!   Comment        { text, trailing?, block? }   trailing: the spaces between
 //!                  the code and a comment on the same line; block: written
 //!                  as a block comment

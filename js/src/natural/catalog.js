@@ -57,7 +57,16 @@ export const templateKeys = [
 // as the counting loop it lowers to, and increase and decrease (everyday
 // wordings of an assignment that adds to or subtracts from the variable) are
 // written as the assignment.
-export const optionalTemplateKeys = ['for-each', 'increase', 'decrease'];
+export const optionalTemplateKeys = [
+  'for-each',
+  'increase',
+  'decrease',
+  'documentation',
+  ...['type', 'documentation', 'source', 'details'].flatMap((aspect) => [
+    `question-${aspect}`,
+    `answer-${aspect}`,
+  ]),
+];
 
 // Everyday wordings a profile with its own rules does not inherit: a
 // controlled standard keeps to its vocabulary, and the assignment still says

@@ -13,6 +13,7 @@ import { slashOperator } from './numbers.js';
 import { powerSymbol } from './power.js';
 import { typeDepth, typeHeadLength, withAnnotations } from './annotations.js';
 import { withExceptionParser } from './exception-parser.js';
+import { questionSuffix, propertyAssignment } from './question-parser.js';
 import {
   concreteParser,
   concreteSyntax,
@@ -911,7 +912,10 @@ class BaseParser {
     if (this.isCommandCall()) {
       return this.commandCall();
     }
-    const expression = this.expression();
+    const expression = questionSuffix(this, this.expression());
+    if (this.accept('=')) {
+      return propertyAssignment(this, expression);
+    }
     const terminated = this.is(';');
     this.endStatement();
     if (this.syntax.id === 'rust' && !terminated && this.is('}')) {
@@ -1296,7 +1300,11 @@ class BaseParser {
         parts.push(expression);
       }
     }
-    if (parts.length === 1 && parts[0].kind === 'Text') {
+    if (
+      parts.length === 1 &&
+      parts[0].kind === 'Text' &&
+      this.syntax.id !== 'python'
+    ) {
       return parts[0];
     }
     return node('Interpolation', { parts });

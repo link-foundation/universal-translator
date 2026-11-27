@@ -131,7 +131,8 @@ pub(crate) struct Emitter {
 
 /// The import lines a used feature needs, before and after the common
 /// library imports.
-const IMPORTS_BEFORE_LIBRARY: [(&str, &str); 5] = [
+const IMPORTS_BEFORE_LIBRARY: [(&str, &str); 6] = [
+    ("inspect", "import inspect"),
     ("sys", "import sys"),
     ("typing", "from typing import Annotated"),
     ("strformat", "import std/strformat"),
@@ -397,6 +398,14 @@ impl Emitter {
                 })
             }
             "Name" => Ok(self.variable(expression.str("name").unwrap_or_default())),
+            "Question" => super::questions::write_question(self, expression),
+            "Method" if matches!(self.id(), "python" | "javascript" | "typescript") => {
+                let receiver = self.expression(field(expression, "receiver")?)?;
+                Ok(format!(
+                    "({receiver}).{}",
+                    expression.str("name").unwrap_or_default()
+                ))
+            }
             "Interpolation" => {
                 let parts = expression.node_list("parts");
                 self.interpolation(&parts)
@@ -642,6 +651,14 @@ impl Emitter {
             "Evaluate" => {
                 let line = format!("{}{end}", self.expression(field(statement, "expression")?)?);
                 self.line(&line);
+            }
+            "PropertyAssignment" if matches!(self.id(), "python" | "javascript" | "typescript") => {
+                let object = self.expression(field(statement, "object")?)?;
+                let value = self.expression(field(statement, "value")?)?;
+                self.line(&format!(
+                    "{object}.{} = {value}{end}",
+                    statement.str("property").unwrap_or_default()
+                ));
             }
             "Return" => {
                 let line = self.return_statement(statement)?;
@@ -1042,6 +1059,14 @@ impl Emitter {
 
     pub(crate) fn function_definition(&mut self, item: &Node) -> Result<()> {
         let _origin = crate::emission_map::active(item);
+        if item.node("documentation").is_some()
+            && !matches!(self.id(), "python" | "javascript" | "typescript")
+        {
+            return Err(GrammarError::new(format!(
+                "Cannot emit runtime documentation in {}",
+                self.id()
+            )));
+        }
         let dialect = self.dialect;
         dialect.function_definition(self, item)
     }
@@ -1066,6 +1091,12 @@ impl Emitter {
             signature = signature.trim_start_matches("local ").to_owned();
         }
         self.open_block(&signature);
+        if self.id() == "python"
+            && let Some(documentation) = item.node("documentation")
+        {
+            let written = self.expression(documentation)?;
+            self.line(&written);
+        }
         // Perl receives its arguments in @_.
         let parameters = item.nodes("parameters");
         if self.syntax.unpacked_parameters && !parameters.is_empty() {
@@ -1077,6 +1108,7 @@ impl Emitter {
         }
         self.body(field(item, "body")?)?;
         self.close_block();
+        super::documentation::write_assignment(self, item)?;
         Ok(())
     }
 

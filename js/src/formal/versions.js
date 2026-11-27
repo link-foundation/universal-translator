@@ -62,7 +62,9 @@ export const languageVersions = {
   python: {
     default: '3',
     versions: {
-      3: { label: 'Python 3 (3.6+, f-strings)' },
+      3: { label: 'Python 3 (current, f-strings and cleaned docstrings)' },
+      3.13: { label: 'Python 3.13 (cleaned docstrings)' },
+      3.12: { label: 'Python 3.12 (original docstring indentation)' },
       3.5: {
         label: 'Python 3.5',
         // Python 3.5 has no f-strings (they came with 3.6): computed parts

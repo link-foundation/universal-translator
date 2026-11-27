@@ -6,6 +6,7 @@ mod agreement;
 pub mod catalog;
 pub mod comments;
 pub mod levels;
+mod lines;
 pub mod probability;
 pub mod prose_reading;
 pub mod reader;

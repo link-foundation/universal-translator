@@ -1,0 +1,5 @@
+{"source":"type(meaning)\n","from":"python","to":"english","output":"What is the type of meaning?\n"}
+{"source":"meaning.__doc__\n","from":"python","to":"english","output":"What is the documentation of meaning?\n"}
+{"source":"import inspect\ninspect.getsource(meaning)\n","from":"python","to":"english","output":"What is the source of meaning?\n"}
+{"source":"meaning??\n","from":"python","to":"english","output":"What is the detailed information about meaning?\n"}
+{"source":"def meaning(value):\n    \"\"\"Explain the meaning.\n\n    Retain this indentation.\n    \"\"\"\n    return value\n\nprint(meaning.__doc__)\n","from":"python","to":"javascript","output":"function meaning(value) {\n    return value;\n}\nmeaning.__doc__ = \"Explain the meaning.\\n\\nRetain this indentation.\\n\";\n\nconsole.log((meaning).__doc__);\n"}

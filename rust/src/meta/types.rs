@@ -34,6 +34,9 @@ fn expression_type(expression: &Node, scope: &Scope, signatures: &Signatures) ->
         "Number" => Some(number_type(expression).into()),
         "Text" | "Interpolation" => Some("text".into()),
         "Boolean" => Some("boolean".into()),
+        "Question" if matches!(expression.str("aspect"), Some("documentation" | "source")) => {
+            Some("text".into())
+        }
         "Name" => scope.get(expression.str("name")?).cloned(),
         "Unary" => Some(if expression.str("operator") == Some("not") {
             "boolean".into()
@@ -344,6 +347,8 @@ fn child_order(kind: &str) -> &'static [&'static str] {
         "ForEach" => &["array", "body"],
         "Declaration" | "Assignment" | "Return" | "Print" => &["value"],
         "Evaluate" => &["expression"],
+        "Question" => &["subject"],
+        "PropertyAssignment" => &["object", "value"],
         "While" => &["condition", "body"],
         "Binary" => &["left", "right"],
         "Unary" => &["operand"],

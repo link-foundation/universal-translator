@@ -15,6 +15,8 @@ import { raiseTruthFunctions } from '../meta/truth.js';
 import { languageSyntax, namingConvention } from './languages.js';
 import { splitVersion, versionsOf } from './versions.js';
 import { slashOperator } from './numbers.js';
+import { recognizeQuestions } from './questions.js';
+import { recognizeDocumentation } from './documentation.js';
 import {
   asciiName,
   avoidReserved,
@@ -817,7 +819,9 @@ export function dropEmptyStatements(program, { from } = {}) {
 }
 
 export const understandingRules = [
+  recognizeDocumentation,
   findEntryPoint,
+  recognizeQuestions,
   concatenationOperator,
   integerDivisionCalls,
   recognizeArrays,

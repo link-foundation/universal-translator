@@ -71,6 +71,7 @@ mod concrete;
 mod exceptions;
 mod forms;
 mod loops;
+mod questions;
 mod types;
 
 pub use types::source_type;
@@ -981,6 +982,10 @@ impl Parser {
             return self.command_call(None);
         }
         let expression = self.expression()?;
+        let expression = self.question_suffix(expression)?;
+        if self.accept("=") {
+            return self.property_assignment(expression);
+        }
         let terminated = self.is(";");
         self.end_statement()?;
         if self.syntax.id == "rust" && !terminated && self.is("}") {
@@ -1423,7 +1428,7 @@ impl Parser {
                 }
             }
         }
-        if parts.len() == 1 && parts[0].is("Text") {
+        if parts.len() == 1 && parts[0].is("Text") && self.syntax.id != "python" {
             return Ok(parts.remove(0));
         }
         Ok(Node::new("Interpolation").with("parts", parts))

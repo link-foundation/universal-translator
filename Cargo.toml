@@ -193,3 +193,7 @@ path = "rust/tests/grammar_workspace.rs"
 [[test]]
 name = "comment_mapping"
 path = "rust/tests/comment_mapping.rs"
+
+[[test]]
+name = "questions"
+path = "rust/tests/questions.rs"

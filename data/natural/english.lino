@@ -12,6 +12,15 @@ natural:
   false: false
   note: 'Note: {text}'
   templates:
+    answer-type: 'the type of {subject}'
+    question-type: 'What is the type of {subject}' 'What type is {subject}'
+    answer-documentation: 'the documentation of {subject}'
+    question-documentation: 'What is the documentation of {subject}'
+    answer-source: 'the source of {subject}'
+    question-source: 'What is the source of {subject}'
+    answer-details: 'the detailed information about {subject}'
+    question-details: 'What is the detailed information about {subject}'
+    documentation: 'Documentation is {value}'
     function: 'Define {name} using {parameters}'
     function-without-parameters: 'Define {name}'
     declare: 'Create {name} with value {value}' 'Let {name} be {value}'

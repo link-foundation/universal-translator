@@ -1,0 +1,27 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 8.82s
+     Running rust/tests/questions.rs (target/debug/deps/questions-409af048b37cc244)
+
+running 7 tests
+test documentation_must_be_text_at_the_start_of_a_definition ... ok
+test imports_are_resolved_and_custom_names_stay_calls ... ok
+test formatted_strings_are_not_python_docstrings ... ok
+test introspection_questions_keep_distinct_aspects_and_subjects ... ok
+test documentation_editions_keep_the_source_runtime_value ... ok
+test documentation_is_runtime_metadata_and_retains_multiline_contents ... ok
+test questions_round_trip_every_natural_language ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.42s
+
+     Running rust/tests/versions.rs (target/debug/deps/versions-d07b338d3536ce1c)
+
+running 6 tests
+test lists_the_default_version_first ... ok
+test splits_a_version_from_an_id ... ok
+test reads_lua_concatenation_as_joined_text_looser_than_addition ... ok
+test divides_integers_in_lua_5_1_and_php_5_without_operators_and_intdiv ... ok
+test joins_text_with_plus_in_csharp_5 ... ok
+test keeps_the_meaning_of_every_task_written_in_every_older_version ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.80s
+

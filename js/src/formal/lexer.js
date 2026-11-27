@@ -81,11 +81,19 @@ export class SyntaxError extends Error {
 // Text between quotes. Most languages escape with a backslash; Pascal, Ada,
 // Fortran and Visual Basic write a quote inside text as two quotes instead,
 // and keep backslashes as they are.
-function readQuoted(source, start, quote, line, doubled = false) {
-  let index = start + 1;
+function readQuoted(
+  source,
+  start,
+  quote,
+  line,
+  doubled = false,
+  triple = false
+) {
+  const delimiter = triple ? quote.repeat(3) : quote;
+  let index = start + delimiter.length;
   let raw = '';
   while (index < source.length) {
-    if (source[index] === quote) {
+    if (source.startsWith(delimiter, index)) {
       if (!doubled || source[index + 1] !== quote) {
         break;
       }
@@ -95,7 +103,7 @@ function readQuoted(source, start, quote, line, doubled = false) {
       raw += source.slice(index, index + 2);
       index += 2;
     } else {
-      if (source[index] === '\n' && quote !== '`') {
+      if (source[index] === '\n' && quote !== '`' && !triple) {
         throw new SyntaxError('Unterminated text literal', line);
       }
       raw += source[index];
@@ -105,7 +113,7 @@ function readQuoted(source, start, quote, line, doubled = false) {
   if (index >= source.length) {
     throw new SyntaxError('Unterminated text literal', line);
   }
-  return { raw, end: index + 1 };
+  return { raw, end: index + delimiter.length };
 }
 
 export function decodeEscapes(raw) {
@@ -415,7 +423,9 @@ class Lexer {
       start,
       quote,
       this.line,
-      doubled
+      doubled,
+      this.syntax.id === 'python' &&
+        this.source.startsWith(quote.repeat(3), start)
     );
     const style = interpolationStyle(this.syntax, quote, prefixed);
     // Doubled quotes are already read, so the text has no escapes left.

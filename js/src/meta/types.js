@@ -60,6 +60,10 @@ function expressionType(expression, scope, signatures) {
       return numberType(expression);
     case 'Name':
       return scope.get(expression.name);
+    case 'Question':
+      return ['source', 'documentation'].includes(expression.aspect)
+        ? 'text'
+        : undefined;
     case 'Unary':
       if (expression.operator === 'not') {
         return 'boolean';

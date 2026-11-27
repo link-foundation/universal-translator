@@ -86,11 +86,16 @@ fn read_quoted(
     quote: char,
     line: usize,
     doubled: bool,
+    triple: bool,
 ) -> Result<(String, usize), GrammarError> {
-    let mut index = start + 1;
+    let width = if triple { 3 } else { 1 };
+    let mut index = start + width;
     let mut raw = String::new();
     while index < source.len() {
-        if source[index] == quote {
+        if source
+            .get(index..index + width)
+            .is_some_and(|part| part.iter().all(|c| *c == quote))
+        {
             if !doubled || source.get(index + 1) != Some(&quote) {
                 break;
             }
@@ -100,7 +105,7 @@ fn read_quoted(
             raw.extend(&source[index..(index + 2).min(source.len())]);
             index += 2;
         } else {
-            if source[index] == '\n' && quote != '`' {
+            if source[index] == '\n' && quote != '`' && !triple {
                 return Err(GrammarError::syntax("Unterminated text literal", line));
             }
             raw.push(source[index]);
@@ -110,7 +115,7 @@ fn read_quoted(
     if index >= source.len() {
         return Err(GrammarError::syntax("Unterminated text literal", line));
     }
-    Ok((raw, index + 1))
+    Ok((raw, index + width))
 }
 
 /// Replace escape sequences such as `\n` and `\u{1F600}` with the characters
@@ -580,7 +585,12 @@ impl<'a> Lexer<'a> {
         let start = self.index + prefix.map_or(0, |prefix| prefix.chars().count());
         let quote = self.source[start];
         let doubled = self.syntax.doubled_quotes;
-        let (raw, end) = read_quoted(&self.source, start, quote, self.line, doubled)?;
+        let triple = self.syntax.id == "python"
+            && self
+                .source
+                .get(start..start + 3)
+                .is_some_and(|part| part.iter().all(|c| *c == quote));
+        let (raw, end) = read_quoted(&self.source, start, quote, self.line, doubled, triple)?;
         let style = interpolation_style(self.syntax, quote, prefix);
         self.push_text(TokenType::Text, &raw, Some(quote), style);
         // Doubled quotes are already read, so the text has no escapes left.

@@ -179,6 +179,18 @@ fn primary(expression: &Node, language: &Language) -> Result<Vec<Token>, String>
             expression.str("name").unwrap_or_default(),
             language,
         ))]),
+        "Question" => fill(
+            language,
+            &format!("answer-{}", expression.str("aspect").unwrap_or_default()),
+            &Slots::from([(
+                "subject",
+                write_expression(
+                    child(expression, "subject")?,
+                    language,
+                    level_index("primary"),
+                )?,
+            )]),
+        ),
         "Call" => {
             let callee = vec![word(write_name(
                 expression.str("callee").unwrap_or_default(),
@@ -342,9 +354,11 @@ impl Writer<'_> {
         let language = self.language;
         let text = render_tokens(&fill(language, key, slots)?, language);
         let end = if opens_block {
-            &language.block_end
+            language.block_end.as_str()
+        } else if key.starts_with("question-") {
+            "?"
         } else {
-            &language.sentence_end
+            language.sentence_end.as_str()
         };
         self.lines.push(format!(
             "{}{}{end}",
@@ -466,6 +480,18 @@ impl Writer<'_> {
                 None => self.sentence(depth, "return", &Slots::new(), false),
             },
             "Evaluate" => {
+                if let Some(expression) = statement
+                    .node("expression")
+                    .filter(|expression| expression.is("Question"))
+                {
+                    let subject = self.expression(expression.node("subject"))?;
+                    return self.sentence(
+                        depth,
+                        &format!("question-{}", expression.str("aspect").unwrap_or_default()),
+                        &Slots::from([("subject", subject)]),
+                        false,
+                    );
+                }
                 let expression = self.expression(statement.node("expression"))?;
                 self.sentence(
                     depth,
@@ -538,6 +564,10 @@ impl Writer<'_> {
                 &Slots::from([("name", name), ("parameters", parameters)]),
                 true,
             )?;
+        }
+        if let Some(documentation) = item.node("documentation") {
+            let value = self.expression(Some(documentation))?;
+            self.sentence(1, "documentation", &Slots::from([("value", value)]), false)?;
         }
         self.block(item.node("body"), 1)
     }

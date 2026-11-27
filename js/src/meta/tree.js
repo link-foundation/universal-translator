@@ -27,6 +27,8 @@
 //   Binary         { operator, left, right }
 //   Unary          { operator, operand }
 //   Call           { callee, arguments }
+//   Question       { aspect: type | documentation | source | details, subject }
+//   PropertyAssignment { object, property, value }
 //   ArrayLiteral   { elements }         NewArray { length, fill }
 //   Index          { array, index }     Length { array }
 //   IndexAssignment { name, index, value }

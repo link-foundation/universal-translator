@@ -6,11 +6,13 @@
 // that parses as what the slot holds (an expression, a name or a list of
 // names), and literal words only match outside parentheses.
 
-import { add, block, name, node, number } from '../meta/tree.js';
+import { add, block, name, node, number, walk } from '../meta/tree.js';
 import { raiseForEach } from '../meta/for-each.js';
 import { naturalLanguage } from './catalog.js';
 import { tokenize } from './tokens.js';
 import { levelIndex, levels, operatorOfTemplate } from './levels.js';
+import { questionAspects, questionKey, answerKey } from '../meta/questions.js';
+import { sentenceLines } from './lines.js';
 import { normalize, slotCase } from './agreement.js';
 import { attachComments, withOrigin } from '../translation/source-origins.js';
 
@@ -245,6 +247,20 @@ export class SentenceReader {
         }
       }
     }
+    for (const aspect of questionAspects) {
+      for (const template of this.language.compiled[answerKey(aspect)]) {
+        const slots = this.match(
+          template,
+          tokens,
+          start,
+          end,
+          (_slot, from, to) => this.expression(tokens, from, to, 0)
+        );
+        if (slots) {
+          return node('Question', { aspect, subject: slots.subject });
+        }
+      }
+    }
     return undefined;
   }
 
@@ -383,6 +399,8 @@ function arrayNode(key, slots) {
 }
 
 const statementKeys = [
+  ...questionAspects.map(questionKey),
+  'documentation',
   'print-line',
   'print',
   'set-element',
@@ -399,7 +417,20 @@ const blockKeys = ['else-if', 'else', 'if', 'while', 'for', 'for-each'];
 const functionKeys = ['function', 'function-without-parameters'];
 
 function statementFromSentence({ key, slots }) {
+  if (key.startsWith('question-')) {
+    return node('Evaluate', {
+      expression: node('Question', {
+        aspect: key.slice(9),
+        subject: slots.subject,
+      }),
+    });
+  }
   switch (key) {
+    case 'documentation':
+      if (slots.value.kind !== 'Text') {
+        throw new Error('Documentation must be a text value');
+      }
+      return node('Documentation', { value: slots.value });
     case 'print-line':
     case 'print':
       return node('Print', {
@@ -461,7 +492,7 @@ function markHeadings(lines) {
 // One line of text: depth, the sentence without its end mark, and whether it
 // opens a block.
 function readLines(source, language) {
-  const lines = source.split(/\r?\n/).map((raw, index) => {
+  const lines = sentenceLines(source, language).map(({ raw, index }) => {
     const content = raw.trimEnd();
     const indentation = content.length - content.trimStart().length;
     const text = content.trim();
@@ -470,7 +501,11 @@ function readLines(source, language) {
       return { index, depth: indentation / 2, note: note[1] };
     }
     const opensBlock = text.endsWith(language.blockEnd);
-    const endMark = opensBlock ? language.blockEnd : language.sentenceEnd;
+    const endMark = opensBlock
+      ? language.blockEnd
+      : text.endsWith('?')
+        ? '?'
+        : language.sentenceEnd;
     const sentence = text.endsWith(endMark)
       ? text.slice(0, -endMark.length).trim()
       : text;
@@ -625,6 +660,11 @@ class ProgramReader {
       }
       first = false;
     }
+    walk(program, (current) => {
+      if (current.kind === 'Documentation') {
+        throw new Error('Documentation must begin a function definition');
+      }
+    });
     return program;
   }
 
@@ -653,6 +693,10 @@ class ProgramReader {
     if (heading && line.depth === 0) {
       this.position += 1;
       const body = this.block(1);
+      const documented = body.statements[0]?.kind === 'Documentation';
+      const documentation = documented
+        ? body.statements.shift().value
+        : undefined;
       return {
         function: attachComments(
           withOrigin(
@@ -662,6 +706,7 @@ class ProgramReader {
                 name: parameter,
               })),
               body,
+              ...(documentation ? { documentation } : {}),
             }),
             { source: this.source, lines: [line.index] }
           ),

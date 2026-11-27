@@ -16,6 +16,8 @@ import { splitVersion } from './versions.js';
 import { dialects } from './dialects/index.js';
 import { withArrays } from './array-spellings.js';
 import { writePower } from './power.js';
+import { writeQuestion, writePropertyAccess } from './questions.js';
+import { writeDocumentationAssignment } from './documentation.js';
 import { namedType, withTypeMetadata } from './type-metadata.js';
 import { withExceptions } from './exceptions.js';
 import {
@@ -98,6 +100,7 @@ const blockCommentLanguages = new Set(['c', 'csharp']);
 // The import lines a used feature needs, before and after the common
 // library imports.
 const importsBeforeLibrary = [
+  ['inspect', 'import inspect'],
   ['sys', 'import sys'],
   ['typing', 'from typing import Annotated'],
   ['strformat', 'import std/strformat'],
@@ -245,6 +248,10 @@ class BaseEmitter {
         return this.interpolation(expression.parts);
       case 'Call':
         return this.call(expression);
+      case 'Question':
+        return writeQuestion(this, expression);
+      case 'Method':
+        return writePropertyAccess(this, expression);
       case 'Unary':
         return this.unary(expression, parent);
       case 'Binary':
@@ -581,6 +588,15 @@ class BaseEmitter {
         return this.line(this.print(statement));
       case 'Evaluate':
         return this.line(`${this.expression(statement.expression)}${end}`);
+      case 'PropertyAssignment':
+        if (!['python', 'javascript', 'typescript'].includes(this.id)) {
+          throw new Error(
+            `Cannot emit property assignment in ${this.syntax.id}`
+          );
+        }
+        return this.line(
+          `${this.expression(statement.object)}.${statement.property} = ${this.expression(statement.value)}${end}`
+        );
       case 'Return':
         return this.line(this.returnStatement(statement));
       case 'Declaration':
@@ -826,6 +842,12 @@ class BaseEmitter {
   }
 
   functionDefinition(item) {
+    if (
+      item.documentation &&
+      !['python', 'javascript', 'typescript'].includes(this.id)
+    ) {
+      throw new Error(`Cannot emit runtime documentation in ${this.syntax.id}`);
+    }
     this.comments(item, 'comments');
     for (const annotation of item.annotations ?? []) {
       if (!['java', 'kotlin', 'python'].includes(this.id)) {
@@ -834,6 +856,9 @@ class BaseEmitter {
       this.line(`@${this.expression(annotation.expression)}`);
     }
     this.openBlock(this.definitionHeading(item));
+    if (item.documentation && this.id === 'python') {
+      this.line(this.expression(item.documentation));
+    }
     // Perl receives its arguments in @_.
     if (this.syntax.parameters === 'unpacked' && item.parameters.length) {
       const names = item.parameters.map(({ name: id }) => this.variable(id));
@@ -841,6 +866,7 @@ class BaseEmitter {
     }
     this.body(item.body);
     this.closeBlock();
+    writeDocumentationAssignment(this, item);
   }
 
   mainHeader() {

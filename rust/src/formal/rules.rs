@@ -10,6 +10,7 @@ use std::sync::Arc;
 
 use super::arrays::{expand_array_fills, raise_array_fills, recognize_arrays};
 use super::common_library::{recognize_common_library, spell_common_library};
+use super::documentation::recognize_documentation;
 use super::for_each::{expand_for_each, raise_for_each};
 use super::languages::{Blocks, ImmutableParameters, IntegerDivision, Syntax, language_syntax};
 use super::lifting::counting_loops;
@@ -17,6 +18,7 @@ use super::names::{
     ascii_name, avoid_reserved, name_words, neutral_name, rename_declared, spell_name,
 };
 use super::numbers::slash_operator;
+use super::questions::recognize_questions;
 use super::versions::{split_version, versions_of, with_version};
 use crate::meta::truth::raise_truth_functions;
 use crate::meta::{Mode, Rule, Settings};
@@ -32,7 +34,9 @@ fn rule(name: &str, apply: impl Fn(Node, &Settings) -> Node + Send + Sync + 'sta
 /// The rules that turn a parsed source program into a meta program.
 pub fn understanding_rules() -> Vec<Rule> {
     vec![
+        rule("recognizeDocumentation", recognize_documentation),
         rule("findEntryPoint", |program, _| find_entry_point(program)),
+        rule("recognizeQuestions", recognize_questions),
         rule("concatenationOperator", concatenation_operator),
         rule("integerDivisionCalls", integer_division_calls),
         rule("recognizeArrays", recognize_arrays),

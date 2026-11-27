@@ -107,3 +107,11 @@ gutter block, so that criterion remains open. All CI checks at `283f16a` pass.
 ## Validation policy
 
 Prefer focused JS/Rust tests and existing CI. Run heavy commands sequentially with Rust jobs=1 and reduced debug info if needed; preserve logs under this case study. Use Playwright browser automation for UI screenshots, and await all commands before finalizing. Do not mark incomplete criteria complete because CI is green.
+
+Introspection draft: four compositional question aspects now round-trip Python,
+JavaScript/TypeScript and every natural grammar. Runtime documentation is distinct
+from comments and retains multiline values. A native regression exposed Python
+3.13's compiler docstring cleaning; explicit 3.12/3.13 source editions and target
+restoration preserve the runtime value. SQL/LINQ and other targets remain open.
+See `QUESTIONS.md` for architecture, primary sources and focused evidence.
+Rust CI at `a415de3` found an unnecessary test-helper lifetime, now elided.

@@ -16,7 +16,9 @@ use regex::Regex;
 use super::agreement::{normalize, slot_case};
 use super::catalog::{Language, natural_language};
 use super::levels::{Associativity, LEVELS, level_index, operator_of_template};
+use super::lines::sentence_lines;
 use super::tokens::{Kind, Token};
+use crate::formal::questions::ASPECTS;
 use crate::meta::for_each::raise_for_each;
 use crate::meta::{Node, Value, add, binary, block, name, number};
 
@@ -26,7 +28,12 @@ const NAME_SLOTS: [&str; 3] = ["name", "variable", "callee"];
 const PRIMARY_SLOTS: [&str; 4] = ["index", "array", "length", "fill"];
 const ARRAY_KEYS: [&str; 4] = ["array", "new-array", "element", "length"];
 
-const STATEMENT_KEYS: [&str; 11] = [
+const STATEMENT_KEYS: [&str; 16] = [
+    "question-type",
+    "question-documentation",
+    "question-source",
+    "question-details",
+    "documentation",
     "print-line",
     "print",
     "set-element",
@@ -366,6 +373,22 @@ impl<'a> SentenceReader<'a> {
                 }
             }
         }
+        for aspect in ASPECTS {
+            for template in self.language.variants(&format!("answer-{aspect}")) {
+                let mut reader = |_slot: &str, from: usize, to: usize| {
+                    self.expression(tokens, from, to, 0).map(Slot::Expression)
+                };
+                if let Some(mut slots) =
+                    Self::match_template(template, tokens, start, end, &mut reader)
+                {
+                    return Some(
+                        Node::new("Question")
+                            .with("aspect", aspect)
+                            .with("subject", expression_slot(&mut slots, "subject")?),
+                    );
+                }
+            }
+        }
         None
     }
 
@@ -548,6 +571,19 @@ fn array_node(key: &str, mut slots: Captured) -> Option<Node> {
 }
 
 fn statement_from_sentence(key: &str, mut slots: Captured) -> Option<Node> {
+    if let Some(aspect) = key
+        .strip_prefix("question-")
+        .filter(|aspect| ASPECTS.contains(aspect))
+    {
+        return Some(
+            Node::new("Evaluate").with(
+                "expression",
+                Node::new("Question")
+                    .with("aspect", aspect)
+                    .with("subject", expression_slot(&mut slots, "subject")?),
+            ),
+        );
+    }
     let mut value = |name: &str| expression_slot(&mut slots, name);
     Some(match key {
         "print-line" | "print" => Node::new("Print")
@@ -580,6 +616,13 @@ fn statement_from_sentence(key: &str, mut slots: Captured) -> Option<Node> {
         "return-value" => Node::new("Return").with_opt("value", value("value")),
         "return" => Node::new("Return"),
         "evaluate" => Node::new("Evaluate").with_opt("expression", value("expression")),
+        "documentation" => {
+            let documentation = value("value");
+            if !documentation.as_ref().is_some_and(|value| value.is("Text")) {
+                return None;
+            }
+            Node::new("Documentation").with_opt("value", documentation)
+        }
         _ => return None,
     })
 }
@@ -632,10 +675,8 @@ fn mark_headings(mut lines: Vec<Line>) -> Vec<Line> {
 
 fn read_lines(source: &str, language: &Language) -> Vec<Line> {
     let pattern = note_pattern(language);
-    let lines = source
-        .split('\n')
-        .map(|raw| raw.strip_suffix('\r').unwrap_or(raw))
-        .enumerate()
+    let lines = sentence_lines(source, language)
+        .into_iter()
         .map(|(index, raw)| {
             let content = raw.trim_end_matches(is_space);
             let text = content.trim_start_matches(is_space);
@@ -654,12 +695,14 @@ fn read_lines(source: &str, language: &Language) -> Vec<Line> {
             }
             let opens_block = text.ends_with(language.block_end.as_str());
             let end_mark = if opens_block {
-                &language.block_end
+                language.block_end.as_str()
+            } else if text.ends_with('?') {
+                "?"
             } else {
-                &language.sentence_end
+                language.sentence_end.as_str()
             };
             let sentence = text
-                .strip_suffix(end_mark.as_str())
+                .strip_suffix(end_mark)
                 .map_or(text, |sentence| sentence.trim_matches(is_space));
             Line {
                 index,
@@ -667,7 +710,7 @@ fn read_lines(source: &str, language: &Language) -> Vec<Line> {
                 note: None,
                 text: sentence.to_owned(),
                 opens_block,
-                unmarked: !text.is_empty() && !text.ends_with(end_mark.as_str()),
+                unmarked: !text.is_empty() && !text.ends_with(end_mark),
                 blank: text.is_empty(),
             }
         })
@@ -756,7 +799,10 @@ impl ProgramReader<'_> {
             return match self.sentences.sentence(&line.text, &STATEMENT_KEYS)? {
                 None => self.fail(line, "No sentence template matches"),
                 Some(("nothing", _)) => Ok(None),
-                Some((key, slots)) => Ok(statement_from_sentence(key, slots)),
+                Some((key, slots)) => match statement_from_sentence(key, slots) {
+                    Some(statement) => Ok(Some(statement)),
+                    None => self.fail(line, "Invalid sentence value"),
+                },
             };
         }
         let Some((key, mut slots)) = self.sentences.sentence(&line.text, &BLOCK_KEYS)? else {
@@ -884,7 +930,17 @@ impl ProgramReader<'_> {
         if let Some((_, mut slots)) = heading.filter(|_| line.depth == 0.0) {
             let heading_line = line.index;
             self.position += 1;
-            let body = self.block(1.0)?;
+            let mut body = self.block(1.0)?;
+            let mut statements = body.node_list("statements");
+            let documentation = if statements
+                .first()
+                .is_some_and(|item| item.is("Documentation"))
+            {
+                statements.remove(0).node("value").cloned()
+            } else {
+                None
+            };
+            body.set("statements", statements);
             let parameters: Vec<Node> = match slots.remove("parameters") {
                 Some(Slot::Names(names)) => names
                     .into_iter()
@@ -897,6 +953,7 @@ impl ProgramReader<'_> {
                     Node::new("Function")
                         .with("name", name_slot(&mut slots, "name"))
                         .with("parameters", parameters)
+                        .with_opt("documentation", documentation)
                         .with("body", body),
                     heading_line,
                 ),
@@ -970,5 +1027,15 @@ pub fn read_natural_with(source: &str, language: &Language) -> Result<Node, Stri
         source: crate::source_origins::SourceLocator::new(source),
     }
     .read()
-    .map(raise_for_each)
+    .and_then(|program| {
+        let mut orphan = false;
+        crate::meta::walk(&program, |current| {
+            orphan |= current.is("Documentation");
+        });
+        if orphan {
+            Err("Documentation must begin a function definition".into())
+        } else {
+            Ok(raise_for_each(program))
+        }
+    })
 }

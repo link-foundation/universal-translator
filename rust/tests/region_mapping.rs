@@ -23,7 +23,7 @@ fn mapping_rereads_do_not_enter_the_public_trace() {
     assert_eq!(*stages.lock().unwrap(), ["parsed", "understood", "typed"]);
 }
 
-fn spelling<'a>(text: &'a str, range: universal_translator::ByteRange) -> &'a str {
+fn spelling(text: &str, range: universal_translator::ByteRange) -> &str {
     &text[range.start..range.end]
 }
 

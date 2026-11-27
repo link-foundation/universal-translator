@@ -364,7 +364,20 @@ pub const TEMPLATE_KEYS: [&str; 38] = [
 /// as the counting loop it lowers to, and increase and decrease (everyday
 /// wordings of an assignment that adds to or subtracts from the variable)
 /// are written as the assignment.
-pub const OPTIONAL_TEMPLATE_KEYS: [&str; 3] = ["for-each", "increase", "decrease"];
+pub const OPTIONAL_TEMPLATE_KEYS: [&str; 12] = [
+    "for-each",
+    "increase",
+    "decrease",
+    "documentation",
+    "answer-type",
+    "question-type",
+    "answer-documentation",
+    "question-documentation",
+    "answer-source",
+    "question-source",
+    "answer-details",
+    "question-details",
+];
 
 /// Everyday wordings a profile with its own rules does not inherit: a
 /// controlled standard keeps to its vocabulary, and the assignment still

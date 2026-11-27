@@ -1,0 +1,50 @@
+[
+  {
+    "file": "python-inspect.html.gz",
+    "url": "https://docs.python.org/3/library/inspect.html",
+    "bytes": 221837,
+    "sha256": "afbc1c0f27556064a15524c86f48d5ee6651f1519d08840e750d4dd1db69ecb0"
+  },
+  {
+    "file": "ipython-introspection.html.gz",
+    "url": "https://ipython.readthedocs.io/en/stable/interactive/python-ipython-diff.html",
+    "bytes": 23366,
+    "sha256": "61ac23b3bbc19afb2d8c0f19998b0e27f8740f93302bfdb0f6107aa130903fe9"
+  },
+  {
+    "file": "csharp-linq.html.gz",
+    "url": "https://learn.microsoft.com/en-us/dotnet/csharp/linq/get-started/query-expression-basics",
+    "bytes": 73485,
+    "sha256": "6ead5ff51183b19fd7aff5d12d0f6db121bad2710dd0a5abdbcc01270a204edc"
+  },
+  {
+    "file": "postgresql-select.html.gz",
+    "url": "https://www.postgresql.org/docs/current/sql-select.html",
+    "bytes": 118157,
+    "sha256": "5d4676a94144973703c7de581af6d2690c66d8c81ef3789d14fc6e35a065116c"
+  },
+  {
+    "file": "python-3.13.html.gz",
+    "url": "https://docs.python.org/3.13/whatsnew/3.13.html",
+    "bytes": 475173,
+    "sha256": "5e05750e219507e83d2bbfaec92c25cc23807da4d05837b0a7ef86a65df9426f"
+  },
+  {
+    "file": "python-compile-3.13.c.gz",
+    "url": "https://raw.githubusercontent.com/python/cpython/3.13/Python/compile.c",
+    "bytes": 256414,
+    "sha256": "1ac4e5a70e82d97a56cbb6d6b9ae1e40102f9c9b4f0f0615b4ec5823f8b98ea0"
+  },
+  {
+    "file": "python-ast-3.13.c.gz",
+    "url": "https://raw.githubusercontent.com/python/cpython/3.13/Python/ast.c",
+    "bytes": 40529,
+    "sha256": "2e6c0f0879d576154cef37fedd2e852e1339381a20605b829f082720ee2ac204"
+  },
+  {
+    "file": "python-compile-main.c.gz",
+    "url": "https://raw.githubusercontent.com/python/cpython/main/Python/compile.c",
+    "bytes": 58055,
+    "sha256": "e8e9a1b08fea124ec059ab644d0f87b4ac8ed805a2f40d78fd8e06e17adb79cb"
+  }
+]
