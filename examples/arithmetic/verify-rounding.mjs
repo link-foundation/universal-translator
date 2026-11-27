@@ -22,7 +22,7 @@ const targets = [
   ['perl', 'perl', ['-we']],
   ['php', 'php', []],
   ['php@5', 'php', []],
-  ['lua', process.env.LUA || 'lua5.4', ['-e']],
+  ['lua', process.env.LUA || 'lua5.4', ['-']],
   ['r', 'Rscript', ['--vanilla', '-e']],
   ['c', 'cc', ['-std=c99', '-O0', '-Wall', '-Wextra', '-Werror']],
   ['cpp', 'c++', ['-std=c++17', '-O0', '-Wall', '-Wextra', '-Werror']],
@@ -43,10 +43,17 @@ function run(language, command, args, written) {
     execFileSync(command, [...args, file, '-o', binary], options);
     return execFileSync(binary, [], options);
   }
-  return execFileSync(command, command === 'php' ? [] : [...args, written], {
-    ...options,
-    input: command === 'php' ? written : undefined,
-  });
+  // Lua's -e consumes a separate argument unless the code starts with '-'.
+  // Read through stdin so a leading Lua comment is executable as well.
+  const input = command === 'php' || language === 'lua' ? written : undefined;
+  return execFileSync(
+    command,
+    input === undefined ? [...args, written] : args,
+    {
+      ...options,
+      input,
+    }
+  );
 }
 try {
   for (const [stem, from] of [
