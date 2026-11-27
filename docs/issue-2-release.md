@@ -1,5 +1,25 @@
 # Issue 2: package rename and first release
 
+## Current scoped release
+
+The later scoped ownership decision uses `@link-foundation/universal-translator`
+as the npm package and `universal-translator` as its CLI command. The public
+registry returned version `0.16.0`, and the released package printed that version
+when invoked from an isolated directory.
+
+```sh
+npm view @link-foundation/universal-translator@0.16.0 version
+npm exec --yes --package @link-foundation/universal-translator@0.16.0 -- universal-translator --version
+```
+
+The same default-branch run verified the package-specific npm OIDC exchange
+and published the scoped package without the bootstrap token. The registry
+attestation identifies `.github/workflows/release.yml` on `refs/heads/main`.
+The current branch also passed seven package artifact and metadata tests
+and 55 release-preflight and naming tests. [OIDC exchange, lines 152–153](https://github.com/link-foundation/universal-translator/actions/runs/45795514180/job/139825031411) ·
+[Publish log, line 350](https://github.com/link-foundation/universal-translator/actions/runs/45795514180/job/139831383133) ·
+[Registry attestation](https://registry.npmjs.org/-/npm/v1/attestations/@link-foundation%2funiversal-translator@0.16.0)
+
 ## Requirements and verification plan
 
 - Rename package and lockfile root to `universal-translator`; keep their versions
@@ -41,7 +61,7 @@ The issue-58 case study came from the source template. Its retired package
 identifier is redacted as `historical-template-package`; the old registry and pack
 captures are historical evidence, not verification of this package's release.
 
-## External release blocker (2026-11-15)
+## Historical unscoped release blocker (2026-11-15)
 
 `npm view universal-translator version` returns E404. `npm whoami` returns
 ENEEDAUTH. `gh secret list --repo link-foundation/universal-translator` returns no
