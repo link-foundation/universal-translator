@@ -344,7 +344,7 @@ class BaseEmitter {
       if (integer) {
         result = `${left} ${integer} ${right}`;
       } else if (spelling?.wrapper) {
-        return `${spelling.wrapper}(${whole(expression.left)} / ${whole(expression.right)})`;
+        return `${spelling.wrapper}(${left} / ${right})`;
       } else if (spelling?.call) {
         return `${spelling.call}(${whole(expression.left)}, ${whole(expression.right)})`;
       } else if (spelling?.method) {

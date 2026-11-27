@@ -539,11 +539,7 @@ impl Emitter {
                 format!("{left} {integer} {right}")
             } else if let Some(spelling) = self.syntax.integer_division {
                 return Ok(match spelling {
-                    IntegerDivision::Wrapper(wrapper) => format!(
-                        "{wrapper}({} / {})",
-                        self.expression(left_node)?,
-                        self.expression(right_node)?
-                    ),
+                    IntegerDivision::Wrapper(wrapper) => format!("{wrapper}({left} / {right})"),
                     IntegerDivision::Call(call) => format!(
                         "{call}({}, {})",
                         self.expression(left_node)?,

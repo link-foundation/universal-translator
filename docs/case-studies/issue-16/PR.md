@@ -135,3 +135,13 @@ grammars, all 71 natural grammars, exact UTF-8 helper productions, name collisio
 invalid caller contracts and significant JS/TS return newlines. Shared runtime
 sources and the existing native CI job cover this subset. Broader SQL schemas,
 type coercion, dialects and clauses remain open; see [the query case study](docs/case-studies/issue-16/QUERIES.md).
+
+Integer-wrapper reproduction: C's `(7 + 5) / (1 + 3)` previously generated
+`Math.trunc(7 + 5 / 1 + 3)` and printed 15 instead of 3. Both shared emitters
+now retain operand grouping. `node experiments/issue-16-division-wrappers.mjs
+--before` demonstrates incorrect output in five native configurations; the
+current path passes. `node examples/arithmetic/verify-native.mjs` compiles C and
+compares ten quotients with Node/ES5/TypeScript, Perl and PHP integer wrappers.
+Matching JS/Rust regressions cover every wrapper grammar, including Lua 5.1 and
+MATLAB; eight JS tests, ten Rust tests, lint and Clippy pass. Negative rounding
+and remainder semantics remain open. See [the arithmetic case study](docs/case-studies/issue-16/ARITHMETIC.md).

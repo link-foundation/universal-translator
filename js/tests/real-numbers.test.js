@@ -1,4 +1,7 @@
 import { describe, expect, it } from 'test-anywhere';
+import { readFileSync } from 'node:fs';
+import assert from 'node:assert/strict';
+import { sameMeaning } from '../src/meta/tree.js';
 
 import { createTranslator, formatMeta, translate } from '../src/index.js';
 
@@ -83,5 +86,30 @@ describe('real numbers', () => {
     expect(translate(source, 'python', 'rust')).toContain(
       'let mut y: f64 = 10.0;\n    y /= 4.0;'
     );
+  });
+});
+
+describe('integer division wrappers', () => {
+  it('preserves grouped numerator and denominator operations in every wrapper grammar', () => {
+    const source = readFileSync(
+      new URL('../../examples/arithmetic/division.c', import.meta.url),
+      'utf8'
+    );
+    const meta = translator.toMeta(source, 'c');
+    for (const language of [
+      'javascript',
+      'javascript@es5',
+      'typescript',
+      'perl',
+      'php@5',
+      'lua@5.1',
+      'matlab',
+    ]) {
+      const written = translator.fromMeta(meta, language);
+      assert.ok(
+        sameMeaning(meta, translator.toMeta(written, language)),
+        `${language}: ${written}`
+      );
+    }
   });
 });

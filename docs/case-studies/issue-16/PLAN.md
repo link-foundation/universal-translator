@@ -305,3 +305,11 @@ All five workflows for `c739a05` pass, including Node/Bun/Deno, Rust, native
 translation, Security and web/desktop builds. The review window elapsed and fresh
 conversation, inline and review API responses have no new findings. The native
 goal stays active and PR 17 stays draft until the full inventory is verified.
+
+The integer-operator audit found a shared wrapper precedence bug: both emitters
+recomputed numerator/denominator text without division precedence. Ten finite
+quotients now preserve their trees through all seven wrapper grammars; compiled
+C agrees with five generated native configurations. Eight JS and ten Rust
+regressions, native execution, lint and Clippy pass. See `ARITHMETIC.md` for
+before/after evidence. Negative rounding/remainder semantics and the wider
+operator inventory remain open.

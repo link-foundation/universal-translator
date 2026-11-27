@@ -152,3 +152,28 @@ fn a_const_array_binding_can_have_mutable_contents() {
             .contains("const values")
     );
 }
+
+#[test]
+fn integer_division_wrappers_keep_grouped_operands() {
+    let translator = Translator::new();
+    let source = include_str!("../../examples/arithmetic/division.c");
+    let meta = translator.to_meta(source, "c").unwrap();
+    for language in [
+        "javascript",
+        "javascript@es5",
+        "typescript",
+        "perl",
+        "php@5",
+        "lua@5.1",
+        "matlab",
+    ] {
+        let written = translator
+            .from_meta(&meta, language, None, Mode::ContextDependent)
+            .unwrap();
+        let read = translator.to_meta(&written, language).unwrap();
+        assert!(
+            universal_translator::meta::same_meaning(&meta, &read),
+            "{language}: {written}"
+        );
+    }
+}

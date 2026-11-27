@@ -1,0 +1,17 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 7.69s
+     Running rust/tests/real_numbers.rs (target/debug/deps/real_numbers-40496d2ad7d9cf78)
+
+running 10 tests
+test reads_literals_with_a_point_or_an_exponent_as_reals ... ok
+test keeps_integer_division_apart_from_true_division ... ok
+test a_const_array_binding_can_have_mutable_contents ... ok
+test reads_real_declarations_and_g_placeholders_of_c ... ok
+test turns_slash_assignment_into_the_division_of_the_source_language ... ok
+test converts_integer_variables_that_meet_a_real ... ok
+test reads_the_slash_of_javascript_and_python_3_as_true_division ... ok
+test preserves_complete_exponentiation_in_strings_and_operator_precedence ... ok
+test writes_a_true_division_with_real_operands_where_the_slash_divides_integers ... ok
+test integer_division_wrappers_keep_grouped_operands ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.51s

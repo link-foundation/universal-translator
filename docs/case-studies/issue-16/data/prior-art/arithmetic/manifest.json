@@ -1,0 +1,20 @@
+[
+  {
+    "file": "ecmascript-expressions.html.gz",
+    "url": "https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html",
+    "bytes": 1121211,
+    "sha256": "73dce5f1d332aa7e9186ec489c0b8657e0c7fabb8b37c968308280c114b727fb"
+  },
+  {
+    "file": "ecmascript-numbers.html.gz",
+    "url": "https://tc39.es/ecma262/multipage/numbers-and-dates.html",
+    "bytes": 976387,
+    "sha256": "684d05c7cb2a7df1cfbc0f67568a755024c362212ed57dd4b088e676b8fd6247"
+  },
+  {
+    "file": "perl-int.html.gz",
+    "url": "https://perldoc.perl.org/functions/int",
+    "bytes": 16647,
+    "sha256": "8478052877987401851bde928df1e21e9d2fd8acdfad6a9e100beb7f30ed215f"
+  }
+]
