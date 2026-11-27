@@ -23,7 +23,7 @@ pub(crate) fn precedence(operator: &str) -> f64 {
         "equal" | "notEqual" => 3.0,
         "less" | "lessOrEqual" | "greater" | "greaterOrEqual" => 4.0,
         "add" | "subtract" => 5.0,
-        "multiply" | "divide" | "realDivide" | "remainder" => 6.0,
+        "multiply" | "divide" | "floorDivide" | "realDivide" | "remainder" | "modulo" => 6.0,
         _ => f64::NAN,
     }
 }
@@ -33,8 +33,8 @@ pub(crate) fn symbol(operator: &str) -> &str {
         "add" => "+",
         "subtract" => "-",
         "multiply" => "*",
-        "divide" | "realDivide" => "/",
-        "remainder" => "%",
+        "divide" | "floorDivide" | "realDivide" => "/",
+        "remainder" | "modulo" => "%",
         "less" => "<",
         "lessOrEqual" => "<=",
         "greater" => ">",
@@ -492,7 +492,8 @@ impl Emitter {
         let right_node = field(expression, "right")?;
         // R's %% and %/% bind tighter than * and /, so their operands that are
         // themselves operations keep parentheses.
-        let tight = self.id() == "r" && matches!(operator, "divide" | "remainder");
+        let tight = self.id() == "r"
+            && matches!(operator, "divide" | "floorDivide" | "remainder" | "modulo");
         // `a && b || c` keeps its meaning without parentheses, but readers (and
         // C compilers with -Wparentheses) expect them around the inner "and".
         let inner = if operator == "or" {
@@ -500,8 +501,8 @@ impl Emitter {
         } else {
             level
         };
-        // Adjacent Python comparisons form a chain. An inner comparison is
-        // one boolean operand here, so it needs its own parentheses.
+        // Nested boolean comparisons need explicit grouping: grammars may
+        // chain them, reject adjacent operators, or warn at strict levels.
         let comparisons = [
             "equal",
             "notEqual",
@@ -511,8 +512,7 @@ impl Emitter {
             "greaterOrEqual",
         ];
         let comparison = |part: &Node| {
-            self.id() == "python"
-                && comparisons.contains(&operator)
+            comparisons.contains(&operator)
                 && part.is("Binary")
                 && part
                     .str("operator")
@@ -534,7 +534,7 @@ impl Emitter {
         };
         let left = self.expression_in(left_node, left_level)?;
         let right = self.expression_in(right_node, right_level)?;
-        let result = if operator == "divide" {
+        let result = if matches!(operator, "divide" | "floorDivide") {
             if let Some(integer) = self.syntax.operators.integer_divide {
                 format!("{left} {integer} {right}")
             } else if let Some(spelling) = self.syntax.integer_division {
@@ -557,7 +557,11 @@ impl Emitter {
         } else {
             let spelled = self
                 .syntax
-                .operator(operator)
+                .operator(if operator == "modulo" {
+                    "remainder"
+                } else {
+                    operator
+                })
                 .unwrap_or_else(|| symbol(operator));
             format!("{left} {spelled} {right}")
         };

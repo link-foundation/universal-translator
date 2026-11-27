@@ -10,7 +10,7 @@ use super::dialects::{ParserDialect, parser_dialect, rocq_comparison};
 use super::interpolation::{Piece, split_interpolation};
 use super::languages::{Blocks, CommandCalls, ForwardDeclarations, Syntax, Typed};
 use super::lexer::{InterpolationStyle, Token, TokenType, decode_escapes, tokenize};
-use super::numbers::slash_operator;
+use super::numbers::arithmetic_operator;
 use super::power::power_symbol;
 use crate::meta::GrammarError;
 use crate::meta::{Node, binary, block, name, number, text};
@@ -62,7 +62,7 @@ const CONTROL_WORDS: [&str; 9] = [
     "if", "else", "while", "for", "foreach", "switch", "return", "do", "catch",
 ];
 
-const ASSIGNMENT_SYMBOLS: [&str; 8] = ["=", "+=", "-=", "*=", "/=", "%=", "++", "--"];
+const ASSIGNMENT_SYMBOLS: [&str; 9] = ["=", "+=", "-=", "*=", "/=", "//=", "%=", "++", "--"];
 
 mod annotations;
 mod arrays;
@@ -1080,10 +1080,15 @@ impl Parser {
             _ => {}
         }
         let following = self.peek(1);
-        matches!(
+        (matches!(
             following.kind,
             TokenType::Text | TokenType::Number | TokenType::Name
-        ) && following.line == self.current().line
+        ) || (following.value == "-"
+            && (self.syntax.print_line == self.value(0)
+                || self.syntax.print_calls.is_some_and(|print| {
+                    print.line.contains(&self.value(0)) || print.text.contains(&self.value(0))
+                }))))
+            && following.line == self.current().line
             && !["do", "then", "if"].contains(&following.value.as_str())
     }
 
@@ -1229,14 +1234,14 @@ impl Parser {
                 return Ok(binary("concatenate", left, right));
             }
             // `/` is true division or integer division, depending on the language.
-            let operator = if operator == "divide" && self.value(0) == "/" {
-                slash_operator(&self.syntax)
-            } else {
-                operator
-            };
+            let operator = arithmetic_operator(&self.syntax, self.value(0), operator);
+            let slash = operator == "floorDivide" && self.value(0) == "/";
             self.position += 1;
             let right = self.binary(level + 1)?;
             left = binary(operator, left, right);
+            if slash {
+                left.set("slashDivision", true);
+            }
         }
     }
 

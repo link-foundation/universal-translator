@@ -197,10 +197,14 @@ fn annotate(mut expression: Node, scope: &Scope, signatures: &Signatures) -> Nod
             (key, value)
         })
         .collect();
+    let slash_division = expression.flag("slashDivision").unwrap_or(false);
+    expression.remove("slashDivision");
     let current = expression;
     match expression_type(&current, scope, signatures) {
         Some(kind) => {
-            let divides = current.is("Binary") && current.str("operator") == Some("divide");
+            let divides = current.is("Binary")
+                && (current.str("operator") == Some("divide")
+                    || (current.str("operator") == Some("floorDivide") && slash_division));
             let real = kind == "real";
             let typed = current.with("type", kind);
             if divides && real {

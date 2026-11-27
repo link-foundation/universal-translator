@@ -63,13 +63,15 @@ describe('real numbers', () => {
   it('keeps integer division apart from true division', () => {
     const source = 'a = 17\nb = 5\nprint(a // b)\nprint(a / b)\n';
     const javascript = translate(source, 'python', 'javascript');
-    expect(javascript).toContain('console.log(Math.trunc(a / b));');
+    expect(javascript).toContain('console.log(utIntegerFloorDivide(a, b));');
     expect(javascript).toContain('console.log(a / b);');
     const c = 'int main(void) {\n    int a = 7 / 2;\n    return 0;\n}\n';
     expect(translate(c, 'c', 'javascript')).toContain(
       'const a = Math.trunc(7 / 2);'
     );
-    expect(translate(c, 'c', 'python')).toContain('a = 7 // 2');
+    expect(translate(c, 'c', 'python')).toContain(
+      'a = ut_integer_divide(7, 2)'
+    );
   });
 
   it('reads real declarations and %g placeholders of C', () => {

@@ -1,0 +1,25 @@
+PASS python -> javascript: 32 exact output lines
+PASS python -> javascript@es5: 32 exact output lines
+PASS python -> typescript: 32 exact output lines
+PASS python -> python: 32 exact output lines
+PASS python -> ruby: 32 exact output lines
+PASS python -> perl: 32 exact output lines
+PASS python -> php: 32 exact output lines
+PASS python -> php@5: 32 exact output lines
+SKIP unavailable lua: lua5.4
+PASS python -> r: 32 exact output lines
+PASS python -> c: 32 exact output lines
+PASS python -> cpp: 32 exact output lines
+PASS python -> rust: 32 exact output lines
+PASS python -> llvm: 32 exact output lines
+PASS c -> python: 32 exact output lines
+PASS c -> ruby: 32 exact output lines
+PASS c -> perl: 32 exact output lines
+PASS c -> php: 32 exact output lines
+PASS c -> php@5: 32 exact output lines
+SKIP unavailable lua: lua5.4
+PASS c -> r: 32 exact output lines
+PASS c -> c: 32 exact output lines
+PASS c -> cpp: 32 exact output lines
+PASS c -> rust: 32 exact output lines
+PASS c -> llvm: 32 exact output lines

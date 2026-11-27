@@ -35,8 +35,30 @@ pub fn slash_is_real(syntax: &Syntax) -> bool {
 pub fn slash_operator(syntax: &Syntax) -> &'static str {
     if slash_is_real(syntax) {
         "realDivide"
+    } else if crate::meta::integer_arithmetic::floor_division(syntax.id) {
+        "floorDivide"
     } else {
         "divide"
+    }
+}
+
+pub(crate) fn arithmetic_operator(
+    syntax: &Syntax,
+    surface: &str,
+    operator: &'static str,
+) -> &'static str {
+    if operator == "divide" {
+        if surface == "/" {
+            slash_operator(syntax)
+        } else if crate::meta::integer_arithmetic::floor_division(syntax.id) {
+            "floorDivide"
+        } else {
+            "divide"
+        }
+    } else if operator == "remainder" && crate::meta::integer_arithmetic::floor_modulo(syntax.id) {
+        "modulo"
+    } else {
+        operator
     }
 }
 
@@ -103,8 +125,10 @@ fn arithmetic_or_comparison(operator: &str) -> bool {
             | "subtract"
             | "multiply"
             | "divide"
+            | "floorDivide"
             | "realDivide"
             | "remainder"
+            | "modulo"
             | "equal"
             | "notEqual"
             | "less"

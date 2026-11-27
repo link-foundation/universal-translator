@@ -143,5 +143,20 @@ now retain operand grouping. `node experiments/issue-16-division-wrappers.mjs
 current path passes. `node examples/arithmetic/verify-native.mjs` compiles C and
 compares ten quotients with Node/ES5/TypeScript, Perl and PHP integer wrappers.
 Matching JS/Rust regressions cover every wrapper grammar, including Lua 5.1 and
-MATLAB; eight JS tests, ten Rust tests, lint and Clippy pass. Negative rounding
-and remainder semantics remain open. See [the arithmetic case study](docs/case-studies/issue-16/ARITHMETIC.md).
+MATLAB; eight JS tests, ten Rust tests, lint and Clippy pass. See [the arithmetic case study](docs/case-studies/issue-16/ARITHMETIC.md).
+
+Signed-integer reproduction: Python's `-7 // 3` and `-7 % 3` previously became
+the C/JavaScript answers -2 and -1 instead of -3 and 2. Both engines now preserve
+four distinct rounding/remainder contracts and use shared operator algorithms
+only where a target lacks the required operation. `node
+experiments/issue-16-integer-rounding.mjs` compares 168 native results; 46 failed
+at `e49d979`, and all pass with this change. `node
+examples/arithmetic/verify-rounding.mjs` compares independent original Python/C
+outputs with 23 available generated configurations, and runs in the existing
+native CI step. New JS/Rust tests cover compound updates, real slash behavior,
+fresh names, changed/rebound/escaping helpers, every natural grammar and all seven
+machine formats. Their LLVM round trips exposed an erroneous drop on dead stack
+reloads, now fixed in both readers. Existing Python/Ruby/Perl algorithm goldens
+now retain their source arithmetic contract. Observable JavaScript signed zero,
+C operand evaluation order, numeric widths, overflow, zero divisors and broader
+real arithmetic remain open and are documented in the case study.

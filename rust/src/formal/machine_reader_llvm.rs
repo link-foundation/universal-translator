@@ -356,7 +356,8 @@ impl<'a> LlvmBody<'a> {
         self.defs.insert(name.to_owned(), node.clone());
         let structural = matches!(
             node,
-            Node::Gep(..) | Node::LengthAddress(_) | Node::Compare(..)
+            // A spill reload creates no new stack value to drop.
+            Node::Gep(..) | Node::LengthAddress(_) | Node::Compare(..) | Node::OnStack
         );
         if !structural && self.uses.get(name).copied().unwrap_or(0) == 0 {
             self.emit(&node)?;

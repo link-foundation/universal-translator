@@ -3,11 +3,17 @@
 use strict;
 use warnings;
 
+sub ut_integer_remainder {
+    my ($first, $second) = @_;
+    my $result = int($first / $second);
+    return $first - $result * $second;
+}
+
 sub sum_of_digits {
     my ($number) = @_;
     my $total = 0;
     while ($number > 0) {
-        $total += $number % 10;
+        $total += ut_integer_remainder($number, 10);
         $number = int($number / 10);
     }
     return $total;

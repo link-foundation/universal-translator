@@ -3,10 +3,16 @@
 use strict;
 use warnings;
 
+sub ut_integer_remainder {
+    my ($first, $second) = @_;
+    my $result = int($first / $second);
+    return $first - $result * $second;
+}
+
 sub greatest_common_divisor {
     my ($first, $second) = @_;
     while ($second != 0) {
-        my $remainder = $first % $second;
+        my $remainder = ut_integer_remainder($first, $second);
         $first = $second;
         $second = $remainder;
     }

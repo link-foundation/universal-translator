@@ -256,7 +256,14 @@ impl Emitter {
                     }
                 }
             }
-            "ruby" => format!("{} {}", pick("puts", "print"), self.expression(value)?),
+            "ruby" => {
+                let written = self.expression(value)?;
+                if written.starts_with('-') {
+                    format!("{}({written})", pick("puts", "print"))
+                } else {
+                    format!("{} {written}", pick("puts", "print"))
+                }
+            }
             "lua" => format!("{}({})", pick("print", "io.write"), self.expression(value)?),
             "php" => format!("echo {};", self.interpolation_or_text(&line_parts)?),
             "c" => {

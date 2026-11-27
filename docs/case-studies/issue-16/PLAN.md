@@ -313,3 +313,19 @@ C agrees with five generated native configurations. Eight JS and ten Rust
 regressions, native execution, lint and Clippy pass. See `ARITHMETIC.md` for
 before/after evidence. Negative rounding/remainder semantics and the wider
 operator inventory remain open.
+
+All five workflows at `e49d979` pass for the grouping correction. The fifteen-minute
+review window elapsed with no new findings across conversation, inline and review
+responses. The native goal remains active and the PR remains draft.
+
+The signed arithmetic audit now separates floor division/modulo from truncating
+division/remainder in both engines. Four shared operator algorithms lower missing
+native operations; full-body recognition rejects changed or shadowed helpers.
+A finite experiment previously failed 46/168 native results and now passes all 168. Two source contracts round-trip through all 111 imperative reader families.
+Independent original Python/C examples agree with 23 available generated native
+configurations (736 output lines). The examples also exposed two separate open
+issues: observable JavaScript -0 and C helper-argument evaluation order. Both
+remain explicit in `ARITHMETIC.md`; the broader operator criterion stays open.
+The machine round trips exposed and repaired a dead-reload stack drop in both
+LLVM readers. Matching JS/Rust regression suites and existing-budget native CI
+integration cover this change. Continue all open inventory rows.

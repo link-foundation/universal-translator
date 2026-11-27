@@ -48,7 +48,10 @@
 // the elements, and languages without a for-each loop write a CountingLoop
 // over a fresh index whose body starts with `variable = array[index]`.
 //
-// Binary operators: add, subtract, multiply, divide, remainder, equal,
+// Integer divide truncates toward zero; floorDivide rounds downward.
+// Remainder follows the dividend sign; modulo follows the divisor sign.
+// Binary operators: add, subtract, multiply, divide, floorDivide, realDivide,
+// remainder, modulo, power, equal,
 // notEqual, less, lessOrEqual, greater, greaterOrEqual, and, or.
 // Unary operators: negate, not.
 

@@ -21,6 +21,7 @@ import {
   understandingRules,
 } from './formal/rules.js';
 import { inferTypes } from './meta/types.js';
+import { lowerIntegerArithmetic } from './meta/integer-arithmetic.js';
 import { emitProgram } from './formal/emitter.js';
 import {
   emitMachine,
@@ -493,10 +494,11 @@ export function createGrammarTranslator(settings = {}) {
       options
     );
     trace('transformed', transformed);
+    const rounded = lowerIntegerArithmetic(transformed, to);
     if (natural) {
-      return inCommentLanguage(transformed, options);
+      return inCommentLanguage(rounded, options);
     }
-    const adapted = applyRules(transformed, context, settings);
+    const adapted = applyRules(rounded, context, settings);
     trace('adapted', adapted);
     return inCommentLanguage(adapted, options);
   }

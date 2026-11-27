@@ -211,7 +211,9 @@ class LlvmBody {
   define(name, node) {
     withOrigin(node, linesOrigin(this.lines, this.index));
     this.defs.set(name, node);
-    const structural = ['gep', 'length-address', 'compare'];
+    // An unused spill reload creates no stack value. Dropping it would
+    // consume the value that survived the preceding branch instead.
+    const structural = ['gep', 'length-address', 'compare', 'onstack'];
     if (!structural.includes(node.kind) && !this.uses.get(name)) {
       this.emit(node);
       this.code.push(['pop']);

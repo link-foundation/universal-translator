@@ -1,0 +1,112 @@
+PASS python -> javascript: 32 exact output lines
+PASS python -> javascript@es5: 32 exact output lines
+PASS python -> typescript: 32 exact output lines
+PASS python -> python: 32 exact output lines
+PASS python -> ruby: 32 exact output lines
+PASS python -> perl: 32 exact output lines
+PASS python -> php: 32 exact output lines
+PASS python -> php@5: 32 exact output lines
+SKIP unavailable lua: lua5.4
+PASS python -> r: 32 exact output lines
+node:internal/modules/run_main:111
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: python -> c
++ actual - expected
+... Skipped lines
+
+  '-3\n' +
+    '2\n' +
+    '-3\n' +
+    '-2\n' +
+    '2\n' +
+...
+    '-1\n' +
++   '202\n' +
+    '101\n' +
++   '-3\n' +
+    '202\n' +
+-   '-3\n' +
+    '101\n' +
+-   '202\n' +
+    '2\n' +
+    '-3\n' +
+    '1\n'
+
+    at file:///tmp/gh-issue-solver-1795726129025/examples/arithmetic/verify-rounding.mjs:85:14
+    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async node:internal/modules/esm/loader:650:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: '-3\n' +
+    '2\n' +
+    '-3\n' +
+    '-2\n' +
+    '2\n' +
+    '-1\n' +
+    '2\n' +
+    '1\n' +
+    '-2\n' +
+    '0\n' +
+    '-2\n' +
+    '0\n' +
+    '2\n' +
+    '0\n' +
+    '0\n' +
+    '0\n' +
+    '0\n' +
+    '0\n' +
+    '-1\n' +
+    '2\n' +
+    '-1\n' +
+    '-2\n' +
+    '0\n' +
+    '-1\n' +
+    '202\n' +
+    '101\n' +
+    '-3\n' +
+    '202\n' +
+    '101\n' +
+    '2\n' +
+    '-3\n' +
+    '1\n',
+  expected: '-3\n' +
+    '2\n' +
+    '-3\n' +
+    '-2\n' +
+    '2\n' +
+    '-1\n' +
+    '2\n' +
+    '1\n' +
+    '-2\n' +
+    '0\n' +
+    '-2\n' +
+    '0\n' +
+    '2\n' +
+    '0\n' +
+    '0\n' +
+    '0\n' +
+    '0\n' +
+    '0\n' +
+    '-1\n' +
+    '2\n' +
+    '-1\n' +
+    '-2\n' +
+    '0\n' +
+    '-1\n' +
+    '101\n' +
+    '202\n' +
+    '-3\n' +
+    '101\n' +
+    '202\n' +
+    '2\n' +
+    '-3\n' +
+    '1\n',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v26.13.1

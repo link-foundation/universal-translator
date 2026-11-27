@@ -3,6 +3,7 @@
 // and gives a real. What a language's `/` means depends on the language:
 // true division in the languages below, and in the others integer division
 // of two integers and true division as soon as one operand is real.
+import { floorDivision, floorModulo } from '../meta/integer-arithmetic.js';
 
 const trueDivision = new Set([
   'javascript',
@@ -29,7 +30,24 @@ export const slashIsReal = (syntax) =>
 
 // The meta operator a language's `/` stands for.
 export const slashOperator = (syntax) =>
-  slashIsReal(syntax) ? 'realDivide' : 'divide';
+  slashIsReal(syntax)
+    ? 'realDivide'
+    : floorDivision(syntax.id)
+      ? 'floorDivide'
+      : 'divide';
+
+export function arithmeticOperator(syntax, surface, operator) {
+  if (operator === 'divide') {
+    return surface === '/'
+      ? slashOperator(syntax)
+      : floorDivision(syntax.id)
+        ? 'floorDivide'
+        : 'divide';
+  }
+  return operator === 'remainder' && floorModulo(syntax.id)
+    ? 'modulo'
+    : operator;
+}
 
 // How a language turns an integer into a real: `{}` stands for the integer.
 const casts = {
@@ -99,8 +117,10 @@ const arithmetic = new Set([
   'subtract',
   'multiply',
   'divide',
+  'floorDivide',
   'realDivide',
   'remainder',
+  'modulo',
 ]);
 const comparisons = new Set([
   'equal',

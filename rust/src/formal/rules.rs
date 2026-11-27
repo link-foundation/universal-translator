@@ -17,7 +17,7 @@ use super::lifting::counting_loops;
 use super::names::{
     ascii_name, avoid_reserved, name_words, neutral_name, rename_declared, spell_name,
 };
-use super::numbers::slash_operator;
+use super::numbers::{arithmetic_operator, slash_operator};
 use super::questions::recognize_questions;
 use super::versions::{split_version, versions_of, with_version};
 use crate::meta::truth::raise_truth_functions;
@@ -75,6 +75,10 @@ pub fn understanding_rules() -> Vec<Rule> {
 /// The rules that run after type inference.
 pub fn meaning_rules() -> Vec<Rule> {
     vec![
+        rule(
+            "raiseIntegerArithmetic",
+            crate::meta::integer_arithmetic::raise,
+        ),
         rule("concatenationToInterpolation", |program, _| {
             concatenation_to_interpolation(program)
         }),
@@ -949,7 +953,12 @@ fn compound_meaning(operator: &str, from: Option<&Syntax>) -> Option<&'static st
         "-=" => Some("subtract"),
         "*=" => Some("multiply"),
         "/=" => Some(from.map_or("divide", slash_operator)),
-        "%=" => Some("remainder"),
+        "//=" => Some(from.map_or("divide", |syntax| {
+            arithmetic_operator(syntax, "//", "divide")
+        })),
+        "%=" => Some(from.map_or("remainder", |syntax| {
+            arithmetic_operator(syntax, "%", "remainder")
+        })),
         _ => None,
     }
 }
@@ -972,6 +981,9 @@ pub fn expand_compound_assignment(program: Node, from: Option<&Syntax>) -> Node 
         let mut value = Node::new("Binary")
             .with("operator", operator)
             .with("left", Node::new("Name").with("name", name.clone()));
+        if operator == "floorDivide" && current.str("operator") == Some("/=") {
+            value.set("slashDivision", true);
+        }
         value.set_opt("right", current.node("value").cloned());
         Node::new("Assignment")
             .with("name", name)
@@ -1027,17 +1039,20 @@ const INTEGER_DIVISION_SPELLINGS: [IntegerDivision; 4] = [
     IntegerDivision::Call("intdiv"),
 ];
 
-fn integer_division(call: &Node, spelling: IntegerDivision) -> Option<Node> {
+fn integer_division(call: &Node, spelling: IntegerDivision, operator: &str) -> Option<Node> {
     let callee = call.str("callee").unwrap_or_default();
     let arguments = call.node_list("arguments");
-    let divide = |left: Node, right: Node| binary("divide", left, right);
+    let divide = |left: Node, right: Node| binary(operator, left, right);
     match (spelling, arguments.as_slice()) {
         (IntegerDivision::Wrapper(wrapper), [first])
             if callee == wrapper
                 && first.is("Binary")
-                && matches!(first.str("operator"), Some("divide" | "realDivide")) =>
+                && matches!(
+                    first.str("operator"),
+                    Some("divide" | "floorDivide" | "realDivide")
+                ) =>
         {
-            Some(first.clone().with("operator", "divide"))
+            Some(first.clone().with("operator", operator))
         }
         (IntegerDivision::Call(own), [first, second]) if callee == own => {
             Some(divide(first.clone(), second.clone()))
@@ -1077,17 +1092,29 @@ fn own_integer_divisions(from: &str) -> Vec<IntegerDivision> {
 }
 
 pub fn integer_division_calls(program: Node, settings: &Settings) -> Node {
-    let spellings: Vec<IntegerDivision> = own_integer_divisions(&settings.from)
+    let own_operator =
+        if crate::meta::integer_arithmetic::floor_division(split_version(&settings.from).0) {
+            "floorDivide"
+        } else {
+            "divide"
+        };
+    let spellings = own_integer_divisions(&settings.from)
         .into_iter()
-        .chain(INTEGER_DIVISION_SPELLINGS)
-        .collect();
+        .map(|spelling| (spelling, own_operator))
+        .chain(
+            INTEGER_DIVISION_SPELLINGS
+                .into_iter()
+                .map(|spelling| (spelling, "divide")),
+        )
+        .chain([(IntegerDivision::Wrapper("Math.floor"), "floorDivide")])
+        .collect::<Vec<_>>();
     rewrite(program, |current| {
         if !current.is("Call") {
             return current;
         }
         spellings
             .iter()
-            .find_map(|spelling| integer_division(&current, *spelling))
+            .find_map(|(spelling, operator)| integer_division(&current, *spelling, operator))
             .unwrap_or(current)
     })
 }

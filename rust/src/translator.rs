@@ -582,6 +582,7 @@ impl Translator {
         }
         let transformed = self.in_identifier_language(transformed, options)?;
         self.report("transformed", &transformed);
+        let transformed = crate::meta::integer_arithmetic::lower(transformed, to)?;
         if natural {
             return self.in_comment_language(transformed, options);
         }

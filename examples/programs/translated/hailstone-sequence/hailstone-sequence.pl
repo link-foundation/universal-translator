@@ -3,11 +3,17 @@
 use strict;
 use warnings;
 
+sub ut_integer_remainder {
+    my ($first, $second) = @_;
+    my $result = int($first / $second);
+    return $first - $result * $second;
+}
+
 sub hailstone_steps {
     my ($number) = @_;
     my $steps = 0;
     while ($number != 1) {
-        if ($number % 2 == 0) {
+        if (ut_integer_remainder($number, 2) == 0) {
             $number = int($number / 2);
         } else {
             $number = 3 * $number + 1;

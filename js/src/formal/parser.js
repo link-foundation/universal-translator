@@ -7,9 +7,9 @@ import { decodeEscapes, SyntaxError, tokenize } from './lexer.js';
 import { block, name, node, number, text } from '../meta/tree.js';
 import { dialects } from './dialects/index.js';
 import { withArrays } from './array-parser.js';
-import { stepOperators, withLoops } from './loop-parser.js';
+import { assignmentSymbols, stepOperators, withLoops } from './loop-parser.js';
 import { withFunctionForms } from './function-forms.js';
-import { slashOperator } from './numbers.js';
+import { arithmeticOperator } from './numbers.js';
 import { powerSymbol } from './power.js';
 import { typeDepth, typeHeadLength, withAnnotations } from './annotations.js';
 import { withExceptionParser } from './exception-parser.js';
@@ -980,7 +980,11 @@ class BaseParser {
       return true;
     }
     return (
-      ['text', 'number', 'name'].includes(following.type) &&
+      (['text', 'number', 'name'].includes(following.type) ||
+        (following.value === '-' &&
+          [this.syntax.print?.line, this.syntax.print?.write].includes(
+            this.peek().value
+          ))) &&
       following.line === this.peek().line &&
       !['do', 'then', 'if'].includes(following.value)
     );
@@ -1100,11 +1104,15 @@ class BaseParser {
       }
       const right = this.binary(level + 1);
       // `/` is true division or integer division, depending on the language.
-      const meaning =
-        token.value === '/' && operator[0] === 'divide'
-          ? slashOperator(this.syntax)
-          : operator[0];
-      left = node('Binary', { operator: meaning, left, right });
+      const meaning = arithmeticOperator(this.syntax, token.value, operator[0]);
+      left = node('Binary', {
+        operator: meaning,
+        left,
+        right,
+        ...(meaning === 'floorDivide' && token.value === '/'
+          ? { slashDivision: true }
+          : {}),
+      });
     }
   }
 
@@ -1481,4 +1489,3 @@ const startsElse = (parser, offset = 0) =>
   [...elseWords, parser.syntax.elseIf ?? 'else'].some((word) =>
     parser.is(word, offset)
   );
-const assignmentSymbols = ['=', '+=', '-=', '*=', '/=', '%=', '++', '--'];

@@ -186,6 +186,10 @@ name = "real_numbers"
 path = "rust/tests/real_numbers.rs"
 
 [[test]]
+name = "integer_arithmetic"
+path = "rust/tests/integer_arithmetic.rs"
+
+[[test]]
 name = "semantic_mapping"
 path = "rust/tests/semantic_mapping.rs"
 

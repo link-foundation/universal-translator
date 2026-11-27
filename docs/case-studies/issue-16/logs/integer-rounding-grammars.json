@@ -1,0 +1,1139 @@
+{
+  "cases": 224,
+  "passed": 222,
+  "unsupported": [
+    {
+      "from": "python",
+      "to": "sql",
+      "unsupported": "SQL requires selection queries"
+    },
+    {
+      "from": "c",
+      "to": "sql",
+      "unsupported": "SQL requires selection queries"
+    }
+  ],
+  "failures": [],
+  "results": [
+    {
+      "from": "python",
+      "to": "javascript",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "typescript",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "python",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "ruby",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "lua",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "php",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "c",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "cpp",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "csharp",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "java",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "go",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "rust",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "kotlin",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "swift",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "perl",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "dart",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "scala",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "julia",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "r",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "groovy",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "objc",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "nim",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "d",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "pascal",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "fortran",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "ada",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "vb",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "bash",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "matlab",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "zig",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "lean",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "rocq",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "gml",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "sql",
+      "unsupported": "SQL requires selection queries"
+    },
+    {
+      "from": "python",
+      "to": "nasm",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "gas",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "arm64",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "cil",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "jvm",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "llvm",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "wat",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "arabic",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "bengali",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "chinese",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "dutch-gellish",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "dutch",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "english-ace",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "english-asd-ste100",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "english-basic-english",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "english-british",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "english-e-prime",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "english-gellish",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "english-globish",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "english-plain-language",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "english-sbvr",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "english-special-english",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "english",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "french",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "german",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "gujarati",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "hausa",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "hindi",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "indonesian",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "italian",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "japanese",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "korean",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "marathi",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-arabic",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-bengali",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-chinese",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-dutch",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-english",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-french",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-german",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-gujarati",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-hausa",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-hindi",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-indonesian",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-italian",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-japanese",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-korean",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-marathi",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-persian",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-polish",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-portuguese",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-punjabi",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-russian",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-spanish",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-swahili",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-tagalog",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-tamil",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-telugu",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-thai",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-turkish",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-ukrainian",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-urdu",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "minimal-vietnamese",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "persian",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "polish",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "portuguese",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "punjabi",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "russian",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "spanish",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "swahili",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "tagalog",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "tamil",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "telugu",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "thai",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "turkish",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "ukrainian",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "urdu",
+      "pass": true
+    },
+    {
+      "from": "python",
+      "to": "vietnamese",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "javascript",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "typescript",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "python",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "ruby",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "lua",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "php",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "c",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "cpp",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "csharp",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "java",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "go",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "rust",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "kotlin",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "swift",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "perl",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "dart",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "scala",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "julia",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "r",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "groovy",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "objc",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "nim",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "d",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "pascal",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "fortran",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "ada",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "vb",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "bash",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "matlab",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "zig",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "lean",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "rocq",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "gml",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "sql",
+      "unsupported": "SQL requires selection queries"
+    },
+    {
+      "from": "c",
+      "to": "nasm",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "gas",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "arm64",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "cil",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "jvm",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "llvm",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "wat",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "arabic",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "bengali",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "chinese",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "dutch-gellish",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "dutch",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "english-ace",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "english-asd-ste100",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "english-basic-english",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "english-british",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "english-e-prime",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "english-gellish",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "english-globish",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "english-plain-language",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "english-sbvr",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "english-special-english",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "english",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "french",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "german",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "gujarati",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "hausa",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "hindi",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "indonesian",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "italian",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "japanese",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "korean",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "marathi",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-arabic",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-bengali",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-chinese",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-dutch",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-english",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-french",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-german",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-gujarati",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-hausa",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-hindi",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-indonesian",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-italian",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-japanese",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-korean",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-marathi",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-persian",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-polish",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-portuguese",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-punjabi",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-russian",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-spanish",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-swahili",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-tagalog",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-tamil",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-telugu",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-thai",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-turkish",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-ukrainian",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-urdu",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "minimal-vietnamese",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "persian",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "polish",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "portuguese",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "punjabi",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "russian",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "spanish",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "swahili",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "tagalog",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "tamil",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "telugu",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "thai",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "turkish",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "ukrainian",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "urdu",
+      "pass": true
+    },
+    {
+      "from": "c",
+      "to": "vietnamese",
+      "pass": true
+    }
+  ]
+}

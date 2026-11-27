@@ -3,6 +3,12 @@
 use strict;
 use warnings;
 
+sub ut_integer_remainder {
+    my ($first, $second) = @_;
+    my $result = int($first / $second);
+    return $first - $result * $second;
+}
+
 sub is_prime {
     my ($number) = @_;
     if ($number < 2) {
@@ -10,7 +16,7 @@ sub is_prime {
     }
     my $divisor = 2;
     while ($divisor * $divisor <= $number) {
-        if ($number % $divisor == 0) {
+        if (ut_integer_remainder($number, $divisor) == 0) {
             return 0;
         }
         $divisor += 1;

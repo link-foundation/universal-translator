@@ -132,7 +132,7 @@ function annotate(expression, scope, signatures) {
       : value?.kind
         ? annotate(value, context, signatures)
         : value;
-  const current = inheritOrigin(
+  let current = inheritOrigin(
     Object.fromEntries(
       Object.entries(expression).map(([key, value]) => [
         key,
@@ -142,9 +142,15 @@ function annotate(expression, scope, signatures) {
     expression
   );
   const type = expressionType(current, scope, signatures);
+  const slashDivision = current.slashDivision;
+  if (slashDivision) {
+    current = inheritOrigin({ ...current }, current);
+    delete current.slashDivision;
+  }
   const operator =
     current.kind === 'Binary' &&
-    current.operator === 'divide' &&
+    (current.operator === 'divide' ||
+      (current.operator === 'floorDivide' && slashDivision)) &&
     type === 'real'
       ? 'realDivide'
       : current.operator;

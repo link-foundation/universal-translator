@@ -51,8 +51,10 @@ const precedence = {
   subtract: 5,
   multiply: 6,
   divide: 6,
+  floorDivide: 6,
   realDivide: 6,
   remainder: 6,
+  modulo: 6,
 };
 const comparisons = new Set([
   'equal',
@@ -62,10 +64,17 @@ const comparisons = new Set([
   'greater',
   'greaterOrEqual',
 ]);
-function comparisonParent(id, operator, part, level) {
-  // Python comparison operands need grouping to preserve boolean nesting.
-  return id === 'python' &&
-    comparisons.has(operator) &&
+function operatorSpelling(syntax, operator) {
+  return (
+    syntax.operators[operator === 'modulo' ? 'remainder' : operator] ??
+    symbols[operator]
+  );
+}
+
+function comparisonParent(operator, part, level) {
+  // Nested boolean comparisons need explicit grouping: some grammars chain
+  // them, others reject adjacent operators or warn at strict compiler levels.
+  return comparisons.has(operator) &&
     part.kind === 'Binary' &&
     comparisons.has(part.operator)
     ? 9
@@ -76,8 +85,10 @@ const symbols = {
   subtract: '-',
   multiply: '*',
   divide: '/',
+  floorDivide: '/',
   realDivide: '/',
   remainder: '%',
+  modulo: '%',
   less: '<',
   lessOrEqual: '<=',
   greater: '>',
@@ -314,30 +325,27 @@ class BaseEmitter {
     // R's %% and %/% bind tighter than * and /, so their operands that are
     // themselves operations keep parentheses.
     const tight =
-      this.id === 'r' && ['divide', 'remainder'].includes(expression.operator);
+      this.id === 'r' &&
+      ['divide', 'floorDivide', 'remainder', 'modulo'].includes(
+        expression.operator
+      );
     // `a && b || c` keeps its meaning without parentheses, but readers (and
     // C compilers with -Wparentheses) expect them around the inner "and".
     const inner = expression.operator === 'or' ? precedence.and + 1 : level;
     const left = this.expression(
       expression.left,
-      comparisonParent(
-        this.id,
-        expression.operator,
-        expression.left,
-        tight ? 7 : inner
-      )
+      comparisonParent(expression.operator, expression.left, tight ? 7 : inner)
     );
     const right = this.expression(
       expression.right,
       comparisonParent(
-        this.id,
         expression.operator,
         expression.right,
         tight ? 7 : Math.max(inner, level + 1)
       )
     );
     let result;
-    if (expression.operator === 'divide') {
+    if (['divide', 'floorDivide'].includes(expression.operator)) {
       const integer = this.syntax.operators.integerDivide;
       const spelling = this.syntax.integerDivision;
       const whole = (part) => this.expression(part);
@@ -353,9 +361,7 @@ class BaseEmitter {
         result = `${left} / ${right}`;
       }
     } else {
-      const operator =
-        this.syntax.operators[expression.operator] ??
-        symbols[expression.operator];
+      const operator = operatorSpelling(this.syntax, expression.operator);
       result = `${left} ${operator} ${right}`;
     }
     return level < parent ? `(${result})` : result;
@@ -1112,8 +1118,12 @@ const printers = {
     emitter.uses.add('sys');
     return `sys.stdout.write(${value.type === 'text' ? single() : `str(${single()})`})`;
   },
-  ruby: (emitter, { newline, single }) =>
-    `${newline ? 'puts' : 'print'} ${single()}`,
+  ruby: (emitter, { newline, single }) => {
+    const value = single();
+    return value.startsWith('-')
+      ? `${newline ? 'puts' : 'print'}(${value})`
+      : `${newline ? 'puts' : 'print'} ${value}`;
+  },
   lua: (emitter, { newline, single }) =>
     newline ? `print(${single()})` : `io.write(${single()})`,
   php: (emitter, { lineParts }) =>

@@ -3,12 +3,18 @@
 use strict;
 use warnings;
 
+sub ut_integer_remainder {
+    my ($first, $second) = @_;
+    my $result = int($first / $second);
+    return $first - $result * $second;
+}
+
 sub is_perfect {
     my ($number) = @_;
     my $sum = 1;
     my $divisor = 2;
     while ($divisor * $divisor <= $number) {
-        if ($number % $divisor == 0) {
+        if (ut_integer_remainder($number, $divisor) == 0) {
             $sum += $divisor;
             if ($divisor * $divisor != $number) {
                 $sum += int($number / $divisor);

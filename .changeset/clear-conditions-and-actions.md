@@ -43,3 +43,5 @@ Respect SQL NOT precedence and preserve nested comparison and negation operands 
 Preserve nullable SQL numeric values with three-valued logic, null-safe IS predicates, WHERE truth and verified Python/JavaScript/TypeScript/C# helpers; retain their concrete source and original Unicode ranges across multiple embedded libraries.
 
 Preserve numerator and denominator grouping inside integer-division wrappers in both engines.
+
+Distinguish floor division and divisor-signed modulo from truncation and dividend-signed remainder, lower missing integer operations through verified shared algorithms, and preserve their structure through all seven machine formats.

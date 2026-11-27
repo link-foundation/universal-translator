@@ -76,13 +76,13 @@ fn keeps_integer_division_apart_from_true_division() {
     let source = "a = 17\nb = 5\nprint(a // b)\nprint(a / b)\n";
     let javascript = translate(source, "python", "javascript");
     assert!(
-        javascript.contains("console.log(Math.trunc(a / b));"),
+        javascript.contains("console.log(utIntegerFloorDivide(a, b));"),
         "{javascript}"
     );
     assert!(javascript.contains("console.log(a / b);"), "{javascript}");
     let c = "int main(void) {\n    int a = 7 / 2;\n    return 0;\n}\n";
     assert!(translate(c, "c", "javascript").contains("const a = Math.trunc(7 / 2);"));
-    assert!(translate(c, "c", "python").contains("a = 7 // 2"));
+    assert!(translate(c, "c", "python").contains("a = ut_integer_divide(7, 2)"));
 }
 
 #[test]

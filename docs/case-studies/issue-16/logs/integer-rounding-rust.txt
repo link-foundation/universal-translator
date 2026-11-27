@@ -1,0 +1,43 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 20.51s
+     Running rust/tests/integer_arithmetic.rs (target/debug/deps/integer_arithmetic-9ebe133120e5ca57)
+
+running 5 tests
+test real_slash_remains_true_division ... ok
+test distinguishes_source_rounding_and_remainder_signs ... ok
+test preserves_floor_and_modulo_compound_assignments ... ok
+test fresh_names_and_complete_unshadowed_algorithms ... ok
+test round_trips_both_contracts_through_shared_helper_algorithms ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 9.56s
+
+     Running rust/tests/lifting.rs (target/debug/deps/lifting-ad428fad3e7898b4)
+
+running 8 tests
+test command_line_traces_with_the_trace_flag ... ok
+test reports_code_it_does_not_recognize ... ok
+test gives_the_lifted_program_readable_names_and_types ... ok
+test reads_procedures_slots_comments_and_text ... ok
+test traces_every_pipeline_stage ... ok
+test decodes_text_that_is_not_plain_ascii ... ok
+test rebuilds_nested_conditions_loops_and_boolean_values ... ok
+test translates_between_assembly_cil_and_jvm_bytecode has been running for over 60 seconds
+test translates_between_assembly_cil_and_jvm_bytecode ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 295.35s
+
+     Running rust/tests/real_numbers.rs (target/debug/deps/real_numbers-40496d2ad7d9cf78)
+
+running 10 tests
+test reads_literals_with_a_point_or_an_exponent_as_reals ... ok
+test reads_real_declarations_and_g_placeholders_of_c ... ok
+test reads_the_slash_of_javascript_and_python_3_as_true_division ... ok
+test a_const_array_binding_can_have_mutable_contents ... ok
+test keeps_integer_division_apart_from_true_division ... ok
+test converts_integer_variables_that_meet_a_real ... ok
+test turns_slash_assignment_into_the_division_of_the_source_language ... ok
+test preserves_complete_exponentiation_in_strings_and_operator_precedence ... ok
+test writes_a_true_division_with_real_operands_where_the_slash_divides_integers ... ok
+test integer_division_wrappers_keep_grouped_operands ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.62s

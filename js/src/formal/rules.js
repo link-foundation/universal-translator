@@ -14,11 +14,15 @@ import { countingLoops } from './lifting.js';
 import { raiseTruthFunctions } from '../meta/truth.js';
 import { languageSyntax, namingConvention } from './languages.js';
 import { splitVersion, versionsOf } from './versions.js';
-import { slashOperator } from './numbers.js';
+import { arithmeticOperator, slashOperator } from './numbers.js';
 import { recognizeQuestions } from './questions.js';
 import { recognizeDocumentation } from './documentation.js';
 import { normalizeObjectiveCConditions, recognizeObjpak } from './objpak.js';
 import { recognizeSqlValues } from './sql-values.js';
+import {
+  floorDivision,
+  raiseIntegerArithmetic,
+} from '../meta/integer-arithmetic.js';
 import {
   asciiName,
   avoidReserved,
@@ -629,6 +633,12 @@ export function expandCompoundAssignment(program, { from } = {}) {
   const meanings = {
     ...compoundMeanings,
     '/=': from ? slashOperator(languageSyntax(from)) : 'divide',
+    '//=': from
+      ? arithmeticOperator(languageSyntax(from), '//', 'divide')
+      : 'divide',
+    '%=': from
+      ? arithmeticOperator(languageSyntax(from), '%', 'remainder')
+      : 'remainder',
   };
   return rewrite(program, (current) => {
     if (current.kind !== 'Assignment' || current.operator === '=') {
@@ -643,6 +653,9 @@ export function expandCompoundAssignment(program, { from } = {}) {
       operator: '=',
       value: node('Binary', {
         operator,
+        ...(operator === 'floorDivide' && current.operator === '/='
+          ? { slashDivision: true }
+          : {}),
         left: { kind: 'Name', name: current.name },
         right: current.value,
       }),
@@ -717,22 +730,25 @@ const copyName = (name) => ['initial', ...nameWords(name)].join('-');
 // the meta operator "divide". The language description names its spelling.
 const integerDivisionSpellings = [
   { wrapper: 'Math.trunc' },
+  { wrapper: 'Math.floor', operator: 'floorDivide' },
   { wrapper: '~~' },
   { wrapper: 'int' },
   { call: 'intdiv' },
 ];
 
-function integerDivision(call, { wrapper, call: callee, method }) {
+function integerDivision(
+  call,
+  { wrapper, call: callee, method, operator = 'divide' }
+) {
   const [first, second] = call.arguments;
-  const divide = (left, right) =>
-    node('Binary', { operator: 'divide', left, right });
+  const divide = (left, right) => node('Binary', { operator, left, right });
   if (
     call.callee === wrapper &&
     call.arguments.length === 1 &&
     first.kind === 'Binary' &&
-    ['divide', 'realDivide'].includes(first.operator)
+    ['divide', 'floorDivide', 'realDivide'].includes(first.operator)
   ) {
-    return { ...first, operator: 'divide' };
+    return { ...first, operator };
   }
   if (call.callee === callee && call.arguments.length === 2) {
     return divide(first, second);
@@ -766,7 +782,11 @@ function ownIntegerDivisions(from) {
     ...versionsOf(id).map(({ version }) => languageSyntax(`${id}@${version}`)),
   ]
     .map(({ integerDivision }) => integerDivision)
-    .filter(Boolean);
+    .filter(Boolean)
+    .map((spelling) => ({
+      ...spelling,
+      operator: floorDivision(id) ? 'floorDivide' : 'divide',
+    }));
 }
 
 export function integerDivisionCalls(program, { from } = {}) {
@@ -878,6 +898,7 @@ export function concatenationToInterpolation(program) {
 }
 
 export const meaningRules = [
+  raiseIntegerArithmetic,
   concatenationToInterpolation,
   normalizeObjectiveCConditions,
 ];

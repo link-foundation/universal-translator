@@ -46,13 +46,78 @@ The focused real-number suites pass (eight JS tests, ten Rust tests), as do
 lint and Clippy. Evidence is in `logs/division-wrappers-{before,after}.json`
 and `logs/division-wrappers-{js,rust,native,lint,clippy}.txt`.
 
+## Floor division and signed remainders
+
+The old shared `divide` and `remainder` concepts erased native rounding rules.
+For example Python's `-7 // 3` is -3 and `-7 % 3` is 2, while C's integer `/`
+and `%` give -2 and -1. The wrong shared representation round-tripped through
+our own readers even when executing the output changed the answer.
+
+Both engines now distinguish truncating `divide`, downward `floorDivide`,
+dividend-signed `remainder` and divisor-signed `modulo`. Python, Ruby, Lua and R
+have floor division; those four and Perl have divisor-signed modulo. The
+[Python expression reference](https://docs.python.org/3/reference/expressions.html#binary-arithmetic-operations),
+[Ruby Integer reference](https://docs.ruby-lang.org/en/master/Integer.html),
+[Lua arithmetic reference](https://www.lua.org/manual/5.4/manual.html#3.4.1),
+[R arithmetic reference](https://stat.ethz.ch/R-manual/R-devel/library/base/html/Arithmetic.html)
+and [Perl operator reference](https://perldoc.perl.org/perlop#Multiplicative-Operators)
+document these distinctions. Their complete archived pages and checksums are in
+the arithmetic manifest. Perl's integer pragma is outside this verified profile.
+
+Four small shared meta algorithms lower only operations a target lacks. Their
+arguments are evaluated once. Readers recognize the complete algorithm after
+type inference, with fresh names and guards against changed bodies, duplicate
+definitions, rebinding, escaping and invalid arities. Helper definitions retain
+their concrete source records. These are compositional operator algorithms;
+they do not match whole example programs. Real `/` in Ruby and Python 2 remains
+true division; unsupported real floor/modulo lowering reports an explicit error.
+
+The bounded reproduction covers 28 signed operand pairs and 168 independently
+executed results. At `e49d979`, 46 results differ from native Python or C; the
+new implementation has zero differences. Run:
+
+```sh
+node experiments/issue-16-integer-rounding.mjs
+node experiments/issue-16-rounding-grammars.mjs
+node examples/arithmetic/verify-rounding.mjs
+```
+
+Evidence is in `logs/integer-rounding-{before,after}.json`. The grammar inventory
+passes 222 source/target pairs: two source contracts through all 111 imperative
+reader families, including all 71 natural grammars and seven machine formats.
+SQL rejects these imperative programs explicitly and is reported separately.
+These structural round trips do not establish native behavior for every target.
+
+The independent native examples contain 32 output lines each, covering signed
+quotients and residues, exact divisibility, zero numerators, compound updates
+and single evaluation of effectful arguments. Original Python and compiled C
+agree with 23 available generated configurations (736 output lines). Lua is
+unavailable locally and is required in the existing native CI step. Three
+C-to-JavaScript/ES5/TypeScript configurations expose the separate signed-zero
+gap below and are not counted as passing. The verifier requires every configured
+executable in CI; its explicit signed-zero exclusion remains visible until fixed.
+
+All seven machine formats now preserve the helper algorithms. The LLVM test
+found that a dead structural stack reload was incorrectly treated as an unused
+ordinary load: its emitted drop consumed a preserved stack value. Both LLVM
+readers now retain the stack marker without adding that drop. The targeted trace
+is `experiments/issue-16-rounding-llvm.mjs`; the cross-machine regression lives
+in both `integer-arithmetic` test suites.
+
+Old Python/Ruby/Perl example expectations also conflated signed modulo with C/JS
+remainder. Their golden translations now include the required arithmetic
+helpers. Tests of hand-written positive-input examples compare their actual
+native arithmetic contracts rather than falsely declaring full signed equivalence.
+
 ## Remaining semantic review
 
-Grouping is independent of rounding mode. The current shared integer-division
-concept claims truncation, while Python `//`, Ruby integer `/`, Lua `//` and R
-`%/%` round downward. Their negative-operand behavior requires separate semantic
-representation and native tests. Remainder/modulo signs, numeric widths,
-overflow, zero divisors, floating-point rounding and additional operators also
-remain in the acceptance inventory. The wrapper fix does not establish those
-criteria; the Lua/MATLAB round trips above check grammar and operation grouping,
-while native behavior is verified only for the listed executable targets.
+JavaScript truncation and exact negative remainders can produce observable -0
+where an integer source requires 0. The current example reports that gap instead
+of normalizing captured output. The native operand-order probe also found that
+C's unspecified helper-call argument order can reverse Python's left-to-right
+side effects (`logs/integer-operand-order-observation.txt`). The example's equal
+markers verify evaluation count only; evaluation-order preservation is unfinished.
+
+Numeric widths, overflow, zero divisors, real floor/modulo, floating-point
+rounding, Perl integer mode and additional operators remain in the acceptance
+inventory. The finite tests above do not establish those criteria.
