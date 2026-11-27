@@ -41,6 +41,8 @@ describe('published package artifact', () => {
       expect(paths).toContain('bin/universal-translator.js');
       expect(paths).toContain('js/src/index.js');
       expect(paths).toContain('js/src/translator.js');
+      expect(paths).toContain('vendor/meta-language-grammar/src/grammar.js');
+      expect(paths).toContain('vendor/meta-language-grammar/LICENSE');
       expect(paths.some((path) => path.startsWith('js/tests/'))).toBe(false);
       expect(paths.filter((path) => path.startsWith('bin/'))).toEqual([
         'bin/universal-translator.js',
@@ -105,6 +107,16 @@ describe('published package artifact', () => {
           { cwd: workspace, encoding: 'utf8' }
         ).trim()
       ).toBe('42');
+      expect(
+        execFileSync(
+          process.execPath,
+          [
+            ...(globalThis.Deno ? ['eval'] : ['--input-type=module', '-e']),
+            "import { createGrammarWorkspace, reconstructConcrete } from '@link-foundation/universal-translator/grammar'; const workspace = createGrammarWorkspace(); workspace.import({ id: 'greeting', language: 'english', format: 'ebnf', source: 'start = \"hello\";' }); const result = workspace.parse('hello', { sourceId: 'greeting' }); console.log(reconstructConcrete(result.syntax));",
+          ],
+          { cwd: workspace, encoding: 'utf8' }
+        ).trim()
+      ).toBe('hello');
     } finally {
       rmSync(workspace, { recursive: true, force: true });
     }

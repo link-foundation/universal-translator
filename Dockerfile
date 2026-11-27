@@ -9,6 +9,7 @@ RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 COPY bin ./bin
 COPY common-library ./common-library
 COPY js/src ./js/src
+COPY vendor/meta-language-grammar ./vendor/meta-language-grammar
 COPY data ./data
 USER node
 EXPOSE 8080
