@@ -67,7 +67,7 @@ fn main_field(kind: &str) -> Option<&'static str> {
         "Binary" | "Unary" | "SqlBinary" | "SqlUnary" => "operator",
         "Blank" => "lines",
         "Boolean" | "Number" | "Text" => "value",
-        "Call" => "callee",
+        "Call" | "CppTemplateCall" => "callee",
         "Question" => "aspect",
         "Comment" => "text",
         "Code" | "Prose" => "language",

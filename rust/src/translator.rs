@@ -616,7 +616,10 @@ impl Translator {
             return self.in_comment_language(transformed, options);
         }
         let sequenced = crate::meta::evaluation_order::lower(transformed, &settings);
-        let adapted = apply_rules(sequenced, &self.context, &settings);
+        let adapted = crate::formal::cpp_library::keep_cpp_imports(
+            apply_rules(sequenced, &self.context, &settings),
+            &settings,
+        );
         self.report("adapted", &adapted);
         self.in_comment_language(adapted, options)
     }

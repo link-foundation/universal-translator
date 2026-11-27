@@ -66,6 +66,49 @@ fn standalone_cpp_member_and_namespace_calls_survive_beside_prototypes() {
     }
 }
 
+#[test]
+fn cpp_template_arguments_and_headers_survive_beside_comparisons() {
+    let translator = Translator::new();
+    let source = r#"#include <algorithm>
+#include <iostream>
+using namespace std;
+int main() {
+    max<unsigned>(1, 2);
+    lookup<std::vector<unsigned>>(1);
+    a < b > (c);
+    std::cout << 1 << std::endl;
+    return 0;
+}
+"#;
+    let program = translator.to_meta(source, "cpp").unwrap();
+    let statements = program.node("main").unwrap().nodes("statements");
+    let first = statements[0].node("expression").unwrap();
+    assert!(first.is("CppTemplateCall"));
+    assert_eq!(first.str("callee"), Some("max"));
+    assert_eq!(first.str("typeArguments"), Some("unsigned"));
+    assert!(
+        statements[1]
+            .node("expression")
+            .unwrap()
+            .is("CppTemplateCall")
+    );
+    assert!(statements[2].node("expression").unwrap().is("Binary"));
+    let emitted = translator
+        .translate(source, "cpp", "cpp", Mode::default())
+        .unwrap();
+    assert!(emitted.contains("#include <algorithm>\n#include <iostream>\nusing namespace std;"));
+    assert_eq!(emitted.matches("#include <iostream>").count(), 1);
+    assert!(emitted.contains("lookup<std::vector<unsigned>>(1);"));
+    let error = translator
+        .translate(source, "cpp", "python", Mode::default())
+        .unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("C++ template call requires a library mapping for python")
+    );
+}
+
 /// Every task with goldens under `examples/programs/translated`.
 fn tasks() -> Vec<String> {
     let folder = Path::new(env!("CARGO_MANIFEST_DIR")).join("examples/programs/translated");

@@ -47,3 +47,13 @@ node experiments/issue-16-corpus-frequencies.mjs /path/to/tatoeba-eng-rus.txt.gz
 The two language-detection and ranking suites check the corpus ordering,
 partial readers, the five noun forms, the remaining Zipf case, and exact
 candidate and meta probabilities in JavaScript and Rust.
+
+The first application build grouped the shared corpus reader with the main
+translator. The natural-language bundle then imported that reader while the
+main translator imported the natural-language bundle. The existing
+dependency-graph test identified `translator -> translator-natural ->
+translator` on Node, Bun, and Deno. Vite reported the same cycle on line 220 of
+the [web build log](https://github.com/link-foundation/universal-translator/actions/runs/46059345768/job/140709534044).
+The corpus reader now has a shared chunk with no imports from either bundle.
+The dependency-graph test passes and Vite builds the web application without
+the cycle warning.

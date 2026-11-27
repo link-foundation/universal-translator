@@ -68,6 +68,7 @@ mod annotations;
 mod arrays;
 mod arrows;
 mod concrete;
+mod cpp_template;
 mod evaluation;
 mod exceptions;
 mod forms;
@@ -1307,6 +1308,7 @@ impl Parser {
                 expression = name(format!("{}{separator}{member}", callee_name(&expression)?));
                 continue;
             }
+            let type_arguments = self.cpp_template_arguments(&expression);
             if self.accept("(") {
                 let mut values = Vec::new();
                 while !self.is(")") {
@@ -1334,18 +1336,24 @@ impl Parser {
                     }
                 }
                 self.expect(")")?;
-                expression = if expression.is("Method") {
+                let (callee, values) = if expression.is("Method") {
                     let method = expression.str("name").unwrap_or_default();
                     let receiver = expression.node("receiver").cloned();
-                    Node::new("Call").with("callee", format!(".{method}")).with(
-                        "arguments",
-                        receiver.into_iter().chain(values).collect::<Vec<_>>(),
+                    (
+                        format!(".{method}"),
+                        receiver.into_iter().chain(values).collect(),
                     )
                 } else {
-                    Node::new("Call")
-                        .with("callee", callee_name(&expression)?)
-                        .with("arguments", values)
+                    (callee_name(&expression)?, values)
                 };
+                expression = Node::new(if type_arguments.is_some() {
+                    "CppTemplateCall"
+                } else {
+                    "Call"
+                })
+                .with("callee", callee)
+                .with("arguments", values)
+                .with_opt("typeArguments", type_arguments);
                 continue;
             }
             // Lua: a call with one text argument needs no parentheses, f "x".

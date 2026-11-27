@@ -460,7 +460,19 @@ impl Emitter {
                 let parts = expression.node_list("parts");
                 self.interpolation(&parts)
             }
-            "Call" => {
+            "Call" | "CppTemplateCall" => {
+                let types = match expression.str("typeArguments") {
+                    Some(types) if self.id() == "cpp" => {
+                        format!("<{}>", super::type_metadata::named_type(types, self.id()))
+                    }
+                    Some(_) => {
+                        return Err(GrammarError::new(format!(
+                            "C++ template call requires a library mapping for {}",
+                            self.id()
+                        )));
+                    }
+                    None => String::new(),
+                };
                 let callee = expression.str("callee").unwrap_or_default();
                 let values = expression.nodes("arguments");
                 let member = callee.starts_with('.');
@@ -479,7 +491,10 @@ impl Emitter {
                     .skip(usize::from(member))
                     .map(|argument| self.expression(argument))
                     .collect::<Result<Vec<_>>>()?;
-                Ok(format!("{receiver}{callee}({})", arguments.join(", ")))
+                Ok(format!(
+                    "{receiver}{callee}{types}({})",
+                    arguments.join(", ")
+                ))
             }
             "Unary" => self.unary(expression, parent),
             "Binary" => self.binary(expression, parent),
@@ -1350,9 +1365,11 @@ impl Emitter {
                 .map(|(_, line)| (*line).to_owned())
                 .collect()
         };
+        let library = program.texts("libraryImports");
+        let after = used(&IMPORTS_AFTER_LIBRARY);
         lines.extend(used(&IMPORTS_BEFORE_LIBRARY));
-        lines.extend(program.texts("libraryImports"));
-        lines.extend(used(&IMPORTS_AFTER_LIBRARY));
+        lines.extend(library.iter().cloned());
+        lines.extend(after.into_iter().filter(|line| !library.contains(line)));
         if lines.last().is_some_and(|line| !line.is_empty()) {
             lines.push(String::new());
         }

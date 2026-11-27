@@ -48,9 +48,26 @@ node experiments/issue-16-cpp-member-calls.mjs
 
 The compiled experiment calls `push_back`, `pop_back` and `push_back` on a
 vector. The original prints `2`. Output translated at `16f5217` prints `1`,
-and the repaired output prints `2`. The experiment can compare an older
-checkout by passing its `js/src/index.js` as the sole argument.
+and the repaired output prints `2`. The experiment accepts an alternate
+checkout's `js/src/index.js` as its first argument.
 
-Ascending primes also relies on native library and template calls. The explicit
-template arguments in `ostream_iterator<unsigned>(...)` were read as comparison
-operators. Behavioral verification of the complete task remains open.
+## C++ template calls and headers
+
+The explicit type argument in `ostream_iterator<unsigned>(...)` was read as a
+comparison operator. Both parsers now recognize explicit call arguments that
+contain a C++ fundamental type, including a nested type such as
+`std::vector<unsigned>`. A comparison such as `a < b > (c)` keeps its original
+reading. C++ output emits the type arguments and carries the source's literal
+headers and namespace declarations into the new program. Cross-language
+writers require a semantic mapping for these template calls.
+
+The compiled [`max<unsigned>` example](../../../examples/programs/library/cpp-template.cpp)
+distinguishes unsigned arguments from signed ones. Both the original and the
+emitted program print `1`. The preceding reader reported `Expected ")" but
+found "," (line 7)` on the template call; its partial output had no enclosing
+function, and the C++ compiler rejected it. The same experiment checks the two
+cases during native CI.
+
+The complete Ascending primes program still needs correct initialization and
+file scope for native container declarations and correct library behavior
+when translating to other languages.

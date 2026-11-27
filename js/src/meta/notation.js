@@ -47,6 +47,7 @@ const mainField = {
   Blank: 'lines',
   Boolean: 'value',
   Call: 'callee',
+  CppTemplateCall: 'callee',
   Comment: 'text',
   Code: 'language',
   CountingLoop: 'variable',

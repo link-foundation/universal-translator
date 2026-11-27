@@ -23,6 +23,7 @@ import { questionSuffix, propertyAssignment } from './question-parser.js';
 import { withObjpakParser } from './objpak-reader.js';
 import { withQueryParser } from './query-parser.js';
 import { parseSource } from './source-parser.js';
+import { cppTemplateArguments } from './cpp-library.js';
 
 const binaryLevels = [
   { or: ['||', 'or'] },
@@ -1168,18 +1169,9 @@ class BaseParser {
         );
         continue;
       }
+      const typeArguments = cppTemplateArguments(this, expression);
       if (this.is('(')) {
-        const values = this.callArguments();
-        expression =
-          expression.kind === 'Method'
-            ? node('Call', {
-                callee: `.${expression.name}`,
-                arguments: [expression.receiver, ...values],
-              })
-            : node('Call', {
-                callee: calleeName(expression),
-                arguments: values,
-              });
+        expression = this.callExpression(expression, typeArguments);
         continue;
       }
       if (this.isTextCall(expression)) {
@@ -1191,6 +1183,16 @@ class BaseParser {
       }
       return expression;
     }
+  }
+
+  callExpression(expression, typeArguments) {
+    const values = this.callArguments();
+    const member = expression.kind === 'Method';
+    return node(typeArguments ? 'CppTemplateCall' : 'Call', {
+      callee: member ? `.${expression.name}` : calleeName(expression),
+      arguments: member ? [expression.receiver, ...values] : values,
+      ...(typeArguments ? { typeArguments } : {}),
+    });
   }
 
   // The arguments of a call, from its "(" to its ")".

@@ -300,11 +300,19 @@ class BaseEmitter {
           ? writePower(this, expression, parent)
           : this.binary(expression, parent);
       default:
-        return this.sequencedExpression(expression);
+        return this.cFamilyExpression(expression);
     }
   }
 
-  sequencedExpression(expression) {
+  cFamilyExpression(expression) {
+    if (expression.kind === 'CppTemplateCall') {
+      if (this.id !== 'cpp') {
+        throw new Error(
+          `C++ template call requires a library mapping for ${this.id}`
+        );
+      }
+      return this.call(expression);
+    }
     if (['c', 'cpp', 'objc'].includes(this.id)) {
       if (expression.kind === 'AssignmentExpression') {
         return `(${this.variable(expression.name)} = ${this.expression(expression.value)})`;
@@ -319,11 +327,14 @@ class BaseEmitter {
     );
   }
 
-  call({ callee, arguments: values }) {
+  call({ callee, arguments: values, typeArguments }) {
     const member = callee.startsWith('.');
     const receiver = member ? `${this.expression(values[0], 9)}` : '';
     const arguments0 = member ? values.slice(1) : values;
-    return `${receiver}${callee}(${arguments0.map((value) => this.expression(value)).join(', ')})`;
+    const types = typeArguments
+      ? `<${namedType(`source:${typeArguments}`, this.id)}>`
+      : '';
+    return `${receiver}${callee}${types}(${arguments0.map((value) => this.expression(value)).join(', ')})`;
   }
 
   number({ value }, parent) {
@@ -1030,9 +1041,11 @@ class BaseEmitter {
     lines.push(...(this.syntax.prelude ?? []));
     const used = (headers) =>
       headers.filter(([use]) => this.uses.has(use)).map(([, line]) => line);
-    lines.push(...used(importsBeforeLibrary));
-    lines.push(...(program.libraryImports ?? []));
-    lines.push(...used(importsAfterLibrary));
+    const library = program.libraryImports ?? [];
+    lines.push(...used(importsBeforeLibrary), ...library);
+    lines.push(
+      ...used(importsAfterLibrary).filter((line) => !library.includes(line))
+    );
     if (lines.length && lines.at(-1) !== '') {
       lines.push('');
     }

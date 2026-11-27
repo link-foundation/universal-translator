@@ -7,6 +7,7 @@ pub mod array_spellings;
 pub mod arrays;
 pub(crate) mod comment_syntax;
 pub mod common_library;
+pub(crate) mod cpp_library;
 pub mod dialects;
 pub(crate) mod documentation;
 pub mod emitter;

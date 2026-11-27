@@ -52,4 +52,36 @@ describe('member calls on computed receivers', () => {
     expect(emitted).toContain('values.pop();');
     expect(emitted).toContain('std::puts("kept");');
   });
+
+  it('keeps C++ template arguments and headers alongside ordinary comparisons', () => {
+    const source = `#include <algorithm>
+#include <iostream>
+using namespace std;
+int main() {
+  max<unsigned>(1, 2);
+  lookup<std::vector<unsigned>>(1);
+  a < b > (c);
+  std::cout << 1 << std::endl;
+  return 0;
+}
+`;
+    const { main } = translator.toMeta(source, 'cpp');
+    const { kind, callee, typeArguments } = main.statements[0].expression;
+    expect([kind, callee, typeArguments]).toEqual([
+      'CppTemplateCall',
+      'max',
+      'unsigned',
+    ]);
+    expect(main.statements[1].expression.kind).toBe('CppTemplateCall');
+    expect(main.statements[2].expression.kind).toBe('Binary');
+    const emitted = translator.translate(source, 'cpp', 'cpp');
+    expect(emitted).toContain(
+      '#include <algorithm>\n#include <iostream>\nusing namespace std;'
+    );
+    expect(emitted.match(/#include <iostream>/gu)?.length).toBe(1);
+    expect(emitted).toContain('lookup<std::vector<unsigned>>(1);');
+    expect(() => translator.translate(source, 'cpp', 'python')).toThrow(
+      'C++ template call requires a library mapping for python'
+    );
+  });
 });

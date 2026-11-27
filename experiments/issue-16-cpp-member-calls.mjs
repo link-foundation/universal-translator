@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -25,7 +25,10 @@ const { createTranslator } = await import(
     : new URL('../js/src/index.js', import.meta.url)
 );
 const translator = createTranslator();
-const emitted = translator.translate(source, 'cpp', 'cpp');
+const template = readFileSync(
+  new URL('../examples/programs/library/cpp-template.cpp', import.meta.url),
+  'utf8'
+);
 const directory = mkdtempSync(join(tmpdir(), 'cpp-member-calls-'));
 const options = { encoding: 'utf8', maxBuffer: 32 * 1024 };
 
@@ -41,11 +44,17 @@ try {
     );
     return execFileSync(binary, [], options);
   };
-  const original = run(source);
-  const translated = run(emitted);
-  assert.equal(original, '2\n');
-  console.log(JSON.stringify({ original, translated }));
-  assert.equal(translated, original);
+  for (const [name, program, expected] of [
+    ['member calls', source, '2\n'],
+    ['explicit template call', template, '1\n'],
+  ]) {
+    const original = run(program);
+    assert.equal(original, expected);
+    const emitted = translator.translate(program, 'cpp', 'cpp');
+    const translated = run(emitted);
+    console.log(JSON.stringify({ name, original, translated }));
+    assert.equal(translated, original, name);
+  }
 } finally {
   rmSync(directory, { recursive: true, force: true });
 }
