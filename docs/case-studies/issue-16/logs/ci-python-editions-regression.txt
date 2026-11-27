@@ -1,0 +1,9 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 13.92s
+     Running rust/tests/issue_6.rs (target/debug/deps/issue_6-1a7b543e6405450f)
+
+running 1 test
+test lists_one_python_with_its_versions_python_3_first ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 26 filtered out; finished in 0.00s
+

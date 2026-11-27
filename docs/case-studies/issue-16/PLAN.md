@@ -128,3 +128,16 @@ natural checks passed; their requirements gate caught a Rust natural-reader
 dependency on the formal question constants. Those constants now belong to meta,
 and the requirements gate passes. Multiline quoted documentation is also checked
 as one logical sentence by both standards validators. Broader CI is pending.
+
+At `6bf0e95`, Node, Bun, Deno and the web application pass. Rust CI found
+one remaining stale Python-edition assertion at
+`logs/ci-rust-6bf0e95.txt:1103–1107`: the public catalog correctly lists
+`3`, `3.13`, `3.12`, `3.5`, `2`, while the test expected three editions.
+The assertion now covers the full list; the focused Rust regression passes.
+
+Current query work is uncommitted: SQL selections, C# LINQ, Python
+comprehensions and JS/TS filter/map chains share scoped source, predicate and
+projection expressions. Six focused JavaScript tests include native SQLite,
+Python and Node agreement, and round trips through all 71 natural standards.
+Rust parity, deferred execution, broader SQL clauses and broader question
+reasoning still require implementation and verification before claiming them.

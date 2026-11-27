@@ -113,7 +113,7 @@ fn lists_one_python_with_its_versions_python_3_first() {
             .iter()
             .map(|version| version.version)
             .collect::<Vec<_>>(),
-        ["3", "3.5", "2"]
+        ["3", "3.13", "3.12", "3.5", "2"]
     );
     assert!(versions_of("python")[0].default);
     assert!(versions_of("ruby").is_empty());
