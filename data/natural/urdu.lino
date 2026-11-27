@@ -13,6 +13,10 @@ natural:
   false: 'جھوٹ'
   note: 'نوٹ: {text}'
   templates:
+    answer-query: '{source} میں ہر {variable} کے لیے {condition} ہونے پر {projection} کی قدریں'
+    question-query: '{source} میں ہر {variable} کے لیے {condition} ہونے پر {projection} کی قدریں کیا ہیں'
+    answer-deferred-query: '“ملتوی” {source} میں ہر {variable} کے لیے {condition} ہونے پر {projection} کی قدریں'
+    question-deferred-query: '“ملتوی” {source} میں ہر {variable} کے لیے {condition} ہونے پر {projection} کی قدریں کیا ہیں'
     answer-type: '{subject} کی قسم'
     question-type: '{subject} کی قسم کیا ہے'
     answer-documentation: '{subject} کی دستاویز'

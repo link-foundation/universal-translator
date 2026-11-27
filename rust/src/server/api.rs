@@ -54,6 +54,9 @@ pub fn languages_json() -> String {
             });
             fields.push(("versions", list(versions.collect())));
         }
+        if language.query {
+            fields.push(("query", "true".to_string()));
+        }
         if language.machine {
             fields.push(("machine", "true".to_string()));
         }

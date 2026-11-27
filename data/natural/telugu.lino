@@ -13,6 +13,10 @@ natural:
   false: 'అబద్ధం'
   note: 'గమనిక: {text}'
   templates:
+    answer-query: '{source} లో ప్రతి {variable} కోసం {condition} అయితే {projection} యొక్క విలువలు'
+    question-query: '{source} లో ప్రతి {variable} కోసం {condition} అయితే {projection} యొక్క విలువలు ఏమిటి'
+    answer-deferred-query: '“వాయిదా” {source} లో ప్రతి {variable} కోసం {condition} అయితే {projection} యొక్క విలువలు'
+    question-deferred-query: '“వాయిదా” {source} లో ప్రతి {variable} కోసం {condition} అయితే {projection} యొక్క విలువలు ఏమిటి'
     answer-type: '{subject} యొక్క రకం'
     question-type: '{subject} యొక్క రకం ఏమిటి'
     answer-documentation: '{subject} యొక్క వివరణ'

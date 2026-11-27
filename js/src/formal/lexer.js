@@ -429,7 +429,12 @@ class Lexer {
     );
     const style = interpolationStyle(this.syntax, quote, prefixed);
     // Doubled quotes are already read, so the text has no escapes left.
-    this.push('text', raw, { quote, style, decoded: doubled });
+    const identifier = this.syntax.id === 'sql' && quote === '"';
+    this.push(identifier ? 'name' : 'text', raw, {
+      quote,
+      style,
+      decoded: doubled,
+    });
     this.line += raw.split('\n').length - 1;
     this.index = end;
     return true;
@@ -467,7 +472,7 @@ class Lexer {
       name[0].endsWith('!') && this.source[this.index + name[0].length] === '='
         ? name[0].slice(0, -1)
         : name[0];
-    this.push('name', value, {
+    this.push('name', this.syntax.id === 'sql' ? value.toLowerCase() : value, {
       span: [this.index, this.index + value.length],
     });
     this.index += value.length;

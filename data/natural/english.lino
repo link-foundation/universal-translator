@@ -12,6 +12,10 @@ natural:
   false: false
   note: 'Note: {text}'
   templates:
+    answer-query: 'the values of {projection} for each {variable} in {source} where {condition}'
+    question-query: 'Which values of {projection} for each {variable} in {source} satisfy {condition}'
+    answer-deferred-query: 'the deferred values of {projection} for each {variable} in {source} where {condition}'
+    question-deferred-query: 'Which deferred values of {projection} for each {variable} in {source} satisfy {condition}'
     answer-type: 'the type of {subject}'
     question-type: 'What is the type of {subject}' 'What type is {subject}'
     answer-documentation: 'the documentation of {subject}'

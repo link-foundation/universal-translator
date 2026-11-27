@@ -135,9 +135,17 @@ one remaining stale Python-edition assertion at
 `3`, `3.13`, `3.12`, `3.5`, `2`, while the test expected three editions.
 The assertion now covers the full list; the focused Rust regression passes.
 
-Current query work is uncommitted: SQL selections, C# LINQ, Python
-comprehensions and JS/TS filter/map chains share scoped source, predicate and
-projection expressions. Six focused JavaScript tests include native SQLite,
-Python and Node agreement, and round trips through all 71 natural standards.
-Rust parity, deferred execution, broader SQL clauses and broader question
-reasoning still require implementation and verification before claiming them.
+Selection queries now share scoped source, predicate and projection expressions
+across SQL, C# LINQ, Python comprehensions and JS/TS filter/map chains in both
+runtimes. Nine focused JavaScript checks and seven Rust checks cover formal
+and all 71 natural grammar round trips, eager/deferred strategies, identifiers,
+collection types and variable scopes. A native CI example agrees across SQLite,
+Python, Node and C#, observes source mutation between eager/deferred evaluation,
+and compiles complete C# bindings, typed returns and nested queries. The first
+return round-trip exposed qualified-type lookahead confusing bare LINQ with a
+declaration; the regression now checks both forms. SQL NULL semantics, broader
+clauses, other target families and general question reasoning remain open.
+See `QUERIES.md` for the implementation, evidence and remaining limits.
+
+All CI checks at `e982e39` pass, including the prior native run. The query changes
+require their own current-commit CI after the next push.

@@ -13,6 +13,10 @@ natural:
   false: 'असत्य'
   note: 'टीप: {text}'
   templates:
+    answer-query: '{source} मधील प्रत्येक {variable} साठी {condition} असल्यास {projection} ची मूल्ये'
+    question-query: '{source} मधील प्रत्येक {variable} साठी {condition} असल्यास {projection} ची मूल्ये कोणती'
+    answer-deferred-query: '“विलंबित” {source} मधील प्रत्येक {variable} साठी {condition} असल्यास {projection} ची मूल्ये'
+    question-deferred-query: '“विलंबित” {source} मधील प्रत्येक {variable} साठी {condition} असल्यास {projection} ची मूल्ये कोणती'
     answer-type: '{subject} चा प्रकार'
     question-type: '{subject} चा प्रकार काय आहे'
     answer-documentation: '{subject} चे वर्णन'

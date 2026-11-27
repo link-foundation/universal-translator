@@ -147,6 +147,21 @@ fn operand(expression: &Node, key: &str, language: &Language) -> Result<Vec<Toke
     write_expression(child(expression, key)?, language, level_index("primary"))
 }
 
+fn query_slots(expression: &Node, language: &Language) -> Result<Slots<'static>, String> {
+    Ok(Slots::from([
+        (
+            "variable",
+            vec![word(write_name(
+                expression.str("variable").unwrap_or_default(),
+                language,
+            ))],
+        ),
+        ("source", operand(expression, "source", language)?),
+        ("condition", operand(expression, "condition", language)?),
+        ("projection", operand(expression, "projection", language)?),
+    ]))
+}
+
 /// Expressions separated by the list separator, as call arguments are.
 fn separated(expressions: Vec<&Node>, language: &Language) -> Result<Vec<Token>, String> {
     let mut tokens = Vec::new();
@@ -179,6 +194,11 @@ fn primary(expression: &Node, language: &Language) -> Result<Vec<Token>, String>
             expression.str("name").unwrap_or_default(),
             language,
         ))]),
+        "Query" => fill(
+            language,
+            crate::meta::queries::key(expression.flag("eager").unwrap_or(true), false),
+            &query_slots(expression, language)?,
+        ),
         "Question" => fill(
             language,
             &format!("answer-{}", expression.str("aspect").unwrap_or_default()),
@@ -480,6 +500,16 @@ impl Writer<'_> {
                 None => self.sentence(depth, "return", &Slots::new(), false),
             },
             "Evaluate" => {
+                if let Some(expression) = statement.node("expression").filter(|e| e.is("Query")) {
+                    let key =
+                        crate::meta::queries::key(expression.flag("eager").unwrap_or(true), true);
+                    return self.sentence(
+                        depth,
+                        key,
+                        &query_slots(expression, self.language)?,
+                        false,
+                    );
+                }
                 if let Some(expression) = statement
                     .node("expression")
                     .filter(|expression| expression.is("Question"))

@@ -13,6 +13,10 @@ natural:
   false: 'ਝੂਠ'
   note: 'ਨੋਟ: {text}'
   templates:
+    answer-query: '{source} ਵਿੱਚ ਹਰ {variable} ਲਈ {condition} ਹੋਣ ਤੇ {projection} ਦੇ ਮੁੱਲ'
+    question-query: '{source} ਵਿੱਚ ਹਰ {variable} ਲਈ {condition} ਹੋਣ ਤੇ {projection} ਦੇ ਮੁੱਲ ਕਿਹੜੇ ਹਨ'
+    answer-deferred-query: '“ਮੁਲਤਵੀ” {source} ਵਿੱਚ ਹਰ {variable} ਲਈ {condition} ਹੋਣ ਤੇ {projection} ਦੇ ਮੁੱਲ'
+    question-deferred-query: '“ਮੁਲਤਵੀ” {source} ਵਿੱਚ ਹਰ {variable} ਲਈ {condition} ਹੋਣ ਤੇ {projection} ਦੇ ਮੁੱਲ ਕਿਹੜੇ ਹਨ'
     answer-type: '{subject} ਦੀ ਕਿਸਮ'
     question-type: '{subject} ਦੀ ਕਿਸਮ ਕੀ ਹੈ'
     answer-documentation: '{subject} ਦਾ ਵੇਰਵਾ'

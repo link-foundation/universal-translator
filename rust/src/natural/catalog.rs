@@ -364,7 +364,11 @@ pub const TEMPLATE_KEYS: [&str; 38] = [
 /// as the counting loop it lowers to, and increase and decrease (everyday
 /// wordings of an assignment that adds to or subtracts from the variable)
 /// are written as the assignment.
-pub const OPTIONAL_TEMPLATE_KEYS: [&str; 12] = [
+pub const OPTIONAL_TEMPLATE_KEYS: [&str; 16] = [
+    "answer-query",
+    "question-query",
+    "answer-deferred-query",
+    "question-deferred-query",
     "for-each",
     "increase",
     "decrease",
@@ -633,6 +637,9 @@ fn reflection_templates(
     if !constrained {
         return;
     }
+    templates
+        .entries
+        .retain(|(key, _)| !crate::meta::queries::KEYS.contains(&key.as_str()));
     let quotes = description.quotes.as_ref().or(base.quotes.as_ref());
     let open = quotes
         .and_then(|pair| pair.first())
@@ -706,7 +713,8 @@ fn compile(description: Description) -> Result<Language, String> {
         reserved: HashSet::new(),
         id,
     };
-    for (key, texts) in &description.templates.entries {
+    super::query_templates::derive(&mut language);
+    for (key, texts) in &language.templates.entries {
         let variants = texts
             .iter()
             .map(|text| tokenize(text, &language.spelling(), true))

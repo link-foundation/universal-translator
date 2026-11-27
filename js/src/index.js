@@ -42,7 +42,11 @@ export { reconstructConcrete } from './translation/concrete-syntax.js';
 export * as grammarEngine from './grammar/engine.js';
 export { createGrammarWorkspace } from './grammar/workspace.js';
 export { decorateStages, stageNames } from './translation/decorators.js';
-export { grammarLanguageIds, languages } from './formal/languages.js';
+export {
+  grammarLanguageIds,
+  queryLanguageIds,
+  languages,
+} from './formal/languages.js';
 export { machineTargetIds, machineTargets } from './formal/machine.js';
 export {
   commonLibraryAccess,

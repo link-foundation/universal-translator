@@ -175,6 +175,8 @@ export interface GrammarTranslator {
     id: string;
     label: string;
     machine?: boolean;
+    /** A relational query target, with separate imperative-language coverage. */
+    query?: boolean;
     versions?: { version: string; label: string; default: boolean }[];
   }[];
   /** Controlled natural languages and profiles (base is the language a profile extends). */

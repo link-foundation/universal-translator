@@ -13,6 +13,10 @@ natural:
   false: 'mali'
   note: 'Tala: {text}'
   templates:
+    answer-query: 'mga halaga ng {projection} para sa bawat {variable} sa {source} kung {condition}'
+    question-query: 'Anong mga halaga ng {projection} para sa bawat {variable} sa {source} kung {condition}'
+    answer-deferred-query: '“ipinagpaliban” mga halaga ng {projection} para sa bawat {variable} sa {source} kung {condition}'
+    question-deferred-query: '“ipinagpaliban” Anong mga halaga ng {projection} para sa bawat {variable} sa {source} kung {condition}'
     answer-type: 'uri ng {subject}'
     question-type: 'Ano ang uri ng {subject}'
     answer-documentation: 'dokumentasyon ng {subject}'

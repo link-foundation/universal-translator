@@ -13,6 +13,10 @@ natural:
   false: 'মিথ্যা'
   note: 'টীকা: {text}'
   templates:
+    answer-query: '{source} এর প্রতিটি {variable} এর জন্য {condition} হলে {projection} এর মান'
+    question-query: '{source} এর প্রতিটি {variable} এর জন্য {condition} হলে {projection} এর মান কী'
+    answer-deferred-query: '“বিলম্বিত” {source} এর প্রতিটি {variable} এর জন্য {condition} হলে {projection} এর মান'
+    question-deferred-query: '“বিলম্বিত” {source} এর প্রতিটি {variable} এর জন্য {condition} হলে {projection} এর মান কী'
     answer-type: '{subject} এর ধরন'
     question-type: '{subject} এর ধরন কী'
     answer-documentation: '{subject} এর বিবরণ'

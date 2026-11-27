@@ -18,6 +18,7 @@ import { withArrays } from './array-spellings.js';
 import { writePower } from './power.js';
 import { writeQuestion, writePropertyAccess } from './questions.js';
 import { writeDocumentationAssignment } from './documentation.js';
+import { withQueryWriter } from './query-writer.js';
 import { namedType, withTypeMetadata } from './type-metadata.js';
 import { withExceptions } from './exceptions.js';
 import {
@@ -100,6 +101,7 @@ const blockCommentLanguages = new Set(['c', 'csharp']);
 // The import lines a used feature needs, before and after the common
 // library imports.
 const importsBeforeLibrary = [
+  ['System.Linq', 'using System.Linq;'],
   ['inspect', 'import inspect'],
   ['sys', 'import sys'],
   ['typing', 'from typing import Annotated'],
@@ -1020,8 +1022,8 @@ const compoundOperators = {
 };
 
 // Arrays are written by a mixin of their own, which the dialects inherit.
-const Emitter = withExceptions(
-  withTypeMetadata(withReals(withArrays(BaseEmitter)))
+const Emitter = withQueryWriter(
+  withExceptions(withTypeMetadata(withReals(withArrays(BaseEmitter))))
 );
 
 export function emitProgram(program, languageId) {

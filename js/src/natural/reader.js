@@ -13,6 +13,7 @@ import { tokenize } from './tokens.js';
 import { levelIndex, levels, operatorOfTemplate } from './levels.js';
 import { questionAspects, questionKey, answerKey } from '../meta/questions.js';
 import { sentenceLines } from './lines.js';
+import { queryKeys, queryNode } from '../meta/queries.js';
 import { normalize, slotCase } from './agreement.js';
 import { attachComments, withOrigin } from '../translation/source-origins.js';
 
@@ -233,17 +234,21 @@ export class SentenceReader {
         }
       }
     }
-    for (const key of arrayKeys) {
+    const structuredKeys = [
+      ...arrayKeys,
+      ...queryKeys.filter((key) => key.startsWith('answer-')),
+    ];
+    for (const key of structuredKeys) {
       for (const template of this.language.compiled[key]) {
         const slots = this.match(
           template,
           tokens,
           start,
           end,
-          (slot, from, to) => this.slot(tokens, slot, from, to)
+          (slot, from, to) => this.slot(tokens, slot, from, to, key)
         );
         if (slots) {
-          return arrayNode(key, slots);
+          return structuredNode(key, slots);
         }
       }
     }
@@ -383,6 +388,12 @@ export class SentenceReader {
 }
 
 // A new array of no elements is the empty array literal.
+function structuredNode(key, slots) {
+  return queryKeys.includes(key)
+    ? queryNode(key, slots)
+    : arrayNode(key, slots);
+}
+
 function arrayNode(key, slots) {
   switch (key) {
     case 'array':
@@ -399,6 +410,7 @@ function arrayNode(key, slots) {
 }
 
 const statementKeys = [
+  ...queryKeys.filter((key) => key.startsWith('question-')),
   ...questionAspects.map(questionKey),
   'documentation',
   'print-line',
@@ -416,7 +428,10 @@ const statementKeys = [
 const blockKeys = ['else-if', 'else', 'if', 'while', 'for', 'for-each'];
 const functionKeys = ['function', 'function-without-parameters'];
 
-function statementFromSentence({ key, slots }) {
+function questionStatement(key, slots) {
+  if (queryKeys.includes(key)) {
+    return node('Evaluate', { expression: queryNode(key, slots) });
+  }
   if (key.startsWith('question-')) {
     return node('Evaluate', {
       expression: node('Question', {
@@ -424,6 +439,14 @@ function statementFromSentence({ key, slots }) {
         subject: slots.subject,
       }),
     });
+  }
+  return undefined;
+}
+
+function statementFromSentence({ key, slots }) {
+  const question = questionStatement(key, slots);
+  if (question) {
+    return question;
   }
   switch (key) {
     case 'documentation':

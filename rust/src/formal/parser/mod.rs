@@ -71,6 +71,7 @@ mod concrete;
 mod exceptions;
 mod forms;
 mod loops;
+mod queries;
 mod questions;
 mod types;
 
@@ -233,6 +234,9 @@ impl Parser {
     /// Whether the token at `offset` is the symbol or word `value`.
     pub(crate) fn is_at(&self, value: &str, offset: usize) -> bool {
         let token = self.peek(offset);
+        if self.syntax.id == "sql" && token.quote.is_some() {
+            return false;
+        }
         if token.kind == TokenType::Name && self.syntax.case_insensitive {
             return token.value.eq_ignore_ascii_case(value);
         }
@@ -1154,7 +1158,12 @@ impl Parser {
     // ---- expressions ----
 
     pub(crate) fn expression(&mut self) -> Parsed {
-        self.concrete_rule("expression", |parser| parser.binary(0))
+        self.concrete_rule("expression", |parser| {
+            if let Some(lambda) = parser.query_lambda()? {
+                return Ok(lambda);
+            }
+            parser.binary(0)
+        })
     }
 
     /// The meta operator spelled by the current token at a precedence level.
@@ -1261,7 +1270,9 @@ impl Parser {
     }
 
     pub(crate) fn postfix(&mut self) -> Parsed {
-        self.concrete_rule("postfix", Self::concrete_postfix)
+        self.concrete_rule("postfix", |parser| {
+            parser.concrete_postfix().map(queries::query_call)
+        })
     }
 
     fn concrete_postfix(&mut self) -> Parsed {
@@ -1349,6 +1360,9 @@ impl Parser {
 
     pub(crate) fn primary(&mut self) -> Parsed {
         self.concrete_rule("primary", |parser| {
+            if let Some(query) = parser.query_primary()? {
+                return Ok(query);
+            }
             let dialect = parser.dialect;
             dialect.primary(parser)
         })

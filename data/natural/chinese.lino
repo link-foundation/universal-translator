@@ -13,6 +13,10 @@ natural:
   false: '假'
   note: '注：{text}'
   templates:
+    answer-query: '对于 {source} 中的每个 {variable} 满足 {condition} 的 {projection} 值'
+    question-query: '对于 {source} 中的每个 {variable} 满足 {condition} 的 {projection} 值是什么'
+    answer-deferred-query: '“延迟” 对于 {source} 中的每个 {variable} 满足 {condition} 的 {projection} 值'
+    question-deferred-query: '“延迟” 对于 {source} 中的每个 {variable} 满足 {condition} 的 {projection} 值是什么'
     answer-type: '{subject} 的类型'
     question-type: '什么是 {subject} 的类型'
     answer-documentation: '{subject} 的文档'

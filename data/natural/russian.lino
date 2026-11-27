@@ -13,6 +13,10 @@ natural:
   false: 'ложь'
   note: 'Примечание: {text}'
   templates:
+    answer-query: 'значения {projection} для каждого {variable} в {source} при {condition}'
+    question-query: 'Какие значения {projection} для каждого {variable} в {source} удовлетворяют {condition}'
+    answer-deferred-query: '«отложенно» значения {projection} для каждого {variable} в {source} при {condition}'
+    question-deferred-query: '«отложенно» Какие значения {projection} для каждого {variable} в {source} удовлетворяют {condition}'
     answer-type: 'тип сущности {subject}'
     question-type: 'Какой тип у сущности {subject}'
     answer-documentation: 'документация сущности {subject}'

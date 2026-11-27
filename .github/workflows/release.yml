@@ -639,6 +639,10 @@ jobs:
           bash scripts/run-with-budget-warning.sh 540 "Common library translations" \
             node examples/programs/verify-native.mjs --require-all --common-library
 
+      - name: Verify native selection queries and evaluation strategy
+        timeout-minutes: 2
+        run: node examples/queries/verify-native.mjs
+
   # === DOCKER IMAGE BUILD CHECK (pull requests) ===
   # Builds the Dockerfile without pushing so a broken image fails the pull
   # request instead of surfacing only after publish (issue #106).

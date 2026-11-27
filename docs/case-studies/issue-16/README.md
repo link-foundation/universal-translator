@@ -18,6 +18,8 @@ CI for a subset does not close that scope.
   commit and require regression review.
 - [Architecture comparison](ARCHITECTURE.md): primary-source research, reusable
   mechanisms, distribution limits and an implementation path.
+- [Introspection questions](QUESTIONS.md) and [selection queries](QUERIES.md):
+  shared meanings, native execution, scope/evaluation rules and remaining limits.
 - `data/issue-*.json`, `data/discussion-*.md` and `data/pulls-*`: complete issue
   and PR descriptions, conversation comments, inline comments and reviews.
   Long discussions are split into parts of at most 1,400 lines for review.

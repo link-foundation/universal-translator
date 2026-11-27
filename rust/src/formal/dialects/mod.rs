@@ -14,6 +14,7 @@ mod matlab;
 mod pascal;
 mod rocq;
 pub(crate) mod shared;
+mod sql;
 mod vb;
 mod zig;
 
@@ -177,6 +178,7 @@ pub(crate) fn emitter_dialect(language: &str) -> &'static dyn EmitterDialect {
         "matlab" => &matlab::Matlab,
         "pascal" => &pascal::Pascal,
         "rocq" => &rocq::Rocq,
+        "sql" => &sql::Sql,
         "vb" => &vb::VisualBasic,
         "zig" => &zig::Zig,
         _ => &Plain,
@@ -194,6 +196,7 @@ pub(crate) fn parser_dialect(language: &str) -> &'static dyn ParserDialect {
         "matlab" => &matlab::Matlab,
         "pascal" => &pascal::Pascal,
         "rocq" => &rocq::Rocq,
+        "sql" => &sql::Sql,
         "vb" => &vb::VisualBasic,
         "zig" => &zig::Zig,
         _ => &Plain,

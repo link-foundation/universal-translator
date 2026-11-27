@@ -60,6 +60,12 @@ function expressionType(expression, scope, signatures) {
       return numberType(expression);
     case 'Name':
       return scope.get(expression.name);
+    case 'Query': {
+      const local = queryScope(expression, scope, signatures);
+      const element =
+        expressionType(expression.projection, local, signatures) ?? 'object';
+      return `${expression.eager ? 'array' : 'sequence'}<${element}>`;
+    }
     case 'Question':
       return ['source', 'documentation'].includes(expression.aspect)
         ? 'text'
@@ -80,21 +86,56 @@ function expressionType(expression, scope, signatures) {
   }
 }
 
+function queryScope(expression, scope, signatures) {
+  const source = expressionType(expression.source, scope, signatures);
+  const element = /^(?:array|sequence)<(.+)>$/u.exec(source)?.[1];
+  return new Map(scope).set(
+    expression.variable,
+    element ?? (source === 'array' ? 'integer' : 'object')
+  );
+}
+
 // A division with a real operand is a true division (C's `7.0 / 2`).
 function annotate(expression, scope, signatures) {
-  return rewrite(expression, (current) => {
-    const type = expressionType(current, scope, signatures);
-    const operator =
-      current.kind === 'Binary' &&
-      current.operator === 'divide' &&
-      type === 'real'
-        ? 'realDivide'
-        : current.operator;
-    if (!type) {
-      return current;
+  let local =
+    expression.kind === 'Query'
+      ? queryScope(expression, scope, signatures)
+      : scope;
+  if (expression.kind === 'Lambda') {
+    local = new Map(scope);
+    for (const parameter of expression.parameters) {
+      local.delete(parameter);
     }
-    return operator ? { ...current, operator, type } : { ...current, type };
-  });
+  }
+  const child = (value, context) =>
+    Array.isArray(value)
+      ? value.map((item) => child(item, context))
+      : value?.kind
+        ? annotate(value, context, signatures)
+        : value;
+  const current = inheritOrigin(
+    Object.fromEntries(
+      Object.entries(expression).map(([key, value]) => [
+        key,
+        child(value, key === 'source' ? scope : local),
+      ])
+    ),
+    expression
+  );
+  const type = expressionType(current, scope, signatures);
+  const operator =
+    current.kind === 'Binary' &&
+    current.operator === 'divide' &&
+    type === 'real'
+      ? 'realDivide'
+      : current.operator;
+  if (!type) {
+    return current;
+  }
+  return inheritOrigin(
+    operator ? { ...current, operator, type } : { ...current, type },
+    current
+  );
 }
 
 function typeBlock(body, scope, signatures, returns) {

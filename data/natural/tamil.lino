@@ -13,6 +13,10 @@ natural:
   false: 'பொய்'
   note: 'குறிப்பு: {text}'
   templates:
+    answer-query: '{source} இல் ஒவ்வொரு {variable} க்கும் {condition} எனில் {projection} இன் மதிப்புகள்'
+    question-query: '{source} இல் ஒவ்வொரு {variable} க்கும் {condition} எனில் {projection} இன் மதிப்புகள் என்ன'
+    answer-deferred-query: '“ஒத்திவைக்கப்பட்ட” {source} இல் ஒவ்வொரு {variable} க்கும் {condition} எனில் {projection} இன் மதிப்புகள்'
+    question-deferred-query: '“ஒத்திவைக்கப்பட்ட” {source} இல் ஒவ்வொரு {variable} க்கும் {condition} எனில் {projection} இன் மதிப்புகள் என்ன'
     answer-type: '{subject} இன் வகை'
     question-type: '{subject} இன் வகை என்ன'
     answer-documentation: '{subject} இன் ஆவணம்'

@@ -37,6 +37,7 @@ pub struct Detection {
 
 /// Patterns that only one language (or a small family) writes.
 const SIGNATURES: &[(&str, &[&str])] = &[
+    ("sql", &[r"(?is)\bselect\b.+\bfrom\b"]),
     (
         "javascript",
         &[r"\bconsole\.log\s*\(", r"\b(?:let|const)\s+\w+\s*=", "==="],
@@ -86,7 +87,11 @@ const SIGNATURES: &[(&str, &[&str])] = &[
     ),
     (
         "csharp",
-        &[r"\bConsole\.Write(?:Line)?\s*\(", r"\busing\s+System\b"],
+        &[
+            r"\bConsole\.Write(?:Line)?\s*\(",
+            r"\busing\s+System\b",
+            r"\bfrom\s+\w+\s+in\b.*\bselect\b",
+        ],
     ),
     (
         "java",
@@ -436,6 +441,7 @@ pub fn detect_language(translator: &Translator, source: &str, limit: usize) -> V
     };
     let mut candidates: Vec<Candidate> = languages::language_ids()
         .into_iter()
+        .chain(crate::formal::query_languages::query_language_ids())
         .map(|id| candidate(id, false, syntax_evidence(source, id)))
         .chain(
             languages::machine_target_ids()

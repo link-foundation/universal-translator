@@ -28,7 +28,9 @@ const NAME_SLOTS: [&str; 3] = ["name", "variable", "callee"];
 const PRIMARY_SLOTS: [&str; 4] = ["index", "array", "length", "fill"];
 const ARRAY_KEYS: [&str; 4] = ["array", "new-array", "element", "length"];
 
-const STATEMENT_KEYS: [&str; 16] = [
+const STATEMENT_KEYS: [&str; 18] = [
+    "question-query",
+    "question-deferred-query",
     "question-type",
     "question-documentation",
     "question-source",
@@ -373,6 +375,16 @@ impl<'a> SentenceReader<'a> {
                 }
             }
         }
+        for key in ["answer-query", "answer-deferred-query"] {
+            for template in self.language.variants(key) {
+                let mut reader =
+                    |slot: &str, from: usize, to: usize| self.slot(tokens, slot, from, to);
+                if let Some(slots) = Self::match_template(template, tokens, start, end, &mut reader)
+                {
+                    return query_node(key, slots);
+                }
+            }
+        }
         for aspect in ASPECTS {
             for template in self.language.variants(&format!("answer-{aspect}")) {
                 let mut reader = |_slot: &str, from: usize, to: usize| {
@@ -570,7 +582,24 @@ fn array_node(key: &str, mut slots: Captured) -> Option<Node> {
     })
 }
 
+fn query_node(key: &str, mut slots: Captured) -> Option<Node> {
+    let source = expression_slot(&mut slots, "source")?;
+    let variable = name_slot(&mut slots, "variable");
+    let condition = expression_slot(&mut slots, "condition")?;
+    let projection = expression_slot(&mut slots, "projection")?;
+    Some(crate::meta::queries::query(
+        source,
+        &variable,
+        projection,
+        Some(condition),
+        !key.contains("deferred"),
+    ))
+}
+
 fn statement_from_sentence(key: &str, mut slots: Captured) -> Option<Node> {
+    if crate::meta::queries::KEYS.contains(&key) {
+        return Some(Node::new("Evaluate").with("expression", query_node(key, slots)?));
+    }
     if let Some(aspect) = key
         .strip_prefix("question-")
         .filter(|aspect| ASPECTS.contains(aspect))

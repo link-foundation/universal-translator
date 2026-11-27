@@ -57,6 +57,7 @@ const mainField = {
   Number: 'value',
   Paragraph: 'id',
   Question: 'aspect',
+  Query: 'variable',
   Parameter: 'name',
   Prose: 'language',
   Text: 'value',

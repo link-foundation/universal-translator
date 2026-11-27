@@ -542,6 +542,11 @@ impl Translator {
             Some(languages::language_syntax(to)?)
         };
         let machine = syntax.as_ref().is_some_and(|syntax| syntax.machine);
+        if options.common_library && languages::language_syntax(to).is_ok_and(|s| s.id == "sql") {
+            return Err(GrammarError::new(format!(
+                "Query targets have no common library ({to})"
+            )));
+        }
         if options.common_library && machine {
             return Err(GrammarError::new(format!(
                 "Machine targets have no common library ({to})"
@@ -754,6 +759,8 @@ pub struct LanguageListing {
     /// Whether this is a machine target (assembly or an intermediate
     /// language) rather than a source language.
     pub machine: bool,
+    /// Whether the language accepts relation queries rather than imperative programs.
+    pub query: bool,
 }
 
 /// The programming languages with their labels and versions, then the
@@ -761,6 +768,7 @@ pub struct LanguageListing {
 pub fn languages() -> Vec<LanguageListing> {
     language_ids()
         .into_iter()
+        .chain(crate::formal::query_languages::query_language_ids())
         .chain(machine_target_ids())
         .filter_map(|id| languages::language_syntax(id).ok())
         .map(|syntax| LanguageListing {
@@ -768,6 +776,7 @@ pub fn languages() -> Vec<LanguageListing> {
             label: syntax.label,
             versions: versions_of(syntax.id),
             machine: syntax.machine,
+            query: syntax.id == "sql",
         })
         .collect()
 }

@@ -46,13 +46,16 @@ impl Parser {
     }
 
     pub(crate) fn type_head_length(&self) -> usize {
+        if self.syntax.id == "csharp" && self.is("from") && self.is_at("in", 2) {
+            return 0;
+        }
         let mut offset = 0;
         let mut depth = 0;
         loop {
             let value = self.value(offset);
             if self.kind(offset) != TokenType::Name
-                && !["*", "::", "[", "]", "<", ">", ">>"].contains(&value)
-                && !(depth > 0 && [",", ".", "?"].contains(&value))
+                && !["*", "::", ".", "[", "]", "<", ">", ">>"].contains(&value)
+                && !(depth > 0 && [",", "?"].contains(&value))
             {
                 return offset;
             }

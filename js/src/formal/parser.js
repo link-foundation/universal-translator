@@ -14,6 +14,7 @@ import { powerSymbol } from './power.js';
 import { typeDepth, typeHeadLength, withAnnotations } from './annotations.js';
 import { withExceptionParser } from './exception-parser.js';
 import { questionSuffix, propertyAssignment } from './question-parser.js';
+import { withQueryParser } from './query-parser.js';
 import {
   concreteParser,
   concreteSyntax,
@@ -155,6 +156,9 @@ class BaseParser {
   }
   is(value, offset = 0) {
     const token = this.peek(offset);
+    if (this.syntax.id === 'sql' && token.quote) {
+      return false;
+    }
     if (token.type === 'name' && this.syntax.caseInsensitive) {
       return token.value.toLowerCase() === String(value).toLowerCase();
     }
@@ -1430,8 +1434,10 @@ export function numberLiteral(written) {
 
 // Arrays, loops and type hints are read by mixins of their own, which the
 // dialects inherit.
-const Parser = withExceptionParser(
-  withAnnotations(withFunctionForms(withLoops(withArrays(BaseParser))))
+const Parser = withQueryParser(
+  withExceptionParser(
+    withAnnotations(withFunctionForms(withLoops(withArrays(BaseParser))))
+  )
 );
 
 // Map a source type spelling to a meta type.

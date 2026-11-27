@@ -13,6 +13,10 @@ natural:
   false: '거짓'
   note: '참고: {text}'
   templates:
+    answer-query: '{source} 의 각 {variable} 에 대해 {condition} 를 만족하는 {projection} 의 값'
+    question-query: '{source} 의 각 {variable} 에 대해 {condition} 를 만족하는 {projection} 의 값은 무엇인가'
+    answer-deferred-query: '“지연” {source} 의 각 {variable} 에 대해 {condition} 를 만족하는 {projection} 의 값'
+    question-deferred-query: '“지연” {source} 의 각 {variable} 에 대해 {condition} 를 만족하는 {projection} 의 값은 무엇인가'
     answer-type: '{subject} 의 유형'
     question-type: '{subject} 의 유형 은 무엇인가'
     answer-documentation: '{subject} 의 문서'

@@ -12,7 +12,11 @@
 // intermediate languages) is read whole only: each dialect's reader takes
 // its own programs and no other text.
 
-import { grammarLanguageIds, languageSyntax } from '../formal/languages.js';
+import {
+  grammarLanguageIds,
+  queryLanguageIds,
+  languageSyntax,
+} from '../formal/languages.js';
 import { machineTargetIds } from '../formal/machine.js';
 import { naturalLanguage, naturalLanguageIds } from '../natural/catalog.js';
 import { tokenize } from '../natural/tokens.js';
@@ -20,6 +24,7 @@ import { isKnownWord, wordsOf } from '../natural/comments.js';
 
 // Patterns that only one language (or a small family) writes.
 const signatures = {
+  sql: [/\bselect\b[\s\S]+\bfrom\b/iu],
   javascript: [/\bconsole\.log\s*\(/u, /\b(?:let|const)\s+\w+\s*=/u, /===/u],
   typescript: [
     /\b(?:let|const)\s+\w+\s*:\s*\w+/u,
@@ -41,7 +46,11 @@ const signatures = {
     /\bstd::/u,
     /\b(?:try|catch|throw|template|namespace)\b/u,
   ],
-  csharp: [/\bConsole\.Write(?:Line)?\s*\(/u, /\busing\s+System\b/u],
+  csharp: [
+    /\bConsole\.Write(?:Line)?\s*\(/u,
+    /\busing\s+System\b/u,
+    /\bfrom\s+\w+\s+in\b[\s\S]+\bselect\b/u,
+  ],
   java: [
     /\bSystem\.out\.print(?:ln)?\s*\(/u,
     /\bpublic\s+static\s+void\s+main\b/u,
@@ -205,7 +214,7 @@ function proseCoverage(source, id) {
 
 // Every language a text may be written in, with the evidence for it.
 const candidatesOf = (source) => [
-  ...grammarLanguageIds.map((id) => ({
+  ...[...grammarLanguageIds, ...queryLanguageIds].map((id) => ({
     id,
     natural: false,
     evidence: syntaxEvidence(source, id),

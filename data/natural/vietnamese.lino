@@ -13,6 +13,10 @@ natural:
   false: 'sai'
   note: 'Ghi chú: {text}'
   templates:
+    answer-query: 'các giá trị của {projection} cho mỗi {variable} trong {source} khi {condition}'
+    question-query: 'Các giá trị nào của {projection} cho mỗi {variable} trong {source} thỏa mãn {condition}'
+    answer-deferred-query: '“trì hoãn” các giá trị của {projection} cho mỗi {variable} trong {source} khi {condition}'
+    question-deferred-query: '“trì hoãn” Các giá trị nào của {projection} cho mỗi {variable} trong {source} thỏa mãn {condition}'
     answer-type: 'kiểu của {subject}'
     question-type: 'kiểu của {subject} là gì'
     answer-documentation: 'tài liệu của {subject}'

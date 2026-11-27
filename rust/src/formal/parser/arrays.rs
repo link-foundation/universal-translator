@@ -149,6 +149,11 @@ impl Parser {
 
     fn named_constructor(&mut self, word: &str) -> Parsed<Option<Node>> {
         let named = self.kind(1) == TokenType::Name;
+        if word == "new" && self.syntax.id == "csharp" && self.is_at("[", 1) && self.is_at("]", 2) {
+            self.position += 3;
+            self.expect("{")?;
+            return self.array_literal("}").map(Some);
+        }
         // Java, Groovy and D: new int[n], filled with zeros.
         if word == "new" && named && self.is_at("[", 2) {
             self.position += 3;

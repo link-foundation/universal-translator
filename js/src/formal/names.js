@@ -57,8 +57,11 @@ export function declaredNames(program) {
     if (['Declaration', 'Catch'].includes(current.kind) && current.name) {
       names.add(current.name);
     }
-    if (current.kind === 'CountingLoop' || current.kind === 'ForEach') {
+    if (['CountingLoop', 'ForEach', 'Query'].includes(current.kind)) {
       names.add(current.variable);
+    }
+    if (current.kind === 'Lambda') {
+      current.parameters.forEach((parameter) => names.add(parameter));
     }
     return current;
   });
@@ -92,7 +95,10 @@ export function renameDeclared(program, rename) {
         return { ...current, name: change(current.name) };
       case 'CountingLoop':
       case 'ForEach':
+      case 'Query':
         return { ...current, variable: change(current.variable) };
+      case 'Lambda':
+        return { ...current, parameters: current.parameters.map(change) };
       default:
         return current;
     }

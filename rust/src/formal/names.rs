@@ -85,9 +85,12 @@ pub fn declared_names(program: &Node) -> HashSet<String> {
         }
     }
     walk(program, |current| {
+        if current.is("Lambda") {
+            names.extend(current.texts("parameters"));
+        }
         let field = match current.kind.as_str() {
             "Declaration" | "Catch" => "name",
-            "CountingLoop" | "ForEach" => "variable",
+            "CountingLoop" | "ForEach" | "Query" => "variable",
             _ => return,
         };
         names.extend(current.str(field).map(str::to_owned));
@@ -127,7 +130,15 @@ pub fn rename_declared(program: Node, rename: impl Fn(&str, Role) -> String) -> 
             rename_field(current, "name")
         }
         "Call" => rename_field(current, "callee"),
-        "CountingLoop" | "ForEach" => rename_field(current, "variable"),
+        "Lambda" => {
+            let parameters = current
+                .texts("parameters")
+                .iter()
+                .map(|p| change(p))
+                .collect::<Vec<_>>();
+            current.with("parameters", parameters)
+        }
+        "CountingLoop" | "ForEach" | "Query" => rename_field(current, "variable"),
         _ => current,
     });
     let functions: Vec<Node> = renamed

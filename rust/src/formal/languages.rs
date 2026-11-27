@@ -1472,6 +1472,7 @@ pub fn language_syntax(identifier: &str) -> Result<Syntax, GrammarError> {
     let syntax = LANGUAGES
         .iter()
         .chain(MORE_LANGUAGES.iter())
+        .chain(super::query_languages::QUERY_LANGUAGES.iter())
         .chain(MACHINE_TARGETS.iter())
         .find(|syntax| syntax.id == id)
         .cloned()

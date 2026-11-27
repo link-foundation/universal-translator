@@ -13,6 +13,10 @@ natural:
   false: 'ખોટું'
   note: 'નોંધ: {text}'
   templates:
+    answer-query: '{source} માં દરેક {variable} માટે {condition} હોય ત્યારે {projection} ના મૂલ્યો'
+    question-query: '{source} માં દરેક {variable} માટે {condition} હોય ત્યારે {projection} ના મૂલ્યો કયા છે'
+    answer-deferred-query: '“વિલંબિત” {source} માં દરેક {variable} માટે {condition} હોય ત્યારે {projection} ના મૂલ્યો'
+    question-deferred-query: '“વિલંબિત” {source} માં દરેક {variable} માટે {condition} હોય ત્યારે {projection} ના મૂલ્યો કયા છે'
     answer-type: '{subject} નો પ્રકાર'
     question-type: '{subject} નો પ્રકાર શું છે'
     answer-documentation: '{subject} નું વર્ણન'

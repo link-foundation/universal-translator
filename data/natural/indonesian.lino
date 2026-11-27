@@ -13,6 +13,10 @@ natural:
   false: 'salah'
   note: 'Catatan: {text}'
   templates:
+    answer-query: 'nilai {projection} untuk setiap {variable} dalam {source} dengan {condition}'
+    question-query: 'Apa nilai {projection} untuk setiap {variable} dalam {source} dengan {condition}'
+    answer-deferred-query: '“tertunda” nilai {projection} untuk setiap {variable} dalam {source} dengan {condition}'
+    question-deferred-query: '“tertunda” Apa nilai {projection} untuk setiap {variable} dalam {source} dengan {condition}'
     answer-type: 'tipe dari {subject}'
     question-type: 'Apa tipe dari {subject}'
     answer-documentation: 'dokumentasi dari {subject}'

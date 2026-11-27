@@ -13,6 +13,10 @@ natural:
   false: 'असत्य'
   note: 'टिप्पणी: {text}'
   templates:
+    answer-query: '{source} में हर {variable} के लिए {condition} होने पर {projection} के मान'
+    question-query: '{source} में हर {variable} के लिए {condition} होने पर {projection} के मान क्या हैं'
+    answer-deferred-query: '“विलंबित” {source} में हर {variable} के लिए {condition} होने पर {projection} के मान'
+    question-deferred-query: '“विलंबित” {source} में हर {variable} के लिए {condition} होने पर {projection} के मान क्या हैं'
     answer-type: '{subject} का प्रकार'
     question-type: '{subject} का प्रकार क्या है'
     answer-documentation: '{subject} का विवरण'

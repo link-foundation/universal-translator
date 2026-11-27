@@ -131,7 +131,8 @@ pub(crate) struct Emitter {
 
 /// The import lines a used feature needs, before and after the common
 /// library imports.
-const IMPORTS_BEFORE_LIBRARY: [(&str, &str); 6] = [
+const IMPORTS_BEFORE_LIBRARY: [(&str, &str); 7] = [
+    ("System.Linq", "using System.Linq;"),
     ("inspect", "import inspect"),
     ("sys", "import sys"),
     ("typing", "from typing import Annotated"),
@@ -264,6 +265,9 @@ impl Emitter {
     }
 
     pub(crate) fn type_name(&mut self, meta: &str) -> String {
+        if let Some(written) = super::query_writer::type_name(self, meta) {
+            return written;
+        }
         if let Some(name) = meta.strip_prefix("source:") {
             return super::type_metadata::named_type(name, self.id());
         }
@@ -398,6 +402,8 @@ impl Emitter {
                 })
             }
             "Name" => Ok(self.variable(expression.str("name").unwrap_or_default())),
+            "Query" => super::query_writer::write_query(self, expression),
+            "Lambda" => super::query_writer::write_lambda(self, expression),
             "Question" => super::questions::write_question(self, expression),
             "Method" if matches!(self.id(), "python" | "javascript" | "typescript") => {
                 let receiver = self.expression(field(expression, "receiver")?)?;
@@ -699,6 +705,9 @@ impl Emitter {
             None => self.initial_value(&number(0.0), kind)?,
         };
         let mutable = statement.flag("mutable").unwrap_or(false);
+        if self.id() == "csharp" && statement.node("value").is_some_and(|v| v.is("Query")) {
+            return Ok(format!("var {name} = {initial};"));
+        }
         Ok(match self.id() {
             "javascript" | "typescript" => {
                 let keyword = self.syntax.declaration_keyword.unwrap_or(if mutable {
@@ -1285,5 +1294,10 @@ pub fn spaced_after<N: std::borrow::Borrow<Node>>(functions: &[N], index: usize)
 }
 
 pub fn emit_program(program: &Node, language: &str) -> Result<String> {
-    Emitter::new(language_syntax(language)?).program(program)
+    let syntax = language_syntax(language)?;
+    if syntax.id == "csharp" {
+        Emitter::new(syntax).program(&super::query_writer::csharp_query_names(program.clone()))
+    } else {
+        Emitter::new(syntax).program(program)
+    }
 }

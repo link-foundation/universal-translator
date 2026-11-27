@@ -46,5 +46,23 @@
     "url": "https://raw.githubusercontent.com/python/cpython/main/Python/compile.c",
     "bytes": 58055,
     "sha256": "e8e9a1b08fea124ec059ab644d0f87b4ac8ed805a2f40d78fd8e06e17adb79cb"
+  },
+  {
+    "file": "csharp-query-execution.html.gz",
+    "url": "https://learn.microsoft.com/en-us/dotnet/csharp/linq/get-started/introduction-to-linq-queries",
+    "bytes": 81350,
+    "sha256": "e9417c3dba5e13167e60904cbf097b66e77728a32de8420ab44dc7f9b16873c0"
+  },
+  {
+    "file": "python-expressions.html.gz",
+    "url": "https://docs.python.org/3/reference/expressions.html",
+    "bytes": 274555,
+    "sha256": "d563bf4dd6e439d976ae87ce382b8e2c0e1b095d24d387ccaac2572380f84766"
+  },
+  {
+    "file": "sqlite-select.html.gz",
+    "url": "https://www.sqlite.org/lang_select.html",
+    "bytes": 2033807,
+    "sha256": "f850d5a0e9441d348535494f9c647ea90548a03a1c7bd51cdac6c7943e6dc785"
   }
 ]

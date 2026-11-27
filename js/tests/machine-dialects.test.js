@@ -50,7 +50,9 @@ describe('the machine targets in the language listing', () => {
       'llvm',
       'wat',
     ]);
-    expect(listing.filter((language) => !language.machine).length).toBe(33);
+    expect(
+      listing.filter((language) => !language.machine && !language.query).length
+    ).toBe(33);
     for (const language of listing.filter(({ machine: flag }) => !flag)) {
       expect(language.machine).toBe(undefined);
     }

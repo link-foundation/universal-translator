@@ -10,6 +10,7 @@
 import { parseLinks } from '../meta/links.js';
 import { tokenize } from './tokens.js';
 import { naturalSources } from './sources.js';
+import { derivedQueryTemplates, queryKeys } from '../meta/queries.js';
 
 // Every statement and expression form a language must describe.
 export const templateKeys = [
@@ -58,6 +59,7 @@ export const templateKeys = [
 // wordings of an assignment that adds to or subtracts from the variable) are
 // written as the assignment.
 export const optionalTemplateKeys = [
+  ...queryKeys,
   'for-each',
   'increase',
   'decrease',
@@ -90,6 +92,9 @@ function reflectionTemplates(base, description, templates) {
   ].some((key) => description.rules[key]?.length);
   if (!constrained) {
     return;
+  }
+  for (const key of queryKeys) {
+    delete templates[key];
   }
   const [open, close] = description.quotes ?? base.quotes ?? ['"', '"'];
   const instruction =
@@ -233,8 +238,12 @@ function compile(description) {
     nameJoiner: description['name-joiner'] ?? '-',
     quotes: description.quotes ?? ['"', '"'],
   };
+  language.templates = {
+    ...derivedQueryTemplates(language),
+    ...description.templates,
+  };
   language.compiled = Object.fromEntries(
-    Object.entries(description.templates).map(([key, texts]) => [
+    Object.entries(language.templates).map(([key, texts]) => [
       key,
       texts.map((text) => tokenize(text, language, { templates: true })),
     ])

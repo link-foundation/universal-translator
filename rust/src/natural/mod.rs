@@ -9,6 +9,7 @@ pub mod levels;
 mod lines;
 pub mod probability;
 pub mod prose_reading;
+mod query_templates;
 pub mod reader;
 pub mod rules;
 pub mod standards;

@@ -13,6 +13,10 @@ natural:
   false: 'fałsz'
   note: 'Uwaga: {text}'
   templates:
+    answer-query: 'wartości {projection} dla każdego {variable} w {source} gdy {condition}'
+    question-query: 'Jakie wartości {projection} dla każdego {variable} w {source} spełniają {condition}'
+    answer-deferred-query: '„odroczone” wartości {projection} dla każdego {variable} w {source} gdy {condition}'
+    question-deferred-query: '„odroczone” Jakie wartości {projection} dla każdego {variable} w {source} spełniają {condition}'
     answer-type: 'typ obiektu {subject}'
     question-type: 'Czym jest typ obiektu {subject}'
     answer-documentation: 'dokumentacja obiektu {subject}'

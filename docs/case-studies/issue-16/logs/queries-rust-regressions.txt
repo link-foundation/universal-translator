@@ -1,0 +1,51 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 10.46s
+     Running rust/tests/annotations.rs (target/debug/deps/annotations-2661d3a92e01210e)
+
+running 3 tests
+test annotation_arguments_remain_expressions ... ok
+test generics_balance_commas_and_combined_closing_brackets ... ok
+test spring_annotations_named_types_and_fluent_calls_survive_translation ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s
+
+     Running rust/tests/queries.rs (target/debug/deps/queries-b558c7c598abd427)
+
+running 7 tests
+test linq_comprehensions_and_filter_map_chains_keep_strategy_and_scope ... ok
+test sql_quoted_keywords_strings_and_case_are_data ... ok
+test scoped_predicates_and_projections_round_trip_four_formal_grammars ... ok
+test query_results_are_collections_and_range_variables_have_local_types ... ok
+test deferred_queries_and_unsupported_targets_are_explicit ... ok
+test query_capabilities_and_detection_are_explicit ... ok
+test query_questions_and_answers_compose_through_every_natural_standard ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.88s
+
+     Running rust/tests/questions.rs (target/debug/deps/questions-409af048b37cc244)
+
+running 7 tests
+test introspection_questions_keep_distinct_aspects_and_subjects ... ok
+test documentation_must_be_text_at_the_start_of_a_definition ... ok
+test imports_are_resolved_and_custom_names_stay_calls ... ok
+test formatted_strings_are_not_python_docstrings ... ok
+test documentation_editions_keep_the_source_runtime_value ... ok
+test documentation_is_runtime_metadata_and_retains_multiline_contents ... ok
+test questions_round_trip_every_natural_language ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.64s
+
+     Running rust/tests/real_numbers.rs (target/debug/deps/real_numbers-40496d2ad7d9cf78)
+
+running 9 tests
+test reads_literals_with_a_point_or_an_exponent_as_reals ... ok
+test keeps_integer_division_apart_from_true_division ... ok
+test reads_real_declarations_and_g_placeholders_of_c ... ok
+test reads_the_slash_of_javascript_and_python_3_as_true_division ... ok
+test turns_slash_assignment_into_the_division_of_the_source_language ... ok
+test a_const_array_binding_can_have_mutable_contents ... ok
+test converts_integer_variables_that_meet_a_real ... ok
+test preserves_complete_exponentiation_in_strings_and_operator_precedence ... ok
+test writes_a_true_division_with_real_operands_where_the_slash_divides_integers ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s

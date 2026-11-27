@@ -14,14 +14,21 @@ export function typeDepth(value) {
 }
 
 export function typeHeadLength(parser) {
+  if (
+    parser.syntax.id === 'csharp' &&
+    parser.is('from') &&
+    parser.is('in', 2)
+  ) {
+    return 0;
+  }
   let offset = 0;
   let depth = 0;
   while (true) {
     const token = parser.peek(offset);
     if (
       token.type !== 'name' &&
-      !['*', '::', '[', ']', '<', '>', '>>'].includes(token.value) &&
-      !(depth > 0 && [',', '.', '?'].includes(token.value))
+      !['*', '::', '.', '[', ']', '<', '>', '>>'].includes(token.value) &&
+      !(depth > 0 && [',', '?'].includes(token.value))
     ) {
       return offset;
     }

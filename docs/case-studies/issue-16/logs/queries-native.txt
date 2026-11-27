@@ -1,0 +1,3 @@
+PASS SQLite, Python, Node and C# filtered projections: [19,43]
+PASS C# eager [19,43] versus deferred [22,43] after source mutation
+PASS native C# query bindings, typed returns and nested/shadowed scopes

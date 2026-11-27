@@ -52,6 +52,11 @@ const withArrayConstructors = (Base) =>
     }
 
     newConstructor() {
+      if (this.syntax.id === 'csharp' && this.is('[', 1) && this.is(']', 2)) {
+        this.position += 3;
+        this.expect('{');
+        return node('ArrayLiteral', { elements: this.elementList('}') });
+      }
       // Java, Groovy and D: new int[n], filled with zeros.
       if (this.peek(1).type === 'name' && this.is('[', 2)) {
         this.next();

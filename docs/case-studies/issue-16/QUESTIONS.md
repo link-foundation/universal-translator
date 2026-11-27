@@ -2,7 +2,8 @@
 
 Work in [PR 17](https://github.com/link-foundation/universal-translator/pull/17)
 addresses the introspection examples in issue 16. The broader question and query
-criterion remains open while SQL/LINQ and other target families are implemented.
+criterion remains open. [Selection queries](QUERIES.md) cover a SQL/LINQ subset;
+other target families and broader query semantics remain unfinished.
 
 ## Representation and composition
 

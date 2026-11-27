@@ -31,6 +31,8 @@ pub mod names;
 pub mod numbers;
 pub mod parser;
 pub(crate) mod power;
+pub mod query_languages;
+pub(crate) mod query_writer;
 pub(crate) mod questions;
 pub mod rocq_runtime;
 pub mod rules;

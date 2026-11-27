@@ -197,3 +197,7 @@ path = "rust/tests/comment_mapping.rs"
 [[test]]
 name = "questions"
 path = "rust/tests/questions.rs"
+
+[[test]]
+name = "queries"
+path = "rust/tests/queries.rs"

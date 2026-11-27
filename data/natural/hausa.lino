@@ -13,6 +13,10 @@ natural:
   false: 'ƙarya'
   note: 'Lura: {text}'
   templates:
+    answer-query: 'ƙimomin {projection} ga kowane {variable} a cikin {source} idan {condition}'
+    question-query: 'Waɗanne ƙimomin {projection} ga kowane {variable} a cikin {source} idan {condition}'
+    answer-deferred-query: '“jinkiri” ƙimomin {projection} ga kowane {variable} a cikin {source} idan {condition}'
+    question-deferred-query: '“jinkiri” Waɗanne ƙimomin {projection} ga kowane {variable} a cikin {source} idan {condition}'
     answer-type: 'nau’in {subject}'
     question-type: 'Mene ne nau’in {subject}'
     answer-documentation: 'bayanin {subject}'

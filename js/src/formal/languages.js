@@ -23,6 +23,28 @@ const integerTypes = {
 };
 
 export const languages = {
+  sql: {
+    label: 'SQL',
+    query: true,
+    naming: 'snake',
+    blocks: 'braces',
+    lineComment: '--',
+    blockComment: ['/*', '*/'],
+    quotes: ["'", '"'],
+    doubledQuotes: true,
+    caseInsensitive: true,
+    symbols: ['<>'],
+    declarations: [],
+    operators: {
+      and: 'and',
+      or: 'or',
+      not: 'not',
+      equal: '=',
+      notEqual: '<>',
+    },
+    entryPoint: 'top-level',
+    typed: false,
+  },
   javascript: {
     naming: 'camel',
     label: 'JavaScript',
@@ -866,4 +888,10 @@ export function languageSyntax(identifier) {
   return mergeSyntax({ id, ...syntax }, versionSyntax(id, version));
 }
 
-export const grammarLanguageIds = Object.keys(languages);
+// Imperative language coverage remains distinct from relational query targets.
+export const grammarLanguageIds = Object.keys(languages).filter(
+  (id) => !languages[id].query
+);
+export const queryLanguageIds = Object.keys(languages).filter(
+  (id) => languages[id].query
+);

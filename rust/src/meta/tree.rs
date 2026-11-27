@@ -17,6 +17,8 @@
 //!   Print          { value, newline }
 //!   Evaluate       { expression }
 //!   Question       { aspect: type | documentation | source | details, subject }
+//!   Query          { source, variable, condition, projection, eager }
+//!   Lambda         { parameters, body }
 //!   PropertyAssignment { object, property, value }
 //!   Comment        { text, trailing?, block? }   trailing: the spaces between
 //!                  the code and a comment on the same line; block: written

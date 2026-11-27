@@ -9,6 +9,7 @@ pub mod imprecision;
 pub mod library;
 pub mod links;
 pub mod notation;
+pub(crate) mod queries;
 pub(crate) mod questions;
 pub mod tree;
 pub mod truth;

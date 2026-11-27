@@ -13,6 +13,10 @@ natural:
   false: 'хиба'
   note: 'Примітка: {text}'
   templates:
+    answer-query: 'значення {projection} для кожного {variable} у {source} за умови {condition}'
+    question-query: 'Які значення {projection} для кожного {variable} у {source} задовольняють {condition}'
+    answer-deferred-query: '«відкладено» значення {projection} для кожного {variable} у {source} за умови {condition}'
+    question-deferred-query: '«відкладено» Які значення {projection} для кожного {variable} у {source} задовольняють {condition}'
     answer-type: 'тип сутності {subject}'
     question-type: 'Що таке тип сутності {subject}'
     answer-documentation: 'документація сутності {subject}'

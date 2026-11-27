@@ -12,8 +12,10 @@ import { pascal } from './pascal.js';
 import { rocq } from './rocq.js';
 import { vb } from './vb.js';
 import { zig } from './zig.js';
+import { sql } from './sql.js';
 
 export const dialects = {
+  sql,
   pascal,
   fortran,
   ada,

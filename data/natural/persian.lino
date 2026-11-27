@@ -13,6 +13,10 @@ natural:
   false: 'نادرست'
   note: 'یادداشت: {text}'
   templates:
+    answer-query: 'مقادیر {projection} برای هر {variable} در {source} که {condition}'
+    question-query: 'مقادیر {projection} برای هر {variable} در {source} که {condition} چیست'
+    answer-deferred-query: '«تأخیری» مقادیر {projection} برای هر {variable} در {source} که {condition}'
+    question-deferred-query: '«تأخیری» مقادیر {projection} برای هر {variable} در {source} که {condition} چیست'
     answer-type: 'نوع {subject}'
     question-type: 'نوع {subject} چیست'
     answer-documentation: 'مستندات {subject}'

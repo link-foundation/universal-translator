@@ -28,6 +28,8 @@
 //   Unary          { operator, operand }
 //   Call           { callee, arguments }
 //   Question       { aspect: type | documentation | source | details, subject }
+//   Query          { source, variable, condition, projection, eager }
+//   Lambda         { parameters, body }
 //   PropertyAssignment { object, property, value }
 //   ArrayLiteral   { elements }         NewArray { length, fill }
 //   Index          { array, index }     Length { array }

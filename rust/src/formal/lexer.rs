@@ -592,7 +592,12 @@ impl<'a> Lexer<'a> {
                 .is_some_and(|part| part.iter().all(|c| *c == quote));
         let (raw, end) = read_quoted(&self.source, start, quote, self.line, doubled, triple)?;
         let style = interpolation_style(self.syntax, quote, prefix);
-        self.push_text(TokenType::Text, &raw, Some(quote), style);
+        let kind = if self.syntax.id == "sql" && quote == '"' {
+            TokenType::Name
+        } else {
+            TokenType::Text
+        };
+        self.push_text(kind, &raw, Some(quote), style);
         // Doubled quotes are already read, so the text has no escapes left.
         self.tokens.last_mut().expect("pushed").decoded = doubled;
         self.line += raw.matches('\n').count();
@@ -643,6 +648,11 @@ impl<'a> Lexer<'a> {
             length += 1;
         }
         let value = self.slice(self.index, self.index + length);
+        let value = if self.syntax.id == "sql" {
+            value.to_lowercase()
+        } else {
+            value
+        };
         self.push(TokenType::Name, &value);
         // Where the name stands, so identifiers can be renamed in place.
         self.tokens.last_mut().expect("pushed").span = Some((self.index, self.index + length));

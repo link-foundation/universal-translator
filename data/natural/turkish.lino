@@ -13,6 +13,10 @@ natural:
   false: 'yanlış'
   note: 'Not: {text}'
   templates:
+    answer-query: '{source} içindeki her {variable} için {condition} olduğunda {projection} değerleri'
+    question-query: '{source} içindeki her {variable} için {condition} olduğunda {projection} değerleri nelerdir'
+    answer-deferred-query: '“ertelenmiş” {source} içindeki her {variable} için {condition} olduğunda {projection} değerleri'
+    question-deferred-query: '“ertelenmiş” {source} içindeki her {variable} için {condition} olduğunda {projection} değerleri nelerdir'
     answer-type: '{subject} türü'
     question-type: '{subject} türü nedir'
     answer-documentation: '{subject} belgesi'

@@ -8,7 +8,11 @@
 // translation/decorators.js), and every rule list is ordinary data, so
 // callers can add, remove, reorder or decorate rules.
 
-import { grammarLanguageIds, languageSyntax } from './formal/languages.js';
+import {
+  grammarLanguageIds,
+  queryLanguageIds,
+  languageSyntax,
+} from './formal/languages.js';
 import { parseProgram } from './formal/parser.js';
 import {
   contextRules,
@@ -176,6 +180,9 @@ function checkTarget(to, mode, commonLibrary) {
   }
   if (commonLibrary && machineTargetIds.includes(to)) {
     throw new Error(`Machine targets have no common library (${to})`);
+  }
+  if (commonLibrary && queryLanguageIds.includes(to)) {
+    throw new Error(`Query languages have no common library (${to})`);
   }
   const natural = isNaturalLanguage(to);
   if (natural && commonLibrary) {
@@ -354,11 +361,12 @@ function completed(meta) {
 // The grammar languages with their versions, then the machine targets.
 function listLanguages() {
   return [
-    ...grammarLanguageIds.map((id) => {
+    ...[...grammarLanguageIds, ...queryLanguageIds].map((id) => {
       const versions = versionsOf(id);
       return {
         id,
         label: languageSyntax(id).label,
+        ...(queryLanguageIds.includes(id) ? { query: true } : {}),
         ...(versions.length ? { versions } : {}),
       };
     }),

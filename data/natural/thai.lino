@@ -13,6 +13,10 @@ natural:
   false: 'เท็จ'
   note: 'หมายเหตุ: {text}'
   templates:
+    answer-query: 'ค่าของ {projection} สำหรับแต่ละ {variable} ใน {source} เมื่อ {condition}'
+    question-query: 'ค่าของ {projection} สำหรับแต่ละ {variable} ใน {source} เมื่อ {condition} คืออะไร'
+    answer-deferred-query: '“เลื่อนออกไป” ค่าของ {projection} สำหรับแต่ละ {variable} ใน {source} เมื่อ {condition}'
+    question-deferred-query: '“เลื่อนออกไป” ค่าของ {projection} สำหรับแต่ละ {variable} ใน {source} เมื่อ {condition} คืออะไร'
     answer-type: 'ชนิดของ {subject}'
     question-type: 'ชนิดของ {subject} คืออะไร'
     answer-documentation: 'เอกสารของ {subject}'

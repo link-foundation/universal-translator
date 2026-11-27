@@ -13,6 +13,10 @@ natural:
   false: 'falso'
   note: 'Nota: {text}'
   templates:
+    answer-query: 'los valores de {projection} para cada {variable} en {source} donde {condition}'
+    question-query: 'Qué valores de {projection} para cada {variable} en {source} cumplen {condition}'
+    answer-deferred-query: '«diferido» los valores de {projection} para cada {variable} en {source} donde {condition}'
+    question-deferred-query: '«diferido» Qué valores de {projection} para cada {variable} en {source} cumplen {condition}'
     answer-type: 'el tipo de {subject}'
     question-type: 'Cuál es el tipo de {subject}'
     answer-documentation: 'la documentación de {subject}'

@@ -7,6 +7,7 @@
 
 import { naturalLanguage } from './catalog.js';
 import { questionKey, answerKey } from '../meta/questions.js';
+import { queryKey } from '../meta/queries.js';
 import {
   binaryTemplates,
   levelIndex,
@@ -119,6 +120,12 @@ function separated(expressions, language) {
 
 function primary(expression, language) {
   switch (expression.kind) {
+    case 'Query':
+      return fill(
+        language,
+        queryKey(expression.eager),
+        querySlots(expression, language)
+      );
     case 'Question':
       return fill(language, answerKey(expression.aspect), {
         subject: operand(expression.subject, language),
@@ -175,6 +182,18 @@ function primary(expression, language) {
     default:
       throw new Error(`Cannot write a ${expression.kind} expression in words`);
   }
+}
+
+function querySlots(expression, language) {
+  return {
+    variable: [word(writeName(expression.variable, language))],
+    ...Object.fromEntries(
+      ['source', 'condition', 'projection'].map((key) => [
+        key,
+        operand(expression[key], language),
+      ])
+    ),
+  };
 }
 
 // Tokens of an expression that must bind at least as tightly as `minimum`.
@@ -316,6 +335,13 @@ class Writer {
   }
 
   evaluation(expression, depth) {
+    if (expression.kind === 'Query') {
+      return this.sentence(
+        depth,
+        queryKey(expression.eager, true),
+        querySlots(expression, this.language)
+      );
+    }
     if (expression.kind === 'Question') {
       return this.sentence(depth, questionKey(expression.aspect), {
         subject: this.expression(expression.subject),

@@ -13,6 +13,10 @@ natural:
   false: '偽'
   note: '注：{text}'
   templates:
+    answer-query: '{source} 内の各 {variable} について {condition} を満たす {projection} の値'
+    question-query: '{source} 内の各 {variable} について {condition} を満たす {projection} の値は何か'
+    answer-deferred-query: '「遅延」 {source} 内の各 {variable} について {condition} を満たす {projection} の値'
+    question-deferred-query: '「遅延」 {source} 内の各 {variable} について {condition} を満たす {projection} の値は何か'
     answer-type: '{subject} の型'
     question-type: '{subject} の型 は何ですか'
     answer-documentation: '{subject} の文書'

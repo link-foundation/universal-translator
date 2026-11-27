@@ -13,6 +13,10 @@ natural:
   false: 'خطأ'
   note: 'ملاحظة: {text}'
   templates:
+    answer-query: 'قيم {projection} لكل {variable} في {source} حيث {condition}'
+    question-query: 'ما قيم {projection} لكل {variable} في {source} حيث {condition}'
+    answer-deferred-query: '«المؤجلة» قيم {projection} لكل {variable} في {source} حيث {condition}'
+    question-deferred-query: '«المؤجلة» ما قيم {projection} لكل {variable} في {source} حيث {condition}'
     answer-type: 'نوع {subject}'
     question-type: 'ما هو نوع {subject}'
     answer-documentation: 'توثيق {subject}'

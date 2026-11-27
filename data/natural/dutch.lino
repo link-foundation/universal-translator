@@ -13,6 +13,10 @@ natural:
   false: 'onwaar'
   note: 'Opmerking: {text}'
   templates:
+    answer-query: 'de waarden van {projection} voor elke {variable} in {source} waarvoor {condition}'
+    question-query: 'Welke waarden van {projection} voor elke {variable} in {source} voldoen aan {condition}'
+    answer-deferred-query: '“uitgesteld” de waarden van {projection} voor elke {variable} in {source} waarvoor {condition}'
+    question-deferred-query: '“uitgesteld” Welke waarden van {projection} voor elke {variable} in {source} voldoen aan {condition}'
     answer-type: 'het type van {subject}'
     question-type: 'Wat is het type van {subject}'
     answer-documentation: 'de documentatie van {subject}'
