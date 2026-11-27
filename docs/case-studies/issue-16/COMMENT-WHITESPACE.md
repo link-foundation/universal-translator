@@ -67,3 +67,45 @@ generated PHP/Rocq headers with altered leading whitespace/line endings, and
 Perl print concatenation around an arithmetic expression. The finite audit
 keeps valid generated headers intact and uses a simple variable print; it does
 not count those unrelated failures as resolved.
+
+## Native nested comments
+
+The next grammar review found another shared root: the formal lexer stopped at
+the first closing marker. In Rust, Kotlin, Swift, Dart, Scala, Julia, Nim, Lean
+and Rocq, that marker can close an inner comment. Words after it were left
+untranslated, concrete spans ended early, and an unclosed outer comment was
+accepted. The semantic and layout scanners now share an iterative depth counter
+and language-specific nesting metadata. WebAssembly uses the same scanner.
+Languages whose comments do not nest retain their original rule.
+
+Rocq additionally interprets string literals inside comments. Its scanner ignores
+comment markers inside quoted strings, including doubled quotes, and rejects an
+unclosed comment string. Other grammars continue to treat quotes inside comments
+as ordinary text. The relevant primary manuals are archived with URLs and SHA-256
+checksums in `data/prior-art/comment-grammars/manifest.json`. In particular,
+[Rocq's lexical conventions](https://github.com/rocq-prover/rocq/blob/master/doc/sphinx/language/core/basic.rst)
+describe both nesting and embedded strings; the other nine sources establish
+their native nesting rules.
+
+Reproduce without a checkout or source build:
+
+```sh
+node --max-old-space-size=512 experiments/issue-16-nested-comments.mjs --before
+node --max-old-space-size=512 experiments/issue-16-nested-comments.mjs
+```
+
+The old lexer at `bb3785c` fails 29 of 34 finite checks; the corrected public
+comment translator and lexer pass all 34. The before mode loads the old lexer
+with current dependencies and applies the same deterministic word replacements
+to its comment spans. This isolates lexical boundaries from natural-language
+vocabulary. The shared JS/Rust regressions also assert full comment spans,
+layout-token boundaries and correct rejection. Concrete-source tests parse a
+complete Rust program with nested comments and Unicode, retaining every UTF-8
+byte as one complete comment token. Focused verification passes 26 JavaScript
+tests, 21 Rust tests, ESLint and Clippy. The chunk-dependency regression passes;
+the shared scanner belongs to the existing source-processing chunk.
+
+Evidence is in `logs/nested-comments-{audit-before,audit-after}.json`,
+`logs/nested-comments-{js,rust}-final.txt`, and the matching lint/Clippy logs.
+The broader grammar-production review and the separate reader questions above
+remain open.

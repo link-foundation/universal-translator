@@ -106,6 +106,7 @@ export const machineTargets = {
     terms: { call: 'call instruction', routine: 'function' },
   },
   wat: {
+    nestedComments: true,
     label: 'WebAssembly text',
     machine: true,
     naming: 'snake',

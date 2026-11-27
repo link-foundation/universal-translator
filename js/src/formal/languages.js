@@ -286,6 +286,7 @@ export const languages = {
     terms: { call: 'function call', routine: 'function' },
   },
   rust: {
+    nestedComments: true,
     naming: 'snake',
     immutableParameters: true,
     label: 'Rust',
@@ -305,6 +306,7 @@ export const languages = {
     terms: { call: 'macro call', routine: 'function' },
   },
   kotlin: {
+    nestedComments: true,
     naming: 'camel',
     immutableParameters: true,
     label: 'Kotlin',
@@ -331,6 +333,7 @@ export const languages = {
     terms: { call: 'function call', routine: 'function' },
   },
   swift: {
+    nestedComments: true,
     naming: 'camel',
     immutableParameters: true,
     label: 'Swift',
@@ -377,6 +380,7 @@ export const languages = {
     terms: { call: 'subroutine call', routine: 'subroutine' },
   },
   dart: {
+    nestedComments: true,
     naming: 'camel',
     label: 'Dart',
     blocks: 'braces',
@@ -399,6 +403,7 @@ export const languages = {
     terms: { call: 'function call', routine: 'function' },
   },
   scala: {
+    nestedComments: true,
     naming: 'camel',
     // Scala cannot shadow a parameter with a local of the same name, so a
     // reassigned parameter is renamed and copied (see copyReassignedParameters).
@@ -433,6 +438,7 @@ export const languages = {
     terms: { call: 'method call', routine: 'method' },
   },
   julia: {
+    nestedComments: true,
     naming: 'snake',
     label: 'Julia',
     arrayBase: 1,
@@ -530,6 +536,7 @@ export const languages = {
     terms: { call: 'function call', routine: 'function' },
   },
   nim: {
+    nestedComments: true,
     naming: 'camel',
     // Parameters cannot be assigned; `var n = n` makes a mutable copy.
     immutableParameters: true,
@@ -790,6 +797,7 @@ export const languages = {
     terms: { call: 'function call', routine: 'function' },
   },
   lean: {
+    nestedComments: true,
     naming: 'camel',
     immutableParameters: true,
     label: 'Lean',
@@ -816,6 +824,8 @@ export const languages = {
     terms: { call: 'function call', routine: 'function' },
   },
   rocq: {
+    nestedComments: true,
+    commentStrings: true,
     naming: 'snake',
     label: 'Rocq',
     // Fixpoints, actions and applications are in dialects/rocq.js. Every

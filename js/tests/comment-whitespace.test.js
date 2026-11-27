@@ -7,6 +7,8 @@ import {
   translateComments,
 } from '../src/index.js';
 import { languageSyntax } from '../src/formal/languages.js';
+import { tokenize } from '../src/formal/lexer.js';
+import { layoutSyntax, layoutTokens } from '../src/translation/layout.js';
 
 const translator = createTranslator();
 const replace = (text) => text.replaceAll('spaceprobe', 'пробел');
@@ -151,4 +153,89 @@ it('keeps SQL query comments and whitespace in place', () => {
       commentLanguage: 'russian',
     }).text
   ).toBe(expected);
+});
+
+it('reads nested block comments according to each language grammar', () => {
+  for (const language of [
+    'rust',
+    'kotlin',
+    'swift',
+    'dart',
+    'scala',
+    'julia',
+    'nim',
+    'lean',
+    'rocq',
+  ]) {
+    const syntax = languageSyntax(language);
+    const [open, close] = syntax.blockComment;
+    const source = `\r\n${open} number ${open} sequence ${close}\r\n  number ${close}\t\r\n\r\n`;
+    const expected = source
+      .replaceAll('number', 'число')
+      .replaceAll('sequence', 'последовательность');
+    expect({
+      language,
+      text: translateComments(source, language, {
+        from: 'english',
+        to: 'russian',
+      }),
+    }).toEqual({ language, text: expected });
+    const comments = tokenize(source, syntax).filter(
+      (token) => token.type === 'comment'
+    );
+    expect(comments.length).toBe(1);
+    expect(comments[0].span).toEqual([
+      source.indexOf(open) + open.length,
+      source.lastIndexOf(close),
+    ]);
+    const layoutComments = layoutTokens(
+      [...source],
+      layoutSyntax(syntax)
+    ).filter((token) => token.kind === 'comment');
+    expect(layoutComments.length).toBe(1);
+    expect(layoutComments[0].end).toBe(
+      source.lastIndexOf(close) + close.length
+    );
+    expect(() =>
+      translateComments(`${open} number ${open} sequence ${close}`, language, {
+        from: 'english',
+        to: 'russian',
+      })
+    ).toThrow('Unterminated comment');
+  }
+  for (const language of ['javascript', 'c', 'cpp', 'java', 'csharp']) {
+    expect(
+      translateComments('/* number /* sequence */ number */', language, {
+        from: 'english',
+        to: 'russian',
+      })
+    ).toBe('/* число /* последовательность */ number */');
+  }
+});
+
+it('honours Rocq strings inside comments while other grammars treat quotes as text', () => {
+  const source = '(* "*)" "(*" "😀""*)" number (* sequence *) number *)';
+  const expected = source
+    .replaceAll('number', 'число')
+    .replaceAll('sequence', 'последовательность');
+  expect(
+    translateComments(source, 'rocq', { from: 'english', to: 'russian' })
+  ).toBe(expected);
+  const syntax = languageSyntax('rocq');
+  expect(
+    tokenize(source, syntax).filter((token) => token.type === 'comment').length
+  ).toBe(1);
+  expect(layoutTokens([...source], layoutSyntax(syntax)).length).toBe(1);
+  expect(() =>
+    translateComments('(* "number *)', 'rocq', {
+      from: 'english',
+      to: 'russian',
+    })
+  ).toThrow('Unterminated comment');
+  expect(
+    translateComments('/* " number */', 'rust', {
+      from: 'english',
+      to: 'russian',
+    })
+  ).toBe('/* " число */');
 });

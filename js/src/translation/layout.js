@@ -25,6 +25,8 @@
 // The Rust port (rust/src/layout.rs) follows this file step by step, so
 // both write the same characters.
 
+import { blockCommentEnd } from './comment-syntax.js';
+
 const newlineChars = new Set(['\n', '\r']);
 const isGap = (char) => char.codePointAt(0) <= 0x20 && !newlineChars.has(char);
 const isWordChar = (char) =>
@@ -81,6 +83,8 @@ export function layoutSyntax(syntax = {}) {
       : undefined,
     quotes: syntax.quotes ?? ['"'],
     doubledQuotes: Boolean(syntax.doubledQuotes),
+    nestedComments: Boolean(syntax.nestedComments),
+    commentStrings: Boolean(syntax.commentStrings),
   };
 }
 
@@ -105,31 +109,19 @@ const runWhile = (chars, index, test) => {
 };
 
 // Readers of one token at an index: [kind, end, key] or undefined.
-export function blockCommentEnd(chars, index, [open, close]) {
-  let end = index + open.length;
-  let depth = 1;
-  const nested = open.join('') === '(;' && close.join('') === ';)';
-  while (end < chars.length && depth) {
-    if (nested && startsAt(chars, end, open)) {
-      depth += 1;
-      end += open.length;
-    } else if (startsAt(chars, end, close)) {
-      depth -= 1;
-      end += close.length;
-    } else {
-      end += 1;
-    }
-  }
-  return { end, closed: depth === 0 };
-}
-
 const tokenReaders = [
-  (chars, index, { blockComment }) => {
+  (chars, index, { blockComment, nestedComments, commentStrings }) => {
     if (!blockComment || !startsAt(chars, index, blockComment[0])) {
       return undefined;
     }
     const [open, close] = blockComment;
-    const { end } = blockCommentEnd(chars, index, blockComment);
+    const { end } = blockCommentEnd(
+      chars,
+      index,
+      blockComment,
+      nestedComments,
+      commentStrings
+    );
     const inner = chars.slice(
       index + open.length,
       Math.max(index + open.length, end - close.length)

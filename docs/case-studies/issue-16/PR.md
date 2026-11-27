@@ -70,6 +70,8 @@ After: the same translation retains the paragraph and its colour mappings:
 
 `node experiments/issue-16-comment-whitespace.mjs --before` fails 81 layout assertions with the previous translation/layout stages; the corrected stages pass all 551 cases. The matching JS/Rust regression targets, SQL and complex-comment coverage are documented in [COMMENT-WHITESPACE.md](https://github.com/link-foundation/universal-translator/blob/issue-16-fb080613587e/docs/case-studies/issue-16/COMMENT-WHITESPACE.md).
 
+Nested-comment reproduction: `node experiments/issue-16-nested-comments.mjs --before` fails 29/34 checks with the previous lexer; the current path passes all 34. Nine formal languages now retain complete nested comment spans, and Rocq honours strings inside comments. Matching JavaScript/Rust regressions cover translation, concrete UTF-8 records, layout and unclosed input. Focused checks pass: 26 JavaScript tests, 21 Rust tests, ESLint, Clippy and the production chunk graph. Primary manuals and finite before/after evidence are linked from the same case study.
+
 Before correcting the source language:
 
 ![before](https://github.com/link-foundation/universal-translator/blob/issue-16-fb080613587e/docs/screenshots/issue-16/source-correction-before.png?raw=true)

@@ -1,4 +1,6 @@
 use universal_translator::formal::languages::language_syntax;
+use universal_translator::formal::lexer::{TokenType, tokenize};
+use universal_translator::layout::{Kind, Marks, layout_tokens};
 use universal_translator::natural::natural_language_ids;
 use universal_translator::translator::{language_ids, machine_target_ids};
 use universal_translator::{Mode, Options, Translator, translate_comments};
@@ -178,4 +180,123 @@ fn sql_query_comments_and_whitespace_are_kept_in_place() {
         .translate_partial(source, "sql", "sql", options(), false)
         .unwrap();
     assert_eq!(result.text, expected);
+}
+
+#[test]
+fn nested_block_comments_follow_each_language_grammar() {
+    for language in [
+        "rust", "kotlin", "swift", "dart", "scala", "julia", "nim", "lean", "rocq",
+    ] {
+        let syntax = language_syntax(language).unwrap();
+        let (open, close) = syntax.block_comment.unwrap();
+        let source =
+            format!("\r\n{open} number {open} sequence {close}\r\n  number {close}\t\r\n\r\n");
+        let expected = source
+            .replace("number", "число")
+            .replace("sequence", "последовательность");
+        assert_eq!(
+            translate_comments(&source, language, Some("english"), "russian").unwrap(),
+            expected,
+            "{language}"
+        );
+        let tokens = tokenize(&source, &syntax).unwrap();
+        let comment = tokens
+            .iter()
+            .find(|token| token.kind == TokenType::Comment)
+            .unwrap();
+        assert_eq!(
+            comment.span,
+            Some((
+                source.find(open).unwrap() + open.len(),
+                source.rfind(close).unwrap()
+            )),
+            "{language}"
+        );
+        assert_eq!(
+            tokens
+                .iter()
+                .filter(|token| token.kind == TokenType::Comment)
+                .count(),
+            1,
+            "{language}"
+        );
+        let tokens = layout_tokens(&source.chars().collect::<Vec<_>>(), &Marks::of(&syntax));
+        assert_eq!(
+            tokens
+                .iter()
+                .find(|token| token.kind == Kind::Comment)
+                .unwrap()
+                .end,
+            source.rfind(close).unwrap() + close.len(),
+            "{language}"
+        );
+        assert_eq!(
+            tokens
+                .iter()
+                .filter(|token| token.kind == Kind::Comment)
+                .count(),
+            1,
+            "{language}"
+        );
+        assert!(
+            translate_comments(
+                &format!("{open} number {open} sequence {close}"),
+                language,
+                Some("english"),
+                "russian"
+            )
+            .unwrap_err()
+            .message
+            .contains("Unterminated comment"),
+            "{language}"
+        );
+    }
+    for language in ["javascript", "c", "cpp", "java", "csharp"] {
+        assert_eq!(
+            translate_comments(
+                "/* number /* sequence */ number */",
+                language,
+                Some("english"),
+                "russian"
+            )
+            .unwrap(),
+            "/* число /* последовательность */ number */",
+            "{language}"
+        );
+    }
+}
+
+#[test]
+fn rocq_strings_inside_comments_hide_delimiters_but_other_grammars_do_not() {
+    let source = "(* \"*)\" \"(*\" \"😀\"\"*)\" number (* sequence *) number *)";
+    let expected = source
+        .replace("number", "число")
+        .replace("sequence", "последовательность");
+    assert_eq!(
+        translate_comments(source, "rocq", Some("english"), "russian").unwrap(),
+        expected
+    );
+    let syntax = language_syntax("rocq").unwrap();
+    let tokens = tokenize(source, &syntax).unwrap();
+    assert_eq!(
+        tokens
+            .iter()
+            .filter(|token| token.kind == TokenType::Comment)
+            .count(),
+        1
+    );
+    assert_eq!(
+        layout_tokens(&source.chars().collect::<Vec<_>>(), &Marks::of(&syntax)).len(),
+        1
+    );
+    assert!(
+        translate_comments("(* \"number *)", "rocq", Some("english"), "russian")
+            .unwrap_err()
+            .message
+            .contains("Unterminated comment")
+    );
+    assert_eq!(
+        translate_comments("/* \" number */", "rust", Some("english"), "russian").unwrap(),
+        "/* \" число */"
+    );
 }

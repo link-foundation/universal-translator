@@ -5,6 +5,7 @@
 
 pub mod array_spellings;
 pub mod arrays;
+pub(crate) mod comment_syntax;
 pub mod common_library;
 pub mod dialects;
 pub(crate) mod documentation;
@@ -18,6 +19,7 @@ pub mod lifting;
 pub mod lowering;
 pub mod machine;
 pub mod machine_assembly;
+mod machine_languages;
 pub mod machine_llvm;
 pub mod machine_reader;
 pub mod machine_reader_assembly;

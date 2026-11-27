@@ -1,0 +1,21 @@
+✖ reads nested block comments according to each language grammar (564.715264ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1101.060606
+
+✖ failing tests:
+
+test at node_modules/.deno/test-anywhere@0.8.50/node_modules/test-anywhere/src/index.js:174:12
+✖ reads nested block comments according to each language grammar (564.715264ms)
+  Error: Expected {"language":"rust","text":"\r\n/* число /* последовательность */\r\n  number */\t\r\n\r\n"} to equal {"language":"rust","text":"\r\n/* число /* последовательность */\r\n  число */\t\r\n\r\n"}
+      at Object.toEqual (file:///tmp/gh-issue-solver-1795726129025/node_modules/.deno/test-anywhere@0.8.50/node_modules/test-anywhere/src/index.js:399:15)
+      at TestContext.<anonymous> (file:///tmp/gh-issue-solver-1795726129025/js/tests/comment-whitespace.test.js:164:101)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)

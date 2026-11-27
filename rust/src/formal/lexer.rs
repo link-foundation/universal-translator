@@ -2,6 +2,7 @@
 //! language description only decides which comment markers, quotes and
 //! layout rules (indentation, line ends) apply.
 
+use super::comment_syntax::block_comment_end;
 pub use super::languages::InterpolationStyle;
 use super::languages::{Blocks, Syntax};
 use crate::meta::GrammarError;
@@ -537,9 +538,18 @@ impl<'a> Lexer<'a> {
             return Ok(false);
         }
         let from = self.index + open.chars().count();
-        let end = (from..self.source.len())
-            .find(|position| self.starts_with(close, *position))
-            .ok_or_else(|| GrammarError::syntax("Unterminated comment", self.line))?;
+        let (after, closed) = block_comment_end(
+            &self.source,
+            self.index,
+            &open.chars().collect::<Vec<_>>(),
+            &close.chars().collect::<Vec<_>>(),
+            self.syntax.nested_comments,
+            self.syntax.comment_strings,
+        );
+        if !closed {
+            return Err(GrammarError::syntax("Unterminated comment", self.line));
+        }
+        let end = after - close.chars().count();
         let text = self.slice(from, end);
         self.push_comment(&block_comment_text(&text, self.column()), true, (from, end));
         self.line += text.matches('\n').count();

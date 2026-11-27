@@ -5,10 +5,11 @@
 
 use std::sync::Arc;
 
+use crate::formal::comment_syntax::block_comment_end;
 use crate::formal::languages::language_syntax;
 use crate::formal::lexer::{TokenType, tokenize};
 use crate::formal::rules::map_comments;
-use crate::layout::{Kind, Marks, block_comment_end, layout_tokens};
+use crate::layout::{Kind, Marks, layout_tokens};
 use crate::meta::{GrammarError, Node};
 use crate::natural::{self, detect_comment_language, translate_comment_text};
 
@@ -49,6 +50,8 @@ fn comment_spans(source: &str, language: &str) -> Result<Vec<(usize, usize)>, Gr
                     token.start,
                     &marks.block_comment.as_ref().unwrap().0,
                     &marks.block_comment.as_ref().unwrap().1,
+                    marks.nested_comments,
+                    marks.comment_strings,
                 )
                 .1
             {

@@ -14,6 +14,7 @@
 
 use std::collections::{BTreeMap, HashMap, HashSet};
 
+use crate::formal::comment_syntax::block_comment_end;
 use crate::formal::languages::Syntax;
 
 fn is_gap(c: char) -> bool {
@@ -100,6 +101,8 @@ pub struct Marks {
     pub block_comment: Option<(Vec<char>, Vec<char>)>,
     pub quotes: Vec<char>,
     pub doubled_quotes: bool,
+    pub nested_comments: bool,
+    pub comment_strings: bool,
 }
 
 impl Marks {
@@ -112,6 +115,8 @@ impl Marks {
                 .map(|(open, close)| (open.chars().collect(), close.chars().collect())),
             quotes: syntax.quotes.to_vec(),
             doubled_quotes: syntax.doubled_quotes,
+            nested_comments: syntax.nested_comments,
+            comment_strings: syntax.comment_strings,
         }
     }
 }
@@ -145,34 +150,18 @@ fn read_block_comment(
     if !starts_at(chars, index, open) {
         return None;
     }
-    let (end, _) = block_comment_end(chars, index, open, close);
+    let (end, _) = block_comment_end(
+        chars,
+        index,
+        open,
+        close,
+        marks.nested_comments,
+        marks.comment_strings,
+    );
     let inner_start = index + open.len();
     let inner_end = inner_start.max(end.saturating_sub(close.len()));
     let inner = &chars[inner_start.min(chars.len())..inner_end.min(chars.len())];
     Some((Kind::Comment, end, format!("c{}", trim_spaces(inner))))
-}
-
-pub(crate) fn block_comment_end(
-    chars: &[char],
-    index: usize,
-    open: &[char],
-    close: &[char],
-) -> (usize, bool) {
-    let mut end = index + open.len();
-    let mut depth = 1;
-    let nested = open == ['(', ';'] && close == [';', ')'];
-    while end < chars.len() && depth > 0 {
-        if nested && starts_at(chars, end, open) {
-            depth += 1;
-            end += open.len();
-        } else if starts_at(chars, end, close) {
-            depth -= 1;
-            end += close.len();
-        } else {
-            end += 1;
-        }
-    }
-    (end, depth == 0)
 }
 
 fn read_line_comment(chars: &[char], index: usize, marks: &Marks) -> Option<(Kind, usize, String)> {

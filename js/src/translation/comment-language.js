@@ -6,7 +6,8 @@ import { languageSyntax } from '../formal/languages.js';
 import { mapComments } from '../formal/rules.js';
 import { isNaturalLanguage, naturalLanguage } from '../natural/catalog.js';
 import { noteSpans } from '../natural/lines.js';
-import { blockCommentEnd, layoutSyntax, layoutTokens } from './layout.js';
+import { blockCommentEnd } from './comment-syntax.js';
+import { layoutSyntax, layoutTokens } from './layout.js';
 import {
   detectCommentLanguage,
   translateCommentText,
@@ -36,7 +37,16 @@ function commentSpans(source, language) {
         source.startsWith(syntax.blockComment[0], offsets[start]);
       const open = block ? syntax.blockComment[0] : syntax.lineComment;
       const close = block ? syntax.blockComment[1] : '';
-      if (block && !blockCommentEnd(chars, start, marks.blockComment).closed) {
+      if (
+        block &&
+        !blockCommentEnd(
+          chars,
+          start,
+          marks.blockComment,
+          marks.nestedComments,
+          marks.commentStrings
+        ).closed
+      ) {
         throw new Error('Unterminated comment');
       }
       return [offsets[start] + open.length, offsets[end] - close.length];

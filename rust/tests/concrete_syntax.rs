@@ -16,6 +16,10 @@ fn concrete_tokens_partition_every_source_byte() {
             "#include <string>\nint main() { /* x\ny */ return 0; }\n",
         ),
         ("php", "<?php\n\n$x = \"é\";\n?>\n"),
+        (
+            "rust",
+            "fn main() {\r\n  /* 😀 outer /* inner */ tail */\r\n  println!(\"ok\");\r\n}\r\n",
+        ),
     ];
     for (language, source) in cases {
         let tree = parse_program(source, &language_syntax(language).unwrap()).unwrap();
@@ -29,6 +33,17 @@ fn concrete_tokens_partition_every_source_byte() {
             assert_eq!(child.number("end"), Some(end as f64));
         }
         assert_eq!(end, source.len());
+        if language == "rust" {
+            assert_eq!(
+                syntax
+                    .nodes("children")
+                    .iter()
+                    .filter(|child| child.str("type") == Some("comment"))
+                    .map(|child| child.str("text").unwrap())
+                    .collect::<Vec<_>>(),
+                vec!["/* 😀 outer /* inner */ tail */"]
+            );
+        }
         assert!(!syntax.nodes("productions").is_empty());
         for production in syntax.nodes("productions") {
             assert!(production.number("start").unwrap() >= 0.0);

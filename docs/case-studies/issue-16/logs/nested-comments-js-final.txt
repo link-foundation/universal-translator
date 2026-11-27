@@ -1,0 +1,40 @@
+✔ changes only comment contents in every current reader family (595.699305ms)
+✔ keeps source layout in partial translations through every reader family (521.083853ms)
+✔ leaves note-looking lines inside multiline natural text alone (381.462332ms)
+✔ retains machine strings, Unicode offsets, inline and nested comments (6.7442ms)
+✔ keeps SQL query comments and whitespace in place (7.375057ms)
+✔ reads nested block comments according to each language grammar (3.844ms)
+✔ honours Rocq strings inside comments while other grammars treat quotes as text (1.156617ms)
+▶ concrete syntax as the default source record
+  ✔ partitions every byte, including quotes, directives and trivia (25.457547ms)
+  ✔ exposes source syntax to decorators before semantic rewriting (267.067638ms)
+  ✔ retains source syntax when reading words and every machine format (114.084294ms)
+  ✔ keeps accepted regions and explicit errors in incomplete source (11.251047ms)
+  ✔ keeps a lossless record for empty and whitespace-only input (0.920067ms)
+✔ concrete syntax as the default source record (421.340248ms)
+▶ layout of the source (issue 14)
+  ✔ keeps the blank lines and the spaces of the issue example (310.344002ms)
+  ✔ keeps the blank line after a leading comment of a fragment (14.108117ms)
+  ✔ writes the layout of the target on request (7.899074ms)
+  ✔ matches every example under examples/layout (322.223463ms)
+  ✔ cuts operators, strings, comments and names into tokens (0.587045ms)
+  ✔ aligns unique tokens first and the rest between them (0.38589ms)
+  ✔ never joins a name and a string or a name and its call (0.794883ms)
+  ✔ leaves strings that span lines and space sensitive targets alone (0.607103ms)
+  ✔ keeps Windows line ends and the blank lines at the end (0.846479ms)
+  ✔ indents in the steps of the source (0.726635ms)
+  ✔ maps lines only when the source has no code (0.505593ms)
+✔ layout of the source (issue 14) (662.393231ms)
+✔ chooses the same code anchors when R comments change language (385.084679ms)
+▶ lines of the layout
+  ✔ maps each closing brace to the brace that closes its own block (0.867778ms)
+✔ lines of the layout (1.14223ms)
+✔ keeps translator production chunks free of dependency cycles (32.334053ms)
+ℹ tests 26
+ℹ suites 3
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4604.522797

@@ -1,0 +1,151 @@
+{
+  "lexer": "bb3785c",
+  "checked": 34,
+  "failures": [
+    {
+      "language": "rust",
+      "name": "all comment words and exact layout",
+      "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '\\r\\n/* число /* последовательность */\\r\\n number */\\t\\r\\n'\n- '\\r\\n/* число /* последовательность */\\r\\n число */\\t\\r\\n'\n"
+    },
+    {
+      "language": "rust",
+      "name": "one complete comment token",
+      "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    4,\n+   24\n-   36\n  ]\n"
+    },
+    {
+      "language": "rust",
+      "name": "unclosed outer comment",
+      "error": "Missing expected exception."
+    },
+    {
+      "language": "kotlin",
+      "name": "all comment words and exact layout",
+      "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '\\r\\n/* число /* последовательность */\\r\\n number */\\t\\r\\n'\n- '\\r\\n/* число /* последовательность */\\r\\n число */\\t\\r\\n'\n"
+    },
+    {
+      "language": "kotlin",
+      "name": "one complete comment token",
+      "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    4,\n+   24\n-   36\n  ]\n"
+    },
+    {
+      "language": "kotlin",
+      "name": "unclosed outer comment",
+      "error": "Missing expected exception."
+    },
+    {
+      "language": "swift",
+      "name": "all comment words and exact layout",
+      "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '\\r\\n/* число /* последовательность */\\r\\n number */\\t\\r\\n'\n- '\\r\\n/* число /* последовательность */\\r\\n число */\\t\\r\\n'\n"
+    },
+    {
+      "language": "swift",
+      "name": "one complete comment token",
+      "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    4,\n+   24\n-   36\n  ]\n"
+    },
+    {
+      "language": "swift",
+      "name": "unclosed outer comment",
+      "error": "Missing expected exception."
+    },
+    {
+      "language": "dart",
+      "name": "all comment words and exact layout",
+      "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '\\r\\n/* число /* последовательность */\\r\\n number */\\t\\r\\n'\n- '\\r\\n/* число /* последовательность */\\r\\n число */\\t\\r\\n'\n"
+    },
+    {
+      "language": "dart",
+      "name": "one complete comment token",
+      "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    4,\n+   24\n-   36\n  ]\n"
+    },
+    {
+      "language": "dart",
+      "name": "unclosed outer comment",
+      "error": "Missing expected exception."
+    },
+    {
+      "language": "scala",
+      "name": "all comment words and exact layout",
+      "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '\\r\\n/* число /* последовательность */\\r\\n number */\\t\\r\\n'\n- '\\r\\n/* число /* последовательность */\\r\\n число */\\t\\r\\n'\n"
+    },
+    {
+      "language": "scala",
+      "name": "one complete comment token",
+      "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    4,\n+   24\n-   36\n  ]\n"
+    },
+    {
+      "language": "scala",
+      "name": "unclosed outer comment",
+      "error": "Missing expected exception."
+    },
+    {
+      "language": "julia",
+      "name": "all comment words and exact layout",
+      "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '\\r\\n#= число #= последовательность =#\\r\\n number =#\\t\\r\\n'\n- '\\r\\n#= число #= последовательность =#\\r\\n число =#\\t\\r\\n'\n"
+    },
+    {
+      "language": "julia",
+      "name": "one complete comment token",
+      "error": "Expected values to be strictly equal:\n\n2 !== 1\n"
+    },
+    {
+      "language": "julia",
+      "name": "unclosed outer comment",
+      "error": "Missing expected exception."
+    },
+    {
+      "language": "nim",
+      "name": "all comment words and exact layout",
+      "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '\\r\\n#[ число #[ последовательность ]#\\r\\n number ]#\\t\\r\\n'\n- '\\r\\n#[ число #[ последовательность ]#\\r\\n число ]#\\t\\r\\n'\n"
+    },
+    {
+      "language": "nim",
+      "name": "one complete comment token",
+      "error": "Expected values to be strictly equal:\n\n2 !== 1\n"
+    },
+    {
+      "language": "nim",
+      "name": "unclosed outer comment",
+      "error": "Missing expected exception."
+    },
+    {
+      "language": "lean",
+      "name": "all comment words and exact layout",
+      "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '\\r\\n/- число /- последовательность -/\\r\\n number -/\\t\\r\\n'\n- '\\r\\n/- число /- последовательность -/\\r\\n число -/\\t\\r\\n'\n"
+    },
+    {
+      "language": "lean",
+      "name": "one complete comment token",
+      "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    4,\n+   24\n-   36\n  ]\n"
+    },
+    {
+      "language": "lean",
+      "name": "unclosed outer comment",
+      "error": "Missing expected exception."
+    },
+    {
+      "language": "rocq",
+      "name": "all comment words and exact layout",
+      "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '\\r\\n(* число (* последовательность *)\\r\\n number *)\\t\\r\\n'\n- '\\r\\n(* число (* последовательность *)\\r\\n число *)\\t\\r\\n'\n"
+    },
+    {
+      "language": "rocq",
+      "name": "one complete comment token",
+      "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    4,\n+   24\n-   36\n  ]\n"
+    },
+    {
+      "language": "rocq",
+      "name": "unclosed outer comment",
+      "error": "Missing expected exception."
+    },
+    {
+      "language": "rocq",
+      "name": "comment strings hide delimiters",
+      "error": "Unterminated text literal (line 1)"
+    },
+    {
+      "language": "rocq",
+      "name": "unclosed comment string",
+      "error": "Missing expected exception."
+    }
+  ]
+}

@@ -14,6 +14,10 @@ describe('concrete syntax as the default source record', () => {
       ['python', '# note\n\ndef f(x):\n\treturn "é"  # tail\n\n'],
       ['cpp', '#include <string>\nint main() { /* x\ny */ return 0; }\n'],
       ['php', '<?php\n\n$x = "é";\n?>\n'],
+      [
+        'rust',
+        'fn main() {\r\n  /* 😀 outer /* inner */ tail */\r\n  println!("ok");\r\n}\r\n',
+      ],
     ];
     for (const [language, source] of cases) {
       const { syntax } = parseProgram(source, languageSyntax(language));
@@ -26,6 +30,13 @@ describe('concrete syntax as the default source record', () => {
         expect(child.end).toBe(end);
       }
       expect(syntax.end).toBe(end);
+      if (language === 'rust') {
+        expect(
+          syntax.children
+            .filter((child) => child.type === 'comment')
+            .map((child) => child.text)
+        ).toEqual(['/* 😀 outer /* inner */ tail */']);
+      }
       expect(syntax.productions.length).toBeGreaterThan(0);
       for (const production of syntax.productions) {
         expect(production.start >= 0 && production.end <= end).toBe(true);

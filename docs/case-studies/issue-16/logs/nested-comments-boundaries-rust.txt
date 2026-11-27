@@ -1,0 +1,14 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 1.15s
+     Running rust/tests/comment_whitespace.rs (target/debug/deps/comment_whitespace-d860e54e4156c4ee)
+
+running 7 tests
+test changing_comment_words_keeps_every_reader_familys_other_bytes ... ok
+test nested_block_comments_follow_each_language_grammar ... ok
+test machine_strings_unicode_offsets_and_nested_comments_are_preserved ... ok
+test rocq_strings_inside_comments_hide_delimiters_but_other_grammars_do_not ... ok
+test note_like_lines_inside_multiline_natural_literals_are_not_comments ... ok
+test sql_query_comments_and_whitespace_are_kept_in_place ... ok
+test partial_translations_through_every_reader_family_retain_the_source_layout ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.25s

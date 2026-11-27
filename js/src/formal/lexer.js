@@ -3,6 +3,7 @@
 // layout rules (indentation, line ends) apply.
 
 import { objectiveCRuntimeHeader } from './dialects/objc.js';
+import { blockCommentEnd } from '../translation/comment-syntax.js';
 
 const symbols = [
   '...',
@@ -377,10 +378,17 @@ class Lexer {
     if (!open || !this.source.startsWith(open, this.index)) {
       return false;
     }
-    const end = this.source.indexOf(close, this.index + open.length);
-    if (end < 0) {
+    const scanned = blockCommentEnd(
+      this.source,
+      this.index,
+      [open, close],
+      this.syntax.nestedComments,
+      this.syntax.commentStrings
+    );
+    if (!scanned.closed) {
       throw new SyntaxError('Unterminated comment', this.line);
     }
+    const end = scanned.end - close.length;
     const text = this.source.slice(this.index + open.length, end);
     this.pushComment(blockCommentText(text, this.column()), {
       block: true,

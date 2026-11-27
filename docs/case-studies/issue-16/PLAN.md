@@ -209,3 +209,18 @@ SQL and complex machine/natural literals have additional regressions. Real
 browser before/after screenshots show the R-to-Bash paragraph restored.
 See `COMMENT-WHITESPACE.md` for the reproduction and explicit remaining review;
 all broader open requirements remain active.
+
+The next comment review found premature closing of nested formal comments and
+Rocq's comment-string rule. Both runtimes now share iterative scanners with
+per-language nesting/string metadata. Nine formal families plus WebAssembly
+follow their primary manuals; non-nesting languages keep their native rule.
+The finite old-lexer reproduction fails 29/34 assertions, and the current path
+passes all 34. Full comment ranges and Unicode concrete records are checked in
+26 JavaScript and 21 Rust tests; lint, Clippy and the chunk graph pass.
+`COMMENT-WHITESPACE.md` records the reproduction and archived manuals. Continue
+the open grammar, semantic, UI and inherited criteria; this is not a completion
+claim for the inventory.
+
+All five workflows at `bb3785c` pass, including Node/Bun/Deno, Rust, native
+translation, Security and the web/desktop example builds. The next nested-comment
+commit still requires its own current-SHA CI check after pushing.
