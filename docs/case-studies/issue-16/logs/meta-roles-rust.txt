@@ -1,0 +1,9 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 7.59s
+     Running rust/tests/meta_notation.rs (target/debug/deps/meta_notation-1f96e4a96588bafd)
+
+running 2 tests
+test all_child_roles_match_the_shared_readable_fixtures ... ok
+test all_reader_families_retain_condition_action_and_value_effect_roles ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.38s

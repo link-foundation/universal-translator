@@ -1,0 +1,15 @@
+comment 'Что делает `meaning`?'
+  reading
+    prose russian
+      sentences
+        sentence (question true)
+          words
+            word Что (part pronoun)
+            word делает (part verb)
+            code python
+              program
+                program
+                  main
+                    evaluate
+                      expression
+                        name meaning

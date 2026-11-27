@@ -1,0 +1,38 @@
+▶ meta view
+  ✔ shows the meta program as Links Notation (394.541436ms)
+  ✔ shows the same meta program for every language that says the same (23.939735ms)
+  ✔ shows fragments and skips empty fields (0.498621ms)
+  ✔ distinguishes parameters, conditions, operands and statement bodies (9.59444ms)
+  ✔ uses repeated field names without defining unique links (5.298225ms)
+✔ meta view (436.330134ms)
+▶ the standard library of the meta language
+  ✔ writes printing and lengths as calls to library procedures (6.835743ms)
+  ✔ reads the general form back to the same program (6.948634ms)
+  ✔ translates a program written with library calls (3.641094ms)
+  ✔ keeps calls a program declares itself (0.414173ms)
+✔ the standard library of the meta language (18.803863ms)
+▶ explicit meta child roles shared with Rust
+  ✔ shows every role in control-flow (5.363127ms)
+  ✔ shows every role in queries-library (1.800929ms)
+  ✔ shows every role in nested-prose (3.058556ms)
+  ✔ shows every role in annotated-block (1.003212ms)
+✔ explicit meta child roles shared with Rust (13.875008ms)
+✔ keeps condition/action and value/effect roles through every reader family (1543.821956ms)
+▶ nested grammars
+  ✔ reads a comment as prose and the code it quotes (1424.123679ms)
+  ✔ reads a string as code when it looks like code (117.140835ms)
+  ✔ reads Russian prose, a question and its phrases (11.506387ms)
+  ✔ keeps a long text once and refers to it by id (5.020217ms)
+  ✔ reads the comment lists of a program (7.663269ms)
+  ✔ translates a nested program like the plain one (11.368219ms)
+  ✔ leaves text without a known word unread (0.97581ms)
+  ✔ prints the nested meta program on the command line, --shallow the plain one (10.098471ms)
+✔ nested grammars (1590.928135ms)
+ℹ tests 22
+ℹ suites 4
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2289.555849

@@ -108,6 +108,13 @@ gutter block, so that criterion remains open. All CI checks at `283f16a` pass.
 
 Prefer focused JS/Rust tests and existing CI. Run heavy commands sequentially with Rust jobs=1 and reduced debug info if needed; preserve logs under this case study. Use Playwright browser automation for UI screenshots, and await all commands before finalizing. Do not mark incomplete criteria complete because CI is green.
 
+The meta-notation cross-family review now verifies shared exact fixtures and
+the condition/action/value/effect roles through all 111 current reader families.
+It found and fixed inconsistent child ordering and lost annotated-block
+metadata. Both engines preserve extensions and pass the same fixtures. Before
+and after evidence and the scope of this completed criterion are in
+`META-ROLES.md`; the wider language requirements remain open.
+
 Introspection draft: four compositional question aspects now round-trip Python,
 JavaScript/TypeScript and every natural grammar. Runtime documentation is distinct
 from comments and retains multiline values. A native regression exposed Python

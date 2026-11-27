@@ -1,0 +1,44 @@
+block
+  statements
+    property-assignment (property __doc__)
+      object
+        name meaning
+      value
+        text 'A collection.'
+    declaration selected
+      value
+        query item
+          source
+            name meaning
+          condition
+            binary greater
+              left
+                name item
+              right
+                number 2
+          projection
+            question type
+              subject
+                name item
+    evaluate
+      expression
+        message (selector 'do:')
+          receiver
+            name selected
+          arguments
+            block-lambda
+              parameters
+                parameter each
+              body
+                evaluate
+                  expression
+                    call print-line (library standard)
+                      arguments
+                        name each
+    return
+      value
+        set-insert
+          collection
+            name selected
+          value
+            text new

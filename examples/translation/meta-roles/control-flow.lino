@@ -1,0 +1,42 @@
+function inspect
+  parameters
+    parameter value (type integer)
+  documentation
+    text 'Inspect one value.'
+  body
+    while
+      condition
+        name pending
+      body
+        if
+          condition
+            name ready
+          then
+            evaluate
+              expression
+                call consume
+                  arguments
+                    name value
+          otherwise
+            return
+              value
+                number 0
+    try
+      body
+        throw
+          value
+            name failure
+      handlers
+        catch (name error)
+          body
+            return
+              value
+                name error
+      success
+        evaluate
+          expression
+            call finish
+      finalizer
+        evaluate
+          expression
+            call cleanup

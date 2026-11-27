@@ -81,10 +81,14 @@ fn main_field(kind: &str) -> Option<&'static str> {
 }
 
 /// The order in which child nodes are read; other fields follow by name.
-const CHILD_ORDER: [&str; 29] = [
+const CHILD_ORDER: [&str; 35] = [
     "comments",
+    "source",
     "condition",
     "array",
+    "collection",
+    "receiver",
+    "object",
     "index",
     "left",
     "operand",
@@ -96,7 +100,6 @@ const CHILD_ORDER: [&str; 29] = [
     "fill",
     "expression",
     "subject",
-    "object",
     "value",
     "arguments",
     "elements",
@@ -108,6 +111,9 @@ const CHILD_ORDER: [&str; 29] = [
     "statements",
     "then",
     "body",
+    "handlers",
+    "success",
+    "finalizer",
     "mainComments",
     "main",
     "otherwise",
@@ -188,7 +194,7 @@ fn head(node: &Node, list: &str) -> String {
 
 fn children(value: &Value, field: &str, indent: &str, out: &mut Vec<String>) {
     let items: Vec<&Value> = match value {
-        Value::Node(node) if node.kind == "Block" => node
+        Value::Node(node) if plain_block(node) => node
             .fields
             .get("statements")
             .and_then(Value::as_list)
@@ -203,6 +209,14 @@ fn children(value: &Value, field: &str, indent: &str, out: &mut Vec<String>) {
             _ => out.push(format!("{indent}{}", atom(item))),
         }
     }
+}
+
+fn plain_block(node: &Node) -> bool {
+    node.is("Block")
+        && node
+            .fields
+            .iter()
+            .all(|(field, value)| field == "statements" || empty(value))
 }
 
 fn lines(node: &Node, indent: &str, list: &str, out: &mut Vec<String>) {

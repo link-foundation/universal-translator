@@ -1,0 +1,34 @@
+{
+  "kind": "Comment",
+  "text": "Что делает `meaning`?",
+  "reading": {
+    "kind": "Prose",
+    "language": "russian",
+    "sentences": [
+      {
+        "kind": "Sentence",
+        "question": true,
+        "words": [
+          { "kind": "Word", "text": "Что", "part": "pronoun" },
+          { "kind": "Word", "text": "делает", "part": "verb" },
+          {
+            "kind": "Code",
+            "language": "python",
+            "program": {
+              "kind": "Program",
+              "main": {
+                "kind": "Block",
+                "statements": [
+                  {
+                    "kind": "Evaluate",
+                    "expression": { "kind": "Name", "name": "meaning" }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

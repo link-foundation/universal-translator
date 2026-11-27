@@ -69,8 +69,12 @@ const mainField = {
 // The order in which child nodes are read; other fields follow by name.
 const childOrder = [
   'comments',
+  'source',
   'condition',
   'array',
+  'collection',
+  'receiver',
+  'object',
   'index',
   'left',
   'operand',
@@ -82,17 +86,20 @@ const childOrder = [
   'fill',
   'expression',
   'subject',
-  'documentation',
   'value',
   'arguments',
   'elements',
   'parts',
   'parameters',
+  'documentation',
   'texts',
   'functions',
   'statements',
   'then',
   'body',
+  'handlers',
+  'success',
+  'finalizer',
   'mainComments',
   'main',
   'otherwise',
@@ -110,7 +117,12 @@ const isEmpty = (value) =>
   (Array.isArray(value) && value.length === 0) ||
   (isNode(value) && Object.keys(value).length === 0);
 
-const isBlock = (value) => isNode(value) && value.kind === 'Block';
+// A field already names a plain block's role. Keep an annotated block as a
+// node so extensions, labels and nested readings are never discarded.
+const isPlainBlock = (value) =>
+  isNode(value) &&
+  value.kind === 'Block' &&
+  fieldsOf(value).every(([field]) => field === 'statements');
 
 const byName = ([a], [b]) => (a < b ? -1 : a > b ? 1 : 0);
 
@@ -152,7 +164,7 @@ function head(node, list) {
 }
 
 function children(value, field, indent, out) {
-  const items = isBlock(value) ? (value.statements ?? []) : [value].flat();
+  const items = isPlainBlock(value) ? (value.statements ?? []) : [value].flat();
   for (const item of items) {
     if (isNode(item)) {
       lines(item, indent, field, out);

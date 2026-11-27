@@ -206,3 +206,7 @@ path = "rust/tests/queries.rs"
 [[test]]
 name = "objpak"
 path = "rust/tests/objpak.rs"
+
+[[test]]
+name = "meta_notation"
+path = "rust/tests/meta_notation.rs"
