@@ -31,3 +31,5 @@ Read Portable Object Compiler messages and blocks compositionally, model command
 Preserve boolean Objective-C conditions after type inference, read BOOL parameters and C-family void parameter markers, and select compatible boolean runtime headers for both POC and GNU Objective-C.
 
 Enclose complete Perl print arguments so grouped arithmetic and trailing text retain their execution and round-trip semantics.
+
+Recognize token-equivalent Rocq runtime headers with native layout and comments, retain their source ranges, and count actual header lines in diagnostics.

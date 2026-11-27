@@ -232,3 +232,11 @@ Python, generated Perl and restored Python; matching JS/Rust meaning regressions
 shared program/fragment goldens, lint and Clippy pass. The example is included
 in the existing native CI step. See `PRINT-EXPRESSIONS.md` for the old-emitter
 reproduction and primary manual. Continue the open operator/grammar inventory.
+
+Rocq runtime recognition now compares native tokens instead of requiring exact
+header bytes, retaining header comments and correct diagnostic line numbers.
+The finite previous-lexer audit fails all six layout/line checks; current lexer,
+JS/Rust semantic/concrete/partial regressions and six native Rocq/Python output
+comparisons pass. Modified helper tokens and literal values are rejected.
+`RUNTIME-HEADERS.md` records evidence. PHP leading text needs its own semantic
+repair; the wider acceptance inventory remains active.

@@ -203,7 +203,50 @@ pub fn block_comment_text(raw: &str, column: usize) -> String {
 }
 
 pub fn tokenize(source: &str, syntax: &Syntax) -> Result<Vec<Token>, GrammarError> {
-    Lexer::new(source, syntax).run()
+    let tokens = Lexer::new(source, syntax).run()?;
+    let Some(header) = syntax
+        .header
+        .filter(|header| syntax.id == "rocq" && !source.starts_with(header))
+    else {
+        return Ok(tokens);
+    };
+    // Match the verified runtime by lexical content, retaining native layout
+    // and comments without treating changed names or literal values as trivia.
+    let mut bare = syntax.clone();
+    bare.header = None;
+    let expected = Lexer::new(header, &bare).run()?;
+    let mut position = 0;
+    let mut comments = Vec::new();
+    for token in expected.iter().filter(|token| {
+        !matches!(
+            token.kind,
+            TokenType::Newline | TokenType::Comment | TokenType::End
+        )
+    }) {
+        while let Some(actual) = tokens
+            .get(position)
+            .filter(|actual| matches!(actual.kind, TokenType::Newline | TokenType::Comment))
+        {
+            if actual.kind == TokenType::Comment {
+                comments.push(actual.clone());
+            }
+            position += 1;
+        }
+        let Some(actual) = tokens.get(position) else {
+            return Ok(tokens);
+        };
+        if actual.kind != token.kind
+            || actual.value != token.value
+            || actual.quote != token.quote
+            || actual.style != token.style
+            || actual.decoded != token.decoded
+        {
+            return Ok(tokens);
+        }
+        position += 1;
+    }
+    comments.extend_from_slice(&tokens[position..]);
+    Ok(comments)
 }
 
 /// Letters of every script make names ("сумма").
@@ -245,7 +288,7 @@ impl<'a> Lexer<'a> {
             syntax,
             tokens: Vec::new(),
             index,
-            line: 1,
+            line: 1 + source.chars().take(index).filter(|c| *c == '\n').count(),
             line_start: true,
             indentation: vec![0],
             depth: 0,

@@ -1,0 +1,48 @@
+{
+  "lexer": "current",
+  "cases": [
+    {
+      "index": 0,
+      "line": 88,
+      "expectedLine": 88,
+      "tokenCount": 34,
+      "error": null
+    },
+    {
+      "index": 1,
+      "line": 89,
+      "expectedLine": 89,
+      "tokenCount": 35,
+      "error": null
+    },
+    {
+      "index": 2,
+      "line": 88,
+      "expectedLine": 88,
+      "tokenCount": 35,
+      "error": null
+    },
+    {
+      "index": 3,
+      "line": 175,
+      "expectedLine": 175,
+      "tokenCount": 35,
+      "error": null
+    },
+    {
+      "index": 4,
+      "line": 88,
+      "expectedLine": 88,
+      "tokenCount": 35,
+      "error": null
+    },
+    {
+      "index": 5,
+      "line": 89,
+      "expectedLine": 89,
+      "tokenCount": 36,
+      "error": null
+    }
+  ],
+  "failures": 0
+}

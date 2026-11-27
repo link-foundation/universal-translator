@@ -147,7 +147,40 @@ export function blockCommentText(raw, column) {
 }
 
 export function tokenize(source, syntax) {
-  return new Lexer(source, syntax).run();
+  const tokens = new Lexer(source, syntax).run();
+  if (
+    syntax.id !== 'rocq' ||
+    !syntax.header ||
+    source.startsWith(syntax.header)
+  ) {
+    return tokens;
+  }
+  // Runtime recognition follows lexical tokens, so native layout and comments
+  // may vary while names, operators and quoted values must remain identical.
+  const expected = new Lexer(syntax.header, { ...syntax, header: undefined })
+    .run()
+    .filter((token) => !['newline', 'comment', 'end'].includes(token.type));
+  let position = 0;
+  const comments = [];
+  for (const token of expected) {
+    while (['newline', 'comment'].includes(tokens[position]?.type)) {
+      if (tokens[position].type === 'comment') {
+        comments.push(tokens[position]);
+      }
+      position += 1;
+    }
+    const actual = tokens[position];
+    if (
+      !actual ||
+      ['type', 'value', 'quote', 'style', 'decoded'].some(
+        (key) => actual[key] !== token[key]
+      )
+    ) {
+      return tokens;
+    }
+    position += 1;
+  }
+  return [...comments, ...tokens.slice(position)];
 }
 
 // Reads one token kind at a time. Each reader returns true when it consumed
@@ -161,7 +194,7 @@ class Lexer {
       syntax.header && source.startsWith(syntax.header)
         ? syntax.header.length
         : 0;
-    this.line = 1;
+    this.line = source.slice(0, this.index).split('\n').length;
     this.lineStart = true;
     this.indentation = [0];
     this.depth = 0; // open brackets; newlines inside them are not significant

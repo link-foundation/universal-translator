@@ -202,6 +202,10 @@ name = "comment_whitespace"
 path = "rust/tests/comment_whitespace.rs"
 
 [[test]]
+name = "runtime_headers"
+path = "rust/tests/runtime_headers.rs"
+
+[[test]]
 name = "questions"
 path = "rust/tests/questions.rs"
 
