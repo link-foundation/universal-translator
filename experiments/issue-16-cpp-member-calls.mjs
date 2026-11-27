@@ -68,6 +68,10 @@ const stringLength = readFileSync(
   ),
   'utf8'
 );
+const characters = readFileSync(
+  new URL('../examples/programs/library/cpp-characters.cpp', import.meta.url),
+  'utf8'
+);
 const directory = mkdtempSync(join(tmpdir(), 'cpp-member-calls-'));
 const options = { encoding: 'utf8', maxBuffer: 32 * 1024 };
 
@@ -100,6 +104,7 @@ try {
       stringLength,
       '4 4 4 1 0\n',
     ],
+    ['character literals and casts', characters, "97\na\nA\\'\n65\n1 1\n"],
   ]) {
     const original = run(program);
     assert.equal(original, expected);

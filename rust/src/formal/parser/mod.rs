@@ -1415,6 +1415,9 @@ impl Parser {
 
     pub(crate) fn text_literal(&self, token: &Token) -> Parsed {
         let single = token.quote == Some('\'');
+        if single && self.syntax.id == "cpp" {
+            return Ok(Node::new("CppCharacter").with("raw", token.value.clone()));
+        }
         let style = if single && ["php", "ruby"].contains(&self.syntax.id) {
             InterpolationStyle::Plain
         } else {

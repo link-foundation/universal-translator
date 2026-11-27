@@ -218,7 +218,7 @@ export const languages = {
     forEach: 'for ({type} {variable} : {array})',
     lineComment: '//',
     blockComment: ['/*', '*/'],
-    quotes: ['"'],
+    quotes: ['"', "'"],
     declarations: [],
     operators: braceOperators,
     print: { line: 'std::cout' },

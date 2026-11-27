@@ -184,10 +184,18 @@ values, all `13`. The native CI fixture also checks a four-byte UTF-8
 string and confirms that `sizeof(next())` leaves the call counter at zero.
 [Native comparison fixture](../../../examples/programs/library/cpp-string-length.cpp)
 
+The first C++ solution for [Character codes revision 419019](https://rosettacode.org/w/index.php?title=Character_codes&oldid=419019)
+casts between an ordinary character literal and an integer. At `e51e76c`,
+the reader stopped at the first single quote. Both engines now retain the
+literal's spelling and the casts that determine its native type. Both strict
+CLI outputs print `97` and `a` on separate lines, matching the original. The
+native fixture also checks escaped characters, nested casts and `sizeof(char)`.
+[Native comparison fixture](../../../examples/programs/library/cpp-characters.cpp)
+
 ```sh
 curl --fail --silent --show-error --get https://rosettacode.org/w/api.php \
   --data 'action=query' --data 'prop=revisions' \
-  --data 'revids=420325|417505|419626|420026|419956|420285' \
+  --data 'revids=420325|417505|419626|420026|419956|420285|419019' \
   --data 'rvprop=ids|content' --data 'rvslots=main' --data 'format=json' \
   --data 'formatversion=2' > /tmp/rosetta-containers-revisions.json
 node experiments/issue-16-rosetta-containers.mjs /tmp/rosetta-containers-revisions.json \
@@ -222,7 +230,7 @@ node experiments/issue-16-rust-print.mjs --revision /tmp/rosetta-rust-print-revi
   --rust-translator ./target/debug/universal-translator
 ```
 
-These eight pinned task round trips count toward the behavioral goal. Portable
+These nine pinned task round trips count toward the behavioral goal. Portable
 format modifiers, containers and comparisons need broader native verification.
 
 ## C++ file-scope declarations

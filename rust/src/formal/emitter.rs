@@ -475,6 +475,9 @@ impl Emitter {
                 let operand = self.expression(field(expression, "operand")?)?;
                 Ok(format!("sizeof({operand})"))
             }
+            "CppCharacter" | "CppIntegralCast" if self.id() == "cpp" => {
+                super::cpp_library::write_character_expression(self, expression)
+            }
             "Call" | "CppTemplateCall" => {
                 let types = match expression.str("typeArguments") {
                     Some(types) if self.id() == "cpp" => {

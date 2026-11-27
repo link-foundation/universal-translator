@@ -194,6 +194,30 @@ describe('C++ fixed arrays', () => {
 });
 
 describe('C++ library scope and types', () => {
+  it('keeps character literals, escapes, and explicit character casts', () => {
+    const source = String.raw`int main() {
+      emit((int)'\n', (char)97, (int)(char)(64 + 1), sizeof(char), sizeof('a'));
+    }`;
+    const meta = translator.toMeta(source, 'cpp');
+    const [statement] = meta.main.statements;
+    const [code, letter, nested, typeWidth, literalWidth] =
+      statement.expression.arguments;
+    expect(code).toEqual({
+      kind: 'CppIntegralCast',
+      castType: 'int',
+      operand: { kind: 'CppCharacter', raw: String.raw`\n` },
+    });
+    expect(letter.castType).toBe('char');
+    expect(nested.operand.castType).toBe('char');
+    expect(typeWidth.operand.name).toBe('char');
+    expect(literalWidth.operand.kind).toBe('CppCharacter');
+    const emitted = translator.translate(source, 'cpp', 'cpp');
+    expect(emitted).toContain(String.raw`(int)('\n')`);
+    expect(meaningDifference(meta, translator.toMeta(emitted, 'cpp'))).toBe(
+      undefined
+    );
+  });
+
   it('keeps sizeof operands unevaluated and retains qualified string types', () => {
     const source = `#include <string>
 using std::string;

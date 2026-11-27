@@ -242,6 +242,39 @@ fn cpp_fixed_arrays_retain_extent_and_brace_initialization() {
 }
 
 #[test]
+fn cpp_characters_keep_escapes_and_integral_casts() {
+    let source = r"int main() {
+        emit((int)'\n', (char)97, (int)(char)(64 + 1), sizeof(char), sizeof('a'));
+    }";
+    let translator = Translator::new();
+    let meta = translator.to_meta(source, "cpp").unwrap();
+    let statements = meta.node("main").unwrap().nodes("statements");
+    let arguments = statements[0].node("expression").unwrap().nodes("arguments");
+    assert!(arguments[0].is("CppIntegralCast"));
+    assert_eq!(arguments[0].str("castType"), Some("int"));
+    assert_eq!(
+        arguments[0].node("operand").unwrap().str("raw"),
+        Some(r"\n")
+    );
+    assert_eq!(arguments[1].str("castType"), Some("char"));
+    assert_eq!(
+        arguments[2].node("operand").unwrap().str("castType"),
+        Some("char")
+    );
+    assert_eq!(
+        arguments[3].node("operand").unwrap().str("name"),
+        Some("char")
+    );
+    assert!(arguments[4].node("operand").unwrap().is("CppCharacter"));
+    let emitted = translator
+        .translate(source, "cpp", "cpp", Mode::default())
+        .unwrap();
+    assert!(emitted.contains(r"(int)('\n')"));
+    let reread = translator.to_meta(&emitted, "cpp").unwrap();
+    assert_eq!(reread.node("main").unwrap().nodes("statements"), statements);
+}
+
+#[test]
 fn cpp_sizeof_keeps_unevaluated_operands_and_qualified_string_types() {
     let source = r#"#include <string>
 using std::string;

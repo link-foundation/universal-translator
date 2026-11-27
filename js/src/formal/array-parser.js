@@ -129,7 +129,8 @@ const withArrayConstructors = (Base) =>
       this.next();
       if (
         this.is('(') &&
-        castTypes.has(this.peek(1).value) &&
+        (castTypes.has(this.peek(1).value) ||
+          (this.syntax.id === 'cpp' && this.is('char', 1))) &&
         this.is(')', 2)
       ) {
         const type = this.peek(1).value;
@@ -150,14 +151,20 @@ const withArrayConstructors = (Base) =>
 
     // C and C++: (int) value.
     cast() {
+      const castType = this.peek(1).value;
+      const cppChar = this.syntax.id === 'cpp' && castType === 'char';
       if (
         this.is('(') &&
-        castTypes.has(this.peek(1).value) &&
+        (castTypes.has(castType) || cppChar) &&
         this.is(')', 2) &&
         ['c', 'objc', 'cpp'].includes(this.syntax.family ?? this.syntax.id)
       ) {
         this.position += 3;
-        return this.unary();
+        const operand = this.unary();
+        return cppChar ||
+          ['CppCharacter', 'CppIntegralCast'].includes(operand.kind)
+          ? node('CppIntegralCast', { castType, operand })
+          : operand;
       }
       return undefined;
     }
@@ -227,6 +234,9 @@ const withArrayExpressions = (Base) =>
     arrayPrimary() {
       const id = this.syntax.family ?? this.syntax.id;
       const token = this.peek();
+      if (id === 'cpp' && token.quote === "'") {
+        return node('CppCharacter', { raw: this.next().value });
+      }
       if (this.is('[')) {
         return this.bracketPrimary();
       }

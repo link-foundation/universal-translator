@@ -6,6 +6,21 @@ use regex::Regex;
 
 use crate::meta::{Node, Settings};
 
+use super::emitter::{Emitter, Result, field};
+
+pub(crate) fn write_character_expression(
+    emitter: &mut Emitter,
+    expression: &Node,
+) -> Result<String> {
+    if expression.is("CppCharacter") {
+        let raw = expression.str("raw").unwrap_or_default();
+        return Ok(format!("'{raw}'"));
+    }
+    let cast_type = expression.str("castType").unwrap_or_default();
+    let operand = emitter.expression(field(expression, "operand")?)?;
+    Ok(format!("({cast_type})({operand})"))
+}
+
 static INCLUDE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r#"^#[ \t]*include[ \t]*(<[^>\r\n]+>|"[^"\r\n]+")([ \t]+//.*)?$"#)
         .expect("include directive")

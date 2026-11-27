@@ -10,3 +10,5 @@
 {"title":"Array length","revid":419956,"sourceSha256":"3d1a0dc91ea31a01d7d9d0a8598efc0e12efe48b5d452fe669b6fc1f808e3c5f","engine":"Rust","stdout":"2","assertions":0}
 {"title":"String length","revid":420285,"sourceSha256":"9ef1ac9c0aa99ec023cc8e624f97420c8eb56c37c7b89f68c7db55bf254bcf2a","engine":"JavaScript","stdout":"","assertions":0,"observed":"length == 13 && size == 13 && bytes == 13"}
 {"title":"String length","revid":420285,"sourceSha256":"9ef1ac9c0aa99ec023cc8e624f97420c8eb56c37c7b89f68c7db55bf254bcf2a","engine":"Rust","stdout":"","assertions":0,"observed":"length == 13 && size == 13 && bytes == 13"}
+{"title":"Character codes","revid":419019,"sourceSha256":"f87fce6a1d7a8dced18fe98df2555b349fcae7a71ab82c26a214beaa51c2861c","engine":"JavaScript","stdout":"97\na\n","assertions":0}
+{"title":"Character codes","revid":419019,"sourceSha256":"f87fce6a1d7a8dced18fe98df2555b349fcae7a71ab82c26a214beaa51c2861c","engine":"Rust","stdout":"97\na\n","assertions":0}

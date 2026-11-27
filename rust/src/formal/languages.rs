@@ -585,6 +585,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "cpp",
+        quotes: &['"', '\''],
         for_each: Some("for ({type} {variable} : {array})"),
         label: "C++",
         print_line: "std::cout",

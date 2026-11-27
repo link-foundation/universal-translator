@@ -313,6 +313,12 @@ class BaseEmitter {
   }
 
   specialExpression(expression) {
+    if (this.id === 'cpp' && expression.kind === 'CppCharacter') {
+      return `'${expression.raw}'`;
+    }
+    if (this.id === 'cpp' && expression.kind === 'CppIntegralCast') {
+      return `(${expression.castType})(${this.expression(expression.operand)})`;
+    }
     if (
       expression.kind === 'SizeOf' &&
       ['c', 'cpp', 'objc'].includes(this.id)

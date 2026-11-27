@@ -221,14 +221,17 @@ impl Parser {
         // C: sizeof a. D: cast(long) value.
         if word == "sizeof" {
             self.position += 1;
-            let operand =
-                if self.is("(") && CAST_TYPES.contains(&self.value(1)) && self.is_at(")", 2) {
-                    let kind = self.value(1).to_owned();
-                    self.position += 3;
-                    name(&kind)
-                } else {
-                    self.unary()?
-                };
+            let operand = if self.is("(")
+                && (CAST_TYPES.contains(&self.value(1))
+                    || (self.syntax.id == "cpp" && self.is_at("char", 1)))
+                && self.is_at(")", 2)
+            {
+                let kind = self.value(1).to_owned();
+                self.position += 3;
+                name(&kind)
+            } else {
+                self.unary()?
+            };
             return Ok(Some(Node::new("SizeOf").with("operand", operand)));
         }
         if word == "cast" && self.is_at("(", 1) && self.is_at(")", 3) {
@@ -240,13 +243,25 @@ impl Parser {
 
     /// C and C++: (int) value.
     fn cast(&mut self) -> Parsed<Option<Node>> {
+        let cast_type = self.value(1);
+        let cpp_char = self.syntax.id == "cpp" && cast_type == "char";
         if self.is("(")
-            && CAST_TYPES.contains(&self.value(1))
+            && (CAST_TYPES.contains(&cast_type) || cpp_char)
             && self.is_at(")", 2)
             && ["c", "objc", "cpp"].contains(&self.family())
         {
+            let cast_type = cast_type.to_owned();
             self.position += 3;
-            return self.unary().map(Some);
+            let operand = self.unary()?;
+            return Ok(Some(
+                if cpp_char || operand.is("CppCharacter") || operand.is("CppIntegralCast") {
+                    Node::new("CppIntegralCast")
+                        .with("castType", cast_type)
+                        .with("operand", operand)
+                } else {
+                    operand
+                },
+            ));
         }
         Ok(None)
     }
