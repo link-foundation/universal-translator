@@ -50,8 +50,9 @@ fn translate(source: &str, from: &str, to: &str) -> String {
 
 #[test]
 fn divides_integers_in_lua_5_1_and_php_5_without_operators_and_intdiv() {
-    assert!(translate(SOURCE, "javascript", "lua").contains("return n // 2"));
-    assert!(translate(SOURCE, "javascript", "lua@5.1").contains("return math.floor(n / 2)"));
+    for target in ["lua", "lua@5.1"] {
+        assert!(translate(SOURCE, "javascript", target).contains("return ut_integer_divide(n, 2)"));
+    }
     assert!(translate(SOURCE, "javascript", "php@5").contains("return (int) ($n / 2);"));
 }
 
