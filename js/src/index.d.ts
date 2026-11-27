@@ -53,6 +53,8 @@ export type {
   PartialError,
   PartialReading,
   PartialTranslation,
+  ByteRange,
+  TranslationRegion,
   GrammarTranslator,
   GrammarTranslatorOptions,
   Decorator,

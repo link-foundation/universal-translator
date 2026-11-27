@@ -330,6 +330,27 @@ fn run_translation(base: &Translator, request: Request<'_>) -> Result<String, St
         if !result.line_map.is_empty() || between_programming_languages(language, to) {
             fields.push(("lineMap", line_map(&result.line_map)));
         }
+        fields.push((
+            "regionMap",
+            list(
+                result
+                    .region_map
+                    .iter()
+                    .map(|pair| {
+                        let range = |range: crate::ByteRange| {
+                            object(&[
+                                ("start", range.start.to_string()),
+                                ("end", range.end.to_string()),
+                            ])
+                        };
+                        object(&[
+                            ("source", range(pair.source)),
+                            ("target", range(pair.target)),
+                        ])
+                    })
+                    .collect(),
+            ),
+        ));
         fields
     };
     if let Some(detected) = detected {

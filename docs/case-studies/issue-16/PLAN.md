@@ -52,7 +52,17 @@ has before/after browser evidence and an end-to-end colour assertion. Three
 JS/Deno and three Rust regressions cover file, function and entry-point headers;
 110 focused JS tests and 24 Rust mapping/concrete/layout tests pass.
 
-Current work: continue exact subline regions, language semantics, questions and
+Exact subline regions now accompany line maps in both libraries and HTTP APIs.
+Parser spans retain UTF-8 byte ranges through wrappers, recovery and layout;
+semantic matching distinguishes repeated names and same-line statements. Bash
+expression restoration keeps call origins, and Rust expression parsing now
+records leaf origins. The editor colours the narrowest visible regions and
+maps selections to exact counterparts, including split constructs. Ten JS/UI
+unit checks, five Rust region checks, HTTP byte parity, concrete-source tests
+and a real Chromium selection check pass. Screenshots preserve the old whole-line
+selection and the corrected single-name selection. All CI at `eee5930` passes.
+
+Current work: continue broader region precision, language semantics, questions and
 every historical gap below. Keep the PR draft
 and the native goal active until the complete inventory is verified.
 

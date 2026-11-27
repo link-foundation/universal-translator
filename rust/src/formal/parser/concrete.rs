@@ -31,10 +31,10 @@ impl Parser {
         let consumed = &self.tokens[start..self.position];
         let first = consumed.iter().find_map(|token| token.raw_span);
         let last = consumed.iter().rev().find_map(|token| token.raw_span);
-        if let (Some((start, _)), Some((_, end))) = (first, last) {
-            if result.origin.is_none() {
-                result.origin = self.source.as_ref().map(|source| source.range(start, end));
-            }
+        if result.origin.is_none()
+            && let (Some((start, _)), Some((_, end))) = (first, last)
+        {
+            result.origin = self.source.as_ref().map(|source| source.range(start, end));
             self.productions.push(
                 Node::new("Production")
                     .with("rule", rule)

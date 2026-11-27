@@ -210,6 +210,7 @@ fn translates_a_request_and_detects_the_source_language() {
             .is_some_and(|text| text.contains("def add(a, b):"))
     );
     assert!(answer["lineMap"].is_array());
+    assert!(answer["regionMap"].is_array());
 }
 
 #[test]

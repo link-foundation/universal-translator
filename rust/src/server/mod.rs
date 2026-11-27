@@ -6,7 +6,7 @@
 //! - `POST /translate` takes `{source, from (or "auto"), to, fragment?,
 //!   mode?, commonLibrary?, commentLanguage?, commentFrom?,
 //!   identifierLanguage?, identifierFrom?, layout?, allOrNothing?, rules?}`
-//!   and answers `{output, complete, errors, coverage?, lineMap?, detected?}`
+//!   and answers `{output, complete, errors, coverage?, lineMap?, regionMap?, detected?}`
 //!   or `{error}` with status 400. `lineMap` pairs 0-based source and target
 //!   lines of a translation between programming languages.
 //!

@@ -199,7 +199,7 @@ docker run --rm -i universal-translator translate javascript go - < app.js
 `POST /translate` takes `{source, from, to, fragment?, mode?, commonLibrary?,
 commentLanguage?, commentFrom?, identifierLanguage?, identifierFrom?, layout?, braces?, indent?,
 allOrNothing?, rules?}` and answers `{output, complete, errors, coverage?,
-lineMap?, detected?}`, or `{error}` with status 400. Regular expression rules
+lineMap?, regionMap?, detected?}`, or `{error}` with status 400. Regular expression rules
 are refused unless the server is created with
 `createTranslationServer({ allowRegexRules: true })`.
 
@@ -327,7 +327,14 @@ web demo) keeps the concrete layout of the source wherever the target has
 the same tokens: the spaces inside a line, the step of indentation, the
 blank lines, the blank lines around the code and the line ends. It also
 returns `lineMap`, the 0-based `[source line, target line]` pairs that the
-web demo uses to keep both editors in step. `--layout target` (`layout:
+web demo uses to keep both editors in step. `regionMap` (`region_map` in Rust)
+adds pairs of `{source: {start, end}, target: {start, end}}`, using half-open
+UTF-8 byte offsets in the original input and final output. Several pairs can
+share an endpoint when a construct expands or contracts. Semantic subregions
+distinguish expressions and statements on the same line; readers that cannot
+resolve a smaller region retain their recorded line ownership. The editor
+uses these regions for inline colours and precise linked selections.
+`--layout target` (`layout:
 'target'`) writes the layout of the target's emitter instead:
 
 ```bash

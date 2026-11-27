@@ -111,6 +111,9 @@ pub struct PartialTranslation {
     /// Pairs of 0-based (source line, target line) sharing semantic ownership
     /// or aligned tokens. Includes natural/machine output and recovered parts.
     pub line_map: Vec<(usize, usize)>,
+    /// Semantic regions in the original input and final output, using
+    /// half-open UTF-8 byte ranges. Endpoints can have several counterparts.
+    pub region_map: Vec<crate::TranslationRegion>,
     pub complete: bool,
     pub errors: Vec<PartError>,
     pub lines: usize,
@@ -469,6 +472,7 @@ pub fn translate_partial(
         .sum();
     crate::emission_map::record_mapping(source, &text, language, &line_map);
     Ok(PartialTranslation {
+        region_map: Vec::new(),
         text,
         line_map,
         complete: errors.is_empty(),

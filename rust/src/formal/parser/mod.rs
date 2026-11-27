@@ -1165,6 +1165,10 @@ impl Parser {
     }
 
     pub(crate) fn binary(&mut self, level: usize) -> Parsed {
+        self.concrete_rule("binary", |parser| parser.concrete_binary(level))
+    }
+
+    fn concrete_binary(&mut self, level: usize) -> Parsed {
         if level == self.levels.len() {
             return self.unary();
         }
@@ -1252,6 +1256,10 @@ impl Parser {
     }
 
     pub(crate) fn postfix(&mut self) -> Parsed {
+        self.concrete_rule("postfix", Self::concrete_postfix)
+    }
+
+    fn concrete_postfix(&mut self) -> Parsed {
         let mut expression = self.primary()?;
         loop {
             let mut offset = 0;
@@ -1335,8 +1343,10 @@ impl Parser {
     }
 
     pub(crate) fn primary(&mut self) -> Parsed {
-        let dialect = self.dialect;
-        dialect.primary(self)
+        self.concrete_rule("primary", |parser| {
+            let dialect = parser.dialect;
+            dialect.primary(parser)
+        })
     }
 
     fn plain_primary(&mut self) -> Parsed {

@@ -1,0 +1,40 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 4.69s
+     Running rust/tests/region_mapping.rs (target/debug/deps/region_mapping-92b0d9971328ee5c)
+
+running 5 tests
+test preserves_utf8_ranges_indentation_and_crlf_in_wrapped_fragments ... ok
+test excludes_nested_same_line_statements_from_the_parent_condition_region ... ok
+test separates_statements_and_repeated_names_on_the_same_line ... ok
+test keeps_regions_through_bash_call_lowering_and_its_inverse ... ok
+test supplies_valid_regions_for_all_reader_and_writer_families ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.40s
+
+     Running rust/tests/serve.rs (target/debug/deps/serve-9466330408165eec)
+
+running 6 tests
+test an_option_wins_over_the_environment_and_the_lenv_file ... ok
+test answers_other_routes_and_options ... ok
+test answers_the_languages_with_a_json_body ... ok
+test refuses_what_is_wrong_with_status_400 ... ok
+test answers_the_same_bytes_as_the_javascript_server ... FAILED
+test translates_a_request_and_detects_the_source_language ... ok
+
+failures:
+
+---- answers_the_same_bytes_as_the_javascript_server stdout ----
+
+thread 'answers_the_same_bytes_as_the_javascript_server' (57961) panicked at rust/tests/serve.rs:253:9:
+assertion `left == right` failed: {"from":"javascript","source":"function add(a, b) {\n  return a + b;\n}\nconsole.log(add(1, 2));\n","to":"python"}
+  left: (200, "{\"output\":\"def add(a, b):\\n  return a + b\\nprint(add(1, 2))\\n\",\"complete\":true,\"errors\":[],\"coverage\":1,\"lineMap\":[[0,0],[1,1],[2,0],[3,2]],\"regionMap\":[{\"source\":{\"start\":0,\"end\":20},\"target\":{\"start\":0,\"end\":14}},{\"source\":{\"start\":23,\"end\":36},\"target\":{\"start\":17,\"end\":29}},{\"source\":{\"start\":30,\"end\":35},\"target\":{\"start\":24,\"end\":29}},{\"source\":{\"start\":37,\"end\":38},\"target\":{\"start\":0,\"end\":14}},{\"source\":{\"start\":39,\"end\":62},\"target\":{\"start\":30,\"end\":46}},{\"source\":{\"start\":51,\"end\":60},\"target\":{\"start\":36,\"end\":45}},{\"source\":{\"start\":55,\"end\":56},\"target\":{\"start\":40,\"end\":41}},{\"source\":{\"start\":58,\"end\":59},\"target\":{\"start\":43,\"end\":44}}]}\n")
+ right: (200, "{\"output\":\"def add(a, b):\\n  return a + b\\nprint(add(1, 2))\\n\",\"complete\":true,\"errors\":[],\"coverage\":1,\"lineMap\":[[0,0],[1,1],[2,0],[3,2]],\"regionMap\":[{\"source\":{\"start\":0,\"end\":20},\"target\":{\"start\":0,\"end\":14}},{\"source\":{\"start\":23,\"end\":36},\"target\":{\"start\":17,\"end\":29}},{\"source\":{\"start\":30,\"end\":31},\"target\":{\"start\":24,\"end\":25}},{\"source\":{\"start\":30,\"end\":35},\"target\":{\"start\":24,\"end\":29}},{\"source\":{\"start\":34,\"end\":35},\"target\":{\"start\":28,\"end\":29}},{\"source\":{\"start\":37,\"end\":38},\"target\":{\"start\":0,\"end\":14}},{\"source\":{\"start\":39,\"end\":62},\"target\":{\"start\":30,\"end\":46}},{\"source\":{\"start\":51,\"end\":60},\"target\":{\"start\":36,\"end\":45}},{\"source\":{\"start\":55,\"end\":56},\"target\":{\"start\":40,\"end\":41}},{\"source\":{\"start\":58,\"end\":59},\"target\":{\"start\":43,\"end\":44}}]}\n")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    answers_the_same_bytes_as_the_javascript_server
+
+test result: FAILED. 5 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.26s
+
+error: test failed, to rerun pass `--test serve`

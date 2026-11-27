@@ -47,6 +47,7 @@ import {
 import { declaredNames } from './formal/names.js';
 import { createFragmentTranslator } from './translation/fragments.js';
 import { createPartialTranslator } from './translation/partial.js';
+import { createRegionMapper } from './translation/region-map.js';
 import { createCandidateTranslator } from './translation/candidates.js';
 import { createLanguageDetector } from './translation/detect.js';
 import { compileCustomRules } from './translation/custom-rules.js';
@@ -274,6 +275,7 @@ function inPlace(source, language, options, toMeta) {
 // web demo) keeps every part it can translate and marks the rest;
 // all-or-nothing translation throws at the first part it cannot read.
 function partialTranslator(translate, fragments, partial) {
+  const mapRegions = createRegionMapper({ ...fragments, ...partial });
   function readAll(source, from, to, options) {
     const whole = options.fragment ? fragments.translateFragment : translate;
     try {
@@ -303,9 +305,12 @@ function partialTranslator(translate, fragments, partial) {
       splitVersion(to).id,
       syntax
     );
-    return semantic.length
-      ? { ...placed, lineMap: mergeLineMaps(semantic, placed.lineMap ?? []) }
-      : placed;
+    const lineMap = mergeLineMaps(semantic, placed.lineMap ?? []);
+    return {
+      ...placed,
+      lineMap,
+      regionMap: mapRegions(source, placed.text, from, to, lineMap),
+    };
   };
 }
 

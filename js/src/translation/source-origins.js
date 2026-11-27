@@ -1,5 +1,12 @@
 // Source positions are metadata, separate from the meaning and public fields
 // of a node. Weak keys release them with the parse or transformed program.
+import {
+  byteOffsets,
+  mergeSpans,
+  remapSpans,
+  spanLines,
+  subtractSpans,
+} from './source-spans.js';
 const origins = new WeakMap();
 const commentRecords = new WeakMap();
 
@@ -57,6 +64,20 @@ export function combineOrigins(items) {
   }
   return {
     source: found[0].source,
+    spans: found.some((origin) => origin.spans !== undefined)
+      ? mergeSpans(
+          found.flatMap((origin) =>
+            origin.source === found[0].source ? (origin.spans ?? []) : []
+          )
+        )
+      : undefined,
+    covered: mergeSpans(
+      found.flatMap((origin) =>
+        origin.source === found[0].source
+          ? (origin.covered ?? origin.spans ?? [])
+          : []
+      )
+    ),
     lines: [
       ...new Set(
         found.flatMap((origin) =>
@@ -107,6 +128,7 @@ export function expressionOrigins(tree) {
 }
 
 export function sourceLocator(source) {
+  const offsets = byteOffsets(source);
   const starts = [0];
   for (let index = 0; index < source.length; index += 1) {
     if (source[index] === '\n') {
@@ -133,6 +155,8 @@ export function sourceLocator(source) {
       source,
       lines: Array.from({ length: last - first + 1 }, (_, i) => first + i),
       range: [first, last],
+      spans: [[offsets[start], offsets[end]]],
+      covered: [[offsets[start], offsets[end]]],
     };
   };
 }
@@ -156,6 +180,7 @@ export function registerOrigins(tree, locations, source) {
     const first = own.lines[0];
     const last = own.lines.at(-1);
     const lines = new Set(own.lines);
+    const excluded = [];
     // A block header owns its punctuation, while nested statements own their
     // individual lines. Shared boundary lines can belong to several nodes.
     const exclude = (child) => {
@@ -166,6 +191,7 @@ export function registerOrigins(tree, locations, source) {
         // A lifted command can lie outside the consuming statement's own
         // span. Those lines belong exclusively to the consuming statement.
         for (const origin of expressionOrigins(child)) {
+          excluded.push(...(origin.covered ?? origin.spans ?? []));
           const owned = origin.range
             ? Array.from(
                 { length: origin.range[1] - origin.range[0] + 1 },
@@ -185,7 +211,12 @@ export function registerOrigins(tree, locations, source) {
     if (containers.has(value.kind) || statements.has(value.kind)) {
       Object.values(value).forEach(exclude);
     }
-    withOrigin(value, { ...own, source, lines: [...lines] });
+    withOrigin(value, {
+      ...own,
+      source,
+      lines: [...lines],
+      spans: subtractSpans(own.spans ?? [], excluded),
+    });
   };
   visit(tree);
 }
@@ -193,9 +224,25 @@ export function registerOrigins(tree, locations, source) {
 // A fragment is parsed inside its language's executable wrapper. Positions
 // from that wrapper refer back to the original input, never generated lines.
 export function remapOrigins(tree, source, lines) {
-  const remap = (origin) =>
-    origin && {
+  const after = spanLines(source);
+  const sources = new Map();
+  const remap = (origin) => {
+    if (!origin) {
+      return undefined;
+    }
+    if (!sources.has(origin.source)) {
+      sources.set(origin.source, spanLines(origin.source));
+    }
+    const before = sources.get(origin.source);
+    return {
       source,
+      spans: remapSpans(origin.spans ?? [], before, after, lines),
+      covered: remapSpans(
+        origin.covered ?? origin.spans ?? [],
+        before,
+        after,
+        lines
+      ),
       lines: [
         ...new Set(
           origin.lines.flatMap((line) =>
@@ -204,6 +251,7 @@ export function remapOrigins(tree, source, lines) {
         ),
       ],
     };
+  };
   const visit = (value) => {
     if (!value || typeof value !== 'object') {
       return;

@@ -243,6 +243,10 @@ impl Parser {
     }
 
     pub(crate) fn unary(&mut self) -> Parsed {
+        self.concrete_rule("unary", Self::concrete_unary)
+    }
+
+    fn concrete_unary(&mut self) -> Parsed {
         // Lua: #a is the length of a.
         if self.syntax.id == "lua" && self.accept("#") {
             let array = self.unary()?;

@@ -56,23 +56,35 @@ function restore(expression, values) {
       }
       return values.kept.get(expression.name) ?? expression;
     case 'Binary':
-      return {
-        ...expression,
-        left: restore(expression.left, values),
-        right: restore(expression.right, values),
-      };
+      return inheritOrigin(
+        {
+          ...expression,
+          left: restore(expression.left, values),
+          right: restore(expression.right, values),
+        },
+        expression
+      );
     case 'Unary':
-      return { ...expression, operand: restore(expression.operand, values) };
+      return inheritOrigin(
+        { ...expression, operand: restore(expression.operand, values) },
+        expression
+      );
     case 'Call':
-      return {
-        ...expression,
-        arguments: expression.arguments.map((part) => restore(part, values)),
-      };
+      return inheritOrigin(
+        {
+          ...expression,
+          arguments: expression.arguments.map((part) => restore(part, values)),
+        },
+        expression
+      );
     case 'Interpolation':
-      return {
-        ...expression,
-        parts: expression.parts.map((part) => restore(part, values)),
-      };
+      return inheritOrigin(
+        {
+          ...expression,
+          parts: expression.parts.map((part) => restore(part, values)),
+        },
+        expression
+      );
     default:
       return expression;
   }

@@ -121,6 +121,7 @@ describe('translation server', () => {
         const result = await response.json();
         expect(result.complete).toBe(true);
         expect(result.lineMap.length > 0).toBe(true);
+        expect(result.regionMap.length > 0).toBe(true);
         const lines = result.output.split('\n');
         expect(
           result.lineMap.every(([from, to]) => from === 0 && lines[to].trim())
@@ -167,6 +168,34 @@ describe('translation server', () => {
       const unknown = await fetch(`${base}/nowhere`);
       expect(unknown.status).toBe(404);
     });
+  });
+});
+
+it('returns exact original and final byte regions over HTTP', async () => {
+  await withServer(async (base) => {
+    const source =
+      'const first = 1; console.log(first); const second = 2; console.log(second);';
+    const result = await (
+      await post(base, {
+        source,
+        from: 'javascript',
+        to: 'python',
+        fragment: true,
+        layout: 'target',
+      })
+    ).json();
+    const uses = result.regionMap.filter(
+      (pair) =>
+        Buffer.from(source)
+          .subarray(pair.source.start, pair.source.end)
+          .toString() === 'second'
+    );
+    expect(uses.length).toBe(1);
+    expect(
+      Buffer.from(result.output)
+        .subarray(uses[0].target.start, uses[0].target.end)
+        .toString()
+    ).toBe('second');
   });
 });
 

@@ -20,9 +20,11 @@ pub mod nesting;
 mod partial;
 mod program;
 mod referents;
+mod region_map;
 pub mod server;
 mod source_document;
 mod source_origins;
+mod source_spans;
 mod source_syntax;
 pub mod stages;
 pub mod style;
@@ -42,6 +44,7 @@ pub use program::translate_program;
 pub use referents::{
     Candidate, Observation, RankedCandidate, Ranking, rank_interpretations, read_referent_input,
 };
+pub use region_map::{ByteRange, TranslationRegion};
 pub use source_document::SourceDocument;
 pub use style::{Braces, Indent, Style};
 pub use translator::{

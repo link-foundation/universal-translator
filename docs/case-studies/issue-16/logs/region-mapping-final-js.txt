@@ -1,0 +1,60 @@
+✔ maps translated file, function and entry comments in every writer (2766.399747ms)
+✔ retains header origins when reading natural and machine languages (767.916304ms)
+✔ maps formal header comments independently of their translated spelling (394.414257ms)
+▶ decorating the stages of the pipeline
+  ✔ runs a decorator that traces the calls of a stage (399.890281ms)
+  ✔ rewrites the output of the emitter (3.792381ms)
+  ✔ rewrites the input of the parser (3.923374ms)
+  ✔ composes the decorators of one stage in order, the last outermost (1.975257ms)
+  ✔ adds decorators with decorate() without changing the translator (6.868773ms)
+  ✔ keeps the decorators when the rules change (7.284629ms)
+✔ decorating the stages of the pipeline (426.519232ms)
+▶ decorating the other stages
+  ✔ wraps the readers and the writer of words (96.08439ms)
+  ✔ wraps the machine code reader, lifting and emitter (26.707687ms)
+  ✔ wraps a replacement of a stage (11.155725ms)
+  ✔ rejects unknown stages and decorators that are not functions (3.699718ms)
+✔ decorating the other stages (138.818045ms)
+✔ distinguishes independent statements and repeated names on one physical line (414.518739ms)
+✔ uses UTF-8 ranges and keeps original indentation and CRLF in wrapped fragments (10.680198ms)
+✔ excludes nested same-line statements from the region owned by their condition (21.231374ms)
+✔ retains precise parser spans without exposing them as semantic fields (3.025849ms)
+✔ retains many-to-many regions through Bash call lowering and its inverse (69.409674ms)
+✔ provides valid semantic regions for all current reader and writer families (1910.178621ms)
+✔ maps every accepted partial fragment back to its original lines (915.542125ms)
+✔ maps prose that a custom translator splits across output lines (4.020715ms)
+✔ maps independent statements to their full expansion in every machine target (190.586655ms)
+✔ retains ownership through machine arrays, conditions, loops and interpolated calls (672.941661ms)
+▶ semantic many-to-many line mapping
+  ✔ maps the complete Fibonacci interpolation reported in issue 16 (163.051563ms)
+  ✔ maps a Java print to both the Bash command and its echo, and back (30.083609ms)
+  ✔ maps translated sentences in every controlled natural language in both directions (919.956874ms)
+  ✔ preserves origin metadata through output style and fragment wrappers (8.419487ms)
+  ✔ restores the capture context after failure and reentrant translations (10.933921ms)
+✔ semantic many-to-many line mapping (1134.662524ms)
+▶ translation server
+  ✔ lists programming and natural languages (480.807887ms)
+  ✔ translates like the library does (85.702027ms)
+  ✔ keeps the layout of the source and maps the lines (65.475769ms)
+  ✔ writes the braces and the indent asked for (36.809986ms)
+  ✔ returns semantic maps for prose, controlled words and instructions (633.475355ms)
+  ✔ translates only the comments to a comment language (141.121222ms)
+  ✔ rejects invalid requests with a message (17.126682ms)
+✔ translation server (1464.551079ms)
+✔ returns exact original and final byte regions over HTTP (87.784356ms)
+▶ serve command
+  ✔ is started by the serve command (67.442421ms)
+  ✔ reads its port from options, the environment and .lenv (23.536458ms)
+✔ serve command (91.557378ms)
+✔ selects the narrowest semantic region and gives its counterpart the same colour (6.877639ms)
+✔ keeps disjoint counterparts of a split construct and merges overlapping selections (1.12012ms)
+✔ converts UTF-8 ranges to Monaco UTF-16 columns across CRLF and emoji (0.49775ms)
+✔ rejects invalid, stale and mid-character byte ranges before making decorations (1.046413ms)
+ℹ tests 42
+ℹ suites 5
+ℹ pass 42
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4543.766881

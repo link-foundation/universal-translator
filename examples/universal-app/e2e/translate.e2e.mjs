@@ -589,8 +589,59 @@ async function linksTheEditors() {
     await linkedScrolling(tab);
     await linkedSemanticRegions(tab);
     await linkedCommentHeaders(tab);
+    await linkedSublineRegions(tab);
   } finally {
     await fresh.close();
+  }
+}
+
+async function linkedSublineRegions(tab) {
+  await tab.selectOption('#source-language', 'javascript');
+  await tab.selectOption('#target-language', 'python');
+  await tab.selectOption('#comment-from', '');
+  await tab.selectOption('#comment-language', '');
+  await typeInMonaco(
+    tab,
+    'const first = 1; console.log(first); const second = 2; console.log(second);'
+  );
+  await tab.waitForSelector('#target-text[data-value*="print(second)"]');
+  await tab.waitForFunction(
+    () =>
+      Number(
+        globalThis.document.querySelector('.map-strip')?.dataset.regionMap
+      ) > 4
+  );
+  await tab.click('#source-text .view-lines');
+  await tab.keyboard.press('ControlOrMeta+Home');
+  for (let at = 0; at < 67; at++) {
+    await tab.keyboard.press('ArrowRight');
+  }
+  for (let at = 0; at < 6; at++) {
+    await tab.keyboard.press('Shift+ArrowRight');
+  }
+  await tab.waitForSelector('#target-text .map-region.map-active');
+  assert.equal(await lineAt(tab, '#target-text', '.selected-text'), 4);
+  const selected = await tab
+    .locator('#target-text .selected-text')
+    .boundingBox();
+  assert.ok(
+    selected.width > 20 && selected.width < 100,
+    `expected a single name, selected ${selected.width}px`
+  );
+  const classes = await Promise.all(
+    ['source', 'target'].map((side) =>
+      tab.$eval(
+        `#${side}-text .map-region.map-active`,
+        (node) => node.className.match(/map-c\d/)[0]
+      )
+    )
+  );
+  assert.equal(classes[0], classes[1]);
+  if (screenshot) {
+    await tab.screenshot({
+      path: screenshot.replace(/\.png$/u, '-regions.png'),
+      fullPage: true,
+    });
   }
 }
 

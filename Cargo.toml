@@ -183,6 +183,10 @@ name = "semantic_mapping"
 path = "rust/tests/semantic_mapping.rs"
 
 [[test]]
+name = "region_mapping"
+path = "rust/tests/region_mapping.rs"
+
+[[test]]
 name = "grammar_workspace"
 path = "rust/tests/grammar_workspace.rs"
 

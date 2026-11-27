@@ -101,7 +101,7 @@ those states; they do not prove every language or the entire inherited corpus.
 The acceptance inventory remains authoritative. Major open areas include
 complete upstream grammar production/semantic coverage and faithful conversion lowering, recursive natural
 clauses and general agreement, questions/introspection/SQL/LINQ, complete
-operators and exceptions across targets, exact subline maps, binary machine
+operators and exceptions across targets, broader semantic region precision, binary machine
 readers and dialect versions, missing top-50 languages,
 Portable Object Compiler Objective-C, library source translation, and reading
 the actual full Rosetta corpus.
@@ -195,3 +195,41 @@ line details. The WebKit experiment is reusable and closes its browser.
 All required checks for `283f16a`, including Rust, native toolchains, Docker and
 the web end-to-end suite, pass. There are no inline review comments or reviews
 15 minutes after that push. Broader acceptance work remains open.
+
+## Subline regions and precise editor selections
+
+Line ownership alone joins independent statements that share a physical line.
+The four-statement regression in `region-mapping.test.js` demonstrates that the
+old API has no region map. Selecting its final `second` name consequently
+selects all four Python output lines. Parser metadata now records half-open
+UTF-8 byte spans, excluding nested statement bodies. Wrapper removal, partial
+recovery and final layout remap these spans to the original and final texts.
+
+Semantic fingerprints match readable constructs without depending on spelling.
+The matching remains constrained by recorded line ownership and supports split
+or joined counterparts. Comment identity uses its semantic owner and ordinal.
+Unresolved constructs retain coarse line regions. This is a precision improvement
+over line maps, rather than a claim of complete semantic grammar coverage.
+
+Bash's restored expressions previously discarded their weak origin metadata;
+they now inherit it. Rust's expression parser previously registered only its
+outer expression, losing binary operands. Primary, postfix, unary and binary
+readings now retain their spans without repeated production records for the same
+node. The HTTP parity test caught this difference and passes after the repair.
+
+The editor converts UTF-8 offsets to Monaco's UTF-16 positions, rejects stale or
+mid-character ranges, colours the smallest visible region, and follows exact
+counterparts, merging overlapping selections. The browser investigation also
+caught an invalid `setSelections` argument: Monaco requires Selection objects,
+which the adapter now constructs. A fresh Chromium run has no page errors and
+selects only `second` at Python line 4, columns 7–13. Before/after screenshots
+are `docs/screenshots/issue-16/regions-{before,after}.png`.
+
+Evidence includes the failing baseline, 42 passing focused JavaScript checks,
+five Rust region tests, exact JavaScript/Rust HTTP response comparison, concrete
+source regressions, public TypeScript compilation and `region-browser.txt`.
+The complete web end-to-end suite also passes, including keyboard-driven
+selection of the final name and matching inline colours.
+The regions cover a finite round trip through every current reader/writer;
+this does not prove every requested language feature. All required CI checks at
+the preceding `eee5930` commit pass.

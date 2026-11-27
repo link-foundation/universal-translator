@@ -140,6 +140,9 @@ export interface PartialTranslation {
   text: string;
   /** Pairs of zero-based source and target lines with shared ownership. */
   lineMap: [number, number][];
+  /** Semantic regions in the original source and final output. Ranges are
+   * half-open UTF-8 byte offsets; a region can have several counterparts. */
+  regionMap: TranslationRegion[];
   complete: boolean;
   errors: PartialError[];
   /** Non-blank source lines. */
@@ -150,6 +153,16 @@ export interface PartialTranslation {
   /** The share successfully translated; empty input has full coverage. */
   coverage: number;
   prose: { line: number; endLine: number }[];
+}
+
+export interface ByteRange {
+  start: number;
+  end: number;
+}
+
+export interface TranslationRegion {
+  source: ByteRange;
+  target: ByteRange;
 }
 
 export interface GrammarTranslator {

@@ -4,11 +4,14 @@ use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use crate::meta::{Node, Value};
+use crate::source_spans::{self, Span};
 
 #[derive(Clone, Debug)]
 pub(crate) struct SourceOrigin {
     pub(crate) source: Arc<str>,
     pub(crate) lines: Vec<usize>,
+    pub(crate) spans: Vec<Span>,
+    covered: Vec<Span>,
     range: Option<(usize, usize)>,
     comments: BTreeMap<String, Vec<Option<Arc<SourceOrigin>>>>,
 }
@@ -30,6 +33,8 @@ pub(crate) fn attach_comment_origins(
         origins.iter().flatten().next().map(|origin| SourceOrigin {
             source: origin.source.clone(),
             lines: Vec::new(),
+            spans: Vec::new(),
+            covered: Vec::new(),
             range: None,
             comments: BTreeMap::new(),
         })
@@ -74,7 +79,25 @@ pub(crate) fn combine_origins(origins: &[Arc<SourceOrigin>]) -> Option<Arc<Sourc
         .collect();
     lines.sort_unstable();
     lines.dedup();
+    let collect = |covered| {
+        source_spans::merge(
+            origins
+                .iter()
+                .filter(|origin| origin.source == source)
+                .flat_map(|origin| {
+                    if covered {
+                        &origin.covered
+                    } else {
+                        &origin.spans
+                    }
+                })
+                .copied()
+                .collect(),
+        )
+    };
     Some(Arc::new(SourceOrigin {
+        spans: collect(false),
+        covered: collect(true),
         source,
         lines,
         range: None,
@@ -85,12 +108,18 @@ pub(crate) fn combine_origins(origins: &[Arc<SourceOrigin>]) -> Option<Arc<Sourc
 pub(crate) struct SourceLocator {
     source: Arc<str>,
     starts: Vec<usize>,
+    offsets: Vec<usize>,
 }
 
 impl SourceLocator {
     pub(crate) fn new(source: &str) -> Self {
         Self {
             source: source.into(),
+            offsets: source
+                .char_indices()
+                .map(|(i, _)| i)
+                .chain(std::iter::once(source.len()))
+                .collect(),
             starts: std::iter::once(0)
                 .chain(
                     source
@@ -112,15 +141,34 @@ impl SourceLocator {
             source: self.source.clone(),
             lines: (first..=last).collect(),
             range: Some((first, last)),
+            spans: vec![(self.offsets[start], self.offsets[end])],
+            covered: vec![(self.offsets[start], self.offsets[end])],
             comments: BTreeMap::new(),
         })
     }
 
     pub(crate) fn line(&self, line: usize) -> Arc<SourceOrigin> {
+        let spans = self
+            .starts
+            .get(line)
+            .map(|&start| {
+                let start = self.offsets[start];
+                let text = self.source[start..]
+                    .split('\n')
+                    .next()
+                    .unwrap_or_default()
+                    .trim_end();
+                let indent = text.len() - text.trim_start().len();
+                (start + indent, start + text.len())
+            })
+            .into_iter()
+            .collect::<Vec<_>>();
         Arc::new(SourceOrigin {
             source: self.source.clone(),
             lines: vec![line],
             range: Some((line, line)),
+            covered: spans.clone(),
+            spans,
             comments: BTreeMap::new(),
         })
     }
@@ -189,11 +237,19 @@ pub(crate) fn register_origins(node: &mut Node) {
     let mut lines = origin.lines.clone();
     let first = lines.first().copied();
     let last = lines.last().copied();
-    fn exclude(node: &Node, lines: &mut Vec<usize>, first: Option<usize>, last: Option<usize>) {
+    let mut excluded = Vec::new();
+    fn exclude(
+        node: &Node,
+        lines: &mut Vec<usize>,
+        first: Option<usize>,
+        last: Option<usize>,
+        excluded: &mut Vec<Span>,
+    ) {
         if statement(node) {
             // Commands lifted into this statement's expressions can precede
             // its own range, and belong to it rather than the parent loop.
             for origin in expression_origins(node) {
+                excluded.extend_from_slice(&origin.covered);
                 lines.retain(|line| {
                     Some(*line) == first
                         || Some(*line) == last
@@ -204,12 +260,17 @@ pub(crate) fn register_origins(node: &mut Node) {
                 });
             }
         } else {
-            children(node, &mut |child| exclude(child, lines, first, last));
+            children(node, &mut |child| {
+                exclude(child, lines, first, last, excluded)
+            });
         }
     }
-    children(node, &mut |child| exclude(child, &mut lines, first, last));
+    children(node, &mut |child| {
+        exclude(child, &mut lines, first, last, &mut excluded)
+    });
     node.origin = Some(Arc::new(SourceOrigin {
         lines,
+        spans: source_spans::subtract(&origin.spans, excluded),
         ..origin.as_ref().clone()
     }));
 }
@@ -239,10 +300,14 @@ pub(crate) fn inherit(mut node: Node, source: &Node) -> Node {
 
 pub(crate) fn remap_origins(node: &mut Node, source: &str, lines: &[Option<usize>]) {
     let source: Arc<str> = source.into();
+    let after = source_spans::lines(&source);
+    let mut sources = BTreeMap::new();
     fn remap(
         origin: &SourceOrigin,
         source: &Arc<str>,
         lines: &[Option<usize>],
+        after: &[source_spans::Line],
+        sources: &mut BTreeMap<Arc<str>, Vec<source_spans::Line>>,
     ) -> Arc<SourceOrigin> {
         let mut mapped: Vec<_> = origin
             .lines
@@ -251,9 +316,16 @@ pub(crate) fn remap_origins(node: &mut Node, source: &str, lines: &[Option<usize
             .collect();
         mapped.sort_unstable();
         mapped.dedup();
+        let before = sources
+            .entry(origin.source.clone())
+            .or_insert_with(|| source_spans::lines(&origin.source));
+        let spans = source_spans::remap(&origin.spans, before, after, lines);
+        let covered = source_spans::remap(&origin.covered, before, after, lines);
         Arc::new(SourceOrigin {
             source: source.clone(),
             lines: mapped,
+            spans,
+            covered,
             range: None,
             comments: origin
                 .comments
@@ -264,7 +336,9 @@ pub(crate) fn remap_origins(node: &mut Node, source: &str, lines: &[Option<usize
                         origins
                             .iter()
                             .map(|origin| {
-                                origin.as_ref().map(|origin| remap(origin, source, lines))
+                                origin
+                                    .as_ref()
+                                    .map(|origin| remap(origin, source, lines, after, sources))
                             })
                             .collect(),
                     )
@@ -272,11 +346,19 @@ pub(crate) fn remap_origins(node: &mut Node, source: &str, lines: &[Option<usize
                 .collect(),
         })
     }
-    fn visit(node: &mut Node, source: &Arc<str>, lines: &[Option<usize>]) {
+    fn visit(
+        node: &mut Node,
+        source: &Arc<str>,
+        lines: &[Option<usize>],
+        after: &[source_spans::Line],
+        sources: &mut BTreeMap<Arc<str>, Vec<source_spans::Line>>,
+    ) {
         if let Some(origin) = &node.origin {
-            node.origin = Some(remap(origin, source, lines));
+            node.origin = Some(remap(origin, source, lines, after, sources));
         }
-        children_mut(node, &mut |child| visit(child, source, lines));
+        children_mut(node, &mut |child| {
+            visit(child, source, lines, after, sources)
+        });
     }
-    visit(node, &source, lines);
+    visit(node, &source, lines, &after, &mut sources);
 }

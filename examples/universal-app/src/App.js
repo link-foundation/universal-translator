@@ -114,6 +114,7 @@ function translateWith(
       errors: result.errors,
       coverage: result.coverage,
       lineMap: result.lineMap,
+      regionMap: result.regionMap,
       detected,
     };
   } catch (error) {
@@ -525,6 +526,7 @@ function Editors({ source, result, update, lexicons, editor, t }) {
     [sourcePane, targetPane],
     strip,
     result.lineMap,
+    result.regionMap,
     source,
     result.output
   );
@@ -548,6 +550,7 @@ function Editors({ source, result, update, lexicons, editor, t }) {
           className: 'map-strip',
           'aria-hidden': true,
           'data-line-map': result.lineMap ? result.lineMap.length : 0,
+          'data-region-map': result.regionMap ? result.regionMap.length : 0,
         })
       : null,
     h(TextPane, {

@@ -1,0 +1,36 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 16.25s
+     Running rust/tests/concrete_syntax.rs (target/debug/deps/concrete_syntax-73d8ce8bb13300f8)
+
+running 5 tests
+test reconstruction_requires_a_concrete_tree ... ok
+test concrete_tokens_partition_every_source_byte ... ok
+test empty_and_whitespace_input_have_lossless_records ... ok
+test incomplete_source_retains_accepted_regions_and_explicit_errors ... ok
+test words_and_all_machine_formats_retain_their_source_record ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.45s
+
+     Running rust/tests/region_mapping.rs (target/debug/deps/region_mapping-92b0d9971328ee5c)
+
+running 5 tests
+test preserves_utf8_ranges_indentation_and_crlf_in_wrapped_fragments ... ok
+test excludes_nested_same_line_statements_from_the_parent_condition_region ... ok
+test separates_statements_and_repeated_names_on_the_same_line ... ok
+test keeps_regions_through_bash_call_lowering_and_its_inverse ... ok
+test supplies_valid_regions_for_all_reader_and_writer_families ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.81s
+
+     Running rust/tests/serve.rs (target/debug/deps/serve-9466330408165eec)
+
+running 6 tests
+test an_option_wins_over_the_environment_and_the_lenv_file ... ok
+test answers_other_routes_and_options ... ok
+test answers_the_languages_with_a_json_body ... ok
+test refuses_what_is_wrong_with_status_400 ... ok
+test translates_a_request_and_detects_the_source_language ... ok
+test answers_the_same_bytes_as_the_javascript_server ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.84s
+

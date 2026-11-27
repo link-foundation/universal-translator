@@ -637,6 +637,7 @@ impl Translator {
                         .filter(|line| !line.trim().is_empty())
                         .count();
                     PartialTranslation {
+                        region_map: Vec::new(),
                         text,
                         line_map: Vec::new(),
                         complete: true,
@@ -656,6 +657,8 @@ impl Translator {
         let semantic =
             crate::emission_map::emitted_map(&emissions, source, &result.text, split_version(to).0);
         result.line_map = crate::emission_map::merge(semantic, result.line_map);
+        result.region_map =
+            crate::region_map::region_map(self, source, &result.text, from, to, &result.line_map);
         Ok(result)
     }
 
