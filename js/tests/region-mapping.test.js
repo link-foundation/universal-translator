@@ -17,6 +17,23 @@ const translation = (source, from = 'javascript', to = 'python') =>
     layout: 'target',
   });
 
+it('keeps mapping rereads out of the public trace and restores tracing afterward', () => {
+  const stages = [];
+  const reader = createTranslator({ trace: (stage) => stages.push(stage) });
+  const result = reader.translatePartial('print(1)\n', 'python', 'ruby');
+  expect(result.regionMap.length > 0).toBe(true);
+  expect(stages).toEqual([
+    'parsed',
+    'understood',
+    'typed',
+    'transformed',
+    'adapted',
+  ]);
+  stages.length = 0;
+  reader.toMeta('print(2)\n', 'python');
+  expect(stages).toEqual(['parsed', 'understood', 'typed']);
+});
+
 it('distinguishes independent statements and repeated names on one physical line', () => {
   const source =
     'const first = 1; console.log(first); const second = 2; console.log(second);';

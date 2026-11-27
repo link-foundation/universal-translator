@@ -1,43 +1,14 @@
    Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
-    Finished `test` profile [unoptimized] target(s) in 11.02s
-     Running rust/tests/detect_goldens.rs (target/debug/deps/detect_goldens-332631791473fc30)
+    Finished `test` profile [unoptimized] target(s) in 9.78s
+     Running rust/tests/region_mapping.rs (target/debug/deps/region_mapping-92b0d9971328ee5c)
 
-running 4 tests
-test reads_perl_argument_lists_as_natural_text_without_hanging ... ok
-test tells_objective_c_from_c_by_its_import ... ok
-test reads_machine_code_whole_only ... ok
-test detects_every_golden has been running for over 60 seconds
-test detects_every_golden ... ok
+running 6 tests
+test preserves_utf8_ranges_indentation_and_crlf_in_wrapped_fragments ... ok
+test mapping_rereads_do_not_enter_the_public_trace ... ok
+test excludes_nested_same_line_statements_from_the_parent_condition_region ... ok
+test separates_statements_and_repeated_names_on_the_same_line ... ok
+test keeps_regions_through_bash_call_lowering_and_its_inverse ... ok
+test supplies_valid_regions_for_all_reader_and_writer_families ... ok
 
-test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 81.79s
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.22s
 
-     Running rust/tests/equivalence.rs (target/debug/deps/equivalence-739635d7328d6e36)
-
-running 9 tests
-test finds_another_operator ... ok
-test finds_a_bound_that_is_one_off ... ok
-test holds_for_what_the_translator_writes ... FAILED
-test keeps_what_a_program_does_in_the_meta_program ... ok
-test leaves_out_comments_blank_lines_and_the_spelling_of_an_update ... ok
-test leaves_out_types_and_mutability ... ok
-test keeps_the_example_programs_through_a_round_trip_in_rust ... ok
-test holds_for_the_example_programs ... ok
-test holds_for_every_committed_translation_of_two_tasks ... ok
-
-failures:
-
----- holds_for_what_the_translator_writes stdout ----
-
-thread 'holds_for_what_the_translator_writes' (20423) panicked at rust/tests/equivalence.rs:35:5:
-assertion `left == right` failed
-  left: 23
- right: 12
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
-
-
-failures:
-    holds_for_what_the_translator_writes
-
-test result: FAILED. 8 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.52s
-
-error: test failed, to rerun pass `--test equivalence`

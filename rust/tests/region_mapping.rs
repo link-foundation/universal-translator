@@ -1,6 +1,27 @@
+use std::sync::{Arc, Mutex};
 use universal_translator::natural::natural_language_ids;
 use universal_translator::translator::{language_ids, machine_target_ids};
 use universal_translator::{Options, TextLayout, TranslationRegion, Translator};
+
+#[test]
+fn mapping_rereads_do_not_enter_the_public_trace() {
+    let stages = Arc::new(Mutex::new(Vec::new()));
+    let reported = Arc::clone(&stages);
+    let reader = Translator::new().with_trace(move |stage, _| {
+        reported.lock().unwrap().push(stage.to_owned());
+    });
+    let result = reader
+        .translate_partial("print(1)\n", "python", "ruby", Options::default(), false)
+        .unwrap();
+    assert!(!result.region_map.is_empty());
+    assert_eq!(
+        *stages.lock().unwrap(),
+        ["parsed", "understood", "typed", "transformed", "adapted"]
+    );
+    stages.lock().unwrap().clear();
+    reader.to_meta("print(2)\n", "python").unwrap();
+    assert_eq!(*stages.lock().unwrap(), ["parsed", "understood", "typed"]);
+}
 
 fn spelling<'a>(text: &'a str, range: universal_translator::ByteRange) -> &'a str {
     &text[range.start..range.end]

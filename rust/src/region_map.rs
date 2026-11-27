@@ -111,7 +111,11 @@ impl Collector {
             for (index, origin) in comment_origins(node, field).iter().enumerate() {
                 if let Some(origin) = origin {
                     let comment = self.identify(format!("comment:{key}:{field}:{index}"));
-                    add_entry(entries, comment, owned(&[origin.clone()], source));
+                    add_entry(
+                        entries,
+                        comment,
+                        owned(std::slice::from_ref(origin), source),
+                    );
                 }
             }
         }
@@ -223,6 +227,12 @@ pub(crate) fn region_map(
     to: &str,
     line_map: &[(usize, usize)],
 ) -> Vec<TranslationRegion> {
+    // Mapping rereads the final layout; these internal reads are not stages
+    // of the translation exposed to the caller's trace hook.
+    let reader = Translator {
+        trace: None,
+        ..translator.clone()
+    };
     let mut regions = Regions {
         source: source_spans::lines(source),
         target: source_spans::lines(target),
@@ -231,8 +241,8 @@ pub(crate) fn region_map(
     };
     let mut collector = Collector::default();
     if let (Ok(before), Ok(after)) = (
-        collector.read(translator, source, from),
-        collector.read(translator, target, to),
+        collector.read(&reader, source, from),
+        collector.read(&reader, target, to),
     ) {
         regions.semantic(before, after, &line_map.iter().copied().collect());
     }

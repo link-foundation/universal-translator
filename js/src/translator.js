@@ -91,6 +91,26 @@ const buildStages = (settings) =>
     settings.decorate
   );
 
+// Keep layout rereads private while preserving the public stage trace.
+function scopedTrace(reportTrace) {
+  let tracing = true;
+  const trace = (...args) => {
+    if (tracing) {
+      reportTrace(...args);
+    }
+  };
+  const withoutTrace = (read) => {
+    const previous = tracing;
+    tracing = false;
+    try {
+      return read();
+    } finally {
+      tracing = previous;
+    }
+  };
+  return { trace, withoutTrace };
+}
+
 const modes = ['context-dependent', 'literal', 'same-effect'];
 
 const applyRules = (tree, rules, context) =>
@@ -274,7 +294,7 @@ function inPlace(source, language, options, toMeta) {
 // Partial translation (the default of the command line, the server and the
 // web demo) keeps every part it can translate and marks the rest;
 // all-or-nothing translation throws at the first part it cannot read.
-function partialTranslator(translate, fragments, partial) {
+function partialTranslator(translate, fragments, partial, withoutTrace) {
   const mapRegions = createRegionMapper({ ...fragments, ...partial });
   function readAll(source, from, to, options) {
     const whole = options.fragment ? fragments.translateFragment : translate;
@@ -309,7 +329,9 @@ function partialTranslator(translate, fragments, partial) {
     return {
       ...placed,
       lineMap,
-      regionMap: mapRegions(source, placed.text, from, to, lineMap),
+      regionMap: withoutTrace(() =>
+        mapRegions(source, placed.text, from, to, lineMap)
+      ),
     };
   };
 }
@@ -360,9 +382,10 @@ export function createGrammarTranslator(settings = {}) {
     meaning = meaningRules,
     context = contextRules,
     layers = [],
-    trace = () => {},
+    trace: reportTrace = () => {},
     rules = {},
   } = settings;
+  const { trace, withoutTrace } = scopedTrace(reportTrace);
   const stages = buildStages(settings);
   const { parse, infer, lift, emit, emitMachineCode } = stages;
   // Rules given as data (see translation/custom-rules.js).
@@ -494,7 +517,12 @@ export function createGrammarTranslator(settings = {}) {
   });
   const partial = createPartialTranslator({ ...fragments, translateProse });
 
-  const translatePartial = partialTranslator(translate, fragments, partial);
+  const translatePartial = partialTranslator(
+    translate,
+    fragments,
+    partial,
+    withoutTrace
+  );
   const translateCandidates = createCandidateTranslator(translatePartial);
 
   return {

@@ -72,6 +72,15 @@ the translator entry chunk while source records imported it. The shared source
 chunk now includes it. A dependency graph regression fails before that change
 and passes afterward; production verification runs in the existing CI workflow.
 
+At `6b5893f`, production web and desktop builds pass. The checks workflow found
+two JS regressions: the HTTP comment test omitted the new region field
+(`logs/ci-node-6b5893f.txt:2923`), and internal mapping rereads entered the public
+trace (`:2932`). The response assertion now covers the exact byte ranges;
+mapping suppresses its internal trace in both runtimes and restores tracing for
+subsequent public reads. Twenty-one focused JS checks and six Rust region checks
+pass. Rust CI also found a needless origin clone (`logs/ci-rust-6b5893f.txt:767`),
+replaced with a borrowed slice.
+
 The C++ gutter investigation found a separate target-failure coverage bug.
 JavaScript and Rust now count successfully written parts after emission,
 including free prose; the UI retains zero-coverage error details. Baseline

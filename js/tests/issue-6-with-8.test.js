@@ -131,6 +131,11 @@ describe('comment languages and versions with partial translation', () => {
           [1, 1],
           [2, 2],
         ],
+        regionMap: [
+          { source: { start: 0, end: 9 }, target: { start: 0, end: 12 } },
+          { source: { start: 18, end: 19 }, target: { start: 21, end: 22 } },
+          { source: { start: 21, end: 36 }, target: { start: 23, end: 34 } },
+        ],
         detected: 'javascript',
       });
     } finally {
