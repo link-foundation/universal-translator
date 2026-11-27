@@ -57,6 +57,10 @@ const stringInitialization = readFileSync(
   ),
   'utf8'
 );
+const fixedArray = readFileSync(
+  new URL('../examples/programs/library/cpp-fixed-array.cpp', import.meta.url),
+  'utf8'
+);
 const directory = mkdtempSync(join(tmpdir(), 'cpp-member-calls-'));
 const options = { encoding: 'utf8', maxBuffer: 32 * 1024 };
 
@@ -79,6 +83,11 @@ try {
     ['file-scope initialization and mutation', fileScope, '10\n11\n'],
     ['scoped library declarations and const parameters', scopedLibrary, '1\n'],
     ['direct string initialization', stringInitialization, 'Hello, world!\n'],
+    [
+      'fixed array extents and brace initialization',
+      fixedArray,
+      '3 apple[] 2 3 0\n',
+    ],
   ]) {
     const original = run(program);
     assert.equal(original, expected);

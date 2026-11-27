@@ -24,9 +24,13 @@ import { withObjpakParser } from './objpak-reader.js';
 import { withQueryParser } from './query-parser.js';
 import { parseSource } from './source-parser.js';
 import {
+  cppListInitializer,
   cppStringInitializer,
   cppTemplateArguments,
   declarationTypeFields,
+  isCppFixedArray,
+  isCppTemplateDeclaration,
+  readCppInitializerList,
   readCppStringInitializer,
 } from './cpp-library.js';
 import {
@@ -803,6 +807,7 @@ class BaseParser {
       this.peek(offset - 1).type === 'name' &&
       (this.is('=', offset) ||
         this.is(';', offset) ||
+        cppListInitializer(this, offset) ||
         cppStringInitializer(this, offset)) &&
       (typeWords.has(this.peek().value) ||
         this.peek(1).type === 'name' ||
@@ -813,22 +818,26 @@ class BaseParser {
   typedDeclaration() {
     const head = typeHeadLength(this);
     const directString = cppStringInitializer(this, head);
-    const words = [];
-    for (let offset = 0; offset < head; offset += 1) {
-      words.push(this.next().value);
-    }
+    const fixedArray = isCppFixedArray(this);
+    const words = Array.from({ length: head }, () => this.next().value);
     const variable = words.pop();
     const type = sourceType(words.join(' '));
     let value;
     if (directString) {
       value = readCppStringInitializer(this);
+    } else if (isCppTemplateDeclaration(this.syntax, words) && this.is('{')) {
+      value = readCppInitializerList(this, true);
     } else if (this.accept('=')) {
-      value = this.expression();
+      value =
+        isCppTemplateDeclaration(this.syntax, words) && this.is('{')
+          ? readCppInitializerList(this)
+          : this.expression();
     }
     this.endStatement();
     return node('Declaration', {
       name: variable,
       ...declarationTypeFields(this.syntax, words, type, value),
+      ...(fixedArray ? { cppFixedArray: true } : {}),
       value,
       mutable: !words.includes('const'),
     });

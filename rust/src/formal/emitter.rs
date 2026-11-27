@@ -463,6 +463,14 @@ impl Emitter {
                 let parts = expression.node_list("parts");
                 self.interpolation(&parts)
             }
+            "CppInitializerList" if self.id() == "cpp" => {
+                let fields = expression
+                    .nodes("elements")
+                    .into_iter()
+                    .map(|value| self.expression(value))
+                    .collect::<Result<Vec<_>>>()?;
+                Ok(format!("{{{}}}", fields.join(", ")))
+            }
             "Call" | "CppTemplateCall" => {
                 let types = match expression.str("typeArguments") {
                     Some(types) if self.id() == "cpp" => {
@@ -827,6 +835,16 @@ impl Emitter {
                     "{} {name}{}",
                     self.type_name(kind),
                     self.terminator()
+                ));
+            }
+            if let Some(value) = statement.node("value")
+                && value.is("CppInitializerList")
+                && value.flag("direct") == Some(true)
+            {
+                return Ok(format!(
+                    "{} {name}{};",
+                    self.type_name(kind),
+                    self.expression(value)?
                 ));
             }
         }

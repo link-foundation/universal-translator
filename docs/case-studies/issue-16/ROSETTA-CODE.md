@@ -163,9 +163,20 @@ original. The native CI fixture also covers the constructor's embedded-null
 behavior. Other constructors and cross-language library mappings remain open.
 [Native comparison fixture](../../../examples/programs/library/cpp-string-initialization.cpp)
 
+The first C++ solution for [Array length revision 419956](https://rosettacode.org/w/index.php?title=Array_length&oldid=419956)
+declares a fixed-size array of strings. At `25a7da8`, strict parsing
+stopped at the comma before the extent. Both readers now retain the type
+and its numeric extent, nested brace groups, and the distinction between
+direct and copy list initialization. The emitted `.size()` keeps its
+native return type and follows renames of the receiver. Both CLI outputs
+print the single byte `2`, matching the original. The native fixture
+checks nested integer arrays, a partially initialized const string array,
+and a zero-length array. Cross-language fixed-array lowering remains open.
+[Native comparison fixture](../../../examples/programs/library/cpp-fixed-array.cpp)
+
 ```sh
 curl --fail --silent --show-error --get https://rosettacode.org/w/api.php \
-  --data 'action=query' --data 'prop=revisions' --data 'revids=420325|417505|419626|420026' \
+  --data 'action=query' --data 'prop=revisions' --data 'revids=420325|417505|419626|420026|419956' \
   --data 'rvprop=ids|content' --data 'rvslots=main' --data 'format=json' \
   --data 'formatversion=2' > /tmp/rosetta-containers-revisions.json
 node experiments/issue-16-rosetta-containers.mjs /tmp/rosetta-containers-revisions.json \
@@ -200,7 +211,7 @@ node experiments/issue-16-rust-print.mjs --revision /tmp/rosetta-rust-print-revi
   --rust-translator ./target/debug/universal-translator
 ```
 
-These six pinned task round trips count toward the behavioral goal. Portable
+These seven pinned task round trips count toward the behavioral goal. Portable
 format modifiers, containers and comparisons need broader native verification.
 
 ## C++ file-scope declarations

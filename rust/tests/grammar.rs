@@ -199,6 +199,49 @@ int main() {
 }
 
 #[test]
+fn cpp_fixed_arrays_retain_extent_and_brace_initialization() {
+    let source = r#"int main() {
+        const std::array<std::string, 3> fallFruit {"pear", "apple",};
+        std::array<std::array<int, 2>, 2> numbers = {{{1, 2}, {3, 4}}};
+        fallFruit.size();
+        a < 3 > b;
+        return 0;
+    }"#;
+    let translator = Translator::new();
+    let meta = translator.to_meta(source, "cpp").unwrap();
+    let statements = meta.node("main").unwrap().nodes("statements");
+    let fruit = statements[0].node("value").unwrap();
+    assert!(fruit.is("CppInitializerList"));
+    assert_eq!(fruit.flag("direct"), Some(true));
+    assert_eq!(
+        statements[1].node("value").unwrap().flag("direct"),
+        Some(false)
+    );
+    assert_eq!(
+        statements[2].node("expression").unwrap().str("callee"),
+        Some(".size")
+    );
+    assert!(statements[3].node("expression").unwrap().is("Binary"));
+    let emitted = translator
+        .translate(source, "cpp", "cpp", Mode::default())
+        .unwrap();
+    assert!(emitted.contains(r#"const std::array<std::string,3> fall_fruit{"pear", "apple"};"#));
+    assert!(emitted.contains("std::array<std::array<int,2>,2> numbers = {{{1, 2}, {3, 4}}};"));
+    assert!(emitted.contains("fall_fruit.size();"));
+    assert!(!emitted.contains("(int) fall_fruit.size()"));
+    let reread = translator.to_meta(&emitted, "cpp").unwrap();
+    assert_eq!(reread.node("main").unwrap().nodes("statements"), statements);
+    let error = translator
+        .translate(source, "cpp", "python", Mode::default())
+        .unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("C++ template type requires a library mapping for python")
+    );
+}
+
+#[test]
 fn reads_direct_string_initialization_alongside_cpp_prototypes() {
     let source = r#"#include <string>
 std::string empty();

@@ -313,6 +313,9 @@ class BaseEmitter {
   }
 
   specialExpression(expression) {
+    if (expression.kind === 'CppInitializerList' && this.id === 'cpp') {
+      return `{${expression.elements.map((value) => this.expression(value)).join(', ')}}`;
+    }
     if (['RecordConstruction', 'RecordFieldRead'].includes(expression.kind)) {
       return writeRecordExpression(this, expression);
     }
@@ -722,6 +725,9 @@ class BaseEmitter {
       }
       if (!value) {
         return `${this.type(type)} ${name}${this.terminator()}`;
+      }
+      if (value.kind === 'CppInitializerList' && value.direct) {
+        return `${this.type(type)} ${name}${this.expression(value)};`;
       }
     }
     const initial = this.expression(

@@ -1,5 +1,42 @@
 import { inheritOrigin } from '../translation/source-origins.js';
+import { node } from '../meta/tree.js';
 import { SyntaxError } from './lexer.js';
+
+export function isCppFixedArray(parser) {
+  if (parser.syntax.id !== 'cpp') {
+    return false;
+  }
+  let start = 0;
+  while (['const', 'static'].includes(parser.peek(start).value)) {
+    start += 1;
+  }
+  return ['std', '::', 'array', '<'].every((word, index) =>
+    parser.is(word, start + index)
+  );
+}
+
+export function isCppTemplateDeclaration(syntax, words) {
+  return syntax.id === 'cpp' && words.includes('<');
+}
+
+export function cppListInitializer(parser, head) {
+  return (
+    parser.syntax.id === 'cpp' &&
+    parser.is('{', head) &&
+    Array.from(
+      { length: head },
+      (_, index) => parser.peek(index).value
+    ).includes('<')
+  );
+}
+
+export function readCppInitializerList(parser, direct = false) {
+  parser.expect('{');
+  const elements = parser.elementList('}', () =>
+    parser.is('{') ? readCppInitializerList(parser) : parser.expression()
+  );
+  return node('CppInitializerList', { elements, direct });
+}
 
 // A single text literal cannot be a parameter declaration. `std::string f()`
 // and `std::string f(const char*)` are still function declarations.
@@ -138,9 +175,10 @@ function finishTypeArguments(
 
 export function declarationTypeFields(syntax, words, type, value) {
   if (
-    syntax.id !== 'cpp' ||
-    !words.includes('<') ||
-    (value && !type?.startsWith('source:'))
+    !isCppTemplateDeclaration(syntax, words) ||
+    (value &&
+      value.kind !== 'CppInitializerList' &&
+      !type?.startsWith('source:'))
   ) {
     return { type };
   }

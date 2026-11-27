@@ -14,18 +14,57 @@ pub(super) fn cpp_declaration_type(
     language: &str,
     words: &[String],
     translated: Option<&str>,
-    has_value: bool,
+    value: Option<&Node>,
 ) -> Option<String> {
-    if language == "cpp"
-        && words.iter().any(|word| word == "<")
-        && (!has_value || translated.is_some_and(|kind| kind.starts_with("source:")))
+    if is_cpp_template_declaration(language, words)
+        && (value.is_none_or(|value| value.is("CppInitializerList"))
+            || translated.is_some_and(|kind| kind.starts_with("source:")))
     {
         return Some(format!("source:{}", words.join(" ")));
     }
     None
 }
 
+pub(super) fn is_cpp_template_declaration(language: &str, words: &[String]) -> bool {
+    language == "cpp" && words.iter().any(|word| word == "<")
+}
+
 impl Parser {
+    pub(super) fn is_cpp_fixed_array(&self) -> bool {
+        if self.syntax.id != "cpp" {
+            return false;
+        }
+        let mut start = 0;
+        while matches!(self.value(start), "const" | "static") {
+            start += 1;
+        }
+        ["std", "::", "array", "<"]
+            .iter()
+            .enumerate()
+            .all(|(offset, token)| self.is_at(token, start + offset))
+    }
+
+    pub(super) fn cpp_list_initializer(&self, head: usize) -> bool {
+        self.syntax.id == "cpp"
+            && self.is_at("{", head)
+            && (0..head).any(|offset| self.is_at("<", offset))
+    }
+
+    pub(super) fn read_cpp_initializer_list(&mut self, direct: bool) -> Parsed {
+        self.expect("{")?;
+        let elements = self.element_list_with("}", Self::cpp_initializer_element)?;
+        Ok(Node::new("CppInitializerList")
+            .with("elements", elements)
+            .with("direct", direct))
+    }
+
+    fn cpp_initializer_element(&mut self) -> Parsed {
+        if self.is("{") {
+            return self.read_cpp_initializer_list(false);
+        }
+        self.expression()
+    }
+
     // A single string literal disambiguates an object declaration from a prototype.
     pub(super) fn cpp_string_initializer(&self, head: usize) -> bool {
         if self.syntax.id != "cpp"

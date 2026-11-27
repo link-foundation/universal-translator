@@ -159,6 +159,40 @@ int main() {
   });
 });
 
+describe('C++ fixed arrays', () => {
+  it('retains nested extents and direct and copy brace initialization', () => {
+    const source = `int main() {
+      const std::array<std::string, 3> fallFruit {"pear", "apple",};
+      std::array<std::array<int, 2>, 2> numbers = {{{1, 2}, {3, 4}}};
+      fallFruit.size();
+      a < 3 > b;
+      return 0;
+    }`;
+    const program = translator.toMeta(source, 'cpp');
+    const [fruit, numbers, size, comparison] = program.main.statements;
+    expect(fruit.value.kind).toBe('CppInitializerList');
+    expect(fruit.value.direct).toBe(true);
+    expect(numbers.value.direct).toBe(false);
+    expect(size.expression.callee).toBe('.size');
+    expect(comparison.expression.kind).toBe('Binary');
+    const emitted = translator.translate(source, 'cpp', 'cpp');
+    expect(emitted).toContain(
+      'const std::array<std::string,3> fall_fruit{"pear", "apple"};'
+    );
+    expect(emitted).toContain(
+      'std::array<std::array<int,2>,2> numbers = {{{1, 2}, {3, 4}}};'
+    );
+    expect(emitted).toContain('fall_fruit.size();');
+    expect(emitted).not.toContain('(int) fall_fruit.size()');
+    expect(meaningDifference(program, translator.toMeta(emitted, 'cpp'))).toBe(
+      undefined
+    );
+    expect(() => translator.translate(source, 'cpp', 'python')).toThrow(
+      'C++ template type requires a library mapping for python'
+    );
+  });
+});
+
 describe('C++ library scope and types', () => {
   it('reads direct string initialization alongside C++ function prototypes', () => {
     const source = String.raw`#include <string>

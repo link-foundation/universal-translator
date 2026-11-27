@@ -52,10 +52,18 @@ impl Parser {
 
     /// a, b, c up to the closing symbol.
     pub(crate) fn element_list(&mut self, close: &str) -> Parsed<Vec<Node>> {
+        self.element_list_with(close, Self::expression)
+    }
+
+    pub(super) fn element_list_with(
+        &mut self,
+        close: &str,
+        read_element: fn(&mut Self) -> Parsed,
+    ) -> Parsed<Vec<Node>> {
         let mut elements = Vec::new();
         self.skip_newlines();
         while !self.is(close) {
-            elements.push(self.expression()?);
+            elements.push(read_element(self)?);
             self.skip_newlines();
             if !self.accept(",") {
                 break;

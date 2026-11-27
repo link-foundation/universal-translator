@@ -60,11 +60,13 @@ impl Parser {
         }
         let mut offset = 0;
         let mut depth = 0;
+        let cpp_fixed_array = self.is_cpp_fixed_array();
         loop {
             let value = self.value(offset);
             if self.kind(offset) != TokenType::Name
                 && !["*", "::", ".", "[", "]", "<", ">", ">>"].contains(&value)
                 && !(depth > 0 && [",", "?"].contains(&value))
+                && !(cpp_fixed_array && depth > 0 && self.kind(offset) == TokenType::Number)
             {
                 return offset;
             }

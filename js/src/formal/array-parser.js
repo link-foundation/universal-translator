@@ -170,11 +170,11 @@ const withArrayConstructors = (Base) =>
 const withArrayExpressions = (Base) =>
   class ArrayExpressionParser extends Base {
     // a, b, c up to the closing symbol.
-    elementList(close) {
+    elementList(close, readElement = () => this.expression()) {
       const elements = [];
       this.skipLineEnds();
       while (!this.is(close)) {
-        elements.push(this.expression());
+        elements.push(readElement());
         this.skipLineEnds();
         if (!this.accept(',')) {
           break;

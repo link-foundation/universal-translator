@@ -2,7 +2,11 @@
 import { node } from '../meta/tree.js';
 import { sourceType } from './parser.js';
 import { tokenize } from './lexer.js';
-import { cppQualifiedParameter, cppStringInitializer } from './cpp-library.js';
+import {
+  cppQualifiedParameter,
+  cppStringInitializer,
+  isCppFixedArray,
+} from './cpp-library.js';
 
 const annotatedLanguages = new Set(['java', 'kotlin', 'python']);
 
@@ -24,12 +28,14 @@ export function typeHeadLength(parser) {
   }
   let offset = 0;
   let depth = 0;
+  const cppFixedArray = isCppFixedArray(parser);
   while (true) {
     const token = parser.peek(offset);
     if (
       token.type !== 'name' &&
       !['*', '::', '.', '[', ']', '<', '>', '>>'].includes(token.value) &&
-      !(depth > 0 && [',', '?'].includes(token.value))
+      !(depth > 0 && [',', '?'].includes(token.value)) &&
+      !(cppFixedArray && depth > 0 && token.type === 'number')
     ) {
       return offset;
     }

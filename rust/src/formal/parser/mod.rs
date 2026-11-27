@@ -871,6 +871,7 @@ impl Parser {
             && self.kind(offset - 1) == TokenType::Name
             && (self.is_at("=", offset)
                 || self.is_at(";", offset)
+                || self.cpp_list_initializer(offset)
                 || self.cpp_string_initializer(offset))
             && (TYPE_WORDS.contains(&self.value(0))
                 || self.kind(1) == TokenType::Name
@@ -878,18 +879,25 @@ impl Parser {
     }
 
     fn plain_typed_declaration(&mut self) -> Parsed {
-        let direct_string = self.cpp_string_initializer(self.type_head_length());
-        let mut words = if direct_string {
-            self.words_until(&["("])?
-        } else {
-            self.words_until(&["=", ";"])?
-        };
+        let head = self.type_head_length();
+        let direct_string = self.cpp_string_initializer(head);
+        let fixed_array = self.is_cpp_fixed_array();
+        let mut words = (0..head)
+            .map(|_| self.next_value())
+            .collect::<Parsed<Vec<_>>>()?;
         let variable = words.pop().unwrap_or_default();
         let kind = source_type(&words.join(" "));
+        let cpp_template = cpp_template::is_cpp_template_declaration(self.syntax.id, &words);
         let value = if direct_string {
             Some(self.read_cpp_string_initializer()?)
+        } else if cpp_template && self.is("{") {
+            Some(self.read_cpp_initializer_list(true)?)
         } else if self.accept("=") {
-            Some(self.expression()?)
+            Some(if cpp_template && self.is("{") {
+                self.read_cpp_initializer_list(false)?
+            } else {
+                self.expression()?
+            })
         } else {
             None
         };
@@ -898,13 +906,14 @@ impl Parser {
             self.syntax.id,
             &words,
             kind.as_deref(),
-            value.is_some(),
+            value.as_ref(),
         );
         let cpp_template = cpp_kind.is_some().then_some(true);
         Ok(Node::new("Declaration")
             .with("name", variable)
             .with_opt("type", cpp_kind.or(kind))
             .with_opt("cppTemplateType", cpp_template)
+            .with_opt("cppFixedArray", fixed_array.then_some(true))
             .with_opt("value", value)
             .with("mutable", !words.iter().any(|word| word == "const")))
     }

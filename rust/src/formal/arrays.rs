@@ -180,9 +180,12 @@ const LENGTH_MEMBERS: [&str; 5] = ["length", "Length", "size", "count", "len"];
 
 /// The names a program declares with an array value or type, or indexes (a
 /// fragment may use an array it does not declare).
-fn array_names(program: &Node) -> HashSet<String> {
+fn array_names(program: &Node, fixed_arrays: &mut HashSet<String>) -> HashSet<String> {
     let mut names = HashSet::new();
     walk(program, |current| {
+        if current.is("Declaration") && current.flag("cppFixedArray") == Some(true) {
+            fixed_arrays.extend(current.str("name").map(str::to_owned));
+        }
         if (current.is("Declaration") || current.is("Assignment"))
             && (is_array_value(current.node("value")) || current.str("type") == Some("array"))
         {
@@ -207,6 +210,27 @@ fn array_names(program: &Node) -> HashSet<String> {
         }
     });
     names
+}
+
+// The native member keeps its return type and follows renames of its receiver.
+fn fixed_array_call(expression: &Node, fixed_arrays: &HashSet<String>) -> Option<Node> {
+    if fixed_arrays.is_empty() {
+        return None;
+    }
+    let (owner, member) = expression
+        .str("callee")
+        .filter(|_| expression.is("Call"))?
+        .rsplit_once('.')?;
+    if !fixed_arrays.contains(owner) {
+        return None;
+    }
+    let mut arguments = vec![name(owner)];
+    arguments.extend(expression.node_list("arguments"));
+    Some(
+        Node::new("Call")
+            .with("callee", format!(".{member}"))
+            .with("arguments", arguments),
+    )
 }
 
 /// The array a member spelling such as `a.length` or `a.len()` names.
@@ -280,7 +304,8 @@ pub fn recognize_arrays(program: Node, settings: &Settings) -> Node {
     let constructed = rewrite(program, |current| {
         construct(language, &current).unwrap_or(current)
     });
-    let arrays = array_names(&constructed);
+    let mut fixed_arrays = HashSet::new();
+    let arrays = array_names(&constructed, &mut fixed_arrays);
     let base = array_base(&syntax);
     rewrite(constructed, |current| {
         // Scala indexes with an Int: a(i.toInt).
@@ -294,8 +319,11 @@ pub fn recognize_arrays(program: Node, settings: &Settings) -> Node {
         if current.is("Method") && current.str("name") == Some("toInt") {
             return current.node("receiver").cloned().unwrap_or(current);
         }
-        if let Some(length) = length_of(&current, &arrays).or_else(|| size_of_length(&current)) {
-            return length;
+        if let Some(recognized) = fixed_array_call(&current, &fixed_arrays)
+            .or_else(|| length_of(&current, &arrays))
+            .or_else(|| size_of_length(&current))
+        {
+            return recognized;
         }
         let callee = current.str("callee").unwrap_or_default();
         if current.is("Call")

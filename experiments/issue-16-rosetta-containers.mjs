@@ -11,7 +11,7 @@ import { extractSolutions } from '../scripts/rosetta-code.mjs';
 const [wikiResponse, rustTranslator] = process.argv.slice(2);
 assert.ok(
   wikiResponse,
-  'Pass the MediaWiki response for revisions 420325, 417505, 419626 and 420026'
+  'Pass the MediaWiki response for revisions 420325, 417505, 419626, 420026 and 419956'
 );
 const { query } = JSON.parse(readFileSync(wikiResponse, 'utf8'));
 const digest = (text) => createHash('sha256').update(text).digest('hex');
@@ -46,6 +46,14 @@ const tasks = [
     sourceSha256:
       'a3bbf3d8933188b5ec5a14214c4bf5464cb07dafa97e79b8783b50f3133b638b',
     stdout: 'Hello , world!\n',
+    assertions: 0,
+  },
+  {
+    title: 'Array length',
+    revid: 419956,
+    sourceSha256:
+      '3d1a0dc91ea31a01d7d9d0a8598efc0e12efe48b5d452fe669b6fc1f808e3c5f',
+    stdout: '2',
     assertions: 0,
   },
 ];

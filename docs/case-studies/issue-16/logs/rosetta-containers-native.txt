@@ -6,3 +6,5 @@
 {"title":"Jewels and stones","revid":419626,"sourceSha256":"ca42e7b599a3fb251aef227a867e801cf3fa6062fe0cf924711d4e732561361e","engine":"Rust","stdout":"3\n0\n","assertions":0}
 {"title":"String append","revid":420026,"sourceSha256":"a3bbf3d8933188b5ec5a14214c4bf5464cb07dafa97e79b8783b50f3133b638b","engine":"JavaScript","stdout":"Hello , world!\n","assertions":0}
 {"title":"String append","revid":420026,"sourceSha256":"a3bbf3d8933188b5ec5a14214c4bf5464cb07dafa97e79b8783b50f3133b638b","engine":"Rust","stdout":"Hello , world!\n","assertions":0}
+{"title":"Array length","revid":419956,"sourceSha256":"3d1a0dc91ea31a01d7d9d0a8598efc0e12efe48b5d452fe669b6fc1f808e3c5f","engine":"JavaScript","stdout":"2","assertions":0}
+{"title":"Array length","revid":419956,"sourceSha256":"3d1a0dc91ea31a01d7d9d0a8598efc0e12efe48b5d452fe669b6fc1f808e3c5f","engine":"Rust","stdout":"2","assertions":0}
