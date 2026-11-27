@@ -40,6 +40,7 @@ Modes: context-dependent (default), literal, same-effect
 Parts that cannot be translated become comments and are listed on
 standard error; --all-or-nothing fails instead.
 The source language may be \"auto\" to detect it.
+translate-program accepts JavaScript, Rust, Lean and Rocq.
 Use \"wasm\" for the supported WebAssembly version 1 binary subset.
 Use \"jvm-class\" for the supported JVM class file subset.
 --rules <file.lino> adds source, templates, names and output rules

@@ -39,7 +39,7 @@ name = "universal-translator"
 path = "rust/src/main.rs"
 
 [dependencies]
-meta-language = { version = "=1.0.0", default-features = false }
+meta-language = { version = "=1.1.0", default-features = false }
 relative-meta-logic = { version = "=0.21.0", default-features = false, features = ["core"] }
 regex = "1"
 serde = { version = "1", features = ["derive"] }

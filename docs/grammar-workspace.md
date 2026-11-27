@@ -101,16 +101,17 @@ in `selection.limits`; Rust accepts `FeatureParseOptions`. These are executor
 budgets, not a claim of fixed process memory. Limit rejections retain the input
 and an explicit reason in the concrete record.
 
-The JavaScript grammar dependency closure is pinned in
-`vendor/meta-language-grammar/SOURCE.json`, matching the published Rust
-`meta-language = 1.0.0` crate. The only local upstream patch uses portable SHA-256
-for browser merge fingerprints. Verify it with:
+The JavaScript grammar and CLI dependencies are pinned to the Meta Language
+1.0.0 source in `vendor/meta-language-grammar/SOURCE.json`. The Rust CLI uses
+the published `meta-language = 1.1.0` crate. The updater records the portable
+SHA-256 patch for browser merge fingerprints, portable notice links and the
+JavaScript literal and helper patches. Verify the recorded digests with
 
 ```sh
 node scripts/update-meta-grammar.mjs --check
 ```
 
-The updater accepts a full upstream commit SHA, reapplies the explicit patch
+The updater accepts a full upstream commit SHA, reapplies the explicit patches
 and records original and patched file digests. Review any new dependency imports
 before accepting an update. This adapter does not yet import every production
 of every requested programming language or supply every semantic reader. The

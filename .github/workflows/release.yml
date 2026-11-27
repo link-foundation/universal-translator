@@ -498,6 +498,7 @@ jobs:
           node scripts/update-meta-grammar.mjs --check
           cargo build --locked --bin universal-translator
           node experiments/verify-syntax-exchange.mjs
+          node examples/translation/verify-portable-programs.mjs target/debug/universal-translator
           node examples/translation/dependent-meanings.mjs
 
   native-translation:
@@ -641,6 +642,7 @@ jobs:
               node examples/arithmetic/verify-native.mjs
               node examples/arithmetic/verify-rounding.mjs --require-all
               node examples/runtime-headers/verify-native.mjs
+              node examples/translation/verify-portable-programs.mjs --native-logic
               OBJC=gcc node experiments/issue-16-evaluation-order.mjs
               node experiments/issue-16-cpp-member-calls.mjs
               node experiments/issue-16-wasm-binary.mjs

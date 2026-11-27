@@ -103,6 +103,11 @@ describe('published package artifact', () => {
       const rust = cli('translate-program', 'javascript', 'rust', program);
       expect(rust).toContain('fn main()');
       expect(rust).toContain('println!');
+      const lean = join(workspace, 'Main.lean');
+      writeFileSync(lean, 'def main : IO Unit := do\n  IO.println "Hello"\n');
+      writeFileSync(encoded, cli('encode-cst', 'Lean', lean));
+      const fromLean = cli('translate-program', 'cst', 'javascript', encoded);
+      expect(fromLean).toContain('console.log("Hello")');
       expect(
         execFileSync(
           process.execPath,

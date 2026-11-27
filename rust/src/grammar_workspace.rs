@@ -385,6 +385,7 @@ fn concrete(source: &str, language: &str, outcome: &ParseOutcome) -> Result<Node
                 start,
                 end,
                 root,
+                ..
             } => {
                 productions.push(
                     Node::new("Production")

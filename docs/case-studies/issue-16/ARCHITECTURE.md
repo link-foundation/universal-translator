@@ -34,7 +34,7 @@ integrate its capabilities.
 
 The current [meta-language grammar architecture](https://github.com/link-foundation/meta-language/blob/main/docs/grammar/architecture.md)
 already defines a grammar expression algebra, links encoding, import/export,
-runtime parsing, merging and concept alignment. The installed Rust 1.0.0 crate
+runtime parsing, merging and concept alignment. The published Rust 1.1.0 crate
 exposes `import_antlr`, `import_lark`, `import_tree_sitter_json`, `GrammarParser`,
 feature-runtime execution, merging and grammar interchange. Its lightweight
 runtime explicitly rejects feature forms and delegates them to the feature
@@ -53,10 +53,15 @@ The archived repository manifest declares JavaScript 1.1.0, while
 `npm view meta-language version --json` returned 0.46.0. The npm release
 predates the portable-program translator and grammar-provenance methods.
 The translator's own npm artifact includes the applicable upstream JavaScript
-sources at the same 1.0.0 revision as the Rust crate. The JavaScript CLI loads
-them by default and accepts an explicit module path for comparisons. Upstream
+sources at the 1.0.0 revision with recorded local patches. The JavaScript CLI
+loads them by default and accepts an explicit module path for comparisons. Upstream
 tracks standalone JavaScript publication in
 [Meta Language issue 230](https://github.com/link-foundation/meta-language/issues/230).
+The upstream 1.1.0 JavaScript release stopped before npm publication after the
+tooling test for the issue 195 evidence manifest rejected a changed native
+diagnostics digest. The standalone npm dependency remains unavailable at the
+required version.
+[Upstream tooling job](https://github.com/link-foundation/meta-language/actions/runs/45523576058/job/138901259661)
 
 [Router PR 775](https://github.com/link-assistant/router/pull/775) is closed and
 explicitly reports only 12 of 70 source bundles drafted. Its useful techniques
@@ -113,10 +118,10 @@ fixtures verify the implemented infrastructure, not full language grammars or
 all their semantic readers. Steps 4–6 therefore still require implementation
 and coverage across the complete issue inventory.
 
-## Portable JavaScript and Rust programs
+## Portable JavaScript, Rust, Lean and Rocq programs
 
 The default JavaScript CLI uses the pinned 1.0.0 source and the Rust CLI uses the
-matching published crate. Both run the commands below without environment
+published 1.1.0 crate. Both run the commands below without environment
 configuration. The npm artifact loads the Node-only parser on demand. The web
 application uses the existing browser-compatible grammar workspace.
 
@@ -124,6 +129,7 @@ application uses the existing browser-compatible grammar workspace.
 node scripts/update-meta-grammar.mjs --check
 cargo build --bin universal-translator -j 1
 node experiments/issue-16-portable-program.mjs --default target/debug/universal-translator
+node examples/translation/verify-portable-programs.mjs --native-logic target/debug/universal-translator
 node --test js/tests/package-artifact.test.js
 ```
 
@@ -137,13 +143,28 @@ Rust via the portable translator. Node 20 also runs the default engine. The
 cross-language CI step uses the bundled engine and verifies all recorded
 digests before running. [Default-engine output](logs/portable-program-bundled.txt)
 
+The four-language verifier checks all 12 ordered source/target directions for
+each CLI with the same four original programs. Direct translation produces the
+same output as translation from CSTs encoded by either CLI. Node, rustc and Lean
+each run their respective outputs. Rocq compiles a proof that the translated
+program computes the same list of output strings as the original. The packaged
+JavaScript CLI also decodes a Lean CST and generates runnable JavaScript.
+[Native matrix output](logs/portable-program-formal-native.txt)
+
+The fixture matrix covers literal output and arithmetic from the Rust and Lean
+inputs. The bundled JavaScript engine still rejects its generated Lean and Rocq
+output for `const answer = 6 * 7; console.log(answer);` during target CST
+validation. Complete arithmetic, type and grammar coverage remains open.
+
 The bundled JavaScript emitter encodes constructor tags and theorem messages
-as string literals, and uses a fixed helper for integer-to-natural clamping.
+as string literals, and uses fixed helpers for integer-to-natural clamping
+and bounded constructor domains. The Rust 1.1.0 emitter also encodes names and
+messages with its JSON string encoder.
 The Lean example `examples/translation/portable-emission.lean` exposed a
 syntax error in the original JavaScript theorem message because its name
 ends in an apostrophe. The grammar workspace test runs the translated program
 and its theorem check. Native Lean and the translated program both print
-`0`, `42`, and `C:\draft's`. [CodeQL run for the original package](https://github.com/link-foundation/universal-translator/actions/runs/46070271830)
+`0`, `42`, and `C:\draft's`. [Original CodeQL findings](https://github.com/link-foundation/universal-translator/actions/runs/46070271830), [clean scan after emitter fixes](https://github.com/link-foundation/universal-translator/actions/runs/46072003415), [Rust 1.1.0 release](https://github.com/link-foundation/meta-language/releases/tag/v1.1.0)
 
 The upstream comparison remains available through
 `bash experiments/verify-syntax-exchange.sh`. The download experiment

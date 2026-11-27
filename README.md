@@ -566,9 +566,9 @@ stages. The browser-safe JavaScript entry is
 `@link-foundation/universal-translator/grammar`; a runnable example is
 `node examples/grammars/import-and-translate.mjs`.
 
-Both CLIs use Meta Language 1.0.0 for grammar-backed CSTs and checked
-JavaScript ↔ Rust program translation. The npm artifact includes the pinned
-JavaScript engine and its grammars. For example:
+Both CLIs use Meta Language for grammar-backed CSTs and checked program
+translation between JavaScript, Rust, Lean and Rocq. The npm artifact includes
+the pinned JavaScript engine and its grammars.
 
 ```bash
 universal-translator encode-cst JavaScript examples/programs/hello-world.js > hello.lino
@@ -578,7 +578,9 @@ universal-translator translate-program cst rust hello.lino > hello.rs
 
 The JavaScript CLI accepts `UNIVERSAL_TRANSLATOR_META_LANGUAGE` to use an
 explicit compatible module file. The checked program command rejects syntax
-errors and constructs outside the portable language subset.
+errors and constructs outside the portable language subset. Run
+`node examples/translation/verify-portable-programs.mjs --native-logic` with
+Node, Rust, Lean and Rocq installed to execute examples in all four languages.
 
 ### Decorators
 

@@ -75,7 +75,7 @@ function usage() {
     '            Use "jvm-class" for the supported JVM class file subset',
     '            --rules <file.lino> adds source, templates, names and output rules',
     '            (indented Links Notation; JSON files are read too)',
-    '  translate-program <from|cst> <to> [file|-]  Translate a checked JavaScript or Rust program',
+    '  translate-program <from|cst> <to> [file|-]  Translate checked JavaScript, Rust, Lean or Rocq',
     '  meta <language> [file|-] [--json] [--shallow]  Print the typed meta program as indented Links Notation',
     '            --json prints it as JSON instead',
     '            comments and strings are read with the grammars they are written in',
