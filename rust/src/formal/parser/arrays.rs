@@ -292,7 +292,12 @@ impl Parser {
     }
 
     fn array_declaration_start(&self) -> Option<ArrayStart> {
-        if self.is("std") && self.is_at("::", 1) && self.is_at("vector", 2) {
+        if self.syntax.id == "cpp"
+            && ["std", "::", "vector", "<", "int", ">"]
+                .iter()
+                .enumerate()
+                .all(|(offset, word)| self.is_at(word, offset))
+        {
             return Some(ArrayStart::Vector);
         }
         let c = ["c", "objc"].contains(&self.family());
@@ -318,7 +323,7 @@ impl Parser {
         let Some(start) = self.array_declaration_start() else {
             return self.plain_typed_declaration();
         };
-        let mut value = None;
+        let mut value;
         let variable;
         if start == ArrayStart::Vector {
             self.position += 6; // std :: vector < int >
@@ -329,6 +334,10 @@ impl Parser {
                 let fill = self.expression()?;
                 self.expect(")")?;
                 value = Some(new_array(length, fill));
+            } else if self.accept("{") {
+                value = Some(self.array_literal("}")?);
+            } else {
+                value = Some(Node::new("ArrayLiteral").with("elements", Vec::<Node>::new()));
             }
         } else {
             self.position += 1;

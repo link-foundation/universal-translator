@@ -316,7 +316,12 @@ const withArrayStatements = (Base) =>
     // The tokens of a C array declaration: int a[] = ..., int a[n];
     // C++ vectors: std::vector<int> a = ..., std::vector<int> a(n, v);
     arrayDeclarationStart() {
-      if (this.is('std') && this.is('::', 1) && this.is('vector', 2)) {
+      if (
+        this.syntax.id === 'cpp' &&
+        ['std', '::', 'vector', '<', 'int', '>'].every((word, index) =>
+          this.is(word, index)
+        )
+      ) {
         return 'vector';
       }
       const c = ['c', 'objc'].includes(this.syntax.family ?? this.syntax.id);
@@ -355,6 +360,10 @@ const withArrayStatements = (Base) =>
           const fill = this.expression();
           this.expect(')');
           value = node('NewArray', { length, fill });
+        } else if (this.is('{')) {
+          value = this.arrayPrimary();
+        } else {
+          value = node('ArrayLiteral', { elements: [] });
         }
       } else {
         this.next();

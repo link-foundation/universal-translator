@@ -175,6 +175,40 @@ int main() { return advance() + advance(); }
     );
 }
 
+#[test]
+fn cpp_vectors_keep_empty_and_list_initialization_and_element_types() {
+    let translator = Translator::new();
+    let source = r"#include <vector>
+int main() {
+  std::vector<int> empty;
+  std::vector<int> list{3, 4};
+  std::vector<unsigned> wide;
+  return 0;
+}
+";
+    let emitted = translator
+        .translate(source, "cpp", "cpp", Mode::default())
+        .unwrap();
+    assert_eq!(emitted.matches("#include <vector>").count(), 1);
+    for declaration in [
+        "std::vector<int> empty = {};",
+        "std::vector<int> list = {3, 4};",
+        "std::vector<unsigned> wide;",
+    ] {
+        assert!(
+            emitted.contains(declaration),
+            "Missing {declaration:?}:\n{emitted}"
+        );
+    }
+    assert_eq!(
+        meaning_difference(
+            &translator.to_meta(source, "cpp").unwrap(),
+            &translator.to_meta(&emitted, "cpp").unwrap()
+        ),
+        None
+    );
+}
+
 /// Every task with goldens under `examples/programs/translated`.
 fn tasks() -> Vec<String> {
     let folder = Path::new(env!("CARGO_MANIFEST_DIR")).join("examples/programs/translated");

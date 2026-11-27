@@ -135,4 +135,26 @@ int main() { return advance() + advance(); }
       )
     ).toBe(undefined);
   });
+
+  it('retains empty and list-initialized C++ vectors with their element types', () => {
+    const source = `#include <vector>
+int main() {
+  std::vector<int> empty;
+  std::vector<int> list{3, 4};
+  std::vector<unsigned> wide;
+  return 0;
+}
+`;
+    const emitted = translator.translate(source, 'cpp', 'cpp');
+    expect(emitted.match(/#include <vector>/gu)?.length).toBe(1);
+    expect(emitted).toContain('std::vector<int> empty = {};');
+    expect(emitted).toContain('std::vector<int> list = {3, 4};');
+    expect(emitted).toContain('std::vector<unsigned> wide;');
+    expect(
+      meaningDifference(
+        translator.toMeta(source, 'cpp'),
+        translator.toMeta(emitted, 'cpp')
+      )
+    ).toBe(undefined);
+  });
 });

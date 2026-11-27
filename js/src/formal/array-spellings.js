@@ -376,7 +376,7 @@ export const withArrays = (Base) =>
         sequtils: ['import std/sequtils', /^import /],
       };
       for (const [use, [line, pattern]] of Object.entries(extra)) {
-        if (!this.uses.has(use)) {
+        if (!this.uses.has(use) || lines.includes(line)) {
           continue;
         }
         const last = lines.findLastIndex((written) => pattern.test(written));

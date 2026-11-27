@@ -14,6 +14,9 @@ int main() {
     values.pop_back();
     values.push_back(11);
     std::cout << values.size() << std::endl;
+    std::vector<int> empty;
+    std::vector<int> list{3, 4};
+    std::cout << empty.size() << " " << list[0] << " " << list[1] << std::endl;
     return 0;
 }
 `;
@@ -56,7 +59,7 @@ try {
     return execFileSync(binary, [], options);
   };
   for (const [name, program, expected] of [
-    ['member calls', source, '2\n'],
+    ['member calls and vector initialization', source, '2\n0 3 4\n'],
     ['explicit template call', template, '1\n'],
     ['template object initialization', container, '0\n7\n'],
     ['file-scope initialization and mutation', fileScope, '10\n11\n'],
