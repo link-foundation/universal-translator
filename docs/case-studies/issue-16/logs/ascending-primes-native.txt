@@ -1,0 +1,2 @@
+{"engine":"JavaScript","bytes":512,"sourceSha256":"eaddf1ae100c4a5ed569a2b1eb4258e519d8e756d1d2c6a35873866ac4c31576","outputSha256":"0a7180e6a9ca8b03578d0d47b30d289f9b9020a086e3bec0982441fa15ef983f"}
+{"engine":"Rust","bytes":512,"sourceSha256":"eaddf1ae100c4a5ed569a2b1eb4258e519d8e756d1d2c6a35873866ac4c31576","outputSha256":"0a7180e6a9ca8b03578d0d47b30d289f9b9020a086e3bec0982441fa15ef983f"}

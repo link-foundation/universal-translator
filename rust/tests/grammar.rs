@@ -109,6 +109,35 @@ int main() {
     );
 }
 
+#[test]
+fn cpp_template_objects_keep_the_source_type_and_default_construction() {
+    let translator = Translator::new();
+    let source = r#"#include <optional>
+int main() {
+    std::optional<std::optional<unsigned>> empty;
+    std::optional<unsigned> count = 7;
+    return 0;
+}
+"#;
+    let program = translator.to_meta(source, "cpp").unwrap();
+    let statements = program.node("main").unwrap().nodes("statements");
+    assert!(statements[0].node("value").is_none());
+    assert!(statements[0].str("type").unwrap().contains("unsigned"));
+    let emitted = translator
+        .translate(source, "cpp", "cpp", Mode::default())
+        .unwrap();
+    assert!(emitted.contains("std::optional<std::optional<unsigned>> empty;"));
+    assert!(emitted.contains("std::optional<unsigned> count = 7;"));
+    let error = translator
+        .translate(source, "cpp", "python", Mode::default())
+        .unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("C++ template type requires a library mapping for python")
+    );
+}
+
 /// Every task with goldens under `examples/programs/translated`.
 fn tasks() -> Vec<String> {
     let folder = Path::new(env!("CARGO_MANIFEST_DIR")).join("examples/programs/translated");

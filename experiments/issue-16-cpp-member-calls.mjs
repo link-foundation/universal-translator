@@ -29,6 +29,13 @@ const template = readFileSync(
   new URL('../examples/programs/library/cpp-template.cpp', import.meta.url),
   'utf8'
 );
+const container = readFileSync(
+  new URL(
+    '../examples/programs/library/cpp-container-initialization.cpp',
+    import.meta.url
+  ),
+  'utf8'
+);
 const directory = mkdtempSync(join(tmpdir(), 'cpp-member-calls-'));
 const options = { encoding: 'utf8', maxBuffer: 32 * 1024 };
 
@@ -47,6 +54,7 @@ try {
   for (const [name, program, expected] of [
     ['member calls', source, '2\n'],
     ['explicit template call', template, '1\n'],
+    ['template object initialization', container, '0\n7\n'],
   ]) {
     const original = run(program);
     assert.equal(original, expected);

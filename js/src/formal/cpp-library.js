@@ -88,6 +88,17 @@ function finishTypeArguments(
   return { types: tokens.join(' '), width: offset + 1 };
 }
 
+export function declarationTypeFields(syntax, words, type, value) {
+  if (
+    syntax.id !== 'cpp' ||
+    !words.includes('<') ||
+    (value && !type?.startsWith('source:'))
+  ) {
+    return { type };
+  }
+  return { type: `source:${words.join(' ')}`, cppTemplateType: true };
+}
+
 // Copy C++ header imports and using-declarations from the source program
 // when its emitted code still uses the same library and namespace.
 export function keepCppImports(program, { from, to }) {

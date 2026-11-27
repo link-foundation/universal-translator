@@ -56,7 +56,7 @@ before it can be checked off. Completed groups are stored in
 
 ## UT-16.18 Expand inherited program coverage
 
-- [ ] Increase verified Rosetta Code coverage by more than 100 distinct task types against the existing baseline.
+- [ ] Increase verified Rosetta Code coverage by more than 100 distinct task types against the existing baseline. `Ascending primes` is verified for the pinned C++ solution through both engines.
 - [ ] Extend original-source round trips and behavioral equivalence through all 1,758 historical Rosetta Code tasks, including strings, data structures, I/O, objects and concurrency.
 - [ ] Finish native Portable Object Compiler collection translations through the remaining target families.
 - [ ] Verify available JavaScript portable meta-language integration and scoped package release behavior.

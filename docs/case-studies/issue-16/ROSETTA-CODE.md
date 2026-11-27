@@ -68,6 +68,34 @@ found "," (line 7)` on the template call; its partial output had no enclosing
 function, and the C++ compiler rejected it. The same experiment checks the two
 cases during native CI.
 
-The complete Ascending primes program still needs correct initialization and
-file scope for native container declarations and correct library behavior
-when translating to other languages.
+## Verified Rosetta task beyond the baseline
+
+Both engines retained `unsigned` inside the template call but stripped it from
+the declared `queue<unsigned>` and `vector<unsigned>`. The C++ writer also
+added `= 0` to these objects even though their default constructors establish
+the initial state. Both readers now retain the class type and the absence of
+an initializer. The C++ writer uses the original declaration form, and the
+native C++ fixture verifies that a default-constructed optional is empty while
+an explicitly initialized optional contains `7`.
+
+The first C++ solution from [Ascending primes revision 419038](https://rosettacode.org/w/index.php?title=Ascending_primes&oldid=419038)
+now passes a same-language behavioral round trip through both CLIs. The
+original emits 100 primes in 512 bytes, which both translations match byte for
+byte. The original lacks `<iterator>` and `<algorithm>`, so the experiment
+adds both headers to all three GCC invocations. GCC also warns about the
+original's unused, nonstandard `main` parameters. The experiment pins the
+source and stdout digests. [Recorded output](logs/ascending-primes-native.txt)
+
+```sh
+curl --fail --silent --show-error --get https://rosettacode.org/w/api.php \
+  --data 'action=query' --data 'prop=revisions' --data 'revids=419038' \
+  --data 'rvprop=ids|content' --data 'rvslots=main' --data 'format=json' \
+  --data 'formatversion=2' > /tmp/ascending-primes-revision.json
+node experiments/issue-16-ascending-primes.mjs /tmp/ascending-primes-revision.json \
+  ./target/debug/universal-translator
+```
+
+This adds one task type to the verified total. The C++ emitter still moves
+those file-scope declarations into `main`. This task's helper never reads
+them. Programs with shared file-scope state and translations of these
+containers to other languages still need implementation and verification.

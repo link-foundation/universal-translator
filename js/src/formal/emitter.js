@@ -691,7 +691,17 @@ class BaseEmitter {
     }
   }
 
-  declaration({ name, type, value, mutable }) {
+  declaration({ name, type, value, mutable, cppTemplateType }) {
+    if (cppTemplateType) {
+      if (this.id !== 'cpp') {
+        throw new Error(
+          `C++ template type requires a library mapping for ${this.id}`
+        );
+      }
+      if (!value) {
+        return `${this.type(type)} ${name}${this.terminator()}`;
+      }
+    }
     const initial = this.expression(
       realValue(value ?? number(0), type, this.syntax)
     );

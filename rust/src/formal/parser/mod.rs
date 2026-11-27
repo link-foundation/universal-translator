@@ -909,9 +909,17 @@ impl Parser {
             None
         };
         self.end_statement()?;
+        let cpp_kind = cpp_template::cpp_declaration_type(
+            self.syntax.id,
+            &words,
+            kind.as_deref(),
+            value.is_some(),
+        );
+        let cpp_template = cpp_kind.is_some().then_some(true);
         Ok(Node::new("Declaration")
             .with("name", variable)
-            .with_opt("type", kind)
+            .with_opt("type", cpp_kind.or(kind))
+            .with_opt("cppTemplateType", cpp_template)
             .with_opt("value", value)
             .with("mutable", !words.iter().any(|word| word == "const")))
     }

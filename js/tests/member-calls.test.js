@@ -84,4 +84,23 @@ int main() {
       'C++ template call requires a library mapping for python'
     );
   });
+
+  it('keeps the type and default construction of a C++ template object', () => {
+    const source = `#include <optional>
+int main() {
+  std::optional<std::optional<unsigned>> empty;
+  std::optional<unsigned> count = 7;
+  return 0;
+}
+`;
+    const { main } = translator.toMeta(source, 'cpp');
+    expect(main.statements[0].value).toBe(undefined);
+    expect(main.statements[0].type).toContain('unsigned');
+    const emitted = translator.translate(source, 'cpp', 'cpp');
+    expect(emitted).toContain('std::optional<std::optional<unsigned>> empty;');
+    expect(emitted).toContain('std::optional<unsigned> count = 7;');
+    expect(() => translator.translate(source, 'cpp', 'python')).toThrow(
+      'C++ template type requires a library mapping for python'
+    );
+  });
 });

@@ -790,6 +790,21 @@ impl Emitter {
     pub(crate) fn base_declaration(&mut self, statement: &Node) -> Result<String> {
         let name = statement.str("name").unwrap_or_default();
         let kind = statement.str("type").unwrap_or_default();
+        if statement.flag("cppTemplateType") == Some(true) {
+            if self.id() != "cpp" {
+                return Err(GrammarError::new(format!(
+                    "C++ template type requires a library mapping for {}",
+                    self.id()
+                )));
+            }
+            if statement.node("value").is_none() {
+                return Ok(format!(
+                    "{} {name}{}",
+                    self.type_name(kind),
+                    self.terminator()
+                ));
+            }
+        }
         let initial = match statement.node("value") {
             Some(value) => self.initial_value(value, kind)?,
             None => self.initial_value(&number(0.0), kind)?,

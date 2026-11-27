@@ -10,6 +10,21 @@ const FUNDAMENTAL: &[&str] = &[
     "signed", "unsigned", "void", "wchar_t",
 ];
 
+pub(super) fn cpp_declaration_type(
+    language: &str,
+    words: &[String],
+    translated: Option<&str>,
+    has_value: bool,
+) -> Option<String> {
+    if language == "cpp"
+        && words.iter().any(|word| word == "<")
+        && (!has_value || translated.is_some_and(|kind| kind.starts_with("source:")))
+    {
+        return Some(format!("source:{}", words.join(" ")));
+    }
+    None
+}
+
 impl Parser {
     pub(super) fn cpp_template_arguments(&mut self, callee: &Node) -> Option<String> {
         if self.syntax.id != "cpp"

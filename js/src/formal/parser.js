@@ -23,7 +23,7 @@ import { questionSuffix, propertyAssignment } from './question-parser.js';
 import { withObjpakParser } from './objpak-reader.js';
 import { withQueryParser } from './query-parser.js';
 import { parseSource } from './source-parser.js';
-import { cppTemplateArguments } from './cpp-library.js';
+import { cppTemplateArguments, declarationTypeFields } from './cpp-library.js';
 
 const binaryLevels = [
   { or: ['||', 'or'] },
@@ -838,7 +838,7 @@ class BaseParser {
     this.endStatement();
     return node('Declaration', {
       name: variable,
-      type,
+      ...declarationTypeFields(this.syntax, words, type, value),
       value,
       mutable: !words.includes('const'),
     });
