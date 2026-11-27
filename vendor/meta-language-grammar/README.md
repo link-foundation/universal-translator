@@ -13,9 +13,13 @@ program modules on demand. It uses the pinned upstream grammar data, WebAssembly
 parsers and matching runtime with their bundled licenses. The grammar notice
 links to parser patches at the pinned upstream commit. [Parser notice](src/vendor/grammars/NOTICE.md)
 
+The bundled JavaScript emitter encodes constructor tags and theorem messages
+as complete string literals. A fixed BigInt clamping helper receives the source
+expression as an argument.
+
 Run `node scripts/update-meta-grammar.mjs --check` to verify every recorded file.
 Run `node scripts/update-meta-grammar.mjs FULL_COMMIT_SHA` to retrieve a reviewed
-upstream revision and reapply the explicit portable patch. Review new imports
+upstream revision and reapply the recorded patches. Review new imports
 and run the grammar/workspace regressions before committing an update. The
 manifest records both original and patched SHA-256 digests.
 

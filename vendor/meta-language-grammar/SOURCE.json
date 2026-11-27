@@ -3,7 +3,8 @@
   "revision": "a79782093cae3b33606483ac9f3e1d05faf36de0",
   "patches": [
     "Use browser-compatible SHA-256 for unchanged deterministic merge fingerprints.",
-    "Link vendored grammar notices to patches at the exact upstream commit."
+    "Link vendored grammar notices to patches at the exact upstream commit.",
+    "Encode JavaScript constructor tags and theorem messages as string literals and lower clamping through a fixed helper."
   ],
   "files": {
     "src/grammar-importers.js": {
@@ -372,7 +373,7 @@
     },
     "src/translation/emit-javascript.js": {
       "upstreamSha256": "29d6c50b92acf568dbbdbce4bf6e68a2ad08c04157dcb57994a5a75ce0195c13",
-      "sha256": "29d6c50b92acf568dbbdbce4bf6e68a2ad08c04157dcb57994a5a75ce0195c13"
+      "sha256": "0b50726fef9370c55d16d0d76d38f524db723a7efdb38717a06d1d021dbf085c"
     },
     "src/translation/emit-lean.js": {
       "upstreamSha256": "c7586ac250bf411bcec5585e11d3d54e82e2d26a5dbda96b58a797b96692d3c7",

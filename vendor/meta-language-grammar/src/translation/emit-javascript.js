@@ -47,6 +47,9 @@ function ml_divide(a, b, rounding, zero, remainder, bounds) {
   if (bounds && (q < bounds[0] || q > bounds[1])) throw new RangeError(bounds[2]);
   return remainder ? a - q * b : q;
 }`,
+  toNatClamped: `function ml_toNatClamped(value) {
+  return value < 0n ? 0n : value;
+}`,
   toNatChecked: `function ml_toNatChecked(value, message) {
   if (value < 0n) throw new RangeError(message);
   return value;
@@ -126,7 +129,7 @@ class JavaScriptEmitter {
     }
     const main = this.program.main ? this.main(this.program.main) : null;
     if (this.theoremChecks.length) this.helpers.add('domains').add('forall');
-    const helperOrder = ['natSub', 'fixed', 'divide', 'toNatChecked', 'abort', 'assert', 'equal', 'showNumber', 'at', 'forall', 'domains'];
+    const helperOrder = ['natSub', 'fixed', 'divide', 'toNatChecked', 'toNatClamped', 'abort', 'assert', 'equal', 'showNumber', 'at', 'forall', 'domains'];
     const entry = [
       this.theoremChecks.length ? this.theoremRunner() : null,
       main,
@@ -215,7 +218,7 @@ class JavaScriptEmitter {
       const call = binders.length
         ? `ml_product([${domains.join(', ')}]).every((args) => ${ref}(...args))`
         : `${ref}()`;
-      return `  if (!(${call})) throw new Error('theorem ${source} fails on a bounded input');\n  console.log('theorem ${source}: holds on the bounded domain');`;
+      return `  if (!(${call})) throw new Error(${JSON.stringify(`theorem ${source} fails on a bounded input`)});\n  console.log(${JSON.stringify(`theorem ${source}: holds on the bounded domain`)});`;
     });
     return `function ml_checkTheorems() {\n${checks.join('\n')}\n}`;
   }
@@ -255,7 +258,7 @@ class JavaScriptEmitter {
 
   ctorObject(entry, ctor, args) {
     const fields = ctor.fields.map((field, index) => `${fieldKey(field.name)}: ${args[index]}`);
-    return `Object.freeze({ $: '${ctor.name.replace(/'/gu, "\\'")}'${fields.length ? `, ${fields.join(', ')}` : ''} })`;
+    return `Object.freeze({ $: ${JSON.stringify(ctor.name)}${fields.length ? `, ${fields.join(', ')}` : ''} })`;
   }
 
   prop(prop) {
@@ -355,7 +358,7 @@ class JavaScriptEmitter {
       const binds = kase.pattern.binds
         .map((bind, index) => (bind ? `const ${bind} = ${subject}.${fieldKey(ctor.fields[index].name)};` : null))
         .filter(Boolean);
-      lines.push(`  case '${ctor.name.replace(/'/gu, "\\'")}': {`);
+      lines.push(`  case ${JSON.stringify(ctor.name)}: {`);
       lines.push(indent([...binds, ...this.statements(kase.body)].join('\n'), 2));
       lines.push('  }');
     }
@@ -521,7 +524,10 @@ class JavaScriptEmitter {
   cast(e) {
     const arg = this.expr(e.arg);
     if (e.flavor === 'exact') return arg;
-    if (e.flavor === 'clamp') return `((value) => (value < 0n ? 0n : value))(${arg})`;
+    if (e.flavor === 'clamp') {
+      this.helpers.add('toNatClamped');
+      return `ml_toNatClamped(${arg})`;
+    }
     this.helpers.add('toNatChecked');
     return `ml_toNatChecked(${arg}, ${JSON.stringify(castMessage(e))})`;
   }

@@ -43,6 +43,47 @@ function grammarNotice(bytes, revision) {
   );
 }
 
+function javascriptEmitter(bytes) {
+  const source = bytes.toString('utf8');
+  const constructor = "'${ctor.name.replace(/'/gu, \"\\\\'\")}'";
+  const clampedCast =
+    "    if (e.flavor === 'clamp') return `((value) => (value < 0n ? 0n : value))(${arg})`;";
+  const helperSlot =
+    '  toNatChecked: `function ml_toNatChecked(value, message) {';
+  const helperOrder = "'toNatChecked', 'abort'";
+  const theoremError = "'theorem ${source} fails on a bounded input'";
+  const theoremSuccess = "'theorem ${source}: holds on the bounded domain'";
+  if (
+    source.split(constructor).length !== 3 ||
+    [clampedCast, helperSlot, helperOrder, theoremError, theoremSuccess].some(
+      (part) => source.split(part).length !== 2
+    )
+  ) {
+    throw new Error('Review the JavaScript generation patch against upstream');
+  }
+  return Buffer.from(
+    source
+      .replaceAll(constructor, '${JSON.stringify(ctor.name)}')
+      .replace(
+        theoremError,
+        '${JSON.stringify(`theorem ${source} fails on a bounded input`)}'
+      )
+      .replace(
+        theoremSuccess,
+        '${JSON.stringify(`theorem ${source}: holds on the bounded domain`)}'
+      )
+      .replace(
+        helperSlot,
+        `  toNatClamped: \`function ml_toNatClamped(value) {\n  return value < 0n ? 0n : value;\n}\`,\n${helperSlot}`
+      )
+      .replace(helperOrder, "'toNatChecked', 'toNatClamped', 'abort'")
+      .replace(
+        clampedCast,
+        "    if (e.flavor === 'clamp') {\n      this.helpers.add('toNatClamped');\n      return `ml_toNatClamped(${arg})`;\n    }"
+      )
+  );
+}
+
 const check = process.argv[2] === '--check';
 const revision = check
   ? manifest.revision
@@ -75,6 +116,8 @@ for (const [path, entry] of Object.entries(manifest.files)) {
     patched = Buffer.from(portableHash(bytes.toString('utf8')));
   } else if (path === 'src/vendor/grammars/NOTICE.md') {
     patched = grammarNotice(bytes, revision);
+  } else if (path === 'src/translation/emit-javascript.js') {
+    patched = javascriptEmitter(bytes);
   }
   await mkdir(dirname(destination), { recursive: true });
   await writeFile(destination, patched);

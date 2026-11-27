@@ -137,6 +137,14 @@ Rust via the portable translator. Node 20 also runs the default engine. The
 cross-language CI step uses the bundled engine and verifies all recorded
 digests before running. [Default-engine output](logs/portable-program-bundled.txt)
 
+The bundled JavaScript emitter encodes constructor tags and theorem messages
+as string literals, and uses a fixed helper for integer-to-natural clamping.
+The Lean example `examples/translation/portable-emission.lean` exposed a
+syntax error in the original JavaScript theorem message because its name
+ends in an apostrophe. The grammar workspace test runs the translated program
+and its theorem check. Native Lean and the translated program both print
+`0`, `42`, and `C:\draft's`. [CodeQL run for the original package](https://github.com/link-foundation/universal-translator/actions/runs/46070271830)
+
 The upstream comparison remains available through
 `bash experiments/verify-syntax-exchange.sh`. The download experiment
 `node experiments/issue-16-meta-language-source.mjs /tmp/meta-language-v1`

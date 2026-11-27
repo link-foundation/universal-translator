@@ -30,7 +30,7 @@ describe('executable grammar interchange', () => {
     expect(browserGrammar.reconstructConcrete).toBe(reconstructConcrete);
     expect(browserGrammar.grammarEngine.Grammar).toBe(grammarEngine.Grammar);
   });
-  it('verifies the pinned external runtime and its explicit browser patch', () => {
+  it('verifies the pinned external runtime and its recorded patches', () => {
     const result = spawnSync(
       'node',
       ['scripts/update-meta-grammar.mjs', '--check'],
@@ -38,6 +38,35 @@ describe('executable grammar interchange', () => {
     );
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('198 pinned grammar files');
+  });
+
+  it('writes JavaScript for escaped names, literal text and clamped casts', async () => {
+    const { translateProgram } =
+      await import('../../vendor/meta-language-grammar/src/program-translation.js');
+    const source = readFileSync(
+      new URL(
+        '../../examples/translation/portable-emission.lean',
+        import.meta.url
+      ),
+      'utf8'
+    );
+    const program = translateProgram(source, 'Lean', 'JavaScript');
+    expect(program.diagnostic).toBe(null);
+    const execute = (...args) =>
+      spawnSync('node', ['--input-type=module', '-', ...args], {
+        input: program.code,
+        encoding: 'utf8',
+      });
+    const result = execute();
+    expect(result.stderr).toBe('');
+    expect(result.status).toBe(0);
+    expect(result.stdout).toBe("0\n42\nC:\\draft's\n");
+    const theorem = execute('--ml-check-theorems');
+    expect(theorem.stderr).toBe('');
+    expect(theorem.status).toBe(0);
+    expect(theorem.stdout).toBe(
+      "theorem answer': holds on the bounded domain\n"
+    );
   });
 
   it('imports all nine formats into executable, byte-preserving CSTs', () => {
