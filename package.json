@@ -109,6 +109,6 @@
     "@noble/hashes": "1.8.0",
     "links-notation": "0.31.8",
     "lino-arguments": "0.4.1",
-    "meta-language": "0.46.0"
+    "web-tree-sitter": "0.27.0"
   }
 }

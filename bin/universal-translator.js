@@ -28,7 +28,7 @@ const COMMANDS = {
 };
 
 const GRAMMAR_ENGINE =
-  'Set UNIVERSAL_TRANSLATOR_META_LANGUAGE to the Meta Language 1.0 module file';
+  'Set UNIVERSAL_TRANSLATOR_META_LANGUAGE to override the bundled Meta Language module';
 const GRAMMAR_COMMANDS = ['encode-cst', 'decode-cst', 'translate-program'];
 const TRANSLATION_COMMANDS = [
   'translate',
@@ -502,7 +502,7 @@ function startServer({ port, host }, stdout) {
 
 function runGrammarCommand(command, args, read, write, grammarEngine) {
   if (!grammarEngine) {
-    throw new Error(GRAMMAR_ENGINE);
+    throw new Error('Expected the Meta Language grammar engine');
   }
   const [from, to, file] = args;
   const codec = createSourceSyntaxCodec(grammarEngine.LinkNetwork);
@@ -619,20 +619,17 @@ function isCliEntryPoint() {
 }
 
 async function cliGrammarEngine(command, moduleFile) {
+  if (!GRAMMAR_COMMANDS.includes(command)) {
+    return undefined;
+  }
   if (moduleFile) {
     return import(pathToFileURL(moduleFile).href);
   }
-  if (GRAMMAR_COMMANDS.includes(command)) {
-    const installed = await import('meta-language');
-    if (
-      typeof installed.LinkNetwork?.prototype?.parseGrammars === 'function' &&
-      (command !== 'translate-program' ||
-        typeof installed.translateProgram === 'function')
-    ) {
-      return installed;
-    }
-  }
-  return undefined;
+  const [{ LinkNetwork }, { translateProgram }] = await Promise.all([
+    import('../vendor/meta-language-grammar/src/network.js'),
+    import('../vendor/meta-language-grammar/src/program-translation.js'),
+  ]);
+  return { LinkNetwork, translateProgram };
 }
 
 if (isCliEntryPoint()) {

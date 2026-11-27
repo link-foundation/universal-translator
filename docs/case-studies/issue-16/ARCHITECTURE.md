@@ -49,15 +49,13 @@ and independent grammar verification. Its
 [fidelity documentation](https://github.com/link-foundation/meta-language/blob/main/docs/grammar/fidelity.md)
 also distinguishes a lossless conversion from an approximation.
 
-There is a material distribution difference: the archived repository manifest
-declares JavaScript 1.1.0, while `npm view meta-language version --json` returns
-0.46.0. The installed JavaScript package has a small grammar builder and emitter
-but lacks the portable-program translator and grammar-provenance methods that
-our integration requires. The JavaScript CLI selects a compatible installed
-engine automatically and supports an explicit module path. The Rust crate and
-the JavaScript source from the same 1.0.0 revision now pass the portable-program
-comparison below. Default npm installs still receive the published 0.46.0
-engine. Upstream tracks JavaScript publication in
+The archived repository manifest declares JavaScript 1.1.0, while
+`npm view meta-language version --json` returned 0.46.0. The npm release
+predates the portable-program translator and grammar-provenance methods.
+The translator's own npm artifact includes the applicable upstream JavaScript
+sources at the same 1.0.0 revision as the Rust crate. The JavaScript CLI loads
+them by default and accepts an explicit module path for comparisons. Upstream
+tracks standalone JavaScript publication in
 [Meta Language issue 230](https://github.com/link-foundation/meta-language/issues/230).
 
 [Router PR 775](https://github.com/link-assistant/router/pull/775) is closed and
@@ -103,10 +101,11 @@ import/update/merge/execution path in steps 2–3 and a reusable semantic-reader
 binding for step 4. Nine shared interchange fixtures execute in both runtimes,
 including a complete import-to-translation example, failed updates, dependency
 refreshes, separate editions, stable merge identities, byte-preserving concrete
-records, bounded recovery and stage transforms. JavaScript uses the 41-file
-grammar-only closure at `a79782093cae3b33606483ac9f3e1d05faf36de0`, matching the
-published Rust 1.0.0 source. Digests, original source and the explicit portable
-SHA-256 patch are recorded rather than depending on an unpublished npm release.
+records, bounded recovery and stage transforms. JavaScript uses grammar modules
+from `a79782093cae3b33606483ac9f3e1d05faf36de0`, the published Rust 1.0.0 source.
+The pin records input and installed digests and the browser compatibility patch
+for SHA-256. The Node CLI uses additional modules, grammar data and WebAssembly
+parsers from that revision, with the corresponding runtime and licenses.
 
 The adapter rejects conversion losses reported by the target emitter; it does
 not claim that every feature has a lowering to every grammar notation. The
@@ -116,26 +115,32 @@ and coverage across the complete issue inventory.
 
 ## Portable JavaScript and Rust programs
 
-The pinned JavaScript engine is the sibling repository's 1.0.0 revision
-`a79782093cae3b33606483ac9f3e1d05faf36de0`, matching the Rust crate. The
-download experiment verifies each source file's Git blob digest against that
-immutable tree, then uses the upstream manifest for its two runtime dependencies.
+The default JavaScript CLI uses the pinned 1.0.0 source and the Rust CLI uses the
+matching published crate. Both run the commands below without environment
+configuration. The npm artifact loads the Node-only parser on demand. The web
+application uses the existing browser-compatible grammar workspace.
 
 ```sh
-node experiments/issue-16-meta-language-source.mjs /tmp/meta-language-v1
-npm --prefix /tmp/meta-language-v1 install --omit=dev --ignore-scripts --no-fund --no-audit
+node scripts/update-meta-grammar.mjs --check
 cargo build --bin universal-translator -j 1
-node experiments/issue-16-portable-program.mjs \
-  /tmp/meta-language-v1/src/index.js target/debug/universal-translator
+node experiments/issue-16-portable-program.mjs --default target/debug/universal-translator
+node --test js/tests/package-artifact.test.js
 ```
 
 The experiment executes both originals and eight translated programs. Each CLI
 accepts JavaScript and Rust input directly and through CST records from the
 other CLI. `decode-cst` reconstructs the original UTF-8 and CRLF bytes, native
 execution prints `42` in both directions, and each engine rejects malformed
-syntax and an unsupported class. A packaged CLI with that same engine installed
-passes the same comparison with `UNIVERSAL_TRANSLATOR_META_LANGUAGE` unset.
-[Cross-engine output](logs/portable-program.txt)
+syntax and an unsupported class. The package test installs the tarball in an
+empty directory, round-trips Python through its WebAssembly grammar and writes
+Rust via the portable translator. Node 20 also runs the default engine. The
+cross-language CI step uses the bundled engine and verifies all recorded
+digests before running. [Default-engine output](logs/portable-program-bundled.txt)
 
-To run a grammar command with an explicit engine, use
-`UNIVERSAL_TRANSLATOR_META_LANGUAGE=/tmp/meta-language-v1/src/index.js node bin/universal-translator.js translate-program javascript rust program.js`.
+The upstream comparison remains available through
+`bash experiments/verify-syntax-exchange.sh`. The download experiment
+`node experiments/issue-16-meta-language-source.mjs /tmp/meta-language-v1`
+also verifies each source file against the upstream Git blob digest. Set
+`UNIVERSAL_TRANSLATOR_META_LANGUAGE=/tmp/meta-language-v1/src/index.js` to select
+a compatible module after installing its dependencies.
+[Output from the original comparison](logs/portable-program.txt)

@@ -8,13 +8,13 @@ import { fileURLToPath } from 'node:url';
 const [moduleFile, rustTranslator, installedCli] = process.argv.slice(2);
 assert.ok(
   moduleFile && rustTranslator,
-  'Pass the Meta Language module, Rust CLI and optional packaged JavaScript CLI'
+  'Pass --default or a Meta Language module, the Rust CLI and optional packaged JavaScript CLI'
 );
 const cli = installedCli
   ? resolve(installedCli)
   : fileURLToPath(new URL('../bin/universal-translator.js', import.meta.url));
 const jsEnvironment = { ...process.env };
-if (installedCli) {
+if (installedCli || moduleFile === '--default') {
   delete jsEnvironment.UNIVERSAL_TRANSLATOR_META_LANGUAGE;
 } else {
   jsEnvironment.UNIVERSAL_TRANSLATOR_META_LANGUAGE = resolve(moduleFile);

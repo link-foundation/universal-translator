@@ -134,11 +134,16 @@ requirements:
     from: 'issue 12'
     status: done
     evidence: Cargo.toml rust/src/main.rs experiments/verify-syntax-exchange.mjs
+  meta-language-bundled:
+    text: 'The npm artifact supports the JavaScript translate-program and CST commands with the included Meta Language 1.0 by default (issue 12, B3)'
+    from: 'issue 12'
+    status: done
+    evidence: bin/universal-translator.js vendor/meta-language-grammar/SOURCE.json js/tests/package-artifact.test.js experiments/verify-syntax-exchange.mjs
   meta-language-npm:
     text: 'The JavaScript translate-program path loads Meta Language 1.0 from npm without UNIVERSAL_TRANSLATOR_META_LANGUAGE (issue 12, B3)'
     from: 'issue 12'
     status: blocked
-    reason: 'Meta Language 1.1.0 is tagged in link-foundation/meta-language, but its npm release workflow fails and npm latest is still 0.46.0 (link-foundation/meta-language issue 230); until it is published the CLI loads the module from the path in UNIVERSAL_TRANSLATOR_META_LANGUAGE'
+    reason: 'The standalone JavaScript Meta Language 1.x release is unavailable on npm (link-foundation/meta-language issue 230). The translator npm artifact includes pinned 1.0.0 source and uses it by default.'
   npm-unscoped-name:
     text: 'Publish the package under the unscoped npm name universal-translator (issue 2)'
     from: 'issue 2'

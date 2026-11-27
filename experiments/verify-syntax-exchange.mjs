@@ -13,10 +13,13 @@ import {
 import { linkFields, parseLinks, references } from '../js/src/meta/links.js';
 
 const [modulePath, executable = 'target/debug/universal-translator'] =
-  process.argv.slice(2);
-assert.ok(modulePath, 'Pass the Meta Language 1.0 JavaScript module path');
-const grammarEngine = await import(pathToFileURL(resolve(modulePath)));
-const { LinkNetwork, LinkType } = grammarEngine;
+  process.argv.slice(2).filter((argument) => argument !== '--objpak-only');
+const { LinkNetwork, LinkType } = modulePath
+  ? await import(pathToFileURL(resolve(modulePath)))
+  : {
+      ...(await import('../vendor/meta-language-grammar/src/network.js')),
+      ...(await import('../vendor/meta-language-grammar/src/primitives.js')),
+    };
 const codec = createSourceSyntaxCodec(LinkNetwork);
 
 function run(program, arguments_, options) {
@@ -37,13 +40,15 @@ function success(result) {
 const rustCli = (arguments_, input) =>
   run(resolve(executable), arguments_, { input });
 const rust = (arguments_, input) => success(rustCli(arguments_, input));
+const jsEnvironment = { ...process.env };
+delete jsEnvironment.UNIVERSAL_TRANSLATOR_META_LANGUAGE;
+if (modulePath) {
+  jsEnvironment.UNIVERSAL_TRANSLATOR_META_LANGUAGE = resolve(modulePath);
+}
 const jsCli = (arguments_, input) =>
   run(process.execPath, ['bin/universal-translator.js', ...arguments_], {
     input,
-    env: {
-      ...process.env,
-      UNIVERSAL_TRANSLATOR_META_LANGUAGE: resolve(modulePath),
-    },
+    env: jsEnvironment,
   });
 
 function verifyObjpakParity() {
@@ -135,7 +140,7 @@ for (const [language, lines] of ranked) {
   assert.deepEqual(codec.read(tree.toLino()), { language, source });
 }
 console.log(
-  `The tagged JavaScript engine round-tripped ${ranked.size} ranked grammar specimens`
+  `The pinned JavaScript engine round-tripped ${ranked.size} ranked grammar specimens`
 );
 
 // Run a JavaScript or Rust program and return its standard output.

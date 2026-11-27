@@ -101,7 +101,7 @@ in `selection.limits`; Rust accepts `FeatureParseOptions`. These are executor
 budgets, not a claim of fixed process memory. Limit rejections retain the input
 and an explicit reason in the concrete record.
 
-The JavaScript grammar-only dependency closure is pinned in
+The JavaScript grammar dependency closure is pinned in
 `vendor/meta-language-grammar/SOURCE.json`, matching the published Rust
 `meta-language = 1.0.0` crate. The only local upstream patch uses portable SHA-256
 for browser merge fingerprints. Verify it with:

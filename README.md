@@ -566,6 +566,20 @@ stages. The browser-safe JavaScript entry is
 `@link-foundation/universal-translator/grammar`; a runnable example is
 `node examples/grammars/import-and-translate.mjs`.
 
+Both CLIs use Meta Language 1.0.0 for grammar-backed CSTs and checked
+JavaScript ↔ Rust program translation. The npm artifact includes the pinned
+JavaScript engine and its grammars. For example:
+
+```bash
+universal-translator encode-cst JavaScript examples/programs/hello-world.js > hello.lino
+universal-translator decode-cst hello.lino > hello.js
+universal-translator translate-program cst rust hello.lino > hello.rs
+```
+
+The JavaScript CLI accepts `UNIVERSAL_TRANSLATOR_META_LANGUAGE` to use an
+explicit compatible module file. The checked program command rejects syntax
+errors and constructs outside the portable language subset.
+
 ### Decorators
 
 Every stage of the pipeline is a replaceable function, and every stage can

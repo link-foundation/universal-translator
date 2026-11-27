@@ -1,15 +1,17 @@
 # Meta Language grammar runtime
 
-This directory contains the grammar-only JavaScript dependency closure from
+This directory contains the grammar and Node CLI dependency closures from
 [Meta Language](https://github.com/link-foundation/meta-language) at the commit
 recorded in `SOURCE.json`. That commit is also the source of the published Rust
-`meta-language = 1.0.0` dependency. The installed JavaScript release, 0.46.0,
-does not yet expose these grammar import/execution APIs.
+`meta-language = 1.0.0` dependency. [Upstream issue 230](https://github.com/link-foundation/meta-language/issues/230)
+tracks publishing the compatible JavaScript release to npm.
 
-The source files retain their upstream license and formatting. The only local
-patch replaces Node's SHA-256 call with the browser-compatible `@noble/hashes`
-implementation; merge fingerprints remain identical. No built-in corpus,
-language model, native binary or generated concept database is included.
+The source files retain their upstream license and formatting. The browser
+grammar workspace uses the same grammar modules with a browser-compatible
+SHA-256 implementation. The Node CLI loads the source syntax and portable
+program modules on demand. It uses the pinned upstream grammar data, WebAssembly
+parsers and matching runtime with their bundled licenses. The grammar notice
+links to parser patches at the pinned upstream commit. [Parser notice](src/vendor/grammars/NOTICE.md)
 
 Run `node scripts/update-meta-grammar.mjs --check` to verify every recorded file.
 Run `node scripts/update-meta-grammar.mjs FULL_COMMIT_SHA` to retrieve a reviewed

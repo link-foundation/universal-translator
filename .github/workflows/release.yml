@@ -495,8 +495,9 @@ jobs:
 
       - name: Check that the JavaScript and Rust command lines agree
         run: |
+          node scripts/update-meta-grammar.mjs --check
           cargo build --locked --bin universal-translator
-          bash experiments/verify-syntax-exchange.sh
+          node experiments/verify-syntax-exchange.mjs
           node examples/translation/dependent-meanings.mjs
 
   native-translation:

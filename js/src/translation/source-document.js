@@ -1,4 +1,4 @@
-import { LinkType } from 'meta-language';
+import { LinkType } from '../../../vendor/meta-language-grammar/src/primitives.js';
 import { namedLinks, parseLinks, reference } from '../meta/links.js';
 
 export function splitSourceLines(source) {

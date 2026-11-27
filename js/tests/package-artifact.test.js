@@ -13,9 +13,12 @@ describe('published package artifact', () => {
     process.platform === 'win32' && 'npm.cmd requires a shell on Windows'
   )('packs and installs the renamed package with a working npx command', () => {
     const workspace = mkdtempSync(join(tmpdir(), 'translator-artifact-'));
+    const env = { ...process.env };
+    delete env.UNIVERSAL_TRANSLATOR_META_LANGUAGE;
     const npm = (args, cwd = workspace) =>
       execFileSync('npm', args, {
         cwd,
+        env,
         encoding: 'utf8',
         stdio: ['ignore', 'pipe', 'pipe'],
       });
@@ -43,6 +46,15 @@ describe('published package artifact', () => {
       expect(paths).toContain('js/src/translator.js');
       expect(paths).toContain('vendor/meta-language-grammar/src/grammar.js');
       expect(paths).toContain('vendor/meta-language-grammar/LICENSE');
+      expect(paths).toContain(
+        'vendor/meta-language-grammar/src/vendor/grammars/python.wasm.gz'
+      );
+      expect(paths).toContain(
+        'vendor/meta-language-grammar/src/vendor/grammars/python.LICENSE'
+      );
+      expect(paths).toContain(
+        'vendor/meta-language-grammar/src/data/native-grammars/rust.lino'
+      );
       expect(paths.some((path) => path.startsWith('js/tests/'))).toBe(false);
       expect(paths.filter((path) => path.startsWith('bin/'))).toEqual([
         'bin/universal-translator.js',
@@ -69,34 +81,29 @@ describe('published package artifact', () => {
           '--version',
         ]).trim()
       ).toBe(packageJson.version);
-      expect(
-        npm(['exec', '--offline', '--', 'universal-translator', '--help'])
-      ).toContain('Usage: universal-translator');
-      expect(
-        npm([
-          'exec',
-          '--offline',
-          '--',
-          'universal-translator',
-          'add',
-          '2',
-          '3',
-        ]).trim()
-      ).toBe('5');
+      const bin = join(
+        workspace,
+        'node_modules',
+        '.bin',
+        'universal-translator'
+      );
+      const cli = (...args) =>
+        execFileSync(bin, args, { cwd: workspace, env, encoding: 'utf8' });
+      expect(cli('--help')).toContain('Usage: universal-translator');
+      expect(cli('add', '2', '3').trim()).toBe('5');
       const input = join(workspace, 'source.py');
       writeFileSync(input, 'print("Hello, World!")\n');
-      expect(
-        npm([
-          'exec',
-          '--offline',
-          '--',
-          'universal-translator',
-          'translate',
-          'python',
-          'javascript',
-          input,
-        ])
-      ).toBe('console.log("Hello, World!");\n');
+      expect(cli('translate', 'python', 'javascript', input)).toBe(
+        'console.log("Hello, World!");\n'
+      );
+      const encoded = join(workspace, 'source.lino');
+      writeFileSync(encoded, cli('encode-cst', 'Python', input));
+      expect(cli('decode-cst', encoded)).toBe('print("Hello, World!")\n');
+      const program = join(workspace, 'main.js');
+      writeFileSync(program, 'const answer = 6 * 7;\nconsole.log(answer);\n');
+      const rust = cli('translate-program', 'javascript', 'rust', program);
+      expect(rust).toContain('fn main()');
+      expect(rust).toContain('println!');
       expect(
         execFileSync(
           process.execPath,

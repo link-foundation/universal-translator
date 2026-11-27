@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Reproduce the small grammar-only snapshot shared with the Rust dependency.
+// Reproduce the grammar and Node CLI sources shared with the Rust dependency.
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
@@ -32,6 +32,17 @@ function portableHash(source) {
     );
 }
 
+function grammarNotice(bytes, revision) {
+  return Buffer.from(
+    bytes
+      .toString('utf8')
+      .replaceAll(
+        /\]\(\.\.\/\.\.\/\.\.\/\.\.\/((?:rust|js)\/[^)]+)\)/gu,
+        `](${manifest.repository}/blob/${revision}/$1)`
+      )
+  );
+}
+
 const check = process.argv[2] === '--check';
 const revision = check
   ? manifest.revision
@@ -55,14 +66,16 @@ for (const [path, entry] of Object.entries(manifest.files)) {
   if (!response.ok) {
     throw new Error(`Could not retrieve ${upstream}: HTTP ${response.status}`);
   }
-  const bytes = new Uint8Array(await response.arrayBuffer());
+  const bytes = Buffer.from(await response.arrayBuffer());
   if (bytes.length > 1024 * 1024) {
     throw new Error(`Review unexpectedly large upstream source: ${path}`);
   }
-  const patched =
-    path === 'src/grammar-merge.js'
-      ? Buffer.from(portableHash(new globalThis.TextDecoder().decode(bytes)))
-      : bytes;
+  let patched = bytes;
+  if (path === 'src/grammar-merge.js') {
+    patched = Buffer.from(portableHash(bytes.toString('utf8')));
+  } else if (path === 'src/vendor/grammars/NOTICE.md') {
+    patched = grammarNotice(bytes, revision);
+  }
   await mkdir(dirname(destination), { recursive: true });
   await writeFile(destination, patched);
   manifest.files[path] = {

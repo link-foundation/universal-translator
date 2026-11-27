@@ -37,7 +37,7 @@ describe('executable grammar interchange', () => {
       { encoding: 'utf8' }
     );
     expect(result.status).toBe(0);
-    expect(result.stdout).toContain('42 pinned grammar files');
+    expect(result.stdout).toContain('198 pinned grammar files');
   });
 
   it('imports all nine formats into executable, byte-preserving CSTs', () => {
