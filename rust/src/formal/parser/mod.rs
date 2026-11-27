@@ -1162,11 +1162,16 @@ impl Parser {
 
     pub(crate) fn expression(&mut self) -> Parsed {
         self.concrete_rule("expression", |parser| {
-            if let Some(lambda) = parser.query_lambda()? {
-                return Ok(lambda);
-            }
-            parser.binary(0)
+            let dialect = parser.dialect;
+            dialect.expression(parser)
         })
+    }
+
+    pub(crate) fn base_expression(&mut self) -> Parsed {
+        if let Some(lambda) = self.query_lambda()? {
+            return Ok(lambda);
+        }
+        self.binary(0)
     }
 
     /// The meta operator spelled by the current token at a precedence level.

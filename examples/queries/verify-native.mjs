@@ -7,6 +7,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createTranslator } from '../../js/src/index.js';
+import negationPredicates from './negation.json' with { type: 'json' };
 
 const translator = createTranslator();
 const sql =
@@ -21,6 +22,42 @@ const run = (command, args, options = {}) =>
     ...options,
   }).trim();
 const expected = [19, 43];
+const negationPeople = [0, 1, 2, 17, 18, 19, 64, 65, 70].map((age) => ({
+  age,
+}));
+const negationCases = negationPredicates.map((predicate) => {
+  const sql = `SELECT age FROM people AS negationPerson WHERE ${predicate};`;
+  return {
+    sql,
+    python: translator.translate(sql, 'sql', 'python'),
+    javascript: translator.translate(sql, 'sql', 'javascript'),
+  };
+});
+const negationResults = JSON.parse(
+  run('python3', [
+    '-c',
+    'import json,sqlite3,sys\n' +
+      'd=json.loads(sys.argv[1]); people=d["people"]\n' +
+      'db=sqlite3.connect(":memory:"); db.execute("create table people(age integer not null)")\n' +
+      'db.executemany("insert into people values(?)",[(p["age"],) for p in people])\n' +
+      'print(json.dumps([[[r[0] for r in db.execute(c["sql"])],eval(c["python"])] for c in d["cases"]]))',
+    JSON.stringify({ people: negationPeople, cases: negationCases }),
+  ])
+);
+const negationJavascript = JSON.parse(
+  run('node', [
+    '-e',
+    `const people=${JSON.stringify(negationPeople)}; console.log(JSON.stringify([${negationCases.map((c) => c.javascript.trim().replace(/;$/u, '')).join(',')}]));`,
+  ])
+);
+for (const [index, [sqlite, python]] of negationResults.entries()) {
+  assert.deepEqual(python, sqlite, negationPredicates[index]);
+  assert.deepEqual(
+    negationJavascript[index],
+    sqlite,
+    negationPredicates[index]
+  );
+}
 const pythonResults = JSON.parse(
   run('python3', [
     '-c',
@@ -100,6 +137,8 @@ try {
     Console.WriteLine(string.Join(",", DeferredIntegers()));
     Console.WriteLine(string.Join(",", Labels()));
     Console.WriteLine(string.Join(";", Nested().Select(row => string.Join(",", row))));
+    people = new[] { ${negationPeople.map((p) => `new Dictionary<string,int> { ["age"] = ${p.age} }`).join(', ')} };
+    ${negationCases.map((c) => `Console.WriteLine(string.Join(",", ${queryLine(c.sql, 'sql')}));`).join('\n    ')}
 `
     )} `
   );
@@ -119,7 +158,17 @@ try {
   ).split('\n');
   assert.deepEqual(
     lines.map((line) => line.trim()),
-    ['19,43', '19,43', '22,43', '2,3', '2,3', '2,3', 'ready,ready', '2,3;2,3']
+    [
+      '19,43',
+      '19,43',
+      '22,43',
+      '2,3',
+      '2,3',
+      '2,3',
+      'ready,ready',
+      '2,3;2,3',
+      ...negationResults.map(([sqlite]) => sqlite.join(',')),
+    ]
   );
   console.log('PASS SQLite, Python, Node and C# filtered projections: [19,43]');
   console.log(
@@ -127,6 +176,9 @@ try {
   );
   console.log(
     'PASS native C# query bindings, typed returns and nested/shadowed scopes'
+  );
+  console.log(
+    `PASS ${negationCases.length} SQL negation/grouping predicates across SQLite, Python, Node and C#`
   );
 } finally {
   rmSync(folder, { recursive: true, force: true });

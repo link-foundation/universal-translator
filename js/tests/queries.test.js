@@ -9,6 +9,7 @@ import {
   queryLanguageIds,
 } from '../src/index.js';
 import { sameMeaning } from '../src/meta/tree.js';
+import negationPredicates from '../../examples/queries/negation.json' with { type: 'json' };
 
 const translator = createTranslator();
 const sql =
@@ -17,6 +18,37 @@ const query = (source, from) =>
   translator.toMeta(source, from).main.statements[0].expression;
 
 describe('compositional selection queries', () => {
+  it('binds SQL negation below comparisons and preserves explicit grouping', () => {
+    const condition = query(
+      'SELECT age FROM people WHERE NOT age = 18;',
+      'sql'
+    ).condition;
+    assert.equal(condition.kind, 'Unary');
+    assert.equal(condition.operator, 'not');
+    assert.equal(condition.operand.operator, 'equal');
+    for (const predicate of negationPredicates) {
+      const meta = translator.toMeta(
+        `SELECT age FROM people AS p WHERE ${predicate};`,
+        'sql'
+      );
+      for (const target of [
+        'sql',
+        'python',
+        'javascript',
+        'typescript',
+        'csharp',
+        'english',
+        'russian',
+      ]) {
+        const written = translator.fromMeta(meta, target);
+        assert.ok(
+          sameMeaning(meta, translator.toMeta(written, target)),
+          `${target}: ${predicate}: ${written}`
+        );
+      }
+    }
+  });
+
   it('registers and detects SQL with explicit query capabilities', () => {
     assert.deepEqual(queryLanguageIds, ['sql']);
     assert.equal(

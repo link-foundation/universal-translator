@@ -8,6 +8,60 @@ use crate::meta::{GrammarError, Node, name};
 
 pub(super) struct Sql;
 
+// SQL's NOT binds below comparisons and above AND, including when it
+// begins the right operand of another operation.
+const OPERATORS: &[(&str, &str, usize)] = &[
+    ("or", "or", 1),
+    ("and", "and", 2),
+    ("=", "equal", 4),
+    ("==", "equal", 4),
+    ("<>", "notEqual", 4),
+    ("!=", "notEqual", 4),
+    ("<", "less", 5),
+    ("<=", "lessOrEqual", 5),
+    (">", "greater", 5),
+    (">=", "greaterOrEqual", 5),
+    ("+", "add", 6),
+    ("-", "subtract", 6),
+    ("*", "multiply", 7),
+    ("/", "divide", 7),
+    ("%", "remainder", 7),
+];
+
+fn expression(p: &mut Parser, minimum: usize) -> Parsed {
+    let mut left = if p.accept("not") {
+        Node::new("Unary")
+            .with("operator", "not")
+            .with("operand", expression(p, 3)?)
+    } else if p.accept("-") {
+        let operand = expression(p, 8)?;
+        if operand.is("Number") {
+            let value = -operand.number("value").unwrap_or_default();
+            operand.with("value", value)
+        } else {
+            Node::new("Unary")
+                .with("operator", "negate")
+                .with("operand", operand)
+        }
+    } else {
+        p.postfix()?
+    };
+    loop {
+        let Some(&(_, operator, level)) = OPERATORS.iter().find(|(spelling, _, _)| p.is(spelling))
+        else {
+            return Ok(left);
+        };
+        if level < minimum {
+            return Ok(left);
+        }
+        p.position += 1;
+        left = Node::new("Binary")
+            .with("operator", operator)
+            .with("left", left)
+            .with("right", expression(p, level + 1)?);
+    }
+}
+
 fn identifier(value: &str) -> String {
     format!("\"{}\"", value.replace('"', "\"\""))
 }
@@ -20,6 +74,10 @@ fn table(value: &str) -> String {
 }
 
 impl ParserDialect for Sql {
+    fn expression(&self, p: &mut Parser) -> Parsed {
+        expression(p, 0)
+    }
+
     fn item(&self, p: &mut Parser) -> Parsed {
         if p.kind(0) == TokenType::Comment {
             return p.base_item();
@@ -70,6 +128,17 @@ impl ParserDialect for Sql {
 }
 
 impl EmitterDialect for Sql {
+    fn unary(&self, e: &mut Emitter, expression: &Node, parent: f64) -> Result<String> {
+        if expression.str("operator") == Some("not") {
+            Ok(format!(
+                "(NOT ({}))",
+                e.expression(field(expression, "operand")?)?
+            ))
+        } else {
+            e.base_unary(expression, parent)
+        }
+    }
+
     fn quote(&self, _e: &Emitter, value: &str) -> String {
         format!("'{}'", value.replace('\'', "''"))
     }

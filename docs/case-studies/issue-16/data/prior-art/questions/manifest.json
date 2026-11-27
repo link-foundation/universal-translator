@@ -64,5 +64,11 @@
     "url": "https://www.sqlite.org/lang_select.html",
     "bytes": 2033807,
     "sha256": "f850d5a0e9441d348535494f9c647ea90548a03a1c7bd51cdac6c7943e6dc785"
+  },
+  {
+    "file": "sqlite-expressions.html.gz",
+    "url": "https://www.sqlite.org/lang_expr.html",
+    "bytes": 379232,
+    "sha256": "a618cf34414eaf5390a5b7814b8b720a08daff6a64fdcf7b3a02bf7b474a65a4"
   }
 ]

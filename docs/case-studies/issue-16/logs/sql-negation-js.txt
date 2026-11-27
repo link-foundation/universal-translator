@@ -1,0 +1,33 @@
+▶ compositional selection queries
+  ✔ binds SQL negation below comparisons and preserves explicit grouping (1362.59043ms)
+  ✔ registers and detects SQL with explicit query capabilities (1100.433659ms)
+  ✔ keeps source, scoped variable, predicate and projection as expressions (33.868725ms)
+  ✔ recognizes LINQ, comprehensions and chained filter/projection (35.658654ms)
+✔ compositional selection queries (2535.060486ms)
+▶ selection queries in controlled natural languages
+  ✔ composes query questions and answers through every natural grammar (1168.167743ms)
+  ✔ retains deferred strategy in natural questions and answer expressions (201.83988ms)
+✔ selection queries in controlled natural languages (1370.56854ms)
+▶ selection data, scopes and execution
+  ✔ preserves SQL strings and quoted identifiers without treating them as keywords (7.399009ms)
+  ✔ infers query collection results and keeps range variables in their own scope (30.544716ms)
+  ✔ preserves filter-before-map side effects when either callback calls a function (282.616669ms)
+  ✔ agrees with native SQLite, Python and JavaScript on filtered projections (322.02303ms)
+✔ selection data, scopes and execution (643.68604ms)
+▶ real numbers
+  ✔ reads literals with a point or an exponent as reals (326.105585ms)
+  ✔ reads `/` of JavaScript and Python 3 as true division (28.899077ms)
+  ✔ writes a true division with real operands where `/` divides integers (47.663542ms)
+  ✔ converts integer variables that meet a real (32.18756ms)
+  ✔ keeps integer division apart from true division (11.675124ms)
+  ✔ reads real declarations and %g placeholders of C (11.534683ms)
+  ✔ turns `/=` into the division of the source language (5.333286ms)
+✔ real numbers (466.82786ms)
+ℹ tests 17
+ℹ suites 4
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5070.259352

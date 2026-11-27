@@ -18,6 +18,46 @@ fn expression(source: &str, from: &str) -> Node {
 }
 
 #[test]
+fn sql_negation_binds_below_comparisons_and_retains_explicit_groups() {
+    let t = Translator::new();
+    let q = expression("SELECT age FROM people WHERE NOT age = 18;", "sql");
+    let condition = q.node("condition").unwrap();
+    assert!(condition.is("Unary"));
+    assert_eq!(condition.str("operator"), Some("not"));
+    assert_eq!(
+        condition.node("operand").unwrap().str("operator"),
+        Some("equal")
+    );
+    let predicates: Vec<String> =
+        serde_json::from_str(include_str!("../../examples/queries/negation.json")).unwrap();
+    for predicate in predicates {
+        let meta = t
+            .to_meta(
+                &format!("SELECT age FROM people AS p WHERE {predicate};"),
+                "sql",
+            )
+            .unwrap();
+        for target in [
+            "sql",
+            "python",
+            "javascript",
+            "typescript",
+            "csharp",
+            "english",
+            "russian",
+        ] {
+            let written = t
+                .from_meta(&meta, target, None, Mode::ContextDependent)
+                .unwrap();
+            assert!(
+                same_meaning(&meta, &t.to_meta(&written, target).unwrap()),
+                "{target}: {predicate}: {written}"
+            );
+        }
+    }
+}
+
+#[test]
 fn query_capabilities_and_detection_are_explicit() {
     assert_eq!(query_language_ids(), ["sql"]);
     assert!(languages().iter().find(|l| l.id == "sql").unwrap().query);

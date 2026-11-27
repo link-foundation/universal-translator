@@ -37,3 +37,5 @@ Recognize token-equivalent Rocq runtime headers with native layout and comments,
 Retain the output effect of PHP whitespace outside opening and closing tags, consume the native closing-tag newline, and distinguish valid opening separators from literal lookalikes.
 
 Read PHP markup, repeated code sections and short echoes with shared block scope, retain code mode when comments contain closing tags, and preserve separate concrete output/code regions.
+
+Respect SQL NOT precedence and preserve nested comparison and negation operands in Python output.

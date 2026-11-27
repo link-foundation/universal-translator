@@ -64,7 +64,7 @@ fresh range names where its local-name rules require them.
   natural round trips, strategy rejection, collection types and scopes.
 - `examples/queries/verify-native.mjs` compiles the generated C# methods and
   bindings and compares finite results across four native runtimes. The existing
-  native CI job includes it with a two-minute step budget.
+  native CI job includes it with a finite step budget.
 - Focused logs: `logs/queries-js-regressions.txt`, `logs/queries-rust-regressions.txt`,
   `logs/queries-final-js.txt`, `logs/queries-final-rust.txt`,
   `logs/queries-native.txt`, `logs/queries-clippy.txt`, `logs/queries-lint.txt`,
@@ -73,6 +73,42 @@ fresh range names where its local-name rules require them.
 Primary sources are compressed and checksummed in
 `data/prior-art/questions/manifest.json`. The historical requirements gate's
 old completion labels are not acceptance evidence for the broader inventory.
+
+## SQL negation and Python comparison grouping
+
+The shared imperative precedence table treated `NOT age = 18` as
+`(NOT age) = 18`. SQL's prefix NOT has lower precedence than comparisons and
+higher precedence than AND, as specified by the
+[SQLite expression reference](https://www.sqlite.org/lang_expr.html#operators_and_parse_affecting_attributes).
+The SQL readers now use a dialect-specific precedence parser. Unary minus,
+comparison/equality levels, mixed-case keywords and explicit groups compose
+with the existing selection reader; both SQL writers group negation explicitly.
+
+Native execution also exposed two Python emission faults. A nested boolean
+comparison must be parenthesized so Python does not interpret it as a chained
+comparison, and a negated comparison used as another comparison's operand
+needs grouping. Both shared Python writers now retain those boundaries. The
+[Python expression reference](https://docs.python.org/3/reference/expressions.html#comparisons)
+defines the chaining behavior. These changes preserve operation trees; they do
+not infer SQL NULL behavior from host-language booleans.
+
+`examples/queries/negation.json` contains 23 finite predicates over nine integer
+rows. `node experiments/issue-16-sql-negation.mjs --before` substitutes the old
+SQL reader at `175f50f`: 16 cases disagree with native SQLite. The independent
+`--before-writer` mode substitutes only the old shared writer: four cases
+produce a different Python result or invalid Python syntax. The current path
+has zero failures. `examples/queries/verify-native.mjs` executes all 23 predicates
+in SQLite, Python, Node and generated C#; all results agree. The verifier's
+additional queries use an independent range name to avoid collisions with its
+separately generated shadowing example.
+
+Matching JavaScript/Rust tests check the NOT operation tree and all predicates
+through SQL, Python, JavaScript, TypeScript, C#, English and Russian. Focused
+checks pass: 17 JavaScript query/number tests, eight Rust query tests, ESLint,
+Clippy and the native verifier. Logs are `logs/sql-negation-{before,before-writer,after}.json`,
+`logs/sql-negation-{js,rust,native,lint,clippy}.txt`. The primary reference is
+checksummed in the questions manifest. NULL propagation and general SQL
+semantics remain unfinished under requirement 16.12.
 
 ## Remaining work
 

@@ -17,6 +17,7 @@ include = [
     "/examples/objpak/conditions.m",
     "/examples/printing/arithmetic.py",
     "/examples/runtime-headers/php-modes.json",
+    "/examples/queries/negation.json",
     "/docs/case-studies/issue-14/data/hello-world-collection/programs.json",
     "/docs/case-studies/issue-14/hello-world-coverage.lino",
     "/README.md",

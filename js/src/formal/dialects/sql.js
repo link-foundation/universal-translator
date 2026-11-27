@@ -2,11 +2,67 @@
 import { node } from '../../meta/tree.js';
 import { query, rowMembers } from '../query-parser.js';
 
+// NOT binds below comparisons and above AND in SQL. A prefix can also
+// occur on a binary operand, so its operand uses its own binding power.
+const operators = {
+  or: ['or', 1],
+  and: ['and', 2],
+  '=': ['equal', 4],
+  '==': ['equal', 4],
+  '<>': ['notEqual', 4],
+  '!=': ['notEqual', 4],
+  '<': ['less', 5],
+  '<=': ['lessOrEqual', 5],
+  '>': ['greater', 5],
+  '>=': ['greaterOrEqual', 5],
+  '+': ['add', 6],
+  '-': ['subtract', 6],
+  '*': ['multiply', 7],
+  '/': ['divide', 7],
+  '%': ['remainder', 7],
+};
+
+function sqlExpression(parser, minimum = 0) {
+  let left;
+  if (parser.accept('not')) {
+    left = node('Unary', {
+      operator: 'not',
+      operand: sqlExpression(parser, 3),
+    });
+  } else if (parser.accept('-')) {
+    const operand = sqlExpression(parser, 8);
+    left =
+      operand.kind === 'Number'
+        ? { ...operand, value: -operand.value }
+        : node('Unary', { operator: 'negate', operand });
+  } else {
+    left = parser.postfix();
+  }
+  while (true) {
+    const operator = Object.entries(operators).find(([spelling]) =>
+      parser.is(spelling)
+    )?.[1];
+    if (!operator || operator[1] < minimum) {
+      return left;
+    }
+    parser.next();
+    left = node('Binary', {
+      operator: operator[0],
+      left,
+      right: sqlExpression(parser, operator[1] + 1),
+    });
+  }
+}
+
 const identifier = (value) => `"${value.replaceAll('"', '""')}"`;
 const table = (value) => value.split('.').map(identifier).join('.');
 
 const parser = (Base) =>
   class SqlParser extends Base {
+    expression() {
+      return sqlExpression(this);
+    }
+
     primary() {
       if (this.peek().quote === '"') {
         return node('Name', { name: this.next().value });
@@ -46,6 +102,12 @@ const parser = (Base) =>
 
 const emitter = (Base) =>
   class SqlEmitter extends Base {
+    unary(expression, parent) {
+      return expression.operator === 'not'
+        ? `(NOT (${this.expression(expression.operand)}))`
+        : super.unary(expression, parent);
+    }
+
     quote(value) {
       return `'${value.replaceAll("'", "''")}'`;
     }

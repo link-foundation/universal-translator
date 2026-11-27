@@ -125,6 +125,10 @@ pub(crate) trait EmitterDialect: Sync {
 
 /// The reading steps a dialect can replace.
 pub(crate) trait ParserDialect: Sync {
+    fn expression(&self, p: &mut Parser) -> Parsed {
+        p.base_expression()
+    }
+
     /// The tokens as the shared parser should see them.
     fn tokens(&self, tokens: Vec<Token>) -> Vec<Token> {
         tokens

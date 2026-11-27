@@ -279,3 +279,12 @@ Evidence and explicit document/snippet and grammar limits are in
 The PHP mode extension passes 23 focused JavaScript tests and 23 Rust tests,
 ESLint and Clippy. Native verification passes all 24 PHP documents, the separate
 foreign-comment example and all six Rocq layouts.
+
+SQL negation now uses native SQL precedence in both readers, with grouped NOT
+in both SQL writers. Native comparisons found Python comparison chaining and
+negated-operand emission faults; both shared Python writers preserve their
+boolean operand boundaries. The old reader fails 16/23 finite cases, the old
+writer fails four independently, and the current path passes all 23 across
+SQLite, Python, Node and C#. Matching regressions, number regressions, lint and
+Clippy pass. See `QUERIES.md`. Continue NULL semantics and all open inventory
+rows; this atomic correction does not finish the query requirement.

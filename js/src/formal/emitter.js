@@ -53,6 +53,23 @@ const precedence = {
   realDivide: 6,
   remainder: 6,
 };
+const comparisons = new Set([
+  'equal',
+  'notEqual',
+  'less',
+  'lessOrEqual',
+  'greater',
+  'greaterOrEqual',
+]);
+function comparisonParent(id, operator, part, level) {
+  // Python comparison operands need grouping to preserve boolean nesting.
+  return id === 'python' &&
+    comparisons.has(operator) &&
+    part.kind === 'Binary' &&
+    comparisons.has(part.operator)
+    ? 9
+    : level;
+}
 const symbols = {
   add: '+',
   subtract: '-',
@@ -239,7 +256,8 @@ class BaseEmitter {
       expression.operator === 'not' ? this.syntax.operators.not : '-';
     const spaced = /\w$/.test(operator) ? `${operator} ` : operator;
     const result = `${spaced}${this.expression(expression.operand, 9)}`;
-    return parent > 7 ? `(${result})` : result;
+    const level = this.id === 'python' && expression.operator === 'not' ? 2 : 7;
+    return parent > level ? `(${result})` : result;
   }
 
   expression(expression, parent = 0) {
@@ -299,10 +317,23 @@ class BaseEmitter {
     // `a && b || c` keeps its meaning without parentheses, but readers (and
     // C compilers with -Wparentheses) expect them around the inner "and".
     const inner = expression.operator === 'or' ? precedence.and + 1 : level;
-    const left = this.expression(expression.left, tight ? 7 : inner);
+    const left = this.expression(
+      expression.left,
+      comparisonParent(
+        this.id,
+        expression.operator,
+        expression.left,
+        tight ? 7 : inner
+      )
+    );
     const right = this.expression(
       expression.right,
-      tight ? 7 : Math.max(inner, level + 1)
+      comparisonParent(
+        this.id,
+        expression.operator,
+        expression.right,
+        tight ? 7 : Math.max(inner, level + 1)
+      )
     );
     let result;
     if (expression.operator === 'divide') {

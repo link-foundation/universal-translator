@@ -64,6 +64,18 @@ Rocq header reproduction: add a leading blank line, CRLF or a comment to a gener
 
 PHP header reproduction: prepend CRLF before `<?php` or add output whitespace after `?>`. The readers now retain that whitespace as literal output and consume only PHP's first closing-tag newline. Native opening-tag separators distinguish real code from lookalikes such as `<?phpecho`. `node experiments/issue-16-php-output.mjs --before` fails seven of nine native cases; the current reader passes all nine. The existing native header example checks PHP/Python/PHP and direct PHP/PHP output bytes, with matching JS/Rust semantic, concrete and partial-translation tests. Focused checks pass (24 JS, 26 Rust), ESLint and Clippy. Mixed markup, repeated code sections, short echoes and shared conditional/loop scope now compose in both engines. Fifteen new finite native cases fail with the previous reader and pass with the corrected reader. Native round trips exposed PHP line comments containing `?>` closing code early; both writers now retain code mode with block comments. Matching JS/Rust regressions check semantic and concrete round trips, comment translation, token lines, tagless snippets and separate UTF-8 markup/code regions. The native example checks 24 PHP documents and a Python comment program. Complete PHP grammar coverage and explicit plaintext-document/snippet disambiguation remain open; evidence, limits and primary sources are in the runtime-header case study.
 
+SQL negation reproduction: `SELECT age FROM people AS p WHERE NOT age = 18;`
+previously negated the column before testing equality, selecting different
+rows. Both readers now apply SQL precedence and both SQL writers preserve
+negation grouping. Native checks also found ungrouped nested comparisons and
+negated operands changing Python behavior; both Python writers now retain
+those boundaries. `node experiments/issue-16-sql-negation.mjs --before` fails
+16/23 cases with the old SQL reader; `--before-writer` independently fails four
+with the old writer. The current path passes all 23, including native SQLite,
+Python, Node and C# execution in the query example. Matching JS/Rust regressions,
+number checks, lint and Clippy pass. NULL semantics remain open. Evidence is in
+the query case study.
+
 ## Browser evidence
 
 Comment translation, before: changing R comments to Russian loses the paragraph before the first Bash statement:

@@ -361,7 +361,12 @@ impl Emitter {
         };
         let operand = self.expression_in(field(expression, "operand")?, 9.0)?;
         let result = format!("{spaced}{operand}");
-        Ok(if parent > 7.0 {
+        let level = if self.id() == "python" && expression.str("operator") == Some("not") {
+            2.0
+        } else {
+            7.0
+        };
+        Ok(if parent > level {
             format!("({result})")
         } else {
             result
@@ -490,9 +495,40 @@ impl Emitter {
         } else {
             level
         };
-        let left = self.expression_in(left_node, if tight { 7.0 } else { inner })?;
-        let right =
-            self.expression_in(right_node, if tight { 7.0 } else { inner.max(level + 1.0) })?;
+        // Adjacent Python comparisons form a chain. An inner comparison is
+        // one boolean operand here, so it needs its own parentheses.
+        let comparisons = [
+            "equal",
+            "notEqual",
+            "less",
+            "lessOrEqual",
+            "greater",
+            "greaterOrEqual",
+        ];
+        let comparison = |part: &Node| {
+            self.id() == "python"
+                && comparisons.contains(&operator)
+                && part.is("Binary")
+                && part
+                    .str("operator")
+                    .is_some_and(|op| comparisons.contains(&op))
+        };
+        let left_level = if comparison(left_node) {
+            9.0
+        } else if tight {
+            7.0
+        } else {
+            inner
+        };
+        let right_level = if comparison(right_node) {
+            9.0
+        } else if tight {
+            7.0
+        } else {
+            inner.max(level + 1.0)
+        };
+        let left = self.expression_in(left_node, left_level)?;
+        let right = self.expression_in(right_node, right_level)?;
         let result = if operator == "divide" {
             if let Some(integer) = self.syntax.operators.integer_divide {
                 format!("{left} {integer} {right}")
