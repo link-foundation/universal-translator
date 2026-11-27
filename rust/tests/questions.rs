@@ -84,6 +84,36 @@ fn questions_round_trip_every_natural_language() {
 }
 
 #[test]
+fn arithmetic_subjects_stay_distinct_from_calls_with_the_same_spelling() {
+    let translator = Translator::new();
+    let mode = Mode::ContextDependent;
+    let source = "print(type(meaning + 1))\n";
+    for language in natural_language_ids() {
+        let text = translator
+            .translate(source, "python", language, mode)
+            .unwrap();
+        assert_eq!(
+            translator
+                .translate(&text, language, "python", mode)
+                .unwrap(),
+            source,
+            "{text}"
+        );
+    }
+    let ordinary_call = "def نوع(value):\n    return value + 1\n\nprint(نوع(2))\n";
+    let text = translator
+        .translate(ordinary_call, "python", "arabic", mode)
+        .unwrap();
+    assert!(text.contains("نوع_ (2)"), "{text}");
+    assert_eq!(
+        translator
+            .translate(&text, "arabic", "python", mode)
+            .unwrap(),
+        ordinary_call
+    );
+}
+
+#[test]
 fn documentation_is_runtime_metadata_and_retains_multiline_contents() {
     let source = "def meaning(value):\n    \"\"\"Explain the meaning.\n\n    Keep indentation.\n    \"\"\"\n    return value\n\nprint(meaning.__doc__)\n";
     let translator = Translator::new();

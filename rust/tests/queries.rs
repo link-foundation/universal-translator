@@ -5,6 +5,26 @@ use universal_translator::translator::languages;
 use universal_translator::{Mode, Options, Translator};
 
 const SQL: &str = "SELECT age + 1 FROM people AS person WHERE age >= 18 AND age < 65;";
+
+#[test]
+fn clause_separators_inside_a_selector_stay_in_one_argument() {
+    let translator = Translator::new();
+    let mode = Mode::ContextDependent;
+    let source = "print((9 + len([n for n in nums if n > 0])) // 2)\n";
+    for language in natural_language_ids() {
+        let text = translator
+            .translate(source, "python", language, mode)
+            .unwrap();
+        assert_eq!(
+            translator
+                .translate(&text, language, "python", mode)
+                .unwrap(),
+            source,
+            "{text}"
+        );
+    }
+}
+
 fn expression(source: &str, from: &str) -> Node {
     Translator::new()
         .to_meta(source, from)

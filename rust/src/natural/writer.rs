@@ -14,6 +14,7 @@ use super::levels::{
 };
 use super::tokens::{Kind, Token};
 use crate::meta::for_each::lower_for_each;
+use crate::meta::questions::ASPECTS;
 use crate::meta::{Node, layout, number, subtract};
 
 const INDENT_UNIT: &str = "  ";
@@ -169,7 +170,76 @@ fn separated(expressions: Vec<&Node>, language: &Language) -> Result<Vec<Token>,
         if index > 0 {
             tokens.push(separator(language));
         }
-        tokens.extend(write_expression(expression, language, 0)?);
+        let written = write_expression(expression, language, 0)?;
+        let mut depth = 0;
+        let has_own_separator = written.iter().any(|token| match token.kind {
+            Kind::Open => {
+                depth += 1;
+                false
+            }
+            Kind::Close => {
+                depth -= 1;
+                false
+            }
+            Kind::Separator => depth == 0,
+            _ => false,
+        });
+        tokens.extend(if has_own_separator {
+            parenthesize(written)
+        } else {
+            written
+        });
+    }
+    Ok(tokens)
+}
+
+fn matches_reflection_frame(tokens: &[Token], language: &Language) -> bool {
+    let matches = |(literal, token): (&Token, &Token)| {
+        literal.kind == token.kind
+            && if literal.kind == Kind::Word {
+                literal.folded == token.folded
+            } else {
+                literal.value == token.value
+            }
+    };
+    ASPECTS.iter().any(|aspect| {
+        language
+            .variants(&format!("answer-{aspect}"))
+            .iter()
+            .any(|phrase| {
+                let subject = phrase
+                    .iter()
+                    .position(|token| token.kind == Kind::Slot && token.value == "subject");
+                let Some(subject) = subject.filter(|_| tokens.len() >= phrase.len()) else {
+                    return false;
+                };
+                let suffix = &phrase[subject + 1..];
+                phrase[..subject].iter().zip(tokens).all(matches)
+                    && suffix
+                        .iter()
+                        .zip(&tokens[tokens.len() - suffix.len()..])
+                        .all(matches)
+            })
+    })
+}
+
+fn write_call(expression: &Node, language: &Language) -> Result<Vec<Token>, String> {
+    let callee = write_name(expression.str("callee").unwrap_or_default(), language);
+    let arguments = expression.nodes("arguments");
+    let key = if arguments.is_empty() {
+        "call-without-arguments"
+    } else {
+        "call"
+    };
+    let mut slots = Slots::from([
+        ("callee", vec![word(&callee)]),
+        ("arguments", separated(arguments, language)?),
+    ]);
+    let tokens = fill(language, key, &slots)?;
+    // A contextual reflection phrase takes priority over a bare callee spelling.
+    if !callee.ends_with('_') && matches_reflection_frame(&tokens, language) {
+        slots.insert("callee", vec![word(format!("{callee}_"))]);
+        return fill(language, key, &slots);
     }
     Ok(tokens)
 }
@@ -218,26 +288,7 @@ fn primary(expression: &Node, language: &Language) -> Result<Vec<Token>, String>
                 )?,
             )]),
         ),
-        "Call" => {
-            let callee = vec![word(write_name(
-                expression.str("callee").unwrap_or_default(),
-                language,
-            ))];
-            let arguments = expression.nodes("arguments");
-            if arguments.is_empty() {
-                return fill(
-                    language,
-                    "call-without-arguments",
-                    &Slots::from([("callee", callee)]),
-                );
-            }
-            let tokens = separated(arguments, language)?;
-            fill(
-                language,
-                "call",
-                &Slots::from([("callee", callee), ("arguments", tokens)]),
-            )
-        }
+        "Call" => write_call(expression, language),
         // An empty array is a new array of no zeros: no template lists nothing.
         "ArrayLiteral" => {
             let elements = expression.nodes("elements");

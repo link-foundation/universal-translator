@@ -137,6 +137,22 @@ describe('compositional introspection questions', () => {
       assert.equal(result.value.aspect, 'documentation', language);
     }
   });
+  it('keeps arithmetic subjects distinct from calls with the same spelling', () => {
+    const source = 'print(type(meaning + 1))\n';
+    for (const language of naturalLanguageIds()) {
+      const text = translator.translate(source, 'python', language);
+      assert.equal(
+        translator.translate(text, language, 'python'),
+        source,
+        text
+      );
+    }
+    const ordinaryCall =
+      'def نوع(value):\n    return value + 1\n\nprint(نوع(2))\n';
+    const text = translator.translate(ordinaryCall, 'python', 'arabic');
+    assert.match(text, /نوع_ \(2\)/u);
+    assert.equal(translator.translate(text, 'arabic', 'python'), ordinaryCall);
+  });
 });
 
 describe('runtime documentation', () => {

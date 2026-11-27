@@ -19,6 +19,18 @@ const query = (source, from) =>
   translator.toMeta(source, from).main.statements[0].expression;
 
 describe('compositional selection queries', () => {
+  it('keeps selectors with clause separators inside one call argument', () => {
+    const source = 'print((9 + len([n for n in nums if n > 0])) // 2)\n';
+    for (const language of naturalLanguageIds()) {
+      const text = translator.translate(source, 'python', language);
+      assert.equal(
+        translator.translate(text, language, 'python'),
+        source,
+        text
+      );
+    }
+  });
+
   it('binds SQL negation below comparisons and preserves explicit grouping', () => {
     const condition = query(
       'SELECT age FROM people WHERE NOT age = 18;',

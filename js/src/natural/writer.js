@@ -6,7 +6,7 @@
 // differently.
 
 import { naturalLanguage } from './catalog.js';
-import { questionKey, answerKey } from '../meta/questions.js';
+import { questionAspects, questionKey, answerKey } from '../meta/questions.js';
 import { queryKey } from '../meta/queries.js';
 import { collectionPhrase } from '../meta/collection-phrases.js';
 import {
@@ -19,6 +19,7 @@ import {
 import { lowerForEach } from '../meta/for-each.js';
 import { layout, subtract, number } from '../meta/tree.js';
 import { agree, slotCase } from './agreement.js';
+import { foldWord } from './tokens.js';
 import {
   mappedComments,
   mappedEmitter,
@@ -113,10 +114,65 @@ const operand = (expression, language) =>
 // Expressions separated by the list separator, as call arguments are.
 function separated(expressions, language) {
   const separator = { type: 'separator', value: language.listSeparator };
-  return expressions.flatMap((expression, index) => [
-    ...(index ? [separator] : []),
-    ...writeExpression(expression, language, 0),
-  ]);
+  return expressions.flatMap((expression, index) => {
+    const tokens = writeExpression(expression, language, 0);
+    let depth = 0;
+    const hasOwnSeparator = tokens.some(({ type }) => {
+      if (type === 'open') {
+        depth += 1;
+      }
+      if (type === 'close') {
+        depth -= 1;
+      }
+      return type === 'separator' && depth === 0;
+    });
+    return [
+      ...(index ? [separator] : []),
+      ...(hasOwnSeparator ? parenthesize(tokens) : tokens),
+    ];
+  });
+}
+
+function matchesReflectionFrame(tokens, language) {
+  const matches = (literal, token) =>
+    literal.type === token.type &&
+    (literal.type === 'word'
+      ? literal.folded === foldWord(token.value)
+      : literal.value === token.value);
+  return questionAspects.some((aspect) =>
+    language.compiled[answerKey(aspect)].some((phrase) => {
+      const subject = phrase.findIndex(
+        ({ type, value }) => type === 'slot' && value === 'subject'
+      );
+      return (
+        subject !== -1 &&
+        tokens.length >= phrase.length &&
+        phrase
+          .slice(0, subject)
+          .every((literal, index) => matches(literal, tokens[index])) &&
+        phrase
+          .slice(subject + 1)
+          .every((literal, index, suffix) =>
+            matches(literal, tokens[tokens.length - suffix.length + index])
+          )
+      );
+    })
+  );
+}
+
+function writeCall(expression, language) {
+  const callee = writeName(expression.callee, language);
+  const key = expression.arguments.length ? 'call' : 'call-without-arguments';
+  const slots = {
+    callee: [word(callee)],
+    arguments: separated(expression.arguments, language),
+  };
+  const tokens = fill(language, key, slots);
+  // A contextual reflection phrase takes priority over a bare callee spelling.
+  if (!callee.endsWith('_') && matchesReflectionFrame(tokens, language)) {
+    return fill(language, key, { ...slots, callee: [word(`${callee}_`)] });
+  }
+  return tokens;
 }
 
 function collectionExpression(expression, language) {
@@ -163,16 +219,8 @@ function primary(expression, language) {
       return [
         { ...word(writeName(expression.name, language)), reference: true },
       ];
-    case 'Call': {
-      const callee = [word(writeName(expression.callee, language))];
-      if (!expression.arguments.length) {
-        return fill(language, 'call-without-arguments', { callee });
-      }
-      return fill(language, 'call', {
-        callee,
-        arguments: separated(expression.arguments, language),
-      });
-    }
+    case 'Call':
+      return writeCall(expression, language);
     // An empty array is a new array of no zeros: no template lists nothing.
     case 'ArrayLiteral':
       return expression.elements.length

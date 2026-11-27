@@ -213,6 +213,21 @@ export class SentenceReader {
         return this.expression(tokens, start + 1, end - 1, 0);
       }
     }
+    // A contextual reflection phrase takes priority over a bare callee spelling.
+    for (const aspect of questionAspects) {
+      for (const template of this.language.compiled[answerKey(aspect)]) {
+        const slots = this.match(
+          template,
+          tokens,
+          start,
+          end,
+          (_slot, from, to) => this.expression(tokens, from, to, 0)
+        );
+        if (slots) {
+          return node('Question', { aspect, subject: slots.subject });
+        }
+      }
+    }
     for (const key of ['call', 'call-without-arguments']) {
       for (const template of this.language.compiled[key]) {
         const slots = this.match(
@@ -251,20 +266,6 @@ export class SentenceReader {
         );
         if (slots) {
           return structuredNode(key, slots);
-        }
-      }
-    }
-    for (const aspect of questionAspects) {
-      for (const template of this.language.compiled[answerKey(aspect)]) {
-        const slots = this.match(
-          template,
-          tokens,
-          start,
-          end,
-          (_slot, from, to) => this.expression(tokens, from, to, 0)
-        );
-        if (slots) {
-          return node('Question', { aspect, subject: slots.subject });
         }
       }
     }

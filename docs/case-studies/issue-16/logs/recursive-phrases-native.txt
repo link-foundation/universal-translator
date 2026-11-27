@@ -1,0 +1,31 @@
+Baseline 3e706046d37e03f448d60e5035a1364b471f6cea
+Command: node experiments/issue-16-recursive-phrases.mjs --baseline <baseline-checkout>/js/src/index.js
+{"name":"arithmetic reflection subject","engine":"JavaScript","language":"arabic","error":"Expected values to be strictly equal:\n+ actual - expected\n\n+ 'meaning = 41\\nprint(نوع(meaning + 1))\\n'\n- 'meaning = 41\\nprint(type(meaning + 1))\\n'\n"}
+{"name":"arithmetic reflection subject","engine":"JavaScript","language":"indonesian","error":"Expected values to be strictly equal:\n+ actual - expected\n\n+ 'meaning = 41\\nprint(tipe(meaning + 1))\\n'\n- 'meaning = 41\\nprint(type(meaning + 1))\\n'\n"}
+{"name":"arithmetic reflection subject","engine":"JavaScript","language":"persian","error":"Expected values to be strictly equal:\n+ actual - expected\n\n+ 'meaning = 41\\nprint(نوع(meaning + 1))\\n'\n- 'meaning = 41\\nprint(type(meaning + 1))\\n'\n"}
+{"name":"arithmetic reflection subject","engine":"JavaScript","language":"swahili","error":"Expected values to be strictly equal:\n+ actual - expected\n\n+ 'meaning = 41\\nprint(aina(meaning + 1))\\n'\n- 'meaning = 41\\nprint(type(meaning + 1))\\n'\n"}
+{"name":"arithmetic reflection subject","engine":"JavaScript","language":"tagalog","error":"Expected values to be strictly equal:\n+ actual - expected\n\n+ 'meaning = 41\\nprint(uri(meaning + 1))\\n'\n- 'meaning = 41\\nprint(type(meaning + 1))\\n'\n"}
+{"name":"arithmetic reflection subject","engine":"JavaScript","language":"thai","error":"Expected values to be strictly equal:\n+ actual - expected\n\n+ 'meaning = 41\\nprint(ชนิดของ(meaning + 1))\\n'\n- 'meaning = 41\\nprint(type(meaning + 1))\\n'\n"}
+{"name":"arithmetic reflection subject","engine":"JavaScript","language":"vietnamese","error":"Expected values to be strictly equal:\n+ actual - expected\n\n+ 'meaning = 41\\nprint(kiểu(meaning + 1))\\n'\n- 'meaning = 41\\nprint(type(meaning + 1))\\n'\n"}
+{"name":"arithmetic reflection subject","engine":"JavaScript","tested":71,"failed":["arabic","indonesian","persian","swahili","tagalog","thai","vietnamese"]}
+{"name":"selector nested inside a call","engine":"JavaScript","language":"english-ace","error":"English (Attempto Controlled English), line 12: No sentence template matches: \"The program writes a line that contains ut-integer-floor-divide of (9 plus len of (For every n in nums the program does the following, If (n is greater than 0) then the program does the following, The procedure returns n), 2)\""}
+{"name":"selector nested inside a call","engine":"JavaScript","language":"english-asd-ste100","error":"English (ASD-STE100 Simplified Technical English), line 12: No sentence template matches: \"Write line ut-integer-floor-divide of (9 plus len of (For each n in nums, do these steps, If (n is more than 0), do these steps, Return n), 2)\""}
+{"name":"selector nested inside a call","engine":"JavaScript","language":"english-basic-english","error":"English (Basic English), line 12: No sentence template matches: \"Say ut-integer-floor-divide of (9 plus len of (For every n in nums, do this, If (n is over 0), do this, Give back n), 2) and end the line\""}
+{"name":"selector nested inside a call","engine":"JavaScript","language":"english-e-prime","error":"English (E-Prime), line 12: No sentence template matches: \"Write ut-integer-floor-divide of (9 plus len of (For each n in nums, repeat this, If (n exceeds 0), do this, Give back n), 2) and end the line\""}
+{"name":"selector nested inside a call","engine":"JavaScript","language":"english-globish","error":"English (Globish), line 12: No sentence template matches: \"Say ut-integer-floor-divide of (9 plus len of (For each n in nums, do this, If (n is more than 0), do this, Return n), 2) on a line\""}
+{"name":"selector nested inside a call","engine":"JavaScript","language":"english-plain-language","error":"English (Plain language, ISO 24495-1), line 12: No sentence template matches: \"Show ut-integer-floor-divide of (9 plus len of (For each n in nums, do this, If (n is more than 0), do this, The answer is n), 2) on its own line\""}
+{"name":"selector nested inside a call","engine":"JavaScript","language":"english-sbvr","error":"English (SBVR Structured English), line 12: No sentence template matches: \"It is obligatory that the output shows ut-integer-floor-divide of (9 plus len of (For each n in nums the following applies, If (n is greater than 0) then the following applies, It is obligatory that the result is n), 2) as a line\""}
+{"name":"selector nested inside a call","engine":"JavaScript","language":"english-special-english","error":"English (VOA Special English / Learning English), line 12: No sentence template matches: \"Show ut-integer-floor-divide of (9 plus len of (For each n in nums, do this, If (n is more than 0), do this, Return n), 2) on a line\""}
+{"name":"selector nested inside a call","engine":"JavaScript","language":"minimal-english","error":"Minimal English (NSM semantic primes), line 12: No sentence template matches: \"Say ut-integer-floor-divide of (9 plus len of (For all n inside nums, do this, If (n is more than 0), do this, The answer is n), 2) on one line\""}
+{"name":"selector nested inside a call","engine":"JavaScript","tested":71,"failed":["english-ace","english-asd-ste100","english-basic-english","english-e-prime","english-globish","english-plain-language","english-sbvr","english-special-english","minimal-english"]}
+{"name":"ordinary Arabic call with a contextual name","engine":"JavaScript","tested":71,"failed":[]}
+
+Current working tree
+
+Command: node experiments/issue-16-recursive-phrases.mjs
+{"name":"arithmetic reflection subject","engine":"JavaScript","tested":71,"failed":[]}
+{"name":"arithmetic reflection subject","engine":"Rust","tested":7,"failed":[]}
+{"name":"selector nested inside a call","engine":"JavaScript","tested":71,"failed":[]}
+{"name":"selector nested inside a call","engine":"Rust","tested":9,"failed":[]}
+{"name":"ordinary Arabic call with a contextual name","engine":"JavaScript","tested":71,"failed":[]}
+{"name":"ordinary Arabic call with a contextual name","engine":"Rust","tested":1,"failed":[]}

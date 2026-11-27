@@ -91,6 +91,16 @@ for all 71 profiles. The comparison serialized the catalog’s `templates` table
 in `naturalLanguageIds()` order. Both snapshots had SHA-256
 `882932d01bb48faa65692f7f1ba9c6e594e4ad9fc557f72266a78a05b917d3b3`.
 
+- `node experiments/issue-16-recursive-phrases.mjs` checks three Python
+  programs. The previous readers read `type(meaning + 1)` as an ordinary
+  function call in seven languages, and commas within a nested collection
+  query prevented nine profiles from reading the enclosing call. The revised
+  readers prefer the reflection production, and the writers group an
+  argument that contains its own separator. A literal call to the user-defined
+  function `نوع` uses the existing identifier escape and still executes.
+  The [native transcript](logs/recursive-phrases-native.txt) records 213
+  JavaScript-engine round trips and 17 Rust CLI round trips with Python output
+  checks. Both test suites cover all 71 profiles for each case.
 - `node experiments/issue-16-questions.mjs`: five finite original examples;
   `logs/questions-before.txt` records missing recognition and parse failures,
   and `logs/questions-after.txt` records translated questions/documentation.

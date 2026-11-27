@@ -337,6 +337,23 @@ impl<'a> SentenceReader<'a> {
                 return self.expression(tokens, start + 1, end - 1, 0);
             }
         }
+        // A contextual reflection phrase takes priority over a bare callee spelling.
+        for aspect in ASPECTS {
+            for template in self.language.variants(&format!("answer-{aspect}")) {
+                let mut reader = |_slot: &str, from: usize, to: usize| {
+                    self.expression(tokens, from, to, 0).map(Slot::Expression)
+                };
+                if let Some(mut slots) =
+                    Self::match_template(template, tokens, start, end, &mut reader)
+                {
+                    return Some(
+                        Node::new("Question")
+                            .with("aspect", aspect)
+                            .with("subject", expression_slot(&mut slots, "subject")?),
+                    );
+                }
+            }
+        }
         for key in ["call", "call-without-arguments"] {
             for template in self.language.variants(key) {
                 let mut reader = |slot: &str, from: usize, to: usize| {
@@ -392,22 +409,6 @@ impl<'a> SentenceReader<'a> {
                 if let Some(slots) = Self::match_template(template, tokens, start, end, &mut reader)
                 {
                     return query_node(key, slots);
-                }
-            }
-        }
-        for aspect in ASPECTS {
-            for template in self.language.variants(&format!("answer-{aspect}")) {
-                let mut reader = |_slot: &str, from: usize, to: usize| {
-                    self.expression(tokens, from, to, 0).map(Slot::Expression)
-                };
-                if let Some(mut slots) =
-                    Self::match_template(template, tokens, start, end, &mut reader)
-                {
-                    return Some(
-                        Node::new("Question")
-                            .with("aspect", aspect)
-                            .with("subject", expression_slot(&mut slots, "subject")?),
-                    );
                 }
             }
         }
