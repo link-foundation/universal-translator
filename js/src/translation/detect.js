@@ -1,9 +1,9 @@
 // Language detection: the web demo and the command line can
 // translate without being told the source language.
 //
-// Every language the translator reads is a candidate. A candidate whose
-// grammar reads the whole text wins over one that reads only a part, and
-// one that reads nothing comes last. Ties are broken by evidence from the
+// Every language the translator reads is a candidate. Whole grammar or
+// lexically complete prose readings precede partial coverage. Among them,
+// candidates are ordered by evidence from the
 // language's own syntax tables (its function keyword, print call,
 // comment marker and declaration keywords) and, for controlled natural
 // languages, by how many words of the text are words of its templates.
@@ -21,6 +21,7 @@ import { machineTargetIds } from '../formal/machine.js';
 import { naturalLanguage, naturalLanguageIds } from '../natural/catalog.js';
 import { tokenize } from '../natural/tokens.js';
 import { isKnownWord, wordsOf } from '../natural/comments.js';
+import { codeTaskFrequency } from './corpus-frequencies.js';
 
 // Patterns that only one language (or a small family) writes.
 const signatures = {
@@ -108,25 +109,6 @@ const signatures = {
 const contradictions = {
   c: [/^\s*#import\b/mu, /\b(?:try|catch|throw|template|namespace)\b/u],
   cpp: [/^\s*#import\b/mu],
-};
-
-// Stable tie-break priors: evidence and complete parsing still decide first.
-// English leads ambiguous isolated names; explicit syntax always wins.
-const popularity = [
-  'english',
-  'python',
-  'javascript',
-  'java',
-  'csharp',
-  'cpp',
-  'c',
-  'typescript',
-  'rust',
-  'go',
-];
-const popularityRank = (id) => {
-  const at = popularity.indexOf(id);
-  return at < 0 ? popularity.length : at;
 };
 
 const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
@@ -253,6 +235,7 @@ export function createLanguageDetector({ parseFragment, parsePartial }) {
     for (const candidate of candidates) {
       candidate.reads = candidate.evidence > -1 && reads(source, candidate.id);
       candidate.coverage = candidate.reads ? 1 : 0;
+      candidate.complete = candidate.reads;
     }
     // Read the best of the rest partially: the likeliest programming and
     // natural languages by evidence, so a text no grammar reads whole still
@@ -277,26 +260,35 @@ export function createLanguageDetector({ parseFragment, parsePartial }) {
     }
     for (const candidate of candidates) {
       if (candidate.natural && !candidate.reads) {
-        candidate.coverage = Math.max(
-          candidate.coverage,
-          proseCoverage(source, candidate.id)
-        );
+        const prose = proseCoverage(source, candidate.id);
+        candidate.coverage = Math.max(candidate.coverage, prose);
+        candidate.complete = prose === 1;
       }
     }
     return candidates
-      .map(({ id, natural, evidence, reads: whole, coverage }) => ({
+      .map(({ id, natural, evidence, reads: whole, coverage, complete }) => ({
         id,
         natural,
         reads: whole,
         coverage,
+        complete,
         score: Math.round((100 * coverage + evidence) * 100) / 100,
       }))
       .filter((candidate) => candidate.score > 0)
       .sort(
         (a, b) =>
+          Number(b.complete) - Number(a.complete) ||
           b.score - a.score ||
-          popularityRank(a.id) - popularityRank(b.id) ||
+          Number(b.id === 'english') - Number(a.id === 'english') ||
+          codeTaskFrequency(b.id) - codeTaskFrequency(a.id) ||
           a.id.localeCompare(b.id)
-      );
+      )
+      .map(({ id, natural, reads: whole, coverage, score }) => ({
+        id,
+        natural,
+        reads: whole,
+        coverage,
+        score,
+      }));
   };
 }

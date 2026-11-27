@@ -1,0 +1,61 @@
+{
+  "code": {
+    "source": {
+      "path": "docs/case-studies/issue-8/data/rosetta-code/coverage.json",
+      "sha256": "ec4115e5d301e246cc09ba47ab77a45a40f236dbd97e893e413c36e809b2ecba",
+      "tasks": 1782
+    },
+    "languageTasks": {
+      "ada": 1076,
+      "bash": 372,
+      "c": 1342,
+      "cpp": 1466,
+      "csharp": 1078,
+      "d": 998,
+      "dart": 254,
+      "fortran": 940,
+      "go": 1601,
+      "groovy": 496,
+      "java": 1635,
+      "javascript": 1093,
+      "julia": 1740,
+      "kotlin": 1173,
+      "lean": 7,
+      "lua": 1033,
+      "matlab": 444,
+      "nim": 1614,
+      "objc": 153,
+      "pascal": 699,
+      "perl": 1616,
+      "php": 572,
+      "python": 1674,
+      "r": 933,
+      "rocq": 14,
+      "ruby": 1232,
+      "rust": 1222,
+      "scala": 955,
+      "swift": 642,
+      "typescript": 62,
+      "vb": 321,
+      "zig": 332
+    }
+  },
+  "prose": {
+    "source": {
+      "url": "https://raw.githubusercontent.com/Helsinki-NLP/Tatoeba-Challenge/bd05f087e91e359a88594bd6d6c99a079e0ac621/data/release/test/v2023-09-26/tatoeba-test-v2023-09-26.eng-rus.txt.gz",
+      "sha256": "e7b420bb017e8191c41f4bdaf3725b764dcfcfae580b57c36e11bb5e884f025d",
+      "rows": 36385
+    },
+    "readings": {
+      "russian": [
+        {
+          "forms": ["мир", "мира", "миру", "миром", "мире"],
+          "counts": {
+            "concept:world": 119,
+            "concept:peace": 10
+          }
+        }
+      ]
+    }
+  }
+}

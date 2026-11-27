@@ -45,8 +45,8 @@ before it can be checked off. Completed groups are stored in
 
 ## UT-16.10 Measure competing readings
 
-- [ ] Build reproducible, corpus-counted frequencies for code and natural language.
-- [ ] Verify parse-first interpretation ranking, natural-language ambiguity and popularity from the measured distributions.
+- [ ] Expand measured prose frequencies beyond the Russian noun family verified in `case-studies/issue-16/CORPUS-FREQUENCIES.md`.
+- [ ] Extend code statistics beyond task presence and verify competing grammatical meanings within individual formal languages.
 
 ## UT-16.12 Complete questions and query contracts
 

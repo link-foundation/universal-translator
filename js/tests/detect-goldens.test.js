@@ -41,6 +41,25 @@ describe('detecting the language of every golden', () => {
     });
     expect(detected.filter((candidate) => candidate.reads).length).toBe(1);
   });
+
+  it('breaks code ties by corpus presence after checking whole readings', () => {
+    const detected = translator.detectLanguage('c');
+    expect(
+      detected.slice(0, 4).map(({ id, reads, score }) => [id, reads, score])
+    ).toEqual([
+      ['english', true, 100],
+      ['julia', true, 100],
+      ['python', true, 100],
+      ['java', true, 100],
+    ]);
+    const [whole, partial] = translator.detectLanguage('x = 1\n% hello');
+    expect([whole.id, whole.reads, partial.id, partial.reads]).toEqual([
+      'matlab',
+      true,
+      'python',
+      false,
+    ]);
+  });
 });
 
 describe('words that start with an underscore', () => {

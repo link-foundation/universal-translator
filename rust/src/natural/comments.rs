@@ -40,9 +40,10 @@ use std::sync::{Arc, LazyLock, Mutex};
 use regex::Regex;
 
 use super::catalog::{natural_language, natural_language_ids};
-use super::probability::{priors, product, similarity};
+use super::probability::{product, reading_priors, similarity};
 use super::rules::semantic_primes;
 use super::vocabulary::{Grammar, grammar_of, known_form, stem_index, vocabulary_concepts};
+use crate::corpus_frequencies::reading_counts;
 
 pub(crate) fn fold(text: &str) -> String {
     text.to_lowercase()
@@ -75,6 +76,7 @@ fn neutral_words() -> &'static [String] {
 
 /// The meanings of one language.
 pub(crate) struct Meanings {
+    pub(crate) base: String,
     /// meaning -> phrases, the preferred phrase first
     pub(crate) phrases: HashMap<String, Vec<String>>,
     /// phrase -> meanings, the likeliest first
@@ -125,6 +127,7 @@ pub(crate) fn meanings_of(id: &str) -> Result<Arc<Meanings>, String> {
     let base = base_of(id)?;
     let grammar = grammar_of(&base);
     let mut result = Meanings {
+        base: base.clone(),
         phrases: HashMap::new(),
         meanings: HashMap::new(),
         order: Vec::new(),
@@ -180,9 +183,8 @@ pub(crate) fn meanings_of(id: &str) -> Result<Arc<Meanings>, String> {
 }
 
 /// The meanings of a phrase in the order a sentence makes likely: first the
-/// meanings that list it earliest (a word mostly means what it is the main
-/// word of: "в" is first "in", only then "inside"), then in a question the
-/// interrogative concepts first, elsewhere last.
+/// meanings most often observed in the corpus, or the meanings that list the
+/// phrase earliest. In a question interrogatives come first, elsewhere last.
 pub(crate) fn likely<'a>(phrase: &str, language: &'a Meanings, question: bool) -> Vec<&'a String> {
     let rank = |meaning: &String| {
         language.phrases[meaning.as_str()]
@@ -197,6 +199,15 @@ pub(crate) fn likely<'a>(phrase: &str, language: &'a Meanings, question: bool) -
         .iter()
         .collect();
     meanings.sort_by_key(|meaning| rank(meaning));
+    if let Some(counts) = reading_counts(
+        &language.base,
+        phrase,
+        meanings.iter().map(|meaning| meaning.as_str()),
+    ) {
+        let mut observed: Vec<_> = meanings.into_iter().zip(counts).collect();
+        observed.sort_by_key(|(_, count)| std::cmp::Reverse(*count));
+        meanings = observed.into_iter().map(|(meaning, _)| meaning).collect();
+    }
     let (asked, others): (Vec<&String>, Vec<&String>) = meanings
         .into_iter()
         .partition(|meaning| language.part(meaning) == "interrogative");
@@ -410,11 +421,10 @@ struct Words {
 }
 
 /// A phrase with more than one translation met while translating: its key
-/// (the word piece and the phrase) and how many options it has.
-#[derive(Clone)]
+/// (the word piece and the phrase) and the frequencies of its options.
 struct Reading {
     key: String,
-    options: usize,
+    frequencies: Vec<f64>,
 }
 
 /// Phrase translation through the grammar of both languages. A phrase with
@@ -466,9 +476,13 @@ impl ProseTranslator {
         let key = format!("{}:{phrase}", self.at.get());
         let mut readings = self.readings.borrow_mut();
         if !readings.iter().any(|reading| reading.key == key) {
+            let meanings: Vec<_> = options
+                .iter()
+                .map(|option| option.meaning.as_str())
+                .collect();
             readings.push(Reading {
                 key: key.clone(),
-                options: options.len(),
+                frequencies: reading_priors(&self.source.base, phrase, &meanings),
             });
         }
         let chosen = self.choices.get(&key).copied().unwrap_or(0);
@@ -859,7 +873,14 @@ fn scored(
     let frequency = product(
         &readings
             .iter()
-            .map(|reading| priors(reading.options)[choices.get(&reading.key).copied().unwrap_or(0)])
+            .map(|reading| {
+                let option = choices.get(&reading.key).copied().unwrap_or(0);
+                reading
+                    .frequencies
+                    .get(option)
+                    .copied()
+                    .unwrap_or(reading.frequencies[0])
+            })
             .collect::<Vec<_>>(),
     );
     let round_trip = similarity(source, &meaning_keys(&output, to)?);
@@ -896,7 +917,9 @@ pub fn rank_prose(text: &str, from: &str, to: &str) -> Result<Vec<RankedProse>, 
     let mut at = 0;
     while at < evaluated[best].readings.len() && evaluated.len() < SEARCH_LIMIT {
         let base = best;
-        let Reading { key, options } = evaluated[base].readings[at].clone();
+        let Reading { key, frequencies } = &evaluated[base].readings[at];
+        let options = frequencies.len();
+        let key = key.clone();
         let taken = evaluated[base].choices.get(&key).copied().unwrap_or(0);
         for option in (0..options).filter(|option| *option != taken) {
             if evaluated.len() >= SEARCH_LIMIT {

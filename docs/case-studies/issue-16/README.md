@@ -24,6 +24,8 @@ CI for a subset does not close that scope.
   source, scoped library contracts, pinned native toolchain and comparison logs.
 - [Rosetta Code coverage and behavior](ROSETTA-CODE.md) records the identical-input
   coverage comparison and the native regression for dropped C++ calls.
+- [Corpus frequencies](CORPUS-FREQUENCIES.md) records reproducible code-language
+  task counts and the observed frequencies of two competing Russian readings.
 - `data/issue-*.json`, `data/discussion-*.md` and `data/pulls-*`: complete issue
   and PR descriptions, conversation comments, inline comments and reviews.
   Long discussions are split into parts of at most 1,400 lines for review.

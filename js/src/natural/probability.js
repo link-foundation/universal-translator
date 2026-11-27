@@ -10,6 +10,8 @@
 //                read back from it that match the source, in order
 //   probability  frequency x round trip (x the share of lines translated)
 
+import { readingCounts } from '../translation/corpus-frequencies.js';
+
 const scale = 1e6;
 
 // A value on the truth value grid: clamped to [0, 1], six decimals, half up;
@@ -35,6 +37,16 @@ export function priors(count) {
     total += 1 / rank;
   }
   return Array.from({ length: count }, (_, at) => truth(1 / (at + 1) / total));
+}
+
+// The observed proportions when each available reading has corpus evidence.
+export function readingPriors(language, phrase, meanings) {
+  const counts = readingCounts(language, phrase, meanings);
+  if (!counts || meanings.length < 2) {
+    return priors(meanings.length);
+  }
+  const total = counts.reduce((sum, count) => sum + count, 0);
+  return counts.map((count) => truth(count / total));
 }
 
 // How much of `source` survives in `back`: the longest common subsequence

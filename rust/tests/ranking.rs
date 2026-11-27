@@ -84,8 +84,8 @@ fn ranks_the_readings_of_prose_the_default_first() {
         ranked[0],
         RankedProse {
             text: "Hello world. How do?".to_owned(),
-            probability: 0.296297,
-            frequency: 0.296297,
+            probability: 0.409992,
+            frequency: 0.409992,
             round_trip: 1.0,
         }
     );
@@ -103,6 +103,37 @@ fn ranks_the_readings_of_prose_the_default_first() {
     texts.sort_unstable();
     texts.dedup();
     assert_eq!(texts.len(), ranked.len());
+}
+
+#[test]
+fn uses_observed_noun_readings_and_reports_the_same_prior_in_meta() {
+    let expected = [
+        RankedProse {
+            text: "world".to_owned(),
+            probability: 0.922481,
+            frequency: 0.922481,
+            round_trip: 1.0,
+        },
+        RankedProse {
+            text: "peace".to_owned(),
+            probability: 0.0,
+            frequency: 0.077519,
+            round_trip: 0.0,
+        },
+    ];
+    for form in ["мир", "мира", "миру", "миром", "мире"] {
+        assert_eq!(
+            rank_prose(form, "russian", "english").expect(form),
+            expected
+        );
+        let prose = read_prose(form, Some("russian"), &|_| None).expect(form);
+        let word = prose.nodes("sentences")[0].nodes("words")[0];
+        assert_eq!(word.str("concept"), Some("world"));
+        assert_eq!(word.number("alternatives"), Some(2.0));
+        assert_eq!(word.number("probability"), Some(0.922481));
+    }
+    let unmeasured = rank_prose("строка", "russian", "english").expect("unmeasured");
+    assert_eq!(unmeasured[0].frequency, 0.666667);
 }
 
 #[test]
@@ -185,7 +216,7 @@ fn prints_the_candidates_on_the_command_line() {
     );
     assert!(
         output.contains(
-            "') (probability 0.296297) (frequency 0.296297) (roundTrip 1) (coverage 1)\n"
+            "') (probability 0.409992) (frequency 0.409992) (roundTrip 1) (coverage 1)\n"
         )
     );
     assert!(output.contains("(text 'Hello peace. How do?"));

@@ -5,6 +5,7 @@
 mod candidates;
 pub mod comment_language;
 mod concrete_syntax;
+mod corpus_frequencies;
 pub mod custom_rules;
 mod detect;
 mod emission_map;

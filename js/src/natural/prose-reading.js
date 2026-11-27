@@ -27,7 +27,7 @@ import {
   meaningsOf,
   pieces,
 } from './comments.js';
-import { priors } from './probability.js';
+import { readingPriors } from './probability.js';
 import { knownForm } from './vocabulary.js';
 
 const fold = (text) => text.toLocaleLowerCase();
@@ -41,7 +41,7 @@ const questionMarks = /[?？؟]/u;
 
 // 'concept:print' -> { concept: 'print' }, with the imprecision of a
 // reading out of several meanings.
-function meaningFields({ meaning, alternatives }, language) {
+function meaningFields({ meaning, alternatives, probability }, language) {
   const at = meaning.indexOf(':');
   return {
     [meaning.slice(0, at)]: meaning.slice(at + 1),
@@ -50,7 +50,7 @@ function meaningFields({ meaning, alternatives }, language) {
       ? {
           imprecision: 'ambiguous',
           alternatives,
-          probability: priors(alternatives)[0],
+          probability,
         }
       : {}),
   };
@@ -64,7 +64,7 @@ const unknownWord = (text) => ({
 });
 
 // The meaning of a known phrase, through its stem for a single word:
-// { meaning, alternatives } with the number of meanings it may have.
+// The chosen meaning, the number of possibilities, and its frequency.
 function meaningOf(phrase, language, single, question) {
   const form = language.meanings.has(phrase)
     ? phrase
@@ -75,7 +75,12 @@ function meaningOf(phrase, language, single, question) {
     return undefined;
   }
   const meanings = likely(form, language, question);
-  return { meaning: meanings[0], alternatives: meanings.length };
+  return {
+    meaning: meanings[0],
+    alternatives: meanings.length,
+    probability:
+      meanings.length > 1 ? readingPriors(language.base, form, meanings)[0] : 1,
+  };
 }
 
 // The words of a run of letters written without spaces: the longest known
