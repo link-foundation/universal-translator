@@ -499,6 +499,7 @@ jobs:
           cargo build --locked --bin universal-translator
           node experiments/verify-syntax-exchange.mjs
           node examples/translation/verify-portable-programs.mjs target/debug/universal-translator
+          node examples/translation/verify-exceptions.mjs target/debug/universal-translator
           node examples/translation/dependent-meanings.mjs
 
   native-translation:

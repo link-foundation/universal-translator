@@ -1,6 +1,7 @@
 //! Typed exception payloads and entry-point return values.
 use super::emitter::{Emitter, Result, field};
 use super::languages::EntryPoint;
+use super::{c_exceptions::CExceptionTarget, names::declared_names};
 use crate::meta::{GrammarError, Node, walk};
 use std::collections::HashSet;
 
@@ -10,10 +11,13 @@ const MARKER: &str = "universal-translator:throw";
 pub(crate) struct ExceptionState {
     names: HashSet<String>,
     active: Option<String>,
+    pub(super) c_target: Option<CExceptionTarget>,
+    pub(super) c_active: Option<String>,
 }
 
 impl Emitter {
     pub(crate) fn prepare_exceptions(&mut self, program: &Node) {
+        self.exceptions.names = declared_names(program);
         walk(program, |item| {
             if let Some(name) = item.str("name") {
                 self.exceptions.names.insert(name.to_owned());
@@ -21,7 +25,7 @@ impl Emitter {
         });
     }
 
-    fn fresh_exception_name(&mut self, role: &str) -> String {
+    pub(super) fn fresh_exception_name(&mut self, role: &str) -> String {
         let mut index = 0;
         while self
             .exceptions
@@ -36,6 +40,9 @@ impl Emitter {
     }
 
     pub(crate) fn exception_statement(&mut self, statement: &Node) -> Result<()> {
+        if self.syntax.id == "c" {
+            return self.c_exception_statement(statement);
+        }
         if !["cpp", "python", "javascript", "typescript"].contains(&self.id()) {
             return Err(GrammarError::new(format!(
                 "Exception translation is unavailable for {}",

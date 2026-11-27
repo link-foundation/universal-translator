@@ -4,6 +4,25 @@ import { SyntaxError } from './lexer.js';
 import { sourceType } from './parser.js';
 
 const languages = new Set(['cpp', 'javascript', 'typescript', 'python']);
+const distinctCppTypes = new Set([
+  'bool',
+  'char',
+  'double',
+  'float',
+  'int',
+  'long',
+  'short',
+]);
+
+function cppIntLiteral(tokens) {
+  const literal = tokens.at(-1);
+  return (
+    (tokens.length === 1 || (tokens.length === 2 && tokens[0].value === '-')) &&
+    literal?.type === 'number' &&
+    /^(0|[1-9]\d{0,4})$/.test(literal.value) &&
+    Number(literal.value) <= 32767
+  );
+}
 
 export const withExceptionParser = (Base) =>
   class extends Base {
@@ -14,11 +33,23 @@ export const withExceptionParser = (Base) =>
         }
         if (this.is(this.syntax.id === 'python' ? 'raise' : 'throw')) {
           this.next();
+          if (this.syntax.id === 'cpp') {
+            while (this.peek().type === 'newline') {
+              this.next();
+            }
+          }
+          const start = this.position;
           const value = this.isStatementEnd() ? undefined : this.expression();
+          const cppType =
+            this.syntax.id === 'cpp' &&
+            cppIntLiteral(this.tokens.slice(start, this.position))
+              ? 'int'
+              : undefined;
           this.endStatement();
           return node('Throw', {
             value,
             mode: this.syntax.id === 'python' ? 'exception' : 'value',
+            ...(cppType && { cppType }),
           });
         }
       }
@@ -64,19 +95,33 @@ export const withExceptionParser = (Base) =>
         }
       } else if (this.accept('(')) {
         if (this.syntax.id === 'cpp') {
-          const words = [];
-          while (!this.is(')')) {
-            words.push(this.next().value);
-          }
-          if (words.join('') !== '...') {
-            name = words.length > 1 ? words.pop() : undefined;
-            type = sourceType(words.join(' '));
-          }
-        } else {
-          name = this.expectName();
+          return this.cppCatchParameter();
         }
+        name = this.expectName();
         this.expect(')');
       }
       return { name, type };
+    }
+
+    cppCatchParameter() {
+      const tokens = [];
+      while (!this.is(')')) {
+        tokens.push(this.next());
+      }
+      this.expect(')');
+      const words = tokens.map(({ value }) => value);
+      if (words.join('') === '...') {
+        return { cppType: '...' };
+      }
+      const name = words.length > 1 ? words.pop() : undefined;
+      const type = sourceType(words.join(' '));
+      const cppType =
+        words.length === 1 &&
+        distinctCppTypes.has(words[0]) &&
+        (!name ||
+          (tokens[1].type === 'name' && !['const', 'volatile'].includes(name)))
+          ? words[0]
+          : undefined;
+      return { name, type, ...(cppType && { cppType }) };
     }
   };

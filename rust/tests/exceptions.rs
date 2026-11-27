@@ -52,6 +52,47 @@ fn translated_cpp_exceptions_keep_the_exit_status() {
 }
 
 #[test]
+fn c_lowers_a_local_cpp_integer_throw_and_catch_to_control_flow() {
+    let result = Translator::new()
+        .translate(SOURCE, "cpp", "c", Mode::default())
+        .unwrap();
+    assert!(result.contains("goto _ut_dispatch"), "{result}");
+    assert!(result.contains("int e = _ut_payload"), "{result}");
+}
+
+#[test]
+fn c_rejects_exception_paths_that_need_a_different_type_or_unwinding() {
+    let translator = Translator::new();
+    for (source, message) in [
+        (
+            SOURCE.replace("throw 8;", "throw 010;"),
+            "portable C++ int literal",
+        ),
+        (
+            SOURCE.replace("throw 8;", "throw 40000;"),
+            "portable C++ int literal",
+        ),
+        (
+            SOURCE.replace("catch (int e)", "catch (int &e)"),
+            "known C++ catch type",
+        ),
+        (
+            SOURCE.replace("throw 8;", "unknown(); throw 8;"),
+            "cannot unwind Call",
+        ),
+        (
+            SOURCE.replace("catch (int e)", "catch (double e)"),
+            "local matching handler",
+        ),
+    ] {
+        let error = translator
+            .translate(&source, "cpp", "c", Mode::default())
+            .unwrap_err();
+        assert!(error.to_string().contains(message), "{source}\n{error}");
+    }
+}
+
+#[test]
 fn exception_names_preserve_user_bindings() {
     let source = "int main() { int _ut_error0 = 5; try { throw 8; } catch(int e) { return _ut_error0 + e; } }";
     let translation = Translator::new()

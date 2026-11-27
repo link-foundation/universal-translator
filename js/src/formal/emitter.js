@@ -616,7 +616,7 @@ class BaseEmitter {
   openBlock(header) {
     switch (this.syntax.blocks) {
       case 'braces':
-        this.line(`${header} {`);
+        this.line(header ? `${header} {` : '{');
         break;
       case 'indentation':
         // Nim's procedure heads end with "=", not ":".

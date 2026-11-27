@@ -5,6 +5,7 @@
 
 pub mod array_spellings;
 pub mod arrays;
+mod c_exceptions;
 pub(crate) mod comment_syntax;
 pub mod common_library;
 pub(crate) mod cpp_library;

@@ -17,9 +17,9 @@
 //   Return         { value }
 //   Print          { value, newline }
 //   Evaluate       { expression }
-//   Throw          { value?, mode }    an exception object or arbitrary value
+//   Throw          { value?, mode, cppType? }    an exception object or arbitrary value
 //   Try            { body, handlers, success?, finalizer? }
-//   Catch          { name?, type?, body }
+//   Catch          { name?, type?, body, cppType? }
 //   Comment        { text, trailing?, block? }   trailing: the spaces between
 //                  the code and a comment on the same line; block: written
 //                  as a block comment
@@ -180,6 +180,7 @@ export function laterCalls(items) {
 // an untyped language cannot express and comment wording.
 const ignoredKeys = new Set([
   'type',
+  'cppType',
   'returnType',
   'comments',
   'mainComments',

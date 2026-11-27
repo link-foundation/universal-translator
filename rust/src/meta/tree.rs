@@ -444,7 +444,7 @@ pub fn later_calls<'a>(items: impl IntoIterator<Item = &'a Node>) -> Vec<Node> {
 
 /// Fields that do not change behaviour: types that an untyped language cannot
 /// express, comments, imports and mutability.
-const IGNORED_KEYS: [&str; 9] = [
+const IGNORED_KEYS: [&str; 10] = [
     "type",
     "returnType",
     "comments",
@@ -452,6 +452,7 @@ const IGNORED_KEYS: [&str; 9] = [
     "imports",
     "mutable",
     "elementsAssigned",
+    "cppType",
     "blankAfter",
     "imprecision",
 ];

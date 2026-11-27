@@ -1,6 +1,8 @@
 // Runtime carriers keep C++ values throwable in languages whose exceptions
 // must be objects. The tag distinguishes integer and real payloads.
 import { walk } from '../meta/tree.js';
+import { declaredNames } from './names.js';
+import { withCExceptions } from './c-exceptions.js';
 
 import {
   exceptionMarker as marker,
@@ -9,9 +11,9 @@ import {
 const supported = new Set(['cpp', 'python', 'javascript', 'typescript']);
 
 export const withExceptions = (Base) =>
-  class extends withExceptionHandlers(Base) {
+  class extends withCExceptions(withExceptionHandlers(Base)) {
     program(program) {
-      this.exceptionNames = new Set();
+      this.exceptionNames = declaredNames(program);
       walk(program, (item) => {
         if (item.name) {
           this.exceptionNames.add(item.name);
@@ -33,6 +35,9 @@ export const withExceptions = (Base) =>
 
     statement(statement) {
       if (['Try', 'Throw'].includes(statement.kind)) {
+        if (this.syntax.id === 'c') {
+          return this.cExceptionStatement(statement);
+        }
         if (!supported.has(this.id)) {
           throw new Error(
             `Exception translation is unavailable for ${this.id}`

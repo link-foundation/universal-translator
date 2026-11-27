@@ -38,6 +38,34 @@ describe('typed exception handling', () => {
     }
   });
 
+  it('lowers a local C++ integer throw and catch to C control flow', () => {
+    const result = translator.translatePartial(source, 'cpp', 'c');
+    expect(result.complete).toBe(true);
+    expect(result.text).toContain('goto _ut_dispatch');
+    expect(result.text).toContain('int e = _ut_payload');
+  });
+
+  it('rejects C exception paths that need a different type or unwinding', () => {
+    for (const [text, error] of [
+      [source.replace('throw 8;', 'throw 010;'), /portable C\+\+ int literal/],
+      [
+        source.replace('throw 8;', 'throw 40000;'),
+        /portable C\+\+ int literal/,
+      ],
+      [
+        source.replace('catch (int e)', 'catch (int &e)'),
+        /known C\+\+ catch type/,
+      ],
+      [source.replace('throw 8;', 'unknown(); throw 8;'), /cannot unwind Call/],
+      [
+        source.replace('catch (int e)', 'catch (double e)'),
+        /local matching handler/,
+      ],
+    ]) {
+      expect(() => translator.translate(text, 'cpp', 'c')).toThrow(error);
+    }
+  });
+
   it('detects the source as C++ after a complete parse', () => {
     expect(detectLanguage(source)[0].id).toBe('cpp');
   });

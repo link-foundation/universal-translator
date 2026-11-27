@@ -684,6 +684,7 @@ impl Emitter {
 
     pub(crate) fn open_block(&mut self, header: &str) {
         match self.syntax.blocks {
+            Blocks::Braces if header.is_empty() => self.line("{"),
             Blocks::Braces => self.line(&format!("{header} {{")),
             // Nim's procedure heads end with "=" instead of ":".
             Blocks::Indentation if header.ends_with('=') => self.line(header),
