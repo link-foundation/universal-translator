@@ -267,7 +267,7 @@ impl<'a> WatFunction<'a> {
     fn instruction(&mut self, instruction: &Instruction) {
         let slot_name = |slot: usize| format!("${}", self.item.slot_names[slot]);
         let lines: Vec<String> = match instruction {
-            Instruction::Comment(text) => comments(";;", std::slice::from_ref(text), ""),
+            Instruction::Comment(text) => comments(";;", std::slice::from_ref(text), "").to_vec(),
             Instruction::Load(slot) => vec![format!("local.get {}", slot_name(*slot))],
             Instruction::Store(slot) => vec![format!("local.set {}", slot_name(*slot))],
             Instruction::Label(name) => {
@@ -400,7 +400,7 @@ impl<'a> WatFunction<'a> {
         } else {
             ""
         };
-        let mut lines: SourceLines = comments(";;", &item.comments, "  ").into();
+        let mut lines: SourceLines = comments(";;", &item.comments, "  ");
         lines.push(format!(
             "  (func ${}{exported}{parameters}{result}",
             item.name
@@ -480,7 +480,7 @@ pub fn write_wat(program: &LoweredProgram) -> Result<String> {
         .collect();
     let arrays = creates_arrays(program);
     let heap = texts.size.div_ceil(8) * 8;
-    let mut lines: SourceLines = comments(";;", &program.comments, "").into();
+    let mut lines: SourceLines = comments(";;", &program.comments, "");
     if !program.comments.is_empty() {
         lines.push(String::new());
     }

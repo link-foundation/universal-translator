@@ -4,6 +4,8 @@
 // blocks that end at the labels, the dispatch loop with its br_table, and the
 // "$.stack.N" locals that carry the stack across a jump.
 
+import { pushComment } from '../translation/source-origins.js';
+
 import {
   decodeBytes,
   integer,
@@ -14,7 +16,7 @@ import {
   relationsByJump,
   sourceLines,
 } from './machine-reader-shared.js';
-import { includeLine } from './machine-source.js';
+import { includeLine, linesOrigin } from './machine-source.js';
 
 const watRelations = relationsByJump({
   equal: 'i64.eq',
@@ -248,7 +250,7 @@ export function readWat(source) {
     const line = rest[index];
     const match = line.match(header);
     if (line.startsWith(';;')) {
-      pending.push(line.replace(/^;; ?/, ''));
+      pushComment(pending, line.replace(/^;; ?/, ''), linesOrigin(rest, index));
     } else if (match && match[1] !== 'new_array') {
       const end = rest.indexOf(')', index);
       items.push(

@@ -305,7 +305,9 @@ pub fn read_nasm(source: &str) -> Result<LoweredProgram> {
     while index < text.len() {
         let line = &text[index];
         if let Some(comment) = line.strip_prefix(';') {
-            pending.push(comment.strip_prefix(' ').unwrap_or(comment).to_owned());
+            pending.push(crate::emission_map::map_source_line(line, |_| {
+                comment.strip_prefix(' ').unwrap_or(comment).to_owned()
+            }));
         } else if let Some(found) = label.captures(line)
             && text
                 .get(index + 1)
@@ -471,7 +473,9 @@ pub fn read_cil(source: &str) -> Result<LoweredProgram> {
     while index < rest.len() {
         let line = &rest[index];
         if let Some(comment) = line.strip_prefix("//") {
-            pending.push(comment.strip_prefix(' ').unwrap_or(comment).to_owned());
+            pending.push(crate::emission_map::map_source_line(line, |_| {
+                comment.strip_prefix(' ').unwrap_or(comment).to_owned()
+            }));
             index += 1;
             continue;
         }
@@ -667,7 +671,9 @@ pub fn read_jvm(source: &str) -> Result<LoweredProgram> {
     while index < rest.len() {
         let line = &rest[index];
         if let Some(comment) = line.strip_prefix(';') {
-            pending.push(comment.strip_prefix(' ').unwrap_or(comment).to_owned());
+            pending.push(crate::emission_map::map_source_line(line, |_| {
+                comment.strip_prefix(' ').unwrap_or(comment).to_owned()
+            }));
             index += 1;
             continue;
         }

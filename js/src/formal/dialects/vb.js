@@ -356,9 +356,7 @@ const emitter = (Base) =>
     }
 
     functionDefinition(item) {
-      for (const text of item.comments ?? []) {
-        this.comment(text);
-      }
+      this.comments(item, 'comments');
       const parameters = item.parameters
         .map(({ name, type }) => `${name} As ${this.type(type)}`)
         .join(', ');
@@ -370,9 +368,7 @@ const emitter = (Base) =>
     }
 
     program(program) {
-      for (const text of program.comments) {
-        this.comment(text);
-      }
+      this.comments(program, 'comments');
       if (program.comments.length) {
         this.line();
       }
@@ -384,9 +380,7 @@ const emitter = (Base) =>
           this.line();
         }
       });
-      for (const text of program.mainComments ?? []) {
-        this.comment(text);
-      }
+      this.comments(program, 'mainComments');
       this.line('Sub Main()');
       this.indented(program.main);
       this.line('End Sub');

@@ -1046,10 +1046,12 @@ impl Emitter {
         dialect.function_definition(self, item)
     }
 
+    pub(crate) fn comments(&mut self, owner: &Node, key: &str) {
+        crate::emission_map::for_each_comment(owner, key, |text| self.comment(text));
+    }
+
     pub(crate) fn base_function_definition(&mut self, item: &Node) -> Result<()> {
-        for text in item.texts("comments") {
-            self.comment(&text);
-        }
+        self.comments(item, "comments");
         self.write_annotations(item)?;
         let mut signature = self
             .metadata_signature(item)?
@@ -1123,9 +1125,7 @@ impl Emitter {
     }
 
     pub(crate) fn base_main(&mut self, program: &Node) -> Result<()> {
-        for text in program.texts("mainComments") {
-            self.comment(&text);
-        }
+        self.comments(program, "mainComments");
         if self.exception_main(program)? {
             return Ok(());
         }
@@ -1197,9 +1197,7 @@ impl Emitter {
             self.lines.push(String::new());
         }
         let comments = program.texts("comments");
-        for text in &comments {
-            self.comment(text);
-        }
+        self.comments(program, "comments");
         if !comments.is_empty() {
             self.line("");
         }

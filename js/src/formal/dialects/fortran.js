@@ -538,9 +538,7 @@ const emitter = (Base) =>
     }
 
     functionDefinition(item) {
-      for (const text of item.comments ?? []) {
-        this.comment(text);
-      }
+      this.comments(item, 'comments');
       const list = item.parameters.map(({ name }) => name).join(', ');
       const subroutine = item.returnType === 'nothing';
       const kind = subroutine ? 'subroutine' : 'function';
@@ -573,9 +571,7 @@ const emitter = (Base) =>
     }
 
     program(program) {
-      for (const text of program.comments) {
-        this.comment(text);
-      }
+      this.comments(program, 'comments');
       if (program.comments.length) {
         this.line();
       }
@@ -587,9 +583,7 @@ const emitter = (Base) =>
       this.line('implicit none');
       this.variables(program.main);
       this.line();
-      for (const text of program.mainComments ?? []) {
-        this.comment(text);
-      }
+      this.comments(program, 'mainComments');
       this.body(program.main);
       if (program.functions.length) {
         this.depth -= 1;

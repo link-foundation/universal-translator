@@ -8,6 +8,8 @@
 // A reader returns { comments, functions, main }. Every function has
 // { name, parameterCount, slotNames, returns, comments, code }.
 
+import { linesOrigin } from './machine-source.js';
+
 import { jasminVariable } from './machine.js';
 import { readArm64, readGas } from './machine-reader-assembly.js';
 import { readLlvm } from './machine-reader-llvm.js';
@@ -23,7 +25,7 @@ import {
   sourceLines,
 } from './machine-reader-shared.js';
 import { readWat } from './machine-reader-wasm.js';
-import { mapOrigins } from '../translation/source-origins.js';
+import { mapOrigins, pushComment } from '../translation/source-origins.js';
 
 const nasmRelations = relationsByJump({
   equal: 'je',
@@ -243,7 +245,7 @@ export function readNasm(source) {
     const line = text[index];
     const label = line.match(/^(\w+):$/);
     if (line.startsWith(';')) {
-      pending.push(line.replace(/^; ?/, ''));
+      pushComment(pending, line.replace(/^; ?/, ''), linesOrigin(text, index));
     } else if (label && text[index + 1]?.startsWith('%push')) {
       const end = text.indexOf('%pop', index);
       items.push(
@@ -343,7 +345,11 @@ export function readCil(source) {
       /^\.method public static (int64|void) (\w+)\(([^)]*)\) cil managed$/
     );
     if (line.startsWith('//')) {
-      pending.push(line.replace(/^\/\/ ?/, ''));
+      pushComment(
+        pending,
+        line.replace(/^\/\/ ?/, ''),
+        linesOrigin(rest, index)
+      );
       continue;
     }
     if (!header) {
@@ -463,7 +469,7 @@ export function readJvm(source) {
       /^\.method public static (\w+)\(([^)]*)\)([JV])$/
     );
     if (line.startsWith(';')) {
-      pending.push(line.replace(/^; ?/, ''));
+      pushComment(pending, line.replace(/^; ?/, ''), linesOrigin(rest, index));
       continue;
     }
     if (!header) {

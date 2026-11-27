@@ -677,7 +677,7 @@ fn read_lines(source: &str, language: &Language) -> Vec<Line> {
 
 struct Paragraph {
     notes_only: bool,
-    notes: Vec<String>,
+    notes: Vec<Node>,
     function: Option<Node>,
     statements: Vec<Node>,
 }
@@ -844,11 +844,14 @@ impl ProgramReader<'_> {
             }
             first = false;
         }
-        Ok(Node::new("Program")
-            .with("comments", comments)
-            .with("imports", Value::List(Vec::new()))
-            .with("functions", functions)
-            .with("main", block(main)))
+        Ok(crate::source_origins::attach_comments(
+            Node::new("Program")
+                .with("imports", Value::List(Vec::new()))
+                .with("functions", functions)
+                .with("main", block(main)),
+            "comments",
+            &comments,
+        ))
     }
 
     fn paragraph(&mut self) -> Result<Paragraph, String> {
@@ -858,14 +861,17 @@ impl ProgramReader<'_> {
             .get(self.position)
             .and_then(|line| line.note.clone())
         {
-            notes.push(note);
+            notes.push(
+                self.source
+                    .at_line(comment(&note), self.lines[self.position].index),
+            );
             self.position += 1;
         }
-        let comments = |notes: &[String]| notes.iter().map(|text| comment(text)).collect();
+
         let Some(line) = self.lines.get(self.position).filter(|line| !line.blank) else {
             return Ok(Paragraph {
                 notes_only: true,
-                statements: comments(&notes),
+                statements: notes.clone(),
                 notes,
                 function: None,
             });
@@ -886,13 +892,16 @@ impl ProgramReader<'_> {
                     .collect(),
                 _ => Vec::new(),
             };
-            let function = self.source.at_line(
-                Node::new("Function")
-                    .with("name", name_slot(&mut slots, "name"))
-                    .with("parameters", parameters)
-                    .with("body", body)
-                    .with("comments", notes),
-                heading_line,
+            let function = crate::source_origins::attach_comments(
+                self.source.at_line(
+                    Node::new("Function")
+                        .with("name", name_slot(&mut slots, "name"))
+                        .with("parameters", parameters)
+                        .with("body", body),
+                    heading_line,
+                ),
+                "comments",
+                &notes,
             );
             return Ok(Paragraph {
                 notes_only: false,
@@ -901,7 +910,7 @@ impl ProgramReader<'_> {
                 statements: Vec::new(),
             });
         }
-        let mut statements: Vec<Node> = comments(&notes);
+        let mut statements: Vec<Node> = notes.clone();
         statements.extend(self.block(0.0)?.node_list("statements"));
         Ok(Paragraph {
             notes_only: false,

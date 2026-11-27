@@ -24,10 +24,11 @@ Implemented and checked so far:
 - C++ typed throw/catch values retain their meaning in Python and JavaScript, including nested rethrows. The exact issue example compiles and exits with status 8 in all three runtimes.
 - Default formal, natural and machine readers retain lossless concrete source records, with UTF-8 byte offsets and exact reconstruction in JavaScript and Rust. Partial parsing also preserves malformed input, trivia-only input and CRLF; accepted fragments and unread ranges are separate.
 - Source ownership follows semantic nodes through parsing, rewrites, all seven machine instruction formats and lifting. The complete Java Fibonacci interpolation maps to both the Bash call and echo, and both map back to the Java print without colouring the loop. All 30 controlled natural languages map statements in both directions. Partial recovery combines maps across valid fragments, failure notes and custom prose that splits into several output lines.
+- File, function and entry-point comment headers retain independent positions in every current reader/writer, even when translated words and header order change. Fortran-to-Python colour mapping has a browser regression and before/after screenshots.
 - JavaScript and Rust grammar workspaces import and execute nine formats, preserve concrete syntax/provenance, update sources and dependencies, merge equivalent rules with stable identities, retain separate editions, apply six transform stages and install semantic readers into translation. The browser-safe `/grammar` entry, public types, bounded recovery and runnable example are verified.
 - The case study archives all issue/PR discussions, eight attachments, 22 compressed solver logs, local/CI evidence, root-cause analysis and primary-source architecture research. The Rust package includes the new regression fixtures.
 
-Still being implemented: exact subline mapping and comment headers, the reported gutter artifact, agreement throughout all natural languages and comments, full operator coverage, remaining exception targets, questions/introspection/SQL/LINQ, complete upstream grammar production/semantic coverage and faithful feature lowering, and every inherited coverage gap. Passing CI for the completed pieces does not establish completion of those criteria.
+Still being implemented: exact subline mapping, the reported gutter artifact, agreement throughout all natural languages and comments, full operator coverage, remaining exception targets, questions/introspection/SQL/LINQ, complete upstream grammar production/semantic coverage and faithful feature lowering, and every inherited coverage gap. Passing CI for the completed pieces does not establish completion of those criteria.
 
 ## Reproduce and verify
 
@@ -38,7 +39,7 @@ Still being implemented: exact subline mapping and comment headers, the reported
 
 Automated checks include `js/tests/issue-16.test.js`, `annotations.test.js`, `exceptions.test.js`, `concrete-syntax.test.js`, `natural-wordings.test.js`, `issue-report.test.js`, `universal-app-editors.test.js`, the web end-to-end suite, `grammar-workspace.test.js`, and matching focused Rust targets. The grammar adapter has 13 JS/Deno tests and nine Rust tests; TypeScript and Deno check the public type example, the browser executes the adapter, and the production web build passes. Run `node examples/translation/verify-exceptions.mjs` for native C++/Python/JavaScript exit-status verification and `python3 examples/translation/spring/verify.py` for the Spring example. One Changeset prepares the next release.
 
-At `34cad04`, Node, Bun, Deno, web, security and link checks pass. Rust failed because its server suppressed semantic maps for natural/machine requests (`ci-rust-34cad04.txt:1304–1307`). Commit `28bd803` repairs that condition and adds HTTP/parity regressions, which pass locally. The later archive commit `4cb1de8` failed lint because three preserved experiments had unformatted code (`ci-lint-4cb1de8.txt:282–311`); `1601592` formats them and splits an oversized test group, with focused lint and server tests passing. Current grammar CI will run after this push. The earlier Rust trace expectation failure after adding machine concrete records is repaired by `157ae86` and its focused regression passes. Focused semantic mapping, partial recovery, concrete syntax, lint, format and Clippy checks pass. The circular web chunk issue is repaired and the example-app workflow passes.
+At `ac07029`, Rust, lint, native translation and the example app pass. Node, Bun and Deno failed a stale package-file assertion, repaired by `41570a3`. Docker omitted the grammar runtime, repaired by `69638cf`; an installed npm artifact test now executes an EBNF grammar through the public `/grammar` entry. That test passes locally. Header mapping adds three JS/Deno and three Rust regressions; 110 focused JS checks and 24 Rust mapping/concrete/layout checks pass, alongside lint, format, Clippy and real-browser colour checks. Current-commit CI follows this push. Earlier server, trace, archive-formatting and circular-web-chunk failures have focused repairs and preserved logs in the case study.
 
 ## Browser evidence
 
@@ -57,3 +58,11 @@ The issue's C++ example translated to executable Python:
 The Java print statement and its two Bash lines share a colour group:
 
 ![semantic source mapping](https://github.com/link-foundation/universal-translator/blob/issue-16-fb080613587e/docs/screenshots/issue-16/semantic-mapping-after.png?raw=true)
+
+Before: Fortran's iteration header shares the file header's colour; Python's iteration header has no matching colour:
+
+![comment headers before](https://github.com/link-foundation/universal-translator/blob/issue-16-fb080613587e/docs/screenshots/issue-16/comment-mapping-before.png?raw=true)
+
+After: each translated header shares its own colour in both panes:
+
+![comment headers after](https://github.com/link-foundation/universal-translator/blob/issue-16-fb080613587e/docs/screenshots/issue-16/comment-mapping-after.png?raw=true)

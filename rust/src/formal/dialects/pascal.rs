@@ -335,9 +335,7 @@ impl EmitterDialect for Pascal {
     }
 
     fn function_definition(&self, e: &mut Emitter, item: &Node) -> Result<()> {
-        for text in item.texts("comments") {
-            e.comment(&text);
-        }
+        e.comments(item, "comments");
         let heading = heading(e, item);
         e.line(&heading);
         variables(e, field(item, "body")?);
@@ -355,9 +353,7 @@ impl EmitterDialect for Pascal {
         }
         e.line("begin");
         e.depth += 1;
-        for text in program.texts("mainComments") {
-            e.comment(&text);
-        }
+        e.comments(program, "mainComments");
         e.body(field(program, "main")?)?;
         e.depth -= 1;
         e.line("end.");

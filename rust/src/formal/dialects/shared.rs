@@ -8,15 +8,16 @@ use crate::meta::{Node, number, text};
 
 /// A comment token as a Comment node, keeping where it stood (after code on
 /// the same line) and whether it was a block comment.
-pub(crate) fn comment_node(token: &Token) -> Node {
+pub(crate) fn comment_node(parser: &mut Parser, token: &Token) -> Node {
     let node = Node::new("Comment")
         .with("text", token.value.as_str())
         .with_opt("trailing", token.trailing.clone());
-    if token.block {
+    let node = if token.block {
         node.with("block", true)
     } else {
         node
-    }
+    };
+    parser.token_node(node, token)
 }
 
 /// Empty lines of a newline token as a Blank node, when they follow items.
@@ -51,7 +52,7 @@ impl Parser {
         while !done(self) && self.kind(0) != TokenType::End {
             if self.kind(0) == TokenType::Comment {
                 let comment = self.next()?;
-                statements.push(comment_node(&comment));
+                statements.push(comment_node(self, &comment));
             } else {
                 statements.push(self.statement()?);
             }
@@ -66,7 +67,7 @@ impl Parser {
             let token = self.current().clone();
             self.position += 1;
             if token.kind == TokenType::Comment {
-                items.push(comment_node(&token));
+                items.push(comment_node(self, &token));
             } else {
                 items.extend(blank_node(&token, items));
             }

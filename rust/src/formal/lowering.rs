@@ -598,13 +598,13 @@ pub fn lower_program(program: &Node) -> Result<LoweredProgram> {
         let mut lowering =
             FunctionLowering::new(name, &item.nodes("parameters"), returns, &functions);
         lowering.block(field(item, "body")?)?;
-        lowered.push(lowering.finish(item.texts("comments")));
+        lowered.push(lowering.finish(crate::emission_map::comment_texts(item, "comments")));
     }
     let mut main = FunctionLowering::new("main", &[], false, &functions);
     main.block(field(program, "main")?)?;
     Ok(LoweredProgram {
-        comments: program.texts("comments"),
+        comments: crate::emission_map::comment_texts(program, "comments"),
         functions: lowered,
-        main: main.finish(program.texts("mainComments")),
+        main: main.finish(crate::emission_map::comment_texts(program, "mainComments")),
     })
 }

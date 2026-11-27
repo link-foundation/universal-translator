@@ -221,7 +221,7 @@ fn gas_function(
             }
         }
     }
-    let mut lines: SourceLines = comments("#", &item.comments, "").into();
+    let mut lines: SourceLines = comments("#", &item.comments, "");
     lines.push(format!(".type {}, @function", item.name));
     lines.push(format!("{}:", item.name));
     lines.extend(body.map_text(indent));
@@ -282,7 +282,7 @@ pub fn write_gas(program: &LoweredProgram) -> Result<String> {
     for item in all_functions(program) {
         functions.push(gas_function(item, &calls, &mut texts)?);
     }
-    let mut lines: SourceLines = comments("#", &program.comments, "").into();
+    let mut lines: SourceLines = comments("#", &program.comments, "");
     if !program.comments.is_empty() {
         lines.push(String::new());
     }
@@ -474,7 +474,7 @@ fn arm_function(
             }
         }
     }
-    let mut lines: SourceLines = comments("//", &item.comments, "").into();
+    let mut lines: SourceLines = comments("//", &item.comments, "");
     lines.push(format!(".type {}, %function", item.name));
     lines.push(format!("{}:", item.name));
     lines.extend(body.map_text(indent));
@@ -530,7 +530,7 @@ pub fn write_arm64(program: &LoweredProgram) -> Result<String> {
     for item in all_functions(program) {
         functions.push(arm_function(item, &calls, &mut texts)?);
     }
-    let mut lines: SourceLines = comments("//", &program.comments, "").into();
+    let mut lines: SourceLines = comments("//", &program.comments, "");
     if !program.comments.is_empty() {
         lines.push(String::new());
     }

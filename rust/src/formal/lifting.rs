@@ -1060,22 +1060,29 @@ pub fn lift_program(machine: &LoweredProgram) -> Result<Node> {
         } else {
             "integer"
         };
-        lifted_functions.push(
+        lifted_functions.push(crate::source_origins::attach_comment_texts(
             Node::new("Function")
                 .with("name", neutral_name(&item.name))
                 .with("parameters", parameters)
                 .with("body", body)
-                .with("returnType", return_type)
-                .with("comments", item.comments.clone()),
-        );
+                .with("returnType", return_type),
+            "comments",
+            &item.comments,
+        ));
     }
     let (_, main) = FunctionLifting::new(&machine.main, &functions, &boolean_functions).lift()?;
     Ok(raise_truth_functions(
-        Node::new("Program")
-            .with("comments", machine.comments.clone())
-            .with("imports", Value::List(Vec::new()))
-            .with("functions", lifted_functions)
-            .with("main", main)
-            .with("mainComments", machine.main.comments.clone()),
+        crate::source_origins::attach_comment_texts(
+            crate::source_origins::attach_comment_texts(
+                Node::new("Program")
+                    .with("imports", Value::List(Vec::new()))
+                    .with("functions", lifted_functions)
+                    .with("main", main),
+                "comments",
+                &machine.comments,
+            ),
+            "mainComments",
+            &machine.main.comments,
+        ),
     ))
 }

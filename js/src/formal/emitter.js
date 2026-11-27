@@ -19,6 +19,7 @@ import { writePower } from './power.js';
 import { namedType, withTypeMetadata } from './type-metadata.js';
 import { withExceptions } from './exceptions.js';
 import {
+  mappedComments,
   mappedEmitter,
   mappedLine,
   renderLines,
@@ -137,6 +138,10 @@ const isTrivia = (statement) =>
   statement.kind === 'Comment' || statement.kind === 'Blank';
 
 class BaseEmitter {
+  comments(owner, key = 'comments') {
+    mappedComments(this, owner[key] ?? [], (text) => this.comment(text));
+  }
+
   constructor(syntax) {
     this.syntax = syntax;
     // A dialect such as Objective-C is written with the tables of the
@@ -821,9 +826,7 @@ class BaseEmitter {
   }
 
   functionDefinition(item) {
-    for (const text of item.comments ?? []) {
-      this.comment(text);
-    }
+    this.comments(item, 'comments');
     for (const annotation of item.annotations ?? []) {
       if (!['java', 'kotlin', 'python'].includes(this.id)) {
         throw new Error(`Annotations need a framework mapping for ${this.id}`);
@@ -900,9 +903,7 @@ class BaseEmitter {
     if (this.id === 'php') {
       this.lines.push(this.syntax.header ?? '<?php', '');
     }
-    for (const text of program.comments) {
-      this.comment(text);
-    }
+    this.comments(program, 'comments');
     if (program.comments.length) {
       this.line();
     }
@@ -915,9 +916,7 @@ class BaseEmitter {
 
   // The top-level statements, in a main procedure where the language has one.
   main(program) {
-    for (const text of program.mainComments ?? []) {
-      this.comment(text);
-    }
+    this.comments(program, 'mainComments');
     const header = this.mainHeader();
     if (!header) {
       this.body(program.main);

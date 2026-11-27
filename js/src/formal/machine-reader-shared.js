@@ -3,6 +3,7 @@
 
 import {
   combineOrigins,
+  trackComments,
   sourceOrigin,
   withOrigin,
 } from '../translation/source-origins.js';
@@ -61,6 +62,10 @@ export function leadingComments(lines, prefix, start) {
     .slice(0, Math.max(first, 0))
     .filter((line) => line.startsWith(prefix))
     .map((line) => line.slice(prefix.length).replace(/^ /, ''));
+  trackComments(
+    comments,
+    comments.map((_, index) => linesOrigin(comments, index))
+  );
   return { comments, rest: lines.slice(first) };
 }
 

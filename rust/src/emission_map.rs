@@ -143,9 +143,16 @@ pub(crate) fn line_origins(line: &str) -> Origins {
 }
 
 pub(crate) fn clone_source_line(line: &str) -> String {
-    let cloned = line.to_owned();
+    map_source_line(line, str::to_owned)
+}
+
+pub(crate) fn map_source_line(line: &str, change: impl FnOnce(&str) -> String) -> String {
+    let cloned = change(line);
+    register_text_origins(cloned, line_origins(line))
+}
+
+fn register_text_origins(cloned: String, origins: Origins) -> String {
     if !cloned.is_empty() {
-        let origins = line_origins(line);
         CONTEXTS.with_borrow_mut(|contexts| {
             if let Some(context) = contexts.last_mut() {
                 let address = cloned.as_ptr() as usize;
@@ -157,6 +164,28 @@ pub(crate) fn clone_source_line(line: &str) -> String {
         });
     }
     cloned
+}
+
+pub(crate) fn comment_texts(node: &Node, key: &str) -> Vec<String> {
+    let origins = crate::source_origins::comment_origins(node, key);
+    node.texts(key)
+        .into_iter()
+        .enumerate()
+        .map(|(index, text)| {
+            register_text_origins(
+                text,
+                origins.get(index).cloned().flatten().into_iter().collect(),
+            )
+        })
+        .collect()
+}
+
+pub(crate) fn for_each_comment(node: &Node, key: &str, mut write: impl FnMut(&str)) {
+    let origins = crate::source_origins::comment_origins(node, key);
+    for (index, text) in node.texts(key).iter().enumerate() {
+        let _origin = active_origins(origins.get(index).cloned().flatten().into_iter().collect());
+        write(text);
+    }
 }
 
 pub(crate) fn cloned_source_lines(lines: &[String]) -> Vec<String> {

@@ -373,7 +373,9 @@ pub fn read_wat(source: &str) -> Result<LoweredProgram> {
         let line = &rest[index];
         let found = header.captures(line);
         if let Some(text) = line.strip_prefix(";;") {
-            pending.push(text.strip_prefix(' ').unwrap_or(text).to_owned());
+            pending.push(crate::emission_map::map_source_line(line, |_| {
+                text.strip_prefix(' ').unwrap_or(text).to_owned()
+            }));
         } else if let Some(found) = found.filter(|found| group(found, 1) != "new_array") {
             let end = rest[index..]
                 .iter()

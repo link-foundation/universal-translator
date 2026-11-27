@@ -419,9 +419,7 @@ impl EmitterDialect for Matlab {
     }
 
     fn function_definition(&self, e: &mut Emitter, item: &Node) -> Result<()> {
-        for comment in item.texts("comments") {
-            e.comment(&comment);
-        }
+        e.comments(item, "comments");
         let body = field(item, "body")?;
         let mut returns = false;
         each_statement(body, &mut |statement| {
@@ -447,9 +445,7 @@ impl EmitterDialect for Matlab {
 
     fn program(&self, e: &mut Emitter, program: &Node) -> Result<String> {
         let comments = program.texts("comments");
-        for comment in &comments {
-            e.comment(comment);
-        }
+        e.comments(program, "comments");
         if !comments.is_empty() {
             e.line("");
         }
@@ -466,9 +462,7 @@ impl EmitterDialect for Matlab {
             e.function_definition(item)?;
         }
         e.line("");
-        for comment in program.texts("mainComments") {
-            e.comment(&comment);
-        }
+        e.comments(program, "mainComments");
         e.body(field(program, "main")?)?;
         Ok(e.lines.render(e.syntax.id))
     }

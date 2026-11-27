@@ -584,6 +584,7 @@ async function linksTheEditors() {
     await linkedFolding(tab);
     await linkedScrolling(tab);
     await linkedSemanticRegions(tab);
+    await linkedCommentHeaders(tab);
   } finally {
     await fresh.close();
   }
@@ -598,7 +599,46 @@ async function linkedSemanticRegions(tab) {
   );
   await typeInMonaco(tab, source);
   await tab.waitForSelector('#target-text[data-value*="echo"]');
-  const mapped = await tab.waitForFunction(() => {
+  const colours = await mappedColours(tab, [
+    ['print', '#source-text', 'System.out.println'],
+    ['call', '#target-text', 'fibonacci "$index"'],
+    ['echo', '#target-text', 'echo "fibonacci('],
+  ]);
+  assert.equal(colours.print, colours.call);
+  assert.equal(colours.print, colours.echo);
+}
+
+// Fortran puts the entry point before its functions. Translated comments
+// share colours with the corresponding translated meaning.
+async function linkedCommentHeaders(tab) {
+  await tab.selectOption('#source-language', 'fortran');
+  await tab.selectOption('#target-language', 'python');
+  await tab.selectOption('#comment-from', 'russian');
+  await tab.selectOption('#comment-language', 'english');
+  await typeInMonaco(
+    tab,
+    readFileSync(
+      new URL('../../translation/comment-headers.f90', import.meta.url),
+      'utf8'
+    )
+  );
+  await tab.waitForSelector('#target-text[data-value*="# sequence"]');
+  const colours = await mappedColours(tab, [
+    ['file', '#source-text', '! число'],
+    ['function', '#source-text', '! последовательность'],
+    ['entry', '#source-text', '! итеративно'],
+    ['fileTarget', '#target-text', '# number'],
+    ['functionTarget', '#target-text', '# sequence'],
+    ['entryTarget', '#target-text', '# iteratively'],
+  ]);
+  for (const key of ['file', 'function', 'entry']) {
+    assert.equal(colours[key], colours[`${key}Target`]);
+  }
+  assert.equal(new Set(Object.values(colours)).size, 3);
+}
+
+async function mappedColours(tab, selections) {
+  const mapped = await tab.waitForFunction((selections) => {
     const find = (id, text) => {
       const editor = globalThis.document.querySelector(id);
       const line = [...editor.querySelectorAll('.view-line')].find((line) =>
@@ -612,14 +652,10 @@ async function linkedSemanticRegions(tab) {
         .find((item) => Math.abs(item.getBoundingClientRect().top - top) < 1)
         ?.className.match(/map-c\d/)?.[0];
     };
-    const print = find('#source-text', 'System.out.println');
-    const call = find('#target-text', 'fibonacci "$index"');
-    const echo = find('#target-text', 'echo "fibonacci(');
-    return print && call && echo && { print, call, echo };
-  });
-  const colours = await mapped.jsonValue();
-  assert.equal(colours.print, colours.call);
-  assert.equal(colours.print, colours.echo);
+    const colours = selections.map(([key, id, text]) => [key, find(id, text)]);
+    return colours.every(([, colour]) => colour) && Object.fromEntries(colours);
+  }, selections);
+  return mapped.jsonValue();
 }
 
 // Types a text into the source Monaco editor. Monaco indents after a

@@ -5,7 +5,7 @@ use regex::{Captures, Regex};
 
 use super::lowering::{Instruction, LoweredProgram, Procedure};
 use crate::emission_map::{
-    clone_source_line, cloned_source_lines, instruction_origins, line_origins,
+    clone_source_line, cloned_source_lines, instruction_origins, line_origins, map_source_line,
     register_instructions, register_source_lines,
 };
 use crate::meta::GrammarError;
@@ -122,8 +122,12 @@ pub(super) fn leading_comments(
         Some(first) => {
             let comments = lines[..first]
                 .iter()
-                .filter_map(|line| line.strip_prefix(prefix))
-                .map(|text| text.strip_prefix(' ').unwrap_or(text).to_owned())
+                .filter(|line| line.starts_with(prefix))
+                .map(|line| {
+                    map_source_line(line, |line| {
+                        line[prefix.len()..].trim_start_matches(' ').to_owned()
+                    })
+                })
                 .collect();
             (comments, cloned_source_lines(&lines[first..]))
         }

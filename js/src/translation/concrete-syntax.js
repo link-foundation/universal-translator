@@ -20,6 +20,11 @@ export function byteOffsets(source) {
 // nodes reachable from the accepted parse become productions in the CST.
 export function concreteParser(parser, source) {
   const locate = sourceLocator(source);
+  for (const token of parser.tokens) {
+    if (token.rawSpan) {
+      withOrigin(token, locate(...token.rawSpan));
+    }
+  }
   const locations = new WeakMap();
   const methods = new Map();
   const proxy = new Proxy(parser, {

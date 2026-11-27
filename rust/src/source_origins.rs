@@ -1,5 +1,6 @@
 //! Source locations travel with nodes without changing their meaning.
 
+use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use crate::meta::{Node, Value};
@@ -9,6 +10,59 @@ pub(crate) struct SourceOrigin {
     pub(crate) source: Arc<str>,
     pub(crate) lines: Vec<usize>,
     range: Option<(usize, usize)>,
+    comments: BTreeMap<String, Vec<Option<Arc<SourceOrigin>>>>,
+}
+
+pub(crate) fn comment_origins(node: &Node, key: &str) -> Vec<Option<Arc<SourceOrigin>>> {
+    node.origin
+        .as_ref()
+        .and_then(|origin| origin.comments.get(key))
+        .cloned()
+        .unwrap_or_default()
+}
+
+pub(crate) fn attach_comment_origins(
+    mut node: Node,
+    key: &str,
+    origins: Vec<Option<Arc<SourceOrigin>>>,
+) -> Node {
+    let own = node.origin.as_deref().cloned().or_else(|| {
+        origins.iter().flatten().next().map(|origin| SourceOrigin {
+            source: origin.source.clone(),
+            lines: Vec::new(),
+            range: None,
+            comments: BTreeMap::new(),
+        })
+    });
+    if let Some(mut own) = own {
+        own.comments.insert(key.to_owned(), origins);
+        node.origin = Some(Arc::new(own));
+    }
+    node
+}
+
+pub(crate) fn attach_comments(node: Node, key: &str, comments: &[Node]) -> Node {
+    let comments: Vec<_> = comments.iter().filter(|node| node.is("Comment")).collect();
+    let texts: Vec<_> = comments
+        .iter()
+        .map(|node| node.str("text").unwrap_or_default().to_owned())
+        .collect();
+    attach_comment_origins(
+        node.with(key, texts),
+        key,
+        comments.iter().map(|node| node.origin.clone()).collect(),
+    )
+}
+
+pub(crate) fn attach_comment_texts(node: Node, key: &str, texts: &[String]) -> Node {
+    attach_comment_origins(
+        node.with(key, texts.to_vec()),
+        key,
+        texts
+            .iter()
+            .map(|text| combine_origins(&crate::emission_map::line_origins(text)))
+            .collect(),
+    )
 }
 
 pub(crate) fn combine_origins(origins: &[Arc<SourceOrigin>]) -> Option<Arc<SourceOrigin>> {
@@ -24,6 +78,7 @@ pub(crate) fn combine_origins(origins: &[Arc<SourceOrigin>]) -> Option<Arc<Sourc
         source,
         lines,
         range: None,
+        comments: BTreeMap::new(),
     }))
 }
 
@@ -57,6 +112,7 @@ impl SourceLocator {
             source: self.source.clone(),
             lines: (first..=last).collect(),
             range: Some((first, last)),
+            comments: BTreeMap::new(),
         })
     }
 
@@ -65,6 +121,7 @@ impl SourceLocator {
             source: self.source.clone(),
             lines: vec![line],
             range: Some((line, line)),
+            comments: BTreeMap::new(),
         })
     }
 
@@ -182,20 +239,42 @@ pub(crate) fn inherit(mut node: Node, source: &Node) -> Node {
 
 pub(crate) fn remap_origins(node: &mut Node, source: &str, lines: &[Option<usize>]) {
     let source: Arc<str> = source.into();
+    fn remap(
+        origin: &SourceOrigin,
+        source: &Arc<str>,
+        lines: &[Option<usize>],
+    ) -> Arc<SourceOrigin> {
+        let mut mapped: Vec<_> = origin
+            .lines
+            .iter()
+            .filter_map(|line| lines.get(*line).copied().flatten().map(|line| line - 1))
+            .collect();
+        mapped.sort_unstable();
+        mapped.dedup();
+        Arc::new(SourceOrigin {
+            source: source.clone(),
+            lines: mapped,
+            range: None,
+            comments: origin
+                .comments
+                .iter()
+                .map(|(key, origins)| {
+                    (
+                        key.clone(),
+                        origins
+                            .iter()
+                            .map(|origin| {
+                                origin.as_ref().map(|origin| remap(origin, source, lines))
+                            })
+                            .collect(),
+                    )
+                })
+                .collect(),
+        })
+    }
     fn visit(node: &mut Node, source: &Arc<str>, lines: &[Option<usize>]) {
         if let Some(origin) = &node.origin {
-            let mut mapped: Vec<_> = origin
-                .lines
-                .iter()
-                .filter_map(|line| lines.get(*line).copied().flatten().map(|line| line - 1))
-                .collect();
-            mapped.sort_unstable();
-            mapped.dedup();
-            node.origin = Some(Arc::new(SourceOrigin {
-                source: source.clone(),
-                lines: mapped,
-                range: None,
-            }));
+            node.origin = Some(remap(origin, source, lines));
         }
         children_mut(node, &mut |child| visit(child, source, lines));
     }

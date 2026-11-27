@@ -535,9 +535,7 @@ const emitter = (Base) =>
 
     // Zig rejects a parameter that is never read, so it is discarded.
     functionDefinition(item) {
-      for (const comment of item.comments ?? []) {
-        this.comment(comment);
-      }
+      this.comments(item, 'comments');
       this.openBlock(this.signature(item));
       for (const { name } of item.parameters) {
         if (!item.body.statements.some((part) => mentions(part, name))) {
@@ -559,9 +557,7 @@ const emitter = (Base) =>
     }
 
     main(program) {
-      for (const comment of program.mainComments ?? []) {
-        this.comment(comment);
-      }
+      this.comments(program, 'mainComments');
       this.openBlock(
         this.writes
           ? 'pub fn main(init: std.process.Init) void'

@@ -101,8 +101,8 @@ those states; they do not prove every language or the entire inherited corpus.
 The acceptance inventory remains authoritative. Major open areas include
 complete upstream grammar production/semantic coverage and faithful conversion lowering, recursive natural
 clauses and general agreement, questions/introspection/SQL/LINQ, complete
-operators and exceptions across targets, exact subline maps and comment
-headers, binary machine readers and dialect versions, missing top-50 languages,
+operators and exceptions across targets, exact subline maps, binary machine
+readers and dialect versions, missing top-50 languages,
 Portable Object Compiler Objective-C, library source translation, and reading
 the actual full Rosetta corpus.
 
@@ -137,3 +137,34 @@ Rust, Node TypeScript and Deno type checks, real browser execution and the
 production web build. The runnable example translates `say 7.` and updates to
 accept `say 9.`. Conversion losses are rejected explicitly; this infrastructure
 does not yet establish every requested complete grammar or semantic reader.
+
+## Comment header ownership and package CI
+
+`logs/comment-mapping-before.txt` reproduces missing header ownership before the
+repair. The bounded header-reordering experiment additionally shows Fortran's
+entry comment on source line 6 incorrectly mapped to Python's file header on
+line 1. Collection formerly reduced comment nodes to strings, discarding their
+positions. Translation changed the text, so lexical alignment could not repair
+the loss reliably. Some keyword dialects also created comment nodes through a
+helper outside the parser's source capture.
+
+Comment-array metadata now keeps each position without changing public meaning
+fields. Formal, natural and machine readers/writers preserve it through
+collection, translation, lowering/lifting and formatting. Token locations also
+cover helper-created comments. The JS and Rust tests check file/function/entry
+headers in every current language, including the inverse translation with
+different comment spelling. JS's 110 focused checks, Deno's three header tests,
+and 24 Rust mapping/concrete/layout checks pass; lint, format and Clippy pass.
+The browser verifies three distinct, corresponding colour groups after Fortran
+reorders the headers. `comment-mapping-before.png` isolates the old collection
+and helper behavior; `comment-mapping-after.png` uses the complete repair.
+The existing end-to-end suite now asserts the same colour correspondence.
+
+At `ac07029`, Rust, lint, native translation and the web app pass. Node/Bun/Deno
+fail the old package-file expectation (`logs/ci-node-ac07029.txt:2891–2895`),
+repaired by `41570a3`. Docker fails to import
+`/app/vendor/meta-language-grammar/src/grammar.js`
+(`logs/ci-checks-ac07029.txt:8062`), repaired by `69638cf`. Its Dockerfile now
+copies the runtime, and the npm artifact test installs the package in an empty
+project, imports `/grammar`, parses an EBNF grammar and reconstructs the input.
+That regression passes locally in 12.39 seconds.

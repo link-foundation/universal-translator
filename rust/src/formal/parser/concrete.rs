@@ -2,6 +2,20 @@ use super::{Parsed, Parser};
 use crate::meta::Node;
 
 impl Parser {
+    pub(crate) fn token_node(&mut self, mut node: Node, token: &super::Token) -> Node {
+        if let Some((start, end)) = token.raw_span {
+            node.origin = self.source.as_ref().map(|source| source.range(start, end));
+            self.productions.push(
+                Node::new("Production")
+                    .with("rule", "comment")
+                    .with("concept", node.kind.clone())
+                    .with("start", start as f64)
+                    .with("end", end as f64),
+            );
+        }
+        node
+    }
+
     pub(super) fn with_source(mut self, source: &str) -> Self {
         self.source = Some(crate::source_origins::SourceLocator::new(source));
         self

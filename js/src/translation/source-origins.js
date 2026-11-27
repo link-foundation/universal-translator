@@ -1,6 +1,31 @@
 // Source positions are metadata, separate from the meaning and public fields
 // of a node. Weak keys release them with the parse or transformed program.
 const origins = new WeakMap();
+const commentRecords = new WeakMap();
+
+export const commentOrigins = (texts) => commentRecords.get(texts) ?? [];
+
+export function trackComments(texts, positions) {
+  commentRecords.set(texts, positions.slice());
+  return texts;
+}
+
+export function pushComment(texts, text, origin) {
+  const positions = commentRecords.get(texts) ?? new Array(texts.length);
+  positions[texts.length] = origin;
+  texts.push(text);
+  commentRecords.set(texts, positions);
+  return texts;
+}
+
+export function attachComments(tree, key, comments) {
+  const nodes = comments.filter(({ kind }) => kind === 'Comment');
+  tree[key] = trackComments(
+    nodes.map(({ text }) => text),
+    nodes.map(sourceOrigin)
+  );
+  return tree;
+}
 
 export const sourceOrigin = (tree) => origins.get(tree);
 
@@ -11,8 +36,16 @@ export function withOrigin(tree, origin) {
   return tree;
 }
 
-export const inheritOrigin = (tree, source) =>
-  withOrigin(tree, sourceOrigin(source));
+export function inheritOrigin(tree, source) {
+  if (tree && source) {
+    for (const key of ['comments', 'mainComments']) {
+      if (Array.isArray(tree[key]) && Array.isArray(source[key])) {
+        trackComments(tree[key], commentOrigins(source[key]));
+      }
+    }
+  }
+  return withOrigin(tree, sourceOrigin(source));
+}
 
 export const mapOrigins = (items, change) =>
   items.map((item, index) => inheritOrigin(change(item, index), item));
@@ -160,22 +193,27 @@ export function registerOrigins(tree, locations, source) {
 // A fragment is parsed inside its language's executable wrapper. Positions
 // from that wrapper refer back to the original input, never generated lines.
 export function remapOrigins(tree, source, lines) {
+  const remap = (origin) =>
+    origin && {
+      source,
+      lines: [
+        ...new Set(
+          origin.lines.flatMap((line) =>
+            lines[line] === undefined ? [] : [lines[line] - 1]
+          )
+        ),
+      ],
+    };
   const visit = (value) => {
     if (!value || typeof value !== 'object') {
       return;
     }
     const origin = sourceOrigin(value);
     if (origin) {
-      withOrigin(value, {
-        source,
-        lines: [
-          ...new Set(
-            origin.lines.flatMap((line) =>
-              lines[line] === undefined ? [] : [lines[line] - 1]
-            )
-          ),
-        ],
-      });
+      withOrigin(value, remap(origin));
+    }
+    if (commentRecords.has(value)) {
+      trackComments(value, commentOrigins(value).map(remap));
     }
     Object.values(value).forEach(visit);
   };

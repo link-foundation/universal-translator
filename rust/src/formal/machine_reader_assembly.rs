@@ -135,7 +135,9 @@ fn assembly_functions(
     while index < lines.len() {
         let line = &lines[index];
         if let Some(text) = line.strip_prefix(prefix) {
-            pending.push(text.strip_prefix(' ').unwrap_or(text).to_owned());
+            pending.push(crate::emission_map::map_source_line(line, |_| {
+                text.strip_prefix(' ').unwrap_or(text).to_owned()
+            }));
         } else if let Some(found) = header.captures(line) {
             let name = group(&found, 1).to_owned();
             let size = format!(".size {name},");

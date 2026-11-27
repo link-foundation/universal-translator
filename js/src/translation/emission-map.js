@@ -1,4 +1,4 @@
-import { expressionOrigins } from './source-origins.js';
+import { commentOrigins, expressionOrigins } from './source-origins.js';
 import { transferLayout } from './layout.js';
 
 const contexts = [];
@@ -53,6 +53,19 @@ export function mappedEmitter(emitter) {
 export function mappedLine(emitter, text, previous) {
   const origins = active.get(emitter);
   return mappedText(text, previous, origins);
+}
+
+export function mappedComments(emitter, texts, write) {
+  const previous = active.get(emitter);
+  try {
+    texts.forEach((text, index) => {
+      const origin = commentOrigins(texts)[index];
+      active.set(emitter, origin ? [origin] : []);
+      write(text);
+    });
+  } finally {
+    active.set(emitter, previous);
+  }
 }
 
 // Formatting changes the spelling of a line without changing its ownership.

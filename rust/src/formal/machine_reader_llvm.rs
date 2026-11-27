@@ -600,7 +600,9 @@ pub fn read_llvm(source: &str) -> Result<LoweredProgram> {
     while index < rest.len() {
         let line = &rest[index];
         if let Some(text) = line.strip_prefix(';') {
-            pending.push(text.strip_prefix(' ').unwrap_or(text).to_owned());
+            pending.push(crate::emission_map::map_source_line(line, |_| {
+                text.strip_prefix(' ').unwrap_or(text).to_owned()
+            }));
         } else if let Some(found) = header.captures(line) {
             let end = rest[index..]
                 .iter()

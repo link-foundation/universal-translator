@@ -411,7 +411,7 @@ impl Parser {
         match token.kind {
             TokenType::Comment => {
                 self.position += 1;
-                return Ok(comment_node(&token));
+                return Ok(comment_node(self, &token));
             }
             TokenType::Directive => {
                 self.position += 1;

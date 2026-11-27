@@ -178,14 +178,6 @@ fn is_python_main_guard(statement: &Node) -> bool {
         })
 }
 
-fn comment_texts(comments: &[Node]) -> Vec<String> {
-    comments
-        .iter()
-        .filter(|comment| comment.is("Comment"))
-        .map(|comment| comment.str("text").unwrap_or_default().to_owned())
-        .collect()
-}
-
 /// Sort top-level items into file comments, imports, functions and
 /// statements. Comments directly above a function belong to that function.
 fn collect_items(items: Vec<Node>) -> Node {
@@ -205,7 +197,7 @@ fn collect_items(items: Vec<Node>) -> Node {
             // the first item.
             if let Some(split) = pending.iter().rposition(|trivia| trivia.is("Blank")) {
                 let rest = pending.split_off(split + 1);
-                comments.extend(comment_texts(&pending));
+                comments.extend(pending.iter().filter(|node| node.is("Comment")).cloned());
                 pending = rest;
             }
         }
@@ -219,11 +211,12 @@ fn collect_items(items: Vec<Node>) -> Node {
         }
         if item.is("Import") {
             // An import keeps no comments: the ones above it describe the file.
-            comments.extend(comment_texts(&pending));
+            comments.extend(pending.iter().filter(|node| node.is("Comment")).cloned());
             imports.push(item.str("text").unwrap_or_default().to_owned());
         } else if item.is("Function") {
-            let texts = comment_texts(&pending);
-            functions.push(item.with("comments", texts));
+            functions.push(crate::source_origins::attach_comments(
+                item, "comments", &pending,
+            ));
         } else {
             statements.append(&mut pending);
             statements.push(item);
@@ -231,11 +224,14 @@ fn collect_items(items: Vec<Node>) -> Node {
         pending.clear();
     }
     statements.append(&mut pending);
-    Node::new("Program")
-        .with("comments", comments)
-        .with("imports", imports)
-        .with("functions", functions)
-        .with("main", block(layout(statements)))
+    crate::source_origins::attach_comments(
+        Node::new("Program")
+            .with("imports", imports)
+            .with("functions", functions)
+            .with("main", block(layout(statements))),
+        "comments",
+        &comments,
+    )
 }
 
 fn is_exit_success(statement: Option<&Node>) -> bool {
@@ -280,7 +276,11 @@ pub fn find_entry_point(source: Node) -> Node {
     program.set("functions", functions);
     program.set("main", block(statements));
     program.set("mainComments", entry.texts("comments"));
-    program
+    crate::source_origins::attach_comment_origins(
+        program,
+        "mainComments",
+        crate::source_origins::comment_origins(&entry, "comments"),
+    )
 }
 
 const LINE_CALLS: [&str; 9] = [

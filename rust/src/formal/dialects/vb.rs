@@ -416,9 +416,7 @@ impl EmitterDialect for VisualBasic {
     }
 
     fn function_definition(&self, e: &mut Emitter, item: &Node) -> Result<()> {
-        for text in item.texts("comments") {
-            e.comment(&text);
-        }
+        e.comments(item, "comments");
         let parameters = item
             .nodes("parameters")
             .iter()
@@ -448,9 +446,7 @@ impl EmitterDialect for VisualBasic {
 
     fn program(&self, e: &mut Emitter, program: &Node) -> Result<String> {
         let comments = program.texts("comments");
-        for text in &comments {
-            e.comment(text);
-        }
+        e.comments(program, "comments");
         if !comments.is_empty() {
             e.line("");
         }
@@ -463,9 +459,7 @@ impl EmitterDialect for VisualBasic {
                 e.line("");
             }
         }
-        for text in program.texts("mainComments") {
-            e.comment(&text);
-        }
+        e.comments(program, "mainComments");
         e.line("Sub Main()");
         indented(e, field(program, "main")?)?;
         e.line("End Sub");

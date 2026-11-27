@@ -19,6 +19,7 @@ import {
 import { linesOrigin } from './machine-source.js';
 import {
   combineOrigins,
+  pushComment,
   sourceOrigin,
   withOrigin,
 } from '../translation/source-origins.js';
@@ -484,7 +485,7 @@ export function readLlvm(source) {
     const line = rest[index];
     const header = line.match(/^define (i32|i64|void) @(\w+)\((.*)\) \{$/);
     if (line.startsWith(';')) {
-      pending.push(line.replace(/^; ?/, ''));
+      pushComment(pending, line.replace(/^; ?/, ''), linesOrigin(rest, index));
     } else if (header) {
       const end = rest.indexOf('}', index);
       items.push(

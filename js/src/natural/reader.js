@@ -12,7 +12,7 @@ import { naturalLanguage } from './catalog.js';
 import { tokenize } from './tokens.js';
 import { levelIndex, levels, operatorOfTemplate } from './levels.js';
 import { normalize, slotCase } from './agreement.js';
-import { withOrigin } from '../translation/source-origins.js';
+import { attachComments, withOrigin } from '../translation/source-origins.js';
 
 const nameSlots = new Set(['name', 'variable', 'callee']);
 // Slots the writer fills with a primary expression (parenthesized unless
@@ -617,7 +617,7 @@ class ProgramReader {
       }
       const paragraph = this.paragraph();
       if (first && paragraph.notesOnly) {
-        program.comments = paragraph.notes;
+        attachComments(program, 'comments', paragraph.notes);
       } else if (paragraph.function) {
         program.functions.push(paragraph.function);
       } else {
@@ -631,7 +631,13 @@ class ProgramReader {
   paragraph() {
     const notes = [];
     while (this.lines[this.position]?.note !== undefined) {
-      notes.push(this.lines[this.position].note);
+      const line = this.lines[this.position];
+      notes.push(
+        withOrigin(node('Comment', { text: line.note }), {
+          source: this.source,
+          lines: [line.index],
+        })
+      );
       this.position += 1;
     }
     const line = this.lines[this.position];
@@ -639,7 +645,7 @@ class ProgramReader {
       return {
         notesOnly: true,
         notes,
-        statements: notes.map((text) => node('Comment', { text })),
+        statements: notes,
       };
     }
     const heading =
@@ -648,25 +654,25 @@ class ProgramReader {
       this.position += 1;
       const body = this.block(1);
       return {
-        function: withOrigin(
-          node('Function', {
-            name: heading.slots.name,
-            parameters: (heading.slots.parameters ?? []).map((parameter) => ({
-              name: parameter,
-            })),
-            body,
-            comments: notes,
-          }),
-          { source: this.source, lines: [line.index] }
+        function: attachComments(
+          withOrigin(
+            node('Function', {
+              name: heading.slots.name,
+              parameters: (heading.slots.parameters ?? []).map((parameter) => ({
+                name: parameter,
+              })),
+              body,
+            }),
+            { source: this.source, lines: [line.index] }
+          ),
+          'comments',
+          notes
         ),
       };
     }
     const statements = this.block(0).statements;
     return {
-      statements: [
-        ...notes.map((text) => node('Comment', { text })),
-        ...statements,
-      ],
+      statements: [...notes, ...statements],
     };
   }
 }

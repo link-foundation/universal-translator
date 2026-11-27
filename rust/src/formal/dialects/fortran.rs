@@ -204,7 +204,7 @@ fn statements_until(p: &mut Parser, done: &dyn Fn(&Parser) -> bool) -> Parsed<Ve
         }
         if p.kind(0) == TokenType::Comment {
             let comment = p.next()?;
-            statements.push(comment_node(&comment));
+            statements.push(comment_node(p, &comment));
         } else if p.is("format") || (p.is("stop") && is_last_statement(p)) {
             p.skip_line();
         } else {
@@ -603,9 +603,7 @@ impl EmitterDialect for Fortran {
     }
 
     fn function_definition(&self, e: &mut Emitter, item: &Node) -> Result<()> {
-        for text in item.texts("comments") {
-            e.comment(&text);
-        }
+        e.comments(item, "comments");
         let name = item.str("name").unwrap_or_default();
         let parameters = item.nodes("parameters");
         let names: Vec<String> = parameters
@@ -657,9 +655,7 @@ impl EmitterDialect for Fortran {
 
     fn program(&self, e: &mut Emitter, program: &Node) -> Result<String> {
         let comments = program.texts("comments");
-        for text in &comments {
-            e.comment(text);
-        }
+        e.comments(program, "comments");
         if !comments.is_empty() {
             e.line("");
         }
@@ -671,9 +667,7 @@ impl EmitterDialect for Fortran {
         e.line("implicit none");
         variables(e, field(program, "main")?, &[]);
         e.line("");
-        for text in program.texts("mainComments") {
-            e.comment(&text);
-        }
+        e.comments(program, "mainComments");
         e.body(field(program, "main")?)?;
         let functions = program.nodes("functions");
         if !functions.is_empty() {

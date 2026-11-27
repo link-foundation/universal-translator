@@ -516,9 +516,7 @@ impl Writer<'_> {
 
     fn function(&mut self, item: &Node) -> Result<(), String> {
         let _origin = crate::emission_map::active(item);
-        for text in item.texts("comments") {
-            self.note(0, &text);
-        }
+        self.notes(item, "comments");
         let name = self.name(item.str("name"));
         let parameters = item.nodes("parameters");
         if parameters.is_empty() {
@@ -544,10 +542,12 @@ impl Writer<'_> {
         self.block(item.node("body"), 1)
     }
 
+    fn notes(&mut self, owner: &Node, key: &str) {
+        crate::emission_map::for_each_comment(owner, key, |text| self.note(0, text));
+    }
+
     fn program(mut self, program: &Node) -> Result<String, String> {
-        for text in program.texts("comments") {
-            self.note(0, &text);
-        }
+        self.notes(program, "comments");
         for item in program.nodes("functions") {
             if !self.lines.is_empty() {
                 self.lines.push(String::new());
@@ -563,9 +563,7 @@ impl Writer<'_> {
             if !self.lines.is_empty() {
                 self.lines.push(String::new());
             }
-            for text in &main_comments {
-                self.note(0, text);
-            }
+            self.notes(program, "mainComments");
             for statement in &layout(main.into_iter().cloned().collect()) {
                 self.statement(statement, 0)?;
             }

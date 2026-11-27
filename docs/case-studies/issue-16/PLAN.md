@@ -38,11 +38,22 @@ import formats, update/dependency refresh, structurally justified merges with
 stable identities, separate editions/sources, conversion-loss rejection, six
 transform stages, bounded parsing/recovery, concrete records/provenance and
 semantic readers installed into the ordinary translator. Focused JS, Deno,
-Rust and browser checks pass; final checks and commit are in progress. The
+Rust and browser checks pass; commit `ac07029` includes the workspace. The
 broader complete-grammar and semantic-coverage criteria remain open.
 
-Current work: continue mapping comment headers and exact subline
-regions, language semantics, questions and every historical gap below. Keep the PR draft
+CI at `ac07029` passes Rust, lint, native translation and the example app. Node,
+Bun and Deno exposed an outdated package-file assertion, repaired by `41570a3`.
+Docker omitted the vendored grammar runtime, repaired by `69638cf`; an installed
+npm artifact now executes an imported grammar through its public subpath.
+
+Comment headers now retain individual origins through collection, comment
+translation and all 70 current writers and readers. The Fortran reorder case
+has before/after browser evidence and an end-to-end colour assertion. Three
+JS/Deno and three Rust regressions cover file, function and entry-point headers;
+110 focused JS tests and 24 Rust mapping/concrete/layout tests pass.
+
+Current work: continue exact subline regions, language semantics, questions and
+every historical gap below. Keep the PR draft
 and the native goal active until the complete inventory is verified.
 
 ## Work sequence

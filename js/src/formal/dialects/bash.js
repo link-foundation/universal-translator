@@ -759,9 +759,7 @@ const statementEmitter = (Base) =>
 const emitter = (Base) =>
   class BashEmitter extends statementEmitter(Base) {
     functionDefinition(item) {
-      for (const comment of item.comments ?? []) {
-        this.comment(comment);
-      }
+      this.comments(item, 'comments');
       this.line(`${item.name}() {`);
       if (item.parameters.length) {
         const locals = item.parameters.map(

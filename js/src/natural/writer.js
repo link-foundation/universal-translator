@@ -17,6 +17,7 @@ import { lowerForEach } from '../meta/for-each.js';
 import { layout, subtract, number } from '../meta/tree.js';
 import { agree, slotCase } from './agreement.js';
 import {
+  mappedComments,
   mappedEmitter,
   mappedLine,
   renderLines,
@@ -387,7 +388,7 @@ class Writer {
 
   function(item) {
     const { language } = this;
-    (item.comments ?? []).forEach((text) => this.note(0, text));
+    this.notes(item);
     const name = [word(writeName(item.name, language))];
     if (item.parameters.length) {
       const parameters = list(
@@ -403,9 +404,12 @@ class Writer {
     this.block(item.body, 1);
   }
 
+  notes(owner, key = 'comments') {
+    mappedComments(this, owner[key] ?? [], (text) => this.note(0, text));
+  }
+
   program(program) {
-    const header = [...(program.comments ?? [])];
-    header.forEach((text) => this.note(0, text));
+    this.notes(program);
     for (const item of program.functions) {
       if (this.lines.length) {
         this.lines.push('');
@@ -417,7 +421,7 @@ class Writer {
       if (this.lines.length) {
         this.lines.push('');
       }
-      (program.mainComments ?? []).forEach((text) => this.note(0, text));
+      this.notes(program, 'mainComments');
       layout(main).forEach((statement) => this.statement(statement, 0));
     }
     return renderLines(this, this.lines);

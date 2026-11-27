@@ -79,7 +79,7 @@ fn nasm_procedure(
     // as "%$remainder", so the names cannot clash with labels or procedures.
     let offset = |slot: usize| format!("%${}", item.slot_names[slot]);
     let frame = item.slot_count.div_ceil(2) * 16;
-    let mut lines: SourceLines = comments(";", &item.comments, "").into();
+    let mut lines: SourceLines = comments(";", &item.comments, "");
     lines.push(format!("{}:", item.name));
     let mut body: SourceLines = vec![format!("%push {}", item.name)].into();
     body.extend(
@@ -263,7 +263,7 @@ fn write_nasm(program: &LoweredProgram) -> Result<String> {
     for item in program.functions.iter().chain([&program.main]) {
         procedures.push(nasm_procedure(item, &returns, &mut texts)?);
     }
-    let mut lines: SourceLines = comments(";", &program.comments, "").into();
+    let mut lines: SourceLines = comments(";", &program.comments, "");
     if !program.comments.is_empty() {
         lines.push(String::new());
     }
@@ -443,7 +443,7 @@ fn cil_method(
             Instruction::ArrayLength => body.extend(["ldlen", "conv.i8"].map(String::from)),
         }
     }
-    let mut lines: SourceLines = comments("//", &item.comments, "    ").into();
+    let mut lines: SourceLines = comments("//", &item.comments, "    ");
     lines.push(format!(
         "    .method public static {} {name}({}) cil managed",
         if item.returns { "int64" } else { "void" },
@@ -505,7 +505,7 @@ fn write_cil(program: &LoweredProgram) -> String {
             (item.name.clone(), signature)
         })
         .collect();
-    let mut lines: SourceLines = comments("//", &program.comments, "").into();
+    let mut lines: SourceLines = comments("//", &program.comments, "");
     if !program.comments.is_empty() {
         lines.push(String::new());
     }
@@ -701,7 +701,7 @@ fn jvm_method(item: &Procedure, descriptors: &HashMap<String, String>) -> Source
             Instruction::ArrayLength => body.extend(["arraylength", "i2l"].map(String::from)),
         }
     }
-    let mut lines: SourceLines = comments(";", &item.comments, "").into();
+    let mut lines: SourceLines = comments(";", &item.comments, "");
     lines.push(format!(
         ".method public static {}",
         if is_main {
@@ -751,7 +751,7 @@ fn write_jvm(program: &LoweredProgram) -> String {
             (item.name.clone(), descriptor)
         })
         .collect();
-    let mut lines: SourceLines = comments(";", &program.comments, "").into();
+    let mut lines: SourceLines = comments(";", &program.comments, "");
     if !program.comments.is_empty() {
         lines.push(String::new());
     }

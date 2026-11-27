@@ -774,9 +774,7 @@ const emitter = (Base) =>
     }
 
     functionDefinition(item) {
-      for (const text of item.comments ?? []) {
-        this.comment(text);
-      }
+      this.comments(item, 'comments');
       const grouped = this.group?.includes(item);
       const first = !grouped || item === this.group[0];
       if (first) {
@@ -805,9 +803,7 @@ const emitter = (Base) =>
     }
 
     main(program) {
-      for (const text of program.mainComments ?? []) {
-        this.comment(text);
-      }
+      this.comments(program, 'mainComments');
       this.line('Definition main : Action unit unit := (');
       this.functionBody(program.main, 'pure tt');
       this.append(').');

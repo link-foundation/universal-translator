@@ -6,7 +6,7 @@ import {
   mappedText,
   renderLines,
 } from '../translation/emission-map.js';
-import { sourceOrigin } from '../translation/source-origins.js';
+import { commentOrigins, sourceOrigin } from '../translation/source-origins.js';
 
 export { mappedText };
 
@@ -34,8 +34,16 @@ export const createsArrays = (program) =>
 
 // Comment lines in a target's comment syntax.
 export const comments = (prefix, texts, indent = '') =>
-  texts.flatMap((text) =>
-    text.split('\n').map((line) => `${indent}${prefix} ${line}`.trimEnd())
+  texts.flatMap((text, index) =>
+    text
+      .split('\n')
+      .map((line) =>
+        mappedText(
+          `${indent}${prefix} ${line}`.trimEnd(),
+          undefined,
+          commentOrigins(texts)[index] ? [commentOrigins(texts)[index]] : []
+        )
+      )
   );
 
 // Every function of a lowered program, with "main" last.

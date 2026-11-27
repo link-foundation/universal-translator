@@ -390,7 +390,7 @@ impl<'a> LlvmFunction<'a> {
         } else {
             "void"
         };
-        let mut lines: SourceLines = comments(";", &item.comments, "").into();
+        let mut lines: SourceLines = comments(";", &item.comments, "");
         lines.push(format!("define {result} @{}({parameters}) {{", item.name));
         lines.push("entry.0:".into());
         for (slot, name) in item.slot_names.iter().enumerate() {
@@ -452,7 +452,7 @@ pub fn write_llvm(program: &LoweredProgram) -> Result<String> {
             llvm_text(text)
         )
     };
-    let mut lines: SourceLines = comments(";", &program.comments, "").into();
+    let mut lines: SourceLines = comments(";", &program.comments, "");
     if !program.comments.is_empty() {
         lines.push(String::new());
     }

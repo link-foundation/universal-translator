@@ -29,7 +29,13 @@ import {
   recognizeArrays,
 } from './arrays.js';
 import { expandForEach, raiseForEach } from './for-each.js';
-import { inheritOrigin, mapOrigins } from '../translation/source-origins.js';
+import {
+  attachComments,
+  inheritOrigin,
+  mapOrigins,
+  pushComment,
+  sourceOrigin,
+} from '../translation/source-origins.js';
 
 // ---------------------------------------------------------------------------
 // Understanding layer
@@ -96,8 +102,11 @@ function collectItems(items) {
     main: block(),
   });
   let pending = [];
-  const texts = (trivia) =>
-    trivia.filter(({ kind }) => kind === 'Comment').map(({ text }) => text);
+  const append = (trivia) => {
+    for (const item of trivia.filter(({ kind }) => kind === 'Comment')) {
+      pushComment(program.comments, item.text, sourceOrigin(item));
+    }
+  };
   for (const item of items) {
     if (item.kind === 'Comment' || item.kind === 'Blank') {
       pending.push(item);
@@ -112,7 +121,7 @@ function collectItems(items) {
       // Comments before the last empty line describe the file; the ones
       // after it (all of them without an empty line) describe the first item.
       const split = pending.findLastIndex(({ kind }) => kind === 'Blank');
-      program.comments.push(...texts(pending.slice(0, Math.max(split, 0))));
+      append(pending.slice(0, Math.max(split, 0)));
       pending = pending.slice(split + 1);
     }
     // An empty line after a function is kept only where the source has one.
@@ -122,17 +131,11 @@ function collectItems(items) {
     }
     if (item.kind === 'Import') {
       // An import keeps no comments: the ones above it describe the file.
-      program.comments.push(...texts(pending));
+      append(pending);
       program.imports.push(item.text);
     } else if (item.kind === 'Function') {
       program.functions.push(
-        inheritOrigin(
-          {
-            ...item,
-            comments: texts(pending),
-          },
-          item
-        )
+        attachComments(inheritOrigin({ ...item }, item), 'comments', pending)
       );
     } else {
       program.main.statements.push(...pending, item);
@@ -172,12 +175,15 @@ export function findEntryPoint(source, { from } = {}) {
   if (isExitSuccess(statements.at(-1))) {
     statements.pop();
   }
-  return {
-    ...program,
-    functions: program.functions.filter((item) => item !== entry),
-    main: block(statements),
-    mainComments: entry.comments,
-  };
+  return inheritOrigin(
+    {
+      ...program,
+      functions: program.functions.filter((item) => item !== entry),
+      main: block(statements),
+      mainComments: entry.comments,
+    },
+    program
+  );
 }
 
 // The output procedures of each language, described as data.
@@ -891,15 +897,18 @@ export function adaptComments(program, { from, to, mode }) {
     const stripped = rewrite(program, (current) =>
       current.kind === 'Comment' ? undefined : current
     );
-    return {
-      ...stripped,
-      comments: [],
-      mainComments: [],
-      functions: mapOrigins(stripped.functions, (item) => ({
-        ...item,
+    return inheritOrigin(
+      {
+        ...stripped,
         comments: [],
-      })),
-    };
+        mainComments: [],
+        functions: mapOrigins(stripped.functions, (item) => ({
+          ...item,
+          comments: [],
+        })),
+      },
+      stripped
+    );
   }
   if (mode === 'literal' || from === to) {
     return program;
@@ -914,15 +923,18 @@ export function mapComments(program, change) {
       ? { ...current, text: change(current.text) }
       : current
   );
-  return {
-    ...adapted,
-    comments: (adapted.comments ?? []).map(change),
-    mainComments: (adapted.mainComments ?? []).map(change),
-    functions: mapOrigins(adapted.functions, (item) => ({
-      ...item,
-      comments: (item.comments ?? []).map(change),
-    })),
-  };
+  return inheritOrigin(
+    {
+      ...adapted,
+      comments: (adapted.comments ?? []).map(change),
+      mainComments: (adapted.mainComments ?? []).map(change),
+      functions: mapOrigins(adapted.functions, (item) => ({
+        ...item,
+        comments: (item.comments ?? []).map(change),
+      })),
+    },
+    adapted
+  );
 }
 
 // A rule that replaces glossary phrases in comments, longest phrase first.

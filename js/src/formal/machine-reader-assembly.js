@@ -2,6 +2,9 @@
 // stack machine code described in lowering.js. The readers match the
 // instruction sequences that machine-assembly.js writes.
 
+import { pushComment } from '../translation/source-origins.js';
+import { linesOrigin } from './machine-source.js';
+
 import { utf8 } from './machine-shared.js';
 import {
   decodeBytes,
@@ -101,7 +104,11 @@ function assemblyFunctions(lines, prefix) {
     const line = lines[index];
     const header = line.match(/^\.type (\w+), [@%]function$/);
     if (line.startsWith(prefix)) {
-      pending.push(line.slice(prefix.length).replace(/^ /, ''));
+      pushComment(
+        pending,
+        line.slice(prefix.length).replace(/^ /, ''),
+        linesOrigin(lines, index)
+      );
     } else if (header) {
       const end = lines.findIndex(
         (item, at) => at > index && item.startsWith(`.size ${header[1]},`)
