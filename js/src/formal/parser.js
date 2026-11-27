@@ -1460,7 +1460,7 @@ export function sourceType(spelling) {
   ) {
     return 'real';
   }
-  if (/^(bool|boolean|Bool|Boolean)$/.test(words)) {
+  if (/^(bool|boolean|Bool|Boolean|BOOL)$/.test(words)) {
     return 'boolean';
   }
   if (/^(void|\(\)|Unit|Void)$/.test(words)) {

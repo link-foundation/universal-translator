@@ -674,6 +674,9 @@ impl Parser {
         }
         self.expect("(")?;
         self.skip_newlines();
+        if matches!(self.syntax.id, "c" | "cpp" | "objc") && self.is("void") && self.is_at(")", 1) {
+            self.position += 1;
+        }
         let mut parameters = Vec::new();
         let mut pending_names = Vec::new();
         let parameter = |name: String, kind: Option<String>| {

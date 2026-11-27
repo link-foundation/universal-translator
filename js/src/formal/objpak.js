@@ -351,33 +351,32 @@ export function recognizeObjpak(program, { from } = {}) {
       processEntry(item, objpakBindings)
     );
   }
-  const understood = libraryNode(
+  return libraryNode(
     prepared,
     new Map(objpakBindings.map((binding) => [binding, 'objpak-constructor']))
   );
-  if (language !== 'objc') {
-    return understood;
+}
+
+// Type inference must distinguish boolean calls and names from numeric tests.
+// In particular, an arbitrary call is not evidence of an integer condition.
+export function normalizeObjectiveCConditions(program, { from } = {}) {
+  if (from?.split('@')[0] !== 'objc') {
+    return program;
   }
-  return rewrite(understood, (current) => {
-    const condition = current.condition;
-    const boolean =
-      condition?.kind === 'Boolean' ||
-      (condition?.kind === 'Binary' &&
-        [
-          'equal',
-          'notEqual',
-          'less',
-          'lessOrEqual',
-          'greater',
-          'greaterOrEqual',
-          'and',
-          'or',
-        ].includes(condition.operator)) ||
-      (condition?.kind === 'Unary' && condition.operator === 'not');
-    if (['While', 'If'].includes(current.kind) && !boolean) {
+  return rewrite(program, (current) => {
+    if (
+      ['While', 'If'].includes(current.kind) &&
+      ['integer', 'real'].includes(current.condition?.type)
+    ) {
       return {
         ...current,
-        condition: binary('notEqual', current.condition, number(0)),
+        condition: {
+          ...binary('notEqual', current.condition, {
+            ...number(0),
+            type: 'integer',
+          }),
+          type: 'boolean',
+        },
       };
     }
     return current;

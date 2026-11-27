@@ -19,6 +19,7 @@ mod sql;
 mod vb;
 mod zig;
 
+pub(crate) use objc::RUNTIME_HEADER as OBJC_RUNTIME_HEADER;
 pub(crate) use rocq::{comparison as rocq_comparison, not_equal as rocq_not_equal};
 pub(crate) use shared::declared_variables;
 

@@ -549,6 +549,20 @@ impl<'a> Lexer<'a> {
 
     /// Preprocessor lines such as `#include <stdio.h>`.
     fn directive(&mut self) -> bool {
+        let runtime = super::dialects::OBJC_RUNTIME_HEADER;
+        if self.syntax.id == "objc" && self.starts_with(runtime, self.index) {
+            let end = self.index + runtime.chars().count();
+            if self
+                .source
+                .get(end)
+                .is_none_or(|c| matches!(c, '\r' | '\n'))
+            {
+                self.push(TokenType::Directive, runtime);
+                self.index = end;
+                self.line += runtime.matches('\n').count();
+                return true;
+            }
+        }
         if self.syntax.line_comment == "#" || self.at(0) != Some('#') {
             return false;
         }

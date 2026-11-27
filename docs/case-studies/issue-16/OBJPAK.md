@@ -90,11 +90,11 @@ independently; upstream library source is not included in distributed helpers.
 ## Verification and limits
 
 The native verifier compares stdout and successful process exit against real
-POC execution for four independently parsed programs. The original has six
+POC execution for five independently parsed programs. The original has six
 finite argument sets: empty input, one name, duplicates, Unicode and an empty
 string, 40 names requiring growth and a duplicate at the growth boundary.
 Additional programs check aliases and insertion return values, mutation during
-iteration and all four prefix/postfix update forms. Every generated caller also
+iteration, all four prefix/postfix update forms and typed conditions. Every generated caller also
 reads back to the same meta program. `logs/objc-native-comparison.txt` records
 the passing comparisons.
 
@@ -115,6 +115,49 @@ semantics or splits an operator/hexadecimal literal loses the contract.
 Concrete records still retain the exact original bytes. `experiments/verify-syntax-exchange.mjs` compares both CLIs' writes
 and reads across four formal and two natural grammars. CI runs the native
 verifier within the existing native-translation budget.
+
+### CI regression and condition types
+
+The first CI run at `a3cee36` found a semantic regression in existing leap-year,
+perfect-number and primality programs. The new Objpak understanding rule treated
+all calls and names used as conditions as numeric. It ran before type inference,
+so a boolean call became `call != 0` and no longer round-tripped. The preserved
+checks log reports the Rust failure at line 10858 and the Node failure at line
+16759 (`logs/ci-checks-a3cee36.txt.gz`). Bun and Deno reported the same difference.
+
+Both engines now normalize numeric Objective-C conditions after type inference;
+boolean calls and variables retain their original roles. `BOOL` parameters map
+to boolean values. The C-family `(void)` parameter marker no longer creates a
+fictitious parameter. Python identifiers spelled `void` remain ordinary names.
+`experiments/issue-16-objc-conditions.mjs` reproduces the old condition rewrite
+from `a3cee36` and asserts the corrected round trip. Its evidence is
+`logs/objc-conditions-before-after.txt`.
+
+The new `examples/objpak/conditions.m` checks boolean calls, boolean bindings,
+numeric calls, updates and void parameter lists in one finite program. The
+native verifier compares its output with Python, Node, Rust, POC and GNU-runtime
+Objective-C. Local GNU verification uses `OBJC_CC=clang`; CI uses its installed
+GCC Objective-C frontend. It also caught the writers selecting GNU's object
+header under POC, whose historical parser cannot parse that modern header.
+The generated boolean prelude now selects `objcrt.h` under
+`__PORTABLE_OBJC__` and `objc/objc.h` otherwise. The lexer retains this known
+equivalent header alternative as one concrete directive; a changed conditional
+containing executable code is rejected. Focused tests verify its exact span and
+following line numbers. This does not introduce a general C preprocessor.
+
+The native result is preserved in `logs/objc-conditions-native.txt` and the
+original header failure in `logs/objc-conditions-native-gnu-header-failure.txt`.
+Four JavaScript condition regressions, eighteen Rust Objpak regressions, the
+existing algorithm round trips, shared goldens, lint and Clippy pass.
+
+Security CI separately flagged `process.execPath` flowing through the verifier's
+shell argument wrapper (`logs/ci-security-a3cee36.txt.gz:3654`). The command now
+uses the literal `node`; compiler choices are limited to literal `gcc` and
+`clang` commands. Arguments still pass as separate process arguments without
+interpolation, and native probes retain their address-space and stack limits.
+The CodeQL gate and accepted findings remain unchanged. The original SARIF is
+preserved in `logs/codeql-a3cee36/javascript.sarif.gz` for current-commit
+verification in CI.
 
 The remaining wider criteria are still open: other object libraries and class
 definitions, arbitrary pointer operations, every target's set/argument lowering,

@@ -73,9 +73,15 @@ pub fn understanding_rules() -> Vec<Rule> {
 
 /// The rules that run after type inference.
 pub fn meaning_rules() -> Vec<Rule> {
-    vec![rule("concatenationToInterpolation", |program, _| {
-        concatenation_to_interpolation(program)
-    })]
+    vec![
+        rule("concatenationToInterpolation", |program, _| {
+            concatenation_to_interpolation(program)
+        }),
+        rule(
+            "normalizeObjectiveCConditions",
+            super::objpak::normalize_objc_conditions,
+        ),
+    ]
 }
 
 /// The rules that adapt a meta program to its target.

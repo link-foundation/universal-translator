@@ -14,6 +14,7 @@ include = [
     "/examples/layout/**",
     "/examples/rules/**",
     "/examples/objpak/hello.m",
+    "/examples/objpak/conditions.m",
     "/docs/case-studies/issue-14/data/hello-world-collection/programs.json",
     "/docs/case-studies/issue-14/hello-world-coverage.lino",
     "/README.md",

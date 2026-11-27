@@ -21,7 +21,7 @@ pub fn source_type(spelling: &str) -> Option<String> {
         _ if array_pattern().is_match(&words) => "array",
         "double" | "float" | "f32" | "f64" | "float32" | "float64" | "Double" | "Float"
         | "Float64" | "Long_Float" | "real" | "Real" => "real",
-        "bool" | "boolean" | "Bool" | "Boolean" => "boolean",
+        "bool" | "boolean" | "Bool" | "Boolean" | "BOOL" => "boolean",
         "void" | "()" | "Unit" | "Void" => "nothing",
         "" | "var" | "auto" => return None,
         _ => return Some(format!("source:{words}")),

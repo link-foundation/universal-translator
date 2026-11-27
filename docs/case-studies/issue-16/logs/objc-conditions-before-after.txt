@@ -1,0 +1,26 @@
+BEFORE a3cee36: /items/1/body/statements/0/condition/kind: "Call" != "Binary"
+AFTER: boolean call conditions retain the same meaning
+/* Leap year in Objective-C */
+
+#ifdef __PORTABLE_OBJC__
+#include <objcrt.h>
+#else
+#import <objc/objc.h>
+#endif
+#import <stdio.h>
+
+BOOL isLeapYear(int year) {
+    return (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;
+}
+
+int main(void) {
+    for (int year = 1896; year < 1913; year++) {
+        if (isLeapYear(year)) {
+            printf("%d is a leap year\n", year);
+        } else {
+            printf("%d is not a leap year\n", year);
+        }
+    }
+    return 0;
+}
+

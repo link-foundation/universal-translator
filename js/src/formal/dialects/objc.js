@@ -2,6 +2,10 @@
 // their receiver, selector and arguments until the library rules interpret them.
 import { block, node } from '../../meta/tree.js';
 
+// Both runtimes define BOOL and YES/NO; their object ABIs differ.
+export const objectiveCRuntimeHeader =
+  '#ifdef __PORTABLE_OBJC__\n#include <objcrt.h>\n#else\n#import <objc/objc.h>\n#endif';
+
 export const objc = {
   parser: (Base) =>
     class extends Base {

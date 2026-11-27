@@ -478,36 +478,27 @@ pub(crate) fn recognize_objpak(mut program: Node, settings: &Settings) -> Node {
                 .collect::<Vec<_>>(),
         );
     }
-    let understood = library_node(program, &scope);
-    if language != "objc" {
-        return understood;
+    library_node(program, &scope)
+}
+
+pub(crate) fn normalize_objc_conditions(program: Node, settings: &Settings) -> Node {
+    if settings.from.split('@').next() != Some("objc") {
+        return program;
     }
-    rewrite(understood, |mut current| {
+    rewrite(program, |mut current| {
         if matches!(current.kind.as_str(), "While" | "If")
             && let Some(condition) = current.node("condition")
+            && matches!(condition.str("type"), Some("integer" | "real"))
         {
-            let boolean = condition.is("Boolean")
-                || condition.is("Unary") && condition.str("operator") == Some("not")
-                || condition.is("Binary")
-                    && matches!(
-                        condition.str("operator"),
-                        Some(
-                            "equal"
-                                | "notEqual"
-                                | "less"
-                                | "lessOrEqual"
-                                | "greater"
-                                | "greaterOrEqual"
-                                | "and"
-                                | "or"
-                        )
-                    );
-            if !boolean {
-                current.set(
-                    "condition",
-                    binary("notEqual", condition.clone(), number(0.0)),
-                );
-            }
+            current.set(
+                "condition",
+                binary(
+                    "notEqual",
+                    condition.clone(),
+                    number(0.0).with("type", "integer"),
+                )
+                .with("type", "boolean"),
+            );
         }
         current
     })

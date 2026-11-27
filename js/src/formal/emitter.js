@@ -14,6 +14,7 @@ import {
 import { languageSyntax } from './languages.js';
 import { splitVersion } from './versions.js';
 import { dialects } from './dialects/index.js';
+import { objectiveCRuntimeHeader } from './dialects/objc.js';
 import { withArrays } from './array-spellings.js';
 import { writePower } from './power.js';
 import { writeQuestion, writePropertyAccess } from './questions.js';
@@ -111,7 +112,7 @@ const importsBeforeLibrary = [
   ['dart:io', "import 'dart:io';"],
 ];
 const importsAfterLibrary = [
-  ['objc', '#import <objc/objc.h>'],
+  ['objc', objectiveCRuntimeHeader],
   ['stdbool', '#include <stdbool.h>'],
   ['stdio', '#include <stdio.h>'],
   ['iostream', '#include <iostream>'],

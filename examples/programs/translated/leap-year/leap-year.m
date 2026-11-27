@@ -1,6 +1,10 @@
 /* Leap year in Objective-C */
 
+#ifdef __PORTABLE_OBJC__
+#include <objcrt.h>
+#else
 #import <objc/objc.h>
+#endif
 #import <stdio.h>
 
 BOOL isLeapYear(int year) {

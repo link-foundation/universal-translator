@@ -1,6 +1,10 @@
 /* Perfect numbers in Objective-C: numbers equal to the sum of their divisors */
 
+#ifdef __PORTABLE_OBJC__
+#include <objcrt.h>
+#else
 #import <objc/objc.h>
+#endif
 #import <stdio.h>
 
 BOOL isPerfect(int number) {

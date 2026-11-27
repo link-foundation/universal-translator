@@ -17,7 +17,7 @@ import { splitVersion, versionsOf } from './versions.js';
 import { slashOperator } from './numbers.js';
 import { recognizeQuestions } from './questions.js';
 import { recognizeDocumentation } from './documentation.js';
-import { recognizeObjpak } from './objpak.js';
+import { normalizeObjectiveCConditions, recognizeObjpak } from './objpak.js';
 import {
   asciiName,
   avoidReserved,
@@ -875,7 +875,10 @@ export function concatenationToInterpolation(program) {
   });
 }
 
-export const meaningRules = [concatenationToInterpolation];
+export const meaningRules = [
+  concatenationToInterpolation,
+  normalizeObjectiveCConditions,
+];
 
 // ---------------------------------------------------------------------------
 // Context layer: adapt comments to the target language.

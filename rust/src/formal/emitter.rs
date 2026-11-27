@@ -142,7 +142,7 @@ const IMPORTS_BEFORE_LIBRARY: [(&str, &str); 7] = [
     ("dart:io", "import 'dart:io';"),
 ];
 const IMPORTS_AFTER_LIBRARY: [(&str, &str); 6] = [
-    ("objc", "#import <objc/objc.h>"),
+    ("objc", super::dialects::OBJC_RUNTIME_HEADER),
     ("stdbool", "#include <stdbool.h>"),
     ("stdio", "#include <stdio.h>"),
     ("iostream", "#include <iostream>"),

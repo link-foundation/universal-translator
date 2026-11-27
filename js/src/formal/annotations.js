@@ -67,6 +67,13 @@ export const withAnnotations = (Base) =>
       this.expect('(');
       const parameters = [];
       this.skipLineEnds();
+      if (
+        ['c', 'cpp', 'objc'].includes(this.syntax.id) &&
+        this.is('void') &&
+        this.is(')', 1)
+      ) {
+        this.next();
+      }
       while (!this.is(')')) {
         const annotations = this.annotations();
         const words = [];

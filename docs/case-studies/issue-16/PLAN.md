@@ -185,3 +185,13 @@ source provenance and existing-budget native CI integration are implemented.
 Seventeen focused JS tests, fourteen Rust tests, lint and Clippy pass. CLI writes and semantic JSON reads agree across six target grammars.
 Native comparison also passes through the public translation/layout path. Broader object/library/target coverage
 remains open; see `OBJPAK.md` for evidence and explicit limits.
+
+CI at `a3cee36` found boolean calls being normalized as numeric conditions before
+type inference. Both engines now normalize only inferred numeric conditions
+after inference; the existing JavaScript/Rust algorithm round trips pass.
+Native conditions uncovered a C `(void)` marker bug and incompatible runtime
+header selection, now covered by a shared fixture and independent POC/GNU
+Objective-C execution. CodeQL also traced the verifier's Node executable path
+through its argument wrapper; it now uses a fixed command. Both failed workflow
+logs and the SARIF are archived. Focused checks pass; current-commit CI remains
+required after pushing these fixes.

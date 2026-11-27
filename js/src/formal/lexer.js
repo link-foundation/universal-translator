@@ -2,6 +2,8 @@
 // language description only decides which comment markers, quotes and
 // layout rules (indentation, line ends) apply.
 
+import { objectiveCRuntimeHeader } from './dialects/objc.js';
+
 const symbols = [
   '...',
   '..<',
@@ -391,6 +393,20 @@ class Lexer {
 
   // Preprocessor lines such as #include <stdio.h>.
   directive() {
+    // This known header alternative defines the same scalar type on both
+    // runtimes. Arbitrary conditional code still requires preprocessing.
+    if (
+      this.syntax.id === 'objc' &&
+      this.source.startsWith(objectiveCRuntimeHeader, this.index) &&
+      /^(?:\r?\n|$)/.test(
+        this.source.slice(this.index + objectiveCRuntimeHeader.length)
+      )
+    ) {
+      this.push('directive', objectiveCRuntimeHeader);
+      this.index += objectiveCRuntimeHeader.length;
+      this.line += objectiveCRuntimeHeader.split('\n').length - 1;
+      return true;
+    }
     if (
       this.syntax.lineComment === '#' ||
       !/^#\s*(include|import)/.test(this.rest())

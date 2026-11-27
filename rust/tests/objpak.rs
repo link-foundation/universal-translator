@@ -3,6 +3,89 @@ use universal_translator::meta::{Node, same_meaning, walk};
 use universal_translator::natural::{check_description, check_text, natural_language_ids};
 use universal_translator::{Mode, Translator, reconstruct_concrete};
 const SOURCE: &str = include_str!("../../examples/objpak/hello.m");
+
+#[test]
+fn runtime_header_is_one_concrete_directive_without_ignoring_conditional_code() {
+    use universal_translator::formal::lexer::{TokenType, tokenize};
+    let header =
+        "#ifdef __PORTABLE_OBJC__\n#include <objcrt.h>\n#else\n#import <objc/objc.h>\n#endif";
+    let source = format!("{header}\nBOOL active = YES;");
+    let tokens = tokenize(&source, &language_syntax("objc").unwrap()).unwrap();
+    assert_eq!(tokens[0].kind, TokenType::Directive);
+    assert_eq!(tokens[0].value, header);
+    assert_eq!(tokens[0].raw_span, Some((0, header.len())));
+    assert_eq!(tokens.iter().find(|t| t.value == "BOOL").unwrap().line, 6);
+    assert!(
+        Translator::new()
+            .to_meta(
+                &header.replace("#else", "printf(\"changed\");\n#else"),
+                "objc"
+            )
+            .is_err()
+    );
+}
+
+#[test]
+fn conditions_distinguish_boolean_and_numeric_calls_after_inference() {
+    let translator = Translator::new();
+    let source = include_str!("../../examples/objpak/conditions.m");
+    let meta = translator.to_meta(source, "objc").unwrap();
+    assert!(meta.nodes("functions")[1].nodes("parameters").is_empty());
+    let main = meta.node("main").unwrap().nodes("statements");
+    let boolean = main[2].node("condition").unwrap();
+    assert!(boolean.is("Call"));
+    assert_eq!(boolean.str("type"), Some("boolean"));
+    let numeric = main[3].node("condition").unwrap();
+    assert_eq!(numeric.str("operator"), Some("notEqual"));
+    assert_eq!(numeric.str("type"), Some("boolean"));
+    assert_eq!(numeric.node("right").unwrap().str("type"), Some("integer"));
+    for language in ["python", "javascript", "rust", "objc"] {
+        let output = translator
+            .translate(source, "objc", language, Mode::default())
+            .unwrap();
+        assert!(
+            same_meaning(&meta, &translator.to_meta(&output, language).unwrap()),
+            "{language}\n{output}"
+        );
+    }
+}
+
+#[test]
+fn boolean_variable_tests_keep_their_value_role() {
+    let translator = Translator::new();
+    let meta = translator.to_meta("int main(void) { BOOL active = YES; int left = 2; while (active) { active = NO; } if (left) { left--; } return 0; }", "objc").unwrap();
+    let main = meta.node("main").unwrap().nodes("statements");
+    let condition = main[2].node("condition").unwrap();
+    assert!(condition.is("Name"));
+    assert_eq!(condition.str("type"), Some("boolean"));
+    assert!(
+        translator
+            .from_meta(&meta, "rust", None, Mode::default())
+            .unwrap()
+            .contains("while active")
+    );
+}
+
+#[test]
+fn void_parameter_markers_are_limited_to_c_family_grammars() {
+    let translator = Translator::new();
+    for language in ["c", "cpp", "objc"] {
+        let meta = translator
+            .to_meta("int remaining(\nvoid) { return 2; }", language)
+            .unwrap();
+        assert!(
+            meta.nodes("functions")[0].nodes("parameters").is_empty(),
+            "{language}"
+        );
+    }
+    let meta = translator
+        .to_meta("def identity(void):\n    return void\n", "python")
+        .unwrap();
+    assert_eq!(
+        meta.nodes("functions")[0].nodes("parameters")[0].str("name"),
+        Some("void")
+    );
+}
 fn kinds(tree: &Node, kind: &str) -> Vec<Node> {
     let mut result = Vec::new();
     walk(tree, |n| {

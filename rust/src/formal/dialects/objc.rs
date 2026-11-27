@@ -7,6 +7,9 @@ use crate::formal::{
 };
 use crate::meta::{Node, block};
 
+pub(crate) const RUNTIME_HEADER: &str =
+    "#ifdef __PORTABLE_OBJC__\n#include <objcrt.h>\n#else\n#import <objc/objc.h>\n#endif";
+
 pub(crate) struct ObjectiveC;
 
 impl ParserDialect for ObjectiveC {

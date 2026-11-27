@@ -42,6 +42,18 @@ const compile = (source, binary) =>
     '-o',
     binary,
   ]);
+const compileGNU = (source, binary) => {
+  const compiler = process.env.OBJC_CC === 'clang' ? 'clang' : 'gcc';
+  const flags =
+    compiler === 'clang'
+      ? [
+          '-fobjc-runtime=gcc',
+          '-I',
+          run('gcc', ['-print-file-name=include']).trim(),
+        ]
+      : [];
+  native(compiler, [...flags, '-O0', source, '-lobjc', '-o', binary]);
+};
 const original = readFileSync(new URL('./hello.m', import.meta.url), 'utf8');
 const variants = [
   ['original', original],
@@ -56,6 +68,10 @@ const variants = [
   [
     'updates',
     'int main(void) { int previous = 3; printf("%d\\n", previous++); printf("%d\\n", --previous); printf("%d\\n", previous--); printf("%d\\n", ++previous); return 0; }',
+  ],
+  [
+    'conditions',
+    readFileSync(new URL('./conditions.m', import.meta.url), 'utf8'),
   ],
 ];
 const argumentSets = [
@@ -81,7 +97,7 @@ try {
     const commands = [];
     for (const [language, extension, program] of [
       ['python', 'py', 'python3'],
-      ['javascript', 'mjs', process.execPath],
+      ['javascript', 'mjs', 'node'],
       ['rust', 'rs', null],
       ['objc', 'm', null],
     ]) {
@@ -103,6 +119,11 @@ try {
         }
         commands.push([language, binary, []]);
       }
+      if (language === 'objc' && variant === 'conditions') {
+        const gnuBinary = join(folder, `${variant}-gnu-objc`);
+        compileGNU(path, gnuBinary);
+        commands.push(['GNU Objective-C', gnuBinary, []]);
+      }
     }
     const cases = variant === 'original' ? argumentSets : [[]];
     for (const args of cases) {
@@ -118,7 +139,7 @@ try {
       }
     }
     console.log(
-      `PASS ${variant}: original POC equals Python, JavaScript, Rust and generated POC (${cases.length} argument sets), with semantic round-trips`
+      `PASS ${variant}: original POC equals Python, JavaScript, Rust and generated POC${variant === 'conditions' ? ' and GNU Objective-C' : ''} (${cases.length} argument sets), with semantic round-trips`
     );
   }
 } finally {
