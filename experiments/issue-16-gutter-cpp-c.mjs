@@ -2,7 +2,12 @@
 import { join } from 'node:path';
 import { webkit } from 'playwright-core';
 
-const captures = process.argv[2];
+const [
+  captures,
+  appUrl = 'http://127.0.0.1:5173/',
+  monacoPath = '/src/monaco.js',
+  targetMatch = 'int main(',
+] = process.argv.slice(2);
 if (!captures) {
   throw new Error('Pass an existing directory for the screenshots');
 }
@@ -16,14 +21,15 @@ try {
   });
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  await page.goto(
-    'http://127.0.0.1:5173/#settings=(settings%20(version%201)%20(theme%20app)%20(scheme%20dark)%20(editor%20monaco))'
-  );
+  const url = new URL(appUrl);
+  url.hash =
+    'settings=(settings%20(version%201)%20(theme%20app)%20(scheme%20dark)%20(editor%20monaco))';
+  await page.goto(url.href);
   await page.waitForSelector('#source-text .monaco-editor');
   await page.selectOption('#source-language', 'cpp');
   await page.selectOption('#target-language', 'c');
-  await page.evaluate(async () => {
-    const { loadMonaco } = await import('/src/monaco.js');
+  await page.evaluate(async (modulePath) => {
+    const { loadMonaco } = await import(modulePath);
     const monaco = await loadMonaco();
     const editor = monaco.editor
       .getEditors()
@@ -33,11 +39,13 @@ try {
     );
     editor.focus();
     editor.setPosition({ lineNumber: 12, column: 2 });
-  });
-  await page.waitForFunction(() =>
-    globalThis.document
-      .querySelector('#target-text')
-      ?.dataset.value?.includes('int main(')
+  }, monacoPath);
+  await page.waitForFunction(
+    (expected) =>
+      globalThis.document
+        .querySelector('#target-text')
+        ?.dataset.value?.includes(expected),
+    targetMatch
   );
   await page.addStyleTag({
     content: '#source-text { min-height: 640px !important; }',

@@ -40,3 +40,30 @@ The browser reported no page errors. The same source and target also ran
 in Chromium through Playwright MCP.
 
 [WebKit capture after dragging toward the blank gutter](../../screenshots/issue-16/gutter-cpp-c-webkit.png)
+
+## Build deployed when the issue was opened
+
+GitHub Pages deployment `8081803241` served `ec8f530` on November 26 at
+09:50 UTC. Web build artifact `15105185261` recreates the partial C translation
+from the report. [Deployment workflow](https://github.com/link-foundation/universal-translator/actions/runs/45795514232)
+
+The same five WebKit 26.4
+interactions show the original three mapping bars ending at line 11. Each
+frame has 39,900 background pixels of `#21302c` in the sampled blank gutter.
+The page reported zero errors. This narrows the remaining investigation to the
+Safari runtime or a browser state outside the five recorded interactions.
+
+```sh
+mkdir -p /tmp/gutter-deployment /tmp/gutter-captures
+gh run download 45795514232 --repo link-foundation/universal-translator \
+  --name universal-example-web --dir /tmp/gutter-deployment/universal-translator
+python3 -m http.server 5174 --bind 127.0.0.1 --directory /tmp/gutter-deployment &
+gutter_server=$!
+node experiments/issue-16-gutter-cpp-c.mjs /tmp/gutter-captures \
+  http://127.0.0.1:5174/universal-translator/ \
+  /universal-translator/assets/monaco-DKl3p0Qm.js 'untranslated (line 1)'
+kill "$gutter_server"
+```
+
+[WebKit capture of the deployment](../../screenshots/issue-16/gutter-deployed-webkit.png)
+[Browser observations](logs/gutter-deployed-webkit.jsonl)
