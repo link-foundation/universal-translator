@@ -96,7 +96,23 @@ fn expression_type(expression: &Node, scope: &Scope, signatures: &Signatures) ->
             .get(expression.str("callee")?)
             .and_then(|signature| signature.return_type.clone()),
         "ArrayLiteral" | "NewArray" => Some("array".into()),
-        "Index" | "Length" => Some("integer".into()),
+        "Length" => Some("integer".into()),
+        "ProcessArguments" => Some("array<text>".into()),
+        "SetLiteral" => Some("set<text>".into()),
+        "SetInsert" => expression
+            .node("collection")
+            .and_then(|c| expression_type(c, scope, signatures)),
+        "Update" => expression
+            .node("operand")
+            .and_then(|o| expression_type(o, scope, signatures))
+            .or_else(|| Some("integer".into())),
+        "Index" => Some(
+            expression
+                .node("array")
+                .and_then(|a| expression_type(a, scope, signatures))
+                .and_then(|a| collection_element(&a).map(str::to_owned))
+                .unwrap_or_else(|| "integer".into()),
+        ),
         _ => None,
     }
 }
@@ -124,6 +140,13 @@ fn query_scope(expression: &Node, scope: &Scope, signatures: &Signatures) -> Sco
             .into(),
     );
     local
+}
+
+fn collection_element(kind: &str) -> Option<&str> {
+    kind.strip_prefix("array<")
+        .or_else(|| kind.strip_prefix("sequence<"))
+        .or_else(|| kind.strip_prefix("set<"))
+        .and_then(|k| k.strip_suffix('>'))
 }
 
 fn number_type(expression: &Node) -> &'static str {
@@ -395,11 +418,17 @@ impl Context<'_> {
             }
             "ForEach" => {
                 let mut inner = scope.clone();
-                if let Some(variable) = statement.str("variable") {
-                    inner.insert(variable.to_owned(), "integer".into());
-                }
-                statement.set("type", "integer");
                 self.typed(&mut statement, "array", scope);
+                let kind = statement
+                    .node("array")
+                    .and_then(|a| a.str("type"))
+                    .and_then(collection_element)
+                    .unwrap_or("integer")
+                    .to_owned();
+                if let Some(variable) = statement.str("variable") {
+                    inner.insert(variable.to_owned(), kind.clone());
+                }
+                statement.set("type", kind);
                 self.block_field(&mut statement, "body", &inner);
                 statement
             }

@@ -14,5 +14,10 @@ pub fn expand_for_each(program: Node, settings: &Settings) -> Node {
     let native = language_syntax(&settings.target)
         .ok()
         .is_some_and(|syntax| syntax.for_each.is_some());
-    lower_for_each(program, &|each| native && is_plain(each))
+    lower_for_each(program, &|each| {
+        (native
+            || settings.to == "objc"
+                && each.node("array").and_then(|a| a.str("type")) == Some("set<text>"))
+            && is_plain(each)
+    })
 }

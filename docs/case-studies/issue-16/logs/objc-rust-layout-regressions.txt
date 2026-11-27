@@ -1,0 +1,42 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 10.03s
+     Running rust/tests/concrete_syntax.rs (target/debug/deps/concrete_syntax-73d8ce8bb13300f8)
+
+running 5 tests
+test reconstruction_requires_a_concrete_tree ... ok
+test concrete_tokens_partition_every_source_byte ... ok
+test empty_and_whitespace_input_have_lossless_records ... ok
+test incomplete_source_retains_accepted_regions_and_explicit_errors ... ok
+test words_and_all_machine_formats_retain_their_source_record ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.45s
+
+     Running rust/tests/objpak.rs (target/debug/deps/objpak-03960ca91181b218)
+
+running 13 tests
+test aliases_and_insertion_results_keep_shared_identity ... ok
+test generated_c89_entry_point_returns_a_successful_status ... ok
+test a_changed_javascript_return_line_has_no_library_contract ... ok
+test parameters_shadow_library_class_names ... ok
+test receiver_selectors_and_blocks_are_compositional ... ok
+test original_collection_program_has_portable_concepts ... ok
+test renamed_entry_and_braced_body_work ... ok
+test unknown_messages_and_pointer_misuse_are_not_guessed ... ok
+test updates_keep_prefix_postfix_values_and_a_previous_binding ... ok
+test concrete_library_definitions_keep_utf8_bytes_and_verified_contracts ... ok
+test emitted_library_contracts_and_callers_round_trip ... ok
+test generated_library_contracts_survive_source_layout_and_explicit_styles ... ok
+test every_natural_grammar_round_trips_the_full_algorithm ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.69s
+
+     Running rust/tests/style.rs (target/debug/deps/style-808850b446d11180)
+
+running 4 tests
+test rejects_styles_a_language_cannot_be_written_in ... ok
+test indents_blocks_without_braces_and_leaves_their_lines_alone ... ok
+test indents_javascript_by_two_spaces_and_rust_by_a_tab ... ok
+test puts_each_opening_brace_of_csharp_on_a_line_of_its_own ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.35s
+

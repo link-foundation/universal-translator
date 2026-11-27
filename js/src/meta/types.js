@@ -26,8 +26,9 @@ const fixedTypes = new Map([
   ['Boolean', 'boolean'],
   ['ArrayLiteral', 'array'],
   ['NewArray', 'array'],
-  ['Index', 'integer'],
   ['Length', 'integer'],
+  ['ProcessArguments', 'array<text>'],
+  ['SetLiteral', 'set<text>'],
 ]);
 
 function binaryType(expression, scope, signatures) {
@@ -51,21 +52,35 @@ function binaryType(expression, scope, signatures) {
 const numberType = ({ type, value }) =>
   type === 'real' || !Number.isInteger(value) ? 'real' : 'integer';
 
+const dependentTypes = {
+  Index: (expression, scope, signatures) =>
+    /^(?:array|sequence|set)<(.+)>$/u.exec(
+      expressionType(expression.array, scope, signatures)
+    )?.[1] ?? 'integer',
+  Update: (expression, scope, signatures) =>
+    expressionType(expression.operand, scope, signatures) ?? 'integer',
+  SetInsert: (expression, scope, signatures) =>
+    expressionType(expression.collection, scope, signatures),
+  Query(expression, scope, signatures) {
+    const local = queryScope(expression, scope, signatures);
+    const element =
+      expressionType(expression.projection, local, signatures) ?? 'object';
+    return `${expression.eager ? 'array' : 'sequence'}<${element}>`;
+  },
+};
+
 function expressionType(expression, scope, signatures) {
   if (fixedTypes.has(expression.kind)) {
     return fixedTypes.get(expression.kind);
+  }
+  if (dependentTypes[expression.kind]) {
+    return dependentTypes[expression.kind](expression, scope, signatures);
   }
   switch (expression.kind) {
     case 'Number':
       return numberType(expression);
     case 'Name':
       return scope.get(expression.name);
-    case 'Query': {
-      const local = queryScope(expression, scope, signatures);
-      const element =
-        expressionType(expression.projection, local, signatures) ?? 'object';
-      return `${expression.eager ? 'array' : 'sequence'}<${element}>`;
-    }
     case 'Question':
       return ['source', 'documentation'].includes(expression.aspect)
         ? 'text'
@@ -257,11 +272,15 @@ const statementTypers = {
   }),
   ForEach(statement, context) {
     const inner = new Map(context.scope);
-    inner.set(statement.variable, 'integer');
+    inner.reals = context.reals;
+    const array = context.typed(statement.array);
+    const type =
+      /^(?:array|sequence|set)<(.+)>$/u.exec(array.type)?.[1] ?? 'integer';
+    inner.set(statement.variable, type);
     return {
       ...statement,
-      type: 'integer',
-      array: context.typed(statement.array),
+      type,
+      array,
       body: typeBlock(
         statement.body,
         inner,

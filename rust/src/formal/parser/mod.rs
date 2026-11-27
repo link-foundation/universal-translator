@@ -83,13 +83,7 @@ pub(crate) type Parsed<T = Node> = Result<T, GrammarError>;
 
 /// Parse a whole source text into a `SourceProgram` tree.
 pub fn parse_program(source: &str, syntax: &Syntax) -> Parsed {
-    let tokens = tokenize(source, syntax)?;
-    let mut parser = Parser::new(tokens.clone(), syntax.clone()).with_source(source);
-    let mut tree = parser.program()?;
-    crate::source_origins::register_origins(&mut tree);
-    let concrete =
-        crate::concrete_syntax::concrete_syntax(source, syntax.id, &tokens, parser.productions);
-    Ok(tree.with("syntax", concrete))
+    concrete::parse_program(source, syntax)
 }
 
 /// Binary operators by precedence level with their spellings.
@@ -1271,7 +1265,8 @@ impl Parser {
 
     pub(crate) fn postfix(&mut self) -> Parsed {
         self.concrete_rule("postfix", |parser| {
-            parser.concrete_postfix().map(queries::query_call)
+            let value = parser.concrete_postfix().map(queries::query_call)?;
+            parser.objc_postfix(value)
         })
     }
 

@@ -115,6 +115,7 @@ fn is_literal_range(start: &Node, end: &Node) -> bool {
 pub(crate) type Result<T> = std::result::Result<T, GrammarError>;
 
 pub(crate) struct Emitter {
+    pub(crate) objpak_name: String,
     pub(crate) syntax: Syntax,
     pub(crate) unit: &'static str,
     pub(crate) lines: crate::emission_map::SourceLines,
@@ -190,6 +191,7 @@ impl Emitter {
         let syntax_id = syntax.id;
         let unit = if syntax.id == "go" { "\t" } else { "    " };
         Emitter {
+            objpak_name: String::new(),
             syntax,
             unit,
             lines: Default::default(),
@@ -401,8 +403,20 @@ impl Emitter {
                     None => value.to_string(),
                 })
             }
-            "Name" => Ok(self.variable(expression.str("name").unwrap_or_default())),
+            "Name" => {
+                let variable = self.variable(expression.str("name").unwrap_or_default());
+                Ok(
+                    if self.id() == "rust" && expression.str("type") == Some("set<text>") {
+                        format!("{variable}.clone()")
+                    } else {
+                        variable
+                    },
+                )
+            }
             "Query" => super::query_writer::write_query(self, expression),
+            "ProcessArguments" | "Update" | "SetLiteral" | "SetInsert" => {
+                super::objpak_writer::expression(self, expression)
+            }
             "Lambda" => super::query_writer::write_lambda(self, expression),
             "Question" => super::questions::write_question(self, expression),
             "Method" if matches!(self.id(), "python" | "javascript" | "typescript") => {
@@ -926,18 +940,26 @@ impl Emitter {
     /// The loop header is the language's `for_each` template with the loop
     /// variable, its type and the array filled in.
     pub(crate) fn for_each_loop(&mut self, statement: &Node) -> Result<()> {
+        if self.syntax.id == "objc"
+            && statement.node("array").and_then(|a| a.str("type")) == Some("set<text>")
+        {
+            return super::objpak_objc::for_each(self, statement);
+        }
         let array = field(statement, "array")?;
-        let element = self.type_name("integer");
+        let element = self.type_name(statement.str("type").unwrap_or("integer"));
         let variable = self.variable(statement.str("variable").unwrap_or_default());
         let written = self.expression(array)?;
-        let header = self
-            .syntax
-            .for_each
-            .unwrap_or_default()
-            .replace("{type}", &element)
-            .replace("{variable}", &variable)
-            .replace("{array-name}", array.str("name").unwrap_or_default())
-            .replace("{array}", &written);
+        let header = if self.id() == "rust" && array.str("type") == Some("set<text>") {
+            format!("for {variable} in {written}.iter()")
+        } else {
+            self.syntax
+                .for_each
+                .unwrap_or_default()
+                .replace("{type}", &element)
+                .replace("{variable}", &variable)
+                .replace("{array-name}", array.str("name").unwrap_or_default())
+                .replace("{array}", &written)
+        };
         self.open_block(&header);
         self.body(field(statement, "body")?)?;
         self.close_block();
@@ -1282,6 +1304,7 @@ impl Emitter {
             }
         }
         self.array_prelude(&mut lines);
+        super::objpak_writer::prelude(self, &mut lines);
         lines
     }
 }
@@ -1295,9 +1318,11 @@ pub fn spaced_after<N: std::borrow::Borrow<Node>>(functions: &[N], index: usize)
 
 pub fn emit_program(program: &Node, language: &str) -> Result<String> {
     let syntax = language_syntax(language)?;
-    if syntax.id == "csharp" {
-        Emitter::new(syntax).program(&super::query_writer::csharp_query_names(program.clone()))
+    let mut emitter = Emitter::new(syntax);
+    super::objpak_writer::prepare(&mut emitter, program);
+    if emitter.syntax.id == "csharp" {
+        emitter.program(&super::query_writer::csharp_query_names(program.clone()))
     } else {
-        Emitter::new(syntax).program(program)
+        emitter.program(program)
     }
 }

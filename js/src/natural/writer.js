@@ -8,6 +8,7 @@
 import { naturalLanguage } from './catalog.js';
 import { questionKey, answerKey } from '../meta/questions.js';
 import { queryKey } from '../meta/queries.js';
+import { collectionPhrase } from '../meta/collection-phrases.js';
 import {
   binaryTemplates,
   levelIndex,
@@ -118,6 +119,23 @@ function separated(expressions, language) {
   ]);
 }
 
+function collectionExpression(expression, language) {
+  const phrase = collectionPhrase(expression);
+  if (phrase) {
+    return fill(
+      language,
+      phrase.key,
+      Object.fromEntries(
+        Object.entries(phrase.slots).map(([key, value]) => [
+          key,
+          parenthesize(writeExpression(value, language, 0)),
+        ])
+      )
+    );
+  }
+  throw new Error(`Cannot write a ${expression.kind} expression in words`);
+}
+
 function primary(expression, language) {
   switch (expression.kind) {
     case 'Query':
@@ -180,7 +198,7 @@ function primary(expression, language) {
         array: operand(expression.array, language),
       });
     default:
-      throw new Error(`Cannot write a ${expression.kind} expression in words`);
+      return collectionExpression(expression, language);
   }
 }
 

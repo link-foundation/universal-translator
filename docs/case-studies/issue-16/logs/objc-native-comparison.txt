@@ -1,0 +1,4 @@
+PASS original: original POC equals Python, JavaScript, Rust and generated POC (6 argument sets), with semantic round-trips
+PASS aliases: original POC equals Python, JavaScript, Rust and generated POC (1 argument sets), with semantic round-trips
+PASS live-iteration: original POC equals Python, JavaScript, Rust and generated POC (1 argument sets), with semantic round-trips
+PASS updates: original POC equals Python, JavaScript, Rust and generated POC (1 argument sets), with semantic round-trips

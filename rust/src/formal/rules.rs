@@ -35,6 +35,7 @@ fn rule(name: &str, apply: impl Fn(Node, &Settings) -> Node + Send + Sync + 'sta
 pub fn understanding_rules() -> Vec<Rule> {
     vec![
         rule("recognizeDocumentation", recognize_documentation),
+        rule("recognizeObjpak", super::objpak::recognize_objpak),
         rule("findEntryPoint", |program, _| find_entry_point(program)),
         rule("recognizeQuestions", recognize_questions),
         rule("concatenationOperator", concatenation_operator),
@@ -886,9 +887,21 @@ fn assigned_names(tree: &Node, kind: &str) -> HashSet<String> {
 /// whose elements the program assigns is marked too: Rust, Swift and Nim
 /// declare it like a mutable variable.
 pub fn infer_mutability(program: Node) -> Node {
-    let assigned = assigned_names(&program, "Assignment");
+    let mut assigned = assigned_names(&program, "Assignment");
     let mut stored = assigned_names(&program, "IndexAssignment");
     walk(&program, |current| {
+        if current.is("Update")
+            && let Some(operand) = current.node("operand")
+            && operand.is("Name")
+        {
+            assigned.insert(operand.str("name").unwrap_or_default().to_owned());
+        }
+        if current.is("SetInsert")
+            && let Some(collection) = current.node("collection")
+            && collection.is("Name")
+        {
+            stored.insert(collection.str("name").unwrap_or_default().to_owned());
+        }
         if current.is("Call")
             && let Some((receiver, method)) =
                 current.str("callee").unwrap_or_default().rsplit_once('.')

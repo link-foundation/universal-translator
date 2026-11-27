@@ -1,0 +1,23 @@
+
+added 2 packages in 630ms
+node:internal/modules/run_main:111
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Unexpected character "^" (line 16)
+
+
+1 !== 0
+
+    at success (file:///tmp/gh-issue-solver-1795726129025/experiments/verify-syntax-exchange.mjs:33:10)
+    at verifyObjpakParity (file:///tmp/gh-issue-solver-1795726129025/experiments/verify-syntax-exchange.mjs:70:18)
+    at file:///tmp/gh-issue-solver-1795726129025/experiments/verify-syntax-exchange.mjs:81:3 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 1,
+  expected: 0,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v26.13.1

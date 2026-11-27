@@ -17,6 +17,7 @@ import { splitVersion, versionsOf } from './versions.js';
 import { slashOperator } from './numbers.js';
 import { recognizeQuestions } from './questions.js';
 import { recognizeDocumentation } from './documentation.js';
+import { recognizeObjpak } from './objpak.js';
 import {
   asciiName,
   avoidReserved,
@@ -569,6 +570,12 @@ export function inferMutability(program) {
     if (current.kind === 'Assignment') {
       assigned.add(current.name);
     }
+    if (current.kind === 'Update' && current.operand.kind === 'Name') {
+      assigned.add(current.operand.name);
+    }
+    if (current.kind === 'SetInsert' && current.collection.kind === 'Name') {
+      stored.add(current.collection.name);
+    }
     if (current.kind === 'IndexAssignment') {
       stored.add(current.name);
     }
@@ -820,6 +827,7 @@ export function dropEmptyStatements(program, { from } = {}) {
 
 export const understandingRules = [
   recognizeDocumentation,
+  recognizeObjpak,
   findEntryPoint,
   recognizeQuestions,
   concatenationOperator,

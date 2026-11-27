@@ -12,4 +12,5 @@ int main(void) {
         }
     }
     printf("The greatest element is %d\n", greatest);
+    return 0;
 }

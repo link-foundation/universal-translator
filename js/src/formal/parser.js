@@ -14,12 +14,9 @@ import { powerSymbol } from './power.js';
 import { typeDepth, typeHeadLength, withAnnotations } from './annotations.js';
 import { withExceptionParser } from './exception-parser.js';
 import { questionSuffix, propertyAssignment } from './question-parser.js';
+import { withObjpakParser } from './objpak-reader.js';
 import { withQueryParser } from './query-parser.js';
-import {
-  concreteParser,
-  concreteSyntax,
-} from '../translation/concrete-syntax.js';
-import { registerOrigins } from '../translation/source-origins.js';
+import { parseSource } from './source-parser.js';
 
 const binaryLevels = [
   { or: ['||', 'or'] },
@@ -65,18 +62,7 @@ const modifiers = new Set([
 ]);
 
 export function parseProgram(source, syntax) {
-  const LanguageParser = parserFor(syntax);
-  const tokens = tokenize(source, syntax);
-  const { parser, locations } = concreteParser(
-    new LanguageParser(tokens, syntax),
-    source
-  );
-  const tree = parser.program();
-  registerOrigins(tree, locations, source);
-  return {
-    ...tree,
-    syntax: concreteSyntax(source, syntax.id, tokens, tree, locations),
-  };
+  return parseSource(source, syntax, parserFor(syntax));
 }
 
 // Languages whose statements follow a grammar of their own (Fortran, Pascal,
@@ -1434,9 +1420,11 @@ export function numberLiteral(written) {
 
 // Arrays, loops and type hints are read by mixins of their own, which the
 // dialects inherit.
-const Parser = withQueryParser(
-  withExceptionParser(
-    withAnnotations(withFunctionForms(withLoops(withArrays(BaseParser))))
+const Parser = withObjpakParser(
+  withQueryParser(
+    withExceptionParser(
+      withAnnotations(withFunctionForms(withLoops(withArrays(BaseParser))))
+    )
   )
 );
 

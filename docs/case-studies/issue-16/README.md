@@ -20,6 +20,8 @@ CI for a subset does not close that scope.
   mechanisms, distribution limits and an implementation path.
 - [Introspection questions](QUESTIONS.md) and [selection queries](QUERIES.md):
   shared meanings, native execution, scope/evaluation rules and remaining limits.
+- [Portable Object Compiler and Objpak](OBJPAK.md): the unchanged collection
+  source, scoped library contracts, pinned native toolchain and comparison logs.
 - `data/issue-*.json`, `data/discussion-*.md` and `data/pulls-*`: complete issue
   and PR descriptions, conversation comments, inline comments and reviews.
   Long discussions are split into parts of at most 1,400 lines for review.
@@ -51,6 +53,13 @@ All times are UTC and refer to archived GitHub events or Git commits.
 | 23:30:18, `34cad04`: partial mapping aggregation                           | Successful fragments, failure notes and split prose output retain line ownership after recovery and layout                                                                                              |
 | `28bd803`: server semantic mappings                                        | Rust API stops suppressing non-programming maps; HTTP cases for prose, controlled words, NASM and WAT pass in both server implementations                                                               |
 | `9702226`: package fixture inclusion                                       | Rust's explicit release include list omitted two new `include_str!` fixtures; `cargo package --list` confirms both are now packaged                                                                     |
+
+The Objpak implementation now reads the unchanged 34th collection program in
+both engines. The native compiler and generated Python, JavaScript, Rust and
+Objective-C agree across finite argument, alias, live-iteration and update cases.
+This resolves the original reader failure; every-target library lowering and the
+wider object/class requirements remain open. See [OBJPAK.md](OBJPAK.md) for the
+pinned source evidence and the generated C89 entry-point exit-status repair.
 
 ## Root causes and implemented repairs
 

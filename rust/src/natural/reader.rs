@@ -365,6 +365,16 @@ impl<'a> SentenceReader<'a> {
                 }
             }
         }
+        for key in super::collection_templates::KEYS {
+            for template in self.language.variants(key) {
+                let mut reader =
+                    |slot: &str, from: usize, to: usize| self.slot(tokens, slot, from, to);
+                if let Some(slots) = Self::match_template(template, tokens, start, end, &mut reader)
+                {
+                    return collection_node(key, slots);
+                }
+            }
+        }
         for key in ARRAY_KEYS {
             for template in self.language.variants(key) {
                 let mut reader =
@@ -544,6 +554,33 @@ impl<'a> SentenceReader<'a> {
 
 fn expression_slot(slots: &mut Captured, name: &str) -> Option<Node> {
     slots.remove(name).and_then(Slot::expression)
+}
+
+fn collection_node(key: &str, mut slots: Captured) -> Option<Node> {
+    Some(match key {
+        "process-arguments" => {
+            let include = expression_slot(&mut slots, "includeProgram")?;
+            Node::new("ProcessArguments").with("includeProgram", include.flag("value")?)
+        }
+        "objpak-string-set" => Node::new("SetLiteral")
+            .with("elements", Vec::<Node>::new())
+            .with("order", "objpak-string"),
+        "set-insert" => Node::new("SetInsert")
+            .with("collection", expression_slot(&mut slots, "collection")?)
+            .with("value", expression_slot(&mut slots, "value")?),
+        "prefix-update" | "postfix-update" => {
+            let operand = expression_slot(&mut slots, "operand")?;
+            let delta = expression_slot(&mut slots, "delta")?.number("value")?;
+            if !operand.is("Name") || !matches!(delta, -1.0 | 1.0) {
+                return None;
+            }
+            Node::new("Update")
+                .with("operand", operand)
+                .with("delta", delta)
+                .with("prefix", key == "prefix-update")
+        }
+        _ => return None,
+    })
 }
 
 fn name_slot(slots: &mut Captured, name: &str) -> String {

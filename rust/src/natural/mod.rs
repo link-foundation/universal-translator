@@ -4,6 +4,7 @@
 
 mod agreement;
 pub mod catalog;
+mod collection_templates;
 pub mod comments;
 pub mod levels;
 mod lines;

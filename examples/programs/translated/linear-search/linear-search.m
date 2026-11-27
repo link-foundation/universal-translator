@@ -15,4 +15,5 @@ int main(void) {
         current += 1;
     }
     printf("Found %d at position %d\n", wanted, position);
+    return 0;
 }

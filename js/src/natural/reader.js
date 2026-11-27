@@ -14,6 +14,7 @@ import { levelIndex, levels, operatorOfTemplate } from './levels.js';
 import { questionAspects, questionKey, answerKey } from '../meta/questions.js';
 import { sentenceLines } from './lines.js';
 import { queryKeys, queryNode } from '../meta/queries.js';
+import { collectionKeys, collectionNode } from '../meta/collection-phrases.js';
 import { normalize, slotCase } from './agreement.js';
 import { attachComments, withOrigin } from '../translation/source-origins.js';
 
@@ -235,6 +236,7 @@ export class SentenceReader {
       }
     }
     const structuredKeys = [
+      ...collectionKeys,
       ...arrayKeys,
       ...queryKeys.filter((key) => key.startsWith('answer-')),
     ];
@@ -389,6 +391,9 @@ export class SentenceReader {
 
 // A new array of no elements is the empty array literal.
 function structuredNode(key, slots) {
+  if (collectionKeys.includes(key)) {
+    return collectionNode(key, slots);
+  }
   return queryKeys.includes(key)
     ? queryNode(key, slots)
     : arrayNode(key, slots);

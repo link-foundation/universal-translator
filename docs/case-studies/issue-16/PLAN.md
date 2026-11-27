@@ -162,9 +162,19 @@ specimens, 27 ranked grammars, two native exchanged programs and 80 imperative
 golden write/read pairs). These infrastructure repairs do not change the open
 acceptance criteria.
 
+All five CI workflows at `0a44abd` pass, including the repaired native budgets
+and dedicated SQL CLI parity cases. Fresh issue comments, inline PR comments
+and reviews remain empty; the historical PR conversation has no new findings.
+
 Current draft: compositional Portable Object Compiler messages, process
-arguments, numeric updates and Objpak string sets. Six finite native argument
-sets match the original compiler output across Python, JavaScript and Rust;
-8 JavaScript and 6 Rust focused regressions pass, including 71 natural grammar
-round-trips. Generated formal readers, Objective-C emission, source pinning and
-CI integration remain under development; the 34th collection criterion is open.
+arguments, numeric updates and Objpak string sets. The actual pinned compiler
+now agrees with generated Python, JavaScript, Rust and Objective-C across six
+argument sets and separate alias, live-iteration and update programs. Both
+engines read all 34 original collection programs. Formal and all 71 natural
+grammars round-trip the original algorithm; verified helper definitions retain
+their concrete library production. A native exit-status failure exposed C89
+main fallthrough; both writers now emit explicit success returns. Focused tests,
+source provenance and existing-budget native CI integration are implemented.
+Seventeen focused JS tests, fourteen Rust tests, lint and Clippy pass. CLI writes and semantic JSON reads agree across six target grammars.
+Native comparison also passes through the public translation/layout path. Broader object/library/target coverage
+remains open; see `OBJPAK.md` for evidence and explicit limits.

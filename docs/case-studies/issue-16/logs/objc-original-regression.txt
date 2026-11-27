@@ -1,0 +1,2 @@
+BEFORE 0a44abd: Expected "]" but found "new" (line 11)
+AFTER: the unchanged original Objective-C collection source reads into meta

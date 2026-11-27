@@ -714,6 +714,7 @@ fn compile(description: Description) -> Result<Language, String> {
         id,
     };
     super::query_templates::derive(&mut language);
+    super::collection_templates::derive(&mut language);
     for (key, texts) in &language.templates.entries {
         let variants = texts
             .iter()

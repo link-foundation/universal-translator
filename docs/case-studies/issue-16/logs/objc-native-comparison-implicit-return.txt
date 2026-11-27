@@ -1,0 +1,24 @@
+node:internal/errors:999
+  const err = new Error(message);
+              ^
+
+Error: Command failed: bash -c ulimit -c 0; ulimit -v 1048576; ulimit -s 16384; exec "$@" bounded-objpak /tmp/universal-objpak-Il9Sup/original-objc
+    at genericNodeError (node:internal/errors:999:15)
+    at wrappedFn (node:internal/errors:544:14)
+    at checkExecSyncError (node:child_process:990:11)
+    at execFileSync (node:child_process:1026:15)
+    at run (file:///tmp/gh-issue-solver-1795726129025/examples/objpak/verify-native.mjs:13:46)
+    at native (file:///tmp/gh-issue-solver-1795726129025/examples/objpak/verify-native.mjs:18:35)
+    at file:///tmp/gh-issue-solver-1795726129025/examples/objpak/verify-native.mjs:53:114
+    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async node:internal/modules/esm/loader:650:26 {
+  status: 240,
+  signal: null,
+  output: [ null, '', '' ],
+  pid: 98029,
+  stdout: '',
+  stderr: ''
+}
+
+Node.js v26.13.1

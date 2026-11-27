@@ -8,4 +8,5 @@ int main(void) {
         int number = numbers[index];
         printf("%d\n", number);
     }
+    return 0;
 }

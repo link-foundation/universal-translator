@@ -12,4 +12,5 @@ int main(void) {
     }
     printf("Sum: %d\n", total);
     printf("Product: %d\n", product);
+    return 0;
 }

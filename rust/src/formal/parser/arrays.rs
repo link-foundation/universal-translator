@@ -71,6 +71,9 @@ impl Parser {
     }
 
     pub(crate) fn base_primary(&mut self) -> Parsed {
+        if let Some(expression) = self.objpak_primary()? {
+            return Ok(expression);
+        }
         let mut expression = match self.array_primary()? {
             Some(read) => read,
             None => self.plain_primary()?,
@@ -252,6 +255,9 @@ impl Parser {
     }
 
     fn concrete_unary(&mut self) -> Parsed {
+        if let Some(value) = self.objc_prefix()? {
+            return Ok(value);
+        }
         // Lua: #a is the length of a.
         if self.syntax.id == "lua" && self.accept("#") {
             let array = self.unary()?;

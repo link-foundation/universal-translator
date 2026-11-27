@@ -19,3 +19,5 @@ Retain lossless concrete tokens, trivia and grammar production ranges by default
 Carry semantic source locations through transformations and emitters so expanded Bash calls and translated natural-language sentences retain many-to-many line mappings.
 
 Keep statement ownership through stack-machine lowering and the complete instruction expansions of all seven machine-code writers.
+
+Read Portable Object Compiler messages and blocks compositionally, model command-line cursors and Objpak string sets, and translate the original collection program through Python, JavaScript, Rust, Objective-C and controlled natural grammars. Preserve hash iteration, aliases, insertion return values and live iteration; return an explicit successful status from generated C89 main functions.

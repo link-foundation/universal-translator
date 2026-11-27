@@ -10,5 +10,10 @@ export { raiseForEach } from '../meta/for-each.js';
 // so do loops that change their own variable or array.
 export function expandForEach(program, { to, target = to }) {
   const native = Boolean(languageSyntax(target).forEach);
-  return lowerForEach(program, (loop) => native && isPlain(loop));
+  return lowerForEach(
+    program,
+    (loop) =>
+      (native || (to === 'objc' && loop.array.type === 'set<text>')) &&
+      isPlain(loop)
+  );
 }

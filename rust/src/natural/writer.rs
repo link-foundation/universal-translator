@@ -175,6 +175,13 @@ fn separated(expressions: Vec<&Node>, language: &Language) -> Result<Vec<Token>,
 }
 
 fn primary(expression: &Node, language: &Language) -> Result<Vec<Token>, String> {
+    if let Some((key, values)) = super::collection_templates::phrase(expression)? {
+        let slots = values
+            .into_iter()
+            .map(|(key, value)| Ok((key, parenthesize(write_expression(&value, language, 0)?))))
+            .collect::<Result<Slots, String>>()?;
+        return fill(language, key, &slots);
+    }
     match expression.kind.as_str() {
         "Number" => Ok(vec![Token::number(
             expression.number("value").unwrap_or_default(),

@@ -11,6 +11,7 @@ mod fortran;
 mod gml;
 mod lean;
 mod matlab;
+mod objc;
 mod pascal;
 mod rocq;
 pub(crate) mod shared;
@@ -176,6 +177,7 @@ pub(crate) fn emitter_dialect(language: &str) -> &'static dyn EmitterDialect {
         "gml" => &gml::GameMaker,
         "lean" => &lean::Lean,
         "matlab" => &matlab::Matlab,
+        "objc" => &objc::ObjectiveC,
         "pascal" => &pascal::Pascal,
         "rocq" => &rocq::Rocq,
         "sql" => &sql::Sql,
@@ -194,6 +196,7 @@ pub(crate) fn parser_dialect(language: &str) -> &'static dyn ParserDialect {
         "gml" => &gml::GameMaker,
         "lean" => &lean::Lean,
         "matlab" => &matlab::Matlab,
+        "objc" => &objc::ObjectiveC,
         "pascal" => &pascal::Pascal,
         "rocq" => &rocq::Rocq,
         "sql" => &sql::Sql,

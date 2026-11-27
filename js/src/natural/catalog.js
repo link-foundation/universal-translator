@@ -11,6 +11,7 @@ import { parseLinks } from '../meta/links.js';
 import { tokenize } from './tokens.js';
 import { naturalSources } from './sources.js';
 import { derivedQueryTemplates, queryKeys } from '../meta/queries.js';
+import { collectionTemplates } from '../meta/collection-phrases.js';
 
 // Every statement and expression form a language must describe.
 export const templateKeys = [
@@ -239,6 +240,7 @@ function compile(description) {
     quotes: description.quotes ?? ['"', '"'],
   };
   language.templates = {
+    ...collectionTemplates(language),
     ...derivedQueryTemplates(language),
     ...description.templates,
   };

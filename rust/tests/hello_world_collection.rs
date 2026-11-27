@@ -55,10 +55,11 @@ fn reads_the_programs_the_coverage_file_lists_as_read() {
 }
 
 #[test]
-fn reads_every_program_but_the_blocked_ones() {
+fn reads_all_34_original_programs() {
+    assert_eq!(statuses().len(), 34);
     let unread: Vec<String> = statuses()
         .into_values()
         .filter(|status| status != "read")
         .collect();
-    assert_eq!(unread, ["blocked"]);
+    assert!(unread.is_empty(), "{unread:?}");
 }

@@ -13,9 +13,11 @@ import { rocq } from './rocq.js';
 import { vb } from './vb.js';
 import { zig } from './zig.js';
 import { sql } from './sql.js';
+import { objc } from './objc.js';
 
 export const dialects = {
   sql,
+  objc,
   pascal,
   fortran,
   ada,

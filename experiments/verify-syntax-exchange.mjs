@@ -46,6 +46,42 @@ const jsCli = (arguments_, input) =>
     },
   });
 
+function verifyObjpakParity() {
+  const objpak = readFileSync(
+    new URL('../examples/objpak/hello.m', import.meta.url),
+    'utf8'
+  );
+  for (const target of [
+    'objc',
+    'python',
+    'javascript',
+    'rust',
+    'english',
+    'russian',
+  ]) {
+    const args = ['translate', 'objc', target];
+    const written = success(jsCli(args, objpak));
+    assert.equal(
+      success(rustCli(args, objpak)),
+      written,
+      `Objpak to ${target}`
+    );
+    assert.deepEqual(
+      JSON.parse(success(rustCli(['meta', target, '--json'], written))),
+      JSON.parse(success(jsCli(['meta', target, '--json'], written))),
+      `Objpak ${target} reader`
+    );
+  }
+  console.log(
+    'Both implementations agree on Objpak callers, library definitions and semantic reads in six grammars'
+  );
+}
+
+if (process.argv.includes('--objpak-only')) {
+  verifyObjpakParity();
+  process.exit(0);
+}
+
 const hello = (ext) =>
   readFileSync(
     new URL(`../examples/translation/hello.${ext}`, import.meta.url),
@@ -201,6 +237,7 @@ for (const target of [
   );
 }
 // At least the 40 languages; a language added later needs no edit here.
+verifyObjpakParity();
 assert.ok(languageIds.length >= 40, `${languageIds.length} languages`);
 const programsFolder = new URL('../examples/programs/', import.meta.url);
 const goldenTasks = ['hello-world', 'mutual-recursion'];

@@ -1,0 +1,58 @@
+[
+  {
+    "source": "https://github.com/fkhannouf/objc/blob/983114f60a69d77fc82759e5ceb43ee6a20ed69b/LICENSE",
+    "revision": "983114f60a69d77fc82759e5ceb43ee6a20ed69b",
+    "file": "LICENSE.gz",
+    "bytes": 26530,
+    "sha256": "dc626520dcd53a22f727af3ee42c770e56c97a64fe3adb063799d8ab032fe551"
+  },
+  {
+    "source": "https://github.com/fkhannouf/objc/blob/983114f60a69d77fc82759e5ceb43ee6a20ed69b/License.txt",
+    "revision": "983114f60a69d77fc82759e5ceb43ee6a20ed69b",
+    "file": "License.txt.gz",
+    "bytes": 25265,
+    "sha256": "94b03f1a60a7fd5007149530626a895a6ef5a8b9342abfd56860c5f3956f5d23"
+  },
+  {
+    "source": "https://github.com/fkhannouf/objc/blob/983114f60a69d77fc82759e5ceb43ee6a20ed69b/Readme.txt",
+    "revision": "983114f60a69d77fc82759e5ceb43ee6a20ed69b",
+    "file": "Readme.txt.gz",
+    "bytes": 5157,
+    "sha256": "0ae31cc61f997684bc43d0409d269c06c2b2ee1eb6ba144fcf503f7da1a59c82"
+  },
+  {
+    "source": "https://github.com/fkhannouf/objc/blob/983114f60a69d77fc82759e5ceb43ee6a20ed69b/Install.txt",
+    "revision": "983114f60a69d77fc82759e5ceb43ee6a20ed69b",
+    "file": "Install.txt.gz",
+    "bytes": 1812,
+    "sha256": "681b6349729873c7a216d97c0940f04407ca60f020c4b29f98e6efdd2972b5d6"
+  },
+  {
+    "source": "https://github.com/fkhannouf/objc/blob/983114f60a69d77fc82759e5ceb43ee6a20ed69b/src/objpak/set.m",
+    "revision": "983114f60a69d77fc82759e5ceb43ee6a20ed69b",
+    "file": "src-objpak-set.m.gz",
+    "bytes": 19984,
+    "sha256": "d10538d37b3a755345bc29a825f5ea0c00391f02443a113c76224dcf6ea4fee8"
+  },
+  {
+    "source": "https://github.com/fkhannouf/objc/blob/983114f60a69d77fc82759e5ceb43ee6a20ed69b/src/objpak/ocstring.m",
+    "revision": "983114f60a69d77fc82759e5ceb43ee6a20ed69b",
+    "file": "src-objpak-ocstring.m.gz",
+    "bytes": 12826,
+    "sha256": "2e3da63fb0561f1c2ae22778a4251d2fad3360a60760eb565384a4970996608f"
+  },
+  {
+    "source": "https://github.com/fkhannouf/objc/blob/983114f60a69d77fc82759e5ceb43ee6a20ed69b/src/objpak/setseq.m",
+    "revision": "983114f60a69d77fc82759e5ceb43ee6a20ed69b",
+    "file": "src-objpak-setseq.m.gz",
+    "bytes": 3214,
+    "sha256": "78e48433fc523ca26a7b5da1c82cbf5ebd97986c114ffa4dc552aaa8edc13851"
+  },
+  {
+    "source": "https://github.com/fkhannouf/objc/blob/983114f60a69d77fc82759e5ceb43ee6a20ed69b/block98.html",
+    "revision": "983114f60a69d77fc82759e5ceb43ee6a20ed69b",
+    "file": "block98.html.gz",
+    "bytes": 28678,
+    "sha256": "41034f7a3f4ed1c4e9769642b4cc14036fe0dd47a29f1e355d048ccbea96bf3a"
+  }
+]

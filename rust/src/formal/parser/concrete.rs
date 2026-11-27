@@ -1,4 +1,5 @@
 use super::{Parsed, Parser};
+use crate::formal::{languages::Syntax, lexer::tokenize, objpak, objpak_reader};
 use crate::meta::Node;
 
 impl Parser {
@@ -45,4 +46,22 @@ impl Parser {
         }
         Ok(result)
     }
+}
+
+// Parsing and library contracts share one lossless concrete source record.
+pub(super) fn parse_program(source: &str, syntax: &Syntax) -> Parsed {
+    let library = objpak_reader::prepare(source, syntax);
+    let tokens = tokenize(&library.masked, syntax)?;
+    let mut parser = Parser::new(tokens.clone(), syntax.clone()).with_source(source);
+    let mut tree = parser.program()?;
+    if !library.bindings.is_empty() {
+        tree.set("objpakBindings", library.bindings.clone());
+    }
+    if syntax.id == "objc" {
+        objpak::validate_entries(&tree)?;
+    }
+    crate::source_origins::register_origins(&mut tree);
+    let concrete =
+        objpak_reader::concrete(source, syntax.id, &tokens, parser.productions, &library);
+    Ok(tree.with("syntax", concrete))
 }

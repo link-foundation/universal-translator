@@ -19,6 +19,7 @@ import { writePower } from './power.js';
 import { writeQuestion, writePropertyAccess } from './questions.js';
 import { writeDocumentationAssignment } from './documentation.js';
 import { withQueryWriter } from './query-writer.js';
+import { withObjpakWriter } from './objpak-writer.js';
 import { namedType, withTypeMetadata } from './type-metadata.js';
 import { withExceptions } from './exceptions.js';
 import {
@@ -754,9 +755,9 @@ class BaseEmitter {
 
   // The loop header is the language's `forEach` template with the loop
   // variable, its type and the array filled in.
-  forEachLoop({ variable: identifier, array, body }) {
+  forEachLoop({ variable: identifier, array, body, type = 'integer' }) {
     const fill = {
-      type: this.type('integer'),
+      type: this.type(type),
       variable: this.variable(identifier),
       array: this.expression(array),
       'array-name': array.name,
@@ -1023,7 +1024,9 @@ const compoundOperators = {
 
 // Arrays are written by a mixin of their own, which the dialects inherit.
 const Emitter = withQueryWriter(
-  withExceptions(withTypeMetadata(withReals(withArrays(BaseEmitter))))
+  withObjpakWriter(
+    withExceptions(withTypeMetadata(withReals(withArrays(BaseEmitter))))
+  )
 );
 
 export function emitProgram(program, languageId) {
