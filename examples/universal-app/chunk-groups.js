@@ -5,7 +5,8 @@
 // imports only meta, so both share a chunk that the rest of js/src uses;
 // natural imports meta and source records too, so it has a chunk of its own,
 // and its generated vocabulary data one more. Source records depend only on
-// each other, allowing parsers and writers to share their positions.
+// each other, allowing parsers and writers to share their positions. Prose
+// readings and code detection both read corpus frequencies from a shared chunk.
 const chunkGroups = [
   ['react', /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/],
   [
@@ -22,6 +23,10 @@ const chunkGroups = [
     /[\\/]js[\\/]src[\\/]translation[\\/](comment-syntax|concrete-syntax|source-syntax|source-origins|source-spans|emission-map|layout)\.js$/,
   ],
   ['translator-formal', /[\\/]js[\\/]src[\\/](formal|meta)[\\/]/],
+  [
+    'translator-corpus',
+    /[\\/]js[\\/]src[\\/]translation[\\/]corpus-frequencies\.js$/,
+  ],
   [
     'natural-vocabulary',
     /[\\/]js[\\/]src[\\/]natural[\\/]sources-vocabulary\.js$/,
