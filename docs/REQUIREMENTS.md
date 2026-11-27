@@ -59,7 +59,7 @@ before it can be checked off. Completed groups are stored in
 - [ ] Increase verified Rosetta Code coverage by more than 100 distinct task types against the existing baseline. Both engines pass the pinned C++ solutions for `Ascending primes`, `Queue/Usage`, `Order two numerical lists` and `Jewels and stones`.
 - [ ] Extend original-source round trips and behavioral equivalence through all 1,758 historical Rosetta Code tasks, including strings, data structures, I/O, objects and concurrency.
 - [ ] Finish native Portable Object Compiler collection translations through the remaining target families.
-- [ ] Verify the JavaScript portable Meta Language integration.
+- [ ] Deliver the verified portable Meta Language commands with a compatible default JavaScript package. Direct and CST-mediated JavaScript/Rust translation are verified with Meta Language 1.0.0 source.
 - [ ] Recheck previously delivered historical criteria using the sources indexed in the Issue 16 acceptance inventory.
 
 ## UT-16.22 Maintain issue evidence and verification

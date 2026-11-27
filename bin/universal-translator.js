@@ -600,6 +600,23 @@ function isCliEntryPoint() {
   }
 }
 
+async function cliGrammarEngine(command, moduleFile) {
+  if (moduleFile) {
+    return import(pathToFileURL(moduleFile).href);
+  }
+  if (GRAMMAR_COMMANDS.includes(command)) {
+    const installed = await import('meta-language');
+    if (
+      typeof installed.LinkNetwork?.prototype?.parseGrammars === 'function' &&
+      (command !== 'translate-program' ||
+        typeof installed.translateProgram === 'function')
+    ) {
+      return installed;
+    }
+  }
+  return undefined;
+}
+
 if (isCliEntryPoint()) {
   // A reader that stops early (`| head`) closes the pipe: stop quietly, as
   // other command line tools do.
@@ -610,9 +627,10 @@ if (isCliEntryPoint()) {
     throw error;
   });
   try {
-    const moduleFile = process.env.UNIVERSAL_TRANSLATOR_META_LANGUAGE;
-    const grammarEngine =
-      moduleFile && (await import(pathToFileURL(moduleFile).href));
+    const grammarEngine = await cliGrammarEngine(
+      process.argv[2],
+      process.env.UNIVERSAL_TRANSLATOR_META_LANGUAGE
+    );
     process.exitCode = runCli(process.argv.slice(2), {
       grammarEngine,
       write: (output) => process.stdout.write(output),

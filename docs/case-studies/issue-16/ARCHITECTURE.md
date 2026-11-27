@@ -53,10 +53,12 @@ There is a material distribution difference: the archived repository manifest
 declares JavaScript 1.1.0, while `npm view meta-language version --json` returns
 0.46.0. The installed JavaScript package has a small grammar builder and emitter
 but lacks the portable-program translator and grammar-provenance methods that
-our optional integration requires. This is current evidence, not the old
-unverified Rust-build blocker. The Rust dependency builds locally. Integration
-work must supply a working JavaScript path and test both runtimes; changing a
-version number to an unpublished package is not a solution.
+our integration requires. The JavaScript CLI selects a compatible installed
+engine automatically and supports an explicit module path. The Rust crate and
+the JavaScript source from the same 1.0.0 revision now pass the portable-program
+comparison below. Default npm installs still receive the published 0.46.0
+engine. Upstream tracks JavaScript publication in
+[Meta Language issue 230](https://github.com/link-foundation/meta-language/issues/230).
 
 [Router PR 775](https://github.com/link-assistant/router/pull/775) is closed and
 explicitly reports only 12 of 70 source bundles drafted. Its useful techniques
@@ -111,3 +113,29 @@ not claim that every feature has a lowering to every grammar notation. The
 fixtures verify the implemented infrastructure, not full language grammars or
 all their semantic readers. Steps 4–6 therefore still require implementation
 and coverage across the complete issue inventory.
+
+## Portable JavaScript and Rust programs
+
+The pinned JavaScript engine is the sibling repository's 1.0.0 revision
+`a79782093cae3b33606483ac9f3e1d05faf36de0`, matching the Rust crate. The
+download experiment verifies each source file's Git blob digest against that
+immutable tree, then uses the upstream manifest for its two runtime dependencies.
+
+```sh
+node experiments/issue-16-meta-language-source.mjs /tmp/meta-language-v1
+npm --prefix /tmp/meta-language-v1 install --omit=dev --ignore-scripts --no-fund --no-audit
+cargo build --bin universal-translator -j 1
+node experiments/issue-16-portable-program.mjs \
+  /tmp/meta-language-v1/src/index.js target/debug/universal-translator
+```
+
+The experiment executes both originals and eight translated programs. Each CLI
+accepts JavaScript and Rust input directly and through CST records from the
+other CLI. `decode-cst` reconstructs the original UTF-8 and CRLF bytes, native
+execution prints `42` in both directions, and each engine rejects malformed
+syntax and an unsupported class. A packaged CLI with that same engine installed
+passes the same comparison with `UNIVERSAL_TRANSLATOR_META_LANGUAGE` unset.
+[Cross-engine output](logs/portable-program.txt)
+
+To run a grammar command with an explicit engine, use
+`UNIVERSAL_TRANSLATOR_META_LANGUAGE=/tmp/meta-language-v1/src/index.js node bin/universal-translator.js translate-program javascript rust program.js`.
