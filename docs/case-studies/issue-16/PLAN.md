@@ -56,6 +56,13 @@ Current work: continue exact subline regions, language semantics, questions and
 every historical gap below. Keep the PR draft
 and the native goal active until the complete inventory is verified.
 
+The C++ gutter investigation found a separate target-failure coverage bug.
+JavaScript and Rust now count successfully written parts after emission,
+including free prose; the UI retains zero-coverage error details. Baseline
+failure logs, focused regression results, and WebKit before/after screenshots
+are recorded. Current Chromium and WebKit do not reproduce the original full
+gutter block, so that criterion remains open. All CI checks at `283f16a` pass.
+
 ## Work sequence
 
 - [x] Archive and read issue 16, every comment, screenshots, PR 17 discussion/reviews, and earlier issues/PR requirements; preserve all referenced solver logs. Refresh feedback after each push.

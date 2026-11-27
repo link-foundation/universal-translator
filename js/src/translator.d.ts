@@ -136,6 +136,22 @@ export interface PartialReading {
   errors: PartialError[];
 }
 
+export interface PartialTranslation {
+  text: string;
+  /** Pairs of zero-based source and target lines with shared ownership. */
+  lineMap: [number, number][];
+  complete: boolean;
+  errors: PartialError[];
+  /** Non-blank source lines. */
+  lines: number;
+  /** Source lines successfully written, including freely translated prose.
+   * Parts rejected by the target writer are excluded. */
+  readLines: number;
+  /** The share successfully translated; empty input has full coverage. */
+  coverage: number;
+  prose: { line: number; endLine: number }[];
+}
+
 export interface GrammarTranslator {
   /**
    * Programming languages and machine targets; `versions` lists the versions
@@ -177,6 +193,13 @@ export interface GrammarTranslator {
   parseFragment(source: string, from: string): Fragment;
   /** Read accepted fragments while retaining every original source byte. */
   parsePartial(source: string, from: string): PartialReading;
+  /** Translate accepted parts and mark failures with their source and reason. */
+  translatePartial(
+    source: string,
+    from: string,
+    to: string,
+    options?: TranslationOptions & { fragment?: boolean }
+  ): PartialTranslation;
   /** Translate a complete fragment into the same kind of fragment. */
   translateFragment(
     source: string,
@@ -224,6 +247,13 @@ export declare function parsePartial(
   source: string,
   from: string
 ): PartialReading;
+
+export declare function translatePartial(
+  source: string,
+  from: string,
+  to: string,
+  options?: TranslationOptions & { fragment?: boolean }
+): PartialTranslation;
 
 export declare function translateFragment(
   source: string,

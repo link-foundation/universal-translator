@@ -127,6 +127,16 @@ const linesRead = (lines, parts) =>
       0
     );
 
+// Count after writing: a reader can accept a part its target cannot express.
+const linesWritten = (parts) =>
+  parts
+    .filter((part) => part.status !== 'failed')
+    .reduce(
+      (sum, part) =>
+        sum + part.source.split('\n').filter((line) => !blank(line)).length,
+      0
+    );
+
 // The notes of a part left untranslated: the reason, then its source lines.
 function untranslated(part) {
   const lines =
@@ -327,13 +337,14 @@ export function createPartialTranslator({
     );
     const mapped = assemblePieces(source, to, reading.parts, pieces);
     const errors = errorsOf(reading.parts);
+    const readLines = linesWritten(reading.parts);
     return {
       ...mapped,
       complete: errors.length === 0,
       errors,
       lines: reading.lines,
-      readLines: reading.readLines,
-      coverage: reading.coverage,
+      readLines,
+      coverage: reading.lines ? readLines / reading.lines : 1,
       prose: freeParts(reading.parts),
     };
   }

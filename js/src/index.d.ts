@@ -31,6 +31,7 @@ export {
   parseFragment,
   parsePartial,
   translate,
+  translatePartial,
   translateCandidates,
   translateFragment,
 } from './translator.js';
@@ -51,6 +52,7 @@ export type {
   FragmentKind,
   PartialError,
   PartialReading,
+  PartialTranslation,
   GrammarTranslator,
   GrammarTranslatorOptions,
   Decorator,

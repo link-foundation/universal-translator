@@ -1,0 +1,69 @@
+▶ comparison wordings
+  ✔ reads the Russian examples of the issue (369.035213ms)
+  ✔ reads other obvious variations (34.278107ms)
+  ✔ keeps every language within its own rules (111.736436ms)
+  ✔ reads Python pass as an empty statement (24.467251ms)
+✔ comparison wordings (542.724701ms)
+▶ partial translation
+  ✔ translates what it can and marks the rest (62.311059ms)
+  ✔ counts the lines it reads (28.481017ms)
+  ✔ is complete when everything reads (4.593226ms)
+  ✔ counts accepted lines only after the target writer succeeds (35.38363ms)
+  ✔ counts freely translated prose as translated lines (3.172046ms)
+  ✔ marks untranslated natural sentences (10.306972ms)
+  ✔ is the default of the command line (26.715655ms)
+  ✔ reports coverage on the command line (44.089656ms)
+✔ partial translation (221.692603ms)
+▶ language detection
+  ✔ finds the language of a text (1506.761251ms)
+  ✔ detects nothing in an empty text (0.378516ms)
+  ✔ translates from "auto" on the command line (315.124021ms)
+✔ language detection (1822.755404ms)
+▶ rules as data
+  ✔ apply at every stage (6.72957ms)
+  ✔ rewrite the output with regular expressions (2.160068ms)
+  ✔ are checked (0.603305ms)
+  ✔ are read from a file on the command line (26.309948ms)
+✔ rules as data (36.294559ms)
+▶ translation server
+  ✔ translates partially, detects and applies rules (271.138518ms)
+  ✔ refuses regular expression rules unless allowed (15.529572ms)
+✔ translation server (287.255675ms)
+▶ cut texts
+  ✔ stop a dialect read at the end of the text (5.48552ms)
+✔ cut texts (5.772957ms)
+✔ maps every accepted partial fragment back to its original lines (487.92426ms)
+✔ maps prose that a custom translator splits across output lines (4.337299ms)
+✔ maps independent statements to their full expansion in every machine target (128.572916ms)
+✔ retains ownership through machine arrays, conditions, loops and interpolated calls (215.376723ms)
+▶ semantic many-to-many line mapping
+  ✔ maps the complete Fibonacci interpolation reported in issue 16 (37.971837ms)
+  ✔ maps a Java print to both the Bash command and its echo, and back (9.592551ms)
+  ✔ maps translated sentences in every controlled natural language in both directions (436.384548ms)
+  ✔ preserves origin metadata through output style and fragment wrappers (6.101129ms)
+  ✔ restores the capture context after failure and reentrant translations (6.074208ms)
+✔ semantic many-to-many line mapping (507.27647ms)
+▶ universal React example app
+  ✔ defines the expected app package and build targets (2.640064ms)
+  ✔ renders the translator with every language and fragments (5.123024ms)
+  ✔ bundles skin data and fails the build on any warning (2.045585ms)
+  ✔ shares the Vite build output with Capacitor and GitHub Pages (1.119177ms)
+  ✔ adds root scripts and a workflow for web, desktop, and mobile checks (2.496226ms)
+  ✔ documents local validation without store credentials (0.778913ms)
+  ✔ regenerates preview screenshots with browser-commander on every push to main (5.436369ms)
+  ✔ waits for preview selectors that the app renders (1.597139ms)
+✔ universal React example app (24.71356ms)
+▶ the web build of the example app
+  ✔ keeps every chunk but Monaco below 500 kB (2.990628ms)
+✔ the web build of the example app (3.436388ms)
+▶ the language pickers of the example app
+  ✔ lists assembly and intermediate languages in a group of their own (407.862546ms)
+✔ the language pickers of the example app (408.262001ms)
+ℹ tests 41
+ℹ suites 10
+ℹ pass 41
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3846.573054

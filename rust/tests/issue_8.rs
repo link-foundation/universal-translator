@@ -3,6 +3,7 @@
 
 use std::io::Write;
 use std::process::{Command, Stdio};
+use std::sync::Arc;
 use std::time::Instant;
 
 use universal_translator::natural::{check_description, natural_language_ids};
@@ -136,6 +137,67 @@ fn is_complete_when_everything_reads() {
     assert!(result.complete);
     assert!(result.errors.is_empty());
     assert_eq!(result.coverage, 1.0);
+}
+
+#[test]
+fn counts_accepted_lines_only_after_the_target_writer_succeeds() {
+    let translator = Translator::new().decorate_emit(|next| {
+        Arc::new(move |meta, to| {
+            if meta.node("main").is_some_and(|main| {
+                main.nodes("statements").iter().any(|statement| {
+                    statement.is("Print")
+                        && statement
+                            .node("value")
+                            .is_some_and(|value| value.is_number(2.0))
+                })
+            }) {
+                return Err(universal_translator::meta::GrammarError::new(
+                    "The test target cannot print 2",
+                ));
+            }
+            next(meta, to)
+        })
+    });
+    for (source, lines, written) in [("print(2)\n", 1, 0), ("print(1)\n???\nprint(2)\n\n", 3, 1)] {
+        let reading = translator.parse_partial(source, "python").unwrap();
+        assert_eq!(
+            reading.read_lines,
+            if source.contains("???") { 2 } else { 1 }
+        );
+        let result = translator
+            .translate_partial(source, "python", "javascript", Options::default(), true)
+            .unwrap();
+        assert!(!result.complete);
+        assert_eq!(result.lines, lines);
+        assert_eq!(result.read_lines, written);
+        assert_eq!(result.coverage, written as f64 / lines as f64);
+        assert!(result.text.contains("The test target cannot print 2"));
+        assert_eq!(result.errors.last().unwrap().line, lines);
+    }
+}
+
+#[test]
+fn counts_freely_translated_prose_as_translated_lines() {
+    let translator = Translator::new()
+        .with_comment_translator(|_, _, _| Ok("Первая строка.\nВторая строка.\n".to_owned()));
+    let result = translator
+        .translate_partial(
+            "Fly to the moon.\n\n",
+            "english",
+            "russian",
+            Options::default(),
+            true,
+        )
+        .unwrap();
+    assert!(result.complete);
+    assert_eq!(result.read_lines, 1);
+    assert_eq!(result.coverage, 1.0);
+    assert_eq!(
+        translate_partial(" \n", "python", "javascript", Options::default())
+            .unwrap()
+            .coverage,
+        1.0
+    );
 }
 
 #[test]

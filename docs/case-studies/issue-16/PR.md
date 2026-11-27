@@ -25,6 +25,7 @@ Implemented and checked so far:
 - Default formal, natural and machine readers retain lossless concrete source records, with UTF-8 byte offsets and exact reconstruction in JavaScript and Rust. Partial parsing also preserves malformed input, trivia-only input and CRLF; accepted fragments and unread ranges are separate.
 - Source ownership follows semantic nodes through parsing, rewrites, all seven machine instruction formats and lifting. The complete Java Fibonacci interpolation maps to both the Bash call and echo, and both map back to the Java print without colouring the loop. All 30 controlled natural languages map statements in both directions. Partial recovery combines maps across valid fragments, failure notes and custom prose that splits into several output lines.
 - File, function and entry-point comment headers retain independent positions in every current reader/writer, even when translated words and header order change. Fortran-to-Python colour mapping has a browser regression and before/after screenshots.
+- Partial coverage excludes parts rejected by the target writer and includes successfully translated prose. A wholly rejected program reports 0% and retains its detailed line errors. JavaScript and Rust regressions cover reader failures, writer failures, mixed success and blank lines.
 - JavaScript and Rust grammar workspaces import and execute nine formats, preserve concrete syntax/provenance, update sources and dependencies, merge equivalent rules with stable identities, retain separate editions, apply six transform stages and install semantic readers into translation. The browser-safe `/grammar` entry, public types, bounded recovery and runnable example are verified.
 - The case study archives all issue/PR discussions, eight attachments, 22 compressed solver logs, local/CI evidence, root-cause analysis and primary-source architecture research. The Rust package includes the new regression fixtures.
 
@@ -40,6 +41,8 @@ Still being implemented: exact subline mapping, the reported gutter artifact, ag
 Automated checks include `js/tests/issue-16.test.js`, `annotations.test.js`, `exceptions.test.js`, `concrete-syntax.test.js`, `natural-wordings.test.js`, `issue-report.test.js`, `universal-app-editors.test.js`, the web end-to-end suite, `grammar-workspace.test.js`, and matching focused Rust targets. The grammar adapter has 13 JS/Deno tests and nine Rust tests; TypeScript and Deno check the public type example, the browser executes the adapter, and the production web build passes. Run `node examples/translation/verify-exceptions.mjs` for native C++/Python/JavaScript exit-status verification and `python3 examples/translation/spring/verify.py` for the Spring example. One Changeset prepares the next release.
 
 At `ac07029`, Rust, lint, native translation and the example app pass. Node, Bun and Deno failed a stale package-file assertion, repaired by `41570a3`. Docker omitted the grammar runtime, repaired by `69638cf`; an installed npm artifact test now executes an EBNF grammar through the public `/grammar` entry. That test passes locally. Header mapping adds three JS/Deno and three Rust regressions; 110 focused JS checks and 24 Rust mapping/concrete/layout checks pass, alongside lint, format, Clippy and real-browser colour checks. Current-commit CI follows this push. Earlier server, trace, archive-formatting and circular-web-chunk failures have focused repairs and preserved logs in the case study.
+
+All required CI checks at `283f16a` pass, including Node, Bun, Deno, Rust, native toolchains, Docker and the web end-to-end suite. The later coverage repair has 41 passing focused JS checks and three selected Rust checks; its two new JS regressions fail before the repair. Reproduce it by translating the issue's C++ exception example to C: the rejected output previously claimed 100%, and now reports 0% with the affected lines. `issue-8.test.js` and `issue_8.rs` use a controlled writer rejection so the regression remains valid as more exception targets are implemented.
 
 ## Browser evidence
 
@@ -66,3 +69,11 @@ Before: Fortran's iteration header shares the file header's colour; Python's ite
 After: each translated header shares its own colour in both panes:
 
 ![comment headers after](https://github.com/link-foundation/universal-translator/blob/issue-16-fb080613587e/docs/screenshots/issue-16/comment-mapping-after.png?raw=true)
+
+Before: a target writer rejection still reports 100% translated:
+
+![coverage before](https://github.com/link-foundation/universal-translator/blob/issue-16-fb080613587e/docs/screenshots/issue-16/partial-coverage-before.png?raw=true)
+
+After: the same rejected program reports 0% with the affected lines and reason:
+
+![coverage after](https://github.com/link-foundation/universal-translator/blob/issue-16-fb080613587e/docs/screenshots/issue-16/partial-coverage-after.png?raw=true)

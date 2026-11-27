@@ -114,7 +114,10 @@ pub struct PartialTranslation {
     pub complete: bool,
     pub errors: Vec<PartError>,
     pub lines: usize,
+    /// Non-blank source lines successfully written, including free prose.
+    /// Parts rejected by the target writer are excluded.
     pub read_lines: usize,
+    /// The share successfully translated; empty input has full coverage.
     pub coverage: f64,
     /// The parts translated freely, as prose: (first line, last line),
     /// counted from 1.
@@ -458,6 +461,12 @@ pub fn translate_partial(
         text.push_str(&written);
     }
     let errors = errors_of(&reading.parts);
+    let read_lines: usize = reading
+        .parts
+        .iter()
+        .filter(|part| part.status != PartStatus::Failed)
+        .map(|part| part.source.lines().filter(|line| !blank(line)).count())
+        .sum();
     crate::emission_map::record_mapping(source, &text, language, &line_map);
     Ok(PartialTranslation {
         text,
@@ -465,8 +474,12 @@ pub fn translate_partial(
         complete: errors.is_empty(),
         errors,
         lines: reading.lines,
-        read_lines: reading.read_lines,
-        coverage: reading.coverage,
+        read_lines,
+        coverage: if reading.lines == 0 {
+            1.0
+        } else {
+            read_lines as f64 / reading.lines as f64
+        },
         prose: reading
             .parts
             .iter()

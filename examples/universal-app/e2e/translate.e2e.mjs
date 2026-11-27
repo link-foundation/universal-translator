@@ -156,6 +156,10 @@ async function detectsAndTranslatesPartially() {
   await page.waitForSelector('text=if n <= 1:');
 
   // Partial translation keeps what translates and lists the rest.
+  const unread = await translation('python', 'javascript', '???\n');
+  assert.equal(unread.failed, true, unread.text);
+  assert.match(await page.locator('#untranslated').textContent(), /^0%/u);
+  assert.match(await page.locator('#untranslated').textContent(), /Line 1:/u);
   const partial = await translation(
     'python',
     'javascript',

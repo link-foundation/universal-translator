@@ -66,7 +66,7 @@ All times are UTC and refer to archived GitHub events or Git commits.
 | Spring method fails or loses a continued receiver                | Annotations/nested generic types are absent from declaration grammar; newline-based boundaries split fluent calls                 | Explicit type/annotation metadata and retained computed receiver; exact fixture, parser tests and executable Python framework doubles                              |
 | C++ throw 8 is detected as C and fails                           | Detector/parser lack typed throw/catch constructs; targets differ in throwable values                                             | C++ exception concepts, target wrappers and rethrow/finally handling; exact native example and tests; remaining targets are open                                   |
 | Source changes when correcting its language                      | Editor state copies the failed reverse translation into the source model                                                          | Preserve source model during selector changes; UI unit/e2e coverage and before/after screenshots                                                                   |
-| Blue gutter continues after real source lines                    | Decoration groups may contain out-of-bounds line indices                                                                          | Bounds filtering and browser inspection; exact issue-state before/after reproduction remains open                                                                  |
+| Blue gutter continues after real source lines                    | Exact cause remains under investigation; invalid mapping indices are separately rejected                                          | Bounds filtering; current Chromium/WebKit do not reproduce the block; dedicated reproduction remains open                                                          |
 | Source syntax vanishes during reading                            | Reader returns only its semantic representation; recovery dedents/discards unread text                                            | Default concrete records with tokens/trivia, byte ranges, production views and errors; `concrete-syntax` tests cover every reader family and recovery              |
 
 ## Verification and practical limits
@@ -168,3 +168,30 @@ repaired by `41570a3`. Docker fails to import
 copies the runtime, and the npm artifact test installs the package in an empty
 project, imports `/grammar`, parses an EBNF grammar and reconstructs the input.
 That regression passes locally in 12.39 seconds.
+
+## Translation coverage after target failure
+
+The C++ exception example exposed a separate coverage error while investigating
+the gutter. Its reader accepts all 12 lines, but the C writer currently rejects
+the exception semantics. Both implementations reused the reader's coverage after
+that failure and reported 100% translated. Freely translated prose had the
+opposite problem: successful output still counted as zero lines.
+
+Coverage now counts non-blank source lines after each part has been written.
+Failed parts contribute zero; freely translated prose contributes its original
+source lines even if it splits into several target lines. Parsing coverage stays
+independent. The web app keeps the detailed failure list when every part fails,
+so the exact example reports 0% with lines 1–12 and the writer's reason. Public
+JavaScript declarations now describe partial translation and these counts.
+
+Two focused JS regressions fail before the repair (`partial-coverage-before.txt`)
+and pass afterward. The mixed case preserves the successful first line while
+excluding a reader failure and a writer failure. All 41 focused JS checks and
+three selected Rust checks pass. Real Chromium MCP and WebKit checks confirm
+the 0% summary; `partial-coverage-before.png` and `partial-coverage-after.png`
+record the UI. The end-to-end suite asserts a zero-coverage failure retains its
+line details. The WebKit experiment is reusable and closes its browser.
+
+All required checks for `283f16a`, including Rust, native toolchains, Docker and
+the web end-to-end suite, pass. There are no inline review comments or reviews
+15 minutes after that push. Broader acceptance work remains open.

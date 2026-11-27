@@ -102,7 +102,12 @@ function translateWith(
       fragment,
     });
     if (result.readLines === 0 && !result.complete) {
-      return { error: result.errors[0].message, detected };
+      return {
+        error: result.errors[0].message,
+        errors: result.errors,
+        coverage: result.coverage,
+        detected,
+      };
     }
     return {
       output: result.text,
