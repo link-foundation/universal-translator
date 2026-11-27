@@ -17,6 +17,10 @@ static USING: LazyLock<Regex> = LazyLock::new(|| {
     .expect("using directive or declaration")
 });
 
+pub(crate) fn cpp_using_statement(text: &str) -> Option<String> {
+    USING.is_match(text).then(|| format!("{text};"))
+}
+
 fn keep_cpp_imports(mut program: Node, settings: &Settings) -> Node {
     if settings.from != "cpp" || settings.to != "cpp" {
         return program;
@@ -26,8 +30,8 @@ fn keep_cpp_imports(mut program: Node, settings: &Settings) -> Node {
         let written = if let Some(header) = INCLUDE.captures(&line) {
             let comment = header.get(2).map_or("", |comment| comment.as_str());
             format!("#include {}{comment}", &header[1])
-        } else if USING.is_match(&line) {
-            format!("{line};")
+        } else if let Some(using) = cpp_using_statement(&line) {
+            using
         } else {
             continue;
         };

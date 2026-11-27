@@ -879,9 +879,11 @@ class BaseEmitter {
   // ---- functions and program ----
   signature(item) {
     const write = signatures[this.id] ?? signatures.typedPrefix;
+    const parameterType = ({ type, cppType }) =>
+      this.type(this.id === 'cpp' ? (cppType ?? type) : type);
     const typed = (render) =>
       item.parameters
-        .map((parameter) => render(parameter.name, this.type(parameter.type)))
+        .map((parameter) => render(parameter.name, parameterType(parameter)))
         .join(', ');
     const names = item.parameters.map((parameter) => parameter.name).join(', ');
     const returns = item.returnType;

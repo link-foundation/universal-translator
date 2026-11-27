@@ -158,3 +158,45 @@ int main() {
     ).toBe(undefined);
   });
 });
+
+describe('C++ library scope and types', () => {
+  it('keeps C++ using directives and declarations in their original blocks', () => {
+    const source = `#include <iostream>
+int main() {
+  using namespace std;
+  if (true) {
+    using std::flush;
+    cout << 3 << flush;
+  }
+  return 0;
+}
+`;
+    const emitted = translator.translate(source, 'cpp', 'cpp');
+    expect(emitted).toMatch(
+      /int main\(\) \{\n +using namespace std;\n +if \(true\) \{\n +using std::flush;/u
+    );
+    expect(() => translator.translate(source, 'cpp', 'python')).toThrow(
+      'Cannot emit Import as a statement'
+    );
+  });
+
+  it('retains const on C++ reference and pointer parameters', () => {
+    const source = `#include <string>
+int example(const std::string& phrase, const char* suffix) {
+  return phrase.find(suffix);
+}
+int main() { return example("abc", "bc"); }
+`;
+    const meta = translator.toMeta(source, 'cpp');
+    expect(meta.functions[0].parameters.map(({ type }) => type)).toEqual([
+      'source:std :: string &',
+      'text',
+    ]);
+    const emitted = translator.translate(source, 'cpp', 'cpp');
+    expect(emitted).toMatch(/const std::string\s*&\s*phrase/u);
+    expect(emitted).toMatch(/const char\s*\*\s*suffix/u);
+    expect(meaningDifference(meta, translator.toMeta(emitted, 'cpp'))).toBe(
+      undefined
+    );
+  });
+});

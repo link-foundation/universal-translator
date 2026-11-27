@@ -209,6 +209,59 @@ int main() {
     );
 }
 
+#[test]
+fn cpp_using_declarations_stay_in_their_blocks() {
+    let translator = Translator::new();
+    let source = "#include <iostream>\nint main() {\n  using namespace std;\n  if (true) {\n    using std::flush;\n    cout << 3 << flush;\n  }\n  return 0;\n}\n";
+    let emitted = translator
+        .translate(source, "cpp", "cpp", Mode::default())
+        .unwrap();
+    let lines: Vec<_> = emitted.lines().collect();
+    let main = lines
+        .iter()
+        .position(|line| *line == "int main() {")
+        .unwrap();
+    let directly_in_main = lines[main + 1];
+    let within_condition = lines[main + 3];
+    assert_eq!(directly_in_main.trim_start(), "using namespace std;");
+    assert_eq!(lines[main + 2].trim_start(), "if (true) {");
+    assert_eq!(within_condition.trim_start(), "using std::flush;");
+    assert!(
+        within_condition.len() - within_condition.trim_start().len()
+            > directly_in_main.len() - directly_in_main.trim_start().len()
+    );
+    assert!(
+        translator
+            .translate(source, "cpp", "python", Mode::default())
+            .unwrap_err()
+            .to_string()
+            .contains("Cannot emit Import as a statement")
+    );
+}
+
+#[test]
+fn cpp_const_reference_and_pointer_parameters_keep_their_qualifiers() {
+    let translator = Translator::new();
+    let source = r#"#include <string>
+int example(const std::string& phrase, const char* suffix) {
+  return phrase.find(suffix);
+}
+int main() { return example("abc", "bc"); }
+"#;
+    let emitted = translator
+        .translate(source, "cpp", "cpp", Mode::default())
+        .unwrap();
+    assert!(emitted.contains("const std::string & phrase"));
+    assert!(emitted.contains("const char* suffix"));
+    assert_eq!(
+        meaning_difference(
+            &translator.to_meta(source, "cpp").unwrap(),
+            &translator.to_meta(&emitted, "cpp").unwrap()
+        ),
+        None
+    );
+}
+
 /// Every task with goldens under `examples/programs/translated`.
 fn tasks() -> Vec<String> {
     let folder = Path::new(env!("CARGO_MANIFEST_DIR")).join("examples/programs/translated");

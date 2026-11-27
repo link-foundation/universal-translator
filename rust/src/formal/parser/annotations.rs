@@ -36,9 +36,18 @@ impl Parser {
             }
         }
         let name = words.pop().unwrap_or_default();
+        let spelling = words.join(" ");
         let mut parameter = Node::new("Parameter")
             .with("name", name)
-            .with_opt("type", source_type(&words.join(" ")));
+            .with_opt("type", source_type(&spelling));
+        if self.syntax.id == "cpp"
+            && words.iter().any(|word| word == "const")
+            && words
+                .iter()
+                .any(|word| matches!(word.as_str(), "&" | "&&" | "*"))
+        {
+            parameter.set("cppType", format!("source:{spelling}"));
+        }
         if !annotations.is_empty() {
             parameter.set("annotations", annotations);
         }

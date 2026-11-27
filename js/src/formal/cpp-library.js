@@ -101,6 +101,38 @@ export function declarationTypeFields(syntax, words, type, value) {
   return { type: `source:${words.join(' ')}`, cppTemplateType: true };
 }
 
+export function cppUsingStatement(text) {
+  if (
+    /^using (?:namespace [\p{L}\p{N}_]+|[\p{L}\p{N}_]+::[\p{L}\p{N}_]+)(?:::[\p{L}\p{N}_]+)*$/u.test(
+      text
+    )
+  ) {
+    return `${text};`;
+  }
+  return undefined;
+}
+
+export const withCppUsingStatements = (Base) =>
+  class extends Base {
+    statement(statement) {
+      if (statement.kind === 'Import') {
+        const using = cppUsingStatement(statement.text);
+        if (using) {
+          return this.line(using);
+        }
+      }
+      return super.statement(statement);
+    }
+  };
+
+export function cppQualifiedParameter(syntax, words) {
+  return syntax.id === 'cpp' &&
+    words.includes('const') &&
+    words.some((word) => ['&', '&&', '*'].includes(word))
+    ? `source:${words.join(' ')}`
+    : undefined;
+}
+
 // Copy C++ header imports and using-declarations from the source program
 // when its emitted code still uses the same library and namespace.
 function keepCppImports(program, { from, to }) {
@@ -115,11 +147,8 @@ function keepCppImports(program, { from, to }) {
     if (include) {
       return [`#include ${include[1]}${include[2] ?? ''}`];
     }
-    return /^using (?:namespace [\p{L}\p{N}_]+|[\p{L}\p{N}_]+::[\p{L}\p{N}_]+)(?:::[\p{L}\p{N}_]+)*$/u.test(
-      line
-    )
-      ? [`${line};`]
-      : [];
+    const using = cppUsingStatement(line);
+    return using ? [using] : [];
   });
   return imports.length
     ? {

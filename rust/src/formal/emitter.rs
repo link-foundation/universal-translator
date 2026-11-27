@@ -732,6 +732,14 @@ impl Emitter {
         if let Some(written) = self.array_statement(statement) {
             return written;
         }
+        if statement.is("Import")
+            && self.id() == "cpp"
+            && let Some(using) =
+                super::cpp_library::cpp_using_statement(statement.str("text").unwrap_or_default())
+        {
+            self.line(&using);
+            return Ok(());
+        }
         let end = self.terminator();
         match statement.kind.as_str() {
             "Comment" => self.comment_with(
@@ -1098,13 +1106,17 @@ impl Emitter {
 
     pub(crate) fn base_signature(&mut self, item: &Node) -> String {
         let name = item.str("name").unwrap_or_default();
+        let cpp = self.id() == "cpp";
         let parameters: Vec<(String, String)> = item
             .nodes("parameters")
             .iter()
             .map(|parameter| {
+                let kind = if cpp { parameter.str("cppType") } else { None };
                 (
                     parameter.str("name").unwrap_or_default().to_owned(),
-                    parameter.str("type").unwrap_or_default().to_owned(),
+                    kind.or_else(|| parameter.str("type"))
+                        .unwrap_or_default()
+                        .to_owned(),
                 )
             })
             .collect();

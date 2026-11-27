@@ -2,6 +2,7 @@
 import { node } from '../meta/tree.js';
 import { sourceType } from './parser.js';
 import { tokenize } from './lexer.js';
+import { cppQualifiedParameter } from './cpp-library.js';
 
 const annotatedLanguages = new Set(['java', 'kotlin', 'python']);
 
@@ -104,9 +105,12 @@ export const withAnnotations = (Base) =>
             words.push(this.next().value);
           }
         }
+        const name = words.pop();
+        const cppType = cppQualifiedParameter(this.syntax, words);
         parameters.push({
-          name: words.pop(),
+          name,
           type: sourceType(words.join(' ')),
+          ...(cppType ? { cppType } : {}),
           ...(annotations.length ? { annotations } : {}),
         });
         if (!this.accept(',')) {
