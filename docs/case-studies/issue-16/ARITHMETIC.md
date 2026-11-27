@@ -138,10 +138,23 @@ both GCC and G++ at `-O0` and `-O2`. With the pass, both optimizations match all
 The native CI job uses the same example under `examples/arithmetic/`.
 [Native results](logs/evaluation-order-native.txt) · [Comparison output](logs/evaluation-order-without-source-order.jsonl)
 
+## Signed zero in JavaScript targets
+
+JavaScript truncation and exact negative remainders can produce observable
+`-0` where a C integer result is `0`. The C-family adaptation adds positive
+zero after these integer operations when they can produce negative zero. This
+evaluates each operand once and leaves divisions such as `7 / 2` uncluttered.
+The real literal writers preserve `-0.0` so a real division continues to yield
+negative zero. JavaScript-origin operations retain their source behavior.
+
+`node examples/arithmetic/verify-rounding.mjs` now includes JavaScript, ES5
+and TypeScript for the 32-line C integer comparison and checks real negative
+zero in the original C program and all three targets. Before the repair, the
+first target printed observable `-0` in the integer comparison. The shared
+arithmetic tests verify the source-specific rule in both engines.
+
 ## Remaining semantic review
 
-JavaScript truncation and exact negative remainders can produce observable -0
-where an integer source requires 0. The current example reports that gap.
 Evaluation order for additional source and target families, addressable values,
 and arbitrary comma expressions outside the C family remains open.
 

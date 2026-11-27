@@ -46,6 +46,36 @@ fn distinguishes_source_rounding_and_remainder_signs() {
         ["modulo"]
     );
 }
+
+#[test]
+fn c_family_normalizes_integer_zero_and_preserves_real_negative_zero() {
+    let t = Translator::new();
+    let source = r#"int main(void) {
+        printf("%d\n", -1 / 3);
+        printf("%d\n", -6 % 3);
+        printf("%f\n", -0.0 / 3.0);
+        return 0;
+    }"#;
+    for from in ["c", "cpp", "objc"] {
+        for to in ["javascript", "javascript@es5", "typescript"] {
+            let written = t.translate(source, from, to, Mode::default()).unwrap();
+            assert!(written.contains("-0.0 / 3"), "{written}");
+            assert_eq!(
+                operators(&t.to_meta(&written, to).unwrap()),
+                ["divide", "add", "remainder", "add", "realDivide"],
+                "{written}"
+            );
+        }
+    }
+    let javascript = "console.log(Math.trunc(-1 / 3));\nconsole.log(-6 % 3);\n";
+    let typescript = t
+        .translate(javascript, "javascript", "typescript", Mode::default())
+        .unwrap();
+    assert_eq!(
+        operators(&t.to_meta(&typescript, "typescript").unwrap()),
+        ["divide", "remainder"]
+    );
+}
 #[test]
 fn round_trips_both_contracts_through_shared_helper_algorithms() {
     let t = Translator::new();

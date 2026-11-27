@@ -140,7 +140,9 @@ fn arithmetic_or_comparison(operator: &str) -> bool {
 
 /// The written form of a real literal: 2 is written 2.0, so it stays real.
 pub fn real_text(value: f64) -> String {
-    if value.fract() == 0.0 && value.abs() < 1e21 {
+    if value == 0.0 && value.is_sign_negative() {
+        "-0.0".into()
+    } else if value.fract() == 0.0 && value.abs() < 1e21 {
         format!("{}.0", format_number(value))
     } else {
         format_number(value)
@@ -264,13 +266,14 @@ impl Emitter {
             let operand = expression.node("operand")?;
             return Some(self.converted_to_real(operand, parent));
         }
-        if !expression.is("Number")
-            || expression.str("type") != Some("real")
-            || one_number_type(self.syntax.id)
-        {
+        if !expression.is("Number") || expression.str("type") != Some("real") {
             return None;
         }
         let value = expression.number("value").unwrap_or(0.0);
+        let negative_zero = value == 0.0 && value.is_sign_negative();
+        if one_number_type(self.syntax.id) && !negative_zero {
+            return None;
+        }
         let mut written = real_text(value);
         if self.syntax.id == "fortran" {
             written = if written.contains('e') {
@@ -279,7 +282,7 @@ impl Emitter {
                 format!("{written}d0")
             };
         }
-        Some(Ok(if value < 0.0 && parent > 6.0 {
+        Some(Ok(if (value < 0.0 || negative_zero) && parent > 6.0 {
             format!("({written})")
         } else {
             written

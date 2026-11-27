@@ -1,6 +1,6 @@
 // Rounding modes are semantic operations; helpers lower them to native ones.
 import data from '../../../data/integer-arithmetic.json' with { type: 'json' };
-import { node, rewrite, walk, sameMeaning } from './tree.js';
+import { node, number, rewrite, walk, sameMeaning } from './tree.js';
 
 const helperBodies = Object.entries(data.helpers).map(
   ([operator, template]) => [
@@ -18,6 +18,30 @@ const helperBodies = Object.entries(data.helpers).map(
 export const floorDivision = (id) => data.floorDivision.includes(id);
 export const floorModulo = (id) => data.floorModulo.includes(id);
 
+function mayProduceNegativeZero({ operator, left, right }) {
+  if (left.kind !== 'Number' || right.kind !== 'Number') {
+    return true;
+  }
+  const dividend = left.value + 0;
+  const divisor = right.value + 0;
+  return Object.is(
+    operator === 'divide' ? Math.trunc(dividend / divisor) : dividend % divisor,
+    -0
+  );
+}
+
+function normalizeIntegerZero(item) {
+  // In JavaScript, -0 + 0 is +0 and evaluates the integer operation once.
+  return item.type === 'integer' && mayProduceNegativeZero(item)
+    ? node('Binary', {
+        operator: 'add',
+        left: item,
+        right: { ...number(0), type: 'integer' },
+        type: 'integer',
+      })
+    : item;
+}
+
 const native = (operator, id) => {
   switch (operator) {
     case 'divide':
@@ -33,8 +57,10 @@ const native = (operator, id) => {
   }
 };
 
-export function lowerIntegerArithmetic(program, target) {
-  const id = target.split('@')[0];
+export function lowerIntegerArithmetic(program, { from, to: id, target }) {
+  const normalizeZero =
+    ['c', 'cpp', 'objc'].includes(from) &&
+    ['javascript', 'typescript'].includes(id);
   const used = new Set();
   walk(program, (current) => {
     if (current.name) {
@@ -72,6 +98,13 @@ export function lowerIntegerArithmetic(program, target) {
   };
   const lower = (tree) =>
     rewrite(tree, (current) => {
+      if (
+        normalizeZero &&
+        current.kind === 'Binary' &&
+        ['divide', 'remainder'].includes(current.operator)
+      ) {
+        return normalizeIntegerZero(current);
+      }
       if (current.kind !== 'Binary' || native(current.operator, id)) {
         return current;
       }

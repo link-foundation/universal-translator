@@ -1,5 +1,5 @@
 //! Shared integer rounding algorithms lower only operations a target lacks.
-use super::{GrammarError, Node, Settings, Value, binary, rewrite, same_meaning, walk};
+use super::{GrammarError, Node, Settings, Value, binary, number, rewrite, same_meaning, walk};
 use serde_json::Value as Json;
 use std::collections::{HashMap, HashSet};
 use std::sync::LazyLock;
@@ -43,6 +43,34 @@ pub(crate) fn floor_modulo(id: &str) -> bool {
     profile("floorModulo", id)
 }
 
+fn may_produce_negative_zero(item: &Node) -> bool {
+    let operand = |key| {
+        item.node(key)
+            .filter(|value| value.is("Number"))
+            .and_then(|value| value.number("value"))
+    };
+    let (Some(left), Some(right)) = (operand("left"), operand("right")) else {
+        return true;
+    };
+    let dividend = left + 0.0;
+    let divisor = right + 0.0;
+    let value = if item.str("operator") == Some("divide") {
+        (dividend / divisor).trunc()
+    } else {
+        dividend % divisor
+    };
+    value == 0.0 && value.is_sign_negative()
+}
+
+fn normalize_integer_zero(item: Node) -> Node {
+    // In JavaScript, -0 + 0 is +0 and evaluates the integer operation once.
+    if item.str("type") == Some("integer") && may_produce_negative_zero(&item) {
+        binary("add", item, number(0.0).with("type", "integer")).with("type", "integer")
+    } else {
+        item
+    }
+}
+
 fn native(operator: &str, id: &str) -> bool {
     match operator {
         "divide" => !floor_division(id),
@@ -78,6 +106,8 @@ fn json_node(json: &Json) -> Node {
 
 struct Lower<'a> {
     target: &'a str,
+    language: &'a str,
+    normalize_zero: bool,
     used: HashSet<String>,
     names: HashMap<String, String>,
     functions: Vec<Node>,
@@ -108,8 +138,13 @@ impl Lower<'_> {
     fn lower(&mut self, program: Node) -> Node {
         rewrite(program, |current| {
             let operator = current.str("operator").unwrap_or_default();
-            let id = self.target.split('@').next().unwrap_or(self.target);
-            if !current.is("Binary") || native(operator, id) {
+            if self.normalize_zero
+                && current.is("Binary")
+                && matches!(operator, "divide" | "remainder")
+            {
+                return normalize_integer_zero(current);
+            }
+            if !current.is("Binary") || native(operator, self.language) {
                 return current;
             }
             if current.str("type") == Some("real") {
@@ -134,7 +169,7 @@ impl Lower<'_> {
     }
 }
 
-pub(crate) fn lower(program: Node, target: &str) -> Result<Node, GrammarError> {
+pub(crate) fn lower(program: Node, settings: &Settings) -> Result<Node, GrammarError> {
     let mut used = HashSet::new();
     walk(&program, |current| {
         for key in ["name", "variable", "callee"] {
@@ -152,7 +187,10 @@ pub(crate) fn lower(program: Node, target: &str) -> Result<Node, GrammarError> {
         }
     });
     let mut lower = Lower {
-        target,
+        target: &settings.target,
+        language: &settings.to,
+        normalize_zero: matches!(settings.from.as_str(), "c" | "cpp" | "objc")
+            && matches!(settings.to.as_str(), "javascript" | "typescript"),
         used,
         names: HashMap::new(),
         functions: vec![],

@@ -588,7 +588,7 @@ impl Translator {
         } else {
             transformed
         };
-        let transformed = crate::meta::integer_arithmetic::lower(transformed, to)?;
+        let transformed = crate::meta::integer_arithmetic::lower(transformed, &settings)?;
         if natural {
             return self.in_comment_language(transformed, options);
         }

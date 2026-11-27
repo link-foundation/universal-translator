@@ -501,7 +501,7 @@ export function createGrammarTranslator(settings = {}) {
     const ordered = ['python', 'javascript', 'typescript'].includes(settings.to)
       ? raiseEvaluationOrder(transformed)
       : transformed;
-    const rounded = lowerIntegerArithmetic(ordered, to);
+    const rounded = lowerIntegerArithmetic(ordered, settings);
     if (natural) {
       return inCommentLanguage(rounded, options);
     }

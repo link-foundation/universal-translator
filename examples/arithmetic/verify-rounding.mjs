@@ -69,13 +69,6 @@ try {
       `original ${from}`
     );
     for (const [to, command, args] of targets) {
-      // Signed zero in JavaScript's truncation wrapper is a separate open bug.
-      if (
-        from === 'c' &&
-        ['javascript', 'javascript@es5', 'typescript'].includes(to)
-      ) {
-        continue;
-      }
       if (!available(command)) {
         assert.ok(!requireAll, `${command} is required for ${to}`);
         console.log(`SKIP unavailable ${to}: ${command}`);
@@ -89,6 +82,18 @@ try {
       );
       console.log(`PASS ${from} -> ${to}: 32 exact output lines`);
     }
+  }
+  const realZero = `#include <stdio.h>
+int main(void) { printf("%f\\n", -0.0 / 3.0); return 0; }
+`;
+  assert.equal(
+    run('c', 'cc', targets.find((t) => t[0] === 'c')[2], realZero),
+    '-0.000000\n'
+  );
+  for (const [to, command, args] of targets.slice(0, 3)) {
+    const written = translator.translate(realZero, 'c', to);
+    assert.equal(run(to, command, args, written), '-0\n', `real zero in ${to}`);
+    console.log(`PASS c -> ${to}: real negative zero`);
   }
 } finally {
   rmSync(folder, { recursive: true, force: true });

@@ -133,6 +133,9 @@ const comparisons = new Set([
 
 // The written form of a real literal: 2 is written 2.0, so it stays real.
 export function realText(value) {
+  if (Object.is(value, -0)) {
+    return '-0.0';
+  }
   if (Number.isInteger(value) && Math.abs(value) < 1e21) {
     return `${value}.0`;
   }
@@ -233,17 +236,23 @@ export const withReals = (Base) =>
     }
 
     number(expression, parent) {
-      if (expression.type !== 'real' || oneNumberType.has(this.syntax.id)) {
+      const { value } = expression;
+      const negativeZero = Object.is(value, -0);
+      if (
+        expression.type !== 'real' ||
+        (oneNumberType.has(this.syntax.id) && !negativeZero)
+      ) {
         return super.number(expression, parent);
       }
-      const { value } = expression;
       let written = realText(value);
       if (this.syntax.id === 'fortran') {
         written = /e/.test(written)
           ? written.replace('e', 'd')
           : `${written}d0`;
       }
-      return value < 0 && parent > 6 ? `(${written})` : written;
+      return (value < 0 || negativeZero) && parent > 6
+        ? `(${written})`
+        : written;
     }
 
     toReal(operand, parent) {

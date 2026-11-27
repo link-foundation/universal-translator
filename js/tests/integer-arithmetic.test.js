@@ -151,3 +151,33 @@ describe('integer arithmetic rounding', () => {
     }
   });
 });
+
+it('normalizes integer zero and preserves real negative zero from the C family', () => {
+  const source = `int main(void) {
+    printf("%d\\n", -1 / 3);
+    printf("%d\\n", -6 % 3);
+    printf("%f\\n", -0.0 / 3.0);
+    return 0;
+  }`;
+  for (const from of ['c', 'cpp', 'objc']) {
+    for (const to of ['javascript', 'javascript@es5', 'typescript']) {
+      const written = translator.translate(source, from, to);
+      assert.match(written, /-0\.0 \/ 3/);
+      assert.deepEqual(
+        operators(translator.toMeta(written, to)),
+        ['divide', 'add', 'remainder', 'add', 'realDivide'],
+        written
+      );
+    }
+  }
+  const javascript = 'console.log(Math.trunc(-1 / 3));\nconsole.log(-6 % 3);\n';
+  const typescript = translator.translate(
+    javascript,
+    'javascript',
+    'typescript'
+  );
+  assert.deepEqual(operators(translator.toMeta(typescript, 'typescript')), [
+    'divide',
+    'remainder',
+  ]);
+});
