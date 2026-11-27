@@ -16,6 +16,6 @@ sub ackermann {
 
 for my $first (0 .. 3) {
     for my $second (0 .. 4) {
-        print "ackermann(" . $first . ", " . $second . ") = " . ackermann($first, $second) . "\n";
+        print("ackermann(" . $first . ", " . $second . ") = " . ackermann($first, $second) . "\n");
     }
 }

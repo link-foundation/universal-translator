@@ -5,12 +5,12 @@ use warnings;
 
 for my $number (1 .. 100) {
     if ($number % 15 == 0) {
-        print "FizzBuzz\n";
+        print("FizzBuzz\n");
     } elsif ($number % 3 == 0) {
-        print "Fizz\n";
+        print("Fizz\n");
     } elsif ($number % 5 == 0) {
-        print "Buzz\n";
+        print("Buzz\n");
     } else {
-        print $number . "\n";
+        print($number . "\n");
     }
 }

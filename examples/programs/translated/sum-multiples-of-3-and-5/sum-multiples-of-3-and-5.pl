@@ -9,4 +9,4 @@ for my $number (1 .. 999) {
         $total += $number;
     }
 }
-print $total . "\n";
+print($total . "\n");

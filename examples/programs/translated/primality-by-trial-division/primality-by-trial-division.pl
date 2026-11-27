@@ -20,6 +20,6 @@ sub is_prime {
 
 for my $number (1 .. 50) {
     if (is_prime($number)) {
-        print $number . "\n";
+        print($number . "\n");
     }
 }

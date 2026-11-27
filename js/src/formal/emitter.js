@@ -1110,7 +1110,7 @@ const printers = {
       : `print(${single()}, terminator: "")`;
   },
   perl: (emitter, { lineParts }) =>
-    `print ${emitter.interpolationOrText(lineParts)};`,
+    `print(${emitter.interpolationOrText(lineParts)});`,
   dart: (emitter, { newline, single }) => {
     if (newline) {
       return `print(${single()});`;

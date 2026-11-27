@@ -21,6 +21,6 @@ sub is_perfect {
 
 for my $number (1 .. 10000) {
     if (is_perfect($number)) {
-        print $number . "\n";
+        print($number . "\n");
     }
 }

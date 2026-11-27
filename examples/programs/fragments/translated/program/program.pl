@@ -6,4 +6,4 @@ sub square {
     return $value * $value;
 }
 
-print square(4) . "\n";
+print(square(4) . "\n");

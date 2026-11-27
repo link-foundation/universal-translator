@@ -15,5 +15,5 @@ for my $pass (0 .. $count - 1 - 1) {
     }
 }
 for my $position (0 .. $count - 1) {
-    print $numbers[$position] . "\n";
+    print($numbers[$position] . "\n");
 }

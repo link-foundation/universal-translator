@@ -63,8 +63,8 @@ After:
 
 Broader grammar-production review remains open under requirement 16.2. The
 audit also exposed separate reader questions requiring their own regressions:
-generated PHP/Rocq headers with altered leading whitespace/line endings, and
-Perl print concatenation around an arithmetic expression. The finite audit
+generated PHP/Rocq headers with altered leading whitespace/line endings.
+The separate Perl print failure is fixed and documented in `PRINT-EXPRESSIONS.md`. The finite audit
 keeps valid generated headers intact and uses a simple variable print; it does
 not count those unrelated failures as resolved.
 

@@ -1,0 +1,8 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 6.96s
+     Running rust/tests/translation.rs (target/debug/deps/translation-f04a320a07c3a505)
+
+running 1 test
+test perl_print_arguments_include_arithmetic_and_trailing_text ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.42s

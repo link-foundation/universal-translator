@@ -13,4 +13,4 @@ sub greatest_common_divisor {
     return $first;
 }
 
-print "The greatest common divisor of 1071 and 462 is " . greatest_common_divisor(1071, 462) . "\n";
+print("The greatest common divisor of 1071 and 462 is " . greatest_common_divisor(1071, 462) . "\n");

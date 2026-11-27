@@ -10,8 +10,8 @@ sub is_leap_year {
 
 for my $year (1896 .. 1912) {
     if (is_leap_year($year)) {
-        print $year . " is a leap year\n";
+        print($year . " is a leap year\n");
     } else {
-        print $year . " is not a leap year\n";
+        print($year . " is not a leap year\n");
     }
 }

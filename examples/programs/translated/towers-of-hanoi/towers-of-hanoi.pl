@@ -9,7 +9,7 @@ sub move_disks {
         return;
     }
     move_disks($count - 1, $source, $spare, $target);
-    print "Move disk " . $count . " from " . $source . " to " . $target . "\n";
+    print("Move disk " . $count . " from " . $source . " to " . $target . "\n");
     move_disks($count - 1, $spare, $target, $source);
 }
 

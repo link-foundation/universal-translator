@@ -224,3 +224,11 @@ claim for the inventory.
 All five workflows at `bb3785c` pass, including Node/Bun/Deno, Rust, native
 translation, Security and the web/desktop example builds. The next nested-comment
 commit still requires its own current-SHA CI check after pushing.
+
+The Perl arithmetic-output failure found during the layout audit is now repaired
+in both writers. Parentheses enclose the complete print argument, preserving
+arithmetic and trailing newline bytes. A finite native example agrees across
+Python, generated Perl and restored Python; matching JS/Rust meaning regressions,
+shared program/fragment goldens, lint and Clippy pass. The example is included
+in the existing native CI step. See `PRINT-EXPRESSIONS.md` for the old-emitter
+reproduction and primary manual. Continue the open operator/grammar inventory.

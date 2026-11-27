@@ -10,5 +10,5 @@ for my $index (0 .. scalar(@numbers) - 1) {
     $total += $numbers[$index];
     $product *= $numbers[$index];
 }
-print "Sum: " . $total . "\n";
-print "Product: " . $product . "\n";
+print("Sum: " . $total . "\n");
+print("Product: " . $product . "\n");

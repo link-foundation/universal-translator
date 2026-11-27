@@ -20,5 +20,5 @@ sub male {
 }
 
 for my $index (0 .. 19) {
-    print $index . ": " . female($index) . " " . male($index) . "\n";
+    print($index . ": " . female($index) . " " . male($index) . "\n");
 }

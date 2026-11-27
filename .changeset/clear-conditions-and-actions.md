@@ -29,3 +29,5 @@ Keep statement ownership through stack-machine lowering and the complete instruc
 Read Portable Object Compiler messages and blocks compositionally, model command-line cursors and Objpak string sets, and translate the original collection program through Python, JavaScript, Rust, Objective-C and controlled natural grammars. Preserve hash iteration, aliases, insertion return values and live iteration; return an explicit successful status from generated C89 main functions.
 
 Preserve boolean Objective-C conditions after type inference, read BOOL parameters and C-family void parameter markers, and select compatible boolean runtime headers for both POC and GNU Objective-C.
+
+Enclose complete Perl print arguments so grouped arithmetic and trailing text retain their execution and round-trip semantics.

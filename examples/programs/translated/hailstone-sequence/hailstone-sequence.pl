@@ -18,5 +18,5 @@ sub hailstone_steps {
 }
 
 for my $number (1 .. 10) {
-    print $number . " takes " . hailstone_steps($number) . " steps\n";
+    print($number . " takes " . hailstone_steps($number) . " steps\n");
 }

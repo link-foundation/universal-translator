@@ -1,5 +1,5 @@
 if ($x > 0) {
-    print "positive\n";
+    print("positive\n");
 } else {
     $x = 0;
 }

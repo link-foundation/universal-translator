@@ -15,5 +15,5 @@ sub sum_of_squares {
 }
 
 my $limit = 10;
-print "Sum of squares from 1 to " . $limit . ":\n";
-print sum_of_squares($limit) . "\n";
+print("Sum of squares from 1 to " . $limit . ":\n");
+print(sum_of_squares($limit) . "\n");

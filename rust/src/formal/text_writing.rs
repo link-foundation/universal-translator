@@ -311,7 +311,7 @@ impl Emitter {
             "kotlin" | "scala" | "groovy" | "julia" => {
                 format!("{}({})", pick("println", "print"), self.expression(value)?)
             }
-            "perl" => format!("print {};", self.interpolation_or_text(&line_parts)?),
+            "perl" => format!("print({});", self.interpolation_or_text(&line_parts)?),
             "dart" => {
                 let single = self.expression(value)?;
                 if newline {

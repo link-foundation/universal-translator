@@ -12,5 +12,5 @@ sub factorial {
 }
 
 for my $number (0 .. 10) {
-    print $number . "! = " . factorial($number) . "\n";
+    print($number . "! = " . factorial($number) . "\n");
 }

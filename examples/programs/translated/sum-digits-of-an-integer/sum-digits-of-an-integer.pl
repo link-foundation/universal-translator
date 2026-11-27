@@ -13,4 +13,4 @@ sub sum_of_digits {
     return $total;
 }
 
-print "The digits of 1234567890 sum to " . sum_of_digits(1234567890) . "\n";
+print("The digits of 1234567890 sum to " . sum_of_digits(1234567890) . "\n");

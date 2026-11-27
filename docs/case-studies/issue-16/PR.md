@@ -58,6 +58,8 @@ Condition regression: `node experiments/issue-16-objc-conditions.mjs` reproduces
 
 Query reproduction: translate `SELECT age + 1 FROM people AS person WHERE age >= 18 AND age < 65;` to Python, JavaScript, C# or a natural grammar. Run `node examples/queries/verify-native.mjs` for finite cross-runtime results, generated C# function compilation and eager/deferred mutation checks. `js/tests/queries.test.js` and `rust/tests/queries.rs` also check round trips, quoted SQL identifiers, strategy rejection, collection types and nested variable scopes.
 
+Perl arithmetic reproduction: `print((2 + 3) * 4)` from Python previously generated Perl that printed `5` and lost the newline. Both writers now enclose the complete print argument. `node experiments/issue-16-perl-print.mjs --before` demonstrates the incorrect native output and changed semantic tree; the current path has exact expected output and no semantic difference. Matching JS/Rust regressions, shared program/fragment goldens, lint and Clippy pass. `node examples/printing/verify-native.mjs` compares eight prints across original Python, generated Perl and restored Python, and runs in native CI. See [PRINT-EXPRESSIONS.md](https://github.com/link-foundation/universal-translator/blob/issue-16-fb080613587e/docs/case-studies/issue-16/PRINT-EXPRESSIONS.md) for evidence and the primary manual.
+
 ## Browser evidence
 
 Comment translation, before: changing R comments to Russian loses the paragraph before the first Bash statement:
