@@ -76,3 +76,14 @@ Rust has matching coverage in `runtime_headers.rs`. Focused checks pass:
 This change handles the known outside-whitespace failure. General mixed HTML,
 repeated PHP mode changes and short echo tags remain part of the broader
 language-grammar inventory; existing unsupported-text diagnostics are retained.
+
+## Vocabulary CI integration
+
+The full Node/Bun/Deno run at `6790c7b` found an obsolete Rocq vocabulary
+expectation, rather than a translator regression. The block-comment and
+concatenation vocabulary previously appeared ineffective because the ordinary
+fragment reader already failed on a comment before its runtime header. With
+successful ordinary reading, changing either vocabulary concept affects the
+result as intended. `vocabulary-effect.test.js` now expects those working
+concepts; the targeted test passes. Failed CI job logs and original responses
+are archived under `logs/ci-*-6790c7b*`.

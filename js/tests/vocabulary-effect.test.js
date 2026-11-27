@@ -87,14 +87,7 @@ const unshown = {
   bash: ['variableSigil'],
   zig: ['types.text'],
   lean: ['assignment', 'operators.concatenate', 'types.nothing'],
-  rocq: [
-    'lineComment',
-    'blockComment',
-    'assignment',
-    'operators.notEqual',
-    'operators.concatenate',
-    'types.nothing',
-  ],
+  rocq: ['lineComment', 'assignment', 'operators.notEqual', 'types.nothing'],
 };
 
 function attempt(work) {

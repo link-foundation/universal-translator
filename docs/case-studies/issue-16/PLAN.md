@@ -256,3 +256,13 @@ Node/Bun/Deno, Rust and native translation checks, Security, and the web/desktop
 example builds. The Rocq/PHP fixes have focused and native local verification;
 their combined head still requires its own CI after pushing. The latest default
 branch is an ancestor of the prepared branch. Continue the open inventory.
+
+CI at `6790c7b` passes the web/desktop builds and Security. Node, Bun and Deno
+found the same outdated Rocq vocabulary expectation: `blockComment` and
+`operators.concatenate` now affect successful readings after the runtime-header
+repair, instead of being hidden behind an existing parse failure. The existing
+vocabulary-effect regression now expects both working features. The failing
+job logs are preserved (`ci-node-6790c7b.txt:3050`, `ci-bun-6790c7b.txt:2855`,
+`ci-deno-6790c7b.txt:2855`); ANSI-free readable logs and compressed original
+responses are retained. The workflow was still running, so completed job logs
+were downloaded through the Actions job-log API.
