@@ -62,6 +62,16 @@ it('distinguishes independent statements and repeated names on one physical line
   ).toEqual(['first = 1', 'second = 2']);
 });
 
+it('maps a nested call with its callee and argument list', () => {
+  const source =
+    'function add(a, b) { return a + b; }\nconsole.log(add(1, 2));\n';
+  const result = translator.translatePartial(source, 'javascript', 'python');
+  const nestedCall = result.regionMap.find(
+    (pair) => spelling(result.text, pair.target) === 'add(1, 2)'
+  );
+  expect(nestedCall && spelling(source, nestedCall.source)).toBe('add(1, 2)');
+});
+
 it('uses UTF-8 ranges and keeps original indentation and CRLF in wrapped fragments', () => {
   const source = '\r\n\treturn "Привет 🌍";\r\n';
   const result = translation(source, 'c', 'python');

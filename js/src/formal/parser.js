@@ -1171,7 +1171,11 @@ class BaseParser {
       }
       const typeArguments = cppTemplateArguments(this, expression);
       if (this.is('(')) {
-        expression = this.callExpression(expression, typeArguments);
+        expression = callExpression(
+          expression,
+          this.callArguments(),
+          typeArguments
+        );
         continue;
       }
       if (this.isTextCall(expression)) {
@@ -1183,16 +1187,6 @@ class BaseParser {
       }
       return expression;
     }
-  }
-
-  callExpression(expression, typeArguments) {
-    const values = this.callArguments();
-    const member = expression.kind === 'Method';
-    return node(typeArguments ? 'CppTemplateCall' : 'Call', {
-      callee: member ? `.${expression.name}` : calleeName(expression),
-      arguments: member ? [expression.receiver, ...values] : values,
-      ...(typeArguments ? { typeArguments } : {}),
-    });
   }
 
   // The arguments of a call, from its "(" to its ")".
@@ -1415,6 +1409,17 @@ function closingIndex(value, start, close) {
     throw new SyntaxError(`Unclosed "${inner}" in text`, 0);
   }
   return end;
+}
+
+// Constructing the node outside the parser leaves the entire postfix
+// expression, including its callee, as the observed concrete production.
+function callExpression(expression, values, typeArguments) {
+  const member = expression.kind === 'Method';
+  return node(typeArguments ? 'CppTemplateCall' : 'Call', {
+    callee: member ? `.${expression.name}` : calleeName(expression),
+    arguments: member ? [expression.receiver, ...values] : values,
+    ...(typeArguments ? { typeArguments } : {}),
+  });
 }
 
 function calleeName(expression) {
