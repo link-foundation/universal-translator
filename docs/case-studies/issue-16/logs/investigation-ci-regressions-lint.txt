@@ -1,0 +1,6 @@
+
+/tmp/gh-issue-solver-1795726129025/js/src/translator.js
+  359:8  warning  Function 'createGrammarTranslator' has too many lines (162). Maximum allowed is 150  max-lines-per-function
+
+✖ 1 problem (0 errors, 1 warning)
+
