@@ -242,6 +242,59 @@ fn cpp_fixed_arrays_retain_extent_and_brace_initialization() {
 }
 
 #[test]
+fn cpp_sizeof_keeps_unevaluated_operands_and_qualified_string_types() {
+    let source = r#"#include <string>
+using std::string;
+int main() {
+    string s = "水a";
+    string::size_type bytes = s.size() * sizeof(string::value_type);
+    std::size_t integerWidth = sizeof(int);
+    std::size_t callWidth = sizeof(next());
+}"#;
+    let translator = Translator::new();
+    let meta = translator.to_meta(source, "cpp").unwrap();
+    let statements = meta.node("main").unwrap().nodes("statements");
+    assert_eq!(
+        statements[1].str("type"),
+        Some("source:string :: size_type")
+    );
+    assert!(
+        statements[1]
+            .node("value")
+            .unwrap()
+            .node("right")
+            .unwrap()
+            .is("SizeOf")
+    );
+    assert_eq!(
+        statements[2]
+            .node("value")
+            .unwrap()
+            .node("operand")
+            .unwrap()
+            .str("name"),
+        Some("int")
+    );
+    assert_eq!(
+        statements[3]
+            .node("value")
+            .unwrap()
+            .node("operand")
+            .unwrap()
+            .str("callee"),
+        Some("next")
+    );
+    let emitted = translator
+        .translate(source, "cpp", "cpp", Mode::default())
+        .unwrap();
+    assert!(emitted.contains("string::size_type bytes = s.size() * sizeof(string::value_type);"));
+    assert!(emitted.contains("std::size_t integer_width = sizeof(int);"));
+    assert!(emitted.contains("std::size_t call_width = sizeof(next());"));
+    let reread = translator.to_meta(&emitted, "cpp").unwrap();
+    assert_eq!(reread.node("main").unwrap().nodes("statements"), statements);
+}
+
+#[test]
 fn reads_direct_string_initialization_alongside_cpp_prototypes() {
     let source = r#"#include <string>
 std::string empty();

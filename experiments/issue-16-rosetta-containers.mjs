@@ -11,7 +11,7 @@ import { extractSolutions } from '../scripts/rosetta-code.mjs';
 const [wikiResponse, rustTranslator] = process.argv.slice(2);
 assert.ok(
   wikiResponse,
-  'Pass the MediaWiki response for revisions 420325, 417505, 419626, 420026 and 419956'
+  'Pass the MediaWiki response for revisions 420325, 417505, 419626, 420026, 419956 and 420285'
 );
 const { query } = JSON.parse(readFileSync(wikiResponse, 'utf8'));
 const digest = (text) => createHash('sha256').update(text).digest('hex');
@@ -56,6 +56,15 @@ const tasks = [
     stdout: '2',
     assertions: 0,
   },
+  {
+    title: 'String length',
+    revid: 420285,
+    sourceSha256:
+      '9ef1ac9c0aa99ec023cc8e624f97420c8eb56c37c7b89f68c7db55bf254bcf2a',
+    stdout: '',
+    assertions: 0,
+    observed: 'length == 13 && size == 13 && bytes == 13',
+  },
 ];
 const cli = fileURLToPath(
   new URL('../bin/universal-translator.js', import.meta.url)
@@ -94,6 +103,17 @@ try {
     assert.equal(digest(source), task.sourceSha256, task.title);
     const original = run(source, task);
     assert.equal(original, task.stdout, task.title);
+    const checkValues = (program) => {
+      const main = program.indexOf('int main');
+      const close = program.lastIndexOf('}');
+      assert.ok(main >= 0 && close > main, task.title);
+      assert.ok(!/\breturn\b/u.test(program.slice(main, close)), task.title);
+      const checked = `${program.slice(0, close)}\nif (!(${task.observed})) return 123;\n${program.slice(close)}`;
+      assert.equal(run(checked, task), original, task.title);
+    };
+    if (task.observed) {
+      checkValues(source);
+    }
     for (const [engine, command, args] of translators) {
       const program = execFileSync(
         command,
@@ -101,6 +121,9 @@ try {
         { ...options, input: source }
       );
       assert.equal(run(program, task), original, `${task.title} via ${engine}`);
+      if (task.observed) {
+        checkValues(program);
+      }
       console.log(
         JSON.stringify({
           title: task.title,
@@ -109,6 +132,7 @@ try {
           engine,
           stdout: original,
           assertions: task.assertions,
+          observed: task.observed,
         })
       );
     }

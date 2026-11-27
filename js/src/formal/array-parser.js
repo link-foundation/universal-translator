@@ -127,6 +127,15 @@ const withArrayConstructors = (Base) =>
     // C: sizeof a.
     sizeOf() {
       this.next();
+      if (
+        this.is('(') &&
+        castTypes.has(this.peek(1).value) &&
+        this.is(')', 2)
+      ) {
+        const type = this.peek(1).value;
+        this.position += 3;
+        return node('SizeOf', { operand: name(type) });
+      }
       return node('SizeOf', { operand: this.unary() });
     }
 

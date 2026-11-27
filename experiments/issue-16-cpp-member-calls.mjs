@@ -61,6 +61,13 @@ const fixedArray = readFileSync(
   new URL('../examples/programs/library/cpp-fixed-array.cpp', import.meta.url),
   'utf8'
 );
+const stringLength = readFileSync(
+  new URL(
+    '../examples/programs/library/cpp-string-length.cpp',
+    import.meta.url
+  ),
+  'utf8'
+);
 const directory = mkdtempSync(join(tmpdir(), 'cpp-member-calls-'));
 const options = { encoding: 'utf8', maxBuffer: 32 * 1024 };
 
@@ -87,6 +94,11 @@ try {
       'fixed array extents and brace initialization',
       fixedArray,
       '3 apple[] 2 3 0\n',
+    ],
+    [
+      'native string lengths and unevaluated sizeof',
+      stringLength,
+      '4 4 4 1 0\n',
     ],
   ]) {
     const original = run(program);

@@ -471,6 +471,10 @@ impl Emitter {
                     .collect::<Result<Vec<_>>>()?;
                 Ok(format!("{{{}}}", fields.join(", ")))
             }
+            "SizeOf" if ["c", "cpp", "objc"].contains(&self.id()) => {
+                let operand = self.expression(field(expression, "operand")?)?;
+                Ok(format!("sizeof({operand})"))
+            }
             "Call" | "CppTemplateCall" => {
                 let types = match expression.str("typeArguments") {
                     Some(types) if self.id() == "cpp" => {

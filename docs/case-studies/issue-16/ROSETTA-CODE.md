@@ -174,9 +174,20 @@ checks nested integer arrays, a partially initialized const string array,
 and a zero-length array. Cross-language fixed-array lowering remains open.
 [Native comparison fixture](../../../examples/programs/library/cpp-fixed-array.cpp)
 
+The first C++ solution for [String length revision 420285](https://rosettacode.org/w/index.php?title=String_length&oldid=420285)
+uses the string's `length()`, `size()` and `sizeof(string::value_type)`.
+At `ceff682`, strict emission rejected `SizeOf`. Both engines now emit
+native `sizeof` with its unevaluated operand and retain parenthesized
+built-in types. The original and both translated programs compile and
+exit successfully. A second native run observes their three internal
+values, all `13`. The native CI fixture also checks a four-byte UTF-8
+string and confirms that `sizeof(next())` leaves the call counter at zero.
+[Native comparison fixture](../../../examples/programs/library/cpp-string-length.cpp)
+
 ```sh
 curl --fail --silent --show-error --get https://rosettacode.org/w/api.php \
-  --data 'action=query' --data 'prop=revisions' --data 'revids=420325|417505|419626|420026|419956' \
+  --data 'action=query' --data 'prop=revisions' \
+  --data 'revids=420325|417505|419626|420026|419956|420285' \
   --data 'rvprop=ids|content' --data 'rvslots=main' --data 'format=json' \
   --data 'formatversion=2' > /tmp/rosetta-containers-revisions.json
 node experiments/issue-16-rosetta-containers.mjs /tmp/rosetta-containers-revisions.json \
@@ -211,7 +222,7 @@ node experiments/issue-16-rust-print.mjs --revision /tmp/rosetta-rust-print-revi
   --rust-translator ./target/debug/universal-translator
 ```
 
-These seven pinned task round trips count toward the behavioral goal. Portable
+These eight pinned task round trips count toward the behavioral goal. Portable
 format modifiers, containers and comparisons need broader native verification.
 
 ## C++ file-scope declarations

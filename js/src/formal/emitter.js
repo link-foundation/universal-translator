@@ -313,6 +313,12 @@ class BaseEmitter {
   }
 
   specialExpression(expression) {
+    if (
+      expression.kind === 'SizeOf' &&
+      ['c', 'cpp', 'objc'].includes(this.id)
+    ) {
+      return `sizeof(${this.expression(expression.operand)})`;
+    }
     if (expression.kind === 'CppInitializerList' && this.id === 'cpp') {
       return `{${expression.elements.map((value) => this.expression(value)).join(', ')}}`;
     }

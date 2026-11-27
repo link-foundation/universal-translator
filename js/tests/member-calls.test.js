@@ -194,6 +194,32 @@ describe('C++ fixed arrays', () => {
 });
 
 describe('C++ library scope and types', () => {
+  it('keeps sizeof operands unevaluated and retains qualified string types', () => {
+    const source = `#include <string>
+using std::string;
+int main() {
+  string s = "水a";
+  string::size_type bytes = s.size() * sizeof(string::value_type);
+  std::size_t integerWidth = sizeof(int);
+  std::size_t callWidth = sizeof(next());
+}`;
+    const program = translator.toMeta(source, 'cpp');
+    const [, bytes, integerWidth, callWidth] = program.main.statements;
+    expect(bytes.type).toBe('source:string :: size_type');
+    expect(bytes.value.right.kind).toBe('SizeOf');
+    expect(integerWidth.value.operand.name).toBe('int');
+    expect(callWidth.value.operand.callee).toBe('next');
+    const emitted = translator.translate(source, 'cpp', 'cpp');
+    expect(emitted).toContain(
+      'string::size_type bytes = s.size() * sizeof(string::value_type);'
+    );
+    expect(emitted).toContain('std::size_t integer_width = sizeof(int);');
+    expect(emitted).toContain('std::size_t call_width = sizeof(next());');
+    expect(meaningDifference(program, translator.toMeta(emitted, 'cpp'))).toBe(
+      undefined
+    );
+  });
+
   it('reads direct string initialization alongside C++ function prototypes', () => {
     const source = String.raw`#include <string>
 std::string empty();

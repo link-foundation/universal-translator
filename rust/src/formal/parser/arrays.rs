@@ -221,7 +221,14 @@ impl Parser {
         // C: sizeof a. D: cast(long) value.
         if word == "sizeof" {
             self.position += 1;
-            let operand = self.unary()?;
+            let operand =
+                if self.is("(") && CAST_TYPES.contains(&self.value(1)) && self.is_at(")", 2) {
+                    let kind = self.value(1).to_owned();
+                    self.position += 3;
+                    name(&kind)
+                } else {
+                    self.unary()?
+                };
             return Ok(Some(Node::new("SizeOf").with("operand", operand)));
         }
         if word == "cast" && self.is_at("(", 1) && self.is_at(")", 3) {
