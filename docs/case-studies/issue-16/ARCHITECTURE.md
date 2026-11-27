@@ -112,6 +112,14 @@ The pin records input and installed digests and the browser compatibility patch
 for SHA-256. The Node CLI uses additional modules, grammar data and WebAssembly
 parsers from that revision, with the corresponding runtime and licenses.
 
+The Rust adapter qualifies existing source-local lexer names before merging a
+native grammar again. Meta Language 1.1.0 namespaces the lexer declaration
+during the merge and leaves preexisting references unchanged. Reimporting the
+exported ANTLR fixture exposed the stale `one::Hello` scope. The workspace
+keeps the original grammar for source-specific parsing and global proofs.
+[Minimal reproducer](../../../experiments/issue-16-lexer-scope-remerge.rs) ·
+[Meta Language issue 252](https://github.com/link-foundation/meta-language/issues/252)
+
 The adapter rejects conversion losses reported by the target emitter; it does
 not claim that every feature has a lowering to every grammar notation. The
 fixtures verify the implemented infrastructure, not full language grammars or

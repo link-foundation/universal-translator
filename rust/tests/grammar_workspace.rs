@@ -53,9 +53,21 @@ fn all_import_formats_produce_executable_lossless_concrete_trees() {
         assert!(!parse(&workspace, "bye мир", None).outcome.ok);
         let converted = workspace.export("native", "toy", "", None).unwrap();
         let mut copy = GrammarWorkspace::new();
-        copy.import(GrammarSource::new("copy", "toy", "native", &converted))
+        let original = copy
+            .import(GrammarSource::new("copy", "toy", "native", &converted))
+            .unwrap()
+            .grammar
+            .clone()
             .unwrap();
         assert!(parse(&copy, "hello мир", None).outcome.ok);
+        if fixture["format"] == "antlr" {
+            assert!(parse(&copy, "hello мир", Some("copy")).outcome.ok);
+            let remerged = copy.merge(&Default::default()).unwrap();
+            for production in &remerged.groups[0].source_productions {
+                let rule = production.alias.strip_prefix("copy:").unwrap();
+                assert_eq!(Some(&production.rule), original.rule(rule));
+            }
+        }
     }
 }
 

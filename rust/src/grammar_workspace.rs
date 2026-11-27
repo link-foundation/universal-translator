@@ -1,12 +1,15 @@
 //! Updateable grammar imports using the same Meta Language IR as JavaScript.
 
-use std::collections::BTreeMap;
+mod lexer_scopes;
+
+use std::collections::{BTreeMap, BTreeSet};
 use std::sync::{Arc, Mutex};
 
 pub use meta_language::grammar::Grammar;
 pub use meta_language::grammar::feature_runtime::{FeatureParseOptions, ParseOutcome, SyntaxTree};
 pub use meta_language::grammar::merge::{GrammarMergeOptions, GrammarMergeResult};
 use meta_language::grammar::{feature_runtime, interchange, merge};
+use meta_language::{GlobalConceptOptions, GlobalConceptSource, create_global_concept_space};
 
 use crate::meta::{GrammarError, Node, Value};
 use crate::source_origins::SourceLocator;
@@ -157,17 +160,23 @@ impl GrammarWorkspace {
         &self,
         options: &GrammarMergeOptions<'_>,
     ) -> Result<GrammarMergeResult, GrammarError> {
+        let mut qualified = BTreeSet::new();
         let sources: Vec<_> = self
             .sources
             .values()
             .map(|source| {
-                merge::GrammarMergeSource::new(
-                    &source.id,
-                    &source.language,
-                    source.grammar.clone().expect("imported grammar"),
-                )
-                .with_edition(&source.edition)
-                .with_precedence(source.precedence)
+                let original = source.grammar.as_ref().expect("imported grammar");
+                let grammar = lexer_scopes::qualify_existing_scopes(&source.id, original)
+                    .map_or_else(
+                        || original.clone(),
+                        |grammar| {
+                            qualified.insert(source.id.as_str());
+                            grammar
+                        },
+                    );
+                merge::GrammarMergeSource::new(&source.id, &source.language, grammar)
+                    .with_edition(&source.edition)
+                    .with_precedence(source.precedence)
             })
             .collect();
         let mut previous = self.previous.lock().map_err(error)?;
@@ -175,7 +184,47 @@ impl GrammarWorkspace {
             previous: options.previous.or(previous.as_ref()),
             ..options.clone()
         };
-        let result = merge::merge_grammars(&sources, &options).map_err(error)?;
+        let mut result = merge::merge_grammars(&sources, &options).map_err(error)?;
+        if !qualified.is_empty() {
+            for production in result
+                .groups
+                .iter_mut()
+                .flat_map(|group| &mut group.source_productions)
+            {
+                if let Some((source, rule)) = production.alias.split_once(':')
+                    && qualified.contains(source)
+                {
+                    let grammar = self.sources[source]
+                        .grammar
+                        .as_ref()
+                        .expect("imported grammar");
+                    production.rule = grammar.rule(rule).expect("original production").clone();
+                }
+            }
+            // Global proof inputs retain the declarations and bindings as imported.
+            let originals = self
+                .sources
+                .values()
+                .map(|source| GlobalConceptSource {
+                    id: source.id.clone(),
+                    language: source.language.clone(),
+                    edition: source.edition.clone(),
+                    grammar: source.grammar.clone().expect("imported grammar"),
+                })
+                .collect::<Vec<_>>();
+            result.global_concept_space = create_global_concept_space(
+                &originals,
+                &GlobalConceptOptions {
+                    previous: options
+                        .previous
+                        .map(|result| result.global_concept_space.clone()),
+                    equivalences: options.global_equivalences,
+                    records: options.concept_records,
+                    formal_definitions: options.formal_definitions,
+                },
+            )
+            .map_err(error)?;
+        }
         *previous = Some(result.clone());
         Ok(result)
     }
