@@ -128,6 +128,18 @@ The new JS region regression fails before `43541cd` and passes with it.
 The exact Rust/JavaScript HTTP parity test and 26 focused JavaScript tests
 pass locally. [Failing job, lines 1483–1496](https://github.com/link-foundation/universal-translator/actions/runs/46061903545/job/140718306530)
 
+The Rust test job at `ddd323a` reached the 540-second suite limit after
+the grammar workspace and machine lifting suites passed their assertions.
+The job log shows 212.53s for the workspace, 169.68s for lifting, and exit
+124 at lines 1308–1309. The machine matrix was compiling the same regular
+expressions for each procedure on each source read. A bounded cache now
+shares compiled instruction patterns. GNU as and ARM64 label rules check
+the procedure prefix against the captured label, so procedure names do
+not add patterns to the cache. The local matrix alone took 289.99s before
+the change. The full lifting suite took 43.36s after it, and the 16-test
+dialect suite took 6.21s. All 1,078 pair assertions and existing runtime
+comparisons still run. [Rust CI job](https://github.com/link-foundation/universal-translator/actions/runs/46077965683/job/140770448659)
+
 ## Work sequence
 
 - [x] Archive and read issue 16, every comment, screenshots, PR 17 discussion/reviews, and earlier issues/PR requirements; preserve all referenced solver logs. Refresh feedback after each push.

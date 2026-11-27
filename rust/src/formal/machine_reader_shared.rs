@@ -1,6 +1,9 @@
 //! Helpers shared by the machine code readers (`machine_reader` and the
 //! dialect readers next to it).
 
+use std::collections::HashMap;
+use std::sync::{LazyLock, RwLock};
+
 use regex::{Captures, Regex};
 
 use super::lowering::{Instruction, LoweredProgram, Procedure};
@@ -46,7 +49,20 @@ pub(super) fn fixed<'a, S: AsRef<str>>(patterns: &[S], code: Vec<Instruction>) -
 }
 
 pub(super) fn pattern_regex(pattern: &str) -> Regex {
-    Regex::new(pattern).expect("reader patterns are valid regular expressions")
+    // The instruction grammar repeats the same patterns for every procedure.
+    // Keep the cache bounded even if a future reader generates new patterns.
+    const LIMIT: usize = 512;
+    static PATTERNS: LazyLock<RwLock<HashMap<String, Regex>>> =
+        LazyLock::new(|| RwLock::new(HashMap::new()));
+    if let Some(regex) = PATTERNS.read().expect("reader regex cache").get(pattern) {
+        return regex.clone();
+    }
+    let regex = Regex::new(pattern).expect("reader patterns are valid regular expressions");
+    let mut patterns = PATTERNS.write().expect("reader regex cache");
+    if patterns.len() < LIMIT {
+        patterns.insert(pattern.to_owned(), regex.clone());
+    }
+    regex
 }
 
 pub(super) fn read_error(target: &str, line: &str, message: &str) -> GrammarError {

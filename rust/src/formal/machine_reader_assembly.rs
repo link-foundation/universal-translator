@@ -219,8 +219,11 @@ fn finish_function(parts: Finished) -> Result<Procedure> {
     ))
 }
 
-fn local_label(name: &str) -> String {
-    format!(r"\.L{}_(\w+)", regex::escape(name))
+fn local_label<'a>(label: &'a str, name: &str) -> Option<&'a str> {
+    label
+        .strip_prefix(name)?
+        .strip_prefix('_')
+        .filter(|suffix| !suffix.is_empty())
 }
 
 fn call_rule<'a>(patterns: Vec<String>, count: usize) -> ReadRule<'a> {
@@ -234,8 +237,15 @@ fn call_rule<'a>(patterns: Vec<String>, count: usize) -> ReadRule<'a> {
     })
 }
 
-fn single<'a>(pattern: &str, build: impl Fn(&regex::Captures) -> Instruction + 'a) -> ReadRule<'a> {
-    rule(&[pattern], move |m| Ok(Some(vec![Some(build(&m[0]))])))
+fn label_rule<'a>(
+    pattern: &str,
+    name: &'a str,
+    instruction: impl Fn(String) -> Instruction + 'a,
+) -> ReadRule<'a> {
+    rule(&[pattern], move |m| {
+        Ok(local_label(group(&m[0], 1), name)
+            .map(|suffix| vec![Some(instruction(suffix.to_owned()))]))
+    })
 }
 
 // ---------------------------------------------------------------------------
@@ -243,12 +253,11 @@ fn single<'a>(pattern: &str, build: impl Fn(&regex::Captures) -> Instruction + '
 // ---------------------------------------------------------------------------
 
 fn gas_rules<'a>(
-    name: &str,
+    name: &'a str,
     texts: &'a HashMap<String, String>,
     slots: &'a HashMap<String, usize>,
 ) -> Vec<ReadRule<'a>> {
     let slot = slot_lookup(slots);
-    let label = local_label(name);
     let mut rules = vec![
         rule(&[r"^# ?(.*)$"], |m| {
             Ok(Some(vec![Some(Instruction::Comment(
@@ -327,24 +336,18 @@ fn gas_rules<'a>(
                 exact("popq %rcx"),
                 exact("popq %rax"),
                 exact("cmpq %rcx, %rax"),
-                format!(r"^(j\w+) {label}$"),
+                r"^(j\w+) \.L(\w+)$".to_owned(),
             ],
-            |m| {
-                Ok(gas_relation(group(&m[3], 1)).map(|relation| {
-                    vec![Some(Instruction::CompareJump(
-                        relation,
-                        group(&m[3], 2).into(),
-                    ))]
+            move |m| {
+                let jump = gas_relation(group(&m[3], 1)).zip(local_label(group(&m[3], 2), name));
+                Ok(jump.map(|(relation, label)| {
+                    vec![Some(Instruction::CompareJump(relation, label.into()))]
                 }))
             },
         ),
         fixed(&[exact("negq (%rsp)")], vec![Instruction::Negate]),
-        single(&format!("^{label}:$"), |m| {
-            Instruction::Label(group(m, 1).into())
-        }),
-        single(&format!("^jmp {label}$"), |m| {
-            Instruction::Jump(group(m, 1).into())
-        }),
+        label_rule(r"^\.L(\w+):$", name, Instruction::Label),
+        label_rule(r"^jmp \.L(\w+)$", name, Instruction::Jump),
         rule(
             &[
                 r"^leaq (text_\d+)\(%rip\), %rdi$".to_owned(),
@@ -443,12 +446,11 @@ pub fn read_gas(source: &str) -> Result<LoweredProgram> {
 // ---------------------------------------------------------------------------
 
 fn arm_rules<'a>(
-    name: &str,
+    name: &'a str,
     texts: &'a HashMap<String, String>,
     slots: &'a HashMap<String, usize>,
 ) -> Vec<ReadRule<'a>> {
     let slot = slot_lookup(slots);
-    let label = local_label(name);
     let with_epilogue = |first: Vec<String>| {
         let mut patterns = first;
         patterns.extend(arm_epilogue());
@@ -531,14 +533,12 @@ fn arm_rules<'a>(
                 arm_pop("x1"),
                 arm_pop("x0"),
                 exact("cmp x0, x1"),
-                format!(r"^b\.(\w+) {label}$"),
+                r"^b\.(\w+) \.L(\w+)$".to_owned(),
             ],
-            |m| {
-                Ok(arm_relation(group(&m[3], 1)).map(|relation| {
-                    vec![Some(Instruction::CompareJump(
-                        relation,
-                        group(&m[3], 2).into(),
-                    ))]
+            move |m| {
+                let jump = arm_relation(group(&m[3], 1)).zip(local_label(group(&m[3], 2), name));
+                Ok(jump.map(|(relation, label)| {
+                    vec![Some(Instruction::CompareJump(relation, label.into()))]
                 }))
             },
         ),
@@ -550,12 +550,8 @@ fn arm_rules<'a>(
             ],
             vec![Instruction::Negate],
         ),
-        single(&format!("^{label}:$"), |m| {
-            Instruction::Label(group(m, 1).into())
-        }),
-        single(&format!("^b {label}$"), |m| {
-            Instruction::Jump(group(m, 1).into())
-        }),
+        label_rule(r"^\.L(\w+):$", name, Instruction::Label),
+        label_rule(r"^b \.L(\w+)$", name, Instruction::Jump),
         rule(
             &[
                 r"^adrp x0, (text_\d+)$".to_owned(),

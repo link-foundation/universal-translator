@@ -125,6 +125,25 @@ fn rejects_unsupported_and_malformed_jvm_classes() {
     }
 }
 
+#[test]
+fn assembly_labels_stay_local_to_their_procedure() {
+    for (dialect, read) in [("gas", read_gas as Reader), ("arm64", read_arm64 as Reader)] {
+        let source = golden("factorial", dialect);
+        let renamed = source.replace("factorial", "f_é");
+        let machine = read(&renamed).unwrap();
+        assert_eq!(machine.functions[0].name, "f_é");
+        assert!(
+            machine.functions[0]
+                .code
+                .contains(&Instruction::Label("L1".into()))
+        );
+        for suffix in ["foreign_L1", "f_é_"] {
+            let invalid = renamed.replace(".Lf_é_L1", &format!(".L{suffix}"));
+            assert!(read(&invalid).is_err(), "{dialect}: {suffix}");
+        }
+    }
+}
+
 fn programs() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("examples/programs")
 }
