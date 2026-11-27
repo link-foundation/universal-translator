@@ -5,6 +5,7 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - 'examples/universal-app/**'
+      - 'experiments/issue-16-gutter-safari.mjs'
       - 'js/src/**'
       - 'data/**'
       - 'package.json'
@@ -21,6 +22,7 @@ on:
       - main
     paths:
       - 'examples/universal-app/**'
+      - 'experiments/issue-16-gutter-safari.mjs'
       - 'js/src/**'
       - 'data/**'
       - 'package.json'
@@ -33,6 +35,11 @@ on:
       - 'scripts/check-desktop-compat.mjs'
       - '.github/workflows/example-app.yml'
   workflow_dispatch:
+    inputs:
+      safari_reference_run:
+        description: 'Optional Pages workflow run ID for the original gutter scenario'
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -287,6 +294,65 @@ jobs:
           path: e2e-output/
           if-no-files-found: ignore
 
+  safari-gutter:
+    name: Web demo Safari gutter
+    needs: [web-build]
+    runs-on: macos-26
+    timeout-minutes: 6
+    env:
+      CURRENT_BASE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 'universal-translator' || 'current' }}
+    permissions:
+      actions: read
+      contents: read
+    concurrency:
+      group: check-${{ github.workflow }}-${{ github.ref }}-safari-gutter
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.x'
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: universal-example-web
+          path: safari-site/${{ env.CURRENT_BASE }}
+
+      - name: Download the reference Pages build
+        if: inputs.safari_reference_run != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REFERENCE_RUN: ${{ inputs.safari_reference_run }}
+        run: gh run download "$REFERENCE_RUN" --repo "$GITHUB_REPOSITORY" --name universal-example-web --dir safari-site/universal-translator
+
+      - name: Inspect the gutter in Safari
+        env:
+          REFERENCE_RUN: ${{ inputs.safari_reference_run }}
+        run: |
+          mkdir -p safari-output
+          sudo -n safaridriver --enable
+          safaridriver --port 4444 > safari-output/driver.log 2>&1 &
+          driver=$!
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory safari-site > safari-output/server.log 2>&1 &
+          static_server=$!
+          trap 'kill "$static_server" "$driver" 2>/dev/null || true' EXIT
+          node experiments/issue-16-gutter-safari.mjs http://127.0.0.1:4444 "http://127.0.0.1:4173/$CURRENT_BASE/" safari-output/current | tee safari-output/current.jsonl
+          if [[ -n "$REFERENCE_RUN" ]]; then
+            node experiments/issue-16-gutter-safari.mjs http://127.0.0.1:4444 http://127.0.0.1:4173/universal-translator/ safari-output/reference 'untranslated (line 1)' | tee safari-output/reference.jsonl
+          fi
+        shell: bash
+
+      - name: Upload Safari observations
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-demo-safari-gutter
+          path: safari-output/
+          if-no-files-found: ignore
+
   # Render the preview screenshots on pull requests in the same container
   # the main-branch writer uses. The writer runs only on main, so before this
   # job a broken page selector (the template's #calculator-title) merged
@@ -532,6 +598,7 @@ jobs:
       - desktop-package
       - android-build
       - web-e2e
+      - safari-gutter
       - preview-check
       - preview-regen
     steps:
