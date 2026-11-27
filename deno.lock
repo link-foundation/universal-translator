@@ -13,11 +13,11 @@
     "npm:links-notation@0.31.8": "0.31.8",
     "npm:lino-arguments@0.4.1": "0.4.1",
     "npm:lint-staged@^16.4.0": "16.4.0",
-    "npm:meta-language@0.46.0": "0.46.0",
     "npm:playwright-core@1.59.1": "1.59.1",
     "npm:prettier@^3.6.2": "3.8.4",
     "npm:relative-meta-logic@0.21.0": "0.21.0",
-    "npm:test-anywhere@~0.8.48": "0.8.50"
+    "npm:test-anywhere@~0.8.48": "0.8.50",
+    "npm:web-tree-sitter@0.27.0": "0.27.0"
   },
   "npm": {
     "@cacheable/memory@2.2.0": {
@@ -1110,6 +1110,9 @@
         "punycode"
       ]
     },
+    "web-tree-sitter@0.27.0": {
+      "integrity": "sha512-XK08gj6RwTMQatAG7uVRP8MunqotL/XC19vHgkSPKmELgbGPBj4ECvB8haHOUnyj6ls2B8t42UTro14zxGgAHg=="
+    },
     "which-command@0.1.0": {
       "integrity": "sha512-XZyoF5/5hZtXitIwzrU4NKK+Wtbb9aB9CezUEw2Q0wlYK8NUYQxC1rRXgNueYLtBAJwXIb+/tFVk4dozciNJMA==",
       "bin": true
@@ -1175,11 +1178,11 @@
         "npm:links-notation@0.31.8",
         "npm:lino-arguments@0.4.1",
         "npm:lint-staged@^16.4.0",
-        "npm:meta-language@0.46.0",
         "npm:playwright-core@1.59.1",
         "npm:prettier@^3.6.2",
         "npm:relative-meta-logic@0.21.0",
-        "npm:test-anywhere@~0.8.48"
+        "npm:test-anywhere@~0.8.48",
+        "npm:web-tree-sitter@0.27.0"
       ]
     }
   }

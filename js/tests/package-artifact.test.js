@@ -13,8 +13,7 @@ describe('published package artifact', () => {
     process.platform === 'win32' && 'npm.cmd requires a shell on Windows'
   )('packs and installs the renamed package with a working npx command', () => {
     const workspace = mkdtempSync(join(tmpdir(), 'translator-artifact-'));
-    const env = { ...process.env };
-    delete env.UNIVERSAL_TRANSLATOR_META_LANGUAGE;
+    const env = { ...process.env, UNIVERSAL_TRANSLATOR_META_LANGUAGE: '' };
     const npm = (args, cwd = workspace) =>
       execFileSync('npm', args, {
         cwd,
