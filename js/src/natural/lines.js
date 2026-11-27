@@ -1,5 +1,34 @@
 // Quoted values can span physical lines. Keep their contents and original
 // first line number while grouping the surrounding text into sentences.
+export function notePattern(language) {
+  const [before, after] = language.note.split('{text}');
+  const escape = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`^${escape(before.trim())}\\s*(.*?)${escape(after)}$`, 'u');
+}
+
+// Keep note markers and layout outside the replacement span. Logical lines
+// ensure that a note-looking line inside a multiline literal stays literal.
+export function noteSpans(source, language) {
+  const starts = [
+    0,
+    ...Array.from(source.matchAll(/\n/gu), (match) => match.index + 1),
+  ];
+  const [before, after] = language.note.split('{text}');
+  const pattern = notePattern(language);
+  return sentenceLines(source, language).flatMap(({ raw, index }) => {
+    if (!pattern.test(raw.trim())) {
+      return [];
+    }
+    const indent = raw.length - raw.trimStart().length;
+    return [
+      [
+        starts[index] + indent + before.trim().length,
+        starts[index] + raw.trimEnd().length - after.length,
+      ],
+    ];
+  });
+}
+
 export function sentenceLines(source, language) {
   const lines = [];
   const [opening, closing] = language.quotes;

@@ -63,6 +63,7 @@ export const machineTargets = {
     machine: true,
     naming: 'snake',
     lineComment: ';',
+    quotes: ['"', "'", '`'],
     terms: { call: 'call instruction', routine: 'procedure' },
   },
   gas: {
@@ -70,6 +71,7 @@ export const machineTargets = {
     machine: true,
     naming: 'snake',
     lineComment: '#',
+    blockComment: ['/*', '*/'],
     terms: { call: 'call instruction', routine: 'function' },
   },
   arm64: {
@@ -77,6 +79,7 @@ export const machineTargets = {
     machine: true,
     naming: 'snake',
     lineComment: '//',
+    blockComment: ['/*', '*/'],
     terms: { call: 'branch instruction', routine: 'function' },
   },
   cil: {
@@ -84,6 +87,8 @@ export const machineTargets = {
     machine: true,
     naming: { function: 'pascal', variable: 'camel' },
     lineComment: '//',
+    blockComment: ['/*', '*/'],
+    quotes: ['"', "'"],
     terms: { call: 'method call', routine: 'method' },
   },
   jvm: {
@@ -105,6 +110,7 @@ export const machineTargets = {
     machine: true,
     naming: 'snake',
     lineComment: ';;',
+    blockComment: ['(;', ';)'],
     terms: { call: 'call instruction', routine: 'function' },
   },
 };

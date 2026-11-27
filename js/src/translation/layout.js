@@ -105,17 +105,31 @@ const runWhile = (chars, index, test) => {
 };
 
 // Readers of one token at an index: [kind, end, key] or undefined.
+export function blockCommentEnd(chars, index, [open, close]) {
+  let end = index + open.length;
+  let depth = 1;
+  const nested = open.join('') === '(;' && close.join('') === ';)';
+  while (end < chars.length && depth) {
+    if (nested && startsAt(chars, end, open)) {
+      depth += 1;
+      end += open.length;
+    } else if (startsAt(chars, end, close)) {
+      depth -= 1;
+      end += close.length;
+    } else {
+      end += 1;
+    }
+  }
+  return { end, closed: depth === 0 };
+}
+
 const tokenReaders = [
   (chars, index, { blockComment }) => {
     if (!blockComment || !startsAt(chars, index, blockComment[0])) {
       return undefined;
     }
     const [open, close] = blockComment;
-    let end = index + open.length;
-    while (end < chars.length && !startsAt(chars, end, close)) {
-      end += 1;
-    }
-    end = Math.min(chars.length, end + close.length);
+    const { end } = blockCommentEnd(chars, index, blockComment);
     const inner = chars.slice(
       index + open.length,
       Math.max(index + open.length, end - close.length)
@@ -323,6 +337,21 @@ export function alignTokens(sourceTokens, targetTokens) {
   const pairs = [];
   alignRange(a, b, [0, a.length, 0, b.length], pairs);
   return pairBrackets(pairs, sourceTokens, targetTokens);
+}
+
+// Wording inside comments must never choose the code anchors: matching a
+// translated comment afterward cannot undo an earlier choice of code tokens.
+function alignCode(source, target) {
+  const code = (tokens) =>
+    tokens.flatMap((token, index) =>
+      token.kind === 'comment' ? [] : [{ token, index }]
+    );
+  const a = code(source);
+  const b = code(target);
+  return alignTokens(
+    a.map(({ token }) => token),
+    b.map(({ token }) => token)
+  ).map(([i, j]) => [a[i].index, b[j].index]);
 }
 
 // Comment wording can change independently of code. Match comments inside
@@ -600,7 +629,7 @@ export function transferLayout(source, target, from, to, options = {}) {
   sourceSide.tokens = layoutTokens(sourceSide.chars, layoutSyntax(from));
   targetSide.tokens = layoutTokens(targetSide.chars, layoutSyntax(to));
   const pairs = alignComments(
-    alignTokens(sourceSide.tokens, targetSide.tokens),
+    alignCode(sourceSide.tokens, targetSide.tokens),
     sourceSide.tokens,
     targetSide.tokens
   );

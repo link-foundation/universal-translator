@@ -12,7 +12,7 @@ import { naturalLanguage } from './catalog.js';
 import { tokenize } from './tokens.js';
 import { levelIndex, levels, operatorOfTemplate } from './levels.js';
 import { questionAspects, questionKey, answerKey } from '../meta/questions.js';
-import { sentenceLines } from './lines.js';
+import { notePattern, sentenceLines } from './lines.js';
 import { queryKeys, queryNode } from '../meta/queries.js';
 import { collectionKeys, collectionNode } from '../meta/collection-phrases.js';
 import { normalize, slotCase } from './agreement.js';
@@ -547,12 +547,6 @@ function readLines(source, language) {
     };
   });
   return markHeadings(lines);
-}
-
-function notePattern(language) {
-  const [before, after] = language.note.split('{text}');
-  const escape = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return new RegExp(`^${escape(before.trim())}\\s*(.*?)${escape(after)}$`, 'u');
 }
 
 class ProgramReader {

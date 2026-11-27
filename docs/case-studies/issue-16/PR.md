@@ -15,7 +15,7 @@ Implemented and checked so far:
 
 - Explicit meta fields distinguish conditions, bodies, expression statements, operands and arguments in JavaScript and Rust. Shared exact fixtures preserve annotated blocks and extension fields; a nested-program audit checks visible roles through all 111 current reader families.
 - Correcting the source language preserves the original source. The footer has Source code and Report issue links; the report includes source, result, detected language, options, rules and errors.
-- Translated comments preserve the following blank line. Multiline comment tokens contribute every covered line to the map.
+- Comment-only translation keeps source bytes outside comments across all 111 imperative reader families and SQL, including natural notes, machine comments, mixed line endings and partial translation. Code alignment is independent of comment wording; a 551-case audit and complex literal regressions cover the repair. Multiline comment tokens contribute every covered line to the map.
 - Powers inside interpolation retain the entire expression, with right association and grouping. Unread interpolation tokens raise an error. Power support across every target remains unfinished.
 - JavaScript const array bindings with mutating calls become mutable Rust containers.
 - An isolated ambiguous name such as `c` parses as English and ranks first on a tie.
@@ -44,7 +44,7 @@ Still being implemented: broader mapping precision, the reported gutter artifact
 
 Automated checks include `js/tests/issue-16.test.js`, `annotations.test.js`, `exceptions.test.js`, `concrete-syntax.test.js`, `natural-wordings.test.js`, `issue-report.test.js`, `universal-app-editors.test.js`, the web end-to-end suite, `grammar-workspace.test.js`, and matching focused Rust targets. The grammar adapter has 13 JS/Deno tests and nine Rust tests; TypeScript and Deno check the public type example, the browser executes the adapter, and the production web build passes. Run `node examples/translation/verify-exceptions.mjs` for native C++/Python/JavaScript exit-status verification and `python3 examples/translation/spring/verify.py` for the Spring example. One Changeset prepares the next release.
 
-The `a3cee36` CI run found an Objective-C condition regression in existing algorithms and a CodeQL finding in the new native verifier. Boolean conditions now retain their type after inference, `(void)` parameter markers parse correctly, and generated headers support POC and GNU runtimes. The verifier uses fixed executable choices. Focused checks pass: 21 JavaScript Objpak/condition regressions, 18 Rust Objpak regressions, existing algorithm round trips, native POC/Python/Node/Rust/GNU comparisons, shared goldens, lint and Clippy. Current-commit CI is pending after the next push. The original collection source fails on `0a44abd` and passes with this draft; `node experiments/issue-16-objc-regression.mjs` reproduces both outcomes.
+The `a3cee36` CI run found an Objective-C condition regression in existing algorithms and a CodeQL finding in the new native verifier. Boolean conditions now retain their type after inference, `(void)` parameter markers parse correctly, and generated headers support POC and GNU runtimes. The verifier uses fixed executable choices. All five workflows at `eeb793d` pass; the CodeQL review thread is resolved with an evidence reply. Focused checks pass: 21 JavaScript Objpak/condition regressions, 18 Rust Objpak regressions, existing algorithm round trips, native POC/Python/Node/Rust/GNU comparisons, shared goldens, lint and Clippy. The comment-whitespace changes require their own current-commit CI after pushing. The original collection source fails on `0a44abd` and passes with this draft; `node experiments/issue-16-objc-regression.mjs` reproduces both outcomes.
 
 Query validation includes 121 focused JavaScript regressions, 26 Rust regressions, native SQLite/Python/Node/C# execution, Clippy, lint and natural-language golden checks. See the case studies [QUERIES.md](https://github.com/link-foundation/universal-translator/blob/issue-16-fb080613587e/docs/case-studies/issue-16/QUERIES.md) and [OBJPAK.md](https://github.com/link-foundation/universal-translator/blob/issue-16-fb080613587e/docs/case-studies/issue-16/OBJPAK.md) for architecture, reproduction and explicit remaining limits.
 
@@ -59,6 +59,16 @@ Condition regression: `node experiments/issue-16-objc-conditions.mjs` reproduces
 Query reproduction: translate `SELECT age + 1 FROM people AS person WHERE age >= 18 AND age < 65;` to Python, JavaScript, C# or a natural grammar. Run `node examples/queries/verify-native.mjs` for finite cross-runtime results, generated C# function compilation and eager/deferred mutation checks. `js/tests/queries.test.js` and `rust/tests/queries.rs` also check round trips, quoted SQL identifiers, strategy rejection, collection types and nested variable scopes.
 
 ## Browser evidence
+
+Comment translation, before: changing R comments to Russian loses the paragraph before the first Bash statement:
+
+![comment whitespace before](https://github.com/link-foundation/universal-translator/blob/issue-16-fb080613587e/docs/screenshots/issue-16/comment-whitespace-before.png?raw=true)
+
+After: the same translation retains the paragraph and its colour mappings:
+
+![comment whitespace after](https://github.com/link-foundation/universal-translator/blob/issue-16-fb080613587e/docs/screenshots/issue-16/comment-whitespace-after.png?raw=true)
+
+`node experiments/issue-16-comment-whitespace.mjs --before` fails 81 layout assertions with the previous translation/layout stages; the corrected stages pass all 551 cases. The matching JS/Rust regression targets, SQL and complex-comment coverage are documented in [COMMENT-WHITESPACE.md](https://github.com/link-foundation/universal-translator/blob/issue-16-fb080613587e/docs/case-studies/issue-16/COMMENT-WHITESPACE.md).
 
 Before correcting the source language:
 

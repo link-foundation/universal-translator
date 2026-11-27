@@ -8,6 +8,7 @@ mod collection_templates;
 pub mod comments;
 pub mod levels;
 mod lines;
+pub(crate) use lines::note_spans;
 pub mod probability;
 pub mod prose_reading;
 mod query_templates;

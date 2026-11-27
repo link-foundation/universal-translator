@@ -145,15 +145,34 @@ fn read_block_comment(
     if !starts_at(chars, index, open) {
         return None;
     }
-    let mut end = index + open.len();
-    while end < chars.len() && !starts_at(chars, end, close) {
-        end += 1;
-    }
-    end = chars.len().min(end + close.len());
+    let (end, _) = block_comment_end(chars, index, open, close);
     let inner_start = index + open.len();
     let inner_end = inner_start.max(end.saturating_sub(close.len()));
     let inner = &chars[inner_start.min(chars.len())..inner_end.min(chars.len())];
     Some((Kind::Comment, end, format!("c{}", trim_spaces(inner))))
+}
+
+pub(crate) fn block_comment_end(
+    chars: &[char],
+    index: usize,
+    open: &[char],
+    close: &[char],
+) -> (usize, bool) {
+    let mut end = index + open.len();
+    let mut depth = 1;
+    let nested = open == ['(', ';'] && close == [';', ')'];
+    while end < chars.len() && depth > 0 {
+        if nested && starts_at(chars, end, open) {
+            depth += 1;
+            end += open.len();
+        } else if starts_at(chars, end, close) {
+            depth -= 1;
+            end += close.len();
+        } else {
+            end += 1;
+        }
+    }
+    (end, depth == 0)
 }
 
 fn read_line_comment(chars: &[char], index: usize, marks: &Marks) -> Option<(Kind, usize, String)> {
@@ -389,6 +408,25 @@ pub fn align_tokens<'a>(source: &'a [Token], target: &'a [Token]) -> Vec<(usize,
     let mut pairs = Vec::new();
     align_range(&a, &b, (0, a.len(), 0, b.len()), &mut pairs);
     pair_brackets(&pairs, source, target)
+}
+
+/// Comment wording must not choose the code anchors. Pair code first, then
+/// match comments in the gaps independently of their translated spelling.
+fn align_code(source: &[Token], target: &[Token]) -> Vec<(usize, usize)> {
+    let code = |tokens: &[Token]| -> (Vec<usize>, Vec<Token>) {
+        tokens
+            .iter()
+            .enumerate()
+            .filter(|(_, token)| token.kind != Kind::Comment)
+            .map(|(index, token)| (index, token.clone()))
+            .unzip()
+    };
+    let (a, source_code) = code(source);
+    let (b, target_code) = code(target);
+    align_tokens(&source_code, &target_code)
+        .into_iter()
+        .map(|(i, j)| (a[i], b[j]))
+        .collect()
 }
 
 /// Comment wording can change independently of code. Match comments in the
@@ -756,7 +794,7 @@ pub fn transfer_layout(
         chars: target_chars,
     };
     let pairs = align_comments(
-        align_tokens(&source_side.tokens, &target_side.tokens),
+        align_code(&source_side.tokens, &target_side.tokens),
         &source_side.tokens,
         &target_side.tokens,
     );

@@ -1,0 +1,37 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 15.50s
+     Running rust/tests/comment_mapping.rs (target/debug/deps/comment_mapping-a34d8c10c2f3558f)
+
+running 3 tests
+test formal_headers_map_independently_of_their_translated_spelling ... ok
+test translated_header_comments_keep_their_origins_in_every_writer ... ok
+test natural_and_machine_readers_retain_header_comment_origins ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.89s
+
+     Running rust/tests/comment_whitespace.rs (target/debug/deps/comment_whitespace-d860e54e4156c4ee)
+
+running 5 tests
+test changing_comment_words_keeps_every_reader_familys_other_bytes ... ok
+test machine_strings_unicode_offsets_and_nested_comments_are_preserved ... ok
+test sql_query_comments_and_whitespace_are_kept_in_place ... ok
+test note_like_lines_inside_multiline_natural_literals_are_not_comments ... ok
+test partial_translations_through_every_reader_family_retain_the_source_layout ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.00s
+
+     Running rust/tests/layout.rs (target/debug/deps/layout-7115051de5850449)
+
+running 9 tests
+test alignment_follows_unique_anchors ... ok
+test each_closing_brace_maps_to_the_brace_that_closes_its_own_block ... ok
+test line_ends_blank_lines_and_indentation_follow_the_source ... ok
+test tokens_are_operators_strings_comments_and_names ... ok
+test spaces_never_join_tokens ... ok
+test the_issue_example_maps_its_lines ... ok
+test every_layout_example_keeps_the_source_layout ... ok
+test r_comment_translation_does_not_change_the_code_anchors ... ok
+test a_translated_comment_still_anchors_the_blank_line_after_it ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.08s
+

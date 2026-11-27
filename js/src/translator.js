@@ -242,7 +242,14 @@ function withLayout(result, source, from, to, options) {
     languageSyntax(from),
     languageSyntax(to),
     {
-      respace: options.layout !== 'target' && !hasStyle(options),
+      respace:
+        options.layout !== 'target' &&
+        !hasStyle(options) &&
+        !(
+          from === to &&
+          options.commentLanguage &&
+          !options.identifierLanguage
+        ),
       language: splitVersion(to).id,
     }
   );
@@ -296,6 +303,20 @@ function inPlace(source, language, options, toMeta) {
         translateComment,
       })
     : text;
+}
+
+function canTranslateInPlace(
+  from,
+  to,
+  { commentLanguage, identifierLanguage }
+) {
+  return (
+    from === to &&
+    ((commentLanguage && !identifierLanguage) ||
+      (identifierLanguage &&
+        !isNaturalLanguage(from) &&
+        !languageSyntax(from).machine))
+  );
 }
 
 // Partial translation (the default of the command line, the server and the
@@ -481,13 +502,9 @@ export function createGrammarTranslator(settings = {}) {
   }
 
   function translate(source, from, to, options = {}) {
-    const { commentLanguage, identifierLanguage } = options;
-    const same =
-      from === to && !isNaturalLanguage(from) && !languageSyntax(from).machine;
-    const kept =
-      same && (commentLanguage || identifierLanguage)
-        ? inPlace(source, from, options, toMeta)
-        : undefined;
+    const kept = canTranslateInPlace(from, to, options)
+      ? inPlace(source, from, options, toMeta)
+      : undefined;
     return kept ?? writeMeta(toMeta(source, from), to, { ...options, from });
   }
 

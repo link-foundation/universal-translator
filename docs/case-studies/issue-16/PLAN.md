@@ -195,3 +195,17 @@ Objective-C execution. CodeQL also traced the verifier's Node executable path
 through its argument wrapper; it now uses a fixed command. Both failed workflow
 logs and the SARIF are archived. Focused checks pass; current-commit CI remains
 required after pushing these fixes.
+
+All five workflows at `eeb793d` pass, including the full native checks and
+Security. The CodeQL review thread is resolved and has an evidence reply at
+https://github.com/link-foundation/universal-translator/pull/17#discussion_r4715644694.
+
+The comment-whitespace review fixes four concrete paths in both runtimes:
+natural/machine in-place translation, comment-independent code alignment,
+partial translation of mixed line endings, and machine lexical markers.
+The 551-case audit across 111 imperative families fails 81 assertions with the
+previous translation/layout stages and passes with the corrected stages.
+SQL and complex machine/natural literals have additional regressions. Real
+browser before/after screenshots show the R-to-Bash paragraph restored.
+See `COMMENT-WHITESPACE.md` for the reproduction and explicit remaining review;
+all broader open requirements remain active.

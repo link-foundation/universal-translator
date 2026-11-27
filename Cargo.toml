@@ -197,6 +197,10 @@ name = "comment_mapping"
 path = "rust/tests/comment_mapping.rs"
 
 [[test]]
+name = "comment_whitespace"
+path = "rust/tests/comment_whitespace.rs"
+
+[[test]]
 name = "questions"
 path = "rust/tests/questions.rs"
 

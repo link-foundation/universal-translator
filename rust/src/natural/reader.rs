@@ -16,7 +16,7 @@ use regex::Regex;
 use super::agreement::{normalize, slot_case};
 use super::catalog::{Language, natural_language};
 use super::levels::{Associativity, LEVELS, level_index, operator_of_template};
-use super::lines::sentence_lines;
+use super::lines::{note_pattern, sentence_lines};
 use super::tokens::{Kind, Token};
 use crate::meta::for_each::raise_for_each;
 use crate::meta::questions::ASPECTS;
@@ -709,19 +709,6 @@ struct Line {
 /// JavaScript's `trim` also removes the byte order mark.
 fn is_space(character: char) -> bool {
     character.is_whitespace() || character == '\u{feff}'
-}
-
-fn note_pattern(language: &Language) -> Regex {
-    let (before, after) = language
-        .note
-        .split_once("{text}")
-        .unwrap_or((language.note.as_str(), ""));
-    Regex::new(&format!(
-        r"^{}\s*(.*?){}$",
-        regex::escape(before.trim_matches(is_space)),
-        regex::escape(after)
-    ))
-    .expect("note pattern")
 }
 
 /// A heading written without its end mark ("While n is less than 3, do

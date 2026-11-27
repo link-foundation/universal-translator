@@ -110,7 +110,11 @@ fn with_layout(
         &result.text,
         &crate::layout::Marks::of(&from_syntax),
         &crate::layout::Marks::of(&to_syntax),
-        options.layout == TextLayout::Source && !options.style.is_set(),
+        options.layout == TextLayout::Source
+            && !options.style.is_set()
+            && !(from == to
+                && options.comment_language.is_some()
+                && options.identifier_language.is_none()),
         split_version(to).0,
     );
     if !options.style.is_set() {
@@ -728,10 +732,14 @@ impl Translator {
     ) -> Result<String, GrammarError> {
         // Same code, other comment or identifier language: change only the
         // comments and the names, in place.
-        if (options.comment_language.is_some() || options.identifier_language.is_some())
-            && from == to
+        let in_place_names = from == to
+            && options.identifier_language.is_some()
             && !natural::is_natural_language(from)
-            && !languages::language_syntax(from)?.machine
+            && !languages::language_syntax(from)?.machine;
+        if ((from == to
+            && options.comment_language.is_some()
+            && options.identifier_language.is_none())
+            || in_place_names)
             && let Some(kept) = self.in_place(source, from, options)?
         {
             return Ok(kept);

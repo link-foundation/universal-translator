@@ -1373,6 +1373,8 @@ pub const MACHINE_TARGETS: [Syntax; 7] = [
         label: "x86-64 assembly (NASM)",
         naming: same(Convention::Snake),
         line_comment: ";",
+        block_comment: None,
+        quotes: SCRIPT_QUOTES,
         terms: Terms {
             call: "call instruction",
             routine: "procedure",
@@ -1415,6 +1417,7 @@ pub const MACHINE_TARGETS: [Syntax; 7] = [
             variable: Convention::Camel,
         },
         line_comment: "//",
+        quotes: BOTH_QUOTES,
         terms: METHOD_TERMS,
         machine: true,
         forward_declarations: ForwardDeclarations::None,
@@ -1425,6 +1428,7 @@ pub const MACHINE_TARGETS: [Syntax; 7] = [
         label: "JVM bytecode",
         naming: same(Convention::Camel),
         line_comment: ";",
+        block_comment: None,
         terms: METHOD_TERMS,
         machine: true,
         forward_declarations: ForwardDeclarations::None,
@@ -1435,6 +1439,7 @@ pub const MACHINE_TARGETS: [Syntax; 7] = [
         label: "LLVM IR",
         naming: same(Convention::Snake),
         line_comment: ";",
+        block_comment: None,
         terms: Terms {
             call: "call instruction",
             routine: "function",
@@ -1448,6 +1453,7 @@ pub const MACHINE_TARGETS: [Syntax; 7] = [
         label: "WebAssembly text",
         naming: same(Convention::Snake),
         line_comment: ";;",
+        block_comment: Some(("(;", ";)")),
         terms: Terms {
             call: "call instruction",
             routine: "function",

@@ -1,0 +1,28 @@
+{
+  "stages": "eeb793d",
+  "languages": 111,
+  "checked": 551,
+  "failedAssertions": 81,
+  "byKind": {
+    "comment-toggle": 2,
+    "same-language": 79
+  },
+  "commentToggleFailures": [
+    {
+      "from": "r",
+      "to": "python",
+      "kind": "comment-toggle",
+      "baseline": "\r\n# spaceprobeone\r\n\r\nn = 1\r\n# spaceprobetwo\r\nprint(n)\r\n\r\n",
+      "result": "\r\n# пробелодин\r\nn = 1\r\n# пробелдва\r\nprint(n)\r\n\r\n",
+      "complete": true
+    },
+    {
+      "from": "r",
+      "to": "bash",
+      "kind": "comment-toggle",
+      "baseline": "\r\n#!/usr/bin/env bash\r\n# spaceprobeone\r\n\r\nn=1\r\n# spaceprobetwo\r\necho \"$n\"\r\n\r\n",
+      "result": "\r\n#!/usr/bin/env bash\r\n# пробелодин\r\nn=1\r\n# пробелдва\r\necho \"$n\"\r\n\r\n",
+      "complete": true
+    }
+  ]
+}
