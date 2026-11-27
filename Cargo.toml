@@ -91,6 +91,10 @@ name = "fragments"
 path = "rust/tests/fragments.rs"
 
 [[test]]
+name = "records"
+path = "rust/tests/records.rs"
+
+[[test]]
 name = "issue_6"
 path = "rust/tests/issue_6.rs"
 

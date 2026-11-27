@@ -30,6 +30,7 @@ import {
   raiseEvaluationOrder,
 } from './meta/evaluation-order.js';
 import { emitProgram } from './formal/emitter.js';
+import { requireRecordSupport } from './formal/record-model.js';
 import {
   emitMachine,
   machineTargetIds,
@@ -564,12 +565,13 @@ export function createGrammarTranslator(settings = {}) {
   const emitText = (adapted, to) => custom.output(emit(adapted, to), to);
 
   function writeTarget(adapted, to) {
-    if (isNaturalLanguage(to)) {
+    const natural = isNaturalLanguage(to);
+    const machine = machineTargetIds.includes(to);
+    requireRecordSupport(adapted, to, !natural && !machine);
+    if (natural) {
       return stages.writeNatural(adapted, to);
     }
-    return machineTargetIds.includes(to)
-      ? emitMachineCode(adapted, to)
-      : emit(adapted, to);
+    return machine ? emitMachineCode(adapted, to) : emit(adapted, to);
   }
 
   function writeMeta(meta, to, options = {}) {

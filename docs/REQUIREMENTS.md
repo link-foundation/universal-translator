@@ -34,7 +34,7 @@ before it can be checked off. Completed groups are stored in
 
 - [ ] Verify framework-independent translation for annotated parameters, nested generics and chained member calls across targets.
 - [ ] Preserve exception values, matching, rethrow and cleanup across the remaining formal, controlled-natural and machine targets.
-- [ ] Expand class, constructor and object-instance representations and fragment round trips.
+- [ ] Expand class, constructor and object-instance representations and fragment round trips. [JavaScript–Rust record constructor fragments](case-studies/issue-16/RECORDS.md) are covered in both engines.
 
 ## UT-16.9 Complete grammar coverage and language editions
 

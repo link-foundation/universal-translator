@@ -105,7 +105,11 @@ export interface GrammarTranslatorOptions extends Partial<Stages> {
 
 /** What a fragment holds: a whole program, function definitions only, or
  * statements only. */
-export type FragmentKind = 'program' | 'functions' | 'statements';
+export type FragmentKind =
+  | 'program'
+  | 'functions'
+  | 'definitions'
+  | 'statements';
 
 export interface Fragment {
   kind: FragmentKind;

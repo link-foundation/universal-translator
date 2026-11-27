@@ -75,6 +75,7 @@ mod forms;
 mod loops;
 mod queries;
 mod questions;
+mod records;
 mod types;
 
 pub use types::source_type;
@@ -423,6 +424,9 @@ impl Parser {
             }
             _ => {}
         }
+        if self.syntax.id == "rust" && self.is("pub") && self.is_at("struct", 1) {
+            return self.rust_record();
+        }
         if self.is_namespace_or_class() {
             return self.class_definition();
         }
@@ -462,34 +466,6 @@ impl Parser {
         self.end_statement()?;
         let joined = parts.join(" ").replace(" . ", ".").replace(" :: ", "::");
         Ok(Node::new("Import").with("text", joined))
-    }
-
-    pub(crate) fn is_namespace_or_class(&self) -> bool {
-        let offset = self.modifier_count();
-        ["class", "namespace", "object"].contains(&self.value(offset))
-            && self.kind(offset) == TokenType::Name
-    }
-
-    pub(crate) fn class_definition(&mut self) -> Parsed {
-        self.skip_modifiers();
-        let form = self.next_value()?;
-        let title = self.expect_name()?;
-        // Scala: the body of `object Hello extends App { ... }` is the
-        // program.
-        if self.syntax.id == "scala" && self.is("extends") && self.is_at("App", 1) {
-            self.position += 2;
-        }
-        self.skip_newlines();
-        self.expect("{")?;
-        self.class_depth += 1;
-        let items = self.items(&|parser| parser.is("}"));
-        self.class_depth -= 1;
-        let items = items?;
-        self.expect("}")?;
-        Ok(Node::new("Class")
-            .with("form", form)
-            .with("name", title)
-            .with("items", items))
     }
 
     pub(crate) fn is_function_start(&self) -> bool {

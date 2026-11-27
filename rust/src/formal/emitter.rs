@@ -1345,6 +1345,10 @@ impl Emitter {
                 self.line("");
             }
         }
+        for definition in program.nodes("definitions") {
+            super::records::write_record(self, definition)?;
+            self.line("");
+        }
         for (index, item) in items.iter().enumerate() {
             if !item.is("Function") {
                 self.statement(item)?;
@@ -1433,6 +1437,14 @@ pub fn spaced_after<N: std::borrow::Borrow<Node>>(functions: &[N], index: usize)
 
 pub fn emit_program(program: &Node, language: &str) -> Result<String> {
     let syntax = language_syntax(language)?;
+    if !program.nodes("definitions").is_empty() {
+        if !super::records::supports_records(&syntax) {
+            return Err(GrammarError::new(format!(
+                "Record definitions cannot be emitted in {language}"
+            )));
+        }
+        super::records::check_record_references(program)?;
+    }
     let mut emitter = Emitter::new(syntax);
     super::objpak_writer::prepare(&mut emitter, program);
     super::sql_values::prepare_emitter(&mut emitter, program);

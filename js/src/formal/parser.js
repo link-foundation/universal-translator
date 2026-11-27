@@ -24,6 +24,11 @@ import { withObjpakParser } from './objpak-reader.js';
 import { withQueryParser } from './query-parser.js';
 import { parseSource } from './source-parser.js';
 import { cppTemplateArguments, declarationTypeFields } from './cpp-library.js';
+import {
+  isNamespaceOrClass,
+  readClass,
+  readRustRecord,
+} from './record-parser.js';
 
 const binaryLevels = [
   { or: ['||', 'or'] },
@@ -264,8 +269,11 @@ class BaseParser {
     if (this.isImportStart(token)) {
       return this.importStatement();
     }
-    if (this.isNamespaceOrClass()) {
-      return this.classDefinition();
+    if (this.syntax.id === 'rust' && this.is('pub') && this.is('struct', 1)) {
+      return readRustRecord(this);
+    }
+    if (isNamespaceOrClass(this, modifiers)) {
+      return readClass(this, modifiers);
     }
     const announcement = this.announcementLength();
     if (announcement) {
@@ -324,38 +332,6 @@ class BaseParser {
     return node('Import', {
       text: parts.join(' ').replace(/ \. /g, '.').replace(/ :: /g, '::'),
     });
-  }
-
-  isNamespaceOrClass() {
-    let offset = 0;
-    while (modifiers.has(this.peek(offset).value)) {
-      offset += 1;
-    }
-    return (
-      ['class', 'namespace', 'object'].includes(this.peek(offset).value) &&
-      this.peek(offset).type === 'name'
-    );
-  }
-
-  classDefinition() {
-    while (modifiers.has(this.peek().value)) {
-      this.next();
-    }
-    const kind = this.next().value;
-    const title = this.expectName();
-    // Scala: the body of `object Hello extends App { ... }` is the program.
-    if (this.syntax.id === 'scala' && this.is('extends') && this.is('App', 1)) {
-      this.position += 2;
-    }
-    while (this.peek().type === 'newline') {
-      this.next();
-    }
-    this.expect('{');
-    this.classDepth = (this.classDepth ?? 0) + 1;
-    const items = this.items(() => this.is('}'));
-    this.classDepth -= 1;
-    this.expect('}');
-    return node('Class', { form: kind, name: title, items });
   }
 
   isFunctionStart() {

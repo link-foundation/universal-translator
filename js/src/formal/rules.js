@@ -124,6 +124,7 @@ function collectItems(items) {
     const isFirstCode =
       program.imports.length +
         program.functions.length +
+        (program.definitions?.length ?? 0) +
         program.main.statements.length ===
       0;
     if (isFirstCode) {
@@ -144,6 +145,10 @@ function collectItems(items) {
       program.imports.push(item.text);
     } else if (item.kind === 'Function') {
       program.functions.push(
+        attachComments(inheritOrigin({ ...item }, item), 'comments', pending)
+      );
+    } else if (item.kind === 'RecordDefinition') {
+      (program.definitions ??= []).push(
         attachComments(inheritOrigin({ ...item }, item), 'comments', pending)
       );
     } else {

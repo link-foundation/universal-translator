@@ -83,7 +83,7 @@ pub fn translate(source: &str, from: &str, to: &str, mode: Mode) -> Result<Strin
     Translator::new().translate(source, from, to, mode)
 }
 
-/// Read a fragment (a whole program, function definitions or statements)
+/// Read a fragment (a whole program, definitions or statements)
 /// with the default grammar translator.
 pub fn parse_fragment(source: &str, from: &str) -> Result<Fragment, GrammarError> {
     Translator::new().parse_fragment(source, from)

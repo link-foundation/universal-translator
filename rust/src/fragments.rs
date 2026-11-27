@@ -1,5 +1,5 @@
-//! Fragments: a whole program, one or more function definitions, or one or
-//! more statements, read and written on their own.
+//! Fragments: a whole program, definitions, or statements, read and written
+//! on their own.
 //!
 //! A fragment must be complete: a function ends with its closing, a block
 //! statement with its end, and a single line statement is a whole
@@ -31,23 +31,27 @@ pub enum FragmentKind {
     Program,
     /// Function definitions only.
     Functions,
+    /// Type definitions, optionally accompanied by functions.
+    Definitions,
     /// Statements only.
     Statements,
 }
 
 impl FragmentKind {
     /// The kinds in the order a fragment is tried.
-    pub const ALL: [FragmentKind; 3] = [
+    pub const ALL: [FragmentKind; 4] = [
         FragmentKind::Program,
         FragmentKind::Functions,
+        FragmentKind::Definitions,
         FragmentKind::Statements,
     ];
 
-    /// The name of the kind: "program", "functions" or "statements".
+    /// The public name of the fragment kind.
     pub fn as_str(self) -> &'static str {
         match self {
             FragmentKind::Program => "program",
             FragmentKind::Functions => "functions",
+            FragmentKind::Definitions => "definitions",
             FragmentKind::Statements => "statements",
         }
     }
@@ -407,13 +411,17 @@ fn statements(meta: &Node) -> Vec<Node> {
 /// What a whole program read from the source holds.
 fn program_kind(meta: &Node) -> Option<FragmentKind> {
     let has_functions = !meta.nodes("functions").is_empty();
+    let has_definitions = !meta.nodes("definitions").is_empty();
     let has_statements = statements(meta)
         .iter()
         .any(|statement| !statement.is("Comment"));
     // A main function or procedure makes the source a program even when it
     // is empty.
-    if meta.get("mainComments").is_some() || (has_functions && has_statements) {
+    if meta.get("mainComments").is_some() || ((has_functions || has_definitions) && has_statements)
+    {
         Some(FragmentKind::Program)
+    } else if has_definitions {
+        Some(FragmentKind::Definitions)
     } else if has_functions {
         Some(FragmentKind::Functions)
     } else if has_statements {
@@ -430,6 +438,9 @@ fn list(nodes: Vec<Node>) -> Node {
 /// The fragment of a wrapped program, or a reason why the wrapper changed
 /// shape (the fragment closed a block it did not open).
 fn unwrap(meta: &Node, empty: &Node, wrapping: Wrapping) -> Result<Node, &'static str> {
+    if !meta.nodes("definitions").is_empty() {
+        return Err("it holds type definitions outside a complete program");
+    }
     let functions = meta.node_list("functions");
     let empty_functions = empty.node_list("functions");
     if wrapping != Wrapping::Functions {
@@ -616,7 +627,7 @@ fn write_between_markers(
     to: &str,
 ) -> Result<String, GrammarError> {
     let comments = adapted.texts("comments");
-    let functions = adapted.node_list("functions");
+    let functions = adapted.nodes("functions");
     let shape = if kind == FragmentKind::Statements {
         let main: Vec<Node> = std::iter::once(comment(START_MARKER))
             .chain(comments.iter().map(|text| comment(text)))
@@ -624,11 +635,18 @@ fn write_between_markers(
             .chain(std::iter::once(comment(END_MARKER)))
             .collect();
         with_fields(adapted, Vec::new(), main)
+    } else if kind == FragmentKind::Definitions {
+        let marked: Vec<String> = std::iter::once(START_MARKER.to_owned())
+            .chain(comments.iter().cloned())
+            .collect();
+        let mut written: Vec<_> = functions.iter().map(|&item| item.clone()).collect();
+        written.push(closing_function(vec![END_MARKER.to_owned()]));
+        with_fields(adapted, written, Vec::new()).with("comments", marked)
     } else {
         let mut written: Vec<Node> = functions
             .iter()
             .enumerate()
-            .map(|(index, item)| {
+            .map(|(index, &item)| {
                 if index > 0 {
                     return item.clone();
                 }
@@ -657,6 +675,9 @@ fn write_between_markers(
         )));
     }
     let inner = dedent(&lines[start + 1..end]);
+    if kind == FragmentKind::Definitions {
+        return Ok(inner.join("\n") + "\n");
+    }
     let above = if kind == FragmentKind::Statements {
         let declared: Vec<String> = adapted
             .node("main")
@@ -675,7 +696,7 @@ fn write_between_markers(
     } else {
         // Languages that read from top to bottom announce a function called
         // before its definition; the announcements belong to the fragment.
-        let announced: Vec<String> = later_calls(&functions)
+        let announced: Vec<String> = later_calls(functions)
             .iter()
             .filter_map(|item| item.str("name").map(str::to_owned))
             .collect();

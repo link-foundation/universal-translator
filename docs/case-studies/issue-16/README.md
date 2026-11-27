@@ -24,6 +24,8 @@ CI for a subset does not close that scope.
   source, scoped library contracts, pinned native toolchain and comparison logs.
 - [Rosetta Code coverage and behavior](ROSETTA-CODE.md) records the identical-input
   coverage comparison and the native regression for dropped C++ calls.
+- [Class and constructor fragments](RECORDS.md) records the JavaScript–Rust
+  round trip and its independent native constructor verification.
 - [Corpus frequencies](CORPUS-FREQUENCIES.md) records reproducible code-language
   task counts and the observed frequencies of two competing Russian readings.
 - `data/issue-*.json`, `data/discussion-*.md` and `data/pulls-*`: complete issue

@@ -637,6 +637,13 @@ impl Translator {
 
     /// Write an adapted program in a language, a machine target or words.
     pub fn write(&self, adapted: &Node, to: &str) -> Result<String, GrammarError> {
+        if !adapted.nodes("definitions").is_empty()
+            && (natural::is_natural_language(to) || machine_target_ids().contains(&to))
+        {
+            return Err(GrammarError::new(format!(
+                "Record definitions cannot be emitted in {to}"
+            )));
+        }
         let written = if natural::is_natural_language(to) {
             (self.stages.write_natural)(adapted, to)?
         } else if languages::language_syntax(to)?.machine {
@@ -722,7 +729,7 @@ impl Translator {
         crate::detect::detect_language(self, source, limit)
     }
 
-    /// Read a complete fragment: a whole program, function definitions or
+    /// Read a complete fragment: a whole program, definitions or
     /// statements.
     pub fn parse_fragment(&self, source: &str, from: &str) -> Result<Fragment, GrammarError> {
         fragments::parse_fragment(self, source, from)

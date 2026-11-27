@@ -36,7 +36,7 @@ against the rules of a controlled language.
 Modes: context-dependent (default), literal, same-effect
 --trace writes every pipeline stage to standard error as \"[stage] <json>\".
 --common-library prints through common-library/ calls.
---fragment translates statements or functions on their own.
+--fragment translates statements or definitions on their own.
 Parts that cannot be translated become comments and are listed on
 standard error; --all-or-nothing fails instead.
 The source language may be \"auto\" to detect it.
@@ -515,7 +515,7 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
             fragment || all_or_nothing,
         );
     }
-    // --fragment translates a single statement, function definitions or a
+    // --fragment translates statements, definitions or a
     // whole program into the same kind of fragment. By default every part
     // that can be translated is, and the others are marked and listed on
     // standard error; --all-or-nothing fails at the first part it cannot

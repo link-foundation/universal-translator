@@ -1,8 +1,10 @@
 // Meta language tree: the language-independent representation that every
 // parser produces and every emitter consumes. Node kinds use full words.
 //
-//   Program        { comments, imports, functions, main }
+//   Program        { comments, imports, definitions?, functions, main }
 //   Function       { name, parameters: [{ name, type, annotations? }], returnType, body, comments, annotations? }
+//   RecordDefinition { name, parameters, fields, comments?, constructorComments? }
+//   RecordField    { name, parameter }
 //   Annotation     { expression }       method or parameter metadata
 //   Block          { statements }
 //   Declaration    { name, type, value, mutable }

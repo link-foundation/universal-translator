@@ -2,7 +2,9 @@
 //! parser produces and every emitter consumes. Node kinds use full words.
 //!
 //! ```text
-//!   Program        { comments, imports, functions, main, mainComments }
+//!   Program        { comments, imports, definitions?, functions, main, mainComments }
+//!   RecordDefinition { name, parameters: [text], fields: [RecordField], comments, constructorComments }
+//!   RecordField    { name, parameter }
 //!   Function       { name, parameters: [Parameter], returnType, body, comments }
 //!   Parameter      { name, type }
 //!   Block          { statements }

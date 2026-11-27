@@ -26,6 +26,12 @@ import { withSqlValueWriter } from './sql-values.js';
 import { namedType, withTypeMetadata } from './type-metadata.js';
 import { withExceptions } from './exceptions.js';
 import {
+  checkRecordReferences,
+  requireRecordSupport,
+  supportsRecords,
+} from './record-model.js';
+import { writeRecord } from './record-writer.js';
+import {
   mappedComments,
   mappedEmitter,
   mappedLine,
@@ -995,6 +1001,10 @@ class BaseEmitter {
         this.line();
       }
     }
+    for (const definition of program.definitions ?? []) {
+      this.recordDefinition(definition);
+      this.line();
+    }
     items.forEach((item, index) => {
       if (item.kind !== 'Function') {
         this.statement(item);
@@ -1031,6 +1041,14 @@ class BaseEmitter {
       ...this.prelude(program),
       ...body,
     ]);
+  }
+
+  recordDefinition(definition) {
+    writeRecord(this, definition);
+  }
+
+  recordField(_field, line) {
+    this.line(line);
   }
 
   // The top-level statements, in a main procedure where the language has one.
@@ -1125,9 +1143,12 @@ const Emitter = withSqlValueWriter(
 
 export function emitProgram(program, languageId) {
   const LanguageEmitter = emitterFor(languageId);
-  return mappedEmitter(new LanguageEmitter(languageSyntax(languageId))).program(
-    program
-  );
+  const syntax = languageSyntax(languageId);
+  requireRecordSupport(program, languageId, supportsRecords(syntax));
+  if (program.definitions?.length) {
+    checkRecordReferences(program);
+  }
+  return mappedEmitter(new LanguageEmitter(syntax)).program(program);
 }
 
 // Languages with a program layout of their own (Fortran, Pascal, Ada,

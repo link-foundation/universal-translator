@@ -202,6 +202,7 @@ fn collect_items(items: Vec<Node>) -> Node {
     let mut comments = Vec::new();
     let mut imports = Vec::new();
     let mut functions = Vec::new();
+    let mut definitions = Vec::new();
     let mut statements = Vec::new();
     let mut pending: Vec<Node> = Vec::new();
     for item in items {
@@ -209,7 +210,7 @@ fn collect_items(items: Vec<Node>) -> Node {
             pending.push(item);
             continue;
         }
-        if imports.len() + functions.len() + statements.len() == 0 {
+        if imports.len() + functions.len() + definitions.len() + statements.len() == 0 {
             // Comments before the last empty line describe the file; the
             // ones after it (all of them without an empty line) describe
             // the first item.
@@ -235,6 +236,10 @@ fn collect_items(items: Vec<Node>) -> Node {
             functions.push(crate::source_origins::attach_comments(
                 item, "comments", &pending,
             ));
+        } else if item.is("RecordDefinition") {
+            definitions.push(crate::source_origins::attach_comments(
+                item, "comments", &pending,
+            ));
         } else {
             if let Some(order) = item.number("cppFileOrder") {
                 for trivia in &mut pending {
@@ -251,6 +256,10 @@ fn collect_items(items: Vec<Node>) -> Node {
         Node::new("Program")
             .with("imports", imports)
             .with("functions", functions)
+            .with_opt(
+                "definitions",
+                (!definitions.is_empty()).then_some(definitions),
+            )
             .with("main", block(layout(statements))),
         "comments",
         &comments,

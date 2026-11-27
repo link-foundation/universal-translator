@@ -55,7 +55,7 @@ function usage() {
     '  multiply  Multiply two numbers',
     '  translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment] [--layout source|target] [--braces same-line|next-line] [--indent <n|tab>]  Translate through the meta language',
     '            --common-library prints through common-library/ calls',
-    '            --fragment translates statements or functions on their own',
+    '            --fragment translates statements or definitions on their own',
     '            --comment-language <natural> translates the comments too (only them when <from> is <to>)',
     '            --comment-from <natural> names the language of the comments (detected otherwise)',
     '            --identifier-language <natural> translates the declared names too (only them, in place, when <from> is <to>)',
@@ -258,7 +258,7 @@ const binaryTranslation = new Map([
   ],
 ]);
 
-// --fragment translates a single statement, function definitions or a
+// --fragment translates statements, definitions or a
 // whole program into the same kind of fragment. By default every part that
 // can be translated is, and the others are marked and listed on standard
 // error; --all-or-nothing throws at the first part it cannot read.
