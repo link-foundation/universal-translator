@@ -1,0 +1,42 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 12.66s
+     Running rust/tests/concrete_syntax.rs (target/debug/deps/concrete_syntax-73d8ce8bb13300f8)
+
+running 5 tests
+test reconstruction_requires_a_concrete_tree ... ok
+test concrete_tokens_partition_every_source_byte ... ok
+test empty_and_whitespace_input_have_lossless_records ... ok
+test incomplete_source_retains_accepted_regions_and_explicit_errors ... ok
+test words_and_all_machine_formats_retain_their_source_record ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.47s
+
+     Running rust/tests/hello_world_dialects.rs (target/debug/deps/hello_world_dialects-735d7b43730d49c6)
+
+running 11 tests
+test reads_fixed_form_comments_labelled_formats_and_a_final_stop ... ok
+test reads_a_scala_object_that_extends_app ... ok
+test keeps_an_assignment_to_c_a_statement ... ok
+test reads_a_lua_hash_bang_line_and_a_call_with_one_text_argument ... ok
+test reads_groovy_println_without_parentheses ... ok
+test reads_a_visual_basic_class_after_imports_system_console ... ok
+test reports_formats_it_cannot_print ... ok
+test reads_php_closing_tags_and_following_literal_output ... ok
+test writes_a_line_end_inside_fortran_text_with_new_line ... ok
+test reads_write_control_lists_new_line_and_concatenation ... ok
+test reads_zig_before_0_1 ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.38s
+
+     Running rust/tests/runtime_headers.rs (target/debug/deps/runtime_headers-b5595ef9fb883cf6)
+
+running 7 tests
+test tagless_php_snippets_keep_code_mode_even_when_strings_contain_tag_text ... ok
+test emitted_php_comments_with_close_tags_retain_code_mode ... ok
+test php_markup_and_code_retain_distinct_utf8_output_regions ... ok
+test changed_rocq_runtime_tokens_and_literal_values_are_not_discarded ... ok
+test php_output_whitespace_outside_tags_keeps_its_runtime_effect ... ok
+test token_equivalent_rocq_runtime_headers_keep_layout_comments_and_real_line_numbers ... ok
+test php_markup_mode_switches_and_short_echoes_retain_scope_and_concrete_source ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.96s

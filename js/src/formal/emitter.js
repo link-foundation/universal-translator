@@ -122,11 +122,18 @@ const importsAfterLibrary = [
 
 export function commentLines(syntax, id, text, { block: preferred } = {}) {
   const [open, close] = syntax.blockComment ?? [];
+  // A PHP line comment ends at ?>. Use a block, escaping a foreign block
+  // terminator when necessary, as failure-note comments already do.
+  const phpClosingTag = id === 'php' && text.includes('?>');
+  if (phpClosingTag) {
+    text = text.replaceAll('*/', '* /');
+  }
   const lines = text.split('\n');
   const block =
     open &&
     !text.includes(close) &&
     (blockCommentLanguages.has(id) ||
+      phpClosingTag ||
       (preferred && lines.length > 1) ||
       syntax.lineComment === open ||
       (lines.length > 1 && !syntax.lineComment));

@@ -1,0 +1,83 @@
+{
+  "reader": "bb09ccd",
+  "cases": [
+    {
+      "index": 0,
+      "expected": "<p>😀</p>ok<footer>end</footer>",
+      "error": "Unexpected character \"\ud83d\" (line 1)"
+    },
+    {
+      "index": 1,
+      "expected": "<p>// number /* not a comment */</p>",
+      "error": "Unexpected \"<\" in expression (line 1)"
+    },
+    {
+      "index": 2,
+      "expected": "abcd",
+      "error": "Text after the closing \"?>\" tag (line 1)"
+    },
+    {
+      "index": 3,
+      "expected": "abc",
+      "error": "Text after the closing \"?>\" tag (line 1)"
+    },
+    {
+      "index": 4,
+      "expected": "<p>5</p>",
+      "error": "Text after the closing \"?>\" tag (line 1)"
+    },
+    {
+      "index": 5,
+      "expected": "yesend",
+      "error": "Text after the closing \"?>\" tag (line 1)"
+    },
+    {
+      "index": 6,
+      "expected": "noend",
+      "error": "Text after the closing \"?>\" tag (line 1)"
+    },
+    {
+      "index": 7,
+      "expected": "x0x1x2",
+      "error": "Text after the closing \"?>\" tag (line 1)"
+    },
+    {
+      "index": 8,
+      "expected": "abc",
+      "output": "a",
+      "error": "Expected values to be strictly equal:\n\n'a' !== 'abc'\n"
+    },
+    {
+      "index": 9,
+      "expected": "abc",
+      "error": "Text after the closing \"?>\" tag (line 1)"
+    },
+    {
+      "index": 10,
+      "expected": "?>end",
+      "error": "Text after the closing \"?>\" tag (line 1)"
+    },
+    {
+      "index": 11,
+      "expected": "<?php ?>end",
+      "error": "Text after the closing \"?>\" tag (line 1)"
+    },
+    {
+      "index": 12,
+      "expected": "<?php echo \"no\";?>rawokend",
+      "output": "<?php echo \"no\";?>raw<?PHP echo \"ok\" ?>\r\nend",
+      "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '<?php echo \"no\";?>raw<?PHP echo \"ok\" ?>\\r\\nend'\n- '<?php echo \"no\";?>rawokend'\n                        ^\n"
+    },
+    {
+      "index": 13,
+      "expected": "a\tbend",
+      "error": "Text after the closing \"?>\" tag (line 1)"
+    },
+    {
+      "index": 14,
+      "expected": "<?xml version=\"1.0\"?>\n<p>ok</p>",
+      "error": "Text after the closing \"?>\" tag (line 1)"
+    }
+  ],
+  "failures": 15
+}

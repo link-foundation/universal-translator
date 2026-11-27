@@ -157,12 +157,18 @@ pub fn comment_lines(syntax: &Syntax, id: &str, text: &str, preferred: bool) -> 
         "" => marker.to_owned(),
         _ => format!("{marker} {line}"),
     };
+    // ?> ends a PHP line comment. A block retains code mode; escape a
+    // foreign block terminator as failure-note comments already do.
+    let php_closing_tag = id == "php" && text.contains("?>");
+    let escaped = php_closing_tag.then(|| text.replace("*/", "* /"));
+    let text = escaped.as_deref().unwrap_or(text);
     let lines: Vec<&str> = text.split('\n').collect();
     let (several, line_comment) = (lines.len() > 1, syntax.line_comment);
     match syntax.block_comment {
         Some((open, close))
             if !text.contains(close)
                 && (matches!(id, "c" | "csharp")
+                    || php_closing_tag
                     || (preferred && several)
                     || line_comment == open
                     || (several && line_comment.is_empty())) =>

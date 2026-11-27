@@ -266,3 +266,16 @@ job logs are preserved (`ci-node-6790c7b.txt:3050`, `ci-bun-6790c7b.txt:2855`,
 `ci-deno-6790c7b.txt:2855`); ANSI-free readable logs and compressed original
 responses are retained. The workflow was still running, so completed job logs
 were downloaded through the Actions job-log API.
+
+PHP markup/mode reading now composes literal output, repeated code sections,
+short echoes and shared conditional/loop scope in both runtimes. The old reader
+fails all 15 new finite native cases; the corrected reader matches all 15.
+Native round trips also exposed generated line comments containing `?>` closing
+code mode early; both writers now emit safe block comments. JS/Rust regressions
+cover comments, snippets, CST, source lines and exact markup/code regions.
+Evidence and explicit document/snippet and grammar limits are in
+`RUNTIME-HEADERS.md`. Continue all open acceptance criteria.
+
+The PHP mode extension passes 23 focused JavaScript tests and 23 Rust tests,
+ESLint and Clippy. Native verification passes all 24 PHP documents, the separate
+foreign-comment example and all six Rocq layouts.

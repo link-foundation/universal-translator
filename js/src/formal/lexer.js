@@ -190,25 +190,13 @@ class Lexer {
     this.source = source;
     this.syntax = syntax;
     this.tokens = [];
-    const php = syntax.id === 'php' && /^([ \t\r\n\f\v]*)<\?php/i.exec(source);
-    const invalidPhp =
-      php && !/^(?:[ \t\r\n]|$)/.test(source.slice(php[0].length));
-    this.index = php
-      ? invalidPhp
-        ? source.length
-        : php[0].length
-      : syntax.header && source.startsWith(syntax.header)
+    // PHP documents start in output mode; tagless code snippets keep their
+    // existing implicit code mode. Markup cannot begin a PHP expression.
+    this.phpOutside = syntax.id === 'php' && /^\s*</.test(source);
+    this.index =
+      !this.phpOutside && syntax.header && source.startsWith(syntax.header)
         ? syntax.header.length
         : 0;
-    const outside = invalidPhp ? source : php?.[1];
-    if (outside) {
-      this.tokens.push({
-        type: 'inlineText',
-        value: outside,
-        line: 1,
-        rawSpan: [0, outside.length],
-      });
-    }
     this.line = source.slice(0, this.index).split('\n').length;
     this.lineStart = true;
     this.indentation = [0];
@@ -233,8 +221,8 @@ class Lexer {
       if (this.lineStart && this.syntax.blocks === 'indentation') {
         this.indent();
       }
-      if (this.closingTag()) {
-        break;
+      if (this.phpMode()) {
+        continue;
       }
       const start = this.index;
       const first = this.tokens.length;
@@ -253,29 +241,44 @@ class Lexer {
     return this.tokens;
   }
 
-  // PHP consumes the first newline after ?>. Other outside whitespace is
-  // literal output, just like whitespace before its opening tag.
-  closingTag() {
-    if (this.syntax.id !== 'php' || !this.source.startsWith('?>', this.index)) {
+  // Code and literal output share block scope across PHP mode changes.
+  // Strings/block comments consume their own contents before this is called.
+  phpMode() {
+    if (this.syntax.id !== 'php') {
       return false;
     }
-    if (this.source.slice(this.index + 2).trim()) {
-      throw new SyntaxError('Text after the closing "?>" tag', this.line);
+    if (!this.phpOutside && this.source.startsWith('?>', this.index)) {
+      const start = this.index;
+      this.index += 2;
+      // A close tag terminates a statement, including an echo shorthand.
+      this.push('symbol', ';', { rawSpan: [start, this.index] });
+      this.index += /^(?:\r\n|\n|\r)/.exec(this.rest())?.[0].length ?? 0;
+      this.line += this.source.slice(start, this.index).split('\n').length - 1;
+      this.phpOutside = true;
+      return true;
     }
-    const after = this.index + 2;
-    const newline = /^(?:\r\n|\n|\r)/.exec(this.source.slice(after))?.[0] ?? '';
-    const start = after + newline.length;
-    this.line += this.source.slice(this.index, start).split('\n').length - 1;
-    if (start < this.source.length) {
-      if (this.tokens.at(-1)?.type !== 'newline') {
-        this.push('newline', '\n');
-      }
-      this.push('inlineText', this.source.slice(start), {
-        rawSpan: [start, this.source.length],
+    if (!this.phpOutside) {
+      return false;
+    }
+    const start = this.index;
+    const opening = /<\?(?:php(?=[ \t\r\n]|$)|=)/gi;
+    opening.lastIndex = start;
+    const match = opening.exec(this.source);
+    const stop = match?.index ?? this.source.length;
+    if (stop > start) {
+      this.push('inlineText', this.source.slice(start, stop), {
+        rawSpan: [start, stop],
       });
-      this.line += this.source.slice(start).split('\n').length - 1;
+      this.line += this.source.slice(start, stop).split('\n').length - 1;
+      this.push('newline', '\n');
     }
-    this.index = this.source.length;
+    this.index = match ? stop + match[0].length : stop;
+    if (match) {
+      this.phpOutside = false;
+      if (match[0] === '<?=') {
+        this.push('name', 'echo', { rawSpan: [stop, this.index] });
+      }
+    }
     return true;
   }
 
@@ -391,6 +394,9 @@ class Lexer {
         return fixed[1];
       }
     }
+    if (id === 'php' && this.source[this.index] === '#') {
+      return '#';
+    }
     return lineComment;
   }
 
@@ -405,7 +411,13 @@ class Lexer {
     ) {
       return false;
     }
-    const stop = this.untilLineEnd();
+    let stop = this.untilLineEnd();
+    if (this.syntax.id === 'php') {
+      const closing = this.source.indexOf('?>', this.index);
+      if (closing >= 0 && closing < stop) {
+        stop = closing;
+      }
+    }
     const start = this.index + marker.length;
     this.pushComment(commentText(this.source.slice(start, stop)), {
       span: [start, stop],

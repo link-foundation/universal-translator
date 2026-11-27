@@ -1,0 +1,25 @@
+PASS 6 Rocq runtime layouts and restored Python output bytes
+node:internal/modules/run_main:111
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ ' number\necho "?>";\necho "end";\n'
+- '?>end'
+
+    at file:///tmp/gh-issue-solver-1795726129025/examples/runtime-headers/verify-native.mjs:58:12
+    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async node:internal/modules/esm/loader:650:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: ' number\necho "?>";\necho "end";\n',
+  expected: '?>end',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v26.13.1

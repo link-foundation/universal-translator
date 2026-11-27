@@ -272,6 +272,8 @@ struct Lexer<'a> {
     indentation: Vec<usize>,
     /// Open brackets; newlines inside them are not significant.
     depth: usize,
+    /// Literal output mode in PHP documents; blocks may span modes.
+    php_outside: bool,
     /// Comment lines waiting for the next code line to show their block:
     /// (index of their first token, width).
     pending: Vec<(usize, usize)>,
@@ -281,30 +283,14 @@ type Reader<'a> = fn(&mut Lexer<'a>) -> Result<bool, GrammarError>;
 
 impl<'a> Lexer<'a> {
     fn new(source: &str, syntax: &'a Syntax) -> Self {
-        let leading = source.len()
-            - source
-                .trim_start_matches([' ', '\t', '\r', '\n', '\x0c', '\x0b'])
-                .len();
-        let php = syntax.id == "php"
-            && source
-                .get(leading..leading + 5)
-                .is_some_and(|tag| tag.eq_ignore_ascii_case("<?php"));
-        let invalid_php = php
-            && source[leading + 5..]
-                .chars()
-                .next()
-                .is_some_and(|c| !matches!(c, ' ' | '\t' | '\r' | '\n'));
-        let index = if invalid_php {
-            source.chars().count()
-        } else if php {
-            source[..leading].chars().count() + 5
-        } else {
-            match syntax.header {
-                Some(header) if source.starts_with(header) => header.chars().count(),
-                _ => 0,
-            }
+        // Preserve implicit code mode for tagless PHP snippets. Markup at the
+        // start of a document is literal output until a native opening tag.
+        let php_outside = syntax.id == "php" && source.trim_start().starts_with('<');
+        let index = match syntax.header {
+            Some(header) if !php_outside && source.starts_with(header) => header.chars().count(),
+            _ => 0,
         };
-        let mut lexer = Lexer {
+        Lexer {
             source: source.chars().collect(),
             syntax,
             tokens: Vec::new(),
@@ -313,22 +299,9 @@ impl<'a> Lexer<'a> {
             line_start: true,
             indentation: vec![0],
             depth: 0,
+            php_outside,
             pending: Vec::new(),
-        };
-        let outside_end = if invalid_php {
-            source.len()
-        } else if php {
-            leading
-        } else {
-            0
-        };
-        if outside_end > 0 {
-            lexer.push(TokenType::InlineText, &source[..outside_end]);
-            let token = lexer.tokens.last_mut().unwrap();
-            token.line = 1;
-            token.raw_span = Some((0, source[..outside_end].chars().count()));
         }
-        lexer
     }
 
     fn run(mut self) -> Result<Vec<Token>, GrammarError> {
@@ -348,8 +321,8 @@ impl<'a> Lexer<'a> {
             if self.line_start && self.syntax.blocks == Blocks::Indentation {
                 self.indent()?;
             }
-            if self.closing_tag()? {
-                break;
+            if self.php_mode() {
+                continue;
             }
             let start = self.index;
             let first = self.tokens.len();
@@ -376,53 +349,69 @@ impl<'a> Lexer<'a> {
         Ok(self.tokens)
     }
 
-    /// PHP consumes the first newline after ?>; remaining outside whitespace
-    /// is literal output, as is whitespace before its opening tag.
-    fn closing_tag(&mut self) -> Result<bool, GrammarError> {
-        if self.syntax.id != "php" || !self.starts_with("?>", self.index) {
-            return Ok(false);
+    /// Strings and block comments consume their contents before this reader.
+    /// Opening/closing tags share the surrounding PHP block scope.
+    fn php_mode(&mut self) -> bool {
+        if self.syntax.id != "php" {
+            return false;
         }
-        if self.source[self.index + 2..]
-            .iter()
-            .any(|character| !character.is_whitespace())
-        {
-            return Err(GrammarError::syntax(
-                "Text after the closing \"?>\" tag",
-                self.line,
-            ));
+        if !self.php_outside && self.starts_with("?>", self.index) {
+            let start = self.index;
+            self.index += 2;
+            self.push(TokenType::Symbol, ";");
+            self.tokens.last_mut().unwrap().raw_span = Some((start, self.index));
+            self.index += if self.starts_with("\r\n", self.index) {
+                2
+            } else if self.at(0).is_some_and(|c| matches!(c, '\r' | '\n')) {
+                1
+            } else {
+                0
+            };
+            self.line += self.source[start..self.index]
+                .iter()
+                .filter(|c| **c == '\n')
+                .count();
+            self.php_outside = true;
+            return true;
         }
-        let after = self.index + 2;
-        let newline = if self.starts_with("\r\n", after) {
-            2
-        } else if self
-            .source
-            .get(after)
-            .is_some_and(|c| matches!(c, '\r' | '\n'))
-        {
-            1
-        } else {
-            0
-        };
-        let start = after + newline;
-        self.line += self.source[self.index..start]
-            .iter()
-            .filter(|c| **c == '\n')
-            .count();
-        if start < self.source.len() {
-            if self
-                .tokens
-                .last()
-                .is_none_or(|token| token.kind != TokenType::Newline)
+        if !self.php_outside {
+            return false;
+        }
+        let start = self.index;
+        let opening = (start..self.source.len()).find_map(|at| {
+            if self.starts_with("<?=", at) {
+                Some((at, 3))
+            } else if self.source.get(at..at + 5).is_some_and(|tag| {
+                tag.iter()
+                    .zip("<?php".chars())
+                    .all(|(c, expected)| c.eq_ignore_ascii_case(&expected))
+            }) && self
+                .source
+                .get(at + 5)
+                .is_none_or(|c| matches!(c, ' ' | '\t' | '\r' | '\n'))
             {
-                self.push(TokenType::Newline, "\n");
+                Some((at, 5))
+            } else {
+                None
             }
-            let text = self.slice(start, self.source.len());
+        });
+        let stop = opening.map_or(self.source.len(), |(at, _)| at);
+        if stop > start {
+            let text = self.slice(start, stop);
             self.push(TokenType::InlineText, &text);
-            self.tokens.last_mut().unwrap().raw_span = Some((start, self.source.len()));
+            self.tokens.last_mut().unwrap().raw_span = Some((start, stop));
             self.line += text.matches('\n').count();
+            self.push(TokenType::Newline, "\n");
         }
-        self.index = self.source.len();
-        Ok(true)
+        self.index = opening.map_or(stop, |(at, width)| at + width);
+        if let Some((at, width)) = opening {
+            self.php_outside = false;
+            if width == 3 {
+                self.push(TokenType::Name, "echo");
+                self.tokens.last_mut().unwrap().raw_span = Some((at, self.index));
+            }
+        }
+        true
     }
 
     fn push(&mut self, kind: TokenType, value: &str) {
@@ -583,6 +572,9 @@ impl<'a> Lexer<'a> {
                 }
             }
         }
+        if id == "php" && self.at(0) == Some('#') {
+            return "#";
+        }
         self.syntax.line_comment
     }
 
@@ -597,7 +589,12 @@ impl<'a> Lexer<'a> {
         {
             return false;
         }
-        let stop = self.until_line_end();
+        let mut stop = self.until_line_end();
+        if self.syntax.id == "php"
+            && let Some(closing) = (self.index..stop).find(|at| self.starts_with("?>", *at))
+        {
+            stop = closing;
+        }
         let start = self.index + marker.chars().count();
         let text = self.slice(start, stop);
         self.push_comment(&comment_text(&text), false, (start, stop));

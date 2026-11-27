@@ -135,3 +135,126 @@ fn php_output_whitespace_outside_tags_keeps_its_runtime_effect() {
         assert_eq!(partial.text, source.replace("number", "число"));
     }
 }
+
+#[test]
+fn php_markup_mode_switches_and_short_echoes_retain_scope_and_concrete_source() {
+    let translator = Translator::new();
+    let cases: Vec<(String, String)> = serde_json::from_str(include_str!(
+        "../../examples/runtime-headers/php-modes.json"
+    ))
+    .unwrap();
+    let syntax = language_syntax("php").unwrap();
+    for (source, _) in cases {
+        let meta = translator.to_meta(&source, "php").unwrap();
+        let python = translator
+            .translate(&source, "php", "python", Mode::default())
+            .unwrap();
+        assert_eq!(
+            meaning_difference(&meta, &translator.to_meta(&python, "python").unwrap()),
+            None
+        );
+        let concrete = parse_program(&source, &syntax).unwrap();
+        assert_eq!(
+            reconstruct_concrete(concrete.node("syntax").unwrap()).unwrap(),
+            source
+        );
+        let partial = translator
+            .translate_partial(
+                &source,
+                "php",
+                "php",
+                Options {
+                    comment_from: Some("english"),
+                    comment_language: Some("russian"),
+                    ..Options::default()
+                },
+                false,
+            )
+            .unwrap();
+        assert!(partial.complete);
+        assert_eq!(
+            partial.text,
+            source
+                .replace("// number ?>", "// число ?>")
+                .replace("# number ?>", "# число ?>")
+                .replace("/* ?> number */", "/* ?> число */")
+        );
+        for token in tokenize(&source, &syntax).unwrap() {
+            if let Some((start, _)) = token.raw_span {
+                assert_eq!(
+                    token.line,
+                    1 + source.chars().take(start).filter(|c| *c == '\n').count()
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn tagless_php_snippets_keep_code_mode_even_when_strings_contain_tag_text() {
+    let translator = Translator::new();
+    for source in [
+        r#"echo "<?php ?>";"#,
+        r#"echo "<?= 2 ?>";"#,
+        "$x = 2; echo $x;",
+    ] {
+        let meta = translator.to_meta(source, "php").unwrap();
+        let document = translator
+            .to_meta(&format!("<?php {source}"), "php")
+            .unwrap();
+        assert_eq!(meaning_difference(&meta, &document), None);
+    }
+}
+
+#[test]
+fn emitted_php_comments_with_close_tags_retain_code_mode() {
+    let translator = Translator::new();
+    for comment in ["?> number", "*/ ?> number", "first ?>\nsecond */"] {
+        let comments: Vec<_> = comment
+            .split('\n')
+            .map(|line| format!("# {line}"))
+            .collect();
+        let source = format!("{}\nprint(\"ok\")\n", comments.join("\n"));
+        let php = translator
+            .translate(&source, "python", "php", Mode::default())
+            .unwrap();
+        assert!(php.contains("/* "));
+        assert!(!php.contains("// ?>"));
+        assert_eq!(
+            meaning_difference(
+                &translator.to_meta(&source, "python").unwrap(),
+                &translator.to_meta(&php, "php").unwrap()
+            ),
+            None
+        );
+    }
+}
+
+#[test]
+fn php_markup_and_code_retain_distinct_utf8_output_regions() {
+    let translator = Translator::new();
+    let source = "<b>😀</b><?php echo \"ok\" ?>\r\n<footer>end</footer>";
+    let result = translator
+        .translate_partial(
+            source,
+            "php",
+            "python",
+            Options {
+                layout: universal_translator::TextLayout::Target,
+                ..Options::default()
+            },
+            false,
+        )
+        .unwrap();
+    assert!(result.complete);
+    assert_eq!(result.line_map, [(0, 0), (0, 1), (1, 2)]);
+    for markup in ["<b>😀</b>", "<footer>end</footer>"] {
+        assert!(
+            result
+                .region_map
+                .iter()
+                .any(|pair| &source[pair.source.start..pair.source.end] == markup
+                    && result.text[pair.target.start..pair.target.end].contains(markup))
+        );
+    }
+}

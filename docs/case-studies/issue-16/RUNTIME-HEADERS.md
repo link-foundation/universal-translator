@@ -73,9 +73,9 @@ Rust has matching coverage in `runtime_headers.rs`. Focused checks pass:
 24 JavaScript tests, 26 Rust tests, ESLint and Clippy. Evidence is in
 `logs/php-output-*`. This also formats the newly registered Rocq test target.
 
-This change handles the known outside-whitespace failure. General mixed HTML,
-repeated PHP mode changes and short echo tags remain part of the broader
-language-grammar inventory; existing unsupported-text diagnostics are retained.
+The following mode-switch extension replaces the earlier unsupported-text
+diagnostic with semantic literal-output reading. Complete PHP grammar coverage
+remains under the wider inventory.
 
 ## Vocabulary CI integration
 
@@ -87,3 +87,52 @@ successful ordinary reading, changing either vocabulary concept affects the
 result as intended. `vocabulary-effect.test.js` now expects those working
 concepts; the targeted test passes. Failed CI job logs and original responses
 are archived under `logs/ci-*-6790c7b*`.
+
+## PHP markup, repeated modes and comment tags
+
+The original close-tag reader stopped at the first `?>` and rejected following
+text. Both lexers now alternate between code and literal output, recognize
+`<?=` as an echo expression, and treat a closing tag as a statement terminator.
+Mode changes retain the surrounding block scope, so markup inside a conditional
+or a loop keeps its control flow. Strings and block comments retain literal
+tag text. PHP `//` and `#` comments stop at a closing tag as the native tokenizer
+does; tag-like text in markup is not a comment to translate.
+
+Native round-trip verification found a separate writer error: emitting a PHP
+block comment containing `?>` as a line comment makes PHP output the remaining
+source text. Both writers now use a block comment when its contents include
+`?>`. A foreign `*/` in that same comment becomes `* /`, following the existing
+failure-note comment escaping convention. In-place comment translation still
+keeps all source bytes outside translated words.
+
+```sh
+node experiments/issue-16-php-modes.mjs --before
+node experiments/issue-16-php-modes.mjs
+node experiments/issue-16-php-modes.mjs --regions
+node experiments/issue-16-php-comment-tags.mjs --before
+node experiments/issue-16-php-comment-tags.mjs
+node examples/runtime-headers/verify-native.mjs
+```
+
+The old reader from `bb09ccd` fails all 15 finite mixed-markup/mode cases. The
+current reader has exact native output for all 15. The native example compares
+24 original PHP documents with generated Python, restored PHP and direct
+PHP-to-PHP output, then checks the independent Python comment example through
+PHP and back. It also retains all six Rocq checks. The old comment writer prints
+source text instead of the expected three lines; the corrected writer has exact
+output. Before/after JSON and the initial failed native round-trip log are
+preserved in `logs/php-modes-*` and `logs/php-comment-tags-*`.
+
+Matching JS/Rust regressions check semantic round trips, concrete reconstruction,
+partial comment translation, actual token line numbers, tagless snippets, and
+distinct UTF-8 regions for markup and code. The shared 15-case fixture is in
+`examples/runtime-headers/php-modes.json` and included in the Rust package.
+Tagless snippets retain implicit code mode, including strings containing tag
+text. Markup-leading documents start in output mode. Arbitrary plaintext-leading
+files need explicit document/snippet disambiguation; short `<?` tags depend on
+PHP configuration and are not enabled by this reader. Alternative block syntax,
+attributes and complete PHP expressions remain open grammar coverage.
+
+The PHP mode extension passes 23 focused JavaScript tests and 23 Rust tests,
+ESLint and Clippy. Native verification passes all 24 PHP documents, the separate
+foreign-comment example and all six Rocq layouts.
