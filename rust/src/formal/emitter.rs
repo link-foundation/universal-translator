@@ -9,7 +9,7 @@ use super::dialects::{EmitterDialect, emitter_dialect};
 use super::languages::{
     Blocks, EntryPoint, ForwardDeclarations, IntegerDivision, Syntax, language_syntax,
 };
-use super::numbers::{rust_type, with_real_operands};
+use super::numbers::{rust_type, symbol, with_real_operands};
 use super::power::write_power;
 use crate::meta::GrammarError;
 use crate::meta::{Node, add, block, format_number, later_calls, layout, number, text};
@@ -22,26 +22,10 @@ pub(crate) fn precedence(operator: &str) -> f64 {
         "and" => 2.0,
         "equal" | "notEqual" => 3.0,
         "less" | "lessOrEqual" | "greater" | "greaterOrEqual" => 4.0,
+        "stream" | "rightShift" => 4.5,
         "add" | "subtract" => 5.0,
         "multiply" | "divide" | "floorDivide" | "realDivide" | "remainder" | "modulo" => 6.0,
         _ => f64::NAN,
-    }
-}
-
-pub(crate) fn symbol(operator: &str) -> &str {
-    match operator {
-        "add" => "+",
-        "subtract" => "-",
-        "multiply" => "*",
-        "divide" | "floorDivide" | "realDivide" => "/",
-        "remainder" | "modulo" => "%",
-        "less" => "<",
-        "lessOrEqual" => "<=",
-        "greater" => ">",
-        "greaterOrEqual" => ">=",
-        "equal" => "==",
-        "notEqual" => "!=",
-        other => other,
     }
 }
 
@@ -548,6 +532,12 @@ impl Emitter {
         let converted = with_real_operands(expression, &self.syntax);
         let expression = converted.as_ref().unwrap_or(expression);
         let operator = expression.str("operator").unwrap_or_default();
+        if matches!(operator, "stream" | "rightShift") && self.id() != "cpp" {
+            return Err(GrammarError::new(format!(
+                "C++ shift or stream operator requires a mapping for {}",
+                self.id()
+            )));
+        }
         let level = precedence(operator);
         let left_node = field(expression, "left")?;
         let right_node = field(expression, "right")?;

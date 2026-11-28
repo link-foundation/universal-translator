@@ -10,34 +10,12 @@ use super::dialects::{ParserDialect, parser_dialect, rocq_comparison};
 use super::interpolation::{Piece, split_interpolation};
 use super::languages::{Blocks, CommandCalls, ForwardDeclarations, Syntax, Typed};
 use super::lexer::{InterpolationStyle, Token, TokenType, decode_escapes, tokenize};
-use super::numbers::arithmetic_operator;
+use super::numbers::{BINARY_LEVELS, arithmetic_operator};
 use super::power::power_symbol;
 use crate::meta::GrammarError;
 use crate::meta::{Node, binary, block, name, number, text};
 
-/// Binary operators by precedence level, loosest first, with their spellings.
-const BINARY_LEVELS: [&[(&str, &[&str])]; 6] = [
-    &[("or", &["||", "or"])],
-    &[("and", &["&&", "and"])],
-    &[
-        ("equal", &["==", "==="]),
-        ("notEqual", &["!=", "!==", "~="]),
-    ],
-    &[
-        ("less", &["<"]),
-        ("lessOrEqual", &["<="]),
-        ("greater", &[">"]),
-        ("greaterOrEqual", &[">="]),
-    ],
-    &[("add", &["+", ".."]), ("subtract", &["-"])],
-    &[
-        ("multiply", &["*"]),
-        ("divide", &["/", "//"]),
-        ("remainder", &["%"]),
-    ],
-];
-
-/// The level of additive operators, where ranges and streams also live.
+/// The additive level in grammars that use range expressions.
 const ADDITIVE: usize = 4;
 
 const TYPE_WORDS: [&str; 17] = [
@@ -112,7 +90,7 @@ pub(crate) struct Parser {
 impl Parser {
     pub(crate) fn new(tokens: Vec<Token>, syntax: Syntax) -> Self {
         let operators = syntax.operators;
-        let levels = BINARY_LEVELS
+        let mut levels: Levels = BINARY_LEVELS
             .iter()
             .map(|level| {
                 level
@@ -148,6 +126,12 @@ impl Parser {
                     .collect()
             })
             .collect();
+        if syntax.id == "cpp" {
+            levels.insert(
+                ADDITIVE,
+                vec![("stream", vec!["<<"]), ("rightShift", vec![">>"])],
+            );
+        }
         let dialect = parser_dialect(syntax.id);
         Parser {
             tokens: dialect.tokens(tokens),
@@ -1203,14 +1187,14 @@ impl Parser {
         loop {
             let Some(operator) = self.binary_operator(level) else {
                 let token = self.current();
-                // PHP joins text with "."; C++ streams output with "<<".
+                // PHP joins text with ".".
                 let surface = if level != ADDITIVE {
                     None
                 } else if token.kind == TokenType::Symbol
                     && Some(token.value.as_str()) == self.syntax.operators.concatenate
                 {
                     Some("concatenate")
-                } else if token.value == "<<" {
+                } else if token.value == "<<" && self.syntax.id != "cpp" {
                     Some("stream")
                 } else {
                     None

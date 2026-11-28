@@ -242,6 +242,42 @@ fn cpp_fixed_arrays_retain_extent_and_brace_initialization() {
 }
 
 #[test]
+fn cpp_shifts_bind_below_addition() {
+    let source = r#"#include <iostream>
+int main() {
+    std::cout << 2 + 3 << " " << (32 >> 1 + 1) << std::endl;
+    return 0;
+}"#;
+    let translator = Translator::new();
+    let meta = translator.to_meta(source, "cpp").unwrap();
+    let statements = meta.node("main").unwrap().nodes("statements");
+    let output = statements[0];
+    assert!(output.is("Print"));
+    let values = output.node("value").unwrap().nodes("parts");
+    assert_eq!(values[0].str("operator"), Some("add"));
+    assert_eq!(values[2].str("operator"), Some("rightShift"));
+    assert_eq!(
+        values[2].node("right").unwrap().str("operator"),
+        Some("add")
+    );
+    let emitted = translator
+        .translate(source, "cpp", "cpp", Mode::default())
+        .unwrap();
+    assert!(emitted.contains(r#"std::cout << (2 + 3) << " ""#));
+    assert!(emitted.contains("32 >> (1 + 1)"));
+    let reread = translator.to_meta(&emitted, "cpp").unwrap();
+    assert_eq!(reread.node("main").unwrap().nodes("statements"), statements);
+    let error = translator
+        .translate(source, "cpp", "python", Mode::default())
+        .unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("C++ shift or stream operator requires a mapping")
+    );
+}
+
+#[test]
 fn cpp_string_addition_keeps_characters() {
     let source = r#"#include <string>
 std::string decorate(const std::string& prefix, std::string word) {

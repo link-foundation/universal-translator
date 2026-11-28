@@ -193,7 +193,30 @@ describe('C++ fixed arrays', () => {
   });
 });
 
-describe('C++ library scope and types', () => {
+describe('C++ arithmetic and string addition', () => {
+  it('binds C++ shifts below addition and retains nested shift operands', () => {
+    const source = `#include <iostream>
+int main() {
+  std::cout << 2 + 3 << " " << (32 >> 1 + 1) << std::endl;
+  return 0;
+}`;
+    const meta = translator.toMeta(source, 'cpp');
+    const output = meta.main.statements[0];
+    expect(output.kind).toBe('Print');
+    expect(output.value.parts[0].operator).toBe('add');
+    expect(output.value.parts[2].operator).toBe('rightShift');
+    expect(output.value.parts[2].right.operator).toBe('add');
+    const emitted = translator.translate(source, 'cpp', 'cpp');
+    expect(emitted).toContain('std::cout << (2 + 3) << " "');
+    expect(emitted).toContain('32 >> (1 + 1)');
+    expect(meaningDifference(meta, translator.toMeta(emitted, 'cpp'))).toBe(
+      undefined
+    );
+    expect(() => translator.translate(source, 'cpp', 'python')).toThrow(
+      'C++ shift or stream operator requires a mapping'
+    );
+  });
+
   it('keeps indexed characters and character literals in C++ string addition', () => {
     const source = `#include <string>
 std::string decorate(const std::string& prefix, std::string word) {
@@ -214,7 +237,9 @@ std::string decorate(const std::string& prefix, std::string word) {
       'Cannot emit CppCharacterConcat as an expression'
     );
   });
+});
 
+describe('C++ library scope and types', () => {
   it('keeps character literals, escapes, and explicit character casts', () => {
     const source = String.raw`int main() {
       emit((int)'\n', (char)97, (int)(char)(64 + 1), sizeof(char), sizeof('a'));

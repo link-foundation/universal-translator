@@ -12,5 +12,6 @@ int main() {
     std::cout << (int)(char)(64 + 1) << std::endl;
     std::cout << sizeof(char) << " " << sizeof('a') << std::endl;
     std::cout << decorate("ax", "bc") << std::endl;
+    std::cout << 2 + 3 << " " << (32 >> (1 + 1)) << std::endl;
     return 0;
 }

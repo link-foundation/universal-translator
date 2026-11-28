@@ -105,9 +105,9 @@ try {
       '4 4 4 1 0\n',
     ],
     [
-      'character literals, casts and string addition',
+      'character literals, casts, shifts and string addition',
       characters,
-      "97\na\nA\\'\n65\n1 1\nabc!\n",
+      "97\na\nA\\'\n65\n1 1\nabc!\n5 8\n",
     ],
   ]) {
     const original = run(program);

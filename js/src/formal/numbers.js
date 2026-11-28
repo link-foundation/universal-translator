@@ -5,6 +5,25 @@
 // of two integers and true division as soon as one operand is real.
 import { floorDivision, floorModulo } from '../meta/integer-arithmetic.js';
 
+const sharedBinaryLevels = [
+  { or: ['||', 'or'] },
+  { and: ['&&', 'and'] },
+  { equal: ['==', '==='], notEqual: ['!=', '!==', '~='] },
+  { less: ['<'], lessOrEqual: ['<='], greater: ['>'], greaterOrEqual: ['>='] },
+  { add: ['+', '..'], subtract: ['-'] },
+  { multiply: ['*'], divide: ['/', '//'], remainder: ['%'] },
+];
+
+export function binaryLevels(syntax) {
+  return syntax.id === 'cpp'
+    ? [
+        ...sharedBinaryLevels.slice(0, 4),
+        { stream: ['<<'], rightShift: ['>>'] },
+        ...sharedBinaryLevels.slice(4),
+      ]
+    : sharedBinaryLevels;
+}
+
 const trueDivision = new Set([
   'javascript',
   'typescript',

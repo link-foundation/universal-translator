@@ -8,6 +8,47 @@ use super::emitter::{Emitter, Result};
 use super::languages::Syntax;
 use crate::meta::{Node, format_number};
 
+/// Binary operators by precedence level, loosest first, with their spellings.
+pub(crate) const BINARY_LEVELS: [&[(&str, &[&str])]; 6] = [
+    &[("or", &["||", "or"])],
+    &[("and", &["&&", "and"])],
+    &[
+        ("equal", &["==", "==="]),
+        ("notEqual", &["!=", "!==", "~="]),
+    ],
+    &[
+        ("less", &["<"]),
+        ("lessOrEqual", &["<="]),
+        ("greater", &[">"]),
+        ("greaterOrEqual", &[">="]),
+    ],
+    &[("add", &["+", ".."]), ("subtract", &["-"])],
+    &[
+        ("multiply", &["*"]),
+        ("divide", &["/", "//"]),
+        ("remainder", &["%"]),
+    ],
+];
+
+pub(crate) fn symbol(operator: &str) -> &str {
+    match operator {
+        "stream" => "<<",
+        "rightShift" => ">>",
+        "add" => "+",
+        "subtract" => "-",
+        "multiply" => "*",
+        "divide" | "floorDivide" | "realDivide" => "/",
+        "remainder" | "modulo" => "%",
+        "less" => "<",
+        "lessOrEqual" => "<=",
+        "greater" => ">",
+        "greaterOrEqual" => ">=",
+        "equal" => "==",
+        "notEqual" => "!=",
+        other => other,
+    }
+}
+
 const TRUE_DIVISION: &[&str] = &[
     "javascript",
     "typescript",

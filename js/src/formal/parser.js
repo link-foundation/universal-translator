@@ -9,7 +9,7 @@ import { dialects } from './dialects/index.js';
 import { withArrays } from './array-parser.js';
 import { assignmentSymbols, stepOperators, withLoops } from './loop-parser.js';
 import { withFunctionForms } from './function-forms.js';
-import { arithmeticOperator } from './numbers.js';
+import { arithmeticOperator, binaryLevels } from './numbers.js';
 import { powerSymbol } from './power.js';
 import { withEvaluationParser } from './evaluation-parser.js';
 import {
@@ -39,15 +39,6 @@ import {
   readClass,
   readRustRecord,
 } from './record-parser.js';
-
-const binaryLevels = [
-  { or: ['||', 'or'] },
-  { and: ['&&', 'and'] },
-  { equal: ['==', '==='], notEqual: ['!=', '!==', '~='] },
-  { less: ['<'], lessOrEqual: ['<='], greater: ['>'], greaterOrEqual: ['>='] },
-  { add: ['+', '..'], subtract: ['-'] },
-  { multiply: ['*'], divide: ['/', '//'], remainder: ['%'] },
-];
 
 const typeWords = new Set([
   'int',
@@ -131,7 +122,7 @@ class BaseParser {
       equal,
       notEqual,
     };
-    this.levels = binaryLevels.map((level) =>
+    this.levels = binaryLevels(syntax).map((level) =>
       Object.fromEntries(
         Object.entries(level).map(([operator, shared]) => {
           // Fortran joins text with //, which divides elsewhere.
@@ -1052,7 +1043,7 @@ class BaseParser {
   }
 
   additive() {
-    return this.binary(4);
+    return this.binary(this.syntax.id === 'cpp' ? 5 : 4);
   }
 
   binary(level) {
@@ -1068,7 +1059,6 @@ class BaseParser {
           (token.type === 'symbol' || token.type === 'name')
       );
       if (!operator) {
-        // C++ stream output: std::cout << a << b
         // PHP joins text with "."
         if (
           level === 4 &&
@@ -1083,7 +1073,7 @@ class BaseParser {
           });
           continue;
         }
-        if (level === 4 && token.value === '<<') {
+        if (level === 4 && token.value === '<<' && this.syntax.id !== 'cpp') {
           this.next();
           const right = this.binary(level + 1);
           left = node('Binary', { operator: 'stream', left, right });

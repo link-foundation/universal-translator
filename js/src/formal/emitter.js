@@ -55,6 +55,8 @@ const precedence = {
   lessOrEqual: 4,
   greater: 4,
   greaterOrEqual: 4,
+  stream: 4.5,
+  rightShift: 4.5,
   add: 5,
   subtract: 5,
   multiply: 6,
@@ -73,6 +75,11 @@ const comparisons = new Set([
   'greaterOrEqual',
 ]);
 function operatorSpelling(syntax, operator) {
+  if (['stream', 'rightShift'].includes(operator) && syntax.id !== 'cpp') {
+    throw new Error(
+      `C++ shift or stream operator requires a mapping for ${syntax.id}`
+    );
+  }
   return (
     syntax.operators[operator === 'modulo' ? 'remainder' : operator] ??
     symbols[operator]
@@ -89,6 +96,8 @@ function comparisonParent(operator, part, level) {
     : level;
 }
 const symbols = {
+  stream: '<<',
+  rightShift: '>>',
   add: '+',
   subtract: '-',
   multiply: '*',
