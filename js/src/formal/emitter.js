@@ -321,23 +321,12 @@ class BaseEmitter {
     }
   }
 
-  specialExpression(expression, parent) {
-    switch (this.id === 'cpp' ? expression.kind : '') {
-      case 'CppCharacter':
-        return `'${expression.raw}'`;
-      case 'CppIntegralCast':
-        return `(${expression.castType})(${this.expression(expression.operand)})`;
-      case 'CppCharacterConcat':
-        return this.binary(expression, parent);
-    }
+  specialExpression(expression) {
     if (
       expression.kind === 'SizeOf' &&
       ['c', 'cpp', 'objc'].includes(this.id)
     ) {
       return `sizeof(${this.expression(expression.operand)})`;
-    }
-    if (expression.kind === 'CppInitializerList' && this.id === 'cpp') {
-      return `{${expression.elements.map((value) => this.expression(value)).join(', ')}}`;
     }
     if (['RecordConstruction', 'RecordFieldRead'].includes(expression.kind)) {
       return writeRecordExpression(this, expression);
@@ -739,7 +728,16 @@ class BaseEmitter {
     }
   }
 
-  declaration({ name, type, value, mutable, cppTemplateType }) {
+  declaration({ name, type, value, mutable, cppTemplateType, cppType }) {
+    if (value?.kind === 'CppDirectInitializer') {
+      if (this.id !== 'cpp') {
+        throw new Error(
+          `C++ direct initialization requires a library mapping for ${this.id}`
+        );
+      }
+      const args = value.arguments.map((arg) => this.expression(arg));
+      return `${this.type(cppType ?? type)} ${name}(${args.join(', ')});`;
+    }
     if (cppTemplateType) {
       if (this.id !== 'cpp') {
         throw new Error(

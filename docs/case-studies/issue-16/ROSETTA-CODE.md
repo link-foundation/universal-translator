@@ -163,6 +163,16 @@ original. The native CI fixture also covers the constructor's embedded-null
 behavior. Other constructors and cross-language library mappings remain open.
 [Native comparison fixture](../../../examples/programs/library/cpp-string-initialization.cpp)
 
+The same prototype heuristic removed declarations of other C++ objects when
+their first initializer argument was a literal or a member call. Both readers
+now distinguish these forms from parameter declarations. The writers retain
+the original type and parentheses, and they keep standalone C++ string literal
+escapes without decoding them as portable text. The native fixture uses
+a file-scope `std::string_view` with a literal, a block-scope view constructed
+from `substr`, a hexadecimal string escape, and a numeric initializer.
+Both strict CLI outputs compile and print `eady)a 2`, matching the original.
+[Native comparison fixture](../../../examples/programs/library/cpp-direct-initialization.cpp)
+
 The first C++ solution for [Array length revision 419956](https://rosettacode.org/w/index.php?title=Array_length&oldid=419956)
 declares a fixed-size array of strings. At `25a7da8`, strict parsing
 stopped at the comma before the extent. Both readers now retain the type

@@ -57,6 +57,13 @@ const stringInitialization = readFileSync(
   ),
   'utf8'
 );
+const directInitialization = readFileSync(
+  new URL(
+    '../examples/programs/library/cpp-direct-initialization.cpp',
+    import.meta.url
+  ),
+  'utf8'
+);
 const fixedArray = readFileSync(
   new URL('../examples/programs/library/cpp-fixed-array.cpp', import.meta.url),
   'utf8'
@@ -94,6 +101,7 @@ try {
     ['file-scope initialization and mutation', fileScope, '10\n11\n'],
     ['scoped library declarations and const parameters', scopedLibrary, '1\n'],
     ['direct string initialization', stringInitialization, 'Hello, world!\n'],
+    ['parenthesized object initialization', directInitialization, 'eady)a 2\n'],
     [
       'fixed array extents and brace initialization',
       fixedArray,

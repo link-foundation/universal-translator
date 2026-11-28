@@ -178,6 +178,48 @@ describe('C++ parameter types', () => {
   });
 });
 
+describe('C++ parenthesized object initialization', () => {
+  it('retains literal and member-call constructor arguments beside prototypes', () => {
+    const source = String.raw`#include <iostream>
+#include <string_view>
+std::string_view factory(int size = 3);
+const std::string_view message(
+  "ready)"
+);
+int main() {
+  std::string_view deferred();
+  std::string_view suffix(message.substr(1));
+  std::string_view escaped("\\x61");
+  int count(2);
+  count * estimate(1);
+  std::cout << suffix << escaped << '\\n';
+  return 0;
+}
+`;
+    const program = translator.toMeta(source, 'cpp');
+    const [message, suffix, escaped, count, estimate] = program.main.statements;
+    expect([
+      message.name,
+      suffix.name,
+      suffix.value.kind,
+      escaped.name,
+    ]).toEqual(['message', 'suffix', 'CppDirectInitializer', 'escaped']);
+    const emitted = translator.translate(source, 'cpp', 'cpp');
+    expect(emitted).toContain('const std::string_view message("ready)");');
+    expect(emitted).toContain('std::string_view suffix(message.substr(1));');
+    expect(emitted).toContain(String.raw`std::string_view escaped("\\x61");`);
+    expect(count.value.arguments[0].value).toBe(2);
+    expect(emitted).toContain('int count(2);');
+    expect(estimate.expression.operator).toBe('multiply');
+    expect(translator.toMeta(emitted, 'cpp').main.statements).toEqual(
+      program.main.statements
+    );
+    expect(() => translator.translate(source, 'cpp', 'python')).toThrow(
+      'C++ direct initialization requires a library mapping for python'
+    );
+  });
+});
+
 describe('C++ fixed arrays', () => {
   it('retains nested extents and direct and copy brace initialization', () => {
     const source = `int main() {

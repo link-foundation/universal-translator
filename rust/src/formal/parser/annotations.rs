@@ -84,6 +84,7 @@ impl Parser {
             || !self.is_at("(", offset)
             || self.kind(offset - 1) != TokenType::Name
             || self.cpp_string_initializer(offset)
+            || self.cpp_first_argument_is_expression(offset)
         {
             return 0;
         }

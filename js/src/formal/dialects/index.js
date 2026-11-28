@@ -14,12 +14,12 @@ import { vb } from './vb.js';
 import { zig } from './zig.js';
 import { sql } from './sql.js';
 import { objc } from './objc.js';
-import { withCppUsingStatements } from '../cpp-library.js';
+import { withCppLibrary } from '../cpp-library.js';
 
 export const dialects = {
   sql,
   objc,
-  cpp: { emitter: withCppUsingStatements },
+  cpp: { emitter: withCppLibrary },
   pascal,
   fortran,
   ada,

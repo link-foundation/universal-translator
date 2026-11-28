@@ -851,6 +851,9 @@ impl Parser {
 
     fn plain_is_typed_declaration(&self) -> bool {
         let offset = self.type_head_length();
+        if self.cpp_direct_initializer(offset) {
+            return true;
+        }
         offset >= 2
             && self.kind(offset - 1) == TokenType::Name
             && (self.is_at("=", offset)
@@ -865,6 +868,7 @@ impl Parser {
     fn plain_typed_declaration(&mut self) -> Parsed {
         let head = self.type_head_length();
         let direct_string = self.cpp_string_initializer(head);
+        let direct = !direct_string && self.cpp_direct_initializer(head);
         let fixed_array = self.is_cpp_fixed_array();
         let mut words = (0..head)
             .map(|_| self.next_value())
@@ -875,6 +879,8 @@ impl Parser {
         let cpp_template = cpp_template::is_cpp_template_declaration(self.syntax.id, &words);
         let value = if direct_string {
             Some(self.read_cpp_string_initializer()?)
+        } else if direct {
+            Some(self.read_cpp_direct_initializer()?)
         } else if cpp_template && self.is("{") {
             Some(self.read_cpp_initializer_list(true)?)
         } else if self.accept("=") {
@@ -899,6 +905,7 @@ impl Parser {
         Ok(Node::new("Declaration")
             .with("name", variable)
             .with_opt("type", cpp_kind.or(kind))
+            .with_opt("cppType", direct.then(|| format!("source:{spelling}")))
             .with_opt("cppTemplateType", cpp_template)
             .with_opt("cppFixedArray", fixed_array.then_some(true))
             .with_opt("value", value)

@@ -24,6 +24,7 @@ import { withObjpakParser } from './objpak-reader.js';
 import { withQueryParser } from './query-parser.js';
 import { parseSource } from './source-parser.js';
 import {
+  cppDirectInitializer,
   cppListInitializer,
   cppStringInitializer,
   cppTemplateArguments,
@@ -31,6 +32,7 @@ import {
   defaultCppString,
   isCppFixedArray,
   isCppTemplateDeclaration,
+  readCppDirectInitializer,
   readCppInitializerList,
   readCppStringInitializer,
 } from './cpp-library.js';
@@ -546,8 +548,10 @@ class BaseParser {
     }
     let depth = 0;
     for (let index = offset; this.peek(index).type !== 'end'; index += 1) {
-      const { value } = this.peek(index);
-      depth += value === '(' ? 1 : value === ')' ? -1 : 0;
+      const { type, value } = this.peek(index);
+      if (type === 'symbol') {
+        depth += value === '(' ? 1 : value === ')' ? -1 : 0;
+      }
       if (depth === 0) {
         return index;
       }
@@ -794,6 +798,9 @@ class BaseParser {
 
   isTypedDeclaration() {
     const offset = typeHeadLength(this);
+    if (cppDirectInitializer(this, offset)) {
+      return true;
+    }
     return (
       offset >= 2 &&
       this.peek(offset - 1).type === 'name' &&
@@ -810,6 +817,7 @@ class BaseParser {
   typedDeclaration() {
     const head = typeHeadLength(this);
     const directString = cppStringInitializer(this, head);
+    const direct = !directString && cppDirectInitializer(this, head);
     const fixedArray = isCppFixedArray(this);
     const words = Array.from({ length: head }, () => this.next().value);
     const variable = words.pop();
@@ -817,6 +825,8 @@ class BaseParser {
     let value;
     if (directString) {
       value = readCppStringInitializer(this);
+    } else if (direct) {
+      value = readCppDirectInitializer(this);
     } else if (isCppTemplateDeclaration(this.syntax, words) && this.is('{')) {
       value = readCppInitializerList(this, true);
     } else if (this.accept('=')) {
@@ -829,6 +839,7 @@ class BaseParser {
     return node('Declaration', {
       name: variable,
       ...declarationTypeFields(this.syntax, words, type, value),
+      ...(direct ? { cppType: `source:${words.join(' ')}` } : {}),
       ...(fixedArray ? { cppFixedArray: true } : {}),
       value: value ?? defaultCppString(this.syntax, words),
       mutable: !words.includes('const'),
@@ -1425,8 +1436,7 @@ export function numberLiteral(written) {
   return /[.eE]/.test(written) ? { ...literal, type: 'real' } : literal;
 }
 
-// Arrays, loops and type hints are read by mixins of their own, which the
-// dialects inherit.
+// Language dialects inherit the shared statement and expression rules.
 const Parser = withObjpakParser(
   withQueryParser(
     withExceptionParser(

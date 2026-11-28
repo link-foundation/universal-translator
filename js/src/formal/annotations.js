@@ -3,6 +3,7 @@ import { node } from '../meta/tree.js';
 import { sourceType } from './parser.js';
 import { tokenize } from './lexer.js';
 import {
+  cppFirstArgumentIsExpression,
   cppQualifiedParameter,
   cppStringInitializer,
   isCppFixedArray,
@@ -49,7 +50,8 @@ export function prototypeLength(parser) {
   if (
     offset < 2 ||
     parser.peek(offset - 1).type !== 'name' ||
-    cppStringInitializer(parser, offset)
+    cppStringInitializer(parser, offset) ||
+    cppFirstArgumentIsExpression(parser, offset)
   ) {
     return 0;
   }

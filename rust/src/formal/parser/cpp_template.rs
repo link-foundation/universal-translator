@@ -65,6 +65,60 @@ impl Parser {
         self.expression()
     }
 
+    fn after_cpp_newlines(&self, mut offset: usize) -> usize {
+        offset += 1;
+        while self.kind(offset) == TokenType::Newline {
+            offset += 1;
+        }
+        offset
+    }
+
+    // The first argument must start with syntax that cannot be a parameter
+    // declaration. A name alone could denote a type.
+    pub(super) fn cpp_first_argument_is_expression(&self, head: usize) -> bool {
+        if self.syntax.id != "cpp" || !self.is_at("(", head) {
+            return false;
+        }
+        let argument = self.after_cpp_newlines(head);
+        match self.kind(argument) {
+            TokenType::Number | TokenType::Text => true,
+            TokenType::Name => {
+                matches!(self.value(argument), "true" | "false" | "nullptr")
+                    || self.is_at(".", self.after_cpp_newlines(argument))
+            }
+            _ => false,
+        }
+    }
+
+    pub(super) fn cpp_direct_initializer(&self, head: usize) -> bool {
+        head >= 2
+            && self.kind(head - 1) == TokenType::Name
+            && self.kind(head - 2) == TokenType::Name
+            && self.cpp_first_argument_is_expression(head)
+            && self
+                .closing_parenthesis(head)
+                .is_some_and(|close| self.is_at(";", self.after_cpp_newlines(close)))
+    }
+
+    pub(super) fn read_cpp_direct_initializer(&mut self) -> Parsed {
+        self.expect("(")?;
+        let arguments = self.element_list_with(")", Self::cpp_direct_argument)?;
+        Ok(Node::new("CppDirectInitializer").with("arguments", arguments))
+    }
+
+    fn cpp_direct_argument(&mut self) -> Parsed {
+        let after = self.after_cpp_newlines(0);
+        if self.current().quote == Some('"')
+            && matches!(self.value(after), "," | ")")
+            && self.kind(after) == TokenType::Symbol
+        {
+            return self.concrete_rule("expression", |parser| {
+                Ok(Node::new("CppStringLiteral").with("raw", parser.next_value()?))
+            });
+        }
+        self.expression()
+    }
+
     // A string literal or a count followed by a character literal disambiguates
     // an object declaration from a function prototype.
     pub(super) fn cpp_string_initializer(&self, head: usize) -> bool {
@@ -79,13 +133,7 @@ impl Parser {
         {
             return false;
         }
-        let next = |mut offset| {
-            offset += 1;
-            while self.kind(offset) == TokenType::Newline {
-                offset += 1;
-            }
-            offset
-        };
+        let next = |offset| self.after_cpp_newlines(offset);
         let argument = next(head);
         let first = self.peek(argument);
         if first.kind == TokenType::Text && first.quote == Some('"') {

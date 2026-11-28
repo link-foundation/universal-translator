@@ -66,6 +66,61 @@ export function readCppInitializerList(parser, direct = false) {
   return node('CppInitializerList', { elements, direct });
 }
 
+function afterCppLineEnds(parser, offset) {
+  do {
+    offset += 1;
+  } while (parser.peek(offset).type === 'newline');
+  return offset;
+}
+
+// A literal or member access cannot start a parameter declaration.
+// A name alone could denote a type.
+export function cppFirstArgumentIsExpression(parser, head) {
+  if (parser.syntax.id !== 'cpp' || !parser.is('(', head)) {
+    return false;
+  }
+  const argument = afterCppLineEnds(parser, head);
+  const { type, value } = parser.peek(argument);
+  return (
+    ['number', 'text'].includes(type) ||
+    (type === 'name' &&
+      (['true', 'false', 'nullptr'].includes(value) ||
+        parser.is('.', afterCppLineEnds(parser, argument))))
+  );
+}
+
+export function cppDirectInitializer(parser, head) {
+  return (
+    head >= 2 &&
+    parser.peek(head - 1).type === 'name' &&
+    parser.peek(head - 2).type === 'name' &&
+    cppFirstArgumentIsExpression(parser, head) &&
+    parser.is(';', parser.afterParentheses(head))
+  );
+}
+
+export function readCppDirectInitializer(parser) {
+  parser.expect('(');
+  const arguments_ = parser.elementList(')', () => {
+    const literal = parser.peek();
+    const after = parser.peek(afterCppLineEnds(parser, 0));
+    const argument = parser.expression();
+    if (
+      literal.type === 'text' &&
+      literal.quote === '"' &&
+      after.type === 'symbol' &&
+      [',', ')'].includes(after.value)
+    ) {
+      return inheritOrigin(
+        node('CppStringLiteral', { raw: literal.value }),
+        argument
+      );
+    }
+    return argument;
+  });
+  return node('CppDirectInitializer', { arguments: arguments_ });
+}
+
 // A string literal or a count followed by a character literal disambiguates
 // an object declaration from a function prototype.
 export function cppStringInitializer(parser, head) {
@@ -80,12 +135,7 @@ export function cppStringInitializer(parser, head) {
   ) {
     return false;
   }
-  const next = (offset) => {
-    do {
-      offset += 1;
-    } while (parser.peek(offset).type === 'newline');
-    return offset;
-  };
+  const next = (offset) => afterCppLineEnds(parser, offset);
   const argument = next(head);
   const first = parser.peek(argument);
   if (first.type === 'text' && first.quote === '"') {
@@ -248,8 +298,25 @@ export function cppUsingStatement(text) {
   return undefined;
 }
 
-export const withCppUsingStatements = (Base) =>
+export const withCppLibrary = (Base) =>
   class extends Base {
+    specialExpression(expression, parent) {
+      switch (expression.kind) {
+        case 'CppCharacter':
+          return `'${expression.raw}'`;
+        case 'CppStringLiteral':
+          return `"${expression.raw}"`;
+        case 'CppIntegralCast':
+          return `(${expression.castType})(${this.expression(expression.operand)})`;
+        case 'CppCharacterConcat':
+          return this.binary(expression, parent);
+        case 'CppInitializerList':
+          return `{${expression.elements.map((value) => this.expression(value)).join(', ')}}`;
+        default:
+          return super.specialExpression(expression);
+      }
+    }
+
     statement(statement) {
       if (statement.kind === 'Import') {
         const using = cppUsingStatement(statement.text);

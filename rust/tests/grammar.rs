@@ -482,6 +482,60 @@ int main() {
 }
 
 #[test]
+fn cpp_direct_initialization_keeps_object_constructors_beside_prototypes() {
+    let source = r#"#include <iostream>
+#include <string_view>
+std::string_view factory(int size = 3);
+const std::string_view message(
+    "ready)"
+);
+int main() {
+    std::string_view deferred();
+    std::string_view suffix(message.substr(1));
+    std::string_view escaped("\x61");
+    int count(2);
+    count * estimate(1);
+    std::cout << suffix << escaped << '\n';
+    return 0;
+}
+"#;
+    let translator = Translator::new();
+    let program = translator.to_meta(source, "cpp").unwrap();
+    assert!(program.nodes("functions").is_empty());
+    let statements = program.node("main").unwrap().nodes("statements");
+    assert_eq!(statements[0].str("name"), Some("message"));
+    assert_eq!(statements[1].str("name"), Some("suffix"));
+    assert!(
+        statements[1]
+            .node("value")
+            .unwrap()
+            .is("CppDirectInitializer")
+    );
+    assert_eq!(statements[2].str("name"), Some("escaped"));
+    let emitted = translator
+        .translate(source, "cpp", "cpp", Mode::default())
+        .unwrap();
+    assert!(emitted.contains(r#"const std::string_view message("ready)");"#));
+    assert!(emitted.contains("std::string_view suffix(message.substr(1));"));
+    assert!(emitted.contains(r#"std::string_view escaped("\x61");"#));
+    assert!(emitted.contains("int count(2);"));
+    assert_eq!(
+        statements[4].node("expression").unwrap().str("operator"),
+        Some("multiply")
+    );
+    let reread = translator.to_meta(&emitted, "cpp").unwrap();
+    assert_eq!(reread.node("main").unwrap().nodes("statements"), statements);
+    let error = translator
+        .translate(source, "cpp", "python", Mode::default())
+        .unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("C++ direct initialization requires a library mapping for python")
+    );
+}
+
+#[test]
 fn cpp_file_scope_initializers_preserve_source_order_and_dependencies() {
     let source = r"int later();
 int earlier() { return 7; }

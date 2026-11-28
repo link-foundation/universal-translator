@@ -462,6 +462,9 @@ impl Emitter {
             "CppCharacter" | "CppIntegralCast" if self.id() == "cpp" => {
                 super::cpp_library::write_character_expression(self, expression)
             }
+            "CppStringLiteral" if self.id() == "cpp" => {
+                Ok(format!("\"{}\"", expression.str("raw").unwrap_or_default()))
+            }
             "Call" | "CppTemplateCall" => {
                 let types = match expression.str("typeArguments") {
                     Some(types) if self.id() == "cpp" => {
@@ -821,6 +824,23 @@ impl Emitter {
     pub(crate) fn base_declaration(&mut self, statement: &Node) -> Result<String> {
         let name = statement.str("name").unwrap_or_default();
         let kind = statement.str("type").unwrap_or_default();
+        if let Some(value) = statement.node("value")
+            && value.is("CppDirectInitializer")
+        {
+            if self.id() != "cpp" {
+                return Err(GrammarError::new(format!(
+                    "C++ direct initialization requires a library mapping for {}",
+                    self.id()
+                )));
+            }
+            let cpp_kind = self.type_name(statement.str("cppType").unwrap_or(kind));
+            let arguments = value
+                .nodes("arguments")
+                .into_iter()
+                .map(|argument| self.expression(argument))
+                .collect::<Result<Vec<_>>>()?;
+            return Ok(format!("{cpp_kind} {name}({});", arguments.join(", ")));
+        }
         if statement.flag("cppTemplateType") == Some(true) {
             if self.id() != "cpp" {
                 return Err(GrammarError::new(format!(
