@@ -256,7 +256,7 @@ The native fixture also checks an appended character literal.
 
 Seven further C++ solutions from the strict candidate scan now match the
 pinned originals through both CLIs, bringing the verified total to 22
-distinct tasks. The same native caller checks the original `countabc`
+distinct tasks before the library-dependent cases below. The same native caller checks the original `countabc`
 function and both emitted fragments. The alphabet check inspects the local
 string after `std::iota` in the original and both emitted programs.
 
@@ -297,6 +297,36 @@ curl --fail --silent --show-error --get https://rosettacode.org/w/api.php \
 node experiments/issue-16-rosetta-containers.mjs /tmp/rosetta-containers-revisions.json \
   ./target/debug/universal-translator
 ```
+
+Three library-dependent C++ solutions bring the verified total to 25. The
+older C++ parser dropped the two Boost integer constructions in Modular
+exponentiation and both Qt byte-array constructions in URL encoding. The
+original and both translated programs now agree under Boost 1.83.0 and
+Qt Core 6.4.2. The factorial comparison gives each fragment the same native
+caller and forces the same headers, including `<numeric>` for `std::accumulate`.
+
+| Task                   | Pinned revision                                                                         | Observable result                          |
+| ---------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Modular exponentiation | [417465](https://rosettacode.org/w/index.php?title=Modular_exponentiation&oldid=417465) | `1527229998585248450016808958343740453059` |
+| URL encoding           | [419986](https://rosettacode.org/w/index.php?title=URL_encoding&oldid=419986)           | `http%3A%2F%2Ffoo%20bar%2F`                |
+| Factorial              | [420257](https://rosettacode.org/w/index.php?title=Factorial&oldid=420257)              | `1 1 720 479001600`                        |
+
+With the Boost and Qt 6 Core development headers available, the same verifier
+runs these three exact revisions. Use `LIBRARY_PATH` and `LD_LIBRARY_PATH` when
+the Qt libraries are outside the compiler and dynamic linker's search paths.
+
+```sh
+curl --fail --silent --show-error --get https://rosettacode.org/w/api.php \
+  --data 'action=query' --data 'prop=revisions' --data 'revids=417465|419986|420257' \
+  --data 'rvprop=ids|content' --data 'rvslots=main' --data 'format=json' \
+  --data 'formatversion=2' > /tmp/rosetta-library-revisions.json
+qt_headers=$(pkg-config --variable=includedir Qt6Core)
+CPLUS_INCLUDE_PATH="$qt_headers:$qt_headers/QtCore${CPLUS_INCLUDE_PATH:+:$CPLUS_INCLUDE_PATH}" \
+  node experiments/issue-16-rosetta-containers.mjs /tmp/rosetta-library-revisions.json \
+  ./target/debug/universal-translator 'Modular exponentiation' 'URL encoding' 'Factorial'
+```
+
+[Pinned native results](logs/rosetta-containers-native.txt)
 
 The first Rust solution for [String interpolation (included), revision 416065](<https://rosettacode.org/w/index.php?title=String_interpolation_(included)&oldid=416065>)
 has three print calls. At `6b73060`, the JavaScript CLI emitted the indexed

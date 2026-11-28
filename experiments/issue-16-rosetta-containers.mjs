@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 import { extractSolutions } from '../scripts/rosetta-code.mjs';
 
-const [wikiResponse, rustTranslator] = process.argv.slice(2);
+const [wikiResponse, rustTranslator, ...selectedTasks] = process.argv.slice(2);
 assert.ok(
   wikiResponse,
   'Pass the MediaWiki revisions listed in ROSETTA-CODE.md'
@@ -204,7 +204,62 @@ int main() {
     observed: 'static_cast<void (*)(unsigned int)>(&print_bin) != nullptr',
     assertions: 0,
   },
+  {
+    title: 'Modular exponentiation',
+    revid: 417465,
+    sourceSha256:
+      '2790ed03a909b63e65856fd304728b99759a1fb48130ff3cec44e0a61b256b12',
+    stdout: '1527229998585248450016808958343740453059\n',
+    assertions: 0,
+    dependency: 'Boost',
+  },
+  {
+    title: 'URL encoding',
+    revid: 419986,
+    sourceSha256:
+      'a11dc7bfc7f7847db503e04acf1ae3ac3b8551e8cdae3ef7bc4dfbfb666116d6',
+    stdout: 'http%3A%2F%2Ffoo%20bar%2F\n',
+    assertions: 0,
+    dependency: 'Qt Core',
+    compile: ['-fPIC'],
+    link: ['-lQt6Core'],
+  },
+  {
+    title: 'Factorial',
+    revid: 420257,
+    sourceSha256:
+      '0a4c28ac9a2bcdf1dbf8a8b4c274548f6f1a6ab9fa5f9692e850ec586430f75b',
+    stdout: '1 1 720 479001600\n',
+    assertions: 0,
+    dependency: 'Boost',
+    compile: [
+      '-include',
+      'boost/iterator/counting_iterator.hpp',
+      '-include',
+      'algorithm',
+      '-include',
+      'numeric',
+      '-include',
+      'functional',
+    ],
+    driver: String.raw`
+#include <iostream>
+int main() {
+    std::cout << factorial(0) << ' ' << factorial(1) << ' '
+              << factorial(6) << ' ' << factorial(12) << '\n';
+}
+`,
+  },
 ];
+for (const title of selectedTasks) {
+  assert.ok(
+    tasks.some((task) => task.title === title),
+    `Unknown task ${title}`
+  );
+}
+const activeTasks = selectedTasks.length
+  ? tasks.filter(({ title }) => selectedTasks.includes(title))
+  : tasks.filter(({ dependency }) => !dependency);
 const cli = fileURLToPath(
   new URL('../bin/universal-translator.js', import.meta.url)
 );
@@ -231,13 +286,21 @@ try {
     );
     execFileSync(
       process.env.CXX ?? 'c++',
-      ['-std=c++17', '-UNDEBUG', file, '-o', binary],
+      [
+        '-std=c++17',
+        '-UNDEBUG',
+        ...(task.compile ?? []),
+        file,
+        ...(task.link ?? []),
+        '-o',
+        binary,
+      ],
       options
     );
     return execFileSync(binary, [], { ...options, input: task.stdin });
   };
 
-  for (const task of tasks) {
+  for (const task of activeTasks) {
     const page = query.pages.find(({ title }) => title === task.title);
     const revision = page?.revisions.find(({ revid }) => revid === task.revid);
     assert.ok(revision, `Missing revision ${task.revid} for ${task.title}`);
@@ -290,6 +353,7 @@ try {
           assertions: task.assertions,
           observed: task.observed,
           driver: task.driver ? 'appended native caller' : undefined,
+          dependency: task.dependency,
         })
       );
     }
