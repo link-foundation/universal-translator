@@ -85,11 +85,18 @@ function querySource(emitter, source) {
   return emitter.expression(source);
 }
 
+function queryProjection(emitter, projection) {
+  const written = emitter.expression(projection);
+  return emitter.id === 'csharp' && projection.kind === 'ArrayLiteral'
+    ? `new object[] ${written}`
+    : written;
+}
+
 export function writeQuery(emitter, expression) {
   const { source, variable, condition, projection, eager } = expression;
   const row = emitter.variable(variable);
   const from = querySource(emitter, source);
-  const selected = emitter.expression(projection);
+  const selected = queryProjection(emitter, projection);
   const filtered = !(condition.kind === 'Boolean' && condition.value);
   const predicate = filtered ? emitter.expression(condition) : '';
   switch (emitter.id) {

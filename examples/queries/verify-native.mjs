@@ -10,6 +10,7 @@ import { createTranslator } from '../../js/src/index.js';
 import { nativeExpression } from './native-expression.mjs';
 import nullableCases from './nullable.json' with { type: 'json' };
 import negationPredicates from './negation.json' with { type: 'json' };
+import projectedRows from './projected-rows.json' with { type: 'json' };
 
 const translator = createTranslator();
 const sql =
@@ -26,6 +27,51 @@ const run = (command, args, options = {}) =>
     ...options,
   }).trim();
 const expected = [19, 43];
+
+const projectedPython = nativeExpression(
+  translator.translate(projectedRows.source, 'sql', 'python')
+);
+const projectedJavascript = nativeExpression(
+  translator.translate(projectedRows.source, 'sql', 'javascript')
+);
+const projectedSql = translator.translate(projectedRows.source, 'sql', 'sql');
+const projectedResults = JSON.parse(
+  run(
+    'python3',
+    [
+      '-c',
+      [
+        'import json, sqlite3, sys',
+        'data = json.load(sys.stdin)',
+        'people = data["people"]',
+        'database = sqlite3.connect(":memory:")',
+        'database.executescript(data["schema"])',
+        'exec(data["python"]["prefix"])',
+        'print(json.dumps([database.execute(data[query]).fetchall() for query in ("source", "sql")] + [eval(data["python"]["expression"])]))',
+      ].join('\n'),
+    ],
+    {
+      input: JSON.stringify({
+        ...projectedRows,
+        sql: projectedSql,
+        python: projectedPython,
+      }),
+    }
+  )
+);
+for (const rows of projectedResults) {
+  assert.deepEqual(rows, projectedRows.rows);
+}
+assert.deepEqual(
+  JSON.parse(
+    run('node', [
+      '-e',
+      `${projectedJavascript.prefix}\nconst people=${JSON.stringify(projectedRows.people)}; console.log(JSON.stringify(${projectedJavascript.expression}));`,
+    ])
+  ),
+  projectedRows.rows
+);
+
 const negationPeople = [0, 1, 2, 17, 18, 19, 64, 65, 70].map((age) => ({
   age,
 }));
@@ -171,6 +217,16 @@ try {
     .translate('p = 3.5\nvalues = [p + 1 for p in [1, 2]]', 'python', 'csharp')
     .split('static void Main() {')[1]
     .split('\n    }')[0];
+  const projectedLine = queryLine(
+    projectedRows.source.replace('FROM people', 'FROM projectionpeople'),
+    'sql'
+  );
+  const projectedPeople = projectedRows.people
+    .map(
+      ({ name, age, grade }) =>
+        `new Dictionary<string,object> { ["name"] = ${JSON.stringify(name)}, ["age"] = ${age}, ["grade"] = ${grade} }`
+    )
+    .join(', ');
   writeFileSync(
     join(folder, 'Query.csproj'),
     `<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net${sdk}.0</TargetFramework><DebugType>None</DebugType><UseSharedCompilation>false</UseSharedCompilation></PropertyGroup></Project>`
@@ -199,6 +255,8 @@ try {
     ${negationCases.map((c) => `Console.WriteLine(string.Join(",", ${queryLine(c.sql, 'sql')}));`).join('\n    ')}
     var nullablepeople = new[] { ${nullablepeople.map((p) => `new Dictionary<string,object> { ["age"] = ${p.age === null ? 'null' : p.age} }`).join(', ')} };
     ${nullable.map((c) => `Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(${queryLine(c.sql, 'sql')}));`).join('\n    ')}
+    var projectionpeople = new[] { ${projectedPeople} };
+    Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(${projectedLine}));
 `
       )} `
   );
@@ -231,8 +289,12 @@ try {
     ]
   );
   assert.deepEqual(
-    lines.slice(8 + negationCases.length).map((line) => JSON.parse(line)),
+    lines.slice(8 + negationCases.length, -1).map((line) => JSON.parse(line)),
     nullableResults.map(([sqlite]) => sqlite)
+  );
+  assert.deepEqual(JSON.parse(lines.at(-1)), projectedRows.rows);
+  console.log(
+    'PASS mixed SQL projection fields across SQLite, Python, Node and C#'
   );
   console.log(
     `PASS ${nullable.length} nullable SQL value/WHERE cases across SQLite, Python, Node and C#`

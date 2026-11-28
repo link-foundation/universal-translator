@@ -12,6 +12,7 @@ import { sameMeaning } from '../src/meta/tree.js';
 import { nativeExpression } from '../../examples/queries/native-expression.mjs';
 import identifiers from '../../examples/queries/identifiers.json' with { type: 'json' };
 import negationPredicates from '../../examples/queries/negation.json' with { type: 'json' };
+import projectedRows from '../../examples/queries/projected-rows.json' with { type: 'json' };
 
 const translator = createTranslator();
 const sql =
@@ -242,6 +243,43 @@ it('binds qualified columns and preserves literal periods in SQL identifiers', (
     () => translator.toMeta('SELECT missing.age FROM people;', 'sql'),
     /Unknown SQL column qualifier missing/u
   );
+});
+
+it('round trips ordered projection fields through SQL, host queries and prose', () => {
+  const meta = translator.toMeta(projectedRows.source, 'sql');
+  const { projection } = meta.main.statements[0].expression;
+  assert.equal(projection.kind, 'ArrayLiteral');
+  assert.deepEqual(
+    projection.elements.map((field) => field.kind),
+    ['Index', 'SqlBinary', 'Index']
+  );
+  for (const target of [
+    'sql',
+    'javascript',
+    'typescript',
+    'python',
+    'csharp',
+    ...naturalLanguageIds(),
+  ]) {
+    const written = translator.fromMeta(meta, target);
+    assert.ok(
+      sameMeaning(meta, translator.toMeta(written, target)),
+      `${target}: ${written}`
+    );
+  }
+  const nested = translator.toMeta(
+    '[[row["age"]] for row in people]',
+    'python'
+  );
+  assert.throws(
+    () => translator.fromMeta(nested, 'sql'),
+    /at least two values/u
+  );
+  const nestedRow = translator.toMeta(
+    '[[row, row["age"]] for row in people]',
+    'python'
+  );
+  assert.throws(() => translator.fromMeta(nestedRow, 'sql'), /must be scalar/u);
 });
 
 describe('selection data, scopes and execution', () => {

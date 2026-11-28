@@ -46,6 +46,15 @@ function sqlIs(left, operator, right) {
     : node('SqlBinary', { operator, left, right });
 }
 
+function isOperator(parser) {
+  const negate = parser.accept('not');
+  const distinct = parser.accept('distinct');
+  if (distinct) {
+    parser.expect('from');
+  }
+  return Boolean(negate) !== Boolean(distinct) ? 'isNot' : 'is';
+}
+
 function sqlBinary(operator, left, right) {
   return node('SqlBinary', {
     operator:
@@ -75,7 +84,7 @@ function sqlExpression(parser, minimum = 0) {
   }
   while (true) {
     if (minimum <= 4 && parser.accept('is')) {
-      const operator = parser.accept('not') ? 'isNot' : 'is';
+      const operator = isOperator(parser);
       const right = sqlExpression(parser, 5);
       left = sqlIs(left, operator, right);
       continue;
@@ -121,6 +130,30 @@ function bindColumns(expression, variable, qualifiers, line) {
   });
 }
 
+function writeProjection(emitter, projection, variable) {
+  if (projection.kind === 'Name' && projection.name === variable) {
+    return '*';
+  }
+  if (projection.kind === 'ArrayLiteral') {
+    if (projection.elements.length < 2) {
+      throw new Error('SQL row projections require at least two values');
+    }
+    if (
+      projection.elements.some(
+        (value) =>
+          value.kind === 'ArrayLiteral' ||
+          (value.kind === 'Name' && value.name === variable)
+      )
+    ) {
+      throw new Error('SQL row projection fields must be scalar');
+    }
+    return projection.elements
+      .map((value) => emitter.expression(value))
+      .join(', ');
+  }
+  return emitter.expression(projection);
+}
+
 function writeSelection(emitter, expression) {
   const { source, variable, projection, condition } = expression;
   if (!expression.eager) {
@@ -132,10 +165,7 @@ function writeSelection(emitter, expression) {
   const relation = ['Name', 'SqlRelation'].includes(source.kind)
     ? from
     : `(${from})`;
-  const selected =
-    projection.kind === 'Name' && projection.name === variable
-      ? '*'
-      : emitter.expression(projection);
+  const selected = writeProjection(emitter, projection, variable);
   const filtered =
     condition.kind === 'Boolean' && condition.value
       ? ''
@@ -212,7 +242,7 @@ const parser = (Base) =>
 
     selection() {
       const { line } = this.expect('select');
-      const projection = this.accept('*') ? undefined : this.expression();
+      const projection = this.accept('*') ? undefined : this.projectionList();
       this.expect('from');
       const relation = super.postfix();
       if (relation.kind !== 'Name') {
@@ -239,6 +269,18 @@ const parser = (Base) =>
         projection ? bind(projection) : name(variable),
         condition && node('SqlTruth', { operand: bind(condition) })
       );
+    }
+
+    projectionList() {
+      const first = this.expression();
+      if (!this.accept(',')) {
+        return first;
+      }
+      const elements = [first];
+      do {
+        elements.push(this.expression());
+      } while (this.accept(','));
+      return node('ArrayLiteral', { elements });
     }
   };
 

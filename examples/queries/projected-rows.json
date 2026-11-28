@@ -1,0 +1,16 @@
+{
+  "schema": "CREATE TABLE people (name TEXT, age INTEGER, grade INTEGER); INSERT INTO people VALUES ('Ada', 12, NULL), ('Lin', 21, NULL), ('Sam', 18, 8), ('Ren', 36, 5), ('Ira', 60, 7);",
+  "people": [
+    { "name": "Ada", "age": 12, "grade": null },
+    { "name": "Lin", "age": 21, "grade": null },
+    { "name": "Sam", "age": 18, "grade": 8 },
+    { "name": "Ren", "age": 36, "grade": 5 },
+    { "name": "Ira", "age": 60, "grade": 7 }
+  ],
+  "source": "SELECT person.name, person.age + 1, person.grade FROM people AS person WHERE person.age >= 18 AND person.age <= 45;",
+  "rows": [
+    ["Lin", 22, null],
+    ["Sam", 19, 8],
+    ["Ren", 37, 5]
+  ]
+}

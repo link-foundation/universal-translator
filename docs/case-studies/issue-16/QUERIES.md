@@ -187,6 +187,29 @@ JavaScript regression runs each original query and its translation against
 SQLite and compares both with the expected rows. The Rust regression verifies
 the corresponding scoped meta nodes and the SQL round trip.
 
+## Multiple projection fields and null-safe equality
+
+The previous strict reader stopped at the first comma in
+`SELECT row, age + 1 FROM people WHERE age >= 18`. Both readers now preserve
+the field order and use a positional array for each row. SQLite emits a
+select list and C# LINQ emits an `object[]` initializer that can hold mixed
+values. Python comprehensions and JavaScript filter/map chains return the same
+lists. The SQL writer rejects nested rows and single-element host arrays whose
+shape would change if translated as a scalar SQL expression.
+
+The shared `examples/queries/projected-rows.json` fixture combines a name,
+integer computation, nullable field and a two-part filter. Both engines round
+trip it through SQL, Python, JavaScript, TypeScript, C# LINQ and all 71
+natural grammars. The native query example verifies the returned rows in SQLite,
+Python, Node and C#. Projection aliases and relational ordering remain open.
+
+The strict reader previously rejected `SELECT age IS DISTINCT FROM NULL FROM
+people`. SQLite treats `IS DISTINCT FROM` as `IS NOT` and `IS NOT DISTINCT
+FROM` as `IS`. The reader accepts both forms and emits the equivalent shorter
+operators. Six cases extend the native nullable fixture to 87, including
+explicit NULL, numeric and boolean operands and a compound WHERE predicate.
+[SQLite expression operators](https://www.sqlite.org/lang_expr.html)
+
 ## Remaining work
 
 The verified nullable subset uses complete numeric/NULL input records and finite
@@ -198,7 +221,7 @@ dialects can raise instead. A translated binding supplies the same typed values
 used in the verified SQLite table. These checks do not establish full SQL NULL
 semantics for arbitrary schemas or runtimes.
 
-Joins, grouping, aggregation, ordering, multiple projections, complete SQL
+Joins, grouping, aggregation, ordering, named result columns, complete SQL
 syntax, general object/record types, other target families, arbitrary natural
 questions and complete natural-language agreement remain unfinished. SQLite's
 [SELECT documentation](https://www.sqlite.org/lang_select.html) provides the basis

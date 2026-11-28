@@ -63,7 +63,12 @@ fn expression(p: &mut Parser, minimum: usize) -> Parsed {
     };
     loop {
         if minimum <= 4 && p.accept("is") {
-            let operator = if p.accept("not") { "isNot" } else { "is" };
+            let negate = p.accept("not");
+            let distinct = p.accept("distinct");
+            if distinct {
+                p.expect("from")?;
+            }
+            let operator = if negate != distinct { "isNot" } else { "is" };
             let right = expression(p, 5)?;
             left = if right.is("Boolean") {
                 Node::new("SqlUnary")
@@ -177,6 +182,49 @@ fn range_variable(alias: Option<&str>) -> &str {
         .unwrap_or("row")
 }
 
+fn projection_list(p: &mut Parser) -> Parsed {
+    let first = p.expression()?;
+    if !p.accept(",") {
+        return Ok(first);
+    }
+    let mut elements = vec![first];
+    loop {
+        elements.push(p.expression()?);
+        if !p.accept(",") {
+            break;
+        }
+    }
+    Ok(Node::new("ArrayLiteral").with("elements", elements))
+}
+
+fn write_projection(e: &mut Emitter, projection: &Node, variable: &str) -> Result<String> {
+    if projection.is_name(variable) {
+        return Ok("*".into());
+    }
+    if projection.is("ArrayLiteral") {
+        let elements = projection.nodes("elements");
+        if elements.len() < 2 {
+            return Err(GrammarError::new(
+                "SQL row projections require at least two values",
+            ));
+        }
+        if elements
+            .iter()
+            .any(|element| element.is("ArrayLiteral") || element.is_name(variable))
+        {
+            return Err(GrammarError::new(
+                "SQL row projection fields must be scalar",
+            ));
+        }
+        let values = elements
+            .iter()
+            .map(|element| e.expression(element))
+            .collect::<Result<Vec<_>>>()?;
+        return Ok(values.join(", "));
+    }
+    e.expression(projection)
+}
+
 impl ParserDialect for Sql {
     fn expression(&self, p: &mut Parser) -> Parsed {
         expression(p, 0)
@@ -191,7 +239,7 @@ impl ParserDialect for Sql {
         let projection = if p.accept("*") {
             None
         } else {
-            Some(p.expression()?)
+            Some(projection_list(p)?)
         };
         p.expect("from")?;
         let mut source = p.postfix()?;
@@ -245,7 +293,7 @@ impl ParserDialect for Sql {
                 parts.push(p.expect_name()?);
             }
             return Ok(if parts.len() > 1 || parts[0].contains('.') {
-                name(&parts.join(".")).with("parts", parts)
+                name(parts.join(".")).with("parts", parts)
             } else {
                 name(&parts[0])
             });
@@ -359,11 +407,7 @@ impl EmitterDialect for Sql {
         };
         let variable = expression.str("variable").unwrap_or_default();
         let projection = field(expression, "projection")?;
-        let selected = if projection.is("Name") && projection.str("name") == Some(variable) {
-            "*".into()
-        } else {
-            e.expression(projection)?
-        };
+        let selected = write_projection(e, projection, variable)?;
         let condition = field(expression, "condition")?;
         let filter = if condition.is("Boolean") && condition.flag("value") == Some(true) {
             String::new()

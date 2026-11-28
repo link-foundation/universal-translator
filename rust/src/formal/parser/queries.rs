@@ -8,7 +8,14 @@ fn pure(expression: &Node) -> bool {
     let mut result = true;
     walk(expression, |current| {
         if ![
-            "Number", "Text", "Boolean", "Name", "Index", "Binary", "Unary",
+            "Number",
+            "Text",
+            "Boolean",
+            "Name",
+            "Index",
+            "Binary",
+            "Unary",
+            "ArrayLiteral",
         ]
         .contains(&current.kind.as_str())
         {
@@ -79,6 +86,19 @@ pub(super) fn query_call(expression: Node) -> Node {
 }
 
 impl Parser {
+    fn linq_projection(&mut self) -> Parsed {
+        let initializer = ["new", "object", "[", "]", "{"];
+        if initializer
+            .iter()
+            .enumerate()
+            .all(|(i, token)| self.is_at(token, i))
+        {
+            self.position += initializer.len();
+            return Ok(Node::new("ArrayLiteral").with("elements", self.element_list("}")?));
+        }
+        self.expression()
+    }
+
     pub(super) fn query_primary(&mut self) -> Parsed<Option<Node>> {
         if self.syntax.id == "csharp" && self.is("from") && self.is_at("in", 2) {
             self.position += 1;
@@ -91,7 +111,7 @@ impl Parser {
                 None
             };
             self.expect("select")?;
-            let projection = self.expression()?;
+            let projection = self.linq_projection()?;
             return Ok(Some(query(
                 source,
                 &variable,

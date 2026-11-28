@@ -259,5 +259,24 @@
   },
   {
     "projection": "(2.0 + 0) / 4"
+  },
+  {
+    "projection": "age IS DISTINCT FROM NULL"
+  },
+  {
+    "projection": "age IS NOT DISTINCT FROM NULL"
+  },
+  {
+    "projection": "age IS DISTINCT FROM 1"
+  },
+  {
+    "projection": "age IS NOT DISTINCT FROM TRUE"
+  },
+  {
+    "projection": "age IS DISTINCT FROM FALSE"
+  },
+  {
+    "projection": "age",
+    "condition": "age IS DISTINCT FROM NULL AND NOT age IS NOT DISTINCT FROM 1"
   }
 ]

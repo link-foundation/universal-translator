@@ -51,6 +51,7 @@ function pure(expression) {
         'Index',
         'Binary',
         'Unary',
+        'ArrayLiteral',
         'Null',
         'SqlBinary',
         'SqlUnary',
@@ -174,6 +175,16 @@ function containsFor(parser, closing) {
   }
 }
 
+function linqProjection(parser) {
+  if (
+    ['new', 'object', '[', ']', '{'].every((token, i) => parser.is(token, i))
+  ) {
+    parser.position += 5;
+    return node('ArrayLiteral', { elements: parser.elementList('}') });
+  }
+  return parser.expression();
+}
+
 export const withQueryParser = (Base) =>
   class QueryParser extends Base {
     primary() {
@@ -184,7 +195,7 @@ export const withQueryParser = (Base) =>
         const source = this.expression();
         const condition = this.accept('where') ? this.expression() : undefined;
         this.expect('select');
-        const projection = this.expression();
+        const projection = linqProjection(this);
         return query(
           source,
           variable,

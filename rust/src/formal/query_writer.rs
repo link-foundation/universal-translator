@@ -15,6 +15,7 @@ fn pure(expression: &Node) -> bool {
             "Index",
             "Binary",
             "Unary",
+            "ArrayLiteral",
             "Null",
             "SqlBinary",
             "SqlUnary",
@@ -206,7 +207,11 @@ pub(crate) fn write_query(e: &mut Emitter, expression: &Node) -> Result<String> 
     } else {
         e.expression(source)?
     };
-    let selected = e.expression(field(expression, "projection")?)?;
+    let projection = field(expression, "projection")?;
+    let mut selected = e.expression(projection)?;
+    if e.id() == "csharp" && projection.is("ArrayLiteral") {
+        selected = format!("new object[] {selected}");
+    }
     let condition = field(expression, "condition")?;
     let filtered = !(condition.is("Boolean") && condition.flag("value") == Some(true));
     let predicate = if filtered {

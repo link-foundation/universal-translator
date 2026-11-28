@@ -222,6 +222,52 @@ fn sql_column_qualifiers_and_literal_periods_round_trip() {
 }
 
 #[test]
+fn ordered_projection_fields_round_trip_through_host_queries_and_prose() {
+    let t = Translator::new();
+    let fixture: serde_json::Value =
+        serde_json::from_str(include_str!("../../examples/queries/projected-rows.json")).unwrap();
+    let source = fixture["source"].as_str().unwrap();
+    let meta = t.to_meta(source, "sql").unwrap();
+    let query = expression(source, "sql");
+    let projection = query.node("projection").unwrap();
+    assert!(projection.is("ArrayLiteral"));
+    assert_eq!(
+        projection
+            .nodes("elements")
+            .iter()
+            .map(|value| value.kind.as_str())
+            .collect::<Vec<_>>(),
+        ["Index", "SqlBinary", "Index"]
+    );
+    for target in ["sql", "javascript", "typescript", "python", "csharp"]
+        .into_iter()
+        .chain(natural_language_ids())
+    {
+        let written = t
+            .from_meta(&meta, target, None, Mode::ContextDependent)
+            .unwrap();
+        assert!(
+            same_meaning(&meta, &t.to_meta(&written, target).unwrap()),
+            "{target}: {written}"
+        );
+    }
+    let nested = t
+        .to_meta("[[row[\"age\"]] for row in people]", "python")
+        .unwrap();
+    let error = t
+        .from_meta(&nested, "sql", None, Mode::ContextDependent)
+        .unwrap_err();
+    assert!(error.to_string().contains("at least two values"));
+    let nested_row = t
+        .to_meta("[[row, row[\"age\"]] for row in people]", "python")
+        .unwrap();
+    let error = t
+        .from_meta(&nested_row, "sql", None, Mode::ContextDependent)
+        .unwrap_err();
+    assert!(error.to_string().contains("must be scalar"));
+}
+
+#[test]
 fn sql_quoted_keywords_strings_and_case_are_data() {
     let t = Translator::new();
     let source = "SELECT \"from\" FROM \"MixedCase\" AS item WHERE \"where\" = 'it''s ready';";
