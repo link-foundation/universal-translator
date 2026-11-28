@@ -297,7 +297,7 @@ retain the explicit width and signedness of function parameters.
 ```sh
 curl --fail --silent --show-error --get https://rosettacode.org/w/api.php \
   --data 'action=query' --data 'prop=revisions' \
-  --data 'revids=420325|417505|419626|420026|419956|420285|419019|412804|417360|417213|420276|418354|418506|420238|418405|418309|415006|418063|418364|419726|419426|413803|418530|417616|419450|420008' \
+  --data 'revids=420325|417505|419626|420026|419956|420285|419019|412804|417360|417213|420276|418354|418506|420238|418405|418309|415006|418063|418364|419726|419426|413803|418530|417616|419450|420008|413841|420356|418114' \
   --data 'rvprop=ids|content' --data 'rvslots=main' --data 'format=json' \
   --data 'formatversion=2' > /tmp/rosetta-containers-revisions.json
 node experiments/issue-16-rosetta-containers.mjs /tmp/rosetta-containers-revisions.json \
@@ -368,6 +368,28 @@ uses a fixed-width type without its header. The Copy stdin to stdout probe
 now also checks an embedded NUL followed by more input.
 [Baseline failures for these five inputs](logs/rosetta-io-baseline.txt)
 [Pinned native results](logs/rosetta-containers-native.txt)
+
+Five more C++ tasks bring the verified total to 36. The baseline rejected
+all five exact sources. Immediately before the tuple-index repair, Pell's
+equation emitted a comparison in place of `std::get<1>`. GCC rejected
+the generated source at line 26. The original lacks declarations for
+`sqrt` and `uint64_t`, so the verifier forces the same `<cmath>` and
+`<cstdint>` includes for the original and both translator outputs.
+[Baseline failures](logs/rosetta-candidates-five.jsonl)
+[Pinned native results](logs/rosetta-containers-native.txt)
+
+| Task                         | Pinned revision                                                                                                    | Observable result                                                       |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
+| Pell's equation              | [413841](https://rosettacode.org/w/index.php?title=Pell%27s_equation&oldid=413841)                                 | Four solutions, preserving the full unsigned integers and output widths |
+| Apply a callback to an array | [420356](https://rosettacode.org/w/index.php?title=Apply_a_callback_to_an_array&oldid=420356), second C++ solution | `1 4 9 16 25 ` from the callback                                        |
+| Sort an integer array        | [418114](https://rosettacode.org/w/index.php?title=Sort_an_integer_array&oldid=418114), second C++ solution        | Native observer sees `{1, 2, 2, 3, 4}` before return                    |
+| Sum of squares               | [419113](https://rosettacode.org/w/index.php?title=Sum_of_squares&oldid=419113), third C++ solution                | `13.25` for a mixed vector and `0` for an empty vector under Boost      |
+| Show the epoch               | [419964](https://rosettacode.org/w/index.php?title=Show_the_epoch&oldid=419964), second C++ solution               | `1400-Jan-01 00:00:00` from Boost Posix Time's minimum date             |
+
+With Boost 1.83.0 headers available, verify its two tasks with the same
+MediaWiki request above using `revids=419113|419964`, then pass the
+response and the two exact task titles to the verifier. The rest run in
+the default standard-library selection.
 
 The C solution for [Copy stdin to stdout revision 417213](https://rosettacode.org/w/index.php?title=Copy_stdin_to_stdout&oldid=417213)
 previously lost `<stdio.h>`. Strict C99 compilation reported implicit

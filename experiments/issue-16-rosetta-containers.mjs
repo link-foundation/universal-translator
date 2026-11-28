@@ -318,6 +318,71 @@ int main() {
       'E\tF\t6.1\t\nG\tH\t7.25\t\n\nNumber of quakes greater than 6 is 2\n',
     assertions: 0,
   },
+  {
+    title: "Pell's equation",
+    revid: 413841,
+    sourceSha256:
+      '5f5eb1231910e5f90021ecdacb18c08398a789ba701e4835648169000295e627',
+    compile: ['-include', 'cmath', '-include', 'cstdint'],
+    stdoutSha256:
+      '72bf30d939ab09de965cc00f8818fbc05024519b89a9cc9f2ff92aa30976849c',
+    assertions: 0,
+  },
+  {
+    title: 'Apply a callback to an array',
+    revid: 420356,
+    solutionIndex: 1,
+    sourceSha256:
+      '918536679bd3299c1011a1374c68fb8d9392bb915f7ff98f4c90ece05c32ab4d',
+    stdout: '1 4 9 16 25 ',
+    assertions: 0,
+  },
+  {
+    title: 'Sort an integer array',
+    revid: 418114,
+    solutionIndex: 1,
+    sourceSha256:
+      'd67a0f00873be5e4444cc8c1bd99b153ca607f9a675ada1e9a9da4e16a069b97',
+    stdout: '',
+    observed: 'nums == std::vector<int>{1, 2, 2, 3, 4}',
+    assertions: 0,
+  },
+  {
+    title: 'Sum of squares',
+    revid: 419113,
+    solutionIndex: 2,
+    sourceSha256:
+      '643393ef16318cb13d0b837bb295c0e5300cf1bc6e83784979e220aa2bf07963',
+    compile: [
+      '-include',
+      'numeric',
+      '-include',
+      'vector',
+      '-include',
+      'boost/lambda/lambda.hpp',
+    ],
+    dependency: 'Boost',
+    stdout: '13.25\n0\n',
+    assertions: 0,
+    driver: String.raw`
+#include <iostream>
+int main() {
+    std::vector<double> values{-2.0, 3.0, 0.0, 0.5};
+    std::vector<double> empty;
+    std::cout << vec_add_squares(values) << '\n' << vec_add_squares(empty) << '\n';
+}
+`,
+  },
+  {
+    title: 'Show the epoch',
+    revid: 419964,
+    solutionIndex: 1,
+    sourceSha256:
+      '548fd8c427e710d191acbfa0af7e51da48e165fa0d4ffb83d4130b866142293e',
+    dependency: 'Boost',
+    stdout: '1400-Jan-01 00:00:00\n',
+    assertions: 0,
+  },
 ];
 assert.equal(new Set(tasks.map(({ title }) => title)).size, tasks.length);
 for (const title of selectedTasks) {
