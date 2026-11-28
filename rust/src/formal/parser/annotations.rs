@@ -66,6 +66,12 @@ impl Parser {
         let cpp_fixed_array = self.is_cpp_fixed_array();
         loop {
             let value = self.value(offset);
+            if self.syntax.id == "cpp"
+                && matches!(value, ">>" | ">")
+                && depth + type_depth(value) < 0
+            {
+                return offset;
+            }
             if self.kind(offset) != TokenType::Name
                 && !["*", "::", ".", "[", "]", "<", ">", ">>"].contains(&value)
                 && !(depth > 0 && [",", "?"].contains(&value))

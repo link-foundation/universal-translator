@@ -536,6 +536,40 @@ int main() {
 }
 
 #[test]
+fn cpp_stream_extraction_and_throw_are_statements() {
+    let source = r#"#include <iostream>
+#include <stdexcept>
+#include <string>
+int main() {
+    std::string label;
+    int count = 0;
+    std::cin >> label >> count;
+    if (count == 0) {
+        throw std::invalid_argument(label);
+    }
+    std::cout << label << count;
+    return 0;
+}
+"#;
+    let translator = Translator::new();
+    let program = translator.to_meta(source, "cpp").unwrap();
+    let statements = program.node("main").unwrap().nodes("statements");
+    assert_eq!(
+        statements[2]
+            .node("expression")
+            .and_then(|expression| expression.str("operator")),
+        Some("rightShift")
+    );
+    let guard = statements[3].node("then").unwrap();
+    assert!(guard.nodes("statements")[0].is("Throw"));
+    let emitted = translator
+        .translate(source, "cpp", "cpp", Mode::default())
+        .unwrap();
+    assert!(emitted.contains("std::cin >> label >> count;"));
+    assert!(emitted.contains("throw std::invalid_argument(label);"));
+}
+
+#[test]
 fn cpp_file_scope_initializers_preserve_source_order_and_dependencies() {
     let source = r"int later();
 int earlier() { return 7; }

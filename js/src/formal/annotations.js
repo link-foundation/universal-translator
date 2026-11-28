@@ -33,6 +33,13 @@ export function typeHeadLength(parser) {
   while (true) {
     const token = parser.peek(offset);
     if (
+      parser.syntax.id === 'cpp' &&
+      ['>>', '>'].includes(token.value) &&
+      depth + typeDepth(token.value) < 0
+    ) {
+      return offset;
+    }
+    if (
       token.type !== 'name' &&
       !['*', '::', '.', '[', ']', '<', '>', '>>'].includes(token.value) &&
       !(depth > 0 && [',', '?'].includes(token.value)) &&

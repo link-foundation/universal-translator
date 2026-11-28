@@ -36,8 +36,8 @@ const MODIFIERS: [&str; 10] = [
     "local",
 ];
 
-const CONTROL_WORDS: [&str; 9] = [
-    "if", "else", "while", "for", "foreach", "switch", "return", "do", "catch",
+const CONTROL_WORDS: [&str; 10] = [
+    "if", "else", "while", "for", "foreach", "switch", "return", "do", "catch", "throw",
 ];
 
 const ASSIGNMENT_SYMBOLS: [&str; 9] = ["=", "+=", "-=", "*=", "/=", "//=", "%=", "++", "--"];

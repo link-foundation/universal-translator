@@ -80,9 +80,7 @@ export function parseProgram(source, syntax) {
   return parseSource(source, syntax, parserFor(syntax));
 }
 
-// Languages whose statements follow a grammar of their own (Fortran, Pascal,
-// Ada, Visual Basic, Bash, MATLAB, Zig, Lean, Rocq) extend the shared parser in
-// dialects/; they keep its expressions and token helpers.
+// Dialects extend the shared parser and retain its expression and token helpers.
 const dialectParsers = new Map();
 function parserFor(syntax) {
   const extend = dialects[syntax.id]?.parser;
@@ -105,6 +103,7 @@ const controlWords = new Set([
   'return',
   'do',
   'catch',
+  'throw',
 ]);
 
 class BaseParser {

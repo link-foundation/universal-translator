@@ -300,6 +300,32 @@ std::string decorate(const std::string& prefix, std::string word) {
   });
 });
 
+describe('C++ stream extraction and exceptions', () => {
+  it('keeps the stream operation and a thrown object before their uses', () => {
+    const source = `#include <iostream>
+#include <stdexcept>
+#include <string>
+int main() {
+  std::string label;
+  int count = 0;
+  std::cin >> label >> count;
+  if (count == 0) {
+    throw std::invalid_argument(label);
+  }
+  std::cout << label << count;
+  return 0;
+}
+`;
+    const program = translator.toMeta(source, 'cpp');
+    const [, , extraction, guard] = program.main.statements;
+    expect(extraction.expression?.operator).toBe('rightShift');
+    expect(guard.then.statements[0].kind).toBe('Throw');
+    const emitted = translator.translate(source, 'cpp', 'cpp');
+    expect(emitted).toContain('std::cin >> label >> count;');
+    expect(emitted).toContain('throw std::invalid_argument(label);');
+  });
+});
+
 describe('C++ library scope and types', () => {
   it('keeps character literals, escapes, and explicit character casts', () => {
     const source = String.raw`int main() {

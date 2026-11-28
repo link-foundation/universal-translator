@@ -64,6 +64,13 @@ const directInitialization = readFileSync(
   ),
   'utf8'
 );
+const streamExtraction = readFileSync(
+  new URL(
+    '../examples/programs/library/cpp-stream-extraction.cpp',
+    import.meta.url
+  ),
+  'utf8'
+);
 const fixedArray = readFileSync(
   new URL('../examples/programs/library/cpp-fixed-array.cpp', import.meta.url),
   'utf8'
@@ -85,16 +92,16 @@ const options = { encoding: 'utf8', maxBuffer: 32 * 1024 };
 try {
   const file = join(directory, 'program.cpp');
   const binary = join(directory, 'program');
-  const run = (program) => {
+  const run = (program, input) => {
     writeFileSync(file, program);
     execFileSync(
       process.env.CXX ?? 'c++',
       ['-std=c++17', '-Wall', '-Wextra', '-Werror', file, '-o', binary],
       options
     );
-    return execFileSync(binary, [], options);
+    return execFileSync(binary, [], { ...options, input });
   };
-  for (const [name, program, expected] of [
+  for (const [name, program, expected, input] of [
     ['member calls and vector initialization', source, '2\n0 3 4\n'],
     ['explicit template call', template, '1\n'],
     ['template object initialization', container, '0\n7\n'],
@@ -102,6 +109,13 @@ try {
     ['scoped library declarations and const parameters', scopedLibrary, '1\n'],
     ['direct string initialization', stringInitialization, 'Hello, world!\n'],
     ['parenthesized object initialization', directInitialization, 'eady)a 2\n'],
+    ['stream extraction', streamExtraction, 'widgets 3\n', 'widgets 3\n'],
+    [
+      'exception after extraction',
+      streamExtraction,
+      'missing\n',
+      'missing 0\n',
+    ],
     [
       'fixed array extents and brace initialization',
       fixedArray,
@@ -118,10 +132,10 @@ try {
       "97\na\nA\\'\n65\n1 1\nabc!\n5 8\n",
     ],
   ]) {
-    const original = run(program);
+    const original = run(program, input);
     assert.equal(original, expected);
     const emitted = translator.translate(program, 'cpp', 'cpp');
-    const translated = run(emitted);
+    const translated = run(emitted, input);
     console.log(JSON.stringify({ name, original, translated }));
     assert.equal(translated, original, name);
   }
