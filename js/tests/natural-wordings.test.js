@@ -18,11 +18,10 @@ const everyday =
   'Let n be 0.\nWhile n is less than 3, do this:\n  Set n to n plus 1.\nPrint n.\n';
 const canonical =
   'Create n with value 0.\nWhile n falls below 3, repeat this:\n  Change n to n plus 1.\nWrite n and end the line.\n';
+const prefix =
+  'natural:\n  id: message-grammar\n  extends: english\n  grammar:\n';
 
 describe('declarative controlled grammar', () => {
-  const prefix =
-    'natural:\n  id: message-grammar\n  extends: english\n  grammar:\n';
-
   it('allows profile productions to reuse terms and other productions', () => {
     const id = registerNaturalLanguage(`${prefix}    terms:
       message: 'message' 'notice'
@@ -43,7 +42,9 @@ describe('declarative controlled grammar', () => {
       unregisterNaturalLanguage(id);
     }
   });
+});
 
+describe('profile grammar inheritance', () => {
   it('reuses the inherited grammar with local term bindings', () => {
     const id = registerNaturalLanguage(`${prefix}    terms:
       write-value: 'Announce {value}'
@@ -78,7 +79,44 @@ describe('declarative controlled grammar', () => {
       unregisterNaturalLanguage(id);
     }
   });
+  it('recompiles descendants before replacing a registered grammar', () => {
+    const definition = (phrase) => `${prefix}    terms:
+      announcement: '${phrase} {value}'
+    productions:
+      print: '@announcement'
+`;
+    const id = registerNaturalLanguage(definition('Announce'));
+    try {
+      const child = registerNaturalLanguage(`natural:
+  id: message-grammar-child
+  extends: ${id}
+  grammar:
+    productions:
+      print-line: '@announcement aloud'
+`);
+      try {
+        const words = () => translate('console.log(7);\n', 'javascript', child);
+        assert.equal(words(), 'Announce 7 aloud.\n');
+        registerNaturalLanguage(definition('Report'));
+        assert.equal(words(), 'Report 7 aloud.\n');
+        assert.throws(
+          () =>
+            registerNaturalLanguage(
+              `${prefix}    terms:\n      notice: 'Notice {value}'\n    productions:\n      print: '@notice'\n`
+            ),
+          /Unknown natural grammar rule "announcement"/u
+        );
+        assert.equal(words(), 'Report 7 aloud.\n');
+      } finally {
+        unregisterNaturalLanguage(child);
+      }
+    } finally {
+      unregisterNaturalLanguage(id);
+    }
+  });
+});
 
+describe('controlled grammar bounds', () => {
   it('rejects missing terms, cycles, excessive alternatives and unclosed slots', () => {
     for (const [grammar, error] of [
       [

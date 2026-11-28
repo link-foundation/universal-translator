@@ -337,9 +337,24 @@ export function registerNaturalLanguage(source) {
   if (description.extends === id) {
     throw new Error(`Natural language "${id}" extends itself`);
   }
-  const compiled = compile(resolve({ ...descriptions, [id]: description }, id));
+  const candidateDescriptions = { ...descriptions, [id]: description };
+  const affected = new Set([id]);
+  for (const parent of affected) {
+    for (const candidate of Object.values(candidateDescriptions)) {
+      if (candidate.extends === parent) {
+        affected.add(candidate.id);
+      }
+    }
+  }
+  // Validate the whole change before making it visible to any profile.
+  const compiled = [...affected].map((profile) => [
+    profile,
+    compile(resolve(candidateDescriptions, profile)),
+  ]);
   descriptions[id] = description;
-  catalog.set(id, compiled);
+  for (const [profile, language] of compiled) {
+    catalog.set(profile, language);
+  }
   ownSources.set(id, source);
   return id;
 }
