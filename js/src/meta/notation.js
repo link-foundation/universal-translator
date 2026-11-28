@@ -106,6 +106,7 @@ const childOrder = [
   'success',
   'finalizer',
   'mainComments',
+  'mainParameters',
   'main',
   'otherwise',
 ];

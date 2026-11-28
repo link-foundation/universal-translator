@@ -38,7 +38,7 @@ pub fn understanding_rules() -> Vec<Rule> {
         rule("recognizeSqlValues", super::sql_values::recognize),
         rule("recognizeObjpak", super::objpak::recognize_objpak),
         rule("findEntryPoint", |program, settings| {
-            entry_point(program, split_version(&settings.from).0 == "cpp")
+            entry_point(program, Some(split_version(&settings.from).0))
         }),
         rule("recognizeQuestions", recognize_questions),
         rule("concatenationOperator", concatenation_operator),
@@ -279,15 +279,46 @@ fn is_exit_success(statement: Option<&Node>) -> bool {
     })
 }
 
+fn c_entry_parameters(entry: &Node) -> Option<Vec<Node>> {
+    let parameters = entry.nodes("parameters");
+    let [count, vector] = parameters.as_slice() else {
+        return None;
+    };
+    if entry.str("name") != Some("main")
+        || count.str("type") != Some("integer")
+        || vector.str("type")?.replace(' ', "") != "source:char**"
+    {
+        return None;
+    }
+    let names = [count.str("name")?, vector.str("name")?];
+    let mut used = false;
+    walk(entry.node("body")?, |item| {
+        if matches!(
+            item.kind.as_str(),
+            "Name" | "Assignment" | "AssignmentExpression" | "IndexAssignment"
+        ) && item.str("name").is_some_and(|name| names.contains(&name))
+        {
+            used = true;
+        }
+    });
+    used.then(|| {
+        vec![
+            (**count).clone(),
+            (**vector).clone().with("type", "array<text>"),
+        ]
+    })
+}
+
 /// Collect functions, the entry point and file comments into a Program. The
 /// body of `main` becomes the program's main block.
 pub fn find_entry_point(source: Node) -> Node {
-    entry_point(source, false)
+    entry_point(source, None)
 }
 
-fn entry_point(source: Node, cpp: bool) -> Node {
+fn entry_point(source: Node, language: Option<&str>) -> Node {
+    let language = language.or_else(|| source.str("language"));
     let mut items = source.node_list("items");
-    if cpp {
+    if language == Some("cpp") {
         super::cpp_library::mark_cpp_file_items(&mut items);
     }
     let mut program = unqualify_class_calls(collect_items(flatten_classes(items.clone())), &items);
@@ -315,6 +346,11 @@ fn entry_point(source: Node, cpp: bool) -> Node {
     // `return 0;` at the end of C's main is the default exit status.
     if is_exit_success(statements.last()) {
         statements.pop();
+    }
+    if matches!(language, Some("c" | "cpp"))
+        && let Some(parameters) = c_entry_parameters(&entry)
+    {
+        program.set("mainParameters", parameters);
     }
     program.set("functions", functions);
     program.set("main", block(statements));
@@ -905,7 +941,12 @@ pub fn declare_on_first_assignment(program: Node) -> Node {
         Declarer::new(parameter_names(item).into_iter().collect()).visit_block(body)
     });
     if let Some(main) = program.node("main").cloned() {
-        let main = Declarer::new(HashSet::new()).visit_block(main);
+        let scope = program
+            .nodes("mainParameters")
+            .into_iter()
+            .filter_map(|parameter| parameter.str("name").map(str::to_owned))
+            .collect();
+        let main = Declarer::new(scope).visit_block(main);
         program.set("main", main);
     }
     program

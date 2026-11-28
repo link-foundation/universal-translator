@@ -14,6 +14,69 @@ use universal_translator::translator::{
 };
 
 #[test]
+fn c_entry_point_retains_argument_bindings_and_types() {
+    let translator = Translator::new();
+    let source = include_str!("../../examples/programs/library/c-command-line.c");
+    let program = translator.to_meta(source, "c").unwrap();
+    let parameters = program.nodes("mainParameters");
+    let [count, vector] = parameters.as_slice() else {
+        panic!("Expected two native argument bindings: {parameters:?}");
+    };
+    assert_eq!(count.str("name"), Some("argument-count"));
+    assert_eq!(count.str("type"), Some("integer"));
+    assert_eq!(vector.str("name"), Some("argument-values"));
+    assert_eq!(vector.str("type"), Some("array<text>"));
+    for target in ["c", "cpp"] {
+        let output = translator
+            .from_meta(&program, target, None, Mode::default())
+            .unwrap();
+        assert!(output.contains("int main(int argument_count, char **argument_values)"));
+        assert!(output.contains("argument_values[2]"));
+        if target == "c" {
+            assert!(output.contains("printf(\"%s\\n\","), "{output}");
+        }
+        let read_back = translator.to_meta(&output, target).unwrap();
+        assert_eq!(read_back.nodes("mainParameters"), parameters);
+        assert_eq!(
+            read_back
+                .node("main")
+                .unwrap()
+                .nodes("statements")
+                .last()
+                .unwrap()
+                .node("value")
+                .unwrap()
+                .str("type"),
+            Some("text")
+        );
+    }
+    let error = translator
+        .from_meta(&program, "python", None, Mode::default())
+        .unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("C entry-point parameters require a mapping for python")
+    );
+}
+
+#[test]
+fn c_entry_point_keeps_argument_assignment_as_an_update() {
+    let translator = Translator::new();
+    let source = "int main(int count, char **args) { count = 3; return count; }";
+    let program = translator.to_meta(source, "cpp").unwrap();
+    assert!(program.node("main").unwrap().nodes("statements")[0].is("Assignment"));
+    let unused = "int main(int count, char **args) { return 0; }";
+    assert!(
+        translator
+            .to_meta(unused, "cpp")
+            .unwrap()
+            .nodes("mainParameters")
+            .is_empty()
+    );
+}
+
+#[test]
 fn member_calls_keep_computed_receivers_and_java_continuations() {
     let translator = Translator::new();
     for (source, language, expected) in [

@@ -77,7 +77,11 @@ pub fn spell_name(neutral: &str, convention: Convention) -> String {
 
 /// Every name the program itself introduces.
 pub fn declared_names(program: &Node) -> HashSet<String> {
-    let mut names = HashSet::new();
+    let mut names: HashSet<String> = program
+        .nodes("mainParameters")
+        .into_iter()
+        .filter_map(|parameter| parameter.str("name").map(str::to_owned))
+        .collect();
     for item in program.nodes("functions") {
         names.extend(item.str("name").map(str::to_owned));
         for parameter in item.nodes("parameters") {
@@ -161,6 +165,14 @@ pub fn rename_declared(program: Node, rename: impl Fn(&str, Role) -> String) -> 
         })
         .collect();
     renamed.set("functions", functions);
+    if renamed.get("mainParameters").is_some() {
+        let parameters: Vec<Node> = renamed
+            .node_list("mainParameters")
+            .into_iter()
+            .map(|parameter| rename_field(parameter, "name", &change))
+            .collect();
+        renamed.set("mainParameters", parameters);
+    }
     renamed
 }
 

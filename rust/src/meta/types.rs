@@ -572,6 +572,16 @@ pub fn infer_types(program: Node) -> Node {
         given: HashSet::new(),
         declared: program.node("main").map(declared_names).unwrap_or_default(),
     };
+    let main_scope: Scope = program
+        .nodes("mainParameters")
+        .into_iter()
+        .filter_map(|parameter| {
+            Some((
+                parameter.str("name")?.to_owned(),
+                parameter.str("type")?.to_owned(),
+            ))
+        })
+        .collect();
     let mut current = program;
     // Recursive functions need a few rounds before every type settles.
     for _ in 0..4 {
@@ -620,7 +630,7 @@ pub fn infer_types(program: Node) -> Node {
             returns: &mut ignored,
             reals: &mut main_reals,
         }
-        .block(main, &Scope::new());
+        .block(main, &main_scope);
         current.set("functions", functions);
         current.set("main", main);
         for (callee, types) in call_site_types(&current, &signatures) {

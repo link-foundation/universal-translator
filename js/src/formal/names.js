@@ -48,7 +48,7 @@ export function spellName(neutral, convention) {
 
 // Every name the program itself introduces.
 export function declaredNames(program) {
-  const names = new Set();
+  const names = new Set((program.mainParameters ?? []).map(({ name }) => name));
   for (const item of program.functions) {
     names.add(item.name);
     item.parameters.forEach((parameter) => names.add(parameter.name));
@@ -113,6 +113,12 @@ export function renameDeclared(program, rename) {
   });
   return {
     ...renamed,
+    ...(renamed.mainParameters && {
+      mainParameters: renamed.mainParameters.map((parameter) => ({
+        ...parameter,
+        name: change(parameter.name),
+      })),
+    }),
     functions: mapOrigins(renamed.functions, (item) => ({
       ...item,
       name: change(item.name),

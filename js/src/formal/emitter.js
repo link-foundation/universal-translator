@@ -1096,7 +1096,10 @@ class BaseEmitter {
   // The top-level statements, in a main procedure where the language has one.
   main(program) {
     this.comments(program, 'mainComments');
-    const header = this.mainHeader();
+    const [count, vector] = program.mainParameters ?? [];
+    const header = count
+      ? `int main(int ${this.variable(count.name)}, char **${this.variable(vector.name)})`
+      : this.mainHeader();
     if (!header) {
       this.body(program.main);
       return;
@@ -1189,11 +1192,31 @@ const Emitter = withSqlValueWriter(
 export function emitProgram(program, languageId) {
   const LanguageEmitter = emitterFor(languageId);
   const syntax = languageSyntax(languageId);
+  requireNativeEntrySupport(program, languageId);
   requireRecordSupport(program, languageId, supportsRecords(syntax));
   if (program.definitions?.length) {
     checkRecordReferences(program);
   }
   return mappedEmitter(new LanguageEmitter(syntax)).program(program);
+}
+
+export function requireNativeEntrySupport(program, target) {
+  if (!program.mainParameters?.length) {
+    return;
+  }
+  if (!['c', 'cpp'].includes(splitVersion(target).id)) {
+    throw new Error(`C entry-point parameters require a mapping for ${target}`);
+  }
+  const [count, vector] = program.mainParameters;
+  if (
+    program.mainParameters.length !== 2 ||
+    count.type !== 'integer' ||
+    vector.type !== 'array<text>'
+  ) {
+    throw new Error(
+      'C entry point requires an integer count and a text vector'
+    );
+  }
 }
 
 // Languages with a program layout of their own (Fortran, Pascal, Ada,

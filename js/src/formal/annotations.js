@@ -124,7 +124,18 @@ export const withAnnotations = (Base) =>
             words.push(this.next().value);
           }
         }
-        const name = words.pop();
+        // In a C-family parameter list, `char *args[]` adjusts to `char **args`.
+        const charPointerArray =
+          ['c', 'cpp'].includes(this.syntax.id) &&
+          words.length === 5 &&
+          words[0] === 'char' &&
+          words[1] === '*' &&
+          words[3] === '[' &&
+          words[4] === ']';
+        const name = charPointerArray ? words[2] : words.pop();
+        if (charPointerArray) {
+          words.splice(2, 3, '*');
+        }
         const cppType = cppQualifiedParameter(this.syntax, words);
         parameters.push({
           name,

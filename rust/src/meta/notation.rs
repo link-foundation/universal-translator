@@ -122,6 +122,7 @@ const CHILD_ORDER: [&str; 36] = [
     "success",
     "finalizer",
     "mainComments",
+    "mainParameters",
     "main",
     "otherwise",
 ];

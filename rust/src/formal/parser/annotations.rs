@@ -35,7 +35,23 @@ impl Parser {
                 words.push(self.next_value()?);
             }
         }
-        let name = words.pop().unwrap_or_default();
+        // In a C-family parameter list, `char *args[]` adjusts to `char **args`.
+        let name = if matches!(self.syntax.id, "c" | "cpp")
+            && let [base, pointer, name, open, close] = words.as_slice()
+            && (
+                base.as_str(),
+                pointer.as_str(),
+                open.as_str(),
+                close.as_str(),
+            ) == ("char", "*", "[", "]")
+        {
+            let name = name.clone();
+            words.truncate(2);
+            words.push("*".into());
+            name
+        } else {
+            words.pop().unwrap_or_default()
+        };
         let spelling = words.join(" ");
         let mut parameter = Node::new("Parameter")
             .with("name", name)

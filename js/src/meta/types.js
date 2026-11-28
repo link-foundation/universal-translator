@@ -430,7 +430,9 @@ export function inferTypes(program) {
       signature.returnType = returnType(signature, returns);
       return inheritOrigin({ ...item, body }, item);
     });
-    const top = new Map();
+    const top = new Map(
+      (current.mainParameters ?? []).map(({ name, type }) => [name, type])
+    );
     top.reals = reals('main', current.main);
     const main = typeBlock(current.main, top, signatures, []);
     current = { ...current, functions, main };

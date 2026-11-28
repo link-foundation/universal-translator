@@ -174,13 +174,45 @@ const isExitSuccess = (statement) =>
   statement.value?.kind === 'Number' &&
   statement.value.value === 0;
 
+function cEntryParameters(entry) {
+  const [count, vector] = entry.parameters;
+  if (
+    entry.name !== 'main' ||
+    entry.parameters.length !== 2 ||
+    count.type !== 'integer' ||
+    vector.type?.replaceAll(' ', '') !== 'source:char**'
+  ) {
+    return undefined;
+  }
+  const names = new Set([count.name, vector.name]);
+  let used = false;
+  walk(entry.body, (item) => {
+    if (
+      [
+        'Name',
+        'Assignment',
+        'AssignmentExpression',
+        'IndexAssignment',
+      ].includes(item.kind) &&
+      names.has(item.name)
+    ) {
+      used = true;
+    }
+  });
+  if (used) {
+    return [
+      node('Parameter', { ...count, type: 'integer' }),
+      node('Parameter', { ...vector, type: 'array<text>' }),
+    ];
+  }
+  return undefined;
+}
+
 // Collect functions, the entry point and file comments into a Program. The
 // body of `main` becomes the program's main block.
 export function findEntryPoint(source, { from } = {}) {
-  const items =
-    from && splitVersion(from).id === 'cpp'
-      ? markCppFileItems(source.items)
-      : source.items;
+  const id = from ? splitVersion(from).id : source.language;
+  const items = id === 'cpp' ? markCppFileItems(source.items) : source.items;
   const program = unqualifyClassCalls(
     collectItems(flattenClasses(items)),
     items
@@ -201,12 +233,16 @@ export function findEntryPoint(source, { from } = {}) {
   if (isExitSuccess(statements.at(-1))) {
     statements.pop();
   }
+  const parameters = ['c', 'cpp'].includes(id)
+    ? cEntryParameters(entry)
+    : undefined;
   return inheritOrigin(
     {
       ...program,
       functions: program.functions.filter((item) => item !== entry),
       main: block(statements),
       mainComments: entry.comments,
+      ...(parameters ? { mainParameters: parameters } : {}),
     },
     program
   );
@@ -586,7 +622,10 @@ export function declareOnFirstAssignment(program) {
         item.parameters.map((parameter) => parameter.name)
       ),
     })),
-    main: declareIn(program.main, []),
+    main: declareIn(
+      program.main,
+      (program.mainParameters ?? []).map(({ name }) => name)
+    ),
   };
 }
 

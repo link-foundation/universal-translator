@@ -29,7 +29,7 @@ import {
   lowerEvaluationOrder,
   raiseEvaluationOrder,
 } from './meta/evaluation-order.js';
-import { emitProgram } from './formal/emitter.js';
+import { emitProgram, requireNativeEntrySupport } from './formal/emitter.js';
 import { requireRecordSupport } from './formal/record-model.js';
 import {
   emitMachine,
@@ -567,6 +567,9 @@ export function createGrammarTranslator(settings = {}) {
   function writeTarget(adapted, to) {
     const natural = isNaturalLanguage(to);
     const machine = machineTargetIds.includes(to);
+    if (natural || machine) {
+      requireNativeEntrySupport(adapted, to);
+    }
     requireRecordSupport(adapted, to, !natural && !machine);
     if (natural) {
       return stages.writeNatural(adapted, to);

@@ -637,12 +637,13 @@ impl Translator {
 
     /// Write an adapted program in a language, a machine target or words.
     pub fn write(&self, adapted: &Node, to: &str) -> Result<String, GrammarError> {
-        if !adapted.nodes("definitions").is_empty()
-            && (natural::is_natural_language(to) || machine_target_ids().contains(&to))
-        {
-            return Err(GrammarError::new(format!(
-                "Record definitions cannot be emitted in {to}"
-            )));
+        if natural::is_natural_language(to) || machine_target_ids().contains(&to) {
+            crate::formal::emitter::require_native_entry_support(adapted, to)?;
+            if !adapted.nodes("definitions").is_empty() {
+                return Err(GrammarError::new(format!(
+                    "Record definitions cannot be emitted in {to}"
+                )));
+            }
         }
         let written = if natural::is_natural_language(to) {
             (self.stages.write_natural)(adapted, to)?

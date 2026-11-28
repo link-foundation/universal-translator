@@ -1350,8 +1350,18 @@ impl Emitter {
             return Ok(());
         }
         let main = field(program, "main")?;
-        if let Some(header) = self.main_header() {
-            self.open_block(header);
+        let parameters = program.nodes("mainParameters");
+        let header = if let [count, vector] = parameters.as_slice() {
+            Some(format!(
+                "int main(int {}, char **{})",
+                self.variable(count.str("name").unwrap_or_default()),
+                self.variable(vector.str("name").unwrap_or_default()),
+            ))
+        } else {
+            self.main_header().map(str::to_owned)
+        };
+        if let Some(header) = header {
+            self.open_block(&header);
             self.body(main)?;
             self.close_block();
             // Julia calls its main function itself.
@@ -1495,6 +1505,7 @@ pub fn spaced_after<N: std::borrow::Borrow<Node>>(functions: &[N], index: usize)
 
 pub fn emit_program(program: &Node, language: &str) -> Result<String> {
     let syntax = language_syntax(language)?;
+    require_native_entry_support(program, language)?;
     if !program.nodes("definitions").is_empty() {
         if !super::records::supports_records(&syntax) {
             return Err(GrammarError::new(format!(
@@ -1511,4 +1522,25 @@ pub fn emit_program(program: &Node, language: &str) -> Result<String> {
     } else {
         emitter.program(program)
     }
+}
+
+pub(crate) fn require_native_entry_support(program: &Node, target: &str) -> Result<()> {
+    let parameters = program.nodes("mainParameters");
+    if parameters.is_empty() {
+        return Ok(());
+    }
+    if !matches!(super::versions::split_version(target).0, "c" | "cpp") {
+        return Err(GrammarError::new(format!(
+            "C entry-point parameters require a mapping for {target}"
+        )));
+    }
+    if let [count, vector] = parameters.as_slice()
+        && count.str("type") == Some("integer")
+        && vector.str("type") == Some("array<text>")
+    {
+        return Ok(());
+    }
+    Err(GrammarError::new(
+        "C entry point requires an integer count and a text vector",
+    ))
 }

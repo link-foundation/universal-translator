@@ -28,6 +28,49 @@ int main() {
 }
 `;
 
+describe('C-family entry point', () => {
+  it('retains argument bindings and text element types in C and C++', () => {
+    const input = readFileSync(
+      new URL(
+        '../../examples/programs/library/c-command-line.c',
+        import.meta.url
+      ),
+      'utf8'
+    );
+    const main = translator.toMeta(input, 'c');
+    expect(main.mainParameters).toEqual([
+      { kind: 'Parameter', name: 'argument-count', type: 'integer' },
+      { kind: 'Parameter', name: 'argument-values', type: 'array<text>' },
+    ]);
+    for (const target of ['c', 'cpp']) {
+      const emitted = translator.fromMeta(main, target);
+      expect(emitted).toContain(
+        'int main(int argument_count, char **argument_values)'
+      );
+      expect(emitted).toContain('argument_values[2]');
+      const readBack = translator.toMeta(emitted, target);
+      expect(readBack.mainParameters).toEqual(main.mainParameters);
+      expect(readBack.main.statements.at(-1).value.type).toBe('text');
+    }
+    expect(translator.fromMeta(main, 'c')).toContain('printf("%s\\n",');
+    expect(() => translator.fromMeta(main, 'python')).toThrow(
+      'C entry-point parameters require a mapping for python'
+    );
+  });
+
+  it('keeps an assignment to argc as a binding update', () => {
+    const input = `int main(int count, char **args) {
+      count = 3;
+      return count;
+    }`;
+    const tree = translator.toMeta(input, 'cpp');
+    expect(tree.main.statements[0].kind).toBe('Assignment');
+    expect(translator.fromMeta(tree, 'cpp')).toContain('    count = 3;');
+    const unused = 'int main(int count, char **args) { return 0; }';
+    expect(translator.toMeta(unused, 'cpp').mainParameters).toBe(undefined);
+  });
+});
+
 describe('grammar translator: the issue example', () => {
   it('retains literal C headers needed by native calls in C output', () => {
     const source = `# include <stdio.h>  // byte input
