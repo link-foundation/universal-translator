@@ -172,6 +172,29 @@ int main() {
     observed: 'lower == "abcdefghijklmnopqrstuvwxyz"',
     assertions: 0,
   },
+  {
+    title: 'Find if a point is within a triangle',
+    revid: 418364,
+    sourceSha256:
+      'ef64182697630e7a71219b705645efe90ce96a92944b3ae17c3e7a020972ea96',
+    stdout: [
+      'Triangle is [(1.5, 2.4), (5.1, -3.1), (-3.8, 1.2)]',
+      'Point (0, 0) is within triangle? true',
+      'Triangle is [(1.5, 2.4), (5.1, -3.1), (-3.8, 1.2)]',
+      'Point (0, 1) is within triangle? true',
+      'Triangle is [(1.5, 2.4), (5.1, -3.1), (-3.8, 1.2)]',
+      'Point (3, 1) is within triangle? false',
+      '',
+      'Triangle is [(0.1, 0.111111), (12.5, 33.3333), (25, 11.1111)]',
+      'Point (5.41429, 14.3492) is within triangle? true',
+      '',
+      'Triangle is [(0.1, 0.111111), (12.5, 33.3333), (-12.5, 16.6667)]',
+      'Point (5.41429, 14.3492) is within triangle? true',
+      '',
+      '',
+    ].join('\n'),
+    assertions: 0,
+  },
 ];
 const cli = fileURLToPath(
   new URL('../bin/universal-translator.js', import.meta.url)
