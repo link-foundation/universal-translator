@@ -195,6 +195,15 @@ int main() {
     ].join('\n'),
     assertions: 0,
   },
+  {
+    title: 'Binary digits',
+    revid: 419726,
+    sourceSha256:
+      '138fe979e400ca4c9f446db1aa20ac663820631cd01bed2b700d3a345445f798',
+    stdout: '0\n101\n110010\n10001100101000\n',
+    observed: 'static_cast<void (*)(unsigned int)>(&print_bin) != nullptr',
+    assertions: 0,
+  },
 ];
 const cli = fileURLToPath(
   new URL('../bin/universal-translator.js', import.meta.url)
