@@ -8,7 +8,7 @@ use crate::meta::{GrammarError, Node, name, rewrite, text};
 
 pub(super) struct Sql;
 
-// In SQLite, NOT binds below comparisons and BETWEEN and above AND,
+// In SQLite, NOT binds below comparisons, BETWEEN and IN and above AND,
 // including when it begins the right operand of another operation.
 const OPERATORS: &[(&str, &str, usize)] = &[
     ("or", "or", 1),
@@ -43,6 +43,31 @@ fn real_expression(part: &Node) -> bool {
                 || part.node("right").is_some_and(real_expression)))
 }
 
+fn in_choices(p: &mut Parser) -> Parsed {
+    p.expect("(")?;
+    let mut choices = Vec::new();
+    if !p.accept(")") {
+        loop {
+            choices.push(expression(p, 0)?);
+            if !p.accept(",") {
+                break;
+            }
+        }
+        p.expect(")")?;
+    }
+    Ok(Node::new("ArrayLiteral").with("elements", choices))
+}
+
+fn negate_if(value: Node, negated: bool) -> Node {
+    if negated {
+        Node::new("SqlUnary")
+            .with("operator", "not")
+            .with("operand", value)
+    } else {
+        value
+    }
+}
+
 fn expression(p: &mut Parser, minimum: usize) -> Parsed {
     let mut left = if p.accept("not") {
         Node::new("SqlUnary")
@@ -63,7 +88,7 @@ fn expression(p: &mut Parser, minimum: usize) -> Parsed {
     };
     loop {
         if minimum <= 4 {
-            let negated = p.is("not") && p.is_at("between", 1);
+            let negated = p.is("not") && (p.is_at("between", 1) || p.is_at("in", 1));
             if negated {
                 p.position += 1;
             }
@@ -75,13 +100,14 @@ fn expression(p: &mut Parser, minimum: usize) -> Parsed {
                     .with("value", left)
                     .with("lower", lower)
                     .with("upper", upper);
-                left = if negated {
-                    Node::new("SqlUnary")
-                        .with("operator", "not")
-                        .with("operand", range)
-                } else {
-                    range
-                };
+                left = negate_if(range, negated);
+                continue;
+            }
+            if p.accept("in") {
+                let membership = Node::new("SqlIn")
+                    .with("value", left)
+                    .with("choices", in_choices(p)?);
+                left = negate_if(membership, negated);
                 continue;
             }
         }
@@ -364,6 +390,24 @@ impl EmitterDialect for Sql {
                     e.expression(field(expression, "value")?)?,
                     e.expression(field(expression, "lower")?)?,
                     e.expression(field(expression, "upper")?)?
+                ));
+            }
+            "SqlIn" => {
+                let choices = field(expression, "choices")?;
+                if !choices.is("ArrayLiteral") {
+                    return Err(GrammarError::new(
+                        "SQL IN requires a literal list of choices",
+                    ));
+                }
+                let values = choices
+                    .nodes("elements")
+                    .iter()
+                    .map(|choice| e.expression(choice))
+                    .collect::<Result<Vec<_>>>()?;
+                return Ok(format!(
+                    "({} IN ({}))",
+                    e.expression(field(expression, "value")?)?,
+                    values.join(", ")
                 ));
             }
             "SqlUnary" => {

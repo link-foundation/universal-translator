@@ -237,6 +237,31 @@ node examples/queries/verify-native.mjs ./target/debug/universal-translator
 Both commands pass with the respective JavaScript and Rust writers.
 [Native comparison log](logs/sql-between-native.txt)
 
+## SQL membership in explicit lists
+
+Both engines represent `IN (...)` as a subject and a list of scalar
+expressions. `NOT IN` negates that result with SQL's three-valued logic.
+A match returns 1. If no value matches, an unknown comparison yields NULL
+and a list of known mismatches yields 0. An empty list returns 0 without
+evaluating its subject, even when the subject would be NULL.
+[SQLite membership semantics](https://www.sqlite.org/lang_expr.html#the_in_and_not_in_operators)
+
+Generated code passes the subject and list entries as zero-argument callbacks.
+It evaluates the subject once for a nonempty list and stops at the first
+match. Both readers require the corresponding verified helper and recover
+the membership expression from those callbacks. The two earlier helper
+definitions still round trip.
+
+The native verifier above runs 116 nullable cases, including 17 membership
+comparisons, and eight additional scalar projections with instrumented
+functions. SQLite, Python, Node and C# agree on returned values and the
+recorded calls for both translation engines. The shape also round trips
+through SQL, Python, JavaScript, TypeScript, C# and all 71 natural grammars.
+To reproduce the prior failure, translate
+`SELECT age IN (1, NULL) FROM people;` from SQL to JavaScript at `fd01ade`.
+The reader reports `Expected "from" but found "in" (line 1)`.
+[Native membership verification](logs/sql-in-native.txt)
+
 ## Remaining work
 
 The verified nullable subset uses complete numeric/NULL input records and finite
@@ -249,7 +274,7 @@ used in the verified SQLite table. The range tests verify pure predicates in
 WHERE clauses and operand evaluation in scalar projections. Volatile functions
 in WHERE clauses can depend on the optimizer's evaluation order.
 
-Joins, grouping, aggregation, ordering, named result columns, complete SQL
+Subquery membership, joins, grouping, aggregation, ordering, named result columns, complete SQL
 syntax, general object/record types, other target families, arbitrary natural
 questions and complete natural-language agreement remain unfinished. SQLite's
 [SELECT documentation](https://www.sqlite.org/lang_select.html) provides the basis

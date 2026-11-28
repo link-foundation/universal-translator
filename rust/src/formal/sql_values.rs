@@ -16,20 +16,30 @@ static BETWEEN_METHODS: LazyLock<HashMap<String, String>> = LazyLock::new(|| {
         .expect("SQL range runtime data")
 });
 
-fn extended_runtime(id: &str, base: &str) -> String {
+static IN_METHODS: LazyLock<HashMap<String, String>> = LazyLock::new(|| {
+    serde_json::from_str(include_str!("../../../data/runtime/sql-in.json"))
+        .expect("SQL membership runtime data")
+});
+
+fn extended_runtime(id: &str, base: &str, membership: bool) -> String {
     let header_end = base.find('\n').expect("SQL runtime class header") + 1;
     let (header, body) = base.split_at(header_end);
-    format!("{header}{}{body}", BETWEEN_METHODS[id])
+    let in_method = if membership { &IN_METHODS[id] } else { "" };
+    format!("{header}{}{in_method}{body}", BETWEEN_METHODS[id])
 }
 
-pub(crate) fn prepare_source(source: &str, syntax: &Syntax) -> (LibrarySource, Vec<String>) {
+pub(crate) fn prepare_source(
+    source: &str,
+    syntax: &Syntax,
+) -> (LibrarySource, Vec<String>, Vec<String>) {
     let mut library = LibrarySource {
         bindings: vec![],
         definitions: vec![],
     };
     let mut between_bindings = vec![];
+    let mut in_bindings = vec![];
     let Some(runtime) = RUNTIMES.get(syntax.id) else {
-        return (library, between_bindings);
+        return (library, between_bindings, in_bindings);
     };
     let prefix = if syntax.id == "csharp" {
         "static class UtSqlValue"
@@ -49,27 +59,49 @@ pub(crate) fn prepare_source(source: &str, syntax: &Syntax) -> (LibrarySource, V
         {
             continue;
         }
-        let extended_end = library_end(
-            source,
-            start,
-            &extended_runtime(syntax.id, runtime).replace("$SQL$", binding),
-            syntax,
-        );
-        let Some(end) = extended_end
-            .or_else(|| library_end(source, start, &runtime.replace("$SQL$", binding), syntax))
-        else {
+        let match_end = |definition: &str| {
+            library_end(source, start, &definition.replace("$SQL$", binding), syntax)
+        };
+        let membership_end = match_end(&extended_runtime(syntax.id, runtime, true));
+        let extended_end =
+            membership_end.or_else(|| match_end(&extended_runtime(syntax.id, runtime, false)));
+        let Some(end) = extended_end.or_else(|| match_end(runtime)) else {
             continue;
         };
         library.bindings.push(binding.into());
         if extended_end.is_some() {
             between_bindings.push(binding.into());
         }
+        if membership_end.is_some() {
+            in_bindings.push(binding.into());
+        }
         library.definitions.push((start, end));
     }
-    (library, between_bindings)
+    (library, between_bindings, in_bindings)
 }
 
-fn method_node(call: Node, bindings: &HashSet<String>, between_bindings: &HashSet<String>) -> Node {
+fn membership_node(args: &[&Node]) -> Option<Node> {
+    let mut operands = args.iter().map(|argument| {
+        if argument.is("Lambda") && argument.texts("parameters").is_empty() {
+            argument.node("body").cloned()
+        } else {
+            None
+        }
+    });
+    let value = operands.next()??;
+    let choices = operands.collect::<Option<Vec<_>>>()?;
+    Some(Node::new("SqlIn").with("value", value).with(
+        "choices",
+        Node::new("ArrayLiteral").with("elements", choices),
+    ))
+}
+
+fn method_node(
+    call: Node,
+    bindings: &HashSet<String>,
+    between_bindings: &HashSet<String>,
+    in_bindings: &HashSet<String>,
+) -> Node {
     if !call.is("Call") {
         return call;
     }
@@ -89,6 +121,7 @@ fn method_node(call: Node, bindings: &HashSet<String>, between_bindings: &HashSe
                 .with("lower", (*lower).clone())
                 .with("upper", (*upper).clone()),
         ),
+        ("inValues", args) if in_bindings.contains(receiver) => membership_node(args),
         ("unary", [operator, operand])
             if operator.is("Text") && operator.str("value").is_some_and(sql_values::unary) =>
         {
@@ -124,6 +157,7 @@ pub(crate) fn validate_bindings(program: &Node) -> Result<()> {
         return Ok(());
     }
     let between_bindings = program.texts("sqlBetweenBindings").into_iter().collect();
+    let in_bindings = program.texts("sqlInBindings").into_iter().collect();
     let mut invalid = bindings.len() != count;
     walk(program, |current| {
         if [
@@ -172,7 +206,7 @@ pub(crate) fn validate_bindings(program: &Node) -> Result<()> {
             && current
                 .str("callee")
                 .is_some_and(|c| bindings.contains(c.split('.').next().unwrap_or_default()))
-            && method_node(current.clone(), &bindings, &between_bindings).is("Call")
+            && method_node(current.clone(), &bindings, &between_bindings, &in_bindings).is("Call")
         {
             invalid = true;
         }
@@ -192,8 +226,10 @@ pub(crate) fn recognize(mut program: Node, _: &Settings) -> Node {
         return program;
     }
     let between_bindings = program.texts("sqlBetweenBindings").into_iter().collect();
+    let in_bindings = program.texts("sqlInBindings").into_iter().collect();
     program.remove("sqlValueBindings");
     program.remove("sqlBetweenBindings");
+    program.remove("sqlInBindings");
     walk(&program, |current| {
         if [
             "Declaration",
@@ -222,7 +258,7 @@ pub(crate) fn recognize(mut program: Node, _: &Settings) -> Node {
         }
     });
     super::query_writer::merge_pure_queries(rewrite(program, |current| {
-        method_node(current, &bindings, &between_bindings)
+        method_node(current, &bindings, &between_bindings, &in_bindings)
     }))
 }
 
@@ -274,6 +310,25 @@ fn operand(e: &mut Emitter, value: &Node) -> Result<String> {
     }
 }
 
+fn in_arguments(e: &mut Emitter, expression: &Node) -> Result<Vec<String>> {
+    let choices = field(expression, "choices")?;
+    if !choices.is("ArrayLiteral") {
+        return Err(GrammarError::new(
+            "SQL IN requires a literal list of choices",
+        ));
+    }
+    e.uses.insert("sql-in");
+    let thunk = if e.id() == "python" {
+        "lambda:"
+    } else {
+        "() =>"
+    };
+    std::iter::once(field(expression, "value")?)
+        .chain(choices.nodes("elements"))
+        .map(|value| Ok(format!("{thunk} {}", operand(e, value)?)))
+        .collect()
+}
+
 pub(crate) fn expression(e: &mut Emitter, expression: &Node) -> Result<String> {
     if !RUNTIMES.contains_key(e.id()) {
         return Err(GrammarError::new(format!(
@@ -299,6 +354,7 @@ pub(crate) fn expression(e: &mut Emitter, expression: &Node) -> Result<String> {
                 operand(e, field(expression, "upper")?)?,
             ],
         ),
+        "SqlIn" => ("inValues", in_arguments(e, expression)?),
         "SqlUnary" if sql_values::unary(operator) => (
             "unary",
             vec![
@@ -328,7 +384,7 @@ pub(crate) fn prelude(e: &Emitter, lines: &mut Vec<String>) {
         && let Some(runtime) = RUNTIMES.get(e.id())
     {
         lines.extend(
-            extended_runtime(e.id(), runtime)
+            extended_runtime(e.id(), runtime, e.uses.contains("sql-in"))
                 .replace("$SQL$", &e.sql_value_name)
                 .trim_end()
                 .lines()

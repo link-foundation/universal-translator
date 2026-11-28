@@ -2,7 +2,7 @@
 use super::catalog::Language;
 use crate::meta::{Node, number};
 
-pub(super) const KEYS: [&str; 10] = [
+pub(super) const KEYS: [&str; 11] = [
     "process-arguments",
     "objpak-string-set",
     "set-insert",
@@ -11,6 +11,7 @@ pub(super) const KEYS: [&str; 10] = [
     "sql-null",
     "sql-binary",
     "sql-between",
+    "sql-in",
     "sql-unary",
     "sql-truth",
 ];
@@ -25,6 +26,7 @@ pub(super) fn derive(language: &mut Language) {
         ("sql-null", vec![]),
         ("sql-binary", vec!["operator", "left", "right"]),
         ("sql-between", vec!["value", "lower", "upper"]),
+        ("sql-in", vec!["value", "choices"]),
         ("sql-unary", vec!["operator", "operand"]),
         ("sql-truth", vec!["operand"]),
     ] {
@@ -68,6 +70,10 @@ pub(super) fn phrase(expression: &Node) -> Result<Option<Phrase>, String> {
                 ("lower", child("lower")?),
                 ("upper", child("upper")?),
             ],
+        ),
+        "SqlIn" => (
+            "sql-in",
+            vec![("value", child("value")?), ("choices", child("choices")?)],
         ),
         "SqlUnary" => (
             "sql-unary",

@@ -316,5 +316,60 @@
   {
     "projection": "age BETWEEN 0 AND 2",
     "condition": "NOT age BETWEEN -1 AND 2 OR age IS NULL"
+  },
+  {
+    "projection": "age In (1, 2, 18)"
+  },
+  {
+    "projection": "age NOT IN (1, 2, 18)"
+  },
+  {
+    "projection": "age IN (NULL, 1, 18)"
+  },
+  {
+    "projection": "age NOT IN (NULL, 1, 18)"
+  },
+  {
+    "projection": "NULL IN (1, 2)"
+  },
+  {
+    "projection": "NULL IN (NULL)"
+  },
+  {
+    "projection": "age IN ()"
+  },
+  {
+    "projection": "age NOT IN ()"
+  },
+  {
+    "projection": "age + 1 IN (-1.0, 2.0)"
+  },
+  {
+    "projection": "NOT age IN (0, 18) = 1"
+  },
+  {
+    "projection": "age BETWEEN 0 AND 3 IN (1)"
+  },
+  {
+    "projection": "age IN (0, age IN (18), NULL)"
+  },
+  {
+    "projection": "age IN (\n-1,\n 2, NULL\n)"
+  },
+  {
+    "projection": "age",
+    "condition": "age IN (1, 2, 18)"
+  },
+  {
+    "projection": "age",
+    "condition": "age NOT IN (1, 2, NULL)"
+  },
+  {
+    "projection": "age",
+    "condition": "age IN () OR age IS NULL"
+  },
+  {
+    "projection": "age",
+    "condition": "age NOT IN () AND age IS NULL"
   }
 ]

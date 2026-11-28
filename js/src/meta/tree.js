@@ -37,6 +37,7 @@
 //   SqlBinary      { operator, left, right }   NULL-propagating SQL operation
 //   SqlUnary       { operator, operand }      NULL-propagating SQL operation
 //   SqlBetween     { value, lower, upper }    inclusive SQL range, one value evaluation
+//   SqlIn          { value, choices }         SQL membership over a literal expression list
 //   SqlTruth       { operand }           SQL WHERE retains only true rows
 //   Call           { callee, arguments }
 //   Question       { aspect: type | documentation | source | details, subject }

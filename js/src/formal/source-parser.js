@@ -26,6 +26,9 @@ export function parseSource(source, syntax, LanguageParser) {
   if (sqlLibrary.betweenBindings.length) {
     tree.sqlBetweenBindings = sqlLibrary.betweenBindings;
   }
+  if (sqlLibrary.inBindings.length) {
+    tree.sqlInBindings = sqlLibrary.inBindings;
+  }
   registerOrigins(tree, locations, source);
   const concreteTokens = tokens.filter(
     ({ rawSpan }) =>

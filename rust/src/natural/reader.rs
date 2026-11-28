@@ -567,6 +567,15 @@ fn collection_node(key: &str, mut slots: Captured) -> Option<Node> {
             .with("value", expression_slot(&mut slots, "value")?)
             .with("lower", expression_slot(&mut slots, "lower")?)
             .with("upper", expression_slot(&mut slots, "upper")?),
+        "sql-in" => {
+            let choices = expression_slot(&mut slots, "choices")?;
+            if !choices.is("ArrayLiteral") {
+                return None;
+            }
+            Node::new("SqlIn")
+                .with("value", expression_slot(&mut slots, "value")?)
+                .with("choices", choices)
+        }
         "sql-unary" => {
             let operator = expression_slot(&mut slots, "operator")?;
             if !operator.is("Text") || !crate::meta::sql_values::unary(operator.str("value")?) {

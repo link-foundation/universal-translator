@@ -6,18 +6,25 @@ import { mergePureQueries } from './query-parser.js';
 import { libraryEnd, topLevel } from './objpak-reader.js';
 import runtimes from '../../../data/runtime/sql-values.json' with { type: 'json' };
 import betweenMethods from '../../../data/runtime/sql-between.json' with { type: 'json' };
+import inMethods from '../../../data/runtime/sql-in.json' with { type: 'json' };
 import { sqlBinaryOperators, sqlUnaryOperators } from '../meta/sql-values.js';
 
-function extendedRuntime(id) {
+function extendedRuntime(id, membership) {
   const base = runtimes[id];
   const headerEnd = base.indexOf('\n') + 1;
-  return base.slice(0, headerEnd) + betweenMethods[id] + base.slice(headerEnd);
+  return (
+    base.slice(0, headerEnd) +
+    betweenMethods[id] +
+    (membership ? inMethods[id] : '') +
+    base.slice(headerEnd)
+  );
 }
 
 export function sqlValueSource(source, syntax) {
   const runtime = runtimes[syntax.id];
   const bindings = [];
   const betweenBindings = [];
+  const inBindings = [];
   const definitions = [];
   let masked = source;
   if (runtime) {
@@ -29,26 +36,26 @@ export function sqlValueSource(source, syntax) {
       if (!topLevel(source, match.index, syntax)) {
         continue;
       }
-      const extendedEnd = libraryEnd(
-        source,
-        match.index,
-        extendedRuntime(syntax.id).replaceAll('$SQL$', match[1]),
-        syntax
-      );
-      const end =
-        extendedEnd ??
+      const matchEnd = (definition) =>
         libraryEnd(
           source,
           match.index,
-          runtime.replaceAll('$SQL$', match[1]),
+          definition.replaceAll('$SQL$', match[1]),
           syntax
         );
+      const membershipEnd = matchEnd(extendedRuntime(syntax.id, true));
+      const extendedEnd =
+        membershipEnd ?? matchEnd(extendedRuntime(syntax.id, false));
+      const end = extendedEnd ?? matchEnd(runtime);
       if (end === undefined) {
         continue;
       }
       bindings.push(match[1]);
       if (extendedEnd !== undefined) {
         betweenBindings.push(match[1]);
+      }
+      if (membershipEnd !== undefined) {
+        inBindings.push(match[1]);
       }
       definitions.push([match.index, end]);
       masked =
@@ -59,10 +66,10 @@ export function sqlValueSource(source, syntax) {
         masked.slice(end);
     }
   }
-  return { source: masked, bindings, betweenBindings, definitions };
+  return { source: masked, bindings, betweenBindings, inBindings, definitions };
 }
 
-function methodNode(call, bindings, betweenBindings) {
+function methodNode(call, { bindings, betweenBindings, inBindings }) {
   if (call.kind !== 'Call') {
     return call;
   }
@@ -86,6 +93,23 @@ function methodNode(call, bindings, betweenBindings) {
   ) {
     const [value, lower, upper] = args;
     return node('SqlBetween', { value, lower, upper });
+  }
+  if (
+    method === 'inValues' &&
+    inBindings.has(receiver) &&
+    args.length > 0 &&
+    args.every(
+      (argument) =>
+        argument.kind === 'Lambda' &&
+        argument.parameters.length === 0 &&
+        argument.body
+    )
+  ) {
+    const [value, ...elements] = args.map((argument) => argument.body);
+    return node('SqlIn', {
+      value,
+      choices: node('ArrayLiteral', { elements }),
+    });
   }
   return sqlOperatorNode(method, args) ?? call;
 }
@@ -115,12 +139,21 @@ function sqlOperatorNode(method, [label, ...operands]) {
 
 // A shadowed or reassigned class has no verified library contract.
 export function recognizeSqlValues(program) {
-  const { sqlValueBindings = [], sqlBetweenBindings = [], ...rest } = program;
+  const {
+    sqlValueBindings = [],
+    sqlBetweenBindings = [],
+    sqlInBindings = [],
+    ...rest
+  } = program;
   if (!sqlValueBindings.length) {
     return program;
   }
   const bindings = new Set(sqlValueBindings);
-  const betweenBindings = new Set(sqlBetweenBindings);
+  const contracts = {
+    bindings,
+    betweenBindings: new Set(sqlBetweenBindings),
+    inBindings: new Set(sqlInBindings),
+  };
   walk(rest, (current) => {
     if (
       ['Declaration', 'Assignment', 'Function', 'Parameter', 'Catch'].includes(
@@ -149,7 +182,7 @@ export function recognizeSqlValues(program) {
   }
   return mergePureQueries(
     rewrite(rest, (current) => {
-      const result = methodNode(current, bindings, betweenBindings);
+      const result = methodNode(current, contracts);
       if (
         current.kind === 'Call' &&
         bindings.has(current.callee.split('.')[0]) &&
@@ -198,11 +231,27 @@ export const withSqlValueWriter = (Base) =>
         : this.expression(expression);
     }
 
+    sqlInArguments({ value, choices }) {
+      if (choices.kind !== 'ArrayLiteral') {
+        throw new Error('SQL IN requires a literal list of choices');
+      }
+      this.uses.add('sql-in');
+      const thunk = this.id === 'python' ? 'lambda:' : '() =>';
+      return [value, ...choices.elements].map(
+        (operand) => `${thunk} ${this.sqlOperand(operand)}`
+      );
+    }
+
     expression(expression, parent = 0) {
       if (
-        !['Null', 'SqlBinary', 'SqlUnary', 'SqlTruth', 'SqlBetween'].includes(
-          expression.kind
-        ) ||
+        ![
+          'Null',
+          'SqlBinary',
+          'SqlUnary',
+          'SqlTruth',
+          'SqlBetween',
+          'SqlIn',
+        ].includes(expression.kind) ||
         this.id === 'sql'
       ) {
         return super.expression(expression, parent);
@@ -230,6 +279,10 @@ export const withSqlValueWriter = (Base) =>
           args = [expression.value, expression.lower, expression.upper].map(
             (operand) => this.sqlOperand(operand)
           );
+          break;
+        case 'SqlIn':
+          method = 'inValues';
+          args = this.sqlInArguments(expression);
           break;
         case 'SqlUnary':
           if (!sqlUnaryOperators.has(expression.operator)) {
@@ -263,7 +316,7 @@ export const withSqlValueWriter = (Base) =>
       const lines = super.prelude(program);
       if (this.uses.has('sql-values')) {
         lines.push(
-          ...extendedRuntime(this.id)
+          ...extendedRuntime(this.id, this.uses.has('sql-in'))
             .replaceAll('$SQL$', this.sqlValueName)
             .trimEnd()
             .split('\n'),

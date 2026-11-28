@@ -4,7 +4,7 @@ import { inheritOrigin } from '../../translation/source-origins.js';
 import { asciiLowercase, SyntaxError } from '../lexer.js';
 import { query } from '../query-parser.js';
 
-// In SQLite, NOT binds below comparisons and BETWEEN and above AND. A
+// In SQLite, NOT binds below comparisons, BETWEEN and IN and above AND. A
 // prefix can also occur on a binary operand, so it has its own binding power.
 const operators = {
   or: ['or', 1],
@@ -86,6 +86,34 @@ function readBetween(parser, value, minimum) {
     : range;
 }
 
+function readIn(parser, value, minimum) {
+  if (minimum > 4) {
+    return undefined;
+  }
+  const negated = parser.is('not') && parser.is('in', 1);
+  if (negated) {
+    parser.next();
+  }
+  if (!parser.accept('in')) {
+    return undefined;
+  }
+  parser.expect('(');
+  const elements = [];
+  if (!parser.accept(')')) {
+    do {
+      elements.push(sqlExpression(parser));
+    } while (parser.accept(','));
+    parser.expect(')');
+  }
+  const membership = node('SqlIn', {
+    value,
+    choices: node('ArrayLiteral', { elements }),
+  });
+  return negated
+    ? node('SqlUnary', { operator: 'not', operand: membership })
+    : membership;
+}
+
 function sqlExpression(parser, minimum = 0) {
   let left;
   if (parser.accept('not')) {
@@ -103,9 +131,10 @@ function sqlExpression(parser, minimum = 0) {
     left = parser.postfix();
   }
   while (true) {
-    const range = readBetween(parser, left, minimum);
-    if (range) {
-      left = range;
+    const predicate =
+      readBetween(parser, left, minimum) ?? readIn(parser, left, minimum);
+    if (predicate) {
+      left = predicate;
       continue;
     }
     if (minimum <= 4 && parser.accept('is')) {
@@ -208,6 +237,14 @@ function sqlValueText(emitter, expression, binary) {
   if (expression.kind === 'SqlBetween') {
     const { value, lower, upper } = expression;
     return `(${emitter.expression(value)} BETWEEN ${emitter.expression(lower)} AND ${emitter.expression(upper)})`;
+  }
+  if (expression.kind === 'SqlIn') {
+    const { value, choices } = expression;
+    if (choices.kind !== 'ArrayLiteral') {
+      throw new Error('SQL IN requires a literal list of choices');
+    }
+    const values = choices.elements.map((choice) => emitter.expression(choice));
+    return `(${emitter.expression(value)} IN (${values.join(', ')}))`;
   }
   if (expression.kind === 'SqlUnary') {
     const operand = emitter.expression(expression.operand);

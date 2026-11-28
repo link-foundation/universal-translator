@@ -57,6 +57,7 @@ function pure(expression) {
         'SqlUnary',
         'SqlTruth',
         'SqlBetween',
+        'SqlIn',
       ].includes(current.kind)
     ) {
       result = false;
@@ -225,6 +226,19 @@ export const withQueryParser = (Base) =>
     }
 
     expression() {
+      if (this.syntax.id === 'python' && this.is('lambda') && this.is(':', 1)) {
+        this.position += 2;
+        return node('Lambda', { parameters: [], body: this.expression() });
+      }
+      if (
+        ['javascript', 'typescript', 'csharp'].includes(this.syntax.id) &&
+        this.is('(') &&
+        this.is(')', 1) &&
+        this.is('=>', 2)
+      ) {
+        this.position += 3;
+        return node('Lambda', { parameters: [], body: this.expression() });
+      }
       if (['javascript', 'typescript'].includes(this.syntax.id)) {
         if (this.peek().type === 'name' && this.is('=>', 1)) {
           const parameter = this.next().value;

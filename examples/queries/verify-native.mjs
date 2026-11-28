@@ -7,7 +7,10 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createTranslator } from '../../js/src/index.js';
-import { nativeExpression } from './native-expression.mjs';
+import {
+  nativeExpression,
+  nativeJavaScriptBatch,
+} from './native-expression.mjs';
 import nullableCases from './nullable.json' with { type: 'json' };
 import negationPredicates from './negation.json' with { type: 'json' };
 import projectedRows from './projected-rows.json' with { type: 'json' };
@@ -181,12 +184,106 @@ const nullableResults = JSON.parse(
 const nullableJavascript = JSON.parse(
   run('node', [
     '-e',
-    `${[...new Set(nullable.map((c) => c.javascript.prefix))].join('\n')}\nconst nullablepeople=${JSON.stringify(nullablepeople)}; console.log(JSON.stringify([${nullable.map((c) => c.javascript.expression).join(',')}]));`,
+    `const nullablepeople = ${JSON.stringify(nullablepeople)};\n${nativeJavaScriptBatch(nullable.map((c) => c.javascript))}`,
   ])
 );
 for (const [index, [sqlite, python]] of nullableResults.entries()) {
   assert.deepEqual(python, sqlite, nullable[index].sql);
   assert.deepEqual(nullableJavascript[index], sqlite, nullable[index].sql);
+}
+
+const membershipFunctions = {
+  sample: 1,
+  one: 1,
+  two: 2,
+  tail: 3,
+  missing: null,
+};
+const membership = [
+  ['sample() IN (one(), two(), tail())', [1], ['sample', 'one']],
+  ['sample() IN (missing(), one(), tail())', [1], ['sample', 'missing', 'one']],
+  [
+    'sample() IN (two(), missing(), tail())',
+    [null],
+    ['sample', 'two', 'missing', 'tail'],
+  ],
+  ['sample() NOT IN (two(), tail())', [1], ['sample', 'two', 'tail']],
+  [
+    'missing() IN (one(), two(), tail())',
+    [null],
+    ['missing', 'one', 'two', 'tail'],
+  ],
+  ['sample() IN ()', [0], []],
+  ['sample() NOT IN ()', [1], []],
+  ['sample() IN (2, 1, tail())', [1], ['sample']],
+].map(([predicate, rows, calls]) => {
+  const sql = `SELECT ${predicate} FROM people;`;
+  return {
+    sql,
+    expected: [rows, calls],
+    python: nativeExpression(translator.translate(sql, 'sql', 'python')),
+    javascript: nativeExpression(
+      translator.translate(sql, 'sql', 'javascript')
+    ),
+  };
+});
+const membershipResults = JSON.parse(
+  run(
+    'python3',
+    [
+      '-c',
+      [
+        'import json, sqlite3, sys',
+        'data = json.load(sys.stdin)',
+        'db = sqlite3.connect(":memory:")',
+        'db.execute("CREATE TABLE people(id)")',
+        'db.execute("INSERT INTO people VALUES (0)")',
+        'people, calls, results = [0], [], []',
+        'for name, value in data["functions"].items():',
+        '    function = lambda n=name, v=value: calls.append(n) or v',
+        '    globals()[name] = function',
+        '    db.create_function(name, 0, function)',
+        'for case in data["cases"]:',
+        '    sqlite = [[row[0] for row in db.execute(case["sql"])], calls.copy()]',
+        '    calls.clear()',
+        '    exec(case["python"]["prefix"])',
+        '    python = [eval(case["python"]["expression"]), calls.copy()]',
+        '    calls.clear()',
+        '    results.append([sqlite, python])',
+        'print(json.dumps(results))',
+      ].join('\n'),
+    ],
+    {
+      input: JSON.stringify({
+        functions: membershipFunctions,
+        cases: membership,
+      }),
+    }
+  )
+);
+const membershipJavascript = JSON.parse(
+  run('node', [
+    '-e',
+    [
+      'const people = [0], calls = [];',
+      ...Object.entries(membershipFunctions).map(
+        ([name, value]) =>
+          `function ${name}() { calls.push("${name}"); return ${JSON.stringify(value)}; }`
+      ),
+      nativeJavaScriptBatch(
+        membership.map(({ javascript: { prefix, expression } }) => ({
+          prefix,
+          expression: `[${expression}, calls.splice(0)]`,
+        }))
+      ),
+    ].join('\n'),
+  ])
+);
+for (const [index, [sqlite, python]] of membershipResults.entries()) {
+  const { sql, expected } = membership[index];
+  assert.deepEqual(sqlite, expected, sql);
+  assert.deepEqual(python, sqlite, sql);
+  assert.deepEqual(membershipJavascript[index], sqlite, sql);
 }
 
 const folder = mkdtempSync(join(tmpdir(), 'universal-query-'));
@@ -205,7 +302,7 @@ try {
     'python'
   );
   const runtime = translator
-    .translate(sql, 'sql', 'csharp')
+    .translate('SELECT 0 IN () FROM people;', 'sql', 'csharp')
     .split('class Program')[0]
     .split('\n')
     .filter((line) => !line.startsWith('using '))
@@ -238,6 +335,10 @@ try {
         `new Dictionary<string,object> { ["name"] = ${JSON.stringify(name)}, ["age"] = ${age}, ["grade"] = ${grade} }`
     )
     .join(', ');
+  const recordMembership = membership.map(
+    (test) =>
+      `Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(new object[] { ${queryLine(test.sql.replace('FROM people', 'FROM effectpeople'), 'sql')}, calls.ToArray() })); calls.Clear();`
+  );
   writeFileSync(
     join(folder, 'Query.csproj'),
     `<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net${sdk}.0</TargetFramework><DebugType>None</DebugType><UseSharedCompilation>false</UseSharedCompilation></PropertyGroup></Project>`
@@ -268,6 +369,15 @@ try {
     ${nullable.map((c) => `Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(${queryLine(c.sql, 'sql')}));`).join('\n    ')}
     var projectionpeople = new[] { ${projectedPeople} };
     Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(${projectedLine}));
+    var effectpeople = new int[] { 0 };
+    var calls = new List<string>();
+    ${Object.entries(membershipFunctions)
+      .map(
+        ([name, value]) =>
+          `object ${name}() { calls.Add("${name}"); return ${JSON.stringify(value)}; }`
+      )
+      .join('\n    ')}
+    ${recordMembership.join('\n    ')}
 `
       )} `
   );
@@ -299,16 +409,25 @@ try {
       ...negationResults.map(([sqlite]) => sqlite.join(',')),
     ]
   );
+  const nullableStart = 8 + negationCases.length;
+  const projectionIndex = nullableStart + nullable.length;
   assert.deepEqual(
-    lines.slice(8 + negationCases.length, -1).map((line) => JSON.parse(line)),
+    lines.slice(nullableStart, projectionIndex).map((line) => JSON.parse(line)),
     nullableResults.map(([sqlite]) => sqlite)
   );
-  assert.deepEqual(JSON.parse(lines.at(-1)), projectedRows.rows);
+  assert.deepEqual(JSON.parse(lines[projectionIndex]), projectedRows.rows);
+  assert.deepEqual(
+    lines.slice(projectionIndex + 1).map((line) => JSON.parse(line)),
+    membership.map(({ expected }) => expected)
+  );
   console.log(
     'PASS mixed SQL projection fields across SQLite, Python, Node and C#'
   );
   console.log(
     `PASS ${nullable.length} nullable SQL value/WHERE cases across SQLite, Python, Node and C#`
+  );
+  console.log(
+    `PASS ${membership.length} SQL IN operand call traces across SQLite, Python, Node and C#`
   );
   console.log('PASS SQLite, Python, Node and C# filtered projections: [19,43]');
   console.log(

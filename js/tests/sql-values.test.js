@@ -11,9 +11,13 @@ import { emitProgram } from '../src/formal/emitter.js';
 import { objpakRuntime } from '../src/formal/objpak-runtime.js';
 import { parseProgram } from '../src/formal/parser.js';
 import { languageSyntax } from '../src/formal/languages.js';
-import { nativeExpression } from '../../examples/queries/native-expression.mjs';
+import {
+  nativeExpression,
+  nativeJavaScriptBatch,
+} from '../../examples/queries/native-expression.mjs';
 import cases from '../../examples/queries/nullable.json' with { type: 'json' };
 import betweenMethods from '../../data/runtime/sql-between.json' with { type: 'json' };
+import inMethods from '../../data/runtime/sql-in.json' with { type: 'json' };
 
 const translator = createTranslator();
 const selection = ({ projection, condition }) =>
@@ -91,7 +95,7 @@ describe('nullable SQL values', () => {
         'node',
         [
           '-e',
-          `${[...new Set(programs.map((p) => p.javascript.prefix))].join('\n')}\nconst people=${JSON.stringify(people)}; console.log(JSON.stringify([${programs.map((p) => p.javascript.expression).join(',')}]));`,
+          `const people = ${JSON.stringify(people)};\n${nativeJavaScriptBatch(programs.map((p) => p.javascript))}`,
         ],
         { encoding: 'utf8', maxBuffer: 1024 * 1024 }
       )
@@ -228,6 +232,57 @@ describe('SQL value helper versions', () => {
         ),
       /SQL value library/u
     );
+  });
+});
+
+describe('literal SQL membership', () => {
+  it('retains nonempty and empty choices in every controlled grammar', () => {
+    const meta = translator.toMeta(
+      'SELECT age IN (NULL, 18) FROM people WHERE age NOT IN ();',
+      'sql'
+    );
+    const projection = meta.main.statements[0].expression.projection;
+    assert.equal(projection.kind, 'SqlIn');
+    assert.equal(projection.type, 'object');
+    assert.deepEqual(
+      projection.choices.elements.map(({ kind }) => kind),
+      ['Null', 'Number']
+    );
+    for (const language of naturalLanguageIds()) {
+      const written = translator.fromMeta(meta, language);
+      assert.ok(
+        sameMeaning(meta, translator.toMeta(written, language)),
+        `${language}: ${written}`
+      );
+    }
+  });
+
+  it('requires a verified membership helper and nullary operands', () => {
+    const meta = translator.toMeta('SELECT 1 IN (2) FROM people;', 'sql');
+    for (const language of ['python', 'javascript', 'typescript', 'csharp']) {
+      const written = translator.fromMeta(meta, language);
+      const method = inMethods[language].replaceAll('$SQL$', 'UtSqlValue');
+      const choice = language === 'python' ? 'lambda: 2' : '() => 2';
+      assert.ok(written.includes(method), language);
+      assert.ok(written.includes(choice), language);
+      for (const invalid of [
+        written.replace(method, ''),
+        written.replace(choice, '2'),
+      ]) {
+        assert.throws(
+          () => translator.toMeta(invalid, language),
+          /Unsupported SQL value library call/u
+        );
+      }
+    }
+  });
+
+  it('requires a comma-delimited list of scalar expressions', () => {
+    for (const input of ['people', '(1,)', '(SELECT age FROM people)']) {
+      assert.throws(() =>
+        translator.toMeta(`SELECT age IN ${input} FROM people;`, 'sql')
+      );
+    }
   });
 });
 

@@ -11,6 +11,7 @@ export const collectionKeys = [
   'sql-null',
   'sql-binary',
   'sql-between',
+  'sql-in',
   'sql-unary',
   'sql-truth',
 ];
@@ -23,6 +24,7 @@ const slots = {
   'sql-null': [],
   'sql-binary': ['operator', 'left', 'right'],
   'sql-between': ['value', 'lower', 'upper'],
+  'sql-in': ['value', 'choices'],
   'sql-unary': ['operator', 'operand'],
   'sql-truth': ['operand'],
 };
@@ -68,6 +70,10 @@ export function collectionNode(key, values) {
       return node('SqlTruth', values);
     case 'sql-between':
       return node('SqlBetween', values);
+    case 'sql-in':
+      return values.choices?.kind === 'ArrayLiteral'
+        ? node('SqlIn', values)
+        : undefined;
     case 'sql-binary':
     case 'sql-unary':
       return sqlOperation(key, values);
@@ -94,6 +100,10 @@ export function collectionPhrase(expression) {
     case 'SqlBetween': {
       const { value, lower, upper } = expression;
       return { key: 'sql-between', slots: { value, lower, upper } };
+    }
+    case 'SqlIn': {
+      const { value, choices } = expression;
+      return { key: 'sql-in', slots: { value, choices } };
     }
     case 'SqlUnary':
       return {

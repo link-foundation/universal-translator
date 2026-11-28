@@ -130,6 +130,83 @@ fn between_writers_use_each_scalar_operand_once() {
 }
 
 #[test]
+fn in_choices_round_trip_all_controlled_grammars() {
+    let t = Translator::new();
+    let meta = t
+        .to_meta(
+            "SELECT age IN (NULL, 18) FROM people WHERE age NOT IN ();",
+            "sql",
+        )
+        .unwrap();
+    let projection = meta.node("main").unwrap().nodes("statements")[0]
+        .node("expression")
+        .unwrap()
+        .node("projection")
+        .unwrap();
+    assert!(projection.is("SqlIn"));
+    assert_eq!(projection.str("type"), Some("object"));
+    let elements = projection.node("choices").unwrap().nodes("elements");
+    assert_eq!(
+        elements
+            .iter()
+            .map(|value| value.kind.as_str())
+            .collect::<Vec<_>>(),
+        ["Null", "Number"]
+    );
+    for language in natural_language_ids() {
+        let written = t
+            .from_meta(&meta, language, None, Mode::ContextDependent)
+            .unwrap();
+        assert!(
+            same_meaning(&meta, &t.to_meta(&written, language).unwrap()),
+            "{language}: {written}"
+        );
+    }
+}
+
+#[test]
+fn membership_helpers_require_a_verified_definition_and_nullary_operands() {
+    let t = Translator::new();
+    let methods: serde_json::Value =
+        serde_json::from_str(include_str!("../../data/runtime/sql-in.json")).unwrap();
+    let meta = t.to_meta("SELECT 1 IN (2) FROM people;", "sql").unwrap();
+    for language in ["python", "javascript", "typescript", "csharp"] {
+        let written = t
+            .from_meta(&meta, language, None, Mode::ContextDependent)
+            .unwrap();
+        let method = methods[language]
+            .as_str()
+            .unwrap()
+            .replace("$SQL$", "UtSqlValue");
+        let choice = if language == "python" {
+            "lambda: 2"
+        } else {
+            "() => 2"
+        };
+        assert!(
+            written.contains(&method) && written.contains(choice),
+            "{language}"
+        );
+        for invalid in [written.replace(&method, ""), written.replace(choice, "2")] {
+            let error = t.to_meta(&invalid, language).unwrap_err();
+            assert!(
+                error.to_string().contains("SQL value library"),
+                "{language}"
+            );
+        }
+    }
+}
+
+#[test]
+fn membership_requires_a_scalar_expression_list() {
+    let t = Translator::new();
+    for input in ["people", "(1,)", "(SELECT age FROM people)"] {
+        let sql = format!("SELECT age IN {input} FROM people;");
+        assert!(t.to_meta(&sql, "sql").is_err(), "{sql}");
+    }
+}
+
+#[test]
 fn legacy_sql_value_helpers_remain_readable_without_a_between_contract() {
     let t = Translator::new();
     let methods: serde_json::Value =

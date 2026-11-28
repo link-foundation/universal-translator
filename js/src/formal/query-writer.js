@@ -163,10 +163,21 @@ export const withQueryWriter = (Base) =>
         return writeQuery(this, expression);
       }
       if (expression.kind === 'Lambda') {
-        if (!['javascript', 'typescript'].includes(this.id)) {
-          throw new Error(`${this.syntax.label} has no lambda emitter`);
+        const parameters = expression.parameters
+          .map((parameter) => this.variable(parameter))
+          .join(', ');
+        if (['javascript', 'typescript'].includes(this.id)) {
+          return `(${parameters}) => ${this.expression(expression.body)}`;
         }
-        return `(${expression.parameters.map((p) => this.variable(p)).join(', ')}) => ${this.expression(expression.body)}`;
+        if (!parameters && this.id === 'csharp') {
+          return `() => ${this.expression(expression.body)}`;
+        }
+        if (!parameters && this.id === 'python') {
+          return `lambda: ${this.expression(expression.body)}`;
+        }
+        throw new Error(
+          `${this.syntax.label} has no lambda emitter for these parameters`
+        );
       }
       return super.expression(expression, parent);
     }

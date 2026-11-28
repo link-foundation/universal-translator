@@ -21,6 +21,7 @@ fn pure(expression: &Node) -> bool {
             "SqlUnary",
             "SqlTruth",
             "SqlBetween",
+            "SqlIn",
         ]
         .contains(&current.kind.as_str())
         {
@@ -277,20 +278,25 @@ pub(crate) fn write_query(e: &mut Emitter, expression: &Node) -> Result<String> 
 }
 
 pub(crate) fn write_lambda(e: &mut Emitter, expression: &Node) -> Result<String> {
-    if !["javascript", "typescript"].contains(&e.id()) {
-        return Err(GrammarError::new(format!(
-            "{} has no lambda emitter",
-            e.syntax.label
-        )));
-    }
     let parameters = expression
         .texts("parameters")
         .iter()
         .map(|p| e.variable(p))
         .collect::<Vec<_>>()
         .join(", ");
+    let prefix = match e.id() {
+        "javascript" | "typescript" => format!("({parameters}) =>"),
+        "csharp" if parameters.is_empty() => "() =>".into(),
+        "python" if parameters.is_empty() => "lambda:".into(),
+        _ => {
+            return Err(GrammarError::new(format!(
+                "{} has no lambda emitter for these parameters",
+                e.syntax.label
+            )));
+        }
+    };
     Ok(format!(
-        "({parameters}) => {}",
+        "{prefix} {}",
         e.expression(field(expression, "body")?)?
     ))
 }

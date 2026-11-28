@@ -36,7 +36,7 @@ fn expression_type(expression: &Node, scope: &Scope, signatures: &Signatures) ->
         "RecordFieldRead" => expression.str("type").map(str::to_owned),
         "Text" | "Interpolation" | "CppCharacterConcat" => Some("text".into()),
         "Boolean" => Some("boolean".into()),
-        "Null" | "SqlBinary" | "SqlUnary" | "SqlBetween" => Some("object".into()),
+        "Null" | "SqlBinary" | "SqlUnary" | "SqlBetween" | "SqlIn" => Some("object".into()),
         "SqlTruth" => Some("boolean".into()),
         "Question" if matches!(expression.str("aspect"), Some("documentation" | "source")) => {
             Some("text".into())
@@ -467,6 +467,7 @@ fn child_order(kind: &str) -> &'static [&'static str] {
         "Binary" | "SqlBinary" | "CppCharacterConcat" => &["left", "right"],
         "Unary" | "SqlUnary" | "SqlTruth" => &["operand"],
         "SqlBetween" => &["value", "lower", "upper"],
+        "SqlIn" => &["value", "choices"],
         "Call" => &["arguments"],
         "IndexAssignment" => &["index", "value"],
         "ArrayLiteral" => &["elements"],

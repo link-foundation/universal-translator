@@ -167,6 +167,23 @@ impl Parser {
     }
 
     pub(super) fn query_lambda(&mut self) -> Parsed<Option<Node>> {
+        let empty = match self.syntax.id {
+            "python" if self.is("lambda") && self.is_at(":", 1) => Some(2),
+            "javascript" | "typescript" | "csharp"
+                if self.is("(") && self.is_at(")", 1) && self.is_at("=>", 2) =>
+            {
+                Some(3)
+            }
+            _ => None,
+        };
+        if let Some(width) = empty {
+            self.position += width;
+            return Ok(Some(
+                Node::new("Lambda")
+                    .with("parameters", Vec::<String>::new())
+                    .with("body", self.expression()?),
+            ));
+        }
         if !["javascript", "typescript"].contains(&self.syntax.id) {
             return Ok(None);
         }
