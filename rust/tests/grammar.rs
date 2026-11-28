@@ -136,6 +136,10 @@ int main() {
     max<unsigned>(1, 2);
     lookup<std::vector<unsigned>>(1);
     a < b > (c);
+    a < 1 > (c);
+    std::get<
+        1
+    >(values);
     std::cout << 1 << std::endl;
     return 0;
 }
@@ -153,12 +157,18 @@ int main() {
             .is("CppTemplateCall")
     );
     assert!(statements[2].node("expression").unwrap().is("Binary"));
+    assert!(statements[3].node("expression").unwrap().is("Binary"));
+    let indexed = statements[4].node("expression").unwrap();
+    assert!(indexed.is("CppTemplateCall"));
+    assert_eq!(indexed.str("callee"), Some("std::get"));
+    assert_eq!(indexed.str("typeArguments"), Some("1"));
     let emitted = translator
         .translate(source, "cpp", "cpp", Mode::default())
         .unwrap();
     assert!(emitted.contains("#include <algorithm>\n#include <iostream>\nusing namespace std;"));
     assert_eq!(emitted.matches("#include <iostream>").count(), 1);
     assert!(emitted.contains("lookup<std::vector<unsigned>>(1);"));
+    assert!(emitted.contains("std::get<1>(values);"));
     let error = translator
         .translate(source, "cpp", "python", Mode::default())
         .unwrap_err();

@@ -94,6 +94,12 @@ found "," (line 7)` on the template call; its partial output had no enclosing
 function, and the C++ compiler rejected it. The same experiment checks the two
 cases during native CI.
 
+Both readers also recognize decimal indices in `std::get<I>(...)`, including
+layout across lines inside the angle brackets. The fixture prints a second line
+containing `7` from index 1 of a tuple. Ordinary comparisons such as
+`a < 1 > (c)` keep their comparison tree. The C++ library declares `I` as a
+value template parameter. [C++ tuple element access](https://eel.is/c++draft/tuple.elem)
+
 ## Verified Rosetta tasks beyond the baseline
 
 Both engines retained `unsigned` inside the template call but stripped it from

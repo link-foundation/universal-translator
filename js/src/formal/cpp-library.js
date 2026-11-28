@@ -221,11 +221,31 @@ export function cppTemplateArguments(parser, callee) {
   ) {
     return undefined;
   }
-  const found = scanTypeArguments(parser);
+  const indexed = callee.name === 'std::get' && scanIndexArgument(parser);
+  const found = indexed || scanTypeArguments(parser);
   if (found) {
     parser.position += found.width;
   }
   return found?.types;
+}
+
+function scanIndexArgument(parser) {
+  let offset = 1;
+  while (parser.peek(offset).type === 'newline') {
+    offset += 1;
+  }
+  const index = parser.peek(offset);
+  if (index.type !== 'number' || !/^[0-9]+$/u.test(index.value)) {
+    return undefined;
+  }
+  offset += 1;
+  while (parser.peek(offset).type === 'newline') {
+    offset += 1;
+  }
+  if (parser.is('>', offset) && parser.is('(', offset + 1)) {
+    return { types: index.value, width: offset + 1 };
+  }
+  return undefined;
 }
 
 function scanTypeArguments(parser) {

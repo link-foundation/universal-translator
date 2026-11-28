@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <iostream>
+#include <tuple>
 
 using namespace std;
 
@@ -9,5 +10,6 @@ int main() {
     } else {
         std::cout << 0 << std::endl;
     }
+    std::cout << std::get<1>(std::make_tuple(2, 7)) << std::endl;
     return 0;
 }

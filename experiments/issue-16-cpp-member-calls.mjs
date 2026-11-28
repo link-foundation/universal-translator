@@ -103,7 +103,7 @@ try {
   };
   for (const [name, program, expected, input] of [
     ['member calls and vector initialization', source, '2\n0 3 4\n'],
-    ['explicit template call', template, '1\n'],
+    ['explicit type and index template calls', template, '1\n7\n'],
     ['template object initialization', container, '0\n7\n'],
     ['file-scope initialization and mutation', fileScope, '10\n11\n'],
     ['scoped library declarations and const parameters', scopedLibrary, '1\n'],

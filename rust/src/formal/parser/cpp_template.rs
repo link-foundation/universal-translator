@@ -187,12 +187,39 @@ impl Parser {
         Ok(value)
     }
 
+    fn cpp_index_template_argument(&mut self) -> Option<String> {
+        let mut offset = 1;
+        while self.kind(offset) == TokenType::Newline {
+            offset += 1;
+        }
+        let index = self.peek(offset);
+        if index.kind != TokenType::Number || !index.value.bytes().all(|byte| byte.is_ascii_digit())
+        {
+            return None;
+        }
+        offset += 1;
+        while self.kind(offset) == TokenType::Newline {
+            offset += 1;
+        }
+        if self.is_at(">", offset) && self.is_at("(", offset + 1) {
+            let argument = index.value.clone();
+            self.position += offset + 1;
+            return Some(argument);
+        }
+        None
+    }
+
     pub(super) fn cpp_template_arguments(&mut self, callee: &Node) -> Option<String> {
         if self.syntax.id != "cpp"
             || !matches!(callee.kind.as_str(), "Name" | "Method")
             || !self.is("<")
         {
             return None;
+        }
+        if callee.str("name") == Some("std::get")
+            && let Some(argument) = self.cpp_index_template_argument()
+        {
+            return Some(argument);
         }
         let mut tokens = Vec::new();
         let mut depth = 1isize;
