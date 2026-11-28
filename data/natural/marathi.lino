@@ -15,6 +15,8 @@ natural:
   grammar:
     terms:
       interrogative: 'काय आहे'
+      query-scope: '{source} मधील प्रत्येक {variable} साठी'
+      query-deferred: '“विलंबित”'
     productions:
       answer-type: '{subject} चा प्रकार'
       question-type: '@answer-type @interrogative'
@@ -24,11 +26,11 @@ natural:
       question-source: '@answer-source @interrogative'
       answer-details: '{subject} ची तपशीलवार माहिती'
       question-details: '@answer-details @interrogative'
+      answer-query: '@query-scope {condition} असल्यास {projection} ची मूल्ये'
+      question-query: '@answer-query कोणती'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
   templates:
-    answer-query: '{source} मधील प्रत्येक {variable} साठी {condition} असल्यास {projection} ची मूल्ये'
-    question-query: '{source} मधील प्रत्येक {variable} साठी {condition} असल्यास {projection} ची मूल्ये कोणती'
-    answer-deferred-query: '“विलंबित” {source} मधील प्रत्येक {variable} साठी {condition} असल्यास {projection} ची मूल्ये'
-    question-deferred-query: '“विलंबित” {source} मधील प्रत्येक {variable} साठी {condition} असल्यास {projection} ची मूल्ये कोणती'
     documentation: 'वर्णन आहे {value}'
     function: '{name} ची व्याख्या {parameters} वापरून करा'
     function-without-parameters: '{name} ची व्याख्या करा'

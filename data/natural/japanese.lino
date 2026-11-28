@@ -15,6 +15,8 @@ natural:
   grammar:
     terms:
       interrogative: 'は何ですか'
+      query-scope: '{source} 内の各 {variable} について'
+      query-deferred: '「遅延」'
     productions:
       answer-type: '{subject} の型'
       question-type: '@answer-type @interrogative'
@@ -24,11 +26,11 @@ natural:
       question-source: '@answer-source @interrogative'
       answer-details: '{subject} の詳細情報'
       question-details: '@answer-details @interrogative'
+      answer-query: '@query-scope {condition} を満たす {projection} の値'
+      question-query: '@answer-queryは何か'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
   templates:
-    answer-query: '{source} 内の各 {variable} について {condition} を満たす {projection} の値'
-    question-query: '{source} 内の各 {variable} について {condition} を満たす {projection} の値は何か'
-    answer-deferred-query: '「遅延」 {source} 内の各 {variable} について {condition} を満たす {projection} の値'
-    question-deferred-query: '「遅延」 {source} 内の各 {variable} について {condition} を満たす {projection} の値は何か'
     documentation: '文書は {value}'
     function: '{name} を {parameters} で 定義 する'
     function-without-parameters: '{name} を 定義 する'

@@ -15,6 +15,8 @@ natural:
   grammar:
     terms:
       interrogative: 'ni nini'
+      query-scope: 'kwa kila {variable} katika {source}'
+      query-deferred: '“iliyoahirishwa”'
     productions:
       answer-type: 'aina ya {subject}'
       question-type: '@answer-type @interrogative'
@@ -24,11 +26,11 @@ natural:
       question-source: '@answer-source @interrogative'
       answer-details: 'taarifa za kina kuhusu {subject}'
       question-details: '@answer-details @interrogative'
+      answer-query: 'thamani za {projection} @query-scope ikiwa {condition}'
+      question-query: 'Ni thamani zipi za {projection} @query-scope ikiwa {condition}'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
   templates:
-    answer-query: 'thamani za {projection} kwa kila {variable} katika {source} ikiwa {condition}'
-    question-query: 'Ni thamani zipi za {projection} kwa kila {variable} katika {source} ikiwa {condition}'
-    answer-deferred-query: '“iliyoahirishwa” thamani za {projection} kwa kila {variable} katika {source} ikiwa {condition}'
-    question-deferred-query: '“iliyoahirishwa” Ni thamani zipi za {projection} kwa kila {variable} katika {source} ikiwa {condition}'
     documentation: 'Maelezo ni {value}'
     function: 'Fafanua {name} kwa {parameters}'
     function-without-parameters: 'Fafanua {name}'

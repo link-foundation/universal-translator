@@ -15,6 +15,8 @@ natural:
   grammar:
     terms:
       interrogative: 'Що таке'
+      query-scope: 'для кожного {variable} у {source}'
+      query-deferred: '«відкладено»'
     productions:
       answer-type: 'тип сутності {subject}'
       question-type: '@interrogative @answer-type'
@@ -24,11 +26,11 @@ natural:
       question-source: '@interrogative @answer-source'
       answer-details: 'докладна інформація про сутність {subject}'
       question-details: '@interrogative @answer-details'
+      answer-query: 'значення {projection} @query-scope за умови {condition}'
+      question-query: 'Які значення {projection} @query-scope задовольняють {condition}'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
   templates:
-    answer-query: 'значення {projection} для кожного {variable} у {source} за умови {condition}'
-    question-query: 'Які значення {projection} для кожного {variable} у {source} задовольняють {condition}'
-    answer-deferred-query: '«відкладено» значення {projection} для кожного {variable} у {source} за умови {condition}'
-    question-deferred-query: '«відкладено» Які значення {projection} для кожного {variable} у {source} задовольняють {condition}'
     documentation: 'Документація є {value}'
     function: 'Визначити {name} через {parameters}'
     function-without-parameters: 'Визначити {name}'

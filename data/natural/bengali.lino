@@ -15,6 +15,8 @@ natural:
   grammar:
     terms:
       interrogative: 'কী'
+      query-scope: '{source} এর প্রতিটি {variable} এর জন্য'
+      query-deferred: '“বিলম্বিত”'
     productions:
       answer-type: '{subject} এর ধরন'
       question-type: '@answer-type @interrogative'
@@ -24,11 +26,11 @@ natural:
       question-source: '@answer-source @interrogative'
       answer-details: '{subject} এর বিস্তারিত তথ্য'
       question-details: '@answer-details @interrogative'
+      answer-query: '@query-scope {condition} হলে {projection} এর মান'
+      question-query: '@answer-query কী'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
   templates:
-    answer-query: '{source} এর প্রতিটি {variable} এর জন্য {condition} হলে {projection} এর মান'
-    question-query: '{source} এর প্রতিটি {variable} এর জন্য {condition} হলে {projection} এর মান কী'
-    answer-deferred-query: '“বিলম্বিত” {source} এর প্রতিটি {variable} এর জন্য {condition} হলে {projection} এর মান'
-    question-deferred-query: '“বিলম্বিত” {source} এর প্রতিটি {variable} এর জন্য {condition} হলে {projection} এর মান কী'
     documentation: 'বিবরণ হলো {value}'
     function: '{name} কে {parameters} দিয়ে সংজ্ঞায়িত করো'
     function-without-parameters: '{name} কে সংজ্ঞায়িত করো'

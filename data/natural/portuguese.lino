@@ -15,6 +15,8 @@ natural:
   grammar:
     terms:
       interrogative: 'Qual é'
+      query-scope: 'para cada {variable} em {source}'
+      query-deferred: '“adiado”'
     productions:
       answer-type: 'o tipo de {subject}'
       question-type: '@interrogative @answer-type'
@@ -24,11 +26,11 @@ natural:
       question-source: '@interrogative @answer-source'
       answer-details: 'a informação detalhada sobre {subject}'
       question-details: '@interrogative @answer-details'
+      answer-query: 'os valores de {projection} @query-scope onde {condition}'
+      question-query: 'Quais valores de {projection} @query-scope satisfazem {condition}'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
   templates:
-    answer-query: 'os valores de {projection} para cada {variable} em {source} onde {condition}'
-    question-query: 'Quais valores de {projection} para cada {variable} em {source} satisfazem {condition}'
-    answer-deferred-query: '“adiado” os valores de {projection} para cada {variable} em {source} onde {condition}'
-    question-deferred-query: '“adiado” Quais valores de {projection} para cada {variable} em {source} satisfazem {condition}'
     documentation: 'A documentação é {value}'
     function: 'Definir {name} usando {parameters}'
     function-without-parameters: 'Definir {name}'

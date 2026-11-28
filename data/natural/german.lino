@@ -15,6 +15,8 @@ natural:
   grammar:
     terms:
       interrogative: 'Was ist'
+      query-scope: 'für jedes {variable} in {source}'
+      query-deferred: '„verzögert“'
     productions:
       answer-type: 'der Typ von {subject}'
       question-type: '@interrogative @answer-type'
@@ -24,11 +26,11 @@ natural:
       question-source: '@interrogative @answer-source'
       answer-details: 'die ausführliche Information über {subject}'
       question-details: '@interrogative @answer-details'
+      answer-query: 'die Werte von {projection} @query-scope mit {condition}'
+      question-query: 'Welche Werte von {projection} @query-scope erfüllen {condition}'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
   templates:
-    answer-query: 'die Werte von {projection} für jedes {variable} in {source} mit {condition}'
-    question-query: 'Welche Werte von {projection} für jedes {variable} in {source} erfüllen {condition}'
-    answer-deferred-query: '„verzögert“ die Werte von {projection} für jedes {variable} in {source} mit {condition}'
-    question-deferred-query: '„verzögert“ Welche Werte von {projection} für jedes {variable} in {source} erfüllen {condition}'
     documentation: 'Die Dokumentation ist {value}'
     function: 'Definiere {name} mit {parameters}'
     function-without-parameters: 'Definiere {name}'

@@ -15,6 +15,8 @@ natural:
   grammar:
     terms:
       interrogative: 'Ano ang'
+      query-scope: 'para sa bawat {variable} sa {source}'
+      query-deferred: '“ipinagpaliban”'
     productions:
       answer-type: 'uri ng {subject}'
       question-type: '@interrogative @answer-type'
@@ -24,11 +26,11 @@ natural:
       question-source: '@interrogative @answer-source'
       answer-details: 'detalyadong impormasyon tungkol sa {subject}'
       question-details: '@interrogative @answer-details'
+      answer-query: 'mga halaga ng {projection} @query-scope kung {condition}'
+      question-query: 'Anong @answer-query'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
   templates:
-    answer-query: 'mga halaga ng {projection} para sa bawat {variable} sa {source} kung {condition}'
-    question-query: 'Anong mga halaga ng {projection} para sa bawat {variable} sa {source} kung {condition}'
-    answer-deferred-query: '“ipinagpaliban” mga halaga ng {projection} para sa bawat {variable} sa {source} kung {condition}'
-    question-deferred-query: '“ipinagpaliban” Anong mga halaga ng {projection} para sa bawat {variable} sa {source} kung {condition}'
     documentation: 'Ang dokumentasyon ay {value}'
     function: 'Tukuyin ang {name} gamit ang {parameters}'
     function-without-parameters: 'Tukuyin ang {name}'

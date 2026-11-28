@@ -15,6 +15,8 @@ natural:
   grammar:
     terms:
       interrogative: '은 무엇인가'
+      query-scope: '{source} 의 각 {variable} 에 대해'
+      query-deferred: '“지연”'
     productions:
       answer-type: '{subject} 의 유형'
       question-type: '@answer-type @interrogative'
@@ -24,11 +26,11 @@ natural:
       question-source: '@answer-source @interrogative'
       answer-details: '{subject} 의 상세 정보'
       question-details: '@answer-details @interrogative'
+      answer-query: '@query-scope {condition} 를 만족하는 {projection} 의 값'
+      question-query: '@answer-query은 무엇인가'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
   templates:
-    answer-query: '{source} 의 각 {variable} 에 대해 {condition} 를 만족하는 {projection} 의 값'
-    question-query: '{source} 의 각 {variable} 에 대해 {condition} 를 만족하는 {projection} 의 값은 무엇인가'
-    answer-deferred-query: '“지연” {source} 의 각 {variable} 에 대해 {condition} 를 만족하는 {projection} 의 값'
-    question-deferred-query: '“지연” {source} 의 각 {variable} 에 대해 {condition} 를 만족하는 {projection} 의 값은 무엇인가'
     documentation: '문서는 {value}'
     function: '{name} 을 {parameters} 로 정의한다'
     function-without-parameters: '{name} 을 정의한다'

@@ -15,6 +15,8 @@ natural:
   grammar:
     terms:
       interrogative: 'என்ன'
+      query-scope: '{source} இல் ஒவ்வொரு {variable} க்கும்'
+      query-deferred: '“ஒத்திவைக்கப்பட்ட”'
     productions:
       answer-type: '{subject} இன் வகை'
       question-type: '@answer-type @interrogative'
@@ -24,11 +26,11 @@ natural:
       question-source: '@answer-source @interrogative'
       answer-details: '{subject} இன் விரிவான தகவல்'
       question-details: '@answer-details @interrogative'
+      answer-query: '@query-scope {condition} எனில் {projection} இன் மதிப்புகள்'
+      question-query: '@answer-query என்ன'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
   templates:
-    answer-query: '{source} இல் ஒவ்வொரு {variable} க்கும் {condition} எனில் {projection} இன் மதிப்புகள்'
-    question-query: '{source} இல் ஒவ்வொரு {variable} க்கும் {condition} எனில் {projection} இன் மதிப்புகள் என்ன'
-    answer-deferred-query: '“ஒத்திவைக்கப்பட்ட” {source} இல் ஒவ்வொரு {variable} க்கும் {condition} எனில் {projection} இன் மதிப்புகள்'
-    question-deferred-query: '“ஒத்திவைக்கப்பட்ட” {source} இல் ஒவ்வொரு {variable} க்கும் {condition} எனில் {projection} இன் மதிப்புகள் என்ன'
     documentation: 'ஆவணம் என்பது {value}'
     function: '{name} ஐ {parameters} கொண்டு வரையறு'
     function-without-parameters: '{name} ஐ வரையறு'

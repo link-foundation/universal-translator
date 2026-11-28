@@ -15,6 +15,8 @@ natural:
   grammar:
     terms:
       interrogative: 'Wat is'
+      query-scope: 'voor elke {variable} in {source}'
+      query-deferred: '“uitgesteld”'
     productions:
       answer-type: 'het type van {subject}'
       question-type: '@interrogative @answer-type'
@@ -24,11 +26,11 @@ natural:
       question-source: '@interrogative @answer-source'
       answer-details: 'de gedetailleerde informatie over {subject}'
       question-details: '@interrogative @answer-details'
+      answer-query: 'de waarden van {projection} @query-scope waarvoor {condition}'
+      question-query: 'Welke waarden van {projection} @query-scope voldoen aan {condition}'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
   templates:
-    answer-query: 'de waarden van {projection} voor elke {variable} in {source} waarvoor {condition}'
-    question-query: 'Welke waarden van {projection} voor elke {variable} in {source} voldoen aan {condition}'
-    answer-deferred-query: '“uitgesteld” de waarden van {projection} voor elke {variable} in {source} waarvoor {condition}'
-    question-deferred-query: '“uitgesteld” Welke waarden van {projection} voor elke {variable} in {source} voldoen aan {condition}'
     documentation: 'Documentatie is {value}'
     function: 'Definieer {name} met {parameters}'
     function-without-parameters: 'Definieer {name}'

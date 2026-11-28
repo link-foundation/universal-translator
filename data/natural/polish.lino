@@ -15,6 +15,8 @@ natural:
   grammar:
     terms:
       interrogative: 'Czym jest'
+      query-scope: 'dla każdego {variable} w {source}'
+      query-deferred: '„odroczone”'
     productions:
       answer-type: 'typ obiektu {subject}'
       question-type: '@interrogative @answer-type'
@@ -24,11 +26,11 @@ natural:
       question-source: '@interrogative @answer-source'
       answer-details: 'szczegółowa informacja o obiekcie {subject}'
       question-details: '@interrogative @answer-details'
+      answer-query: 'wartości {projection} @query-scope gdy {condition}'
+      question-query: 'Jakie wartości {projection} @query-scope spełniają {condition}'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
   templates:
-    answer-query: 'wartości {projection} dla każdego {variable} w {source} gdy {condition}'
-    question-query: 'Jakie wartości {projection} dla każdego {variable} w {source} spełniają {condition}'
-    answer-deferred-query: '„odroczone” wartości {projection} dla każdego {variable} w {source} gdy {condition}'
-    question-deferred-query: '„odroczone” Jakie wartości {projection} dla każdego {variable} w {source} spełniają {condition}'
     documentation: 'Dokumentacja to {value}'
     function: 'Zdefiniuj {name} używając {parameters}'
     function-without-parameters: 'Zdefiniuj {name}'

@@ -15,6 +15,8 @@ natural:
   grammar:
     terms:
       interrogative: 'Apa'
+      query-scope: 'untuk setiap {variable} dalam {source}'
+      query-deferred: '“tertunda”'
     productions:
       answer-type: 'tipe dari {subject}'
       question-type: '@interrogative @answer-type'
@@ -24,11 +26,11 @@ natural:
       question-source: '@interrogative @answer-source'
       answer-details: 'informasi terperinci tentang {subject}'
       question-details: '@interrogative @answer-details'
+      answer-query: 'nilai {projection} @query-scope dengan {condition}'
+      question-query: 'Apa @answer-query'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
   templates:
-    answer-query: 'nilai {projection} untuk setiap {variable} dalam {source} dengan {condition}'
-    question-query: 'Apa nilai {projection} untuk setiap {variable} dalam {source} dengan {condition}'
-    answer-deferred-query: '“tertunda” nilai {projection} untuk setiap {variable} dalam {source} dengan {condition}'
-    question-deferred-query: '“tertunda” Apa nilai {projection} untuk setiap {variable} dalam {source} dengan {condition}'
     documentation: 'Dokumentasinya adalah {value}'
     function: 'Definisikan {name} dengan {parameters}'
     function-without-parameters: 'Definisikan {name}'

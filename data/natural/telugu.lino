@@ -15,6 +15,8 @@ natural:
   grammar:
     terms:
       interrogative: 'ఏమిటి'
+      query-scope: '{source} లో ప్రతి {variable} కోసం'
+      query-deferred: '“వాయిదా”'
     productions:
       answer-type: '{subject} యొక్క రకం'
       question-type: '@answer-type @interrogative'
@@ -24,11 +26,11 @@ natural:
       question-source: '@answer-source @interrogative'
       answer-details: '{subject} యొక్క వివరణాత్మక సమాచారం'
       question-details: '@answer-details @interrogative'
+      answer-query: '@query-scope {condition} అయితే {projection} యొక్క విలువలు'
+      question-query: '@answer-query ఏమిటి'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
   templates:
-    answer-query: '{source} లో ప్రతి {variable} కోసం {condition} అయితే {projection} యొక్క విలువలు'
-    question-query: '{source} లో ప్రతి {variable} కోసం {condition} అయితే {projection} యొక్క విలువలు ఏమిటి'
-    answer-deferred-query: '“వాయిదా” {source} లో ప్రతి {variable} కోసం {condition} అయితే {projection} యొక్క విలువలు'
-    question-deferred-query: '“వాయిదా” {source} లో ప్రతి {variable} కోసం {condition} అయితే {projection} యొక్క విలువలు ఏమిటి'
     documentation: 'వివరణ {value}'
     function: '{name} ను {parameters} తో నిర్వచించు'
     function-without-parameters: '{name} ను నిర్వచించు'

@@ -15,6 +15,8 @@ natural:
   grammar:
     terms:
       interrogative: 'Quel est'
+      query-scope: 'pour chaque {variable} dans {source}'
+      query-deferred: '«différé»'
     productions:
       answer-type: 'le type de {subject}'
       question-type: '@interrogative @answer-type'
@@ -24,11 +26,11 @@ natural:
       question-source: '@interrogative @answer-source'
       answer-details: 'les informations détaillées sur {subject}'
       question-details: '@interrogative @answer-details'
+      answer-query: 'les valeurs de {projection} @query-scope où {condition}'
+      question-query: 'Quelles valeurs de {projection} @query-scope vérifient {condition}'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
   templates:
-    answer-query: 'les valeurs de {projection} pour chaque {variable} dans {source} où {condition}'
-    question-query: 'Quelles valeurs de {projection} pour chaque {variable} dans {source} vérifient {condition}'
-    answer-deferred-query: '«différé» les valeurs de {projection} pour chaque {variable} dans {source} où {condition}'
-    question-deferred-query: '«différé» Quelles valeurs de {projection} pour chaque {variable} dans {source} vérifient {condition}'
     documentation: 'La documentation est {value}'
     function: 'Définir {name} avec {parameters}'
     function-without-parameters: 'Définir {name}'

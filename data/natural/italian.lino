@@ -15,6 +15,8 @@ natural:
   grammar:
     terms:
       interrogative: 'Qual è'
+      query-scope: 'per ogni {variable} in {source}'
+      query-deferred: '«differito»'
     productions:
       answer-type: 'il tipo di {subject}'
       question-type: '@interrogative @answer-type'
@@ -24,11 +26,11 @@ natural:
       question-source: '@interrogative @answer-source'
       answer-details: 'le informazioni dettagliate su {subject}'
       question-details: '@interrogative @answer-details'
+      answer-query: 'i valori di {projection} @query-scope dove {condition}'
+      question-query: 'Quali valori di {projection} @query-scope soddisfano {condition}'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
   templates:
-    answer-query: 'i valori di {projection} per ogni {variable} in {source} dove {condition}'
-    question-query: 'Quali valori di {projection} per ogni {variable} in {source} soddisfano {condition}'
-    answer-deferred-query: '«differito» i valori di {projection} per ogni {variable} in {source} dove {condition}'
-    question-deferred-query: '«differito» Quali valori di {projection} per ogni {variable} in {source} soddisfano {condition}'
     documentation: 'La documentazione è {value}'
     function: 'Definisci {name} usando {parameters}'
     function-without-parameters: 'Definisci {name}'

@@ -15,6 +15,8 @@ natural:
   grammar:
     terms:
       interrogative: 'کیا ہے'
+      query-scope: '{source} میں ہر {variable} کے لیے'
+      query-deferred: '“ملتوی”'
     productions:
       answer-type: '{subject} کی قسم'
       question-type: '@answer-type @interrogative'
@@ -24,11 +26,11 @@ natural:
       question-source: '@answer-source @interrogative'
       answer-details: '{subject} کی تفصیلی معلومات'
       question-details: '@answer-details @interrogative'
+      answer-query: '@query-scope {condition} ہونے پر {projection} کی قدریں'
+      question-query: '@answer-query کیا ہیں'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
   templates:
-    answer-query: '{source} میں ہر {variable} کے لیے {condition} ہونے پر {projection} کی قدریں'
-    question-query: '{source} میں ہر {variable} کے لیے {condition} ہونے پر {projection} کی قدریں کیا ہیں'
-    answer-deferred-query: '“ملتوی” {source} میں ہر {variable} کے لیے {condition} ہونے پر {projection} کی قدریں'
-    question-deferred-query: '“ملتوی” {source} میں ہر {variable} کے لیے {condition} ہونے پر {projection} کی قدریں کیا ہیں'
     documentation: 'دستاویز ہے {value}'
     function: '{name} کو {parameters} سے متعین کریں'
     function-without-parameters: '{name} کو متعین کریں'

@@ -15,6 +15,8 @@ natural:
   grammar:
     terms:
       interrogative: '什么是'
+      query-scope: '对于 {source} 中的每个 {variable}'
+      query-deferred: '“延迟”'
     productions:
       answer-type: '{subject} 的类型'
       question-type: '@interrogative @answer-type'
@@ -24,11 +26,11 @@ natural:
       question-source: '@interrogative @answer-source'
       answer-details: '{subject} 的详细信息'
       question-details: '@interrogative @answer-details'
+      answer-query: '@query-scope 满足 {condition} 的 {projection} 值'
+      question-query: '@answer-query是什么'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
   templates:
-    answer-query: '对于 {source} 中的每个 {variable} 满足 {condition} 的 {projection} 值'
-    question-query: '对于 {source} 中的每个 {variable} 满足 {condition} 的 {projection} 值是什么'
-    answer-deferred-query: '“延迟” 对于 {source} 中的每个 {variable} 满足 {condition} 的 {projection} 值'
-    question-deferred-query: '“延迟” 对于 {source} 中的每个 {variable} 满足 {condition} 的 {projection} 值是什么'
     documentation: '文档是 {value}'
     function: '定义 {name} 使用 {parameters}'
     function-without-parameters: '定义 {name}'

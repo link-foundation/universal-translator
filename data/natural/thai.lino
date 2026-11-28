@@ -15,6 +15,8 @@ natural:
   grammar:
     terms:
       interrogative: 'คืออะไร'
+      query-scope: 'สำหรับแต่ละ {variable} ใน {source}'
+      query-deferred: '“เลื่อนออกไป”'
     productions:
       answer-type: 'ชนิดของ {subject}'
       question-type: '@answer-type @interrogative'
@@ -24,11 +26,11 @@ natural:
       question-source: '@answer-source @interrogative'
       answer-details: 'ข้อมูลโดยละเอียดเกี่ยวกับ {subject}'
       question-details: '@answer-details @interrogative'
+      answer-query: 'ค่าของ {projection} @query-scope เมื่อ {condition}'
+      question-query: '@answer-query คืออะไร'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
   templates:
-    answer-query: 'ค่าของ {projection} สำหรับแต่ละ {variable} ใน {source} เมื่อ {condition}'
-    question-query: 'ค่าของ {projection} สำหรับแต่ละ {variable} ใน {source} เมื่อ {condition} คืออะไร'
-    answer-deferred-query: '“เลื่อนออกไป” ค่าของ {projection} สำหรับแต่ละ {variable} ใน {source} เมื่อ {condition}'
-    question-deferred-query: '“เลื่อนออกไป” ค่าของ {projection} สำหรับแต่ละ {variable} ใน {source} เมื่อ {condition} คืออะไร'
     documentation: 'เอกสารคือ {value}'
     function: 'นิยาม {name} ด้วย {parameters}'
     function-without-parameters: 'นิยาม {name}'

@@ -15,6 +15,8 @@ natural:
   grammar:
     terms:
       interrogative: 'چیست'
+      query-scope: 'برای هر {variable} در {source}'
+      query-deferred: '«تأخیری»'
     productions:
       answer-type: 'نوع {subject}'
       question-type: '@answer-type @interrogative'
@@ -24,11 +26,11 @@ natural:
       question-source: '@answer-source @interrogative'
       answer-details: 'اطلاعات تفصیلی درباره {subject}'
       question-details: '@answer-details @interrogative'
+      answer-query: 'مقادیر {projection} @query-scope که {condition}'
+      question-query: '@answer-query چیست'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
   templates:
-    answer-query: 'مقادیر {projection} برای هر {variable} در {source} که {condition}'
-    question-query: 'مقادیر {projection} برای هر {variable} در {source} که {condition} چیست'
-    answer-deferred-query: '«تأخیری» مقادیر {projection} برای هر {variable} در {source} که {condition}'
-    question-deferred-query: '«تأخیری» مقادیر {projection} برای هر {variable} در {source} که {condition} چیست'
     documentation: 'مستندات عبارت است از {value}'
     function: '{name} را با {parameters} تعریف کن'
     function-without-parameters: '{name} را تعریف کن'

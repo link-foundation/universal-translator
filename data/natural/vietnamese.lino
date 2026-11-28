@@ -15,6 +15,8 @@ natural:
   grammar:
     terms:
       interrogative: 'là gì'
+      query-scope: 'cho mỗi {variable} trong {source}'
+      query-deferred: '“trì hoãn”'
     productions:
       answer-type: 'kiểu của {subject}'
       question-type: '@answer-type @interrogative'
@@ -24,11 +26,11 @@ natural:
       question-source: '@answer-source @interrogative'
       answer-details: 'thông tin chi tiết về {subject}'
       question-details: '@answer-details @interrogative'
+      answer-query: 'các giá trị của {projection} @query-scope khi {condition}'
+      question-query: 'Các giá trị nào của {projection} @query-scope thỏa mãn {condition}'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
   templates:
-    answer-query: 'các giá trị của {projection} cho mỗi {variable} trong {source} khi {condition}'
-    question-query: 'Các giá trị nào của {projection} cho mỗi {variable} trong {source} thỏa mãn {condition}'
-    answer-deferred-query: '“trì hoãn” các giá trị của {projection} cho mỗi {variable} trong {source} khi {condition}'
-    question-deferred-query: '“trì hoãn” Các giá trị nào của {projection} cho mỗi {variable} trong {source} thỏa mãn {condition}'
     documentation: 'Tài liệu là {value}'
     function: 'Định nghĩa {name} với {parameters}'
     function-without-parameters: 'Định nghĩa {name}'

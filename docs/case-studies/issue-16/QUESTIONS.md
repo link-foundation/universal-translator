@@ -91,6 +91,16 @@ for all 71 profiles. The comparison serialized the catalog’s `templates` table
 in `naturalLanguageIds()` order. Both snapshots had SHA-256
 `882932d01bb48faa65692f7f1ba9c6e594e4ad9fc557f72266a78a05b917d3b3`.
 
+All 30 base grammars now also share grammatical productions between the query
+result, the question and their deferred forms. Each grammar defines the scope
+that binds the collection and range variable. The predicate and projection
+remain independently parsed expressions. Japanese reuses the entire result
+phrase in its question, and Russian uses the shared scope in distinct clauses
+for the result and question. The compiled phrases for all 71 profiles matched
+byte for byte before and after the query migration. The SHA-256 of the UTF-8
+JSON array of `[id, templates]` in catalog order, followed by a newline, was
+`8cf31bfaca1af7707e74b19a6b099ce01b1e572a5cabbfc631bbea1ca5421e00`.
+
 - `node experiments/issue-16-recursive-phrases.mjs` checks three Python
   programs. The previous readers read `type(meaning + 1)` as an ordinary
   function call in seven languages, and commas within a nested collection
