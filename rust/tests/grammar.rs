@@ -242,6 +242,45 @@ fn cpp_fixed_arrays_retain_extent_and_brace_initialization() {
 }
 
 #[test]
+fn cpp_string_addition_keeps_characters() {
+    let source = r#"#include <string>
+std::string decorate(const std::string& prefix, std::string word) {
+    return prefix[0] + word + '!';
+}"#;
+    let translator = Translator::new();
+    let meta = translator.to_meta(source, "cpp").unwrap();
+    let functions = meta.nodes("functions");
+    let body = functions[0].node("body").unwrap();
+    let value = body.nodes("statements")[0].node("value").unwrap();
+    assert!(value.is("CppCharacterConcat"));
+    assert!(
+        value
+            .node("left")
+            .unwrap()
+            .node("left")
+            .unwrap()
+            .is("Index")
+    );
+    assert!(value.node("right").unwrap().is("CppCharacter"));
+    let emitted = translator
+        .translate(source, "cpp", "cpp", Mode::default())
+        .unwrap();
+    assert!(emitted.contains("return prefix[0] + word + '!';"));
+    let reread = translator.to_meta(&emitted, "cpp").unwrap();
+    let reread_functions = reread.nodes("functions");
+    let reread_body = reread_functions[0].node("body").unwrap();
+    assert_eq!(reread_body, body);
+    let error = translator
+        .translate(source, "cpp", "python", Mode::default())
+        .unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("Cannot emit CppCharacterConcat as an expression")
+    );
+}
+
+#[test]
 fn cpp_characters_keep_escapes_and_integral_casts() {
     let source = r"int main() {
         emit((int)'\n', (char)97, (int)(char)(64 + 1), sizeof(char), sizeof('a'));

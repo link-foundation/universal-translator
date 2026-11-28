@@ -23,6 +23,7 @@ const comparisons = new Set([
 const fixedTypes = new Map([
   ['Text', 'text'],
   ['Interpolation', 'text'],
+  ['CppCharacterConcat', 'text'],
   ['Boolean', 'boolean'],
   ['ArrayLiteral', 'array'],
   ['NewArray', 'array'],

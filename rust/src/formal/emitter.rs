@@ -529,6 +529,7 @@ impl Emitter {
             }
             "Unary" => self.unary(expression, parent),
             "Binary" => self.binary(expression, parent),
+            "CppCharacterConcat" if self.id() == "cpp" => self.binary(expression, parent),
             kind => Err(GrammarError::new(format!(
                 "Cannot emit {kind} as an expression"
             ))),

@@ -308,16 +308,18 @@ class BaseEmitter {
           ? writePower(this, expression, parent)
           : this.binary(expression, parent);
       default:
-        return this.specialExpression(expression);
+        return this.specialExpression(expression, parent);
     }
   }
 
-  specialExpression(expression) {
-    if (this.id === 'cpp' && expression.kind === 'CppCharacter') {
-      return `'${expression.raw}'`;
-    }
-    if (this.id === 'cpp' && expression.kind === 'CppIntegralCast') {
-      return `(${expression.castType})(${this.expression(expression.operand)})`;
+  specialExpression(expression, parent) {
+    switch (this.id === 'cpp' ? expression.kind : '') {
+      case 'CppCharacter':
+        return `'${expression.raw}'`;
+      case 'CppIntegralCast':
+        return `(${expression.castType})(${this.expression(expression.operand)})`;
+      case 'CppCharacterConcat':
+        return this.binary(expression, parent);
     }
     if (
       expression.kind === 'SizeOf' &&

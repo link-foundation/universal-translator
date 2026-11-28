@@ -31,6 +31,7 @@
 //   Number         { value }            Text { value }    Boolean { value }
 //   Name           { name }             Interpolation { parts }
 //   Binary         { operator, left, right }
+//   CppCharacterConcat { operator: add, left, right }   C++ string and character overload
 //   Unary          { operator, operand }
 //   Null           {}                    SQL absence of a value
 //   SqlBinary      { operator, left, right }   NULL-propagating SQL operation

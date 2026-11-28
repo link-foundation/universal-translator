@@ -39,7 +39,7 @@ import {
   recognizeArrays,
 } from './arrays.js';
 import { expandForEach, raiseForEach } from './for-each.js';
-import { markCppFileItems } from './cpp-library.js';
+import { isCppCharacterConcat, markCppFileItems } from './cpp-library.js';
 import {
   attachComments,
   inheritOrigin,
@@ -903,13 +903,17 @@ export const understandingRules = [
 
 // `"Total: " + total` is text concatenation, which the meta language keeps
 // as one interpolation independent of the target's operator.
-export function concatenationToInterpolation(program) {
+export function concatenationToInterpolation(program, { from } = {}) {
+  const cpp = from && splitVersion(from).id === 'cpp';
   return rewrite(program, (current) => {
-    if (
-      current.kind === 'Binary' &&
-      current.operator === 'add' &&
-      current.type === 'text'
-    ) {
+    if (current.kind === 'Binary' && current.operator === 'add') {
+      if (cpp && isCppCharacterConcat(current.left, current.right)) {
+        // The native overload adds a character, not its decimal code.
+        return { ...current, kind: 'CppCharacterConcat', type: 'text' };
+      }
+      if (current.type !== 'text') {
+        return current;
+      }
       const parts = [current.left, current.right].flatMap((part) =>
         part.kind === 'Interpolation' ? part.parts : [part]
       );

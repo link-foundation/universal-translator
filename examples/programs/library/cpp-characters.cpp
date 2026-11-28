@@ -1,4 +1,9 @@
 #include <iostream>
+#include <string>
+
+std::string decorate(const std::string& prefix, std::string word) {
+    return prefix[0] + word + '!';
+}
 
 int main() {
     std::cout << (int)'a' << std::endl;
@@ -6,5 +11,6 @@ int main() {
     std::cout << '\x41' << '\\' << '\'' << '\n';
     std::cout << (int)(char)(64 + 1) << std::endl;
     std::cout << sizeof(char) << " " << sizeof('a') << std::endl;
+    std::cout << decorate("ax", "bc") << std::endl;
     return 0;
 }

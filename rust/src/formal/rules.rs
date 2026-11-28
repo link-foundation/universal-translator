@@ -85,8 +85,8 @@ pub fn meaning_rules() -> Vec<Rule> {
             "raiseIntegerArithmetic",
             crate::meta::integer_arithmetic::raise,
         ),
-        rule("concatenationToInterpolation", |program, _| {
-            concatenation_to_interpolation(program)
+        rule("concatenationToInterpolation", |program, settings| {
+            normalize_concatenation(program, split_version(&settings.from).0 == "cpp")
         }),
         rule(
             "normalizeObjectiveCConditions",
@@ -1212,11 +1212,24 @@ pub fn neutral_names(program: Node) -> Node {
 /// `"Total: " + total` is text concatenation, which the meta language keeps
 /// as one interpolation independent of the target's operator.
 pub fn concatenation_to_interpolation(program: Node) -> Node {
-    rewrite(program, |current| {
-        let joins_text = current.is("Binary")
-            && current.str("operator") == Some("add")
-            && current.str("type") == Some("text");
-        if !joins_text {
+    normalize_concatenation(program, false)
+}
+
+fn normalize_concatenation(program: Node, cpp: bool) -> Node {
+    rewrite(program, |mut current| {
+        if !current.is("Binary") || current.str("operator") != Some("add") {
+            return current;
+        }
+        let sides = current.node("left").zip(current.node("right"));
+        if cpp
+            && sides
+                .is_some_and(|(left, right)| super::cpp_library::is_character_concat(left, right))
+        {
+            // The native overload adds a character, not its decimal code.
+            current.kind = "CppCharacterConcat".into();
+            return current.with("type", "text");
+        }
+        if current.str("type") != Some("text") {
             return current;
         }
         let value = parts_to_value(flatten_parts(&[

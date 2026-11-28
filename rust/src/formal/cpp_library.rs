@@ -8,6 +8,25 @@ use crate::meta::{Node, Settings};
 
 use super::emitter::{Emitter, Result, field};
 
+fn string_value(value: &Node) -> bool {
+    (value.str("type") == Some("text") && !value.is("Text"))
+        || matches!(
+            value.str("type"),
+            Some("source:std :: string &" | "source:const std :: string &")
+        )
+}
+
+fn character_value(value: &Node) -> bool {
+    value.is("CppCharacter")
+        || (value.is("CppIntegralCast") && value.str("castType") == Some("char"))
+        || value.str("type") == Some("source:char")
+        || (value.is("Index") && value.node("array").is_some_and(string_value))
+}
+
+pub(crate) fn is_character_concat(left: &Node, right: &Node) -> bool {
+    (character_value(left) && string_value(right)) || (string_value(left) && character_value(right))
+}
+
 pub(crate) fn write_character_expression(
     emitter: &mut Emitter,
     expression: &Node,

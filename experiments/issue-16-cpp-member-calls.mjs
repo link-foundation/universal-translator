@@ -104,7 +104,11 @@ try {
       stringLength,
       '4 4 4 1 0\n',
     ],
-    ['character literals and casts', characters, "97\na\nA\\'\n65\n1 1\n"],
+    [
+      'character literals, casts and string addition',
+      characters,
+      "97\na\nA\\'\n65\n1 1\nabc!\n",
+    ],
   ]) {
     const original = run(program);
     assert.equal(original, expected);

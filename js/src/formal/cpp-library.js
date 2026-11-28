@@ -2,6 +2,34 @@ import { inheritOrigin } from '../translation/source-origins.js';
 import { node, text } from '../meta/tree.js';
 import { SyntaxError } from './lexer.js';
 
+const cppStringReferences = new Set([
+  'source:std :: string &',
+  'source:const std :: string &',
+]);
+
+function cppStringValue(value) {
+  return (
+    (value.type === 'text' && value.kind !== 'Text') ||
+    cppStringReferences.has(value.type)
+  );
+}
+
+function cppCharacterValue(value) {
+  return (
+    value.kind === 'CppCharacter' ||
+    (value.kind === 'CppIntegralCast' && value.castType === 'char') ||
+    value.type === 'source:char' ||
+    (value.kind === 'Index' && cppStringValue(value.array))
+  );
+}
+
+export function isCppCharacterConcat(left, right) {
+  return (
+    (cppCharacterValue(left) && cppStringValue(right)) ||
+    (cppStringValue(left) && cppCharacterValue(right))
+  );
+}
+
 export function isCppFixedArray(parser) {
   if (parser.syntax.id !== 'cpp') {
     return false;

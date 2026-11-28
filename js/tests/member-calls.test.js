@@ -194,6 +194,27 @@ describe('C++ fixed arrays', () => {
 });
 
 describe('C++ library scope and types', () => {
+  it('keeps indexed characters and character literals in C++ string addition', () => {
+    const source = `#include <string>
+std::string decorate(const std::string& prefix, std::string word) {
+  return prefix[0] + word + '!';
+}
+`;
+    const meta = translator.toMeta(source, 'cpp');
+    const value = meta.functions[0].body.statements[0].value;
+    expect(value.kind).toBe('CppCharacterConcat');
+    expect(value.left.left.kind).toBe('Index');
+    expect(value.right.kind).toBe('CppCharacter');
+    const emitted = translator.translate(source, 'cpp', 'cpp');
+    expect(emitted).toContain("return prefix[0] + word + '!';");
+    expect(meaningDifference(meta, translator.toMeta(emitted, 'cpp'))).toBe(
+      undefined
+    );
+    expect(() => translator.translate(source, 'cpp', 'python')).toThrow(
+      'Cannot emit CppCharacterConcat as an expression'
+    );
+  });
+
   it('keeps character literals, escapes, and explicit character casts', () => {
     const source = String.raw`int main() {
       emit((int)'\n', (char)97, (int)(char)(64 + 1), sizeof(char), sizeof('a'));
