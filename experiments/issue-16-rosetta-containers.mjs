@@ -123,6 +123,55 @@ const tasks = [
     stdout: '3456\n3456789\n012345678\n2345\n4567\n',
     assertions: 0,
   },
+  {
+    title: 'ABC correlation',
+    revid: 420238,
+    sourceSha256:
+      'bf34b34fd94cf1700adf443400c7c7cc7da2464c29c64d8c5e12dd926123e781',
+    stdout: '1\n1\n0\n1\n',
+    assertions: 0,
+    driver: String.raw`
+#include <iostream>
+int main() {
+    for (auto sample : {"abcabc", "xyz", "abcac", ""}) {
+        std::cout << countabc(sample) << '\n';
+    }
+}
+`,
+  },
+  {
+    title: 'Approximate equality',
+    revid: 418405,
+    sourceSha256:
+      '0610a06060407625482280c71db388f4001f893a93dc5832bf366ac4bdf88456',
+    comparisons: ['1', '0', '0', '0', '1', '0', '0', '1'],
+    assertions: 0,
+  },
+  {
+    title: "Euler's identity",
+    revid: 418309,
+    sourceSha256:
+      'f0028660573aff1315e82d2e8b793bb981d5bd430e1fa1f1f46fbf9dcbb6fdc6',
+    stdout: '(0,1.22465e-16)\n',
+    assertions: 0,
+  },
+  {
+    title: 'List comprehensions',
+    revid: 415006,
+    sourceSha256:
+      '4d98825d47dbb8c69db9941539b25b50f2db16bd64fbd81ce3ccaf9606ea37f0',
+    stdout: '3 4 5 5 12 13 6 8 10 8 15 17 9 12 15 12 16 20 \n',
+    assertions: 0,
+  },
+  {
+    title: 'Generate lower case ASCII alphabet',
+    revid: 418063,
+    sourceSha256:
+      '277ee5fc9a3390e0a79a3970689ccde2069e3f9bad3de30e657f9f1d14b8b8fc',
+    stdout: '',
+    observed: 'lower == "abcdefghijklmnopqrstuvwxyz"',
+    assertions: 0,
+  },
 ];
 const cli = fileURLToPath(
   new URL('../bin/universal-translator.js', import.meta.url)
@@ -144,7 +193,10 @@ try {
       task.assertions,
       task.title
     );
-    writeFileSync(file, program);
+    writeFileSync(
+      file,
+      task.driver ? `#include <string>\n${program}\n${task.driver}` : program
+    );
     execFileSync(
       process.env.CXX ?? 'c++',
       ['-std=c++17', '-UNDEBUG', file, '-o', binary],
@@ -160,7 +212,18 @@ try {
     const [source] = extractSolutions(revision.slots.main.content).cpp;
     assert.equal(digest(source), task.sourceSha256, task.title);
     const original = run(source, task);
-    assert.equal(original, task.stdout, task.title);
+    if (task.comparisons) {
+      assert.deepEqual(
+        original
+          .trimEnd()
+          .split('\n')
+          .map((line) => line.split(' => ')[1]),
+        task.comparisons,
+        task.title
+      );
+    } else {
+      assert.equal(original, task.stdout, task.title);
+    }
     const checkValues = (program) => {
       const main = program.indexOf('int main');
       const close = program.lastIndexOf('}');
@@ -173,9 +236,12 @@ try {
       checkValues(source);
     }
     for (const [engine, command, args] of translators) {
+      const flags = task.driver
+        ? ['--all-or-nothing', '--fragment']
+        : ['--all-or-nothing'];
       const program = execFileSync(
         command,
-        [...args, 'translate', 'cpp', 'cpp', '-', '--all-or-nothing'],
+        [...args, 'translate', 'cpp', 'cpp', '-', ...flags],
         { ...options, input: source }
       );
       assert.equal(run(program, task), original, `${task.title} via ${engine}`);
@@ -191,6 +257,7 @@ try {
           stdout: original,
           assertions: task.assertions,
           observed: task.observed,
+          driver: task.driver ? 'appended native caller' : undefined,
         })
       );
     }

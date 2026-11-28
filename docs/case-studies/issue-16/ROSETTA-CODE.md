@@ -231,12 +231,38 @@ and `const std::string&` parameters. The dedicated node uses C++ evaluation
 and indexing semantics. Other writers need a semantic mapping for that node.
 The native fixture also checks an appended character literal.
 [Native comparison fixture](../../../examples/programs/library/cpp-characters.cpp)
+
+Five further C++ solutions from the strict candidate scan now match the
+pinned originals through both CLIs, bringing the verified total to 20
+distinct tasks. The same native caller checks the original `countabc`
+function and both emitted fragments. The alphabet check inspects the local
+string after `std::iota` in the original and both emitted programs.
+
+| Task                               | Pinned revision                                                                                     | Observable result                                           |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| ABC correlation                    | [420238](https://rosettacode.org/w/index.php?title=ABC_correlation&oldid=420238)                    | Four results for equal, absent and unequal character counts |
+| Approximate equality               | [418405](https://rosettacode.org/w/index.php?title=Approximate_equality&oldid=418405)               | Eight numeric comparisons, with byte-exact matching output  |
+| Euler's identity                   | [418309](https://rosettacode.org/w/index.php?title=Euler%27s_identity&oldid=418309)                 | `(0,1.22465e-16)`                                           |
+| List comprehensions                | [415006](https://rosettacode.org/w/index.php?title=List_comprehensions&oldid=415006)                | Six triples with their original ordering and spaces         |
+| Generate lower case ASCII alphabet | [418063](https://rosettacode.org/w/index.php?title=Generate_lower_case_ASCII_alphabet&oldid=418063) | `abcdefghijklmnopqrstuvwxyz` in the constructed string      |
+
+The previous emitter produced invalid C++ for the complex exponential. The
+reader had grouped `std::cout << std::exp(...)` before `+ 1.0`. The left shift
+and stream token binds more loosely than addition. Both engines now keep
+the addition within the stream operand and can re-emit both C++ shift tokens.
+[C++ shift expressions](https://eel.is/c++draft/expr.shift)
+
+The alphabet source previously dropped `std::string lower(26, ' ')` as a
+function declaration. Both readers now keep a literal or named count followed
+by a character literal as a constructor call for `std::string`. The native
+fixture verifies that construction with `\0` retains all three bytes.
+[Native string fixture](../../../examples/programs/library/cpp-string-initialization.cpp)
 [Pinned outputs](logs/rosetta-containers-native.txt)
 
 ```sh
 curl --fail --silent --show-error --get https://rosettacode.org/w/api.php \
   --data 'action=query' --data 'prop=revisions' \
-  --data 'revids=420325|417505|419626|420026|419956|420285|419019|412804|417360|417213|420276|418354|418506' \
+  --data 'revids=420325|417505|419626|420026|419956|420285|419019|412804|417360|417213|420276|418354|418506|420238|418405|418309|415006|418063' \
   --data 'rvprop=ids|content' --data 'rvslots=main' --data 'format=json' \
   --data 'formatversion=2' > /tmp/rosetta-containers-revisions.json
 node experiments/issue-16-rosetta-containers.mjs /tmp/rosetta-containers-revisions.json \
