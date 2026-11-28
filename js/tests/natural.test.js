@@ -169,19 +169,27 @@ describe('every task in every natural language', () => {
   });
 
   it('translates every text to every programming language', () => {
+    const references = new Map();
     for (const { text, language, task, meta } of texts.filter(({ language }) =>
       ['russian', 'chinese', 'minimal-english'].includes(language)
     )) {
       for (const target of grammarLanguageIds) {
+        // Every natural version of a task shares its reference program.
+        const key = `${task}/${target}`;
+        if (!references.has(key)) {
+          const source = translator.fromMeta(meta, target);
+          references.set(key, {
+            source,
+            meta: translator.toMeta(source, target),
+          });
+        }
+        const reference = references.get(key);
         const code = translator.translate(text, language, target);
-        const direct = translator.fromMeta(meta, target);
         expect([
           task,
           target,
-          sameMeaning(
-            translator.toMeta(code, target),
-            translator.toMeta(direct, target)
-          ),
+          code === reference.source ||
+            sameMeaning(translator.toMeta(code, target), reference.meta),
         ]).toEqual([task, target, true]);
       }
     }
