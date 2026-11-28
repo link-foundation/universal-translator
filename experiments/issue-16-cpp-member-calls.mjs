@@ -64,6 +64,13 @@ const directInitialization = readFileSync(
   ),
   'utf8'
 );
+const boundInitialization = readFileSync(
+  new URL(
+    '../examples/programs/library/cpp-bound-initializer.cpp',
+    import.meta.url
+  ),
+  'utf8'
+);
 const streamExtraction = readFileSync(
   new URL(
     '../examples/programs/library/cpp-stream-extraction.cpp',
@@ -109,6 +116,11 @@ try {
     ['scoped library declarations and const parameters', scopedLibrary, '1\n'],
     ['direct string initialization', stringInitialization, 'Hello, world!\n'],
     ['parenthesized object initialization', directInitialization, 'eady)a 2\n'],
+    [
+      'parenthesized bound values and member calls',
+      boundInitialization,
+      'layout 3\n',
+    ],
     ['stream extraction', streamExtraction, 'widgets 3\n', 'widgets 3\n'],
     [
       'exception after extraction',

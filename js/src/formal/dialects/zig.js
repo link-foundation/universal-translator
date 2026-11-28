@@ -6,7 +6,7 @@
 
 import { add, block, node, number, text, walk } from '../../meta/tree.js';
 import { decodeEscapes, SyntaxError } from '../lexer.js';
-import { sourceType } from '../parser.js';
+import { sourceType } from '../type-metadata.js';
 import { realValue } from '../numbers.js';
 
 // main opens the writer that every print uses; these lines are layout, not

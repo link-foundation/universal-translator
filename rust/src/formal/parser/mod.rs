@@ -4,6 +4,7 @@
 //! interpret. The parser never decides what a program means.
 
 use std::any::Any;
+use std::collections::HashMap;
 
 use super::dialects::shared::comment_node;
 use super::dialects::{ParserDialect, parser_dialect, rocq_comparison};
@@ -83,6 +84,7 @@ pub(crate) struct Parser {
     state: Box<dyn Any>,
     /// How many classes enclose the current item.
     class_depth: usize,
+    cpp_value_scopes: Vec<HashMap<String, bool>>,
     productions: Vec<Node>,
     source: Option<crate::source_origins::SourceLocator>,
 }
@@ -141,6 +143,7 @@ impl Parser {
             dialect,
             state: Box::new(()),
             class_depth: 0,
+            cpp_value_scopes: Vec::new(),
             productions: Vec::new(),
             source: None,
         }
@@ -339,6 +342,10 @@ impl Parser {
     }
 
     pub(crate) fn base_items(&mut self, done: &dyn Fn(&Self) -> bool) -> Parsed<Vec<Node>> {
+        self.with_cpp_value_scope(std::iter::empty(), |parser| parser.read_items(done))
+    }
+
+    fn read_items(&mut self, done: &dyn Fn(&Self) -> bool) -> Parsed<Vec<Node>> {
         let mut items = Vec::new();
         self.skip_separators();
         while !done(self) {
@@ -349,6 +356,7 @@ impl Parser {
             }
             // A C-style loop that is not a counting loop becomes several statements.
             let item = self.item()?;
+            self.record_cpp_binding(&item);
             if item.is("Statements") {
                 items.extend(item.node_list("statements"));
             } else {
@@ -599,7 +607,14 @@ impl Parser {
         {
             self.accept(symbol);
         }
-        let mut body = self.block()?;
+        let mut body = self.with_cpp_value_scope(
+            std::iter::once(function_name.as_str()).chain(
+                parameters
+                    .iter()
+                    .filter_map(|parameter| parameter.str("name")),
+            ),
+            Self::block,
+        )?;
         self.close_keyword_block()?;
         // Perl: sub name { my ($first, $second) = @_; ... }
         let mut statements = body.node_list("statements");

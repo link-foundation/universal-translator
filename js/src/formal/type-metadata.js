@@ -1,6 +1,50 @@
 // Keep application-defined types and declaration annotations through the
 // shared representation. Framework-specific rewrites can inspect the same
 // annotation expressions as calls in the body.
+// Map a source type spelling to a meta type.
+export function sourceType(spelling) {
+  const words = spelling
+    .replace(/\b(const|static|unsigned|signed|mut)\b/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (
+    /^(int|long|short|i8|i16|i32|i64|isize|u8|u16|u32|u64|usize|Int|Long|number|integer)$/.test(
+      words
+    )
+  ) {
+    return 'integer';
+  }
+  if (
+    /^(char ?\*|std ?:: ?string|string|String|& ?str|&'static str)$/.test(words)
+  ) {
+    return 'text';
+  }
+  if (
+    /^((int|long|Long|number|i64) ?\[ ?\]|std ?:: ?vector ?< ?int ?>|Vec ?< ?i64 ?>|IntArray|\[ ?\] ?int|\[ ?Int ?\]|List ?< ?(int|Long) ?>|Array ?\[ ?Long ?\]|seq ?\[ ?int ?\]|\[ ?(\d+ ?)?\] ?i64)$/.test(
+      words
+    )
+  ) {
+    return 'array';
+  }
+  if (
+    /^(double|float|f32|f64|float32|float64|Double|Float|Float64|Long_Float|real|Real)$/.test(
+      words
+    )
+  ) {
+    return 'real';
+  }
+  if (/^(bool|boolean|Bool|Boolean|BOOL)$/.test(words)) {
+    return 'boolean';
+  }
+  if (/^(void|\(\)|Unit|Void)$/.test(words)) {
+    return 'nothing';
+  }
+  if (words === '' || words === 'var' || words === 'auto') {
+    return undefined;
+  }
+  return `source:${words}`;
+}
+
 export function namedType(type, target) {
   const name = type
     .slice('source:'.length)

@@ -1,7 +1,7 @@
 // Exception bodies and handlers retain their control-flow boundaries.
 import { node } from '../meta/tree.js';
 import { SyntaxError } from './lexer.js';
-import { sourceType } from './parser.js';
+import { sourceType } from './type-metadata.js';
 
 const languages = new Set(['cpp', 'javascript', 'typescript', 'python']);
 const distinctCppTypes = new Set([

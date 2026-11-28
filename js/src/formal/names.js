@@ -82,12 +82,19 @@ export function renameDeclared(program, rename) {
       functionNames.has(identifier) ? 'function' : 'variable'
     );
   };
+  const changeReference = (identifier) => {
+    const dot = identifier.indexOf('.');
+    return dot > 0 && !declared.has(identifier)
+      ? change(identifier.slice(0, dot)) + identifier.slice(dot)
+      : change(identifier);
+  };
   const renamed = rewrite(program, (current) => {
     switch (current.kind) {
       case 'Name':
-        return { ...current, name: change(current.name) };
+        return { ...current, name: changeReference(current.name) };
       case 'Call':
-        return { ...current, callee: change(current.callee) };
+      case 'CppTemplateCall':
+        return { ...current, callee: changeReference(current.callee) };
       case 'Declaration':
       case 'Catch':
       case 'Assignment':

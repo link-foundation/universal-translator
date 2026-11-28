@@ -1,6 +1,6 @@
 // Declaration and parameter annotations are explicit expression nodes.
 import { node } from '../meta/tree.js';
-import { sourceType } from './parser.js';
+import { sourceType } from './type-metadata.js';
 import { tokenize } from './lexer.js';
 import {
   cppFirstArgumentIsExpression,

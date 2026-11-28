@@ -492,6 +492,50 @@ int main() {
 }
 
 #[test]
+fn cpp_initializer_resolves_bound_values_without_reinterpreting_comparisons() {
+    let source = r#"#include <optional>
+#include <string>
+void example(int width) {
+    std::optional<int> result(width);
+}
+int main() {
+    std::string original = "layout";
+    std::string copy(original);
+    std::string prototype(std::string);
+    int count = 1;
+    int limit = 2;
+    count < limit > probe(count);
+    return 0;
+}
+"#;
+    let translator = Translator::new();
+    let program = translator.to_meta(source, "cpp").unwrap();
+    let initial = program.nodes("functions")[0]
+        .node("body")
+        .unwrap()
+        .nodes("statements")[0]
+        .node("value")
+        .unwrap();
+    assert!(initial.is("CppDirectInitializer"));
+    assert_eq!(initial.nodes("arguments")[0].str("name"), Some("width"));
+    let statements = program.node("main").unwrap().nodes("statements");
+    let copy = statements[1].node("value").unwrap();
+    assert!(copy.is("CppDirectInitializer"));
+    assert_eq!(copy.nodes("arguments")[0].str("name"), Some("original"));
+    assert_eq!(
+        statements[4].node("expression").unwrap().str("operator"),
+        Some("greater")
+    );
+    let emitted = translator
+        .translate(source, "cpp", "cpp", Mode::default())
+        .unwrap();
+    assert!(emitted.contains("std::optional<int> result(width);"));
+    assert!(emitted.contains("std::string copy(original);"));
+    let reread = translator.to_meta(&emitted, "cpp").unwrap();
+    assert_eq!(reread.node("main").unwrap().nodes("statements"), statements);
+}
+
+#[test]
 fn cpp_direct_initialization_keeps_object_constructors_beside_prototypes() {
     let source = r#"#include <iostream>
 #include <string_view>

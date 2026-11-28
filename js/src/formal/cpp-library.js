@@ -73,8 +73,47 @@ function afterCppLineEnds(parser, offset) {
   return offset;
 }
 
-// A literal or member access cannot start a parameter declaration.
-// A name alone could denote a type.
+export function withCppValueScope(parser, names, read) {
+  if (parser.syntax.id !== 'cpp') {
+    return read();
+  }
+  const scope = new Map(names.map((name) => [name, true]));
+  parser.cppValueScopes.push(scope);
+  try {
+    return read(scope);
+  } finally {
+    parser.cppValueScopes.pop();
+  }
+}
+
+export function recordCppBinding(scope, item) {
+  if (!scope) {
+    return;
+  }
+  if (['Declaration', 'Function', 'Class'].includes(item.kind)) {
+    scope.set(
+      item.name,
+      item.kind !== 'Class' && !item.type?.startsWith('source:typedef ')
+    );
+  }
+  if (item.kind === 'Import') {
+    const alias = /^using\s+([\p{ID_Start}_][\p{ID_Continue}]*)\s+=/u.exec(
+      item.text
+    );
+    if (alias) {
+      scope.set(alias[1], false);
+    }
+  }
+}
+
+function cppKnownValue(parser, name) {
+  return (
+    parser.cppValueScopes.findLast((scope) => scope.has(name))?.get(name) ??
+    false
+  );
+}
+
+// A literal, a member access or a bound value cannot be a parameter type.
 export function cppFirstArgumentIsExpression(parser, head) {
   if (parser.syntax.id !== 'cpp' || !parser.is('(', head)) {
     return false;
@@ -85,15 +124,20 @@ export function cppFirstArgumentIsExpression(parser, head) {
     ['number', 'text'].includes(type) ||
     (type === 'name' &&
       (['true', 'false', 'nullptr'].includes(value) ||
+        cppKnownValue(parser, value) ||
         parser.is('.', afterCppLineEnds(parser, argument))))
   );
 }
 
 export function cppDirectInitializer(parser, head) {
+  if (parser.syntax.id !== 'cpp' || head < 2) {
+    return false;
+  }
+  const typeEnd = parser.peek(head - 2);
   return (
-    head >= 2 &&
     parser.peek(head - 1).type === 'name' &&
-    parser.peek(head - 2).type === 'name' &&
+    (typeEnd.type === 'name' || ['>', '>>'].includes(typeEnd.value)) &&
+    !cppKnownValue(parser, parser.peek().value) &&
     cppFirstArgumentIsExpression(parser, head) &&
     parser.is(';', parser.afterParentheses(head))
   );

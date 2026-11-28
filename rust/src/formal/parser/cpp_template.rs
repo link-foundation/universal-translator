@@ -30,6 +30,59 @@ pub(super) fn is_cpp_template_declaration(language: &str, words: &[String]) -> b
 }
 
 impl Parser {
+    pub(super) fn with_cpp_value_scope<'a, T>(
+        &mut self,
+        values: impl IntoIterator<Item = &'a str>,
+        read: impl FnOnce(&mut Self) -> T,
+    ) -> T {
+        if self.syntax.id != "cpp" {
+            return read(self);
+        }
+        self.cpp_value_scopes.push(
+            values
+                .into_iter()
+                .map(|name| (name.to_owned(), true))
+                .collect(),
+        );
+        let result = read(self);
+        self.cpp_value_scopes.pop();
+        result
+    }
+
+    pub(super) fn record_cpp_binding(&mut self, item: &Node) {
+        let Some(scope) = self.cpp_value_scopes.last_mut() else {
+            return;
+        };
+        if (item.is("Declaration") || item.is("Function") || item.is("Class"))
+            && let Some(name) = item.str("name")
+        {
+            let is_type = item.is("Class")
+                || item
+                    .str("type")
+                    .is_some_and(|kind| kind.starts_with("source:typedef "));
+            scope.insert(name.to_owned(), !is_type);
+        }
+        if item.is("Import")
+            && let Some(text) = item.str("text")
+        {
+            let mut words = text.split_whitespace();
+            if let (Some("using"), Some(alias), Some("=")) =
+                (words.next(), words.next(), words.next())
+            {
+                scope.insert(alias.to_owned(), false);
+            }
+        }
+    }
+
+    fn cpp_known_value(&self, name: &str) -> bool {
+        self.cpp_value_scopes
+            .iter()
+            .rev()
+            .find_map(|scope| scope.get(name))
+            .copied()
+            .unwrap_or(false)
+    }
+
     pub(super) fn is_cpp_fixed_array(&self) -> bool {
         if self.syntax.id != "cpp" {
             return false;
@@ -73,8 +126,7 @@ impl Parser {
         offset
     }
 
-    // The first argument must start with syntax that cannot be a parameter
-    // declaration. A name alone could denote a type.
+    // A literal, a member access or a bound value cannot be a parameter type.
     pub(super) fn cpp_first_argument_is_expression(&self, head: usize) -> bool {
         if self.syntax.id != "cpp" || !self.is_at("(", head) {
             return false;
@@ -84,6 +136,7 @@ impl Parser {
             TokenType::Number | TokenType::Text => true,
             TokenType::Name => {
                 matches!(self.value(argument), "true" | "false" | "nullptr")
+                    || self.cpp_known_value(self.value(argument))
                     || self.is_at(".", self.after_cpp_newlines(argument))
             }
             _ => false,
@@ -91,9 +144,12 @@ impl Parser {
     }
 
     pub(super) fn cpp_direct_initializer(&self, head: usize) -> bool {
-        head >= 2
+        self.syntax.id == "cpp"
+            && head >= 2
             && self.kind(head - 1) == TokenType::Name
-            && self.kind(head - 2) == TokenType::Name
+            && (self.kind(head - 2) == TokenType::Name
+                || matches!(self.value(head - 2), ">" | ">>"))
+            && !self.cpp_known_value(self.value(0))
             && self.cpp_first_argument_is_expression(head)
             && self
                 .closing_parenthesis(head)

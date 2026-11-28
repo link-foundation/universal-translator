@@ -23,6 +23,7 @@ import { questionSuffix, propertyAssignment } from './question-parser.js';
 import { withObjpakParser } from './objpak-reader.js';
 import { withQueryParser } from './query-parser.js';
 import { parseSource } from './source-parser.js';
+import { sourceType } from './type-metadata.js';
 import {
   cppDirectInitializer,
   cppListInitializer,
@@ -35,6 +36,8 @@ import {
   readCppDirectInitializer,
   readCppInitializerList,
   readCppStringInitializer,
+  recordCppBinding,
+  withCppValueScope,
 } from './cpp-library.js';
 import {
   isNamespaceOrClass,
@@ -111,6 +114,7 @@ class BaseParser {
     this.tokens = tokens;
     this.position = 0;
     this.syntax = syntax;
+    this.cppValueScopes = [];
     // Word operators such as Nim's mod and div, or Pascal's <>, join the
     // shared symbols of their level.
     const { remainder, integerDivide, and, or, equal, notEqual } =
@@ -225,6 +229,10 @@ class BaseParser {
   }
 
   items(done) {
+    return withCppValueScope(this, [], (scope) => this.readItems(done, scope));
+  }
+
+  readItems(done, scope) {
     const items = [];
     this.skipSeparators();
     while (!done()) {
@@ -235,6 +243,7 @@ class BaseParser {
       }
       // A C-style loop that is not a counting loop becomes several statements.
       const item = this.item();
+      recordCppBinding(scope, item);
       items.push(...(item.kind === 'Statements' ? item.statements : [item]));
       this.skipSeparators();
     }
@@ -602,7 +611,17 @@ class BaseParser {
     if (this.syntax.bodyAfter && this.syntax.blocks !== 'indentation') {
       this.accept(this.syntax.bodyAfter);
     }
-    const body = this.block();
+    const body =
+      this.syntax.id === 'cpp'
+        ? withCppValueScope(
+            this,
+            [
+              functionName,
+              ...parameters.map(({ name: parameter }) => parameter),
+            ],
+            () => this.block()
+          )
+        : this.block();
     this.closeKeywordBlock();
     // Perl: sub name { my ($first, $second) = @_; ... }
     if (body.statements[0]?.kind === 'Parameters') {
@@ -1447,50 +1466,6 @@ const Parser = withObjpakParser(
     )
   )
 );
-
-// Map a source type spelling to a meta type.
-export function sourceType(spelling) {
-  const words = spelling
-    .replace(/\b(const|static|unsigned|signed|mut)\b/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-  if (
-    /^(int|long|short|i8|i16|i32|i64|isize|u8|u16|u32|u64|usize|Int|Long|number|integer)$/.test(
-      words
-    )
-  ) {
-    return 'integer';
-  }
-  if (
-    /^(char ?\*|std ?:: ?string|string|String|& ?str|&'static str)$/.test(words)
-  ) {
-    return 'text';
-  }
-  if (
-    /^((int|long|Long|number|i64) ?\[ ?\]|std ?:: ?vector ?< ?int ?>|Vec ?< ?i64 ?>|IntArray|\[ ?\] ?int|\[ ?Int ?\]|List ?< ?(int|Long) ?>|Array ?\[ ?Long ?\]|seq ?\[ ?int ?\]|\[ ?(\d+ ?)?\] ?i64)$/.test(
-      words
-    )
-  ) {
-    return 'array';
-  }
-  if (
-    /^(double|float|f32|f64|float32|float64|Double|Float|Float64|Long_Float|real|Real)$/.test(
-      words
-    )
-  ) {
-    return 'real';
-  }
-  if (/^(bool|boolean|Bool|Boolean|BOOL)$/.test(words)) {
-    return 'boolean';
-  }
-  if (/^(void|\(\)|Unit|Void)$/.test(words)) {
-    return 'nothing';
-  }
-  if (words === '' || words === 'var' || words === 'auto') {
-    return undefined;
-  }
-  return `source:${words}`;
-}
 
 const elseWords = ['else', 'elif', 'elsif', 'elseif'];
 const startsElse = (parser, offset = 0) =>

@@ -119,20 +119,24 @@ pub fn rename_declared(program: Node, rename: impl Fn(&str, Role) -> String) -> 
         };
         rename(identifier, role)
     };
-    let rename_field = |mut node: Node, field: &str| {
+    let rename_reference = |identifier: &str| match identifier.split_once('.') {
+        Some((receiver, member)) if !receiver.is_empty() && !declared.contains(identifier) => {
+            format!("{}.{member}", change(receiver))
+        }
+        _ => change(identifier),
+    };
+    let rename_field = |mut node: Node, field: &str, rename: &dyn Fn(&str) -> String| {
         if let Some(identifier) = node.str(field).map(str::to_owned) {
-            node.set(field, change(&identifier));
+            node.set(field, rename(&identifier));
         }
         node
     };
     let mut renamed = rewrite(program, |current| match current.kind.as_str() {
-        "Name"
-        | "Declaration"
-        | "Assignment"
-        | "AssignmentExpression"
-        | "IndexAssignment"
-        | "Catch" => rename_field(current, "name"),
-        "Call" => rename_field(current, "callee"),
+        "Name" => rename_field(current, "name", &rename_reference),
+        "Call" | "CppTemplateCall" => rename_field(current, "callee", &rename_reference),
+        "Declaration" | "Assignment" | "AssignmentExpression" | "IndexAssignment" | "Catch" => {
+            rename_field(current, "name", &change)
+        }
         "Lambda" => {
             let parameters = current
                 .texts("parameters")
@@ -141,7 +145,7 @@ pub fn rename_declared(program: Node, rename: impl Fn(&str, Role) -> String) -> 
                 .collect::<Vec<_>>();
             current.with("parameters", parameters)
         }
-        "CountingLoop" | "ForEach" | "Query" => rename_field(current, "variable"),
+        "CountingLoop" | "ForEach" | "Query" => rename_field(current, "variable", &change),
         _ => current,
     });
     let functions: Vec<Node> = renamed
@@ -151,9 +155,9 @@ pub fn rename_declared(program: Node, rename: impl Fn(&str, Role) -> String) -> 
             let parameters: Vec<Node> = item
                 .node_list("parameters")
                 .into_iter()
-                .map(|parameter| rename_field(parameter, "name"))
+                .map(|parameter| rename_field(parameter, "name", &change))
                 .collect();
-            rename_field(item, "name").with("parameters", parameters)
+            rename_field(item, "name", &change).with("parameters", parameters)
         })
         .collect();
     renamed.set("functions", functions);

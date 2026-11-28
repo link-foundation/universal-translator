@@ -193,6 +193,38 @@ describe('C++ parameter types', () => {
 });
 
 describe('C++ parenthesized object initialization', () => {
+  it('distinguishes bound values, template constructors and function declarations', () => {
+    const source = `#include <optional>
+#include <string>
+void example(int width) {
+  std::optional<int> result(width);
+}
+int main() {
+  std::string original = "layout";
+  std::string copy(original);
+  std::string prototype(std::string);
+  int count = 1;
+  int limit = 2;
+  count < limit > probe(count);
+  return 0;
+}
+`;
+    const program = translator.toMeta(source, 'cpp');
+    const initial = program.functions[0].body.statements[0].value;
+    const [, copy, , , comparison] = program.main.statements;
+    expect(initial.kind).toBe('CppDirectInitializer');
+    expect(initial.arguments[0].name).toBe('width');
+    expect(copy.value.kind).toBe('CppDirectInitializer');
+    expect(copy.value.arguments[0].name).toBe('original');
+    expect(comparison.expression.operator).toBe('greater');
+    const emitted = translator.translate(source, 'cpp', 'cpp');
+    expect(emitted).toContain('std::optional<int> result(width);');
+    expect(emitted).toContain('std::string copy(original);');
+    expect(translator.toMeta(emitted, 'cpp').main.statements).toEqual(
+      program.main.statements
+    );
+  });
+
   it('retains literal and member-call constructor arguments beside prototypes', () => {
     const source = String.raw`#include <iostream>
 #include <string_view>

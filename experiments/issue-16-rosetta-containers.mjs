@@ -383,6 +383,41 @@ int main() {
     stdout: '1400-Jan-01 00:00:00\n',
     assertions: 0,
   },
+  {
+    title: 'Identity matrix',
+    revid: 418401,
+    solutionIndex: 1,
+    sourceSha256:
+      '4210fbd5ea556daf857829d849cbba90d8b0a315a6c5005cc327bf1cabdd9265',
+    dependency: 'Boost',
+    compile: ['-include', 'iostream'],
+    stdin: '3\n',
+    stdout: 'Enter matrix size (N): 1 0 0 \n0 1 0 \n0 0 1 \n',
+    assertions: 0,
+  },
+  {
+    title: 'Collections',
+    revid: 419930,
+    solutionIndex: 1,
+    sourceSha256:
+      '867234c0bfda6c3618c0811c53164a9d33a650618c3cc5627caf63ec997ecee1',
+    mainStartsAt: 'v.push_back(5);',
+    stdout: '',
+    assertions: 0,
+    observed: 'v == std::vector<int>{7, 5}',
+  },
+  {
+    title: 'Variables',
+    revid: 419671,
+    solutionIndex: 2,
+    sourceSha256:
+      '54e7ff58c4bcaa08b754a8c8d5a7924081c80fdd82395f1f048fbf6a4603d9be',
+    mainStartsAt: null,
+    compile: ['-include', 'vector'],
+    stdout: '',
+    assertions: 0,
+    observed: { source: 'intVec.empty()', emitted: 'int_vec.empty()' },
+  },
 ];
 assert.equal(new Set(tasks.map(({ title }) => title)).size, tasks.length);
 for (const title of selectedTasks) {
@@ -449,7 +484,15 @@ try {
       mkdirSync(dirname(target), { recursive: true });
       writeFileSync(target, content);
     }
-    const original = run(source, task);
+    const mainStart = task.mainStartsAt
+      ? source.indexOf(task.mainStartsAt)
+      : source.length;
+    assert.ok(mainStart >= 0, task.title);
+    const originalProgram =
+      task.mainStartsAt === undefined
+        ? source
+        : `${source.slice(0, mainStart)}\nint main() {\n${source.slice(mainStart)}\n}\n`;
+    const original = run(originalProgram, task);
     if (task.comparisons) {
       assert.deepEqual(
         original
@@ -464,18 +507,18 @@ try {
     } else {
       assert.equal(original, task.stdout, task.title);
     }
-    const checkValues = (program) => {
+    const checkValues = (program, condition) => {
       const main = program.indexOf('int main');
       const close = program.lastIndexOf('}');
       assert.ok(main >= 0 && close > main, task.title);
       const terminal = /\breturn\s+0\s*;\s*$/u.exec(program.slice(main, close));
       const checkAt = terminal ? main + terminal.index : close;
       assert.ok(!/\breturn\b/u.test(program.slice(main, checkAt)), task.title);
-      const checked = `${program.slice(0, checkAt)}\nif (!(${task.observed})) return 123;\n${program.slice(checkAt)}`;
+      const checked = `${program.slice(0, checkAt)}\nif (!(${condition})) return 123;\n${program.slice(checkAt)}`;
       assert.equal(run(checked, task), original, task.title);
     };
     if (task.observed) {
-      checkValues(source);
+      checkValues(originalProgram, task.observed.source ?? task.observed);
     }
     for (const [engine, command, args] of translators) {
       const flags = task.driver
@@ -488,7 +531,7 @@ try {
       );
       assert.equal(run(program, task), original, `${task.title} via ${engine}`);
       if (task.observed) {
-        checkValues(program);
+        checkValues(program, task.observed.emitted ?? task.observed);
       }
       console.log(
         JSON.stringify({
@@ -500,7 +543,11 @@ try {
           stdout: original,
           assertions: task.assertions,
           observed: task.observed,
-          driver: task.driver ? 'appended native caller' : undefined,
+          driver: task.driver
+            ? 'appended native caller'
+            : task.mainStartsAt !== undefined
+              ? 'native entry point for original fragment'
+              : undefined,
           dependency: task.dependency,
         })
       );

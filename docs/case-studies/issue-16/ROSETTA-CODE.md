@@ -100,6 +100,16 @@ containing `7` from index 1 of a tuple. Ordinary comparisons such as
 `a < 1 > (c)` keep their comparison tree. The C++ library declares `I` as a
 value template parameter. [C++ tuple element access](https://eel.is/c++draft/tuple.elem)
 
+Parenthesized declarations use names visible in the current C++ scope to
+distinguish value arguments from parameter types. Before the fix, translating
+`std::string copy(original);` at `d912dcd` erased the declaration, and
+GCC reported an undeclared `copy` on its first use. Both readers now retain
+constructors taking local variables or function parameters, including template
+types. A receiver follows the target spelling of its declaration while member
+names retain their spelling. The focused tests cover an ordinary prototype and
+a less-than/greater-than expression beside both kinds of construction.
+[C++ declaration ambiguity](https://eel.is/c++draft/dcl.ambig.res)
+
 ## Verified Rosetta tasks beyond the baseline
 
 Both engines retained `unsigned` inside the template call but stripped it from
@@ -390,6 +400,33 @@ With Boost 1.83.0 headers available, verify its two tasks with the same
 MediaWiki request above using `revids=419113|419964`, then pass the
 response and the two exact task titles to the verifier. The rest run in
 the default standard-library selection.
+
+Three more pinned solutions bring the verified count to 39. The baseline
+rejected the three inputs. The recent C++ reader at `d912dcd` also dropped
+the matrix declaration, even though it could read the surrounding program.
+
+| Task            | Pinned revision                                                                                       | Native observation                                 |
+| --------------- | ----------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| Identity matrix | [418401](https://rosettacode.org/w/index.php?title=Identity_matrix&oldid=418401), second C++ solution | Prompt and all nine matrix entries for dimension 3 |
+| Collections     | [419930](https://rosettacode.org/w/index.php?title=Collections&oldid=419930), second C++ solution     | Insertion leaves the vector with exactly `{7, 5}`  |
+| Variables       | [419671](https://rosettacode.org/w/index.php?title=Variables&oldid=419671), third C++ solution        | The file-scope default-constructed vector is empty |
+
+The matrix example uses Boost 1.83.0. All three matrix builds add
+`-include iostream` because the published source omits the include.
+The original collection fragments run with a minimal `main` inserted around
+their statements while their vector declarations stay at file scope. Native
+observers evaluate the vectors just before exit. The original source retained
+by the verifier has the published digest and is passed unchanged to each CLI.
+[Native comparisons](logs/rosetta-initializer-native.jsonl)
+
+```sh
+curl --fail --silent --show-error --get https://rosettacode.org/w/api.php \
+  --data 'action=query' --data 'prop=revisions' --data 'revids=418401|419930|419671' \
+  --data 'rvprop=ids|content' --data 'rvslots=main' --data 'format=json' \
+  --data 'formatversion=2' > /tmp/rosetta-initializer-revisions.json
+node experiments/issue-16-rosetta-containers.mjs /tmp/rosetta-initializer-revisions.json \
+  ./target/debug/universal-translator 'Identity matrix' Collections Variables
+```
 
 The C solution for [Copy stdin to stdout revision 417213](https://rosettacode.org/w/index.php?title=Copy_stdin_to_stdout&oldid=417213)
 previously lost `<stdio.h>`. Strict C99 compilation reported implicit
