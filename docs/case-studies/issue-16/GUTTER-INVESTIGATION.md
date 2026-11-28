@@ -1,8 +1,8 @@
 # Gutter selection investigation
 
 Requirement 16.17 in [PR 17](https://github.com/link-foundation/universal-translator/pull/17)
-remains open: the original solid blue block below the source lines has not been
-reproduced in the available Chromium and WebKit versions.
+remains open. The original solid blue block below the source lines has not
+appeared in the recorded Chromium, desktop WebKit and Apple Safari runs.
 
 `experiments/issue-16-gutter-selection.mjs` makes five bounded WebKit selections
 around the source margin and final line. Run it against the example application's
@@ -50,8 +50,7 @@ from the report. [Deployment workflow](https://github.com/link-foundation/univer
 The same five WebKit 26.4
 interactions show the original three mapping bars ending at line 11. Each
 frame has 39,900 background pixels of `#21302c` in the sampled blank gutter.
-The page reported zero errors. This narrows the remaining investigation to the
-Safari runtime or a browser state outside the five recorded interactions.
+The page reported zero errors.
 
 ```sh
 mkdir -p /tmp/gutter-deployment /tmp/gutter-captures
@@ -67,3 +66,33 @@ kill "$gutter_server"
 
 [WebKit capture of the deployment](../../screenshots/issue-16/gutter-deployed-webkit.png)
 [Browser observations](logs/gutter-deployed-webkit.jsonl)
+
+## Apple Safari comparison
+
+The initial Safari probe reported browser text selections during dragging.
+Translation could replace the editor and drop its temporary height setting.
+The pointer in that probe could land outside the margin, invalidating the
+selection evidence. The corrected probe applies the height to the pane by
+selector, scrolls after translation and verifies that the pointer hits the
+margin at least 24 CSS pixels below the last line.
+
+Safari 27.2 hit the blank margin on both builds. The initial state, click and
+drags in both directions had zero native selection characters. In every state
+the deployed build had three mapping bars and the current build had eleven.
+Every bar ended within the source lines. The element screenshot after the last
+drag had 12,650 sampled blank-margin pixels of `#21302c` on each build. The
+original report sampled at its screenshot coordinates has 50,400 pixels of
+`#6383a7` in the block. These runs leave the original highlight unexplained.
+[Apple Safari comparison job](https://github.com/link-foundation/universal-translator/actions/runs/46086442418/job/140797184218)
+
+```sh
+gh workflow run example-app.yml --repo link-foundation/universal-translator \
+  --ref issue-16-fb080613587e -f safari_reference_run=45795514232
+node experiments/issue-16-gutter-pixels.mjs \
+  docs/screenshots/issue-16/gutter-deployed-safari.png 2 260 46 275
+```
+
+[Current Safari capture](../../screenshots/issue-16/gutter-current-safari.png)
+[Deployed Safari capture](../../screenshots/issue-16/gutter-deployed-safari.png)
+[Current observations](logs/gutter-current-safari.jsonl)
+[Deployed observations](logs/gutter-deployed-safari.jsonl)
