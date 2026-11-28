@@ -86,26 +86,41 @@ fn expand_rule(
     Ok(variants)
 }
 
+#[derive(Clone)]
+struct Expansion {
+    variants: Vec<String>,
+    depth: usize,
+}
+
 fn resolve_rule(
     rules: &HashMap<&str, &[String]>,
-    resolved: &mut HashMap<String, Vec<String>>,
+    resolved: &mut HashMap<String, Expansion>,
     path: &mut Vec<String>,
     key: &str,
-) -> Result<Vec<String>, String> {
+) -> Result<Expansion, String> {
     if path.len() >= MAX_DEPTH || path.iter().any(|step| step == key) {
         return Err(format!("Natural grammar recursion at \"{key}\""));
     }
     if let Some(known) = resolved.get(key) {
+        if path.len() + known.depth > MAX_DEPTH {
+            return Err(format!("Natural grammar recursion at \"{key}\""));
+        }
         return Ok(known.clone());
     }
     let patterns = rules
         .get(key)
         .ok_or_else(|| format!("Unknown natural grammar rule \"{key}\""))?;
     path.push(key.to_owned());
-    let variants = expand_rule(patterns, |rule| resolve_rule(rules, resolved, path, rule))?;
+    let mut depth = 1;
+    let variants = expand_rule(patterns, |rule| {
+        let next = resolve_rule(rules, resolved, path, rule)?;
+        depth = depth.max(next.depth + 1);
+        Ok(next.variants)
+    })?;
     path.pop();
-    resolved.insert(key.to_owned(), variants.clone());
-    Ok(variants)
+    let expansion = Expansion { variants, depth };
+    resolved.insert(key.to_owned(), expansion.clone());
+    Ok(expansion)
 }
 
 pub(super) fn productions(fields: &[Link]) -> Result<Ordered<Vec<String>>, String> {
@@ -153,7 +168,8 @@ pub(super) fn productions(fields: &[Link]) -> Result<Ordered<Vec<String>>, Strin
     }
     let mut compiled = Ordered::default();
     for (key, _) in &productions.entries {
-        compiled.insert(key, resolve_rule(&rules, &mut resolved, &mut path, key)?);
+        let expansion = resolve_rule(&rules, &mut resolved, &mut path, key)?;
+        compiled.insert(key, expansion.variants);
     }
     Ok(compiled)
 }
@@ -174,6 +190,29 @@ mod tests {
             compiled.get("print-line").unwrap(),
             &["Send message {value} now", "Send notice {value} now"]
         );
+    }
+
+    #[test]
+    fn bounds_depth_with_either_declaration_order() {
+        let mut terms = vec!["    term-0: 'Speak {value}'".to_owned()];
+        terms
+            .extend((1..MAX_DEPTH).map(|index| format!("    term-{index}: '@term-{}'", index - 1)));
+        let compile = |terms: &[String], index| {
+            let root = parse_root(&format!(
+                "grammar:\n  terms:\n{}\n  productions:\n    print-line: '@term-{index}'\n",
+                terms.join("\n")
+            ))
+            .unwrap();
+            productions(values_of(&root))
+        };
+        let compiled = compile(&terms, MAX_DEPTH - 2).unwrap();
+        assert_eq!(compiled.get("print-line").unwrap(), &["Speak {value}"]);
+        let mut reversed = terms.clone();
+        reversed.reverse();
+        for rules in [&terms, &reversed] {
+            let error = compile(rules, MAX_DEPTH - 1).unwrap_err();
+            assert!(error.starts_with("Natural grammar recursion at"), "{error}");
+        }
     }
 
     #[test]

@@ -78,6 +78,34 @@ describe('declarative controlled grammar', () => {
     }
     assert.ok(!naturalLanguageIds().includes('message-grammar'));
   });
+
+  it('applies the grammar depth bound in either declaration order', () => {
+    const terms = Array.from({ length: 24 }, (_, index) =>
+      index === 0
+        ? '      term-0: "Speak {value}"'
+        : `      term-${index}: "@term-${index - 1}"`
+    );
+    const source = (rules, index) =>
+      `${prefix}    terms:\n${rules.join('\n')}\n    productions:\n      print-line: "@term-${index}"\n`;
+    try {
+      const id = registerNaturalLanguage(source(terms, 22));
+      assert.equal(
+        translate('Speak 7.', id, 'javascript'),
+        'console.log(7);\n'
+      );
+      unregisterNaturalLanguage(id);
+      for (const rules of [terms, [...terms].reverse()]) {
+        assert.throws(
+          () => registerNaturalLanguage(source(rules, 23)),
+          /Natural grammar recursion/u
+        );
+      }
+    } finally {
+      if (naturalLanguageIds().includes('message-grammar')) {
+        unregisterNaturalLanguage('message-grammar');
+      }
+    }
+  });
 });
 
 describe('grammatical case in controlled algorithms', () => {

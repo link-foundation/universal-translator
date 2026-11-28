@@ -97,18 +97,28 @@ export function grammarProductions(fields, productionKeys) {
     if (!rules.has(key)) {
       throw new Error(`Unknown natural grammar rule "${key}"`);
     }
-    if (!resolved.has(key)) {
-      resolved.set(
-        key,
-        expandRule(rules.get(key), (rule) => resolve(rule, [...path, key]))
-      );
+    const known = resolved.get(key);
+    if (known) {
+      if (path.length + known.depth > maxDepth) {
+        throw new Error(`Natural grammar recursion at "${key}"`);
+      }
+      return known;
     }
-    return resolved.get(key);
+    const nextPath = [...path, key];
+    let depth = 1;
+    const variants = expandRule(rules.get(key), (rule) => {
+      const next = resolve(rule, nextPath);
+      depth = Math.max(depth, next.depth + 1);
+      return next.variants;
+    });
+    const expansion = { variants, depth };
+    resolved.set(key, expansion);
+    return expansion;
   };
   for (const key of terms.keys()) {
     resolve(key);
   }
   return Object.fromEntries(
-    [...productions.keys()].map((key) => [key, resolve(key)])
+    [...productions.keys()].map((key) => [key, resolve(key).variants])
   );
 }
