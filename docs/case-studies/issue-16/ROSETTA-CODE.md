@@ -215,6 +215,18 @@ node --max-old-space-size=384 experiments/issue-16-rosetta-candidates.mjs \
   .cache/issue-16-rosetta-full/solutions.json /path/to/baseline/js/src/index.js
 ```
 
+A second scan tested up to five solutions per task and language using the same
+corpus snapshot and baseline. It found 55 candidates in 47 distinct tasks.
+Results include a zero-based solution index when a later solution is selected.
+These records guide native verification and carry the exact source digests.
+[Five-solution scan](logs/rosetta-candidates-five.jsonl)
+
+```sh
+node --max-old-space-size=384 experiments/issue-16-rosetta-candidates.mjs \
+  .cache/issue-16-rosetta-full/solutions.json /path/to/baseline/js/src/index.js \
+  cpp c javascript python rust typescript --solutions=5
+```
+
 Six more pinned C++ originals passed native behavioral comparisons, including
 source hash, strict emission and output checks through both CLIs.
 
