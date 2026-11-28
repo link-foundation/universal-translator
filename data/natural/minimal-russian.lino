@@ -6,6 +6,10 @@ natural:
   source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
   true: правда
   false: неправда
+  grammar:
+    productions:
+      element: 'часть {index} из {array}'
+      set-element: 'После этого @element[array=name] будет {value}'
   templates:
     function: 'Вот как делают {name} с {parameters}'
     function-without-parameters: 'Вот как делают {name}'
@@ -32,9 +36,7 @@ natural:
     greater-or-equal: '{left} не меньше {right}'
     array: 'эти вещи ({elements})'
     new-array: '{length} вещей как {fill}'
-    element: 'часть {index} из {array}'
     length: 'сколько частей в {array}'
-    set-element: 'После этого часть {index} из {name} будет {value}'
   rules:
     primes: russian
     extra-words: с на строке ответ остановиться ничего раз для от из сколько или и противоположное плюс минус умножить разделить по модулю неправда

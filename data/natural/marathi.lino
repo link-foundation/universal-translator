@@ -30,6 +30,8 @@ natural:
       question-query: '@answer-query कोणती'
       answer-deferred-query: '@query-deferred @answer-query'
       question-deferred-query: '@query-deferred @question-query'
+      element: '{array} मधील घटक {index}'
+      set-element: '@element[array=name] ला {value} मध्ये बदला'
   templates:
     documentation: 'वर्णन आहे {value}'
     function: '{name} ची व्याख्या {parameters} वापरून करा'
@@ -69,9 +71,7 @@ natural:
     remainder: '{left} मॉड्यूलो {right}' '{left} % {right}'
     array: 'यादी ({elements})'
     new-array: 'यादी लांबी {length} प्रत्येक घटक {fill}'
-    element: '{array} मधील घटक {index}'
     length: '{array} ची लांबी'
-    set-element: '{name} मधील घटक {index} ला {value} मध्ये बदला'
   words:
     ackermann: 'एकरमन'
     bottles: 'बाटल्या'

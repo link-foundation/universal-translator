@@ -30,6 +30,8 @@ natural:
       question-query: 'Anong @answer-query'
       answer-deferred-query: '@query-deferred @answer-query'
       question-deferred-query: '@query-deferred @question-query'
+      element: 'elemento {index} sa {array}'
+      set-element: 'Palitan ang @element[array=name] ng {value}'
   templates:
     documentation: 'Ang dokumentasyon ay {value}'
     function: 'Tukuyin ang {name} gamit ang {parameters}'
@@ -69,9 +71,7 @@ natural:
     remainder: '{left} modulo {right}' '{left} % {right}'
     array: 'listahan ({elements})'
     new-array: 'listahang may habang {length} na puno ng {fill}'
-    element: 'elemento {index} sa {array}'
     length: 'haba ng {array}'
-    set-element: 'Palitan ang elemento {index} sa {name} ng {value}'
   words:
     ackermann: 'ackermann'
     bottles: 'bote'

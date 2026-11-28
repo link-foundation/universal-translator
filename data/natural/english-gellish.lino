@@ -4,6 +4,9 @@ natural:
   extends: english
   profile: gellish
   source: 'https://en.wikipedia.org/wiki/Gellish'
+  grammar:
+    productions:
+      set-element: '@element[array=name] has as new value {value}'
   templates:
     function: '{name} is defined as a procedure with input {parameters}'
     function-without-parameters: '{name} is defined as a procedure without input'
@@ -30,6 +33,5 @@ natural:
     less-or-equal: '{left} is at most {right}' '{left} <= {right}' '{left} ≤ {right}'
     greater: '{left} is greater than {right}' '{left} > {right}'
     greater-or-equal: '{left} is at least {right}' '{left} >= {right}' '{left} ≥ {right}'
-    set-element: 'item {index} of {name} has as new value {value}'
   rules:
     relations: 'is defined as' 'is classified as' 'has as new value' 'has as next line' 'has as next part' 'has as result' 'applied to' 'concatenated with' 'is equal to'

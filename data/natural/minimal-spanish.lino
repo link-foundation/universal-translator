@@ -4,6 +4,10 @@ natural:
   extends: spanish
   profile: minimal-english
   source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  grammar:
+    productions:
+      element: 'la parte {index} de {array}'
+      set-element: 'Después de esto, @element[array=name] es {value}'
   templates:
     function: 'Así es como alguien hace {name} con {parameters}'
     function-without-parameters: 'Así es como alguien hace {name}'
@@ -30,9 +34,7 @@ natural:
     greater-or-equal: '{left} no es menos que {right}'
     array: 'estas cosas ({elements})'
     new-array: '{length} cosas como {fill}'
-    element: 'la parte {index} de {array}'
     length: 'cuántas partes hay en {array}'
-    set-element: 'Después de esto, la parte {index} de {name} es {value}'
   rules:
     primes: spanish
     extra-words: con de en línea la respuesta parar nada veces para los desde hasta lo que el opuesto o y menos por dividido entre módulo falso cuántas

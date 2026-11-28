@@ -4,6 +4,10 @@ natural:
   extends: italian
   profile: minimal-english
   source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  grammar:
+    productions:
+      element: 'la parte {index} di {array}'
+      set-element: 'Dopo questo, @element[array=name] è {value}'
   templates:
     function: 'Ecco come qualcuno fa {name} con {parameters}'
     function-without-parameters: 'Ecco come qualcuno fa {name}'
@@ -31,9 +35,7 @@ natural:
     greater-or-equal: '{left} non è meno di {right}'
     array: 'queste cose ({elements})'
     new-array: '{length} cose come {fill}'
-    element: 'la parte {index} di {array}'
     length: 'quante parti ha {array}'
-    set-element: 'Dopo questo, la parte {index} di {name} è {value}'
   rules:
     primes: italian
     extra-words: ecco con su riga la risposta fermarsi niente no volte per da a poi l'opposto di lo meno o e per diviso modulo falso quante ha

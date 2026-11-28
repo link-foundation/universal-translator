@@ -30,6 +30,8 @@ natural:
       question-query: 'Welche Werte von {projection} @query-scope erfüllen {condition}'
       answer-deferred-query: '@query-deferred @answer-query'
       question-deferred-query: '@query-deferred @question-query'
+      element: 'das Element {index} von {array}'
+      set-element: 'Ändere @element[array=name] auf {value}'
   templates:
     documentation: 'Die Dokumentation ist {value}'
     function: 'Definiere {name} mit {parameters}'
@@ -69,9 +71,7 @@ natural:
     remainder: '{left} modulo {right}' '{left} % {right}'
     array: 'die Liste ({elements})'
     new-array: 'eine Liste aus {length} Kopien von {fill}'
-    element: 'das Element {index} von {array}'
     length: 'die Länge von {array}'
-    set-element: 'Ändere das Element {index} von {name} auf {value}'
   words:
     ackermann: 'Ackermann'
     bottles: 'Flaschen'

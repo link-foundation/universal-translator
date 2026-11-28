@@ -30,6 +30,8 @@ natural:
       question-query: '@answer-query은 무엇인가'
       answer-deferred-query: '@query-deferred @answer-query'
       question-deferred-query: '@query-deferred @question-query'
+      element: '{array} 원소 {index}'
+      set-element: '@element[array=name] 을 {value} 로 바꾼다'
   templates:
     documentation: '문서는 {value}'
     function: '{name} 을 {parameters} 로 정의한다'
@@ -69,9 +71,7 @@ natural:
     remainder: '{left} 모듈로 {right}' '{left} % {right}'
     array: '목록 ({elements})'
     new-array: '길이 {length} 초기값 {fill} 목록'
-    element: '{array} 원소 {index}'
     length: '{array} 길이'
-    set-element: '{name} 원소 {index} 을 {value} 로 바꾼다'
   words:
     ackermann: '아커만'
     bottles: '병'

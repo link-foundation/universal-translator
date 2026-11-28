@@ -30,6 +30,8 @@ natural:
       question-query: 'Apa @answer-query'
       answer-deferred-query: '@query-deferred @answer-query'
       question-deferred-query: '@query-deferred @question-query'
+      element: 'elemen {index} pada {array}'
+      set-element: 'Ubah @element[array=name] menjadi {value}'
   templates:
     documentation: 'Dokumentasinya adalah {value}'
     function: 'Definisikan {name} dengan {parameters}'
@@ -69,9 +71,7 @@ natural:
     remainder: '{left} modulo {right}' '{left} % {right}'
     array: 'daftar ({elements})'
     new-array: 'daftar sepanjang {length} berisi {fill}'
-    element: 'elemen {index} pada {array}'
     length: 'panjang {array}'
-    set-element: 'Ubah elemen {index} pada {name} menjadi {value}'
   words:
     ackermann: 'ackermann'
     bottles: 'botol'

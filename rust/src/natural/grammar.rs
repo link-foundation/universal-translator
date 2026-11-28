@@ -2,7 +2,7 @@
 //! language. Typed slots still parse nested expressions at runtime.
 
 use crate::meta::links::Link;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use super::catalog::{OPTIONAL_TEMPLATE_KEYS, Ordered, TEMPLATE_KEYS, label_of, plain, values_of};
 
@@ -26,6 +26,80 @@ fn check_length(phrase: &str) -> Result<(), String> {
     Ok(())
 }
 
+fn binding_aliases<'a>(key: &str, bindings: &'a str) -> Result<HashMap<&'a str, &'a str>, String> {
+    let mut aliases = HashMap::new();
+    for binding in bindings.split(',') {
+        let invalid = || format!("Invalid slot binding for natural grammar rule \"{key}\"");
+        let (from, to) = binding.split_once('=').ok_or_else(invalid)?;
+        if !term_name(from) || !term_name(to) || aliases.insert(from, to).is_some() {
+            return Err(invalid());
+        }
+    }
+    Ok(aliases)
+}
+
+fn rename_slots<'a>(
+    phrase: &'a str,
+    aliases: &HashMap<&str, &str>,
+    used: &mut HashSet<&'a str>,
+) -> Result<String, String> {
+    let mut result = String::new();
+    let mut offset = 0;
+    let mut length = phrase.encode_utf16().count();
+    for (start, _) in phrase.match_indices('{') {
+        if start < offset {
+            continue;
+        }
+        let Some((name, _)) = phrase[start + 1..].split_once('}') else {
+            break;
+        };
+        let Some(alias) = aliases.get(name) else {
+            continue;
+        };
+        used.insert(name);
+        length = length - name.len() + alias.len();
+        if length > MAX_LENGTH {
+            return Err("Natural grammar phrase is too long".into());
+        }
+        result.push_str(&phrase[offset..start + 1]);
+        result.push_str(alias);
+        offset = start + 1 + name.len();
+    }
+    result.push_str(&phrase[offset..]);
+    Ok(result)
+}
+
+fn bind_slots(variants: Vec<String>, key: &str, bindings: &str) -> Result<Vec<String>, String> {
+    let aliases = binding_aliases(key, bindings)?;
+    let mut used = HashSet::new();
+    let phrases = variants
+        .iter()
+        .map(|phrase| rename_slots(phrase, &aliases, &mut used))
+        .collect::<Result<_, _>>()?;
+    if let Some(slot) = aliases.keys().filter(|slot| !used.contains(**slot)).min() {
+        return Err(format!(
+            "Unknown slot \"{slot}\" in natural grammar rule \"{key}\""
+        ));
+    }
+    Ok(phrases)
+}
+
+fn reference_bindings<'a>(key: &str, rest: &'a str) -> Result<Option<&'a str>, String> {
+    let Some(value) = rest.strip_prefix('[') else {
+        return Ok(None);
+    };
+    if !value
+        .split_once('=')
+        .is_some_and(|(slot, _)| term_name(slot))
+    {
+        return Ok(None);
+    }
+    value
+        .split_once(']')
+        .map(|(bindings, _)| Some(bindings))
+        .ok_or_else(|| format!("Unclosed slot bindings for natural grammar rule \"{key}\""))
+}
+
 fn expand(
     pattern: &str,
     mut resolve: impl FnMut(&str) -> Result<Vec<String>, String>,
@@ -42,7 +116,13 @@ fn expand(
             .bytes()
             .take_while(|&byte| term_character(byte))
             .count();
-        let alternatives = resolve(&rest[..length])?;
+        let key = &rest[..length];
+        let bindings = reference_bindings(key, &rest[length..])?;
+        let alternatives = resolve(key)?;
+        let alternatives = match bindings {
+            Some(bindings) => bind_slots(alternatives, key, bindings)?,
+            None => alternatives,
+        };
         if variants.len() * alternatives.len() > MAX_VARIANTS {
             return Err("Too many natural grammar alternatives".into());
         }
@@ -56,7 +136,7 @@ fn expand(
             }
         }
         variants = next;
-        offset = index + 1 + length;
+        offset = index + 1 + length + bindings.map_or(0, |value| value.len() + 2);
     }
     for variant in &mut variants {
         variant.push_str(&pattern[offset..]);
@@ -205,6 +285,26 @@ mod tests {
     }
 
     #[test]
+    fn binds_nested_phrase_slots_without_changing_the_referenced_rule() {
+        let root = parse_root(
+            "grammar:\n  terms:\n    part: 'part {position} of {collection}' 'slot {position} of {collection}'\n  productions:\n    element: '@part[position=index,collection=array]'\n    set-element: 'Replace @element[array=name] with {value}'\n",
+        )
+        .unwrap();
+        let compiled = productions(values_of(&root), &mut Bindings::new()).unwrap();
+        assert_eq!(
+            compiled.get("element").unwrap(),
+            &["part {index} of {array}", "slot {index} of {array}"]
+        );
+        assert_eq!(
+            compiled.get("set-element").unwrap(),
+            &[
+                "Replace part {index} of {name} with {value}",
+                "Replace slot {index} of {name} with {value}"
+            ]
+        );
+    }
+
+    #[test]
     fn bounds_depth_with_either_declaration_order() {
         let mut terms = vec!["    term-0: 'Speak {value}'".to_owned()];
         terms
@@ -249,6 +349,18 @@ mod tests {
             (
                 "  terms:\n    word: a b c d e\n  productions:\n    print-line: '@word @word @word {value}'",
                 "Too many natural grammar alternatives",
+            ),
+            (
+                "  terms:\n    write: 'Write {value}'\n  productions:\n    print-line: '@write[missing=value]'",
+                "Unknown slot \"missing\" in natural grammar rule \"write\"",
+            ),
+            (
+                "  terms:\n    write: 'Write {value}'\n  productions:\n    print-line: '@write[value=operand,value=value]'",
+                "Invalid slot binding for natural grammar rule \"write\"",
+            ),
+            (
+                "  terms:\n    write: 'Write {value}'\n  productions:\n    print-line: '@write[value=value'",
+                "Unclosed slot bindings for natural grammar rule \"write\"",
             ),
         ];
         for (body, expected) in cases {

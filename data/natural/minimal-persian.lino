@@ -4,6 +4,10 @@ natural:
   extends: persian
   profile: minimal-english
   source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  grammar:
+    productions:
+      element: 'بخش {index} از {array}'
+      set-element: 'بعد از این، @element[array=name] {value} است'
   templates:
     function: 'کسی {name} را با {parameters} این‌طور می‌کند'
     function-without-parameters: 'کسی {name} را این‌طور می‌کند'
@@ -29,9 +33,7 @@ natural:
     greater-or-equal: '{left} کمتر از {right} نیست'
     array: 'این چیزها ({elements})'
     new-array: '{length} چیز مثل {fill}'
-    element: 'بخش {index} از {array}'
     length: 'تعداد بخش‌های {array}'
-    set-element: 'بعد از این، بخش {index} از {name} {value} است'
   rules:
     primes: persian
     extra-words: را با از در سطر جواب بایست هیچ کاری بارها برای تا سپس یا و منفی بعلاوه منهای ضربدر تقسیم بر به پیمانه نادرست تعداد

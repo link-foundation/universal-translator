@@ -111,6 +111,23 @@ all 71 compiled template tables match the same snapshot digest. Both
 engines also check that memoized expansions respect the 24-rule limit:
 adding a 25th reference level is rejected in either declaration order.
 
+Grammar references can bind slots at their point of use. The array
+assignment uses `@element[array=name]` to reuse the same indexed element
+phrase as an array read. The reader accepts an expression in `array` and a
+binding name in `name`. The index stays an expression in either context.
+Multiple bindings are applied together, so a referenced production keeps
+its original slots even when different callers bind them differently.
+Both loaders reject unknown slots and malformed binding lists. Each of
+the 69 profiles with its own assignment production now shares the indexed
+phrase. The other two profiles inherit it. The restored Python for a
+computed index, an indexed operand and an assignment matches the original
+Python through all 71 profiles in both engines.
+
+The full expanded tables also matched before and after the migration. The
+SHA-256 of an array of `[id, entries]` sorted by ID with entries sorted by
+key using English collation, serialized with `JSON.stringify` and a final
+newline, was `9ab94c3a65e9b9cb4c43ce5dfcfc2f599efd04bd4b724ba28bb536fca7e09aad`.
+
 - `node experiments/issue-16-recursive-phrases.mjs` checks three Python
   programs. The previous readers read `type(meaning + 1)` as an ordinary
   function call in seven languages, and commas within a nested collection

@@ -4,6 +4,10 @@ natural:
   extends: turkish
   profile: minimal-english
   source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  grammar:
+    productions:
+      element: '{array} şeyinin {index} parçası'
+      set-element: 'Bundan sonra @element[array=name] şimdi {value} olur'
   templates:
     function: 'Biri {name} şeyini {parameters} ile şöyle yapar'
     function-without-parameters: 'Biri {name} şeyini şöyle yapar'
@@ -30,9 +34,7 @@ natural:
     not: '{operand} doğru değil'
     array: 'şu şeyler ({elements})'
     new-array: '{fill} gibi {length} şey'
-    element: '{array} şeyinin {index} parçası'
     length: '{array} şeyinin kaç parçası var'
-    set-element: 'Bundan sonra {name} şeyinin {index} parçası şimdi {value} olur'
   rules:
     primes: turkish
     extra-words: ile satırda cevap dur hiçbir yapma kez için arasında değerinden en kaç veya ve negatif artı eksi çarpı bölü mod yanlış

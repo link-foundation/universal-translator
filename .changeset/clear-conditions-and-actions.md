@@ -57,3 +57,5 @@ Use counted Rosetta task presence for ambiguous code-language ties and bilingual
 Preserve literal C and C++ library headers in same-language output, deduplicate generated header imports and initialize unqualified C++ strings before native stream extraction.
 
 Preserve literal tuple indices in C++ `std::get<I>(...)` calls.
+
+Allow controlled-language productions to bind a referenced phrase’s slots to new roles, and share the indexed element phrase between array reads and writes in all shipped profiles.

@@ -30,6 +30,8 @@ natural:
       question-query: '@answer-query என்ன'
       answer-deferred-query: '@query-deferred @answer-query'
       question-deferred-query: '@query-deferred @question-query'
+      element: '{array} இல் உறுப்பு {index}'
+      set-element: '@element[array=name] ஐ {value} ஆக மாற்று'
   templates:
     documentation: 'ஆவணம் என்பது {value}'
     function: '{name} ஐ {parameters} கொண்டு வரையறு'
@@ -69,9 +71,7 @@ natural:
     remainder: '{left} மாடுலோ {right}' '{left} % {right}'
     array: 'பட்டியல் ({elements})'
     new-array: 'பட்டியல் நீளம் {length} ஒவ்வொரு உறுப்பும் {fill}'
-    element: '{array} இல் உறுப்பு {index}'
     length: '{array} நீளம்'
-    set-element: '{name} இல் உறுப்பு {index} ஐ {value} ஆக மாற்று'
   words:
     ackermann: 'அக்கர்மன்'
     bottles: 'புட்டிகள்'

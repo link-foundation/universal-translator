@@ -4,6 +4,10 @@ natural:
   extends: hausa
   profile: minimal-english
   source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  grammar:
+    productions:
+      element: 'sashe {index} na {array}'
+      set-element: 'Bayan wannan, @element[array=name] ya zama {value}'
   templates:
     function: 'Haka wani yake yin {name} da {parameters}'
     function-without-parameters: 'Haka wani yake yin {name}'
@@ -29,9 +33,7 @@ natural:
     greater-or-equal: '{left} bai gaza {right} ba'
     array: 'waɗannan abubuwa ({elements})'
     new-array: 'abubuwa {length} kamar {fill}'
-    element: 'sashe {index} na {array}'
     length: 'yawan sassan {array}'
-    set-element: 'Bayan wannan, sashe {index} na {name} ya zama {value}'
   rules:
     primes: hausa
     extra-words: da shi ya a layi amsar ita tsaya kada sau ga daga zuwa sannan ko kuma bai gaza korau ƙari ragi raba modulo ƙarya

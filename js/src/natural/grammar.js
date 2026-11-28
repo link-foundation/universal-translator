@@ -6,15 +6,69 @@ const maxLength = 4096;
 const maxRules = 256;
 const termName = /^[a-z][a-z0-9-]*$/u;
 
+// A phrase may fill a differently named slot at its point of use, for
+// example @element[array=name] in an assignment to a named array.
+function bindSlots(variants, key, bindings) {
+  const aliases = new Map();
+  for (const binding of bindings.split(',')) {
+    const [from, to, extra] = binding.split('=');
+    if (
+      extra !== undefined ||
+      !termName.test(from) ||
+      !to ||
+      !termName.test(to) ||
+      aliases.has(from)
+    ) {
+      throw new Error(`Invalid slot binding for natural grammar rule "${key}"`);
+    }
+    aliases.set(from, to);
+  }
+  const used = new Set();
+  const phrases = variants.map((phrase) => {
+    let length = phrase.length;
+    return phrase.replace(/\{([a-z][a-z0-9-]*)\}/gu, (slot, name) => {
+      const alias = aliases.get(name);
+      if (!alias) {
+        return slot;
+      }
+      used.add(name);
+      length += alias.length - name.length;
+      if (length > maxLength) {
+        throw new Error('Natural grammar phrase is too long');
+      }
+      return `{${alias}}`;
+    });
+  });
+  const missing = [...aliases.keys()]
+    .filter((slot) => !used.has(slot))
+    .sort()[0];
+  if (missing !== undefined) {
+    throw new Error(
+      `Unknown slot "${missing}" in natural grammar rule "${key}"`
+    );
+  }
+  return phrases;
+}
+
 function expand(pattern, resolve) {
   if (pattern.length > maxLength) {
     throw new Error('Natural grammar phrase is too long');
   }
   let variants = [''];
   let offset = 0;
-  for (const match of pattern.matchAll(/@([a-z][a-z0-9-]*)/gu)) {
+  const references =
+    /@([a-z][a-z0-9-]*)(?:(\[)(?=[a-z][a-z0-9-]*=)(?:([^\]]*)\])?)?/gu;
+  for (const match of pattern.matchAll(references)) {
+    const [, key, bracket, bindings] = match;
     const literal = pattern.slice(offset, match.index);
-    const alternatives = resolve(match[1]);
+    if (bracket && bindings === undefined) {
+      throw new Error(
+        `Unclosed slot bindings for natural grammar rule "${key}"`
+      );
+    }
+    const resolved = resolve(key);
+    const alternatives =
+      bindings === undefined ? resolved : bindSlots(resolved, key, bindings);
     if (variants.length * alternatives.length > maxVariants) {
       throw new Error('Too many natural grammar alternatives');
     }

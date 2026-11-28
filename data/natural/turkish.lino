@@ -30,6 +30,8 @@ natural:
       question-query: '@answer-query nelerdir'
       answer-deferred-query: '@query-deferred @answer-query'
       question-deferred-query: '@query-deferred @question-query'
+      element: '{array} listesinin {index} öğesi'
+      set-element: '@element[array=name]ni {value} yap'
   templates:
     documentation: 'Belge şudur {value}'
     function: '{name} işlevini {parameters} ile tanımla'
@@ -69,9 +71,7 @@ natural:
     remainder: '{left} mod {right}' '{left} % {right}'
     array: 'liste ({elements})'
     new-array: 'uzunluğu {length} olan {fill} listesi'
-    element: '{array} listesinin {index} öğesi'
     length: '{array} uzunluğu'
-    set-element: '{name} listesinin {index} öğesini {value} yap'
   words:
     ackermann: 'ackermann'
     bottles: 'şişeler'

@@ -20,7 +20,7 @@ natural:
       for: '@range-loop, @do-this'
       for-each: '@in-loop, @do-this'
       less: '{left} is @less-than {right}' '{left} < {right}'
-      set-element: 'Set @array-element {name} to {value}'
+      set-element: 'Set @element[array=name] to {value}'
   templates:
     declare: 'Let {name} start as {value}'
     assign: 'Set {name} to {value}'

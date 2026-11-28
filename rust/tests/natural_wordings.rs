@@ -37,6 +37,16 @@ fn grammatical_case_preserves_constant_and_variable_identity() {
 }
 
 #[test]
+fn round_trips_array_reads_and_writes_through_every_shipped_profile() {
+    let source = "values = [1, 2]\nvalues[1 - 1] = values[1] + 3\nprint(values[0])\n";
+    let expected = to(source, "python", "python");
+    for id in universal_translator::natural::catalog::natural_language_ids() {
+        let natural = to(source, "python", id);
+        assert_eq!(to(&natural, id, "python"), expected, "{id}");
+    }
+}
+
+#[test]
 fn read_like_the_canonical_sentences() {
     assert_eq!(
         to(EVERYDAY, "english", "python"),

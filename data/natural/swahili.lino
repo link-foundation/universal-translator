@@ -30,6 +30,8 @@ natural:
       question-query: 'Ni thamani zipi za {projection} @query-scope ikiwa {condition}'
       answer-deferred-query: '@query-deferred @answer-query'
       question-deferred-query: '@query-deferred @question-query'
+      element: 'kipengele {index} cha {array}'
+      set-element: 'Badilisha @element[array=name] kuwa {value}'
   templates:
     documentation: 'Maelezo ni {value}'
     function: 'Fafanua {name} kwa {parameters}'
@@ -69,9 +71,7 @@ natural:
     remainder: '{left} modulo {right}' '{left} % {right}'
     array: 'orodha ({elements})'
     new-array: 'orodha ya urefu {length} iliyojaa {fill}'
-    element: 'kipengele {index} cha {array}'
     length: 'urefu wa {array}'
-    set-element: 'Badilisha kipengele {index} cha {name} kuwa {value}'
   words:
     ackermann: 'ackermann'
     bottles: 'chupa'

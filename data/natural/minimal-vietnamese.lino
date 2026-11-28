@@ -4,6 +4,10 @@ natural:
   extends: vietnamese
   profile: minimal-english
   source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  grammar:
+    productions:
+      element: 'phần {index} của {array}'
+      set-element: 'Sau đó, @element[array=name] là {value}'
   templates:
     function: 'Đây là cách ai đó làm {name} với {parameters}'
     function-without-parameters: 'Đây là cách ai đó làm {name}'
@@ -30,9 +34,7 @@ natural:
     greater-or-equal: '{left} không ít hơn {right}'
     array: 'những thứ này ({elements})'
     new-array: '{length} thứ như {fill}'
-    element: 'phần {index} của {array}'
     length: '{array} có bao nhiêu phần'
-    set-element: 'Sau đó, phần {index} của {name} là {value}'
   rules:
     primes: vietnamese
     extra-words: với nó trên dòng câu trả dừng lần từ đến rồi của hoặc và âm cộng trừ nhân chia lấy dư sai những bao nhiêu

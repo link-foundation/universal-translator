@@ -30,6 +30,8 @@ natural:
       question-query: 'Waɗanne @answer-query'
       answer-deferred-query: '@query-deferred @answer-query'
       question-deferred-query: '@query-deferred @question-query'
+      element: 'abu {index} a cikin {array}'
+      set-element: 'Canza @element[array=name] zuwa {value}'
   templates:
     documentation: 'Bayani shi ne {value}'
     function: 'Ayyana {name} da {parameters}'
@@ -69,9 +71,7 @@ natural:
     remainder: '{left} modulo {right}' '{left} % {right}'
     array: 'jeri ({elements})'
     new-array: 'jeri mai tsawon {length} cike da {fill}'
-    element: 'abu {index} a cikin {array}'
     length: 'tsawon {array}'
-    set-element: 'Canza abu {index} a cikin {name} zuwa {value}'
   words:
     ackermann: 'ackermann'
     bottles: 'kwalabe'

@@ -4,6 +4,10 @@ natural:
   extends: urdu
   profile: minimal-english
   source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  grammar:
+    productions:
+      element: '{array} کا حصہ {index}'
+      set-element: 'اس کے بعد @element[array=name] اب {value} ہے'
   templates:
     function: 'کوئی {parameters} کے ساتھ {name} ایسے کرتا ہے'
     function-without-parameters: 'کوئی {name} ایسے کرتا ہے'
@@ -29,9 +33,7 @@ natural:
     greater-or-equal: '{left} {right} سے کم نہیں ہے'
     array: 'یہ چیزیں ({elements})'
     new-array: '{length} چیزیں {fill} جیسی'
-    element: '{array} کا حصہ {index}'
     length: '{array} میں کتنے حصے ہیں'
-    set-element: 'اس کے بعد {name} کا حصہ {index} اب {value} ہے'
   rules:
     primes: urdu
     extra-words: کے ساتھ جو میں سطر جواب رکیں تو بار تب لیے سے تک پھر کا کتنے یا اور جمع تفریق ضرب تقسیم ماڈیولو منفی جھوٹ

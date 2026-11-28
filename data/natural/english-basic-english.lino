@@ -4,6 +4,10 @@ natural:
   extends: english
   profile: basic-english
   source: 'https://en.wikipedia.org/wiki/Basic_English'
+  grammar:
+    productions:
+      element: 'part {index} of {array}'
+      set-element: 'Let @element[array=name] now be {value}'
   templates:
     function: 'Make {name} from {parameters} by these steps'
     function-without-parameters: 'Make {name} by these steps'
@@ -29,9 +33,7 @@ natural:
     less-or-equal: '{left} is not over {right}' '{left} <= {right}' '{left} ≤ {right}'
     greater: '{left} is over {right}' '{left} > {right}'
     greater-or-equal: '{left} is not under {right}' '{left} >= {right}' '{left} ≥ {right}'
-    element: 'part {index} of {array}'
     length: 'the size of {array}'
-    set-element: 'Let part {index} of {name} now be {value}'
   rules:
     max-sentence-words: 25
     vocabulary: make from by these steps let be now say and end the line give back stop here do no work if not but this while again for every till of in then or opposite is under over true false list a copies part size

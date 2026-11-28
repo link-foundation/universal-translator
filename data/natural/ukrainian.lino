@@ -30,6 +30,8 @@ natural:
       question-query: 'Які значення {projection} @query-scope задовольняють {condition}'
       answer-deferred-query: '@query-deferred @answer-query'
       question-deferred-query: '@query-deferred @question-query'
+      element: 'елемент {index} списку {array}'
+      set-element: 'Змінити @element[array=name] на {value}'
   templates:
     documentation: 'Документація є {value}'
     function: 'Визначити {name} через {parameters}'
@@ -69,9 +71,7 @@ natural:
     remainder: '{left} за модулем {right}' '{left} % {right}'
     array: 'список ({elements})'
     new-array: 'список довжини {length} зі значеннями {fill}'
-    element: 'елемент {index} списку {array}'
     length: 'довжина {array}'
-    set-element: 'Змінити елемент {index} списку {name} на {value}'
   words:
     ackermann: 'аккерман'
     bottles: 'пляшки'

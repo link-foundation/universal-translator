@@ -6,6 +6,10 @@ natural:
   source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
   true: правда
   false: неправда
+  grammar:
+    productions:
+      element: 'частина {index} з {array}'
+      set-element: 'Після цього @element[array=name] є {value}'
   templates:
     function: 'Так хтось робить {name} з {parameters}'
     function-without-parameters: 'Так хтось робить {name}'
@@ -31,9 +35,7 @@ natural:
     greater-or-equal: '{left} не менше ніж {right}'
     array: 'ці речі ({elements})'
     new-array: '{length} речей як {fill}'
-    element: 'частина {index} з {array}'
     length: 'скільки частин має {array}'
-    set-element: 'Після цього частина {index} з {name} є {value}'
   rules:
     primes: ukrainian
     extra-words: з в рядку відповіддю зупинитися нічого ні разів для від і або протилежне ніж менше плюс мінус помножити поділити на за модулем неправда скільки має

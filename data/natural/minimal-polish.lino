@@ -6,6 +6,10 @@ natural:
   source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
   true: prawda
   false: nieprawda
+  grammar:
+    productions:
+      element: 'część {index} z {array}'
+      set-element: 'Po tym @element[array=name] jest {value}'
   templates:
     function: 'Tak ktoś robi {name} z {parameters}'
     function-without-parameters: 'Tak ktoś robi {name}'
@@ -33,9 +37,7 @@ natural:
     greater-or-equal: '{left} nie jest mniej niż {right}' '{left} >= {right}' '{left} ≥ {right}'
     array: 'te rzeczy ({elements})'
     new-array: '{length} rzeczy jak {fill}'
-    element: 'część {index} z {array}'
     length: 'ile części ma {array}'
-    set-element: 'Po tym część {index} z {name} jest {value}'
   rules:
     primes: polish
     extra-words: tak z w jednej linii odpowiedzią przestać nic zrobić robić wiele razy dla od do potem lub i przeciwieństwo tym samym co niż mniej plus minus podzielone przez modulo prawda nieprawda te rzeczy ile części ma

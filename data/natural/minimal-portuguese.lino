@@ -4,6 +4,10 @@ natural:
   extends: portuguese
   profile: minimal-english
   source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  grammar:
+    productions:
+      element: 'a parte {index} de {array}'
+      set-element: 'Depois disto, @element[array=name] é {value}'
   templates:
     function: 'É assim que alguém faz {name} com {parameters}'
     function-without-parameters: 'É assim que alguém faz {name}'
@@ -30,9 +34,7 @@ natural:
     greater-or-equal: '{left} não é menos que {right}'
     array: 'estas coisas ({elements})'
     new-array: '{length} coisas como {fill}'
-    element: 'a parte {index} de {array}'
     length: 'quantas partes há em {array}'
-    set-element: 'Depois disto, a parte {index} de {name} é {value}'
   rules:
     primes: portuguese
     extra-words: que com de em linha a resposta parar nada vezes para os até o oposto ou e menos dividido por módulo falso quantas

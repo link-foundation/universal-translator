@@ -30,6 +30,8 @@ natural:
       question-query: 'Welke waarden van {projection} @query-scope voldoen aan {condition}'
       answer-deferred-query: '@query-deferred @answer-query'
       question-deferred-query: '@query-deferred @question-query'
+      element: 'element {index} van {array}'
+      set-element: 'Verander @element[array=name] in {value}'
   templates:
     documentation: 'Documentatie is {value}'
     function: 'Definieer {name} met {parameters}'
@@ -69,9 +71,7 @@ natural:
     remainder: '{left} modulo {right}' '{left} % {right}'
     array: 'de lijst ({elements})'
     new-array: 'een lijst van {length} kopieën van {fill}'
-    element: 'element {index} van {array}'
     length: 'de lengte van {array}'
-    set-element: 'Verander element {index} van {name} in {value}'
   words:
     ackermann: 'ackermann'
     bottles: 'flessen'

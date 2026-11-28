@@ -92,4 +92,4 @@ natural:
       new-array: 'a list of {length} copies of {fill}'
       element: '@array-element {array}'
       length: 'the length of {array}'
-      set-element: 'Change @array-element {name} to {value}'
+      set-element: 'Change @element[array=name] to {value}'

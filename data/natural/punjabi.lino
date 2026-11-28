@@ -30,6 +30,8 @@ natural:
       question-query: '@answer-query ਕਿਹੜੇ ਹਨ'
       answer-deferred-query: '@query-deferred @answer-query'
       question-deferred-query: '@query-deferred @question-query'
+      element: '{array} ਵਿੱਚ ਤੱਤ {index}'
+      set-element: '@element[array=name] ਨੂੰ {value} ਵਿੱਚ ਬਦਲੋ'
   templates:
     documentation: 'ਵੇਰਵਾ ਹੈ {value}'
     function: '{name} ਨੂੰ {parameters} ਨਾਲ ਪਰਿਭਾਸ਼ਿਤ ਕਰੋ'
@@ -69,9 +71,7 @@ natural:
     remainder: '{left} ਮੋਡਿਊਲੋ {right}' '{left} % {right}'
     array: 'ਸੂਚੀ ({elements})'
     new-array: 'ਸੂਚੀ ਲੰਬਾਈ {length} ਹਰ ਤੱਤ {fill}'
-    element: '{array} ਵਿੱਚ ਤੱਤ {index}'
     length: '{array} ਦੀ ਲੰਬਾਈ'
-    set-element: '{name} ਵਿੱਚ ਤੱਤ {index} ਨੂੰ {value} ਵਿੱਚ ਬਦਲੋ'
   words:
     ackermann: 'ਐਕਰਮੈਨ'
     bottles: 'ਬੋਤਲਾਂ'

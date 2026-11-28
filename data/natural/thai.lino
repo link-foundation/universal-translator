@@ -30,6 +30,8 @@ natural:
       question-query: '@answer-query คืออะไร'
       answer-deferred-query: '@query-deferred @answer-query'
       question-deferred-query: '@query-deferred @question-query'
+      element: 'ช่อง {index} ของ {array}'
+      set-element: 'เปลี่ยน @element[array=name] เป็น {value}'
   templates:
     documentation: 'เอกสารคือ {value}'
     function: 'นิยาม {name} ด้วย {parameters}'
@@ -69,9 +71,7 @@ natural:
     remainder: '{left} มอดุโล {right}' '{left} % {right}'
     array: 'รายการ ({elements})'
     new-array: 'รายการ ยาว {length} ที่ ทุก ช่อง เป็น {fill}'
-    element: 'ช่อง {index} ของ {array}'
     length: 'ความยาว ของ {array}'
-    set-element: 'เปลี่ยน ช่อง {index} ของ {name} เป็น {value}'
   words:
     ackermann: 'อัคเคอร์มันน์'
     bottles: 'ขวด'

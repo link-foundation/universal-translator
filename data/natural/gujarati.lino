@@ -30,6 +30,8 @@ natural:
       question-query: '@answer-query કયા છે'
       answer-deferred-query: '@query-deferred @answer-query'
       question-deferred-query: '@query-deferred @question-query'
+      element: '{array} માં ઘટક {index}'
+      set-element: '@element[array=name] ને {value} માં બદલો'
   templates:
     documentation: 'વર્ણન છે {value}'
     function: '{name} ને {parameters} વડે વ્યાખ્યાયિત કરો'
@@ -69,9 +71,7 @@ natural:
     remainder: '{left} મોડ્યુલો {right}' '{left} % {right}'
     array: 'યાદી ({elements})'
     new-array: 'યાદી લંબાઈ {length} દરેક ઘટક {fill}'
-    element: '{array} માં ઘટક {index}'
     length: '{array} ની લંબાઈ'
-    set-element: '{name} માં ઘટક {index} ને {value} માં બદલો'
   words:
     ackermann: 'એકરમેન'
     bottles: 'બોટલો'

@@ -30,6 +30,8 @@ natural:
       question-query: '@answer-query چیست'
       answer-deferred-query: '@query-deferred @answer-query'
       question-deferred-query: '@query-deferred @question-query'
+      element: 'عنصر {index} در {array}'
+      set-element: '@element[array=name] را به {value} تغییر بده'
   templates:
     documentation: 'مستندات عبارت است از {value}'
     function: '{name} را با {parameters} تعریف کن'
@@ -69,9 +71,7 @@ natural:
     remainder: '{left} به پیمانه {right}' '{left} % {right}'
     array: 'فهرست ({elements})'
     new-array: 'فهرستی به طول {length} با مقدار {fill}'
-    element: 'عنصر {index} در {array}'
     length: 'طول {array}'
-    set-element: 'عنصر {index} در {name} را به {value} تغییر بده'
   words:
     ackermann: 'آکرمن'
     bottles: 'بطری‌ها'

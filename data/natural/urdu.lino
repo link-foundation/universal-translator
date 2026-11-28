@@ -30,6 +30,8 @@ natural:
       question-query: '@answer-query کیا ہیں'
       answer-deferred-query: '@query-deferred @answer-query'
       question-deferred-query: '@query-deferred @question-query'
+      element: '{array} میں عنصر {index}'
+      set-element: '@element[array=name] کو {value} میں بدلیں'
   templates:
     documentation: 'دستاویز ہے {value}'
     function: '{name} کو {parameters} سے متعین کریں'
@@ -69,9 +71,7 @@ natural:
     remainder: '{left} ماڈیولو {right}' '{left} % {right}'
     array: 'فہرست ({elements})'
     new-array: 'فہرست لمبائی {length} ہر عنصر {fill}'
-    element: '{array} میں عنصر {index}'
     length: '{array} کی لمبائی'
-    set-element: '{name} میں عنصر {index} کو {value} میں بدلیں'
   words:
     ackermann: 'ایکرمین'
     bottles: 'بوتلیں'

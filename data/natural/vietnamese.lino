@@ -30,6 +30,8 @@ natural:
       question-query: 'Các giá trị nào của {projection} @query-scope thỏa mãn {condition}'
       answer-deferred-query: '@query-deferred @answer-query'
       question-deferred-query: '@query-deferred @question-query'
+      element: 'phần tử {index} trong {array}'
+      set-element: 'Đổi @element[array=name] thành {value}'
   templates:
     documentation: 'Tài liệu là {value}'
     function: 'Định nghĩa {name} với {parameters}'
@@ -69,9 +71,7 @@ natural:
     remainder: '{left} chia lấy dư {right}' '{left} % {right}'
     array: 'danh sách ({elements})'
     new-array: 'danh sách dài {length} toàn {fill}'
-    element: 'phần tử {index} trong {array}'
     length: 'độ dài {array}'
-    set-element: 'Đổi phần tử {index} trong {name} thành {value}'
   words:
     ackermann: 'ackermann'
     bottles: 'chai'

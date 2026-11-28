@@ -30,6 +30,8 @@ natural:
       question-query: '@answer-query ఏమిటి'
       answer-deferred-query: '@query-deferred @answer-query'
       question-deferred-query: '@query-deferred @question-query'
+      element: '{array} లో అంశం {index}'
+      set-element: '@element[array=name] ను {value} గా మార్చు'
   templates:
     documentation: 'వివరణ {value}'
     function: '{name} ను {parameters} తో నిర్వచించు'
@@ -69,9 +71,7 @@ natural:
     remainder: '{left} మాడ్యులో {right}' '{left} % {right}'
     array: 'జాబితా ({elements})'
     new-array: 'జాబితా పొడవు {length} ప్రతి అంశం {fill}'
-    element: '{array} లో అంశం {index}'
     length: '{array} పొడవు'
-    set-element: '{name} లో అంశం {index} ను {value} గా మార్చు'
   words:
     ackermann: 'అకెర్మాన్'
     bottles: 'సీసాలు'

@@ -42,6 +42,35 @@ describe('declarative controlled grammar', () => {
       unregisterNaturalLanguage(id);
     }
   });
+  it('binds nested phrase slots to the containing production roles', () => {
+    const id = registerNaturalLanguage(`${prefix}    terms:
+      indexed-part: 'part {position} of {collection}' 'slot {position} of {collection}'
+    productions:
+      element: '@indexed-part[position=index,collection=array]'
+      set-element: 'Replace @element[array=name] with {value}'
+`);
+    try {
+      const source = 'values = [1, 2]\nvalues[0] = values[1] + 3\n';
+      const natural = translate(source, 'python', id);
+      assert.match(natural, /Replace part 0 of values with/u);
+      assert.match(natural, /part 1 of values/u);
+      assert.equal(
+        translate(natural.replaceAll('part', 'slot'), id, 'python'),
+        translate(source, 'python', 'python')
+      );
+    } finally {
+      unregisterNaturalLanguage(id);
+    }
+  });
+  it('round-trips array reads and writes through every shipped profile', () => {
+    const source =
+      'values = [1, 2]\nvalues[1 - 1] = values[1] + 3\nprint(values[0])\n';
+    const expected = translate(source, 'python', 'python');
+    for (const id of naturalLanguageIds()) {
+      const natural = translate(source, 'python', id);
+      assert.equal(translate(natural, id, 'python'), expected, id);
+    }
+  });
 });
 
 describe('profile grammar inheritance', () => {
@@ -138,6 +167,18 @@ describe('controlled grammar bounds', () => {
       [
         '    terms:\n      word: a b c d e\n    productions:\n      print-line: "@word @word @word {value}"',
         /Too many natural grammar alternatives/u,
+      ],
+      [
+        '    productions:\n      print-line: "@write-value[missing=value]"',
+        /Unknown slot "missing" in natural grammar rule "write-value"/u,
+      ],
+      [
+        '    productions:\n      print-line: "@write-value[value=operand,value=value]"',
+        /Invalid slot binding for natural grammar rule "write-value"/u,
+      ],
+      [
+        '    productions:\n      print-line: "@write-value[value=value"',
+        /Unclosed slot bindings for natural grammar rule "write-value"/u,
       ],
       [
         '    productions:\n      print-line: "Say {value"',

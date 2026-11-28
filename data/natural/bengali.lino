@@ -30,6 +30,8 @@ natural:
       question-query: '@answer-query কী'
       answer-deferred-query: '@query-deferred @answer-query'
       question-deferred-query: '@query-deferred @question-query'
+      element: '{array} মধ্যে উপাদান {index}'
+      set-element: '@element[array=name] কে {value} তে বদলাও'
   templates:
     documentation: 'বিবরণ হলো {value}'
     function: '{name} কে {parameters} দিয়ে সংজ্ঞায়িত করো'
@@ -69,9 +71,7 @@ natural:
     remainder: '{left} মডুলো {right}' '{left} % {right}'
     array: 'তালিকা ({elements})'
     new-array: 'তালিকা দৈর্ঘ্য {length} প্রতিটি উপাদান {fill}'
-    element: '{array} মধ্যে উপাদান {index}'
     length: '{array} তালিকার দৈর্ঘ্য'
-    set-element: '{name} মধ্যে উপাদান {index} কে {value} তে বদলাও'
   words:
     ackermann: 'আকারম্যান'
     bottles: 'বোতল'
