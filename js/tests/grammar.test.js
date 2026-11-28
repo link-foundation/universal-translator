@@ -29,6 +29,23 @@ int main() {
 `;
 
 describe('grammar translator: the issue example', () => {
+  it('retains literal C headers needed by native calls in C output', () => {
+    const source = `# include <stdio.h>  // byte input
+#include "local.h"
+int main(void) {
+    int byte = getchar();
+    printf("%d\\n", byte != EOF);
+    return 0;
+}
+`;
+    const emitted = translator.translate(source, 'c', 'c');
+    expect(emitted).toContain('#include <stdio.h>  // byte input\n');
+    expect(emitted).toContain('#include "local.h"\n');
+    expect(emitted.match(/#include <stdio\.h>/gu)?.length).toBe(1);
+    expect(emitted).toContain('getchar()');
+    expect(emitted).toContain('EOF');
+  });
+
   it('adapts comments to the target language by default', () => {
     const csharp = translator.translate(issueC, 'c', 'csharp');
     expect(csharp).toContain('Hello World in C#');

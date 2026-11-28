@@ -1225,6 +1225,24 @@ fn keeps_a_comment_right_above_an_import_as_a_file_comment() {
 }
 
 #[test]
+fn c_retains_literal_headers_for_native_calls() {
+    let source = r#"# include <stdio.h>  // byte input
+#include "local.h"
+int main(void) {
+    int byte = getchar();
+    printf("%d\n", byte != EOF);
+    return 0;
+}
+"#;
+    let emitted = translate(source, "c", "c");
+    assert!(emitted.contains("#include <stdio.h>  // byte input\n"));
+    assert!(emitted.contains("#include \"local.h\"\n"));
+    assert_eq!(emitted.matches("#include <stdio.h>").count(), 1);
+    assert!(emitted.contains("getchar()"));
+    assert!(emitted.contains("EOF"));
+}
+
+#[test]
 fn keeps_functions_without_an_empty_line_between_them_in_every_language() {
     let tight = "function one(n) {\n    return n + 1;\n}\nfunction two(n) {\n    return n + 2;\n}\n\nconsole.log(one(two(1)));\n";
     for language in universal_translator::formal::languages::language_ids() {

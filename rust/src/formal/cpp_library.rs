@@ -1,4 +1,4 @@
-//! Preserve C++ library imports and file scope for C++ output.
+//! Preserve native C and C++ library imports and C++ file scope.
 
 use std::sync::LazyLock;
 
@@ -41,8 +41,10 @@ pub(crate) fn write_character_expression(
 }
 
 static INCLUDE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r#"^#[ \t]*include[ \t]*(<[^>\r\n]+>|"[^"\r\n]+")([ \t]+//.*)?$"#)
-        .expect("include directive")
+    Regex::new(
+        r#"^#[ \t]*include[ \t]*(<[^>\r\n]+>|"[^"\r\n]+")([ \t]*(?://[^\r\n]*|/\*[^\r\n]*\*/))?$"#,
+    )
+    .expect("include directive")
 });
 static USING: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
@@ -55,25 +57,32 @@ pub(crate) fn cpp_using_statement(text: &str) -> Option<String> {
     USING.is_match(text).then(|| format!("{text};"))
 }
 
-fn keep_cpp_imports(mut program: Node, settings: &Settings) -> Node {
-    if settings.from != "cpp" || settings.to != "cpp" {
+pub(crate) fn native_import_key(line: &str) -> &str {
+    INCLUDE
+        .captures(line)
+        .and_then(|include| include.get(1))
+        .map_or(line, |header| header.as_str())
+}
+
+fn keep_native_imports(mut program: Node, settings: &Settings) -> Node {
+    if settings.from != settings.to || !matches!(settings.to.as_str(), "c" | "cpp") {
         return program;
     }
     let mut imports = Vec::new();
     for line in program.texts("imports") {
-        let written = if let Some(header) = INCLUDE.captures(&line) {
+        if let Some(header) = INCLUDE.captures(&line) {
             let comment = header.get(2).map_or("", |comment| comment.as_str());
-            format!("#include {}{comment}", &header[1])
-        } else if let Some(using) = cpp_using_statement(&line) {
-            using
-        } else {
-            continue;
-        };
-        imports.push(written);
+            imports.push(format!("#include {}{comment}", &header[1]));
+        } else if settings.to == "cpp" {
+            imports.extend(cpp_using_statement(&line));
+        }
     }
     if !imports.is_empty() {
         for line in program.texts("libraryImports") {
-            if !imports.contains(&line) {
+            if !imports
+                .iter()
+                .any(|import| native_import_key(import) == native_import_key(&line))
+            {
                 imports.push(line);
             }
         }
@@ -116,8 +125,8 @@ fn keep_cpp_file_scope(mut program: Node, settings: &Settings) -> Node {
     program
 }
 
-pub(crate) fn adapt_cpp_program(program: Node, settings: &Settings) -> Node {
-    keep_cpp_file_scope(keep_cpp_imports(program, settings), settings)
+pub(crate) fn adapt_native_c_program(program: Node, settings: &Settings) -> Node {
+    keep_cpp_file_scope(keep_native_imports(program, settings), settings)
 }
 
 pub(crate) fn cpp_file_items(program: &Node) -> Vec<&Node> {

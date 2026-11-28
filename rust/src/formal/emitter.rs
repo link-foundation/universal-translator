@@ -5,6 +5,7 @@
 use std::any::Any;
 use std::collections::HashSet;
 
+use super::cpp_library::native_import_key;
 use super::dialects::{EmitterDialect, emitter_dialect};
 use super::languages::{
     Blocks, EntryPoint, ForwardDeclarations, IntegerDivision, Syntax, language_syntax,
@@ -1458,10 +1459,15 @@ impl Emitter {
                 .collect()
         };
         let library = program.texts("libraryImports");
+        let imported: HashSet<_> = library.iter().map(|line| native_import_key(line)).collect();
         let after = used(&IMPORTS_AFTER_LIBRARY);
         lines.extend(used(&IMPORTS_BEFORE_LIBRARY));
         lines.extend(library.iter().cloned());
-        lines.extend(after.into_iter().filter(|line| !library.contains(line)));
+        lines.extend(
+            after
+                .into_iter()
+                .filter(|line| !imported.contains(native_import_key(line))),
+        );
         if lines.last().is_some_and(|line| !line.is_empty()) {
             lines.push(String::new());
         }

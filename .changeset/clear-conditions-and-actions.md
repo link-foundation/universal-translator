@@ -53,3 +53,5 @@ Compose English controlled grammar from reusable phrase rules and accept alterna
 Read a bounded straight-line WebAssembly 1.0 binary subset through both CLIs and libraries, retaining local snapshots, call order, and integer rounding in verified JavaScript and Python translations.
 
 Use counted Rosetta task presence for ambiguous code-language ties and bilingual corpus frequencies for the Russian “world” and “peace” readings.
+
+Preserve literal C and C++ library headers in same-language output, deduplicate generated header imports and initialize unqualified C++ strings before native stream extraction.

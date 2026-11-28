@@ -15,7 +15,7 @@ import { languageSyntax } from './languages.js';
 import { splitVersion } from './versions.js';
 import { dialects } from './dialects/index.js';
 import { objectiveCRuntimeHeader } from './dialects/objc.js';
-import { cppFileItems } from './cpp-library.js';
+import { cppFileItems, nativeImportKey } from './cpp-library.js';
 import { withArrays } from './array-spellings.js';
 import { writePower } from './power.js';
 import { writeQuestion, writePropertyAccess } from './questions.js';
@@ -1120,9 +1120,12 @@ class BaseEmitter {
     const used = (headers) =>
       headers.filter(([use]) => this.uses.has(use)).map(([, line]) => line);
     const library = program.libraryImports ?? [];
+    const imported = new Set(library.map(nativeImportKey));
     lines.push(...used(importsBeforeLibrary), ...library);
     lines.push(
-      ...used(importsAfterLibrary).filter((line) => !library.includes(line))
+      ...used(importsAfterLibrary).filter(
+        (line) => !imported.has(nativeImportKey(line))
+      )
     );
     if (lines.length && lines.at(-1) !== '') {
       lines.push('');

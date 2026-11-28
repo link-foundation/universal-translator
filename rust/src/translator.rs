@@ -627,7 +627,7 @@ impl Translator {
             return self.in_comment_language(transformed, options);
         }
         let sequenced = crate::meta::evaluation_order::lower(transformed, &settings);
-        let adapted = crate::formal::cpp_library::adapt_cpp_program(
+        let adapted = crate::formal::cpp_library::adapt_native_c_program(
             apply_rules(sequenced, &self.context, &settings),
             &settings,
         );

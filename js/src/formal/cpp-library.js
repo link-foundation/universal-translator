@@ -346,30 +346,34 @@ export function cppQualifiedParameter(syntax, words) {
     : undefined;
 }
 
-// Copy C++ header imports and using-declarations from the source program
-// when its emitted code still uses the same library and namespace.
-function keepCppImports(program, { from, to }) {
-  if (from !== 'cpp' || to !== 'cpp' || !program.imports?.length) {
+const nativeInclude =
+  /^#[ \t]*include[ \t]*(<[^>\r\n]+>|"[^"\r\n]+")([ \t]*(?:\/\/[^\r\n]*|\/\*[^\r\n]*\*\/))?$/u;
+
+export function nativeImportKey(line) {
+  return nativeInclude.exec(line)?.[1] ?? line;
+}
+
+// Literal headers and C++ using-declarations provide names for native calls.
+function keepNativeImports(program, { from, to }) {
+  if (from !== to || !['c', 'cpp'].includes(to) || !program.imports?.length) {
     return program;
   }
   const imports = program.imports.flatMap((line) => {
-    const include =
-      /^#[ \t]*include[ \t]*(<[^>\r\n]+>|"[^"\r\n]+")([ \t]+\/\/.*)?$/u.exec(
-        line
-      );
+    const include = nativeInclude.exec(line);
     if (include) {
       return [`#include ${include[1]}${include[2] ?? ''}`];
     }
-    const using = cppUsingStatement(line);
+    const using = to === 'cpp' && cppUsingStatement(line);
     return using ? [using] : [];
   });
+  const imported = new Set(imports.map(nativeImportKey));
   return imports.length
     ? {
         ...program,
         libraryImports: [
           ...imports,
           ...(program.libraryImports ?? []).filter(
-            (line) => !imports.includes(line)
+            (line) => !imported.has(nativeImportKey(line))
           ),
         ],
       }
@@ -416,8 +420,8 @@ function keepCppFileScope(program, { from, to }) {
     : program;
 }
 
-export function adaptCppProgram(program, settings) {
-  return keepCppFileScope(keepCppImports(program, settings), settings);
+export function adaptNativeCProgram(program, settings) {
+  return keepCppFileScope(keepNativeImports(program, settings), settings);
 }
 
 export function cppFileItems(program) {

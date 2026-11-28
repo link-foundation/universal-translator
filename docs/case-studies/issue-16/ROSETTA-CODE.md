@@ -363,6 +363,26 @@ now also checks an embedded NUL followed by more input.
 [Baseline failures for these five inputs](logs/rosetta-io-baseline.txt)
 [Pinned native results](logs/rosetta-containers-native.txt)
 
+The C solution for [Copy stdin to stdout revision 417213](https://rosettacode.org/w/index.php?title=Copy_stdin_to_stdout&oldid=417213)
+previously lost `<stdio.h>`. Strict C99 compilation reported implicit
+declarations for `getchar` and `putchar`, and an undeclared `EOF`. Both
+engines now retain literal headers in C output, including quoted local
+headers and trailing comments. A matching source header supplies the
+same dependency as an automatically generated header. The original C
+program and both CLI outputs reproduce all 34 bytes, including a NUL,
+`0x80` and `0xff`. This adds a second source language for the already
+verified task.
+[Strict C99 diagnostics and native results](logs/rosetta-c-stdio.txt)
+
+```sh
+curl --fail --silent --show-error --get https://rosettacode.org/w/api.php \
+  --data 'action=query' --data 'prop=revisions' --data 'revids=417213' \
+  --data 'rvprop=ids|content' --data 'rvslots=main' --data 'format=json' \
+  --data 'formatversion=2' > /tmp/rosetta-c-stdio-revision.json
+node experiments/issue-16-c-stdio.mjs --revision /tmp/rosetta-c-stdio-revision.json \
+  --rust-translator ./target/debug/universal-translator
+```
+
 The first Rust solution for [String interpolation (included), revision 416065](<https://rosettacode.org/w/index.php?title=String_interpolation_(included)&oldid=416065>)
 has three print calls. At `6b73060`, the JavaScript CLI emitted the indexed
 and named placeholders as literal text. Both engines now resolve default
