@@ -2,8 +2,10 @@
 #include <stdexcept>
 #include <string>
 
+using std::string;
+
 int main() {
-    std::string label;
+    string label;
     int count = 0;
     std::cin >> label >> count;
     try {

@@ -179,7 +179,10 @@ export function readCppStringInitializer(parser) {
 }
 
 export function defaultCppString(syntax, words) {
-  if (syntax.id === 'cpp' && words.join(' ') === 'std :: string') {
+  if (
+    syntax.id === 'cpp' &&
+    ['std :: string', 'string'].includes(words.join(' '))
+  ) {
     return text('');
   }
   return undefined;

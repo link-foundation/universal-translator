@@ -305,8 +305,9 @@ describe('C++ stream extraction and exceptions', () => {
     const source = `#include <iostream>
 #include <stdexcept>
 #include <string>
+using std::string;
 int main() {
-  std::string label;
+  string label;
   int count = 0;
   std::cin >> label >> count;
   if (count == 0) {
@@ -317,10 +318,12 @@ int main() {
 }
 `;
     const program = translator.toMeta(source, 'cpp');
-    const [, , extraction, guard] = program.main.statements;
+    const [label, , extraction, guard] = program.main.statements;
+    expect(label.value?.value).toBe('');
     expect(extraction.expression?.operator).toBe('rightShift');
     expect(guard.then.statements[0].kind).toBe('Throw');
     const emitted = translator.translate(source, 'cpp', 'cpp');
+    expect(emitted).toContain('std::string label = "";');
     expect(emitted).toContain('std::cin >> label >> count;');
     expect(emitted).toContain('throw std::invalid_argument(label);');
   });

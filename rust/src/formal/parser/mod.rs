@@ -889,7 +889,8 @@ impl Parser {
             } else {
                 self.expression()?
             })
-        } else if self.syntax.id == "cpp" && spelling == "std :: string" {
+        } else if self.syntax.id == "cpp" && matches!(spelling.as_str(), "std :: string" | "string")
+        {
             Some(text(""))
         } else {
             None

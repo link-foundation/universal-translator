@@ -540,8 +540,9 @@ fn cpp_stream_extraction_and_throw_are_statements() {
     let source = r#"#include <iostream>
 #include <stdexcept>
 #include <string>
+using std::string;
 int main() {
-    std::string label;
+    string label;
     int count = 0;
     std::cin >> label >> count;
     if (count == 0) {
@@ -555,6 +556,12 @@ int main() {
     let program = translator.to_meta(source, "cpp").unwrap();
     let statements = program.node("main").unwrap().nodes("statements");
     assert_eq!(
+        statements[0]
+            .node("value")
+            .and_then(|value| value.str("value")),
+        Some("")
+    );
+    assert_eq!(
         statements[2]
             .node("expression")
             .and_then(|expression| expression.str("operator")),
@@ -565,6 +572,7 @@ int main() {
     let emitted = translator
         .translate(source, "cpp", "cpp", Mode::default())
         .unwrap();
+    assert!(emitted.contains("std::string label = \"\";"));
     assert!(emitted.contains("std::cin >> label >> count;"));
     assert!(emitted.contains("throw std::invalid_argument(label);"));
 }
