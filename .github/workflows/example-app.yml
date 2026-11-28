@@ -341,7 +341,7 @@ jobs:
           trap 'kill "$static_server" "$driver" 2>/dev/null || true' EXIT
           node experiments/issue-16-gutter-safari.mjs http://127.0.0.1:4444 "http://127.0.0.1:4173/$CURRENT_BASE/" safari-output/current | tee safari-output/current.jsonl
           if [[ -n "$REFERENCE_RUN" ]]; then
-            node experiments/issue-16-gutter-safari.mjs http://127.0.0.1:4444 http://127.0.0.1:4173/universal-translator/ safari-output/reference 'untranslated (line 1)' | tee safari-output/reference.jsonl
+            node experiments/issue-16-gutter-safari.mjs http://127.0.0.1:4444 http://127.0.0.1:4173/universal-translator/ safari-output/reference 'untranslated (line 1)' --allow-native-selection | tee safari-output/reference.jsonl
           fi
         shell: bash
 
@@ -447,8 +447,9 @@ jobs:
       group: main-writer-${{ github.repository }}-main
       cancel-in-progress: false
     if: |
-      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      github.event_name == 'workflow_dispatch'
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' ||
+       (github.event_name == 'workflow_dispatch' && !inputs.safari_reference_run))
     permissions:
       contents: write
     env:

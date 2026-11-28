@@ -4,7 +4,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { setTimeout as pause } from 'node:timers/promises';
 
-const [driverUrl, appUrl, captures, expected = 'int main('] =
+const [driverUrl, appUrl, captures, expected = 'int main(', allowSelection] =
   process.argv.slice(2);
 assert.ok(
   driverUrl && appUrl && captures,
@@ -67,9 +67,15 @@ async function prepareEditor(text) {
   editor.setValue(text);
   editor.focus();
   editor.setPosition({ lineNumber: 12, column: 2 });
+  const viewportStyle = globalThis.document.createElement('style');
+  viewportStyle.textContent = '#source-text { min-height: 640px !important; }';
+  globalThis.document.head.append(viewportStyle);
+}
+
+function scrollToGutter() {
   const pane = globalThis.document.querySelector('#source-text');
-  pane.style.setProperty('min-height', '640px', 'important');
   pane.scrollIntoView({ block: 'start' });
+  globalThis.scrollBy(0, -42);
 }
 
 function geometry() {
@@ -79,12 +85,20 @@ function geometry() {
   );
   const gutter = margin.getBoundingClientRect();
   const bottom = last.getBoundingClientRect().bottom;
+  const x = Math.round(gutter.left + gutter.width / 2);
+  const blank = Math.floor(
+    Math.min(bottom + 220, gutter.bottom - 16, globalThis.innerHeight - 16)
+  );
+  const hit = globalThis.document.elementFromPoint(x, blank);
   return {
-    x: Math.round(gutter.left + gutter.width / 2),
+    x,
     bottom,
-    blank: Math.floor(Math.min(bottom + 220, globalThis.innerHeight - 16)),
+    blank,
+    gutter: gutter.toJSON(),
+    blankHitsMargin: margin.contains(hit),
+    scrollY: globalThis.scrollY,
     scale: globalThis.devicePixelRatio,
-    selected: globalThis.getSelection().toString(),
+    nativeSelection: globalThis.getSelection().toString().length,
     bars: [...margin.querySelectorAll('.map-gutter')].map((bar) =>
       bar.getBoundingClientRect().toJSON()
     ),
@@ -167,9 +181,14 @@ try {
       ),
     'the C translation'
   );
+  await evaluate(scrollToGutter);
+  await waitFor(async () => {
+    const position = await evaluate(geometry);
+    return position.blankHitsMargin && position.blank > position.bottom + 24;
+  }, 'the blank gutter inside the editor margin');
   const { bottom, blank, x } = await evaluate(geometry);
-  assert.ok(blank > bottom + 24, 'The blank gutter must be visible');
   const last = Math.floor(bottom - 9);
+  const selections = [];
   for (const [name, actions] of [
     ['initial', []],
     ['click', [move(x, blank), down, up]],
@@ -192,6 +211,31 @@ try {
     );
     assert.ok(
       snapshot.bars.every((bar) => bar.bottom <= snapshot.bottom + 0.5)
+    );
+    assert.equal(
+      snapshot.blankHitsMargin,
+      true,
+      'Pointer should hit the gutter'
+    );
+    if (snapshot.nativeSelection) {
+      selections.push(name);
+    }
+  }
+  const element = await session('/element', 'POST', {
+    using: 'css selector',
+    value: '#source-text .monaco-editor',
+  });
+  const elementId = element['element-6066-11e4-a52e-4f735466cecf'];
+  const editorImage = await session(`/element/${elementId}/screenshot`);
+  await writeFile(
+    join(captures, 'editor.png'),
+    Buffer.from(editorImage, 'base64')
+  );
+  if (allowSelection !== '--allow-native-selection') {
+    assert.deepEqual(
+      selections,
+      [],
+      'Gutter gestures started a page selection'
     );
   }
 } finally {
