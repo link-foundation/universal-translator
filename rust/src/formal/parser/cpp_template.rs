@@ -65,7 +65,8 @@ impl Parser {
         self.expression()
     }
 
-    // A single string literal disambiguates an object declaration from a prototype.
+    // A string literal or a count followed by a character literal disambiguates
+    // an object declaration from a function prototype.
     pub(super) fn cpp_string_initializer(&self, head: usize) -> bool {
         if self.syntax.id != "cpp"
             || head != 4
@@ -78,24 +79,38 @@ impl Parser {
         {
             return false;
         }
-        let mut offset = head + 1;
-        while self.kind(offset) == TokenType::Newline {
+        let next = |mut offset| {
             offset += 1;
+            while self.kind(offset) == TokenType::Newline {
+                offset += 1;
+            }
+            offset
+        };
+        let argument = next(head);
+        let first = self.peek(argument);
+        if first.kind == TokenType::Text && first.quote == Some('"') {
+            return self.is_at(")", next(argument));
         }
-        if self.kind(offset) != TokenType::Text {
+        let comma = next(argument);
+        if !matches!(first.kind, TokenType::Number | TokenType::Name) || !self.is_at(",", comma) {
             return false;
         }
-        offset += 1;
-        while self.kind(offset) == TokenType::Newline {
-            offset += 1;
-        }
-        self.kind(offset) == TokenType::Symbol && self.is_at(")", offset)
+        let character = next(comma);
+        let second = self.peek(character);
+        second.kind == TokenType::Text
+            && second.quote == Some('\'')
+            && self.is_at(")", next(character))
     }
 
     pub(super) fn read_cpp_string_initializer(&mut self) -> Parsed {
         self.expect("(")?;
         self.skip_newlines();
         let literal = self.current();
+        if literal.quote != Some('"') {
+            return Ok(Node::new("Call")
+                .with("callee", "std::string")
+                .with("arguments", self.element_list(")")?));
+        }
         let mut chars = literal.value.chars().peekable();
         while let Some(character) = chars.next() {
             let valid = match character {

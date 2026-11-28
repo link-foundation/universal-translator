@@ -66,8 +66,8 @@ export function readCppInitializerList(parser, direct = false) {
   return node('CppInitializerList', { elements, direct });
 }
 
-// A single text literal cannot be a parameter declaration. `std::string f()`
-// and `std::string f(const char*)` are still function declarations.
+// A string literal or a count followed by a character literal disambiguates
+// an object declaration from a function prototype.
 export function cppStringInitializer(parser, head) {
   if (
     parser.syntax.id !== 'cpp' ||
@@ -80,23 +80,40 @@ export function cppStringInitializer(parser, head) {
   ) {
     return false;
   }
-  let offset = head + 1;
-  while (parser.peek(offset).type === 'newline') {
-    offset += 1;
+  const next = (offset) => {
+    do {
+      offset += 1;
+    } while (parser.peek(offset).type === 'newline');
+    return offset;
+  };
+  const argument = next(head);
+  const first = parser.peek(argument);
+  if (first.type === 'text' && first.quote === '"') {
+    return parser.is(')', next(argument));
   }
-  if (parser.peek(offset).type !== 'text') {
+  const comma = next(argument);
+  if (!['number', 'name'].includes(first.type) || !parser.is(',', comma)) {
     return false;
   }
-  do {
-    offset += 1;
-  } while (parser.peek(offset).type === 'newline');
-  return parser.peek(offset).type === 'symbol' && parser.is(')', offset);
+  const character = next(comma);
+  const second = parser.peek(character);
+  return (
+    second.type === 'text' &&
+    second.quote === "'" &&
+    parser.is(')', next(character))
+  );
 }
 
 export function readCppStringInitializer(parser) {
   parser.expect('(');
   parser.skipLineEnds();
   const literal = parser.peek();
+  if (literal.quote !== '"') {
+    return node('Call', {
+      callee: 'std::string',
+      arguments: parser.elementList(')'),
+    });
+  }
   if (!/^(?:[^\\\r\n]|\\(?:[nrt?"'\\]|0(?![0-7])))*$/u.test(literal.value)) {
     throw new SyntaxError(
       'Unsupported C++ string initializer escape',

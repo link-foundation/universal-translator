@@ -294,11 +294,16 @@ int main() {
     const source = String.raw`#include <string>
 std::string empty();
 std::string suggest(const char* text);
+std::string repeat(int, char);
 int main() {
   std::string greeting(
     "Hello\0ignored"
   );
   std::string suffix;
+  int copies = 3;
+  std::string repeated(copies,
+    '\0'
+  );
   greeting.append(" , world!");
   return 0;
 }
@@ -321,6 +326,15 @@ int main() {
       value: '',
       type: 'text',
     });
+    const repeated = program.main.statements[3];
+    expect(repeated.name).toBe('repeated');
+    expect(repeated.value.callee).toBe('std::string');
+    expect(repeated.value.arguments[0].name).toBe('copies');
+    expect(repeated.value.arguments[1].kind).toBe('CppCharacter');
+    expect(repeated.value.arguments[1].raw).toBe('\\0');
+    expect(emitted).toContain(
+      "std::string repeated = std::string(copies, '\\0');"
+    );
     expect(emitted).toContain('greeting.append(" , world!");');
     expect(translator.toMeta(emitted, 'cpp').main.statements).toEqual(
       program.main.statements

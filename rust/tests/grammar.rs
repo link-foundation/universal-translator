@@ -407,11 +407,16 @@ fn reads_direct_string_initialization_alongside_cpp_prototypes() {
     let source = r#"#include <string>
 std::string empty();
 std::string suggest(const char* text);
+std::string repeat(int, char);
 int main() {
     std::string greeting(
         "Hello\0ignored"
     );
     std::string suffix;
+    int copies = 3;
+    std::string repeated(copies,
+        '\0'
+    );
     greeting.append(" , world!");
     return 0;
 }
@@ -431,6 +436,15 @@ int main() {
     assert!(emitted.contains("std::string greeting = \"Hello\";"));
     assert!(emitted.contains("std::string suffix = \"\";"));
     assert_eq!(statements[1].node("value").unwrap().str("value"), Some(""));
+    let repeated = statements[3];
+    assert_eq!(repeated.str("name"), Some("repeated"));
+    let initialization = repeated.node("value").unwrap();
+    assert_eq!(initialization.str("callee"), Some("std::string"));
+    let arguments = initialization.nodes("arguments");
+    assert_eq!(arguments[0].str("name"), Some("copies"));
+    assert!(arguments[1].is("CppCharacter"));
+    assert_eq!(arguments[1].str("raw"), Some(r"\0"));
+    assert!(emitted.contains(r"std::string repeated = std::string(copies, '\0');"));
     assert!(emitted.contains("greeting.append(\" , world!\");"));
     let reread = translator.to_meta(&emitted, "cpp").unwrap();
     assert_eq!(reread.node("main").unwrap().nodes("statements"), statements);
