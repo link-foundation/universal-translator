@@ -170,6 +170,23 @@ independent old-writer failures with the former non-nullable meta contract;
 The SQLite primary reference is already archived and checksummed in the
 questions manifest.
 
+## Column qualification and quoted identifiers
+
+The SQL reader binds columns to their relation before rewriting the range
+variable. `SELECT row FROM people` selects the column named `row`, and
+`SELECT PEOPLE.age FROM people WHERE people.age > 18` continues to work when
+the writer supplies an alias. A declared alias takes precedence over the raw
+relation name. Unknown qualifiers produce a diagnostic in strict mode.
+
+Both engines store each component of a qualified relation name separately.
+`main."people.data"` refers to a table in `main`, while `"people.data"` is a
+single identifier. Quoted names such as `"display.name"` retain their literal
+periods, including when accessed through a relation alias. The shared fixtures
+in `examples/queries/identifiers.json` exercise these distinctions. The
+JavaScript regression runs each original query and its translation against
+SQLite and compares both with the expected rows. The Rust regression verifies
+the corresponding scoped meta nodes and the SQL round trip.
+
 ## Remaining work
 
 The verified nullable subset uses complete numeric/NULL input records and finite

@@ -1,6 +1,8 @@
 // SQL selects relations. Imperative programs are deliberately rejected.
-import { node } from '../../meta/tree.js';
-import { query, rowMembers } from '../query-parser.js';
+import { name, node, rewrite, text } from '../../meta/tree.js';
+import { inheritOrigin } from '../../translation/source-origins.js';
+import { asciiLowercase, SyntaxError } from '../lexer.js';
+import { query } from '../query-parser.js';
 
 // NOT binds below comparisons and above AND in SQL. A prefix can also
 // occur on a binary operand, so its operand uses its own binding power.
@@ -93,6 +95,54 @@ function sqlExpression(parser, minimum = 0) {
 const identifier = (value) => `"${value.replaceAll('"', '""')}"`;
 const table = (value) => value.split('.').map(identifier).join('.');
 
+const identifierParts = (reference) => reference.parts ?? [reference.name];
+
+function bindColumns(expression, variable, qualifiers, line) {
+  return rewrite(expression, (current) => {
+    if (current.kind !== 'Name') {
+      return current;
+    }
+    const parts = identifierParts(current);
+    const qualifier = parts.slice(0, -1).map(asciiLowercase);
+    if (
+      qualifier.length &&
+      !qualifiers.some(
+        (candidate) =>
+          candidate.length === qualifier.length &&
+          candidate.every((part, index) => part === qualifier[index])
+      )
+    ) {
+      throw new SyntaxError(
+        `Unknown SQL column qualifier ${parts.slice(0, -1).join('.')}`,
+        line
+      );
+    }
+    return node('Index', { array: name(variable), index: text(parts.at(-1)) });
+  });
+}
+
+function writeSelection(emitter, expression) {
+  const { source, variable, projection, condition } = expression;
+  if (!expression.eager) {
+    throw new Error(
+      'SQL selection execution cannot preserve a deferred iterator'
+    );
+  }
+  const from = emitter.expression(source);
+  const relation = ['Name', 'SqlRelation'].includes(source.kind)
+    ? from
+    : `(${from})`;
+  const selected =
+    projection.kind === 'Name' && projection.name === variable
+      ? '*'
+      : emitter.expression(projection);
+  const filtered =
+    condition.kind === 'Boolean' && condition.value
+      ? ''
+      : ` WHERE ${emitter.expression(condition.kind === 'SqlTruth' ? condition.operand : condition)}`;
+  return `SELECT ${selected} FROM ${relation} AS ${identifier(variable)}${filtered}`;
+}
+
 function sqlValueText(emitter, expression, binary) {
   if (expression.kind === 'Null') {
     return 'NULL';
@@ -132,11 +182,21 @@ const parser = (Base) =>
     }
 
     primary() {
-      if (this.peek().quote === '"') {
-        return node('Name', { name: this.next().value });
-      }
       if (this.accept('null')) {
         return node('Null');
+      }
+      if (
+        this.peek().type === 'name' &&
+        !this.is('true') &&
+        !this.is('false')
+      ) {
+        const parts = [this.expectName()];
+        while (this.accept('.')) {
+          parts.push(this.expectName());
+        }
+        return parts.length > 1 || parts[0].includes('.')
+          ? node('Name', { name: parts.join('.'), parts })
+          : name(parts[0]);
       }
       return super.primary();
     }
@@ -151,20 +211,33 @@ const parser = (Base) =>
     }
 
     selection() {
-      this.expect('select');
+      const { line } = this.expect('select');
       const projection = this.accept('*') ? undefined : this.expression();
       this.expect('from');
-      const source = super.postfix();
-      const variable = this.accept('as') ? this.expectName() : 'row';
+      const relation = super.postfix();
+      if (relation.kind !== 'Name') {
+        throw new SyntaxError('Expected a named SQL relation', line);
+      }
+      const alias = this.accept('as') ? this.expectName() : undefined;
+      const variable =
+        alias && /^[A-Za-z_][A-Za-z0-9_]*$/u.test(alias) ? alias : 'row';
+      const parts = identifierParts(relation);
+      const folded = parts.map(asciiLowercase);
+      const qualifiers =
+        alias === undefined
+          ? [folded, [folded.at(-1)]]
+          : [[asciiLowercase(alias)]];
+      const bind = (expression) =>
+        bindColumns(expression, variable, qualifiers, line);
+      const source = relation.parts
+        ? inheritOrigin(node('SqlRelation', { parts }), relation)
+        : relation;
       const condition = this.accept('where') ? this.expression() : undefined;
       return query(
         source,
         variable,
-        projection
-          ? rowMembers(projection, variable, true)
-          : node('Name', { name: variable }),
-        condition &&
-          node('SqlTruth', { operand: rowMembers(condition, variable, true) })
+        projection ? bind(projection) : name(variable),
+        condition && node('SqlTruth', { operand: bind(condition) })
       );
     }
   };
@@ -188,26 +261,11 @@ const emitter = (Base) =>
       if (value !== undefined) {
         return value;
       }
+      if (expression.kind === 'SqlRelation') {
+        return expression.parts.map(identifier).join('.');
+      }
       if (expression.kind === 'Query') {
-        const { source, variable, projection, condition } = expression;
-        if (!expression.eager) {
-          throw new Error(
-            'SQL selection execution cannot preserve a deferred iterator'
-          );
-        }
-        const relation =
-          source.kind === 'Name'
-            ? table(source.name)
-            : `(${this.expression(source)})`;
-        const selected =
-          projection.kind === 'Name' && projection.name === variable
-            ? '*'
-            : this.expression(projection);
-        const filtered =
-          condition.kind === 'Boolean' && condition.value
-            ? ''
-            : ` WHERE ${this.expression(condition.kind === 'SqlTruth' ? condition.operand : condition)}`;
-        return `SELECT ${selected} FROM ${relation} AS ${identifier(variable)}${filtered}`;
+        return writeSelection(this, expression);
       }
       if (
         expression.kind === 'Index' &&

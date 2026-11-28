@@ -71,19 +71,13 @@ pub(crate) fn query(
 }
 
 /// A range variable owns its row fields; a member is not part of its name.
-pub(crate) fn row_members(expression: Node, variable: &str, implicit: bool) -> Node {
+pub(crate) fn row_members(expression: Node, variable: &str) -> Node {
     let prefix = format!("{variable}.");
     rewrite_free(expression, variable, &mut |current| {
         let Some(identifier) = current.str("name").filter(|_| current.is("Name")) else {
             return current;
         };
-        if identifier == variable {
-            return current;
-        }
-        let field = identifier
-            .strip_prefix(&prefix)
-            .or_else(|| (implicit && !identifier.contains('.')).then_some(identifier));
-        match field {
+        match identifier.strip_prefix(&prefix) {
             Some(field) => Node::new("Index")
                 .with("array", name(variable))
                 .with("index", text(field)),

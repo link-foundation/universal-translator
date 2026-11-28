@@ -12,23 +12,15 @@ export const query = (source, variable, projection, condition, eager = true) =>
   });
 
 // A row member is represented by an indexed record field.
-export function rowMembers(expression, variable, implicit = false) {
+function rowMembers(expression, variable) {
   return rewriteFree(expression, variable, (current) => {
-    if (current.kind !== 'Name' || current.name === variable) {
-      return current;
-    }
     const prefix = `${variable}.`;
-    const field = current.name.startsWith(prefix)
-      ? current.name.slice(prefix.length)
-      : implicit && !current.name.includes('.')
-        ? current.name
-        : undefined;
-    return field === undefined
-      ? current
-      : node('Index', {
+    return current.kind === 'Name' && current.name.startsWith(prefix)
+      ? node('Index', {
           array: name(variable),
-          index: text(field),
-        });
+          index: text(current.name.slice(prefix.length)),
+        })
+      : current;
   });
 }
 

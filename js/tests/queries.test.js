@@ -10,6 +10,7 @@ import {
 } from '../src/index.js';
 import { sameMeaning } from '../src/meta/tree.js';
 import { nativeExpression } from '../../examples/queries/native-expression.mjs';
+import identifiers from '../../examples/queries/identifiers.json' with { type: 'json' };
 import negationPredicates from '../../examples/queries/negation.json' with { type: 'json' };
 
 const translator = createTranslator();
@@ -209,6 +210,38 @@ describe('selection queries in controlled natural languages', () => {
       'Query'
     );
   });
+});
+
+it('binds qualified columns and preserves literal periods in SQL identifiers', () => {
+  const queries = identifiers.cases.flatMap(({ source }) => {
+    const meta = translator.toMeta(source, 'sql');
+    const written = translator.fromMeta(meta, 'sql');
+    assert.ok(sameMeaning(meta, translator.toMeta(written, 'sql')), written);
+    return [source, written];
+  });
+  const rows = JSON.parse(
+    execFileSync(
+      'python3',
+      [
+        '-c',
+        'import json, sqlite3, sys\ndata = json.load(sys.stdin)\n' +
+          'db = sqlite3.connect(":memory:")\ndb.executescript(data["schema"])\n' +
+          'print(json.dumps([db.execute(query).fetchall() for query in data["queries"]]))',
+      ],
+      {
+        encoding: 'utf8',
+        input: JSON.stringify({ schema: identifiers.schema, queries }),
+      }
+    )
+  );
+  assert.deepEqual(
+    rows,
+    identifiers.cases.flatMap(({ rows }) => [rows, rows])
+  );
+  assert.throws(
+    () => translator.toMeta('SELECT missing.age FROM people;', 'sql'),
+    /Unknown SQL column qualifier missing/u
+  );
 });
 
 describe('selection data, scopes and execution', () => {

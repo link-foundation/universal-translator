@@ -196,6 +196,32 @@ fn query_questions_and_answers_compose_through_every_natural_standard() {
 }
 
 #[test]
+fn sql_column_qualifiers_and_literal_periods_round_trip() {
+    let t = Translator::new();
+    let fixture: serde_json::Value =
+        serde_json::from_str(include_str!("../../examples/queries/identifiers.json")).unwrap();
+    for case in fixture["cases"].as_array().unwrap() {
+        let source = case["source"].as_str().unwrap();
+        let meta = t.to_meta(source, "sql").unwrap();
+        let written = t
+            .from_meta(&meta, "sql", None, Mode::ContextDependent)
+            .unwrap();
+        let reread = t.to_meta(&written, "sql").unwrap();
+        assert!(same_meaning(&meta, &reread), "{written}");
+        let query = expression(source, "sql");
+        assert!(query.node("projection").unwrap().is("Index"), "{source}");
+    }
+    let error = t
+        .to_meta("SELECT missing.age FROM people;", "sql")
+        .unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("Unknown SQL column qualifier missing")
+    );
+}
+
+#[test]
 fn sql_quoted_keywords_strings_and_case_are_data() {
     let t = Translator::new();
     let source = "SELECT \"from\" FROM \"MixedCase\" AS item WHERE \"where\" = 'it''s ready';";

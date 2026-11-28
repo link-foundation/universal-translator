@@ -778,7 +778,7 @@ impl<'a> Lexer<'a> {
         }
         let value = self.slice(self.index, self.index + length);
         let value = if self.syntax.id == "sql" {
-            value.to_lowercase()
+            value.to_ascii_lowercase()
         } else {
             value
         };

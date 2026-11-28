@@ -53,7 +53,7 @@ pub(super) fn query_call(expression: Node) -> Node {
     let Some(body) = lambda.node("body") else {
         return expression;
     };
-    let body = row_members(body.clone(), variable, false);
+    let body = row_members(body.clone(), variable);
     if method == "filter" {
         return query(source, variable, name(variable), Some(body), true);
     }
@@ -95,8 +95,8 @@ impl Parser {
             return Ok(Some(query(
                 source,
                 &variable,
-                row_members(projection, &variable, false),
-                condition.map(|c| row_members(c, &variable, false)),
+                row_members(projection, &variable),
+                condition.map(|c| row_members(c, &variable)),
                 false,
             )));
         }
@@ -119,8 +119,8 @@ impl Parser {
                 return Ok(Some(query(
                     source,
                     &variable,
-                    row_members(projection, &variable, false),
-                    condition.map(|c| row_members(c, &variable, false)),
+                    row_members(projection, &variable),
+                    condition.map(|c| row_members(c, &variable)),
                     eager,
                 )));
             }

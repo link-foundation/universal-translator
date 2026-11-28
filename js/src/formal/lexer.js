@@ -5,6 +5,9 @@
 import { objectiveCRuntimeHeader } from './dialects/objc.js';
 import { blockCommentEnd } from '../translation/comment-syntax.js';
 
+export const asciiLowercase = (value) =>
+  value.replace(/[A-Z]/gu, (letter) => letter.toLowerCase());
+
 const symbols = [
   '...',
   '..<',
@@ -570,9 +573,13 @@ class Lexer {
       name[0].endsWith('!') && this.source[this.index + name[0].length] === '='
         ? name[0].slice(0, -1)
         : name[0];
-    this.push('name', this.syntax.id === 'sql' ? value.toLowerCase() : value, {
-      span: [this.index, this.index + value.length],
-    });
+    this.push(
+      'name',
+      this.syntax.id === 'sql' ? asciiLowercase(value) : value,
+      {
+        span: [this.index, this.index + value.length],
+      }
+    );
     this.index += value.length;
     return true;
   }

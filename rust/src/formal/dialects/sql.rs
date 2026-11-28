@@ -3,8 +3,8 @@ use super::{EmitterDialect, ParserDialect};
 use crate::formal::emitter::{Emitter, Result, field};
 use crate::formal::lexer::TokenType;
 use crate::formal::parser::{Parsed, Parser};
-use crate::meta::queries::{query, row_members};
-use crate::meta::{GrammarError, Node, name};
+use crate::meta::queries::query;
+use crate::meta::{GrammarError, Node, name, rewrite, text};
 
 pub(super) struct Sql;
 
@@ -120,6 +120,63 @@ fn table(value: &str) -> String {
         .join(".")
 }
 
+fn identifier_parts(reference: &Node) -> Vec<String> {
+    if reference.fields.contains_key("parts") {
+        reference.texts("parts")
+    } else {
+        vec![reference.str("name").unwrap_or_default().into()]
+    }
+}
+
+fn bind_columns(
+    expression: Node,
+    variable: &str,
+    qualifiers: &[Vec<String>],
+    line: usize,
+) -> Parsed {
+    let mut invalid = None;
+    let bound = rewrite(expression, |current| {
+        if !current.is("Name") {
+            return current;
+        }
+        let mut parts = identifier_parts(&current);
+        let field = parts.pop().unwrap_or_default();
+        if !parts.is_empty()
+            && !qualifiers.iter().any(|candidate| {
+                candidate.len() == parts.len()
+                    && candidate
+                        .iter()
+                        .zip(&parts)
+                        .all(|(part, other)| part.eq_ignore_ascii_case(other))
+            })
+        {
+            invalid.get_or_insert_with(|| parts.join("."));
+        }
+        Node::new("Index")
+            .with("array", name(variable))
+            .with("index", text(&field))
+    });
+    if let Some(qualifier) = invalid {
+        return Err(GrammarError::syntax(
+            format!("Unknown SQL column qualifier {qualifier}"),
+            line,
+        ));
+    }
+    Ok(bound)
+}
+
+fn range_variable(alias: Option<&str>) -> &str {
+    alias
+        .filter(|alias| {
+            let mut bytes = alias.bytes();
+            bytes
+                .next()
+                .is_some_and(|first| first.is_ascii_alphabetic() || first == b'_')
+                && bytes.all(|byte| byte.is_ascii_alphanumeric() || byte == b'_')
+        })
+        .unwrap_or("row")
+}
+
 impl ParserDialect for Sql {
     fn expression(&self, p: &mut Parser) -> Parsed {
         expression(p, 0)
@@ -129,6 +186,7 @@ impl ParserDialect for Sql {
         if p.kind(0) == TokenType::Comment {
             return p.base_item();
         }
+        let line = p.current().line;
         p.expect("select")?;
         let projection = if p.accept("*") {
             None
@@ -136,38 +194,61 @@ impl ParserDialect for Sql {
             Some(p.expression()?)
         };
         p.expect("from")?;
-        let source = p.postfix()?;
-        let variable = if p.accept("as") {
-            p.expect_name()?
-        } else {
-            "row".into()
-        };
-        let condition = if p.accept("where") {
-            Some(p.expression()?)
+        let mut source = p.postfix()?;
+        if !source.is("Name") {
+            return Err(GrammarError::syntax("Expected a named SQL relation", line));
+        }
+        let alias = if p.accept("as") {
+            Some(p.expect_name()?)
         } else {
             None
         };
+        let variable = range_variable(alias.as_deref());
+        let parts = identifier_parts(&source);
+        let qualifiers = alias.as_ref().map_or_else(
+            || {
+                vec![
+                    parts.clone(),
+                    vec![parts.last().cloned().unwrap_or_default()],
+                ]
+            },
+            |alias| vec![vec![alias.clone()]],
+        );
+        if source.fields.contains_key("parts") {
+            source.kind = "SqlRelation".into();
+            source.remove("name");
+        }
+        let bind = |node| bind_columns(node, variable, &qualifiers, line);
+        let condition = if p.accept("where") {
+            Some(Node::new("SqlTruth").with("operand", bind(p.expression()?)?))
+        } else {
+            None
+        };
+        let projection = projection
+            .map(bind)
+            .transpose()?
+            .unwrap_or_else(|| name(variable));
         p.end_statement()?;
         Ok(Node::new("Evaluate").with(
             "expression",
-            query(
-                source,
-                &variable,
-                projection.map_or_else(|| name(&variable), |p| row_members(p, &variable, true)),
-                condition.map(|c| {
-                    Node::new("SqlTruth").with("operand", row_members(c, &variable, true))
-                }),
-                true,
-            ),
+            query(source, variable, projection, condition, true),
         ))
     }
 
     fn primary(&self, p: &mut Parser) -> Parsed {
-        if p.current().quote == Some('"') {
-            return Ok(name(p.next_value()?));
-        }
         if p.accept("null") {
             return Ok(Node::new("Null"));
+        }
+        if p.kind(0) == TokenType::Name && !p.is("true") && !p.is("false") {
+            let mut parts = vec![p.expect_name()?];
+            while p.accept(".") {
+                parts.push(p.expect_name()?);
+            }
+            return Ok(if parts.len() > 1 || parts[0].contains('.') {
+                name(&parts.join(".")).with("parts", parts)
+            } else {
+                name(&parts[0])
+            });
         }
         p.base_primary()
     }
@@ -192,6 +273,14 @@ impl EmitterDialect for Sql {
     fn expression_in(&self, e: &mut Emitter, expression: &Node, parent: f64) -> Result<String> {
         match expression.kind.as_str() {
             "Null" => return Ok("NULL".into()),
+            "SqlRelation" => {
+                return Ok(expression
+                    .texts("parts")
+                    .iter()
+                    .map(|part| identifier(part))
+                    .collect::<Vec<_>>()
+                    .join("."));
+            }
             "SqlTruth" => {
                 return Ok(format!(
                     "({}) IS TRUE",
@@ -263,10 +352,10 @@ impl EmitterDialect for Sql {
             ));
         }
         let source = field(expression, "source")?;
-        let relation = if source.is("Name") {
-            table(source.str("name").unwrap_or_default())
-        } else {
-            format!("({})", e.expression(source)?)
+        let relation = match source.kind.as_str() {
+            "Name" => table(source.str("name").unwrap_or_default()),
+            "SqlRelation" => e.expression(source)?,
+            _ => format!("({})", e.expression(source)?),
         };
         let variable = expression.str("variable").unwrap_or_default();
         let projection = field(expression, "projection")?;
