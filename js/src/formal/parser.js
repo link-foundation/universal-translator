@@ -28,6 +28,7 @@ import {
   cppStringInitializer,
   cppTemplateArguments,
   declarationTypeFields,
+  defaultCppString,
   isCppFixedArray,
   isCppTemplateDeclaration,
   readCppInitializerList,
@@ -838,7 +839,7 @@ class BaseParser {
       name: variable,
       ...declarationTypeFields(this.syntax, words, type, value),
       ...(fixedArray ? { cppFixedArray: true } : {}),
-      value,
+      value: value ?? defaultCppString(this.syntax, words),
       mutable: !words.includes('const'),
     });
   }

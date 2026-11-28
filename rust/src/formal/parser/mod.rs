@@ -886,7 +886,8 @@ impl Parser {
             .map(|_| self.next_value())
             .collect::<Parsed<Vec<_>>>()?;
         let variable = words.pop().unwrap_or_default();
-        let kind = source_type(&words.join(" "));
+        let spelling = words.join(" ");
+        let kind = source_type(&spelling);
         let cpp_template = cpp_template::is_cpp_template_declaration(self.syntax.id, &words);
         let value = if direct_string {
             Some(self.read_cpp_string_initializer()?)
@@ -898,6 +899,8 @@ impl Parser {
             } else {
                 self.expression()?
             })
+        } else if self.syntax.id == "cpp" && spelling == "std :: string" {
+            Some(text(""))
         } else {
             None
         };

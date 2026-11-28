@@ -336,6 +336,7 @@ int main() {
     std::string greeting(
         "Hello\0ignored"
     );
+    std::string suffix;
     greeting.append(" , world!");
     return 0;
 }
@@ -353,6 +354,8 @@ int main() {
         .translate(source, "cpp", "cpp", Mode::default())
         .unwrap();
     assert!(emitted.contains("std::string greeting = \"Hello\";"));
+    assert!(emitted.contains("std::string suffix = \"\";"));
+    assert_eq!(statements[1].node("value").unwrap().str("value"), Some(""));
     assert!(emitted.contains("greeting.append(\" , world!\");"));
     let reread = translator.to_meta(&emitted, "cpp").unwrap();
     assert_eq!(reread.node("main").unwrap().nodes("statements"), statements);

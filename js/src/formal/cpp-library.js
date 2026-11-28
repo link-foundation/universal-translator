@@ -1,5 +1,5 @@
 import { inheritOrigin } from '../translation/source-origins.js';
-import { node } from '../meta/tree.js';
+import { node, text } from '../meta/tree.js';
 import { SyntaxError } from './lexer.js';
 
 export function isCppFixedArray(parser) {
@@ -81,6 +81,13 @@ export function readCppStringInitializer(parser) {
   parser.skipLineEnds();
   parser.expect(')');
   return value;
+}
+
+export function defaultCppString(syntax, words) {
+  if (syntax.id === 'cpp' && words.join(' ') === 'std :: string') {
+    return text('');
+  }
+  return undefined;
 }
 
 // An explicit C++ type template-id can precede the call's value arguments.

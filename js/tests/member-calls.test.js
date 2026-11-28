@@ -252,6 +252,7 @@ int main() {
   std::string greeting(
     "Hello\0ignored"
   );
+  std::string suffix;
   greeting.append(" , world!");
   return 0;
 }
@@ -268,6 +269,12 @@ int main() {
     ]);
     const emitted = translator.translate(source, 'cpp', 'cpp');
     expect(emitted).toContain('std::string greeting = "Hello";');
+    expect(emitted).toContain('std::string suffix = "";');
+    expect(program.main.statements[1].value).toEqual({
+      kind: 'Text',
+      value: '',
+      type: 'text',
+    });
     expect(emitted).toContain('greeting.append(" , world!");');
     expect(translator.toMeta(emitted, 'cpp').main.statements).toEqual(
       program.main.statements
