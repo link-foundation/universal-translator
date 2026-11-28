@@ -563,6 +563,10 @@ fn collection_node(key: &str, mut slots: Captured) -> Option<Node> {
         "sql-truth" => {
             Node::new("SqlTruth").with("operand", expression_slot(&mut slots, "operand")?)
         }
+        "sql-between" => Node::new("SqlBetween")
+            .with("value", expression_slot(&mut slots, "value")?)
+            .with("lower", expression_slot(&mut slots, "lower")?)
+            .with("upper", expression_slot(&mut slots, "upper")?),
         "sql-unary" => {
             let operator = expression_slot(&mut slots, "operator")?;
             if !operator.is("Text") || !crate::meta::sql_values::unary(operator.str("value")?) {

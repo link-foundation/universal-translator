@@ -56,6 +56,7 @@ function pure(expression) {
         'SqlBinary',
         'SqlUnary',
         'SqlTruth',
+        'SqlBetween',
       ].includes(current.kind)
     ) {
       result = false;

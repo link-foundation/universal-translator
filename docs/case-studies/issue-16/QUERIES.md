@@ -210,16 +210,44 @@ operators. Six cases extend the native nullable fixture to 87, including
 explicit NULL, numeric and boolean operands and a compound WHERE predicate.
 [SQLite expression operators](https://www.sqlite.org/lang_expr.html)
 
+`SELECT age BETWEEN 1 AND 2 FROM people` previously stopped at the
+`BETWEEN` token. Both readers now model the subject and two inclusive bounds
+as a single `SqlBetween` expression. `NOT BETWEEN` applies the existing
+three-valued NOT operation to that expression. Nested bounds, equality and
+the AND introducing the upper bound follow the precedence of the SQLite
+parser. [SQLite 3.45.1 grammar](https://github.com/sqlite/sqlite/blob/version-3.45.1/src/parse.y#L1280)
+
+The host writers pass each operand once, in source order, to a verified
+extension of the value helper. The extension combines the two comparisons
+using SQL's three-valued AND, so a false comparison overrides an unknown one.
+Both readers also recognize the original helper definition. A call to
+`between` requires the extended definition, and the two versions cannot
+share a binding. The native fixture now covers 99 cases across SQLite,
+Python, Node and C#, including 12 range cases. The SQL value suites read the
+generated code back through both engines and check a range query in all 71
+natural grammars. A scalar projection test compares SQLite and Node with
+instrumented functions and checks the order and count of their calls.
+[SQLite range evaluation](https://www.sqlite.org/lang_expr.html#the_between_operator)
+
+```sh
+node examples/queries/verify-native.mjs
+node examples/queries/verify-native.mjs ./target/debug/universal-translator
+```
+
+Both commands pass with the respective JavaScript and Rust writers.
+[Native comparison log](logs/sql-between-native.txt)
+
 ## Remaining work
 
 The verified nullable subset uses complete numeric/NULL input records and finite
 numbers within the host runtimes' exact common range. SQL dialect selection,
 schema affinity, text-to-number conversion, mixed storage classes, floating
 column type tags in JavaScript, integer overflow and full text collations need
-further modeling. SQLite's zero-divisor behavior is explicit here; other SQL
+further modeling. SQLite's zero-divisor behavior is explicit here. Other SQL
 dialects can raise instead. A translated binding supplies the same typed values
-used in the verified SQLite table. These checks do not establish full SQL NULL
-semantics for arbitrary schemas or runtimes.
+used in the verified SQLite table. The range tests verify pure predicates in
+WHERE clauses and operand evaluation in scalar projections. Volatile functions
+in WHERE clauses can depend on the optimizer's evaluation order.
 
 Joins, grouping, aggregation, ordering, named result columns, complete SQL
 syntax, general object/record types, other target families, arbitrary natural

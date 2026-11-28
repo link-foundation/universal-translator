@@ -428,7 +428,7 @@ impl Emitter {
                 Ok(format!("({})", written.join(", ")))
             }
             "Query" => super::query_writer::write_query(self, expression),
-            "Null" | "SqlBinary" | "SqlUnary" | "SqlTruth" => {
+            "Null" | "SqlBinary" | "SqlUnary" | "SqlTruth" | "SqlBetween" => {
                 super::sql_values::expression(self, expression)
             }
             "ProcessArguments" | "Update" | "SetLiteral" | "SetInsert" => {

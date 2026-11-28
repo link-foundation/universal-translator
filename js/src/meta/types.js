@@ -33,6 +33,7 @@ const fixedTypes = new Map([
   ['Null', 'object'],
   ['SqlBinary', 'object'],
   ['SqlUnary', 'object'],
+  ['SqlBetween', 'object'],
   ['SqlTruth', 'boolean'],
   ['RecordConstruction', 'record'],
 ]);

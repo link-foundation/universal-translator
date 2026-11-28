@@ -278,5 +278,43 @@
   {
     "projection": "age",
     "condition": "age IS DISTINCT FROM NULL AND NOT age IS NOT DISTINCT FROM 1"
+  },
+  {
+    "projection": "age bEtWeEn -1 AND 2"
+  },
+  {
+    "projection": "age NOT BETWEEN -1 AND 2"
+  },
+  {
+    "projection": "age BETWEEN NULL AND 0"
+  },
+  {
+    "projection": "age BETWEEN 0 AND NULL"
+  },
+  {
+    "projection": "NULL NOT BETWEEN 0 AND 2"
+  },
+  {
+    "projection": "age + 1 BETWEEN -1.0 AND 2.0"
+  },
+  {
+    "projection": "age BETWEEN 1 AND 2 = 1"
+  },
+  {
+    "projection": "age BETWEEN 1 AND 2 < 3"
+  },
+  {
+    "projection": "age BETWEEN 0 AND 3 BETWEEN 1 AND 1"
+  },
+  {
+    "projection": "age BETWEEN 2 BETWEEN 1 AND 3 AND 2"
+  },
+  {
+    "projection": "age",
+    "condition": "age NOT BETWEEN 0 AND 2 AND age IS NOT NULL"
+  },
+  {
+    "projection": "age BETWEEN 0 AND 2",
+    "condition": "NOT age BETWEEN -1 AND 2 OR age IS NULL"
   }
 ]

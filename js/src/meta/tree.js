@@ -36,6 +36,7 @@
 //   Null           {}                    SQL absence of a value
 //   SqlBinary      { operator, left, right }   NULL-propagating SQL operation
 //   SqlUnary       { operator, operand }      NULL-propagating SQL operation
+//   SqlBetween     { value, lower, upper }    inclusive SQL range, one value evaluation
 //   SqlTruth       { operand }           SQL WHERE retains only true rows
 //   Call           { callee, arguments }
 //   Question       { aspect: type | documentation | source | details, subject }

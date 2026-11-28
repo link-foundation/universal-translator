@@ -13,6 +13,7 @@ import { parseProgram } from '../src/formal/parser.js';
 import { languageSyntax } from '../src/formal/languages.js';
 import { nativeExpression } from '../../examples/queries/native-expression.mjs';
 import cases from '../../examples/queries/nullable.json' with { type: 'json' };
+import betweenMethods from '../../data/runtime/sql-between.json' with { type: 'json' };
 
 const translator = createTranslator();
 const selection = ({ projection, condition }) =>
@@ -101,6 +102,44 @@ describe('nullable SQL values', () => {
     });
   });
 
+  it('matches the SQLite call sequence for a scalar BETWEEN', () => {
+    const sql = 'SELECT sample() BETWEEN lower() AND upper() FROM people;';
+    const sqlite = native(
+      'python3',
+      [
+        'import json, sqlite3, sys',
+        'db = sqlite3.connect(":memory:")',
+        'db.execute("CREATE TABLE people(id)")',
+        'db.execute("INSERT INTO people VALUES (0)")',
+        'calls = []',
+        'for name, value in [("sample", 1), ("lower", 0), ("upper", 2)]:',
+        '    db.create_function(name, 0, lambda n=name, v=value: calls.append(n) or v)',
+        'print(json.dumps([[row[0] for row in db.execute(sys.stdin.read())], calls]))',
+      ].join('\n'),
+      sql
+    );
+    const { prefix, expression } = nativeExpression(
+      translator.translate(sql, 'sql', 'javascript')
+    );
+    const javascript = JSON.parse(
+      execFileSync(
+        'node',
+        [
+          '-e',
+          `${prefix}
+          const people = [0], calls = [];
+          function sample() { calls.push('sample'); return 1; }
+          function lower() { calls.push('lower'); return 0; }
+          function upper() { calls.push('upper'); return 2; }
+          console.log(JSON.stringify([${expression}, calls]));`,
+        ],
+        { encoding: 'utf8', maxBuffer: 4096 }
+      )
+    );
+    assert.deepEqual(sqlite, [[1], ['sample', 'lower', 'upper']]);
+    assert.deepEqual(javascript, sqlite);
+  });
+
   it('uses each natural grammar vocabulary for NULL and SQL truth operations', () => {
     const source =
       'SELECT NULL + age FROM people WHERE NOT (age IS NULL) OR age IS NOT FALSE;';
@@ -112,6 +151,7 @@ describe('nullable SQL values', () => {
         'SELECT NOT NULL FROM people;',
         'SELECT 1 FROM people WHERE NULL;',
         'SELECT 1 IS NOT FALSE FROM people;',
+        'SELECT 1 BETWEEN 0 AND 2 FROM people;',
       ]) {
         const simple = translator.translate(sql, 'sql', language);
         assert.deepEqual(
@@ -125,6 +165,69 @@ describe('nullable SQL values', () => {
         `${language}: ${written}`
       );
     }
+  });
+
+  it('retains a range predicate through every natural grammar', () => {
+    const meta = translator.toMeta(
+      'SELECT age FROM people WHERE age BETWEEN NULL AND 2;',
+      'sql'
+    );
+    for (const language of naturalLanguageIds()) {
+      const written = translator.fromMeta(meta, language);
+      assert.ok(
+        sameMeaning(meta, translator.toMeta(written, language)),
+        language
+      );
+    }
+  });
+});
+
+describe('SQL value helper versions', () => {
+  it('reads older value helpers and only trusts ranges from the extended helper', () => {
+    for (const language of ['python', 'javascript', 'typescript', 'csharp']) {
+      const meta = translator.toMeta('SELECT NULL FROM people;', 'sql');
+      const written = translator.fromMeta(meta, language);
+      const method = betweenMethods[language].replaceAll('$SQL$', 'UtSqlValue');
+      assert.ok(written.includes(method), language);
+      const legacy = written.replace(method, '');
+      assert.ok(
+        sameMeaning(meta, translator.toMeta(legacy, language)),
+        language
+      );
+      assert.throws(
+        () =>
+          translator.toMeta(
+            legacy.replace(
+              'UtSqlValue.nullValue()',
+              'UtSqlValue.between(1, 0, 2)'
+            ),
+            language
+          ),
+        /Unsupported SQL value library call/u
+      );
+    }
+  });
+
+  it('rejects a legacy Python helper that hides a newer helper of the same name', () => {
+    const { prefix, expression } = nativeExpression(
+      translator.translate(
+        'SELECT 1 BETWEEN 0 AND 2 FROM people;',
+        'sql',
+        'python'
+      )
+    );
+    const legacy = prefix.replace(
+      betweenMethods.python.replaceAll('$SQL$', 'UtSqlValue'),
+      ''
+    );
+    assert.throws(
+      () =>
+        translator.toMeta(
+          `${prefix}\n\n${legacy}\n\n${expression}\n`,
+          'python'
+        ),
+      /SQL value library/u
+    );
   });
 });
 

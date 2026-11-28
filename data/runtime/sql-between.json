@@ -1,0 +1,6 @@
+{
+  "python": "    @staticmethod\n    def between(value, lower, upper):\n        return $SQL$.binary(\"and\", $SQL$.binary(\"greaterOrEqual\", value, lower), $SQL$.binary(\"lessOrEqual\", value, upper))\n\n",
+  "javascript": "  static between(value, lower, upper) {\n    return $SQL$.binary(\"and\", $SQL$.binary(\"greaterOrEqual\", value, lower), $SQL$.binary(\"lessOrEqual\", value, upper));\n  }\n",
+  "typescript": "  static between(value: any, lower: any, upper: any): any {\n    return $SQL$.binary(\"and\", $SQL$.binary(\"greaterOrEqual\", value, lower), $SQL$.binary(\"lessOrEqual\", value, upper));\n  }\n",
+  "csharp": "    public static object between(object value, object lower, object upper) {\n        return binary(\"and\", binary(\"greaterOrEqual\", value, lower), binary(\"lessOrEqual\", value, upper));\n    }\n"
+}

@@ -10,6 +10,7 @@ export const collectionKeys = [
   'postfix-update',
   'sql-null',
   'sql-binary',
+  'sql-between',
   'sql-unary',
   'sql-truth',
 ];
@@ -21,6 +22,7 @@ const slots = {
   'postfix-update': ['operand', 'delta'],
   'sql-null': [],
   'sql-binary': ['operator', 'left', 'right'],
+  'sql-between': ['value', 'lower', 'upper'],
   'sql-unary': ['operator', 'operand'],
   'sql-truth': ['operand'],
 };
@@ -45,12 +47,27 @@ function sqlOperation(key, values) {
     ? node(kind, { ...values, operator: values.operator.value })
     : undefined;
 }
+
+function updateNode(key, values) {
+  return values.delta?.kind === 'Number' &&
+    [-1, 1].includes(values.delta.value) &&
+    values.operand?.kind === 'Name'
+    ? node('Update', {
+        ...values,
+        delta: values.delta.value,
+        prefix: key === 'prefix-update',
+      })
+    : undefined;
+}
+
 export function collectionNode(key, values) {
   switch (key) {
     case 'sql-null':
       return node('Null');
     case 'sql-truth':
       return node('SqlTruth', values);
+    case 'sql-between':
+      return node('SqlBetween', values);
     case 'sql-binary':
     case 'sql-unary':
       return sqlOperation(key, values);
@@ -65,15 +82,7 @@ export function collectionNode(key, values) {
     case 'set-insert':
       return node('SetInsert', values);
     default:
-      return values.delta?.kind === 'Number' &&
-        [-1, 1].includes(values.delta.value) &&
-        values.operand?.kind === 'Name'
-        ? node('Update', {
-            ...values,
-            delta: values.delta.value,
-            prefix: key === 'prefix-update',
-          })
-        : undefined;
+      return updateNode(key, values);
   }
 }
 export function collectionPhrase(expression) {
@@ -82,6 +91,10 @@ export function collectionPhrase(expression) {
       return { key: 'sql-null', slots: {} };
     case 'SqlTruth':
       return { key: 'sql-truth', slots: { operand: expression.operand } };
+    case 'SqlBetween': {
+      const { value, lower, upper } = expression;
+      return { key: 'sql-between', slots: { value, lower, upper } };
+    }
     case 'SqlUnary':
       return {
         key: 'sql-unary',

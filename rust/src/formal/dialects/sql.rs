@@ -8,8 +8,8 @@ use crate::meta::{GrammarError, Node, name, rewrite, text};
 
 pub(super) struct Sql;
 
-// SQL's NOT binds below comparisons and above AND, including when it
-// begins the right operand of another operation.
+// In SQLite, NOT binds below comparisons and BETWEEN and above AND,
+// including when it begins the right operand of another operation.
 const OPERATORS: &[(&str, &str, usize)] = &[
     ("or", "or", 1),
     ("and", "and", 2),
@@ -62,6 +62,29 @@ fn expression(p: &mut Parser, minimum: usize) -> Parsed {
         p.postfix()?
     };
     loop {
+        if minimum <= 4 {
+            let negated = p.is("not") && p.is_at("between", 1);
+            if negated {
+                p.position += 1;
+            }
+            if p.accept("between") {
+                let lower = expression(p, 4)?;
+                p.expect("and")?;
+                let upper = expression(p, 5)?;
+                let range = Node::new("SqlBetween")
+                    .with("value", left)
+                    .with("lower", lower)
+                    .with("upper", upper);
+                left = if negated {
+                    Node::new("SqlUnary")
+                        .with("operator", "not")
+                        .with("operand", range)
+                } else {
+                    range
+                };
+                continue;
+            }
+        }
         if minimum <= 4 && p.accept("is") {
             let negate = p.accept("not");
             let distinct = p.accept("distinct");
@@ -333,6 +356,14 @@ impl EmitterDialect for Sql {
                 return Ok(format!(
                     "({}) IS TRUE",
                     e.expression(field(expression, "operand")?)?
+                ));
+            }
+            "SqlBetween" => {
+                return Ok(format!(
+                    "({} BETWEEN {} AND {})",
+                    e.expression(field(expression, "value")?)?,
+                    e.expression(field(expression, "lower")?)?,
+                    e.expression(field(expression, "upper")?)?
                 ));
             }
             "SqlUnary" => {

@@ -51,7 +51,7 @@ before it can be checked off. Completed groups are stored in
 ## UT-16.12 Complete questions and query contracts
 
 - [ ] Preserve introspection across remaining programming, natural, SQL and LINQ targets.
-- [ ] Implement runtime-equivalent schema and dialect behavior, including nulls, typing, coercion and broader query clauses.
+- [ ] Implement runtime-equivalent schema and dialect behavior, including nulls, typing, coercion and broader query clauses. The verified nullable subset now includes inclusive and negated range predicates. [Query case study](case-studies/issue-16/QUERIES.md)
 - [ ] Verify composition of questions with scoped predicates, multiple clauses and projections.
 
 ## UT-16.18 Expand inherited program coverage

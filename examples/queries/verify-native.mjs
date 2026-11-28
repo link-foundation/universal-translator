@@ -12,7 +12,18 @@ import nullableCases from './nullable.json' with { type: 'json' };
 import negationPredicates from './negation.json' with { type: 'json' };
 import projectedRows from './projected-rows.json' with { type: 'json' };
 
-const translator = createTranslator();
+const [rustTranslator] = process.argv.slice(2);
+const translator = rustTranslator
+  ? {
+      translate(source, from, to) {
+        return execFileSync(
+          rustTranslator,
+          ['translate', from, to, '-', '--all-or-nothing'],
+          { encoding: 'utf8', input: source, maxBuffer: 1024 * 1024 }
+        );
+      },
+    }
+  : createTranslator();
 const sql =
   'SELECT age + 1 FROM people AS person WHERE age >= 18 AND age < 65;';
 const people = [{ age: 12 }, { age: 18 }, { age: 42 }, { age: 70 }];

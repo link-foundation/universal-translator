@@ -11,13 +11,25 @@ static RUNTIMES: LazyLock<HashMap<String, String>> = LazyLock::new(|| {
         .expect("SQL runtime data")
 });
 
-pub(crate) fn prepare_source(source: &str, syntax: &Syntax) -> LibrarySource {
+static BETWEEN_METHODS: LazyLock<HashMap<String, String>> = LazyLock::new(|| {
+    serde_json::from_str(include_str!("../../../data/runtime/sql-between.json"))
+        .expect("SQL range runtime data")
+});
+
+fn extended_runtime(id: &str, base: &str) -> String {
+    let header_end = base.find('\n').expect("SQL runtime class header") + 1;
+    let (header, body) = base.split_at(header_end);
+    format!("{header}{}{body}", BETWEEN_METHODS[id])
+}
+
+pub(crate) fn prepare_source(source: &str, syntax: &Syntax) -> (LibrarySource, Vec<String>) {
     let mut library = LibrarySource {
         bindings: vec![],
         definitions: vec![],
     };
+    let mut between_bindings = vec![];
     let Some(runtime) = RUNTIMES.get(syntax.id) else {
-        return library;
+        return (library, between_bindings);
     };
     let prefix = if syntax.id == "csharp" {
         "static class UtSqlValue"
@@ -37,17 +49,27 @@ pub(crate) fn prepare_source(source: &str, syntax: &Syntax) -> LibrarySource {
         {
             continue;
         }
-        let Some(end) = library_end(source, start, &runtime.replace("$SQL$", binding), syntax)
+        let extended_end = library_end(
+            source,
+            start,
+            &extended_runtime(syntax.id, runtime).replace("$SQL$", binding),
+            syntax,
+        );
+        let Some(end) = extended_end
+            .or_else(|| library_end(source, start, &runtime.replace("$SQL$", binding), syntax))
         else {
             continue;
         };
         library.bindings.push(binding.into());
+        if extended_end.is_some() {
+            between_bindings.push(binding.into());
+        }
         library.definitions.push((start, end));
     }
-    library
+    (library, between_bindings)
 }
 
-fn method_node(call: Node, bindings: &HashSet<String>) -> Node {
+fn method_node(call: Node, bindings: &HashSet<String>, between_bindings: &HashSet<String>) -> Node {
     if !call.is("Call") {
         return call;
     }
@@ -61,6 +83,12 @@ fn method_node(call: Node, bindings: &HashSet<String>) -> Node {
     let result = match (method, args.as_slice()) {
         ("nullValue", []) => Some(Node::new("Null")),
         ("isTrue", [operand]) => Some(Node::new("SqlTruth").with("operand", (*operand).clone())),
+        ("between", [value, lower, upper]) if between_bindings.contains(receiver) => Some(
+            Node::new("SqlBetween")
+                .with("value", (*value).clone())
+                .with("lower", (*lower).clone())
+                .with("upper", (*upper).clone()),
+        ),
         ("unary", [operator, operand])
             if operator.is("Text") && operator.str("value").is_some_and(sql_values::unary) =>
         {
@@ -89,11 +117,14 @@ fn method_node(call: Node, bindings: &HashSet<String>) -> Node {
 }
 
 pub(crate) fn validate_bindings(program: &Node) -> Result<()> {
-    let bindings: HashSet<String> = program.texts("sqlValueBindings").into_iter().collect();
+    let recorded = program.texts("sqlValueBindings");
+    let count = recorded.len();
+    let bindings: HashSet<String> = recorded.into_iter().collect();
     if bindings.is_empty() {
         return Ok(());
     }
-    let mut invalid = false;
+    let between_bindings = program.texts("sqlBetweenBindings").into_iter().collect();
+    let mut invalid = bindings.len() != count;
     walk(program, |current| {
         if [
             "Declaration",
@@ -141,7 +172,7 @@ pub(crate) fn validate_bindings(program: &Node) -> Result<()> {
             && current
                 .str("callee")
                 .is_some_and(|c| bindings.contains(c.split('.').next().unwrap_or_default()))
-            && method_node(current.clone(), &bindings).is("Call")
+            && method_node(current.clone(), &bindings, &between_bindings).is("Call")
         {
             invalid = true;
         }
@@ -160,7 +191,9 @@ pub(crate) fn recognize(mut program: Node, _: &Settings) -> Node {
     if bindings.is_empty() {
         return program;
     }
+    let between_bindings = program.texts("sqlBetweenBindings").into_iter().collect();
     program.remove("sqlValueBindings");
+    program.remove("sqlBetweenBindings");
     walk(&program, |current| {
         if [
             "Declaration",
@@ -189,7 +222,7 @@ pub(crate) fn recognize(mut program: Node, _: &Settings) -> Node {
         }
     });
     super::query_writer::merge_pure_queries(rewrite(program, |current| {
-        method_node(current, &bindings)
+        method_node(current, &bindings, &between_bindings)
     }))
 }
 
@@ -258,6 +291,14 @@ pub(crate) fn expression(e: &mut Emitter, expression: &Node) -> Result<String> {
     let (method, args) = match expression.kind.as_str() {
         "Null" => ("nullValue", vec![]),
         "SqlTruth" => ("isTrue", vec![operand(e, field(expression, "operand")?)?]),
+        "SqlBetween" => (
+            "between",
+            vec![
+                operand(e, field(expression, "value")?)?,
+                operand(e, field(expression, "lower")?)?,
+                operand(e, field(expression, "upper")?)?,
+            ],
+        ),
         "SqlUnary" if sql_values::unary(operator) => (
             "unary",
             vec![
@@ -287,7 +328,7 @@ pub(crate) fn prelude(e: &Emitter, lines: &mut Vec<String>) {
         && let Some(runtime) = RUNTIMES.get(e.id())
     {
         lines.extend(
-            runtime
+            extended_runtime(e.id(), runtime)
                 .replace("$SQL$", &e.sql_value_name)
                 .trim_end()
                 .lines()

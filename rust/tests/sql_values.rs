@@ -62,6 +62,7 @@ fn nullable_operations_keep_their_own_meaning_and_natural_vocabulary() {
             "SELECT NOT NULL FROM people;",
             "SELECT 1 FROM people WHERE NULL;",
             "SELECT 1 IS NOT FALSE FROM people;",
+            "SELECT 1 BETWEEN 0 AND 2 FROM people;",
         ] {
             let simple = t
                 .translate(sql, "sql", language, Mode::ContextDependent)
@@ -76,6 +77,106 @@ fn nullable_operations_keep_their_own_meaning_and_natural_vocabulary() {
             "{language}: {written}"
         );
     }
+}
+
+#[test]
+fn between_round_trips_through_each_natural_grammar() {
+    let t = Translator::new();
+    let meta = t
+        .to_meta(
+            "SELECT age FROM people WHERE age BETWEEN NULL AND 2;",
+            "sql",
+        )
+        .unwrap();
+    for language in natural_language_ids() {
+        let written = t
+            .from_meta(&meta, language, None, Mode::ContextDependent)
+            .unwrap();
+        assert!(
+            same_meaning(&meta, &t.to_meta(&written, language).unwrap()),
+            "{language}: {written}"
+        );
+    }
+}
+
+#[test]
+fn between_writers_use_each_scalar_operand_once() {
+    let t = Translator::new();
+    let meta = t
+        .to_meta(
+            "SELECT sample() BETWEEN lower() AND upper() FROM people;",
+            "sql",
+        )
+        .unwrap();
+    let projection = meta.node("main").unwrap().nodes("statements")[0]
+        .node("expression")
+        .unwrap()
+        .node("projection")
+        .unwrap();
+    assert!(projection.is("SqlBetween"));
+    assert_eq!(projection.str("type"), Some("object"));
+    for language in ["sql", "python", "javascript", "typescript", "csharp"] {
+        let written = t
+            .from_meta(&meta, language, None, Mode::ContextDependent)
+            .unwrap();
+        let offsets = ["sample()", "lower()", "upper()"].map(|call| {
+            let mut occurrences = written.match_indices(call);
+            let first = occurrences.next().expect("operand call").0;
+            assert!(occurrences.next().is_none(), "{language}: {written}");
+            first
+        });
+        assert!(offsets.is_sorted(), "{language}: {written}");
+    }
+}
+
+#[test]
+fn legacy_sql_value_helpers_remain_readable_without_a_between_contract() {
+    let t = Translator::new();
+    let methods: serde_json::Value =
+        serde_json::from_str(include_str!("../../data/runtime/sql-between.json")).unwrap();
+    let meta = t.to_meta("SELECT NULL FROM people;", "sql").unwrap();
+    for language in ["python", "javascript", "typescript", "csharp"] {
+        let written = t
+            .from_meta(&meta, language, None, Mode::ContextDependent)
+            .unwrap();
+        let method = methods[language]
+            .as_str()
+            .unwrap()
+            .replace("$SQL$", "UtSqlValue");
+        assert!(written.contains(&method), "{language}");
+        let legacy = written.replacen(&method, "", 1);
+        assert!(same_meaning(&meta, &t.to_meta(&legacy, language).unwrap()));
+        let invalid = legacy.replace("UtSqlValue.nullValue()", "UtSqlValue.between(1, 0, 2)");
+        let error = t.to_meta(&invalid, language).unwrap_err();
+        assert!(
+            error.to_string().contains("SQL value library"),
+            "{language}"
+        );
+    }
+}
+
+#[test]
+fn a_legacy_python_helper_cannot_hide_a_range_helper_at_the_same_binding() {
+    let t = Translator::new();
+    let generated = t
+        .translate(
+            "SELECT 1 BETWEEN 0 AND 2 FROM people;",
+            "sql",
+            "python",
+            Mode::ContextDependent,
+        )
+        .unwrap();
+    let (header, query) = generated.trim_end().rsplit_once('\n').unwrap();
+    let legacy: serde_json::Value =
+        serde_json::from_str(include_str!("../../data/runtime/sql-values.json")).unwrap();
+    let legacy = legacy["python"]
+        .as_str()
+        .unwrap()
+        .replace("$SQL$", "UtSqlValue");
+    let error = t
+        .to_meta(&format!("{header}\n\n{legacy}\n{query}\n"), "python")
+        .unwrap_err();
+    assert!(error.to_string().contains("SQL value library"));
 }
 
 #[test]

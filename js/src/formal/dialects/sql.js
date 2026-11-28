@@ -4,8 +4,8 @@ import { inheritOrigin } from '../../translation/source-origins.js';
 import { asciiLowercase, SyntaxError } from '../lexer.js';
 import { query } from '../query-parser.js';
 
-// NOT binds below comparisons and above AND in SQL. A prefix can also
-// occur on a binary operand, so its operand uses its own binding power.
+// In SQLite, NOT binds below comparisons and BETWEEN and above AND. A
+// prefix can also occur on a binary operand, so it has its own binding power.
 const operators = {
   or: ['or', 1],
   and: ['and', 2],
@@ -66,6 +66,26 @@ function sqlBinary(operator, left, right) {
   });
 }
 
+function readBetween(parser, value, minimum) {
+  if (minimum > 4) {
+    return undefined;
+  }
+  const negated = parser.is('not') && parser.is('between', 1);
+  if (negated) {
+    parser.next();
+  }
+  if (!parser.accept('between')) {
+    return undefined;
+  }
+  const lower = sqlExpression(parser, 4);
+  parser.expect('and');
+  const upper = sqlExpression(parser, 5);
+  const range = node('SqlBetween', { value, lower, upper });
+  return negated
+    ? node('SqlUnary', { operator: 'not', operand: range })
+    : range;
+}
+
 function sqlExpression(parser, minimum = 0) {
   let left;
   if (parser.accept('not')) {
@@ -83,6 +103,11 @@ function sqlExpression(parser, minimum = 0) {
     left = parser.postfix();
   }
   while (true) {
+    const range = readBetween(parser, left, minimum);
+    if (range) {
+      left = range;
+      continue;
+    }
     if (minimum <= 4 && parser.accept('is')) {
       const operator = isOperator(parser);
       const right = sqlExpression(parser, 5);
@@ -179,6 +204,10 @@ function sqlValueText(emitter, expression, binary) {
   }
   if (expression.kind === 'SqlTruth') {
     return `(${emitter.expression(expression.operand)}) IS TRUE`;
+  }
+  if (expression.kind === 'SqlBetween') {
+    const { value, lower, upper } = expression;
+    return `(${emitter.expression(value)} BETWEEN ${emitter.expression(lower)} AND ${emitter.expression(upper)})`;
   }
   if (expression.kind === 'SqlUnary') {
     const operand = emitter.expression(expression.operand);

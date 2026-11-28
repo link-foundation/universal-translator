@@ -20,6 +20,7 @@ fn pure(expression: &Node) -> bool {
             "SqlBinary",
             "SqlUnary",
             "SqlTruth",
+            "SqlBetween",
         ]
         .contains(&current.kind.as_str())
         {

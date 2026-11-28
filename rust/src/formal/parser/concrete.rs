@@ -50,7 +50,7 @@ impl Parser {
 
 // Parsing and library contracts share one lossless concrete source record.
 pub(super) fn parse_program(source: &str, syntax: &Syntax) -> Parsed {
-    let sql_library = crate::formal::sql_values::prepare_source(source, syntax);
+    let (sql_library, between_bindings) = crate::formal::sql_values::prepare_source(source, syntax);
     let library = objpak_reader::prepare(source, syntax);
     let definitions = library
         .definitions
@@ -67,6 +67,9 @@ pub(super) fn parse_program(source: &str, syntax: &Syntax) -> Parsed {
     }
     if !sql_library.bindings.is_empty() {
         tree.set("sqlValueBindings", sql_library.bindings.clone());
+    }
+    if !between_bindings.is_empty() {
+        tree.set("sqlBetweenBindings", between_bindings);
     }
     crate::formal::sql_values::validate_bindings(&tree)?;
     if syntax.id == "objc" {
