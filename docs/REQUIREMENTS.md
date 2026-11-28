@@ -56,7 +56,7 @@ before it can be checked off. Completed groups are stored in
 
 ## UT-16.18 Expand inherited program coverage
 
-- [ ] Increase verified Rosetta Code coverage by more than 100 distinct task types against the existing baseline. Both engines pass 26 pinned solutions, including stream input and exception recovery, Boost multiprecision and Qt URL encoding. [Task list and output evidence](case-studies/issue-16/ROSETTA-CODE.md#verified-rosetta-tasks-beyond-the-baseline)
+- [ ] Increase verified Rosetta Code coverage by more than 100 distinct task types against the existing baseline. Both engines pass 31 pinned solutions, including stream input, file reads, exception recovery, Boost multiprecision and Qt URL encoding. [Task list and output evidence](case-studies/issue-16/ROSETTA-CODE.md#verified-rosetta-tasks-beyond-the-baseline)
 - [ ] Extend original-source round trips and behavioral equivalence through all 1,758 historical Rosetta Code tasks, including strings, data structures, I/O, objects and concurrency.
 - [ ] Finish native Portable Object Compiler collection translations through the remaining target families.
 - [x] Deliver the verified portable Meta Language commands in the default JavaScript package. The npm artifact includes the pinned 1.0.0 engine, and the JavaScript, Rust, Lean and Rocq fixtures pass direct and CST-mediated interoperability checks.

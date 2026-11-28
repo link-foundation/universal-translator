@@ -230,14 +230,14 @@ node --max-old-space-size=384 experiments/issue-16-rosetta-candidates.mjs \
 Six more pinned C++ originals passed native behavioral comparisons, including
 source hash, strict emission and output checks through both CLIs.
 
-| Task                          | Pinned revision                                                                                | Observable result                                                   |
-| ----------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Formatted numeric output      | [412804](https://rosettacode.org/w/index.php?title=Formatted_numeric_output&oldid=412804)      | `00007.125`                                                         |
-| Hello world/Newbie            | [417360](https://rosettacode.org/w/index.php?title=Hello_world/Newbie&oldid=417360)            | `Hello, World!`                                                     |
-| Copy stdin to stdout          | [417213](https://rosettacode.org/w/index.php?title=Copy_stdin_to_stdout&oldid=417213)          | All 26 input bytes, including the leading space, tab and blank line |
-| Reverse a string              | [420276](https://rosettacode.org/w/index.php?title=Reverse_a_string&oldid=420276)              | `  ba 210` for input `012 ab  `                                     |
-| Shortest common supersequence | [418354](https://rosettacode.org/w/index.php?title=Shortest_common_supersequence&oldid=418354) | `abdcabdab`                                                         |
-| Substring                     | [418506](https://rosettacode.org/w/index.php?title=Substring&oldid=418506)                     | Five lines from the original string and iterator slices             |
+| Task                          | Pinned revision                                                                                | Observable result                                                     |
+| ----------------------------- | ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Formatted numeric output      | [412804](https://rosettacode.org/w/index.php?title=Formatted_numeric_output&oldid=412804)      | `00007.125`                                                           |
+| Hello world/Newbie            | [417360](https://rosettacode.org/w/index.php?title=Hello_world/Newbie&oldid=417360)            | `Hello, World!`                                                       |
+| Copy stdin to stdout          | [417213](https://rosettacode.org/w/index.php?title=Copy_stdin_to_stdout&oldid=417213)          | All input bytes, including the leading space, tab, blank line and NUL |
+| Reverse a string              | [420276](https://rosettacode.org/w/index.php?title=Reverse_a_string&oldid=420276)              | `  ba 210` for input `012 ab  `                                       |
+| Shortest common supersequence | [418354](https://rosettacode.org/w/index.php?title=Shortest_common_supersequence&oldid=418354) | `abdcabdab`                                                           |
+| Substring                     | [418506](https://rosettacode.org/w/index.php?title=Substring&oldid=418506)                     | Five lines from the original string and iterator slices               |
 
 `Reverse a string` exposed translation of `std::string s;` to an initializer
 from zero. The pinned original default-constructs an empty string. The updated
@@ -291,7 +291,7 @@ retain the explicit width and signedness of function parameters.
 ```sh
 curl --fail --silent --show-error --get https://rosettacode.org/w/api.php \
   --data 'action=query' --data 'prop=revisions' \
-  --data 'revids=420325|417505|419626|420026|419956|420285|419019|412804|417360|417213|420276|418354|418506|420238|418405|418309|415006|418063|418364|419726|419426' \
+  --data 'revids=420325|417505|419626|420026|419956|420285|419019|412804|417360|417213|420276|418354|418506|420238|418405|418309|415006|418063|418364|419726|419426|413803|418530|417616|419450|420008' \
   --data 'rvprop=ids|content' --data 'rvslots=main' --data 'format=json' \
   --data 'formatversion=2' > /tmp/rosetta-containers-revisions.json
 node experiments/issue-16-rosetta-containers.mjs /tmp/rosetta-containers-revisions.json \
@@ -339,6 +339,30 @@ exception whose message comes from the input.
 [Native comparison fixture](../../../examples/programs/library/cpp-stream-extraction.cpp)
 [Pinned native results](logs/rosetta-containers-native.txt)
 
+Five further C++ tasks bring the verified total to 31. Before the fix, both
+emitted programs for User input/Text and Kernighans large earthquake problem
+aborted with `basic_string: construction from null is not valid`. The reader
+left an unqualified `string` declaration without a value, and the writer
+emitted `std::string value = 0;`. The readers now carry the empty initial
+value for `string` and `std::string`. The native observer checks the two
+extracted values immediately before `return 0;` in the original and both
+emitted programs. The earthquake probe gives all three a four-row local file
+with magnitudes below, equal to and above the cutoff of six.
+
+| Task                                | Pinned revision                                                                                       | Observable result                                    |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| Non-decimal radices/Input           | [413803](https://rosettacode.org/w/index.php?title=Non-decimal_radices/Input&oldid=413803)            | Four converted integers in the original order        |
+| Repeat a string                     | [418530](https://rosettacode.org/w/index.php?title=Repeat_a_string&oldid=418530), second C++ solution | Five asterisks and a newline                         |
+| Set right-adjacent bits             | [417616](https://rosettacode.org/w/index.php?title=Set_right-adjacent_bits&oldid=417616)              | Eight exact outputs at widths 4 and 66               |
+| User input/Text                     | [419450](https://rosettacode.org/w/index.php?title=User_input/Text&oldid=419450)                      | Both prompts and the extracted `75000` and `word`    |
+| Kernighans large earthquake problem | [420008](https://rosettacode.org/w/index.php?title=Kernighans_large_earthquake_problem&oldid=420008)  | Two qualifying records and the reported count of two |
+
+All three bit-program builds use `-include cstdint` because the pinned code
+uses a fixed-width type without its header. The Copy stdin to stdout probe
+now also checks an embedded NUL followed by more input.
+[Baseline failures for these five inputs](logs/rosetta-io-baseline.txt)
+[Pinned native results](logs/rosetta-containers-native.txt)
+
 The first Rust solution for [String interpolation (included), revision 416065](<https://rosettacode.org/w/index.php?title=String_interpolation_(included)&oldid=416065>)
 has three print calls. At `6b73060`, the JavaScript CLI emitted the indexed
 and named placeholders as literal text. Both engines now resolve default
@@ -367,8 +391,8 @@ node experiments/issue-16-rust-print.mjs --revision /tmp/rosetta-rust-print-revi
   --rust-translator ./target/debug/universal-translator
 ```
 
-These fifteen pinned task round trips count toward the behavioral goal. Portable
-format modifiers, containers and comparisons need broader native verification.
+Portable format modifiers, containers and comparisons need broader native
+verification.
 
 ## C++ file-scope declarations
 

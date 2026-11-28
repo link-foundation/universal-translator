@@ -1,9 +1,15 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { extractSolutions } from '../scripts/rosetta-code.mjs';
@@ -15,6 +21,7 @@ assert.ok(
 );
 const { query } = JSON.parse(readFileSync(wikiResponse, 'utf8'));
 const digest = (text) => createHash('sha256').update(text).digest('hex');
+const copyInput = ' first line\n\n\tsecond line\n\0tail\n';
 const tasks = [
   {
     title: 'Queue/Usage',
@@ -94,8 +101,8 @@ const tasks = [
     revid: 417213,
     sourceSha256:
       'b721bf0677eaf7c524d45b335a9b25480a6249a5f40d3da1730cba454ae57fbc',
-    stdin: ' first line\n\n\tsecond line\n',
-    stdout: ' first line\n\n\tsecond line\n',
+    stdin: copyInput,
+    stdout: copyInput,
     assertions: 0,
   },
   {
@@ -262,7 +269,57 @@ int main() {
       '> huff and puff\n',
     assertions: 0,
   },
+  {
+    title: 'Non-decimal radices/Input',
+    revid: 413803,
+    sourceSha256:
+      'e58b0b4d50349d5dc6ac6901c04bfbea13abe136039ae41bf5b3b626c9397662',
+    stdout: '123459\n123459\n180154659\n4009\n',
+    assertions: 0,
+  },
+  {
+    title: 'Repeat a string',
+    revid: 418530,
+    solutionIndex: 1,
+    sourceSha256:
+      'bde269cef9e2461880a670e0f0a4448498597af4e172db5afd22595dbd4eea93',
+    stdout: '*****\n',
+    assertions: 0,
+  },
+  {
+    title: 'Set right-adjacent bits',
+    revid: 417616,
+    sourceSha256:
+      '29d9e1133b0f77e2ba2dba69870a61ee0bb3c62387c684c10e37588997fa2269',
+    compile: ['-include', 'cstdint'],
+    stdoutSha256:
+      '71f990c7585d658782744022e0709b283bcdb6ab258ca3f7bfe7249ff79940f3',
+    assertions: 0,
+  },
+  {
+    title: 'User input/Text',
+    revid: 419450,
+    sourceSha256:
+      '34e484ef9e41f26bc10a7efde070643bb9f8175bedd33ab246c4dd714b8614ad',
+    stdin: '75000\nword remainder\n',
+    stdout: 'Enter an integer:  Enter a string:  ',
+    assertions: 0,
+    observed: 'integer_input == 75000 && string_input == "word"',
+  },
+  {
+    title: 'Kernighans large earthquake problem',
+    revid: 420008,
+    sourceSha256:
+      'd8e08722f8166b962572d21dc868ce7a49f31099544d2ec8aa3113cabfcdf022',
+    fixtureFiles: {
+      'include/earthquake.txt': 'A B 5.9\nC D 6.0\nE F 6.1\nG H 7.25\n',
+    },
+    stdout:
+      'E\tF\t6.1\t\nG\tH\t7.25\t\n\nNumber of quakes greater than 6 is 2\n',
+    assertions: 0,
+  },
 ];
+assert.equal(new Set(tasks.map(({ title }) => title)).size, tasks.length);
 for (const title of selectedTasks) {
   assert.ok(
     tasks.some((task) => task.title === title),
@@ -285,6 +342,8 @@ const options = { encoding: 'utf8', maxBuffer: 32 * 1024 };
 try {
   const file = join(directory, 'program.cpp');
   const binary = join(directory, 'program');
+  const cwd = join(directory, 'run');
+  mkdirSync(cwd);
   const run = (program, task) => {
     assert.ok(program.trim().length, `${task.title}: empty program`);
     assert.equal(
@@ -309,15 +368,22 @@ try {
       ],
       options
     );
-    return execFileSync(binary, [], { ...options, input: task.stdin });
+    return execFileSync(binary, [], { ...options, input: task.stdin, cwd });
   };
 
   for (const task of activeTasks) {
     const page = query.pages.find(({ title }) => title === task.title);
     const revision = page?.revisions.find(({ revid }) => revid === task.revid);
     assert.ok(revision, `Missing revision ${task.revid} for ${task.title}`);
-    const [source] = extractSolutions(revision.slots.main.content).cpp;
+    const source = extractSolutions(revision.slots.main.content).cpp[
+      task.solutionIndex ?? 0
+    ];
     assert.equal(digest(source), task.sourceSha256, task.title);
+    for (const [path, content] of Object.entries(task.fixtureFiles ?? {})) {
+      const target = join(directory, path);
+      mkdirSync(dirname(target), { recursive: true });
+      writeFileSync(target, content);
+    }
     const original = run(source, task);
     if (task.comparisons) {
       assert.deepEqual(
@@ -328,6 +394,8 @@ try {
         task.comparisons,
         task.title
       );
+    } else if (task.stdoutSha256) {
+      assert.equal(digest(original), task.stdoutSha256, task.title);
     } else {
       assert.equal(original, task.stdout, task.title);
     }
@@ -335,8 +403,10 @@ try {
       const main = program.indexOf('int main');
       const close = program.lastIndexOf('}');
       assert.ok(main >= 0 && close > main, task.title);
-      assert.ok(!/\breturn\b/u.test(program.slice(main, close)), task.title);
-      const checked = `${program.slice(0, close)}\nif (!(${task.observed})) return 123;\n${program.slice(close)}`;
+      const terminal = /\breturn\s+0\s*;\s*$/u.exec(program.slice(main, close));
+      const checkAt = terminal ? main + terminal.index : close;
+      assert.ok(!/\breturn\b/u.test(program.slice(main, checkAt)), task.title);
+      const checked = `${program.slice(0, checkAt)}\nif (!(${task.observed})) return 123;\n${program.slice(checkAt)}`;
       assert.equal(run(checked, task), original, task.title);
     };
     if (task.observed) {
@@ -359,6 +429,7 @@ try {
         JSON.stringify({
           title: task.title,
           revid: task.revid,
+          solutionIndex: task.solutionIndex,
           sourceSha256: task.sourceSha256,
           engine,
           stdout: original,
