@@ -1,0 +1,6 @@
+
+/tmp/gh-issue-solver-1795726129025/js/tests/server.test.js
+  30:35  warning  Arrow function has too many lines (166). Maximum allowed is 150  max-lines-per-function
+
+✖ 1 problem (0 errors, 1 warning)
+

@@ -1,0 +1,4 @@
+js/src/translation/concrete-syntax.js 309ms (unchanged)
+js/src/formal/lexer.js 605ms (unchanged)
+js/src/formal/parser.js 881ms
+js/src/index.js 14ms (unchanged)

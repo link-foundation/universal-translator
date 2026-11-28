@@ -1,3 +1,5 @@
+import type { ConcreteSyntax } from './translation/concrete-syntax.js';
+
 export type TranslationMode = 'context-dependent' | 'literal' | 'same-effect';
 
 export interface TranslationOptions {
@@ -103,12 +105,68 @@ export interface GrammarTranslatorOptions extends Partial<Stages> {
 
 /** What a fragment holds: a whole program, function definitions only, or
  * statements only. */
-export type FragmentKind = 'program' | 'functions' | 'statements';
+export type FragmentKind =
+  | 'program'
+  | 'functions'
+  | 'definitions'
+  | 'statements';
 
 export interface Fragment {
   kind: FragmentKind;
   /** The meta program of the fragment. */
   program: unknown;
+}
+
+export interface PartialError {
+  line: number;
+  endLine: number;
+  message: string;
+  source: string;
+}
+
+export interface PartialReading {
+  complete: boolean;
+  syntax: ConcreteSyntax;
+  parts: (Omit<PartialError, 'message'> & {
+    start: number;
+    end: number;
+    status: 'read' | 'failed';
+    kind?: FragmentKind;
+    message?: string;
+  })[];
+  lines: number;
+  readLines: number;
+  coverage: number;
+  errors: PartialError[];
+}
+
+export interface PartialTranslation {
+  text: string;
+  /** Pairs of zero-based source and target lines with shared ownership. */
+  lineMap: [number, number][];
+  /** Semantic regions in the original source and final output. Ranges are
+   * half-open UTF-8 byte offsets; a region can have several counterparts. */
+  regionMap: TranslationRegion[];
+  complete: boolean;
+  errors: PartialError[];
+  /** Non-blank source lines. */
+  lines: number;
+  /** Source lines successfully written, including freely translated prose.
+   * Parts rejected by the target writer are excluded. */
+  readLines: number;
+  /** The share successfully translated; empty input has full coverage. */
+  coverage: number;
+  prose: { line: number; endLine: number }[];
+}
+
+export interface ByteRange {
+  start: number;
+  end: number;
+}
+
+export interface TranslationRegion {
+  source: ByteRange;
+  target: ByteRange;
 }
 
 export interface GrammarTranslator {
@@ -121,11 +179,17 @@ export interface GrammarTranslator {
     id: string;
     label: string;
     machine?: boolean;
+    /** A relational query target, with separate imperative-language coverage. */
+    query?: boolean;
     versions?: { version: string; label: string; default: boolean }[];
   }[];
   /** Controlled natural languages and profiles (base is the language a profile extends). */
   naturalLanguages(): { id: string; label: string; base?: string }[];
   toMeta(source: string, from: string): unknown;
+  /** Read the supported WebAssembly version 1 binary instructions. */
+  toMetaWasm(source: Uint8Array): unknown;
+  /** Read the supported straight-line JVM class file instructions. */
+  toMetaJvmClass(source: Uint8Array): unknown;
   /** The same translator with other data rules. */
   withRules(rules: TranslationRules | string): GrammarTranslator;
   /** The same translator with a decorator around one stage; it wraps the
@@ -147,9 +211,28 @@ export interface GrammarTranslator {
     to: string,
     options?: TranslationOptions
   ): string;
+  translateWasm(
+    source: Uint8Array,
+    to: string,
+    options?: TranslationOptions
+  ): string;
+  translateJvmClass(
+    source: Uint8Array,
+    to: string,
+    options?: TranslationOptions
+  ): string;
   /** Read a complete fragment: a whole program, function definitions or
    * statements. */
   parseFragment(source: string, from: string): Fragment;
+  /** Read accepted fragments while retaining every original source byte. */
+  parsePartial(source: string, from: string): PartialReading;
+  /** Translate accepted parts and mark failures with their source and reason. */
+  translatePartial(
+    source: string,
+    from: string,
+    to: string,
+    options?: TranslationOptions & { fragment?: boolean }
+  ): PartialTranslation;
   /** Translate a complete fragment into the same kind of fragment. */
   translateFragment(
     source: string,
@@ -192,6 +275,18 @@ export declare function translate(
 ): string;
 
 export declare function parseFragment(source: string, from: string): Fragment;
+
+export declare function parsePartial(
+  source: string,
+  from: string
+): PartialReading;
+
+export declare function translatePartial(
+  source: string,
+  from: string,
+  to: string,
+  options?: TranslationOptions & { fragment?: boolean }
+): PartialTranslation;
 
 export declare function translateFragment(
   source: string,

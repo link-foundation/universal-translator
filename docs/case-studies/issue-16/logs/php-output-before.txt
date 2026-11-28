@@ -1,0 +1,27 @@
+✖ retains PHP output whitespace outside its opening and closing tags (323.282997ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 967.124178
+
+✖ failing tests:
+
+test at node_modules/.deno/test-anywhere@0.8.50/node_modules/test-anywhere/src/index.js:174:12
+✖ retains PHP output whitespace outside its opening and closing tags (323.282997ms)
+  SyntaxError [Error]: Unexpected "<" in expression (line 2)
+      at Proxy.primary (file:///tmp/gh-issue-solver-1795726129025/js/src/formal/parser.js:1250:11)
+      at Proxy.primary (file:///tmp/gh-issue-solver-1795726129025/js/src/formal/array-parser.js:200:38)
+      at Proxy.primary (file:///tmp/gh-issue-solver-1795726129025/js/src/formal/query-parser.js:176:20)
+      at Proxy.primary (file:///tmp/gh-issue-solver-1795726129025/js/src/formal/objpak-reader.js:293:20)
+      at Proxy.<anonymous> (file:///tmp/gh-issue-solver-1795726129025/js/src/translation/concrete-syntax.js:27:32)
+      at Proxy.postfix (file:///tmp/gh-issue-solver-1795726129025/js/src/formal/parser.js:1134:27)
+      at Proxy.postfix (file:///tmp/gh-issue-solver-1795726129025/js/src/formal/query-parser.js:216:30)
+      at Proxy.postfix (file:///tmp/gh-issue-solver-1795726129025/js/src/formal/objpak-reader.js:257:29)
+      at Proxy.<anonymous> (file:///tmp/gh-issue-solver-1795726129025/js/src/translation/concrete-syntax.js:27:32)
+      at Proxy.unary (file:///tmp/gh-issue-solver-1795726129025/js/src/formal/parser.js:1126:23) {
+    line: 2
+  }

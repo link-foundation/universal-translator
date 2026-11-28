@@ -1,0 +1,9 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 6.35s
+     Running rust/tests/grammar.rs (target/debug/deps/grammar-7584d69d07cc759f)
+
+running 1 test
+test member_calls_keep_computed_receivers_and_java_continuations ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 26 filtered out; finished in 0.29s
+

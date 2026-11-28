@@ -1,0 +1,5 @@
+[issue-16-fb080613587e d35c4b1] fix: preserve semantic ownership when lifting machine code
+ 19 files changed, 885 insertions(+), 145 deletions(-)
+ create mode 100644 examples/translation/machine-mapping.js
+ create mode 100644 experiments/issue-16-machine-origins.mjs
+ create mode 100644 js/src/formal/machine-source.js

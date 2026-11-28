@@ -4,14 +4,247 @@
 // writes the canonical wording, the first template of each key. The Rust twin
 // is rust/tests/natural_wordings.rs.
 import { describe, expect, it } from 'test-anywhere';
+import assert from 'node:assert/strict';
 
 import { detectLanguage, translate } from '../src/index.js';
-import { naturalLanguage, naturalLanguageIds } from '../src/natural/catalog.js';
+import {
+  naturalLanguage,
+  naturalLanguageIds,
+  registerNaturalLanguage,
+  unregisterNaturalLanguage,
+} from '../src/natural/catalog.js';
 
 const everyday =
   'Let n be 0.\nWhile n is less than 3, do this:\n  Set n to n plus 1.\nPrint n.\n';
 const canonical =
   'Create n with value 0.\nWhile n falls below 3, repeat this:\n  Change n to n plus 1.\nWrite n and end the line.\n';
+const prefix =
+  'natural:\n  id: message-grammar\n  extends: english\n  grammar:\n';
+
+describe('declarative controlled grammar', () => {
+  it('allows profile productions to reuse terms and other productions', () => {
+    const id = registerNaturalLanguage(`${prefix}    terms:
+      message: 'message' 'notice'
+      send-message: 'Send @message'
+      message-value: '@send-message {value}'
+    productions:
+      print: '@message-value'
+      print-line: '@print now'
+`);
+    try {
+      const output = 'console.log(7);\n';
+      assert.equal(translate('Send notice 7 now.', id, 'javascript'), output);
+      assert.equal(
+        translate(output, 'javascript', id),
+        'Send message 7 now.\n'
+      );
+    } finally {
+      unregisterNaturalLanguage(id);
+    }
+  });
+  it('binds nested phrase slots to the containing production roles', () => {
+    const id = registerNaturalLanguage(`${prefix}    terms:
+      indexed-part: 'part {position} of {collection}' 'slot {position} of {collection}'
+    productions:
+      element: '@indexed-part[position=index,collection=array]'
+      set-element: 'Replace @element[array=name] with {value}'
+`);
+    try {
+      const source = 'values = [1, 2]\nvalues[0] = values[1] + 3\n';
+      const natural = translate(source, 'python', id);
+      assert.match(natural, /Replace part 0 of values with/u);
+      assert.match(natural, /part 1 of values/u);
+      assert.equal(
+        translate(natural.replaceAll('part', 'slot'), id, 'python'),
+        translate(source, 'python', 'python')
+      );
+    } finally {
+      unregisterNaturalLanguage(id);
+    }
+  });
+  it('round-trips array reads and writes through every shipped profile', () => {
+    const source =
+      'values = [1, 2]\nvalues[1 - 1] = values[1] + 3\nprint(values[0])\n';
+    const expected = translate(source, 'python', 'python');
+    for (const id of naturalLanguageIds()) {
+      const natural = translate(source, 'python', id);
+      assert.equal(translate(natural, id, 'python'), expected, id);
+    }
+  });
+});
+
+describe('profile grammar inheritance', () => {
+  it('reuses the inherited grammar with local term bindings', () => {
+    const id = registerNaturalLanguage(`${prefix}    terms:
+      write-value: 'Announce {value}'
+      aloud: 'aloud'
+    productions:
+      print-line: '@write-value @aloud'
+`);
+    try {
+      const child = registerNaturalLanguage(`natural:
+  id: message-grammar-child
+  extends: ${id}
+  grammar:
+    terms:
+      write-value: 'Report {value}'
+    productions:
+      print: '@write-value @aloud'
+      return-value: '@print-line again'
+`);
+      try {
+        assert.equal(
+          translate('Report 7 aloud.', child, 'javascript'),
+          'process.stdout.write(String(7));\n'
+        );
+        assert.equal(
+          translate('return 7\n', 'python', child),
+          'Announce 7 aloud again.\n'
+        );
+      } finally {
+        unregisterNaturalLanguage(child);
+      }
+    } finally {
+      unregisterNaturalLanguage(id);
+    }
+  });
+  it('recompiles descendants before replacing a registered grammar', () => {
+    const definition = (phrase) => `${prefix}    terms:
+      announcement: '${phrase} {value}'
+    productions:
+      print: '@announcement'
+`;
+    const id = registerNaturalLanguage(definition('Announce'));
+    try {
+      const child = registerNaturalLanguage(`natural:
+  id: message-grammar-child
+  extends: ${id}
+  grammar:
+    productions:
+      print-line: '@announcement aloud'
+`);
+      try {
+        const words = () => translate('console.log(7);\n', 'javascript', child);
+        assert.equal(words(), 'Announce 7 aloud.\n');
+        registerNaturalLanguage(definition('Report'));
+        assert.equal(words(), 'Report 7 aloud.\n');
+        assert.throws(
+          () =>
+            registerNaturalLanguage(
+              `${prefix}    terms:\n      notice: 'Notice {value}'\n    productions:\n      print: '@notice'\n`
+            ),
+          /Unknown natural grammar rule "announcement"/u
+        );
+        assert.equal(words(), 'Report 7 aloud.\n');
+      } finally {
+        unregisterNaturalLanguage(child);
+      }
+    } finally {
+      unregisterNaturalLanguage(id);
+    }
+  });
+});
+
+describe('controlled grammar bounds', () => {
+  it('rejects missing terms, cycles, excessive alternatives and unclosed slots', () => {
+    for (const [grammar, error] of [
+      [
+        '    productions:\n      print-line: "@absent {value}"',
+        /Unknown natural grammar rule "absent"/u,
+      ],
+      [
+        '    terms:\n      one: "@two"\n      two: "@one"',
+        /Natural grammar recursion at "one"/u,
+      ],
+      [
+        '    terms:\n      print-line: "Say"\n    productions:\n      print-line: "Print {value}"',
+        /Repeated natural grammar rule "print-line"/u,
+      ],
+      [
+        '    terms:\n      action: "@print-line"\n    productions:\n      print-line: "@action {value}"',
+        /Natural grammar recursion at "action"/u,
+      ],
+      [
+        '    terms:\n      word: a b c d e\n    productions:\n      print-line: "@word @word @word {value}"',
+        /Too many natural grammar alternatives/u,
+      ],
+      [
+        '    productions:\n      print-line: "@write-value[missing=value]"',
+        /Unknown slot "missing" in natural grammar rule "write-value"/u,
+      ],
+      [
+        '    productions:\n      print-line: "@write-value[value=operand,value=value]"',
+        /Invalid slot binding for natural grammar rule "write-value"/u,
+      ],
+      [
+        '    productions:\n      print-line: "@write-value[value=value"',
+        /Unclosed slot bindings for natural grammar rule "write-value"/u,
+      ],
+      [
+        '    productions:\n      print-line: "Say {value"',
+        /Unclosed slot in a template/u,
+      ],
+    ]) {
+      assert.throws(
+        () => registerNaturalLanguage(`${prefix}${grammar}\n`),
+        error
+      );
+    }
+    assert.ok(!naturalLanguageIds().includes('message-grammar'));
+  });
+
+  it('applies the grammar depth bound in either declaration order', () => {
+    const terms = Array.from({ length: 24 }, (_, index) =>
+      index === 0
+        ? '      term-0: "Speak {value}"'
+        : `      term-${index}: "@term-${index - 1}"`
+    );
+    const source = (rules, index) =>
+      `${prefix}    terms:\n${rules.join('\n')}\n    productions:\n      print-line: "@term-${index}"\n`;
+    try {
+      const id = registerNaturalLanguage(source(terms, 22));
+      assert.equal(
+        translate('Speak 7.', id, 'javascript'),
+        'console.log(7);\n'
+      );
+      unregisterNaturalLanguage(id);
+      for (const rules of [terms, [...terms].reverse()]) {
+        assert.throws(
+          () => registerNaturalLanguage(source(rules, 23)),
+          /Natural grammar recursion/u
+        );
+      }
+    } finally {
+      if (naturalLanguageIds().includes('message-grammar')) {
+        unregisterNaturalLanguage('message-grammar');
+      }
+    }
+  });
+});
+
+describe('grammatical case in controlled algorithms', () => {
+  it('reads nominative and accusative constants as the same boolean', () => {
+    for (const value of ['истина', 'истину']) {
+      expect(translate(`Вернуть ${value}.`, 'russian', 'python')).toBe(
+        'def _ut_main0():\n    return True\n    return 0\n\nraise SystemExit(_ut_main0())\n'
+      );
+    }
+    expect(translate('return True\n', 'python', 'russian')).toBe(
+      'Вернуть истину.\n'
+    );
+  });
+
+  it('keeps an inflected comparison operand tied to its declaration', () => {
+    const source =
+      'Создать число со значением 7.\nЕсли делитель не больше числа, сделать это:\n  Вернуть истину.\n';
+    expect(translate(source, 'russian', 'python')).toBe(
+      'def _ut_main0():\n    number = 7\n    if divisor <= number:\n        return True\n    return 0\n\nraise SystemExit(_ut_main0())\n'
+    );
+    expect(
+      translate('if divisor <= number:\n    return True\n', 'python', 'russian')
+    ).toContain('не больше числа');
+  });
+});
 
 describe('everyday English wordings', () => {
   it('read like the canonical sentences', () => {
@@ -58,7 +291,7 @@ describe('symbols and unmarked headings in English', () => {
     const cases = [
       ['Let n be 0.\nSet n to n + 1.\n', 'n += 1'],
       ['Let n be 2 * 3 + 1.\nPrint n.\n', 'n = 2 * 3 + 1'],
-      ['Let n be 7 - 2.\nPrint n % 4.\n', 'print(n % 4)'],
+      ['Let n be 7 - 2.\nPrint n % 4.\n', 'print(ut_integer_remainder(n, 4))'],
     ];
     for (const [source, expected] of cases) {
       expect(translate(source, 'english', 'python')).toContain(expected);

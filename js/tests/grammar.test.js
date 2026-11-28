@@ -29,6 +29,23 @@ int main() {
 `;
 
 describe('grammar translator: the issue example', () => {
+  it('retains literal C headers needed by native calls in C output', () => {
+    const source = `# include <stdio.h>  // byte input
+#include "local.h"
+int main(void) {
+    int byte = getchar();
+    printf("%d\\n", byte != EOF);
+    return 0;
+}
+`;
+    const emitted = translator.translate(source, 'c', 'c');
+    expect(emitted).toContain('#include <stdio.h>  // byte input\n');
+    expect(emitted).toContain('#include "local.h"\n');
+    expect(emitted.match(/#include <stdio\.h>/gu)?.length).toBe(1);
+    expect(emitted).toContain('getchar()');
+    expect(emitted).toContain('EOF');
+  });
+
   it('adapts comments to the target language by default', () => {
     const csharp = translator.translate(issueC, 'c', 'csharp');
     expect(csharp).toContain('Hello World in C#');
@@ -84,11 +101,20 @@ describe('grammar translator: meaning is preserved', () => {
   for (const program of programs.filter(
     ({ language }) => language !== 'javascript'
   )) {
-    it(`hand-written ${program.file} means the same as the JavaScript program`, () => {
-      const expected = translator.toMeta(
+    it(`hand-written ${program.file} preserves structure and native arithmetic contracts`, () => {
+      let expected = translator.toMeta(
         read(source(program.task)),
         'javascript'
       );
+      // The handwritten examples use native %, whose signed contract differs
+      // from JavaScript. Their positive example inputs did not expose this.
+      if (['python', 'ruby', 'perl'].includes(program.language)) {
+        expected = rewrite(expected, (item) =>
+          item.kind === 'Binary' && item.operator === 'remainder'
+            ? { ...item, operator: 'modulo' }
+            : item
+        );
+      }
       expect(
         meaningDifference(
           expected,
@@ -309,18 +335,18 @@ describe('grammar translator: library spellings and names', () => {
         'javascript',
         'python'
       )
-    ).toContain('print(7 // 2)');
+    ).toContain('print(ut_integer_divide(7, 2))');
     expect(
       translator.translate('<?php\necho intdiv(7, 2);\n', 'php', 'lua')
-    ).toContain('7 // 2');
+    ).toContain('ut_integer_divide(7, 2)');
   });
 
   it('writes integer division in JavaScript, TypeScript and PHP', () => {
     const source = 'a = 7 // 2\nprint(a)\n';
     for (const [target, spelling] of [
-      ['javascript', 'Math.trunc(7 / 2)'],
-      ['typescript', 'Math.trunc(7 / 2)'],
-      ['php', 'intdiv(7, 2)'],
+      ['javascript', 'utIntegerFloorDivide(7, 2)'],
+      ['typescript', 'utIntegerFloorDivide(7, 2)'],
+      ['php', 'utIntegerFloorDivide(7, 2)'],
     ]) {
       expect(translator.translate(source, 'python', target)).toContain(
         spelling

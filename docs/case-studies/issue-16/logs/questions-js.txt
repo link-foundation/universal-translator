@@ -1,0 +1,44 @@
+▶ compositional introspection questions
+  ✔ distinguishes all four aspects and keeps the ordinary subject expression (463.016116ms)
+  ✔ resolves inspect imports and aliases without capturing shadowed procedures (22.587308ms)
+  ✔ round trips questions through every natural-language grammar (1012.4877ms)
+  ✔ composes question answers inside expressions and print statements (176.105268ms)
+✔ compositional introspection questions (1677.010072ms)
+▶ runtime documentation
+  ✔ preserves multiline runtime documentation across code and natural languages (684.429253ms)
+  ✔ distinguishes Python docstring editions and preserves their runtime values (929.19737ms)
+  ✔ rejects documentation outside a definition or with a non-text value (2.329634ms)
+  ✔ keeps f-strings distinct from Python docstring literals (10.549492ms)
+  ✔ retains later documentation assignments after earlier reads (8.804158ms)
+  ✔ executes translated documentation reads with the original contents (793.22054ms)
+  ✔ reads native JavaScript reflection back into the same question (7.385091ms)
+✔ runtime documentation (2437.423809ms)
+✔ keeps translator production chunks free of dependency cycles (34.402873ms)
+▶ programming language versions
+  ✔ lists one Python with its versions, Python 3 first (17.19377ms)
+  ✔ writes Python 2 without f-strings and with the print statement (417.304176ms)
+  ✔ reads both versions as one Python (15.905518ms)
+  ✔ keeps the meaning of every task written in Python 2 (537.512272ms)
+  ✔ writes the common library route in Python 2 (2.902041ms)
+✔ programming language versions (993.659381ms)
+▶ older versions of Lua, PHP and C#
+  ✔ lists the current version first (0.63843ms)
+  ✔ divides integers in Lua 5.1 and PHP 5 without // and intdiv (9.52897ms)
+  ✔ joins text with + in C# 5 (7.56721ms)
+  ✔ keeps the meaning of every task written in every older version (1474.227058ms)
+  ✔ reads Lua's .. as joined text, looser than + and - (5.339727ms)
+✔ older versions of Lua, PHP and C# (1498.372352ms)
+▶ natural language versions
+  ✔ lists each natural language once (1.029279ms)
+  ✔ orders versions from the full vocabulary down to the standards (1.700641ms)
+  ✔ picks American or British English from the browser languages (1.087347ms)
+  ✔ spells British English with British spellings (15.805744ms)
+✔ natural language versions (20.237378ms)
+ℹ tests 26
+ℹ suites 5
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4671.81249

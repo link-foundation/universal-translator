@@ -1,0 +1,42 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 17.59s
+     Running rust/tests/concrete_syntax.rs (target/debug/deps/concrete_syntax-73d8ce8bb13300f8)
+
+running 5 tests
+test concrete_tokens_partition_every_source_byte ... ok
+test reconstruction_requires_a_concrete_tree ... ok
+test empty_and_whitespace_input_have_lossless_records ... ok
+test incomplete_source_retains_accepted_regions_and_explicit_errors ... ok
+test words_and_all_machine_formats_retain_their_source_record ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.52s
+
+     Running rust/tests/decorators.rs (target/debug/deps/decorators-f5600b06e1ab77a2)
+
+running 8 tests
+test rewrites_the_output_of_the_emitter ... ok
+test rewrites_the_input_of_the_parser ... ok
+test keeps_the_decorators_when_the_rules_change ... ok
+test wraps_a_replacement_of_a_stage ... ok
+test runs_a_decorator_that_traces_the_calls_of_a_stage ... ok
+test composes_the_decorators_of_one_stage_in_order_the_last_outermost ... ok
+test wraps_the_readers_and_the_writer_of_words ... ok
+test wraps_the_machine_code_reader_lifting_and_emitter ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.55s
+
+     Running rust/tests/fragments.rs (target/debug/deps/fragments-d1408dc514edba73)
+
+running 9 tests
+test incomplete_fragments_fail_with_the_reason_and_the_line ... ok
+test keeps_a_whole_program_with_its_main_function ... ok
+test reads_and_writes_a_sentence_as_a_statement ... ok
+test rejects_statements_and_functions_for_machine_targets ... ok
+test reads_a_whole_program_functions_or_statements ... ok
+test writes_statements_and_functions_without_a_main_or_a_class ... ok
+test reads_the_length_of_an_array_the_fragment_only_indexes ... ok
+test ends_every_rocq_function_group_with_its_period ... ok
+test matches_the_shared_goldens_and_reads_them_back ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.26s
+

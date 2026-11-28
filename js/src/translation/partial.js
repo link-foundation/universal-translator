@@ -24,6 +24,12 @@
 //    is prose: it is translated freely (`translateProse`), not
 //    marked, and is listed in `prose`.
 
+import { sourceSyntax } from './source-syntax.js';
+import { captureEmission, emittedMap, recordMapping } from './emission-map.js';
+import { languageSyntax } from '../formal/languages.js';
+import { splitVersion } from '../formal/versions.js';
+import { isNaturalLanguage } from '../natural/catalog.js';
+
 const closers =
   /^\s*(?:[}\])]|end\b|fi\b|done\b|esac\b|else\b|elif\b|elsif\b|elseif\b|until\b|loop\b|wend\b|next\b|catch\b|finally\b|except\b|rescue\b|ensure\b|then\b|begin\b|do\b)/iu;
 
@@ -121,6 +127,16 @@ const linesRead = (lines, parts) =>
       0
     );
 
+// Count after writing: a reader can accept a part its target cannot express.
+const linesWritten = (parts) =>
+  parts
+    .filter((part) => part.status !== 'failed')
+    .reduce(
+      (sum, part) =>
+        sum + part.source.split('\n').filter((line) => !blank(line)).length,
+      0
+    );
+
 // The notes of a part left untranslated: the reason, then its source lines.
 function untranslated(part) {
   const lines =
@@ -138,6 +154,46 @@ const freeParts = (parts) =>
   parts
     .filter((part) => part.status === 'free')
     .map(({ line, endLine }) => ({ line, endLine }));
+
+// A custom prose translator may join or split sentences. The complete part
+// owns its written output, so its region remains many-to-many in that case.
+function proseMap(source, target) {
+  const targetLines = target.split('\n');
+  return source
+    .split('\n')
+    .flatMap((line, from) =>
+      blank(line)
+        ? []
+        : targetLines.flatMap((line, to) => (blank(line) ? [] : [[from, to]]))
+    );
+}
+
+function assemblePieces(source, to, parts, pieces) {
+  const syntax = isNaturalLanguage(to) ? {} : languageSyntax(to);
+  const language = splitVersion(to).id;
+  const lineMap = [];
+  let targetLine = 0;
+  for (const [index, piece] of pieces.entries()) {
+    const part = parts[index];
+    const lines =
+      part.status === 'free'
+        ? proseMap(part.source, piece.result)
+        : emittedMap(
+            piece.emissions,
+            part.source,
+            piece.result,
+            language,
+            syntax
+          );
+    lineMap.push(
+      ...lines.map(([from, to]) => [from + part.start, to + targetLine])
+    );
+    targetLine += piece.result.split('\n').length - 1;
+  }
+  const text = pieces.map(({ result }) => result).join('');
+  recordMapping(source, text, language, lineMap);
+  return { text, lineMap };
+}
 
 export function createPartialTranslator({
   parseFragment,
@@ -234,7 +290,7 @@ export function createPartialTranslator({
       parts = [{ start: 0, end: lines.length, status: 'read', kind }];
     } catch (error) {
       parts = segments(lines, from, 0, lines.length);
-      if (!parts.length) {
+      if (!parts.length && written) {
         throw error;
       }
     }
@@ -252,6 +308,7 @@ export function createPartialTranslator({
       readLines,
       coverage: written ? readLines / written : 1,
       errors: errorsOf(located),
+      syntax: sourceSyntax(source, from, undefined, located),
     };
   }
 
@@ -259,31 +316,35 @@ export function createPartialTranslator({
   // target that holds the reason and the original text.
   function translatePartial(source, from, to, options = {}) {
     const reading = parsePartial(source, from);
-    const pieces = reading.parts.map((part) => {
-      if (part.status === 'read') {
-        try {
-          return translateFragment(part.source, from, to, options);
-        } catch (error) {
-          // A part may read but not be writable in the target.
-          part.status = 'failed';
-          part.message = shiftLines(error.message, part.start);
+    const pieces = reading.parts.map((part) =>
+      captureEmission(() => {
+        if (part.status === 'read') {
+          try {
+            return translateFragment(part.source, from, to, options);
+          } catch (error) {
+            // A part may read but not be writable in the target.
+            part.status = 'failed';
+            part.message = shiftLines(error.message, part.start);
+          }
         }
-      }
-      const prose = translateProse(part.source, from, to, options);
-      if (prose !== undefined) {
-        part.status = 'free';
-        return prose;
-      }
-      return writeNotes(untranslated(part), to);
-    });
+        const prose = translateProse(part.source, from, to, options);
+        if (prose !== undefined) {
+          part.status = 'free';
+          return prose;
+        }
+        return writeNotes(untranslated(part), to, part.source);
+      })
+    );
+    const mapped = assemblePieces(source, to, reading.parts, pieces);
     const errors = errorsOf(reading.parts);
+    const readLines = linesWritten(reading.parts);
     return {
-      text: pieces.join(''),
+      ...mapped,
       complete: errors.length === 0,
       errors,
       lines: reading.lines,
-      readLines: reading.readLines,
-      coverage: reading.coverage,
+      readLines,
+      coverage: reading.lines ? readLines / reading.lines : 1,
       prose: freeParts(reading.parts),
     };
   }

@@ -1,0 +1,62 @@
+▶ Portable Object Compiler messages and Objpak collections
+  ✔ parses receivers, multi-part selectors and block parameters independently (27.339575ms)
+  ✔ reads the original collection example into argument, update and set concepts (441.218028ms)
+  ✔ handles renamed entries, whitespace, braces and duplicate literals compositionally (38.401504ms)
+  ✔ does not guess unknown library messages or unsupported pointer uses (7.085012ms)
+  ✔ keeps aliases as references and models insertion as returning its set (22.527591ms)
+  ✔ rejects editions without the required runtime constructs (28.576301ms)
+✔ Portable Object Compiler messages and Objpak collections (567.625813ms)
+▶ Objpak expressions in controlled natural languages
+  ✔ round-trips the full algorithm through every natural grammar (1945.979265ms)
+  ✔ distinguishes an empty set from the identical quoted text and uses no extra vocabulary (288.773639ms)
+✔ Objpak expressions in controlled natural languages (2235.408717ms)
+▶ generated Objpak library contracts
+  ✔ round-trips generated callers through four formal grammars (138.480881ms)
+  ✔ returns a successful status from a generated C89 entry point (5.436237ms)
+  ✔ reads source layout and explicit indentation and brace styles (279.969539ms)
+  ✔ rejects a line break that changes JavaScript return semantics (12.050283ms)
+  ✔ rejects whitespace that splits an operator or numeric literal (21.730114ms)
+✔ generated Objpak library contracts (458.758009ms)
+▶ Objpak concrete records and scopes
+  ✔ preserves the concrete library bytes and refuses a modified helper contract (122.011596ms)
+  ✔ does not assign library contracts to comments, literals or nested definitions (1.322096ms)
+  ✔ distinguishes prefix and postfix results and protects a previous variable (34.616355ms)
+  ✔ respects parameters shadowing native library class names (6.04342ms)
+✔ Objpak concrete records and scopes (164.638741ms)
+▶ compositional selection queries
+  ✔ binds SQL negation below comparisons and preserves explicit grouping (3167.760249ms)
+  ✔ registers and detects SQL with explicit query capabilities (1065.556083ms)
+  ✔ keeps source, scoped variable, predicate and projection as expressions (106.219145ms)
+  ✔ recognizes LINQ, comprehensions and chained filter/projection (44.587901ms)
+✔ compositional selection queries (4386.52592ms)
+▶ selection queries in controlled natural languages
+  ✔ composes query questions and answers through every natural grammar (2034.87067ms)
+  ✔ retains deferred strategy in natural questions and answer expressions (202.249821ms)
+✔ selection queries in controlled natural languages (2237.558209ms)
+▶ selection data, scopes and execution
+  ✔ preserves SQL strings and quoted identifiers without treating them as keywords (4.709253ms)
+  ✔ infers query collection results and keeps range variables in their own scope (34.850864ms)
+  ✔ preserves filter-before-map side effects when either callback calls a function (366.160255ms)
+  ✔ agrees with native SQLite, Python and JavaScript on filtered projections (392.001827ms)
+✔ selection data, scopes and execution (798.578974ms)
+▶ nullable SQL values
+  ✔ round trips every nullable operator through four host grammars and SQL (4266.256192ms)
+  ✔ keeps nullable operations distinct from ordinary host operations (5.387677ms)
+  ✔ agrees with SQLite on nullable arithmetic, comparisons and every three-valued truth pair (867.351596ms)
+  ✔ uses each natural grammar vocabulary for NULL and SQL truth operations (2336.456213ms)
+✔ nullable SQL values (7478.352799ms)
+▶ SQL value helper contracts
+  ✔ preserves Unicode source bytes and the verified helper production (74.6165ms)
+  ✔ rejects JavaScript and TypeScript helpers with a changed return newline (47.921187ms)
+  ✔ retains ranges with Unicode whitespace and multiple independent helper libraries (50.243509ms)
+  ✔ avoids helper collisions and rejects reassignment, escaping, shadowing and unknown calls (70.84111ms)
+✔ SQL value helper contracts (244.745521ms)
+✔ keeps translator production chunks free of dependency cycles (34.72578ms)
+ℹ tests 36
+ℹ suites 9
+ℹ pass 36
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8418.454164

@@ -6,11 +6,17 @@
 // that parses as what the slot holds (an expression, a name or a list of
 // names), and literal words only match outside parentheses.
 
-import { add, block, name, node, number } from '../meta/tree.js';
+import { add, block, name, node, number, walk } from '../meta/tree.js';
 import { raiseForEach } from '../meta/for-each.js';
 import { naturalLanguage } from './catalog.js';
 import { tokenize } from './tokens.js';
 import { levelIndex, levels, operatorOfTemplate } from './levels.js';
+import { questionAspects, questionKey, answerKey } from '../meta/questions.js';
+import { notePattern, sentenceLines } from './lines.js';
+import { queryKeys, queryNode } from '../meta/queries.js';
+import { collectionKeys, collectionNode } from '../meta/collection-phrases.js';
+import { normalize, slotCase } from './agreement.js';
+import { attachComments, withOrigin } from '../translation/source-origins.js';
 
 const nameSlots = new Set(['name', 'variable', 'callee']);
 // Slots the writer fills with a primary expression (parenthesized unless
@@ -146,7 +152,7 @@ export class SentenceReader {
       return slot === 'left' && associativity === 'left' ? level : level + 1;
     };
     const slots = this.match(template, tokens, start, end, (slot, from, to) =>
-      this.expression(tokens, from, to, slotLevel(slot))
+      this.slotExpression(tokens, from, to, slotLevel(slot), key, slot)
     );
     if (!slots) {
       return undefined;
@@ -207,6 +213,21 @@ export class SentenceReader {
         return this.expression(tokens, start + 1, end - 1, 0);
       }
     }
+    // A contextual reflection phrase takes priority over a bare callee spelling.
+    for (const aspect of questionAspects) {
+      for (const template of this.language.compiled[answerKey(aspect)]) {
+        const slots = this.match(
+          template,
+          tokens,
+          start,
+          end,
+          (_slot, from, to) => this.expression(tokens, from, to, 0)
+        );
+        if (slots) {
+          return node('Question', { aspect, subject: slots.subject });
+        }
+      }
+    }
     for (const key of ['call', 'call-without-arguments']) {
       for (const template of this.language.compiled[key]) {
         const slots = this.match(
@@ -229,17 +250,22 @@ export class SentenceReader {
         }
       }
     }
-    for (const key of arrayKeys) {
+    const structuredKeys = [
+      ...collectionKeys,
+      ...arrayKeys,
+      ...queryKeys.filter((key) => key.startsWith('answer-')),
+    ];
+    for (const key of structuredKeys) {
       for (const template of this.language.compiled[key]) {
         const slots = this.match(
           template,
           tokens,
           start,
           end,
-          (slot, from, to) => this.slot(tokens, slot, from, to)
+          (slot, from, to) => this.slot(tokens, slot, from, to, key)
         );
         if (slots) {
-          return arrayNode(key, slots);
+          return structuredNode(key, slots);
         }
       }
     }
@@ -270,6 +296,28 @@ export class SentenceReader {
   }
 
   // ---- sentences ----
+
+  slotExpression(tokens, from, to, level, key, slot) {
+    const expression = this.expression(tokens, from, to, level);
+    const grammaticalCase = slotCase(this.language, key, slot);
+    if (
+      !grammaticalCase ||
+      (expression && !['Name', 'Boolean'].includes(expression.kind))
+    ) {
+      return expression;
+    }
+    const normalized = normalize(
+      tokens.slice(from, to),
+      this.language,
+      grammaticalCase
+    );
+    return new SentenceReader(this.language).expression(
+      normalized,
+      0,
+      normalized.length,
+      level
+    );
+  }
 
   names(tokens, start, end) {
     const result = [];
@@ -304,7 +352,7 @@ export class SentenceReader {
     return result;
   }
 
-  slot(tokens, slot, from, to) {
+  slot(tokens, slot, from, to, key) {
     if (nameSlots.has(slot)) {
       return to - from === 1 ? this.readName(tokens[from]) : undefined;
     }
@@ -317,7 +365,7 @@ export class SentenceReader {
     if (primarySlots.has(slot)) {
       return this.expression(tokens, from, to, levelIndex.primary);
     }
-    return this.expression(tokens, from, to, 0);
+    return this.slotExpression(tokens, from, to, 0, key, slot);
   }
 
   // The first template among `keys` that matches the whole sentence.
@@ -331,7 +379,7 @@ export class SentenceReader {
           tokens,
           0,
           tokens.length,
-          (slot, from, to) => this.slot(tokens, slot, from, to)
+          (slot, from, to) => this.slot(tokens, slot, from, to, key)
         );
         if (slots) {
           return { key, slots };
@@ -343,6 +391,15 @@ export class SentenceReader {
 }
 
 // A new array of no elements is the empty array literal.
+function structuredNode(key, slots) {
+  if (collectionKeys.includes(key)) {
+    return collectionNode(key, slots);
+  }
+  return queryKeys.includes(key)
+    ? queryNode(key, slots)
+    : arrayNode(key, slots);
+}
+
 function arrayNode(key, slots) {
   switch (key) {
     case 'array':
@@ -359,6 +416,9 @@ function arrayNode(key, slots) {
 }
 
 const statementKeys = [
+  ...queryKeys.filter((key) => key.startsWith('question-')),
+  ...questionAspects.map(questionKey),
+  'documentation',
   'print-line',
   'print',
   'set-element',
@@ -374,8 +434,32 @@ const statementKeys = [
 const blockKeys = ['else-if', 'else', 'if', 'while', 'for', 'for-each'];
 const functionKeys = ['function', 'function-without-parameters'];
 
+function questionStatement(key, slots) {
+  if (queryKeys.includes(key)) {
+    return node('Evaluate', { expression: queryNode(key, slots) });
+  }
+  if (key.startsWith('question-')) {
+    return node('Evaluate', {
+      expression: node('Question', {
+        aspect: key.slice(9),
+        subject: slots.subject,
+      }),
+    });
+  }
+  return undefined;
+}
+
 function statementFromSentence({ key, slots }) {
+  const question = questionStatement(key, slots);
+  if (question) {
+    return question;
+  }
   switch (key) {
+    case 'documentation':
+      if (slots.value.kind !== 'Text') {
+        throw new Error('Documentation must be a text value');
+      }
+      return node('Documentation', { value: slots.value });
     case 'print-line':
     case 'print':
       return node('Print', {
@@ -437,7 +521,7 @@ function markHeadings(lines) {
 // One line of text: depth, the sentence without its end mark, and whether it
 // opens a block.
 function readLines(source, language) {
-  const lines = source.split(/\r?\n/).map((raw, index) => {
+  const lines = sentenceLines(source, language).map(({ raw, index }) => {
     const content = raw.trimEnd();
     const indentation = content.length - content.trimStart().length;
     const text = content.trim();
@@ -446,7 +530,11 @@ function readLines(source, language) {
       return { index, depth: indentation / 2, note: note[1] };
     }
     const opensBlock = text.endsWith(language.blockEnd);
-    const endMark = opensBlock ? language.blockEnd : language.sentenceEnd;
+    const endMark = opensBlock
+      ? language.blockEnd
+      : text.endsWith('?')
+        ? '?'
+        : language.sentenceEnd;
     const sentence = text.endsWith(endMark)
       ? text.slice(0, -endMark.length).trim()
       : text;
@@ -460,12 +548,6 @@ function readLines(source, language) {
     };
   });
   return markHeadings(lines);
-}
-
-function notePattern(language) {
-  const [before, after] = language.note.split('{text}');
-  const escape = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return new RegExp(`^${escape(before.trim())}\\s*(.*?)${escape(after)}$`, 'u');
 }
 
 class ProgramReader {
@@ -500,12 +582,19 @@ class ProgramReader {
       }
       this.position += 1;
       if (line.note !== undefined) {
-        statements.push(node('Comment', { text: line.note }));
+        statements.push(
+          withOrigin(node('Comment', { text: line.note }), {
+            source: this.source,
+            lines: [line.index],
+          })
+        );
         continue;
       }
       const statement = this.statement(line, depth, statements);
       if (statement) {
-        statements.push(statement);
+        statements.push(
+          withOrigin(statement, { source: this.source, lines: [line.index] })
+        );
       }
     }
     return block(statements);
@@ -559,14 +648,17 @@ class ProgramReader {
     if (open.otherwise) {
       this.fail(line, 'A condition has two otherwise branches');
     }
-    open.otherwise =
+    open.otherwise = withOrigin(
       key === 'else-if'
         ? node('If', { condition: slots.condition, then: body })
-        : body;
+        : body,
+      { source: this.source, lines: [line.index] }
+    );
     return undefined;
   }
 
   read(source) {
+    this.source = source;
     this.lines = readLines(source, this.language);
     this.position = 0;
     const program = node('Program', {
@@ -583,7 +675,7 @@ class ProgramReader {
       }
       const paragraph = this.paragraph();
       if (first && paragraph.notesOnly) {
-        program.comments = paragraph.notes;
+        attachComments(program, 'comments', paragraph.notes);
       } else if (paragraph.function) {
         program.functions.push(paragraph.function);
       } else {
@@ -591,13 +683,24 @@ class ProgramReader {
       }
       first = false;
     }
+    walk(program, (current) => {
+      if (current.kind === 'Documentation') {
+        throw new Error('Documentation must begin a function definition');
+      }
+    });
     return program;
   }
 
   paragraph() {
     const notes = [];
     while (this.lines[this.position]?.note !== undefined) {
-      notes.push(this.lines[this.position].note);
+      const line = this.lines[this.position];
+      notes.push(
+        withOrigin(node('Comment', { text: line.note }), {
+          source: this.source,
+          lines: [line.index],
+        })
+      );
       this.position += 1;
     }
     const line = this.lines[this.position];
@@ -605,7 +708,7 @@ class ProgramReader {
       return {
         notesOnly: true,
         notes,
-        statements: notes.map((text) => node('Comment', { text })),
+        statements: notes,
       };
     }
     const heading =
@@ -613,23 +716,31 @@ class ProgramReader {
     if (heading && line.depth === 0) {
       this.position += 1;
       const body = this.block(1);
+      const documented = body.statements[0]?.kind === 'Documentation';
+      const documentation = documented
+        ? body.statements.shift().value
+        : undefined;
       return {
-        function: node('Function', {
-          name: heading.slots.name,
-          parameters: (heading.slots.parameters ?? []).map((parameter) => ({
-            name: parameter,
-          })),
-          body,
-          comments: notes,
-        }),
+        function: attachComments(
+          withOrigin(
+            node('Function', {
+              name: heading.slots.name,
+              parameters: (heading.slots.parameters ?? []).map((parameter) => ({
+                name: parameter,
+              })),
+              body,
+              ...(documentation ? { documentation } : {}),
+            }),
+            { source: this.source, lines: [line.index] }
+          ),
+          'comments',
+          notes
+        ),
       };
     }
     const statements = this.block(0).statements;
     return {
-      statements: [
-        ...notes.map((text) => node('Comment', { text })),
-        ...statements,
-      ],
+      statements: [...notes, ...statements],
     };
   }
 }
@@ -637,5 +748,32 @@ class ProgramReader {
 // A language without a for-each sentence writes the counting loop over an
 // index; it is read back as the loop over the elements it stands for.
 export function readNatural(source, id, language = naturalLanguage(id)) {
+  // An isolated expression is a valid fragment too. Use the same grammar
+  // as sentence slots and require the entire fragment to be consumed.
+  if (!source.trim().includes('\n')) {
+    const tokens = tokenize(source.trim(), language);
+    const expression =
+      tokens.length === 1 &&
+      new SentenceReader(language).expression(tokens, 0, tokens.length);
+    if (
+      expression &&
+      (expression.kind !== 'Name' || /^\p{L}/u.test(source.trim()))
+    ) {
+      return node('Program', {
+        comments: [],
+        imports: [],
+        functions: [],
+        main: block([
+          withOrigin(node('Evaluate', { expression }), {
+            source,
+            lines: [
+              source.slice(0, source.indexOf(source.trim())).split('\n')
+                .length - 1,
+            ],
+          }),
+        ]),
+      });
+    }
+  }
   return raiseForEach(new ProgramReader(language).read(source));
 }

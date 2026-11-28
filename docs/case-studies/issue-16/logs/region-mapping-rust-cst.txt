@@ -1,0 +1,26 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 3.12s
+     Running rust/tests/concrete_syntax.rs (target/debug/deps/concrete_syntax-73d8ce8bb13300f8)
+
+running 5 tests
+test reconstruction_requires_a_concrete_tree ... ok
+test empty_and_whitespace_input_have_lossless_records ... ok
+test concrete_tokens_partition_every_source_byte ... ok
+test incomplete_source_retains_accepted_regions_and_explicit_errors ... ok
+test words_and_all_machine_formats_retain_their_source_record ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.40s
+
+     Running rust/tests/source_document.rs (target/debug/deps/source_document-fe659da83547529b)
+
+running 7 tests
+test preserves_line_endings_bom_blank_lines_and_final_text ... ok
+test verify_source_corpus ... ignored, streams the pinned archive from examples/translation/verify-corpus.py
+test rejects_malformed_records_and_line_boundaries ... ok
+test writes_one_quoted_source_value_in_an_indented_document ... ok
+test grammar_network_rejects_unsupported_language_and_non_cst_documents ... ok
+test grammar_network_preserves_structure_and_source ... ok
+test ranked_language_grammars_round_trip_programs ... ok
+
+test result: ok. 6 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 3.86s
+

@@ -4,6 +4,7 @@
 // spells such words. Names the program does not declare (library procedures)
 // are left exactly as written.
 
+import { mapOrigins } from '../translation/source-origins.js';
 import { rewrite } from '../meta/tree.js';
 
 // "greatestCommonDivisor", "greatest_common_divisor" and
@@ -53,11 +54,14 @@ export function declaredNames(program) {
     item.parameters.forEach((parameter) => names.add(parameter.name));
   }
   rewrite(program, (current) => {
-    if (current.kind === 'Declaration') {
+    if (['Declaration', 'Catch'].includes(current.kind) && current.name) {
       names.add(current.name);
     }
-    if (current.kind === 'CountingLoop' || current.kind === 'ForEach') {
+    if (['CountingLoop', 'ForEach', 'Query'].includes(current.kind)) {
       names.add(current.variable);
+    }
+    if (current.kind === 'Lambda') {
+      current.parameters.forEach((parameter) => names.add(parameter));
     }
     return current;
   });
@@ -78,26 +82,38 @@ export function renameDeclared(program, rename) {
       functionNames.has(identifier) ? 'function' : 'variable'
     );
   };
+  const changeReference = (identifier) => {
+    const dot = identifier.indexOf('.');
+    return dot > 0 && !declared.has(identifier)
+      ? change(identifier.slice(0, dot)) + identifier.slice(dot)
+      : change(identifier);
+  };
   const renamed = rewrite(program, (current) => {
     switch (current.kind) {
       case 'Name':
-        return { ...current, name: change(current.name) };
+        return { ...current, name: changeReference(current.name) };
       case 'Call':
-        return { ...current, callee: change(current.callee) };
+      case 'CppTemplateCall':
+        return { ...current, callee: changeReference(current.callee) };
       case 'Declaration':
+      case 'Catch':
       case 'Assignment':
+      case 'AssignmentExpression':
       case 'IndexAssignment':
         return { ...current, name: change(current.name) };
       case 'CountingLoop':
       case 'ForEach':
+      case 'Query':
         return { ...current, variable: change(current.variable) };
+      case 'Lambda':
+        return { ...current, parameters: current.parameters.map(change) };
       default:
         return current;
     }
   });
   return {
     ...renamed,
-    functions: renamed.functions.map((item) => ({
+    functions: mapOrigins(renamed.functions, (item) => ({
       ...item,
       name: change(item.name),
       parameters: item.parameters.map((parameter) => ({

@@ -1,0 +1,15 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 1.54s
+     Running rust/tests/queries.rs (target/debug/deps/queries-b558c7c598abd427)
+
+running 8 tests
+test linq_comprehensions_and_filter_map_chains_keep_strategy_and_scope ... ok
+test query_results_are_collections_and_range_variables_have_local_types ... ok
+test sql_quoted_keywords_strings_and_case_are_data ... ok
+test scoped_predicates_and_projections_round_trip_four_formal_grammars ... ok
+test deferred_queries_and_unsupported_targets_are_explicit ... ok
+test query_capabilities_and_detection_are_explicit ... ok
+test sql_negation_binds_below_comparisons_and_retains_explicit_groups ... ok
+test query_questions_and_answers_compose_through_every_natural_standard ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.97s

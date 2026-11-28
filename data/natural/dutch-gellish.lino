@@ -4,6 +4,9 @@ natural:
   extends: dutch
   profile: gellish
   source: 'https://en.wikipedia.org/wiki/Gellish'
+  grammar:
+    productions:
+      set-element: '@element[array=name] heeft als nieuwe waarde {value}'
   templates:
     function: '{name} is gedefinieerd als een procedure met invoer {parameters}'
     function-without-parameters: '{name} is gedefinieerd als een procedure zonder invoer'
@@ -23,6 +26,5 @@ natural:
     call: '{callee} toegepast op ({arguments})'
     call-without-arguments: '{callee} toegepast op niets'
     join: '{left} samengevoegd met {right}'
-    set-element: 'element {index} van {name} heeft als nieuwe waarde {value}'
   rules:
     relations: 'is gedefinieerd als' 'is geclassificeerd als' 'heeft als nieuwe waarde' 'heeft als volgende regel' 'heeft als volgend deel' 'heeft als resultaat' 'toegepast op' 'samengevoegd met' 'is gelijk aan'

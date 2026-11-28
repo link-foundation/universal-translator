@@ -1,0 +1,2 @@
+    Checking universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `dev` profile [unoptimized] target(s) in 4.08s

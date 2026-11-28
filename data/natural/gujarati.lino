@@ -12,7 +12,28 @@ natural:
   true: 'સાચું'
   false: 'ખોટું'
   note: 'નોંધ: {text}'
+  grammar:
+    terms:
+      interrogative: 'શું છે'
+      query-scope: '{source} માં દરેક {variable} માટે'
+      query-deferred: '“વિલંબિત”'
+    productions:
+      answer-type: '{subject} નો પ્રકાર'
+      question-type: '@answer-type @interrogative'
+      answer-documentation: '{subject} નું વર્ણન'
+      question-documentation: '@answer-documentation @interrogative'
+      answer-source: '{subject} નો સ્રોત કોડ'
+      question-source: '@answer-source @interrogative'
+      answer-details: '{subject} ની વિગતવાર માહિતી'
+      question-details: '@answer-details @interrogative'
+      answer-query: '@query-scope {condition} હોય ત્યારે {projection} ના મૂલ્યો'
+      question-query: '@answer-query કયા છે'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
+      element: '{array} માં ઘટક {index}'
+      set-element: '@element[array=name] ને {value} માં બદલો'
   templates:
+    documentation: 'વર્ણન છે {value}'
     function: '{name} ને {parameters} વડે વ્યાખ્યાયિત કરો'
     function-without-parameters: '{name} ને વ્યાખ્યાયિત કરો'
     declare: '{name} ને કિંમત {value} સાથે બનાવો'
@@ -50,9 +71,7 @@ natural:
     remainder: '{left} મોડ્યુલો {right}' '{left} % {right}'
     array: 'યાદી ({elements})'
     new-array: 'યાદી લંબાઈ {length} દરેક ઘટક {fill}'
-    element: '{array} માં ઘટક {index}'
     length: '{array} ની લંબાઈ'
-    set-element: '{name} માં ઘટક {index} ને {value} માં બદલો'
   words:
     ackermann: 'એકરમેન'
     bottles: 'બોટલો'

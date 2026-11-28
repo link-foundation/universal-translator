@@ -4,6 +4,10 @@ natural:
   extends: english
   profile: globish
   source: 'https://en.wikipedia.org/wiki/Globish_(Nerri%C3%A8re)'
+  grammar:
+    productions:
+      element: 'part {index} of {array}'
+      set-element: 'Now let @element[array=name] be {value}'
   templates:
     equal: '{left} equals {right}' '{left} = {right}' '{left} == {right}'
     function: 'To get {name} from {parameters}, do this'
@@ -28,9 +32,7 @@ natural:
     less-or-equal: '{left} is not more than {right}' '{left} <= {right}' '{left} ≤ {right}'
     greater: '{left} is more than {right}' '{left} > {right}'
     greater-or-equal: '{left} is not less than {right}' '{left} >= {right}' '{left} ≥ {right}'
-    element: 'part {index} of {array}'
     length: 'the size of {array}'
-    set-element: 'Now let part {index} of {name} be {value}'
   rules:
     max-sentence-words: 20
     vocabulary: to get from do this let be now say on a line return stop nothing if not and while again for each then of in or the opposite equals is less than more true false list copies part size

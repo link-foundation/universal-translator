@@ -312,9 +312,7 @@ const emitter = (Base) =>
     }
 
     functionDefinition(item) {
-      for (const text of item.comments ?? []) {
-        this.comment(text);
-      }
+      this.comments(item, 'comments');
       this.line(this.heading(item));
       this.variables(item.body);
       this.compound(item.body);
@@ -331,9 +329,7 @@ const emitter = (Base) =>
       }
       this.line('begin');
       this.depth += 1;
-      for (const text of program.mainComments ?? []) {
-        this.comment(text);
-      }
+      this.comments(program, 'mainComments');
       this.body(program.main);
       this.depth -= 1;
       this.line('end.');

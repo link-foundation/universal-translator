@@ -21,7 +21,12 @@ const expected = expectedFragments();
 
 describe('fragment kinds', () => {
   it('reads a whole program, functions or statements', () => {
-    expect(fragmentKinds).toEqual(['program', 'functions', 'statements']);
+    expect(fragmentKinds).toEqual([
+      'program',
+      'functions',
+      'definitions',
+      'statements',
+    ]);
     const kinds = Object.fromEntries(
       Object.entries(sources).map(([name, source]) => [
         name,

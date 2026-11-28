@@ -557,9 +557,7 @@ const emitter = (Base) =>
     }
 
     functionDefinition(item) {
-      for (const text of item.comments ?? []) {
-        this.comment(text);
-      }
+      this.comments(item, 'comments');
       this.line(this.signature(item));
       this.indented(item.body);
       // A value function whose last statement does not return still needs a
@@ -590,9 +588,7 @@ const emitter = (Base) =>
         this.lines.unshift('mutual');
         this.lines.splice(this.lines.length - 1, 0, 'end');
       }
-      for (const text of program.mainComments ?? []) {
-        this.comment(text);
-      }
+      this.comments(program, 'mainComments');
       this.line('def main : IO Unit := do');
       this.indented(program.main);
     }

@@ -4,6 +4,10 @@ natural:
   extends: dutch
   profile: minimal-english
   source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  grammar:
+    productions:
+      element: 'deel {index} van {array}'
+      set-element: 'Hierna is @element[array=name] {value}'
   templates:
     function: 'Zo doet iemand {name} met {parameters}'
     function-without-parameters: 'Zo doet iemand {name}'
@@ -30,9 +34,7 @@ natural:
     greater-or-equal: '{left} is niet minder dan {right}'
     array: 'deze dingen ({elements})'
     new-array: '{length} dingen zoals {fill}'
-    element: 'deel {index} van {array}'
     length: 'hoeveel delen {array} heeft'
-    set-element: 'Hierna is deel {index} van {name} {value}'
   rules:
     primes: dutch
     extra-words: het met op regel antwoord stop niets keren van tot en daarna of plus min maal gedeeld door modulo tegengestelde onwaar minder dan hoeveel heeft hierna

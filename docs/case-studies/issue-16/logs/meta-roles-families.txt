@@ -1,0 +1,23 @@
+{
+  "tested": 111,
+  "expected": [
+    "arguments",
+    "arguments",
+    "body",
+    "condition",
+    "condition",
+    "expression",
+    "expression",
+    "left",
+    "left",
+    "left",
+    "left",
+    "otherwise",
+    "right",
+    "right",
+    "right",
+    "right",
+    "then"
+  ],
+  "failures": []
+}

@@ -1,0 +1,24 @@
+✔ changes only comment contents in every current reader family (840.04169ms)
+✔ keeps source layout in partial translations through every reader family (581.148146ms)
+✔ leaves note-looking lines inside multiline natural text alone (334.166206ms)
+✔ retains machine strings, Unicode offsets, inline and nested comments (10.891853ms)
+✔ keeps SQL query comments and whitespace in place (9.203494ms)
+✔ reads nested block comments according to each language grammar (15.02462ms)
+✔ honours Rocq strings inside comments while other grammars treat quotes as text (14.68119ms)
+▶ concrete syntax as the default source record
+  ✔ partitions every byte, including quotes, directives and trivia (29.283172ms)
+  ✔ exposes source syntax to decorators before semantic rewriting (383.434769ms)
+  ✔ retains source syntax when reading words and every machine format (173.874017ms)
+  ✔ keeps accepted regions and explicit errors in incomplete source (17.708326ms)
+  ✔ keeps a lossless record for empty and whitespace-only input (1.047885ms)
+✔ concrete syntax as the default source record (608.252403ms)
+✔ reads token-equivalent Rocq runtime headers with native layout and comments (689.123745ms)
+✔ does not discard changed Rocq helpers or changed quoted runtime values (59.442227ms)
+ℹ tests 14
+ℹ suites 1
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2304.595249

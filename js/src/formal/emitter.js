@@ -14,7 +14,30 @@ import {
 import { languageSyntax } from './languages.js';
 import { splitVersion } from './versions.js';
 import { dialects } from './dialects/index.js';
+import { objectiveCRuntimeHeader } from './dialects/objc.js';
+import { cppFileItems, nativeImportKey } from './cpp-library.js';
 import { withArrays } from './array-spellings.js';
+import { writePower } from './power.js';
+import { writeQuestion, writePropertyAccess } from './questions.js';
+import { writeDocumentationAssignment } from './documentation.js';
+import { withQueryWriter } from './query-writer.js';
+import { withObjpakWriter } from './objpak-writer.js';
+import { withSqlValueWriter } from './sql-values.js';
+import { namedType, withTypeMetadata } from './type-metadata.js';
+import { withExceptions } from './exceptions.js';
+import {
+  checkRecordReferences,
+  requireRecordSupport,
+  supportsRecords,
+} from './record-model.js';
+import { writeRecord, writeRecordExpression } from './record-writer.js';
+import { isRustPrint } from './rust-print.js';
+import {
+  mappedComments,
+  mappedEmitter,
+  mappedLine,
+  renderLines,
+} from '../translation/emission-map.js';
 import {
   isReal,
   realValue,
@@ -32,20 +55,57 @@ const precedence = {
   lessOrEqual: 4,
   greater: 4,
   greaterOrEqual: 4,
+  stream: 4.5,
+  rightShift: 4.5,
   add: 5,
   subtract: 5,
   multiply: 6,
   divide: 6,
+  floorDivide: 6,
   realDivide: 6,
   remainder: 6,
+  modulo: 6,
 };
+const comparisons = new Set([
+  'equal',
+  'notEqual',
+  'less',
+  'lessOrEqual',
+  'greater',
+  'greaterOrEqual',
+]);
+function operatorSpelling(syntax, operator) {
+  if (['stream', 'rightShift'].includes(operator) && syntax.id !== 'cpp') {
+    throw new Error(
+      `C++ shift or stream operator requires a mapping for ${syntax.id}`
+    );
+  }
+  return (
+    syntax.operators[operator === 'modulo' ? 'remainder' : operator] ??
+    symbols[operator]
+  );
+}
+
+function comparisonParent(operator, part, level) {
+  // Nested boolean comparisons need explicit grouping: some grammars chain
+  // them, others reject adjacent operators or warn at strict compiler levels.
+  return comparisons.has(operator) &&
+    part.kind === 'Binary' &&
+    comparisons.has(part.operator)
+    ? 9
+    : level;
+}
 const symbols = {
+  stream: '<<',
+  rightShift: '>>',
   add: '+',
   subtract: '-',
   multiply: '*',
   divide: '/',
+  floorDivide: '/',
   realDivide: '/',
   remainder: '%',
+  modulo: '%',
   less: '<',
   lessOrEqual: '<=',
   greater: '>',
@@ -89,13 +149,16 @@ const blockCommentLanguages = new Set(['c', 'csharp']);
 // The import lines a used feature needs, before and after the common
 // library imports.
 const importsBeforeLibrary = [
+  ['System.Linq', 'using System.Linq;'],
+  ['inspect', 'import inspect'],
   ['sys', 'import sys'],
+  ['typing', 'from typing import Annotated'],
   ['strformat', 'import std/strformat'],
   ['std.conv', 'import std.conv;'],
   ['dart:io', "import 'dart:io';"],
 ];
 const importsAfterLibrary = [
-  ['objc', '#import <objc/objc.h>'],
+  ['objc', objectiveCRuntimeHeader],
   ['stdbool', '#include <stdbool.h>'],
   ['stdio', '#include <stdio.h>'],
   ['iostream', '#include <iostream>'],
@@ -105,11 +168,18 @@ const importsAfterLibrary = [
 
 export function commentLines(syntax, id, text, { block: preferred } = {}) {
   const [open, close] = syntax.blockComment ?? [];
+  // A PHP line comment ends at ?>. Use a block, escaping a foreign block
+  // terminator when necessary, as failure-note comments already do.
+  const phpClosingTag = id === 'php' && text.includes('?>');
+  if (phpClosingTag) {
+    text = text.replaceAll('*/', '* /');
+  }
   const lines = text.split('\n');
   const block =
     open &&
     !text.includes(close) &&
     (blockCommentLanguages.has(id) ||
+      phpClosingTag ||
       (preferred && lines.length > 1) ||
       syntax.lineComment === open ||
       (lines.length > 1 && !syntax.lineComment));
@@ -128,6 +198,10 @@ const isTrivia = (statement) =>
   statement.kind === 'Comment' || statement.kind === 'Blank';
 
 class BaseEmitter {
+  comments(owner, key = 'comments') {
+    mappedComments(this, owner[key] ?? [], (text) => this.comment(text));
+  }
+
   constructor(syntax) {
     this.syntax = syntax;
     // A dialect such as Objective-C is written with the tables of the
@@ -140,7 +214,9 @@ class BaseEmitter {
   }
 
   line(content = '') {
-    this.lines.push(content ? this.unit.repeat(this.depth) + content : '');
+    this.lines.push(
+      mappedLine(this, content ? this.unit.repeat(this.depth) + content : '')
+    );
   }
 
   terminator() {
@@ -155,6 +231,9 @@ class BaseEmitter {
   }
 
   type(meta) {
+    if (meta?.startsWith('source:')) {
+      return namedType(meta, this.id);
+    }
     const types = this.syntax.types ?? {};
     if (meta === 'text' && this.id === 'cpp') {
       this.uses.add('string');
@@ -205,8 +284,9 @@ class BaseEmitter {
     const operator =
       expression.operator === 'not' ? this.syntax.operators.not : '-';
     const spaced = /\w$/.test(operator) ? `${operator} ` : operator;
-    const result = `${spaced}${this.expression(expression.operand, 7)}`;
-    return parent > 7 ? `(${result})` : result;
+    const result = `${spaced}${this.expression(expression.operand, 9)}`;
+    const level = this.id === 'python' && expression.operator === 'not' ? 2 : 7;
+    return parent > level ? `(${result})` : result;
   }
 
   expression(expression, parent = 0) {
@@ -225,14 +305,73 @@ class BaseEmitter {
       case 'Interpolation':
         return this.interpolation(expression.parts);
       case 'Call':
-        return `${expression.callee}(${expression.arguments.map((argument) => this.expression(argument)).join(', ')})`;
+        return this.call(expression);
+      case 'Question':
+        return writeQuestion(this, expression);
+      case 'Method':
+        return writePropertyAccess(this, expression);
       case 'Unary':
         return this.unary(expression, parent);
       case 'Binary':
-        return this.binary(expression, parent);
+        return expression.operator === 'power'
+          ? writePower(this, expression, parent)
+          : this.binary(expression, parent);
       default:
-        throw new Error(`Cannot emit ${expression.kind} as an expression`);
+        return this.specialExpression(expression, parent);
     }
+  }
+
+  specialExpression(expression) {
+    if (
+      expression.kind === 'SizeOf' &&
+      ['c', 'cpp', 'objc'].includes(this.id)
+    ) {
+      return `sizeof(${this.expression(expression.operand)})`;
+    }
+    if (['RecordConstruction', 'RecordFieldRead'].includes(expression.kind)) {
+      return writeRecordExpression(this, expression);
+    }
+    if (expression.kind === 'CppTemplateCall') {
+      if (this.id !== 'cpp') {
+        throw new Error(
+          `C++ template call requires a library mapping for ${this.id}`
+        );
+      }
+      return this.call(expression);
+    }
+    if (['c', 'cpp', 'objc'].includes(this.id)) {
+      if (expression.kind === 'AssignmentExpression') {
+        return `(${this.variable(expression.name)} = ${this.expression(expression.value)})`;
+      }
+      if (expression.kind === 'ExpressionSequence') {
+        const values = [...expression.steps, expression.value];
+        return `(${values.map((value) => this.expression(value)).join(', ')})`;
+      }
+    }
+    throw new Error(
+      `Cannot emit ${expression.kind} as an expression in ${this.id}`
+    );
+  }
+
+  call({ callee, arguments: values, typeArguments }) {
+    if (isRustPrint(callee)) {
+      if (this.id !== 'rust') {
+        throw new Error(`Rust format requires a native macro in ${this.id}`);
+      }
+      const written = values.map((value) =>
+        value.kind === 'NamedArgument'
+          ? `${value.name} = ${this.expression(value.value)}`
+          : this.expression(value)
+      );
+      return `${callee}(${written.join(', ')})`;
+    }
+    const member = callee.startsWith('.');
+    const receiver = member ? `${this.expression(values[0], 9)}` : '';
+    const arguments0 = member ? values.slice(1) : values;
+    const types = typeArguments
+      ? `<${namedType(`source:${typeArguments}`, this.id)}>`
+      : '';
+    return `${receiver}${callee}${types}(${arguments0.map((value) => this.expression(value)).join(', ')})`;
   }
 
   number({ value }, parent) {
@@ -249,24 +388,34 @@ class BaseEmitter {
     // R's %% and %/% bind tighter than * and /, so their operands that are
     // themselves operations keep parentheses.
     const tight =
-      this.id === 'r' && ['divide', 'remainder'].includes(expression.operator);
+      this.id === 'r' &&
+      ['divide', 'floorDivide', 'remainder', 'modulo'].includes(
+        expression.operator
+      );
     // `a && b || c` keeps its meaning without parentheses, but readers (and
     // C compilers with -Wparentheses) expect them around the inner "and".
     const inner = expression.operator === 'or' ? precedence.and + 1 : level;
-    const left = this.expression(expression.left, tight ? 7 : inner);
+    const left = this.expression(
+      expression.left,
+      comparisonParent(expression.operator, expression.left, tight ? 7 : inner)
+    );
     const right = this.expression(
       expression.right,
-      tight ? 7 : Math.max(inner, level + 1)
+      comparisonParent(
+        expression.operator,
+        expression.right,
+        tight ? 7 : Math.max(inner, level + 1)
+      )
     );
     let result;
-    if (expression.operator === 'divide') {
+    if (['divide', 'floorDivide'].includes(expression.operator)) {
       const integer = this.syntax.operators.integerDivide;
       const spelling = this.syntax.integerDivision;
       const whole = (part) => this.expression(part);
       if (integer) {
         result = `${left} ${integer} ${right}`;
       } else if (spelling?.wrapper) {
-        return `${spelling.wrapper}(${whole(expression.left)} / ${whole(expression.right)})`;
+        return `${spelling.wrapper}(${left} / ${right})`;
       } else if (spelling?.call) {
         return `${spelling.call}(${whole(expression.left)}, ${whole(expression.right)})`;
       } else if (spelling?.method) {
@@ -275,9 +424,7 @@ class BaseEmitter {
         result = `${left} / ${right}`;
       }
     } else {
-      const operator =
-        this.syntax.operators[expression.operator] ??
-        symbols[expression.operator];
+      const operator = operatorSpelling(this.syntax, expression.operator);
       result = `${left} ${operator} ${right}`;
     }
     return level < parent ? `(${result})` : result;
@@ -452,7 +599,11 @@ class BaseEmitter {
     const lines = commentLines(this.syntax, this.id, text, { block });
     const last = this.lines.length - 1;
     if (trailing && lines.length === 1 && this.lines[last]) {
-      this.lines[last] += `${trailing}${lines[0]}`;
+      this.lines[last] = mappedLine(
+        this,
+        `${this.lines[last]}${trailing}${lines[0]}`,
+        this.lines[last]
+      );
       return;
     }
     for (const line of lines) {
@@ -501,7 +652,7 @@ class BaseEmitter {
   openBlock(header) {
     switch (this.syntax.blocks) {
       case 'braces':
-        this.line(`${header} {`);
+        this.line(header ? `${header} {` : '{');
         break;
       case 'indentation':
         // Nim's procedure heads end with "=", not ":".
@@ -549,6 +700,15 @@ class BaseEmitter {
         return this.line(this.print(statement));
       case 'Evaluate':
         return this.line(`${this.expression(statement.expression)}${end}`);
+      case 'PropertyAssignment':
+        if (!['python', 'javascript', 'typescript'].includes(this.id)) {
+          throw new Error(
+            `Cannot emit property assignment in ${this.syntax.id}`
+          );
+        }
+        return this.line(
+          `${this.expression(statement.object)}.${statement.property} = ${this.expression(statement.value)}${end}`
+        );
       case 'Return':
         return this.line(this.returnStatement(statement));
       case 'Declaration':
@@ -568,7 +728,29 @@ class BaseEmitter {
     }
   }
 
-  declaration({ name, type, value, mutable }) {
+  declaration({ name, type, value, mutable, cppTemplateType, cppType }) {
+    if (value?.kind === 'CppDirectInitializer') {
+      if (this.id !== 'cpp') {
+        throw new Error(
+          `C++ direct initialization requires a library mapping for ${this.id}`
+        );
+      }
+      const args = value.arguments.map((arg) => this.expression(arg));
+      return `${this.type(cppType ?? type)} ${name}(${args.join(', ')});`;
+    }
+    if (cppTemplateType) {
+      if (this.id !== 'cpp') {
+        throw new Error(
+          `C++ template type requires a library mapping for ${this.id}`
+        );
+      }
+      if (!value) {
+        return `${this.type(type)} ${name}${this.terminator()}`;
+      }
+      if (value.kind === 'CppInitializerList' && value.direct) {
+        return `${this.type(type)} ${name}${this.expression(value)};`;
+      }
+    }
     const initial = this.expression(
       realValue(value ?? number(0), type, this.syntax)
     );
@@ -704,9 +886,9 @@ class BaseEmitter {
 
   // The loop header is the language's `forEach` template with the loop
   // variable, its type and the array filled in.
-  forEachLoop({ variable: identifier, array, body }) {
+  forEachLoop({ variable: identifier, array, body, type = 'integer' }) {
     const fill = {
-      type: this.type('integer'),
+      type: this.type(type),
       variable: this.variable(identifier),
       array: this.expression(array),
       'array-name': array.name,
@@ -745,9 +927,11 @@ class BaseEmitter {
   // ---- functions and program ----
   signature(item) {
     const write = signatures[this.id] ?? signatures.typedPrefix;
+    const parameterType = ({ type, cppType }) =>
+      this.type(this.id === 'cpp' ? (cppType ?? type) : type);
     const typed = (render) =>
       item.parameters
-        .map((parameter) => render(parameter.name, this.type(parameter.type)))
+        .map((parameter) => render(parameter.name, parameterType(parameter)))
         .join(', ');
     const names = item.parameters.map((parameter) => parameter.name).join(', ');
     const returns = item.returnType;
@@ -794,10 +978,23 @@ class BaseEmitter {
   }
 
   functionDefinition(item) {
-    for (const text of item.comments ?? []) {
-      this.comment(text);
+    if (
+      item.documentation &&
+      !['python', 'javascript', 'typescript'].includes(this.id)
+    ) {
+      throw new Error(`Cannot emit runtime documentation in ${this.syntax.id}`);
+    }
+    this.comments(item, 'comments');
+    for (const annotation of item.annotations ?? []) {
+      if (!['java', 'kotlin', 'python'].includes(this.id)) {
+        throw new Error(`Annotations need a framework mapping for ${this.id}`);
+      }
+      this.line(`@${this.expression(annotation.expression)}`);
     }
     this.openBlock(this.definitionHeading(item));
+    if (item.documentation && this.id === 'python') {
+      this.line(this.expression(item.documentation));
+    }
     // Perl receives its arguments in @_.
     if (this.syntax.parameters === 'unpacked' && item.parameters.length) {
       const names = item.parameters.map(({ name: id }) => this.variable(id));
@@ -805,6 +1002,7 @@ class BaseEmitter {
     }
     this.body(item.body);
     this.closeBlock();
+    writeDocumentationAssignment(this, item);
   }
 
   mainHeader() {
@@ -825,6 +1023,7 @@ class BaseEmitter {
   }
 
   program(program) {
+    const items = this.id === 'cpp' ? cppFileItems(program) : program.functions;
     const insideClass = this.syntax.entryPoint === 'class-method';
     if (insideClass) {
       this.openBlock(
@@ -835,7 +1034,7 @@ class BaseEmitter {
     // C, Pascal and Ada read from top to bottom, so a function called
     // before its definition is announced by a prototype.
     if (this.syntax.forwardDeclarations) {
-      const announced = laterCalls(program.functions);
+      const announced = laterCalls(items);
       this.announced = new Set(announced.map((item) => item.name));
       for (const item of announced) {
         this.line(this.forwardDeclaration(item));
@@ -844,12 +1043,20 @@ class BaseEmitter {
         this.line();
       }
     }
-    program.functions.forEach((item, index) => {
+    for (const definition of program.definitions ?? []) {
+      this.recordDefinition(definition);
+      this.line();
+    }
+    items.forEach((item, index) => {
+      if (item.kind !== 'Function') {
+        this.statement(item);
+        return;
+      }
       this.functionDefinition(item);
       // A main procedure of its own is set apart from the functions.
       if (
         item.blankAfter !== false ||
-        (index === program.functions.length - 1 && this.mainHeader())
+        (index === items.length - 1 && this.mainHeader())
       ) {
         this.line();
       }
@@ -867,20 +1074,28 @@ class BaseEmitter {
     if (this.id === 'php') {
       this.lines.push(this.syntax.header ?? '<?php', '');
     }
-    for (const text of program.comments) {
-      this.comment(text);
-    }
+    this.comments(program, 'comments');
     if (program.comments.length) {
       this.line();
     }
-    return `${[...this.lines, ...this.prelude(program), ...body].join('\n')}\n`;
+    return renderLines(this, [
+      ...this.lines,
+      ...this.prelude(program),
+      ...body,
+    ]);
+  }
+
+  recordDefinition(definition) {
+    writeRecord(this, definition);
+  }
+
+  recordField(_field, line) {
+    this.line(line);
   }
 
   // The top-level statements, in a main procedure where the language has one.
   main(program) {
-    for (const text of program.mainComments ?? []) {
-      this.comment(text);
-    }
+    this.comments(program, 'mainComments');
     const header = this.mainHeader();
     if (!header) {
       this.body(program.main);
@@ -904,9 +1119,14 @@ class BaseEmitter {
     lines.push(...(this.syntax.prelude ?? []));
     const used = (headers) =>
       headers.filter(([use]) => this.uses.has(use)).map(([, line]) => line);
-    lines.push(...used(importsBeforeLibrary));
-    lines.push(...(program.libraryImports ?? []));
-    lines.push(...used(importsAfterLibrary));
+    const library = program.libraryImports ?? [];
+    const imported = new Set(library.map(nativeImportKey));
+    lines.push(...used(importsBeforeLibrary), ...library);
+    lines.push(
+      ...used(importsAfterLibrary).filter(
+        (line) => !imported.has(nativeImportKey(line))
+      )
+    );
     if (lines.length && lines.at(-1) !== '') {
       lines.push('');
     }
@@ -958,11 +1178,22 @@ const compoundOperators = {
 };
 
 // Arrays are written by a mixin of their own, which the dialects inherit.
-const Emitter = withReals(withArrays(BaseEmitter));
+const Emitter = withSqlValueWriter(
+  withQueryWriter(
+    withObjpakWriter(
+      withExceptions(withTypeMetadata(withReals(withArrays(BaseEmitter))))
+    )
+  )
+);
 
 export function emitProgram(program, languageId) {
   const LanguageEmitter = emitterFor(languageId);
-  return new LanguageEmitter(languageSyntax(languageId)).program(program);
+  const syntax = languageSyntax(languageId);
+  requireRecordSupport(program, languageId, supportsRecords(syntax));
+  if (program.definitions?.length) {
+    checkRecordReferences(program);
+  }
+  return mappedEmitter(new LanguageEmitter(syntax)).program(program);
 }
 
 // Languages with a program layout of their own (Fortran, Pascal, Ada,
@@ -999,8 +1230,12 @@ const printers = {
     emitter.uses.add('sys');
     return `sys.stdout.write(${value.type === 'text' ? single() : `str(${single()})`})`;
   },
-  ruby: (emitter, { newline, single }) =>
-    `${newline ? 'puts' : 'print'} ${single()}`,
+  ruby: (emitter, { newline, single }) => {
+    const value = single();
+    return value.startsWith('-')
+      ? `${newline ? 'puts' : 'print'}(${value})`
+      : `${newline ? 'puts' : 'print'} ${value}`;
+  },
   lua: (emitter, { newline, single }) =>
     newline ? `print(${single()})` : `io.write(${single()})`,
   php: (emitter, { lineParts }) =>
@@ -1038,7 +1273,7 @@ const printers = {
       : `print(${single()}, terminator: "")`;
   },
   perl: (emitter, { lineParts }) =>
-    `print ${emitter.interpolationOrText(lineParts)};`,
+    `print(${emitter.interpolationOrText(lineParts)});`,
   dart: (emitter, { newline, single }) => {
     if (newline) {
       return `print(${single()});`;

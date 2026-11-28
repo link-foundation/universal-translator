@@ -2,15 +2,16 @@
 //! language description only decides which comment markers, quotes and
 //! layout rules (indentation, line ends) apply.
 
+use super::comment_syntax::block_comment_end;
 pub use super::languages::InterpolationStyle;
 use super::languages::{Blocks, Syntax};
 use crate::meta::GrammarError;
 
-const SYMBOLS: [&str; 54] = [
-    "...", "..<", "..=", "===", "!==", "**", "//", "<<", ">>", "::", "->", "=>", ":=", "==", "!=",
-    "~=", "<=", ">=", "&&", "||", "++", "--", "+=", "-=", "*=", "/=", "%=", "..", "{", "}", "(",
-    ")", "[", "]", ";", ",", ".", ":", "+", "-", "*", "/", "%", "<", ">", "=", "!", "&", "|", "?",
-    "$", "#", "@", "\\",
+const SYMBOLS: [&str; 55] = [
+    "...", "..<", "..=", "===", "!==", "**", "//=", "//", "<<", ">>", "::", "->", "=>", ":=", "==",
+    "!=", "~=", "<=", ">=", "&&", "||", "++", "--", "+=", "-=", "*=", "/=", "%=", "..", "{", "}",
+    "(", ")", "[", "]", ";", ",", ".", ":", "+", "-", "*", "/", "%", "<", ">", "=", "!", "&", "|",
+    "?", "$", "#", "@", "\\",
 ];
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -21,6 +22,7 @@ pub enum TokenType {
     Comment,
     Directive,
     Text,
+    InlineText,
     Number,
     Name,
     Symbol,
@@ -36,6 +38,7 @@ impl TokenType {
             TokenType::Comment => "comment",
             TokenType::Directive => "directive",
             TokenType::Text => "text",
+            TokenType::InlineText => "inlineText",
             TokenType::Number => "number",
             TokenType::Name => "name",
             TokenType::Symbol => "symbol",
@@ -64,6 +67,8 @@ pub struct Token {
     /// characters (the comment markers are outside). Names: where the name
     /// starts and stops.
     pub span: Option<(usize, usize)>,
+    /// Entire source spelling, including comment markers and quote delimiters.
+    pub raw_span: Option<(usize, usize)>,
 }
 
 impl Token {
@@ -84,11 +89,16 @@ fn read_quoted(
     quote: char,
     line: usize,
     doubled: bool,
+    triple: bool,
 ) -> Result<(String, usize), GrammarError> {
-    let mut index = start + 1;
+    let width = if triple { 3 } else { 1 };
+    let mut index = start + width;
     let mut raw = String::new();
     while index < source.len() {
-        if source[index] == quote {
+        if source
+            .get(index..index + width)
+            .is_some_and(|part| part.iter().all(|c| *c == quote))
+        {
             if !doubled || source.get(index + 1) != Some(&quote) {
                 break;
             }
@@ -98,7 +108,7 @@ fn read_quoted(
             raw.extend(&source[index..(index + 2).min(source.len())]);
             index += 2;
         } else {
-            if source[index] == '\n' && quote != '`' {
+            if source[index] == '\n' && quote != '`' && !triple {
                 return Err(GrammarError::syntax("Unterminated text literal", line));
             }
             raw.push(source[index]);
@@ -108,7 +118,7 @@ fn read_quoted(
     if index >= source.len() {
         return Err(GrammarError::syntax("Unterminated text literal", line));
     }
-    Ok((raw, index + 1))
+    Ok((raw, index + width))
 }
 
 /// Replace escape sequences such as `\n` and `\u{1F600}` with the characters
@@ -195,7 +205,50 @@ pub fn block_comment_text(raw: &str, column: usize) -> String {
 }
 
 pub fn tokenize(source: &str, syntax: &Syntax) -> Result<Vec<Token>, GrammarError> {
-    Lexer::new(source, syntax).run()
+    let tokens = Lexer::new(source, syntax).run()?;
+    let Some(header) = syntax
+        .header
+        .filter(|header| syntax.id == "rocq" && !source.starts_with(header))
+    else {
+        return Ok(tokens);
+    };
+    // Match the verified runtime by lexical content, retaining native layout
+    // and comments without treating changed names or literal values as trivia.
+    let mut bare = syntax.clone();
+    bare.header = None;
+    let expected = Lexer::new(header, &bare).run()?;
+    let mut position = 0;
+    let mut comments = Vec::new();
+    for token in expected.iter().filter(|token| {
+        !matches!(
+            token.kind,
+            TokenType::Newline | TokenType::Comment | TokenType::End
+        )
+    }) {
+        while let Some(actual) = tokens
+            .get(position)
+            .filter(|actual| matches!(actual.kind, TokenType::Newline | TokenType::Comment))
+        {
+            if actual.kind == TokenType::Comment {
+                comments.push(actual.clone());
+            }
+            position += 1;
+        }
+        let Some(actual) = tokens.get(position) else {
+            return Ok(tokens);
+        };
+        if actual.kind != token.kind
+            || actual.value != token.value
+            || actual.quote != token.quote
+            || actual.style != token.style
+            || actual.decoded != token.decoded
+        {
+            return Ok(tokens);
+        }
+        position += 1;
+    }
+    comments.extend_from_slice(&tokens[position..]);
+    Ok(comments)
 }
 
 /// Letters of every script make names ("сумма").
@@ -219,6 +272,8 @@ struct Lexer<'a> {
     indentation: Vec<usize>,
     /// Open brackets; newlines inside them are not significant.
     depth: usize,
+    /// Literal output mode in PHP documents; blocks may span modes.
+    php_outside: bool,
     /// Comment lines waiting for the next code line to show their block:
     /// (index of their first token, width).
     pending: Vec<(usize, usize)>,
@@ -228,8 +283,11 @@ type Reader<'a> = fn(&mut Lexer<'a>) -> Result<bool, GrammarError>;
 
 impl<'a> Lexer<'a> {
     fn new(source: &str, syntax: &'a Syntax) -> Self {
+        // Preserve implicit code mode for tagless PHP snippets. Markup at the
+        // start of a document is literal output until a native opening tag.
+        let php_outside = syntax.id == "php" && source.trim_start().starts_with('<');
         let index = match syntax.header {
-            Some(header) if source.starts_with(header) => header.chars().count(),
+            Some(header) if !php_outside && source.starts_with(header) => header.chars().count(),
             _ => 0,
         };
         Lexer {
@@ -237,10 +295,11 @@ impl<'a> Lexer<'a> {
             syntax,
             tokens: Vec::new(),
             index,
-            line: 1,
+            line: 1 + source.chars().take(index).filter(|c| *c == '\n').count(),
             line_start: true,
             indentation: vec![0],
             depth: 0,
+            php_outside,
             pending: Vec::new(),
         }
     }
@@ -262,13 +321,18 @@ impl<'a> Lexer<'a> {
             if self.line_start && self.syntax.blocks == Blocks::Indentation {
                 self.indent()?;
             }
-            if self.closing_tag()? {
-                break;
+            if self.php_mode() {
+                continue;
             }
+            let start = self.index;
+            let first = self.tokens.len();
             for read in readers {
                 if read(&mut self)? {
                     break;
                 }
+            }
+            for token in &mut self.tokens[first..] {
+                token.raw_span = Some((start, self.index));
             }
         }
         if self
@@ -285,23 +349,69 @@ impl<'a> Lexer<'a> {
         Ok(self.tokens)
     }
 
-    /// PHP: the closing ?> tag ends the program when only whitespace follows
-    /// it; text after it would be output, which is not read.
-    fn closing_tag(&mut self) -> Result<bool, GrammarError> {
-        if self.syntax.id != "php" || !self.starts_with("?>", self.index) {
-            return Ok(false);
+    /// Strings and block comments consume their contents before this reader.
+    /// Opening/closing tags share the surrounding PHP block scope.
+    fn php_mode(&mut self) -> bool {
+        if self.syntax.id != "php" {
+            return false;
         }
-        if self.source[self.index + 2..]
-            .iter()
-            .any(|character| !character.is_whitespace())
-        {
-            return Err(GrammarError::syntax(
-                "Text after the closing \"?>\" tag",
-                self.line,
-            ));
+        if !self.php_outside && self.starts_with("?>", self.index) {
+            let start = self.index;
+            self.index += 2;
+            self.push(TokenType::Symbol, ";");
+            self.tokens.last_mut().unwrap().raw_span = Some((start, self.index));
+            self.index += if self.starts_with("\r\n", self.index) {
+                2
+            } else if self.at(0).is_some_and(|c| matches!(c, '\r' | '\n')) {
+                1
+            } else {
+                0
+            };
+            self.line += self.source[start..self.index]
+                .iter()
+                .filter(|c| **c == '\n')
+                .count();
+            self.php_outside = true;
+            return true;
         }
-        self.index = self.source.len();
-        Ok(true)
+        if !self.php_outside {
+            return false;
+        }
+        let start = self.index;
+        let opening = (start..self.source.len()).find_map(|at| {
+            if self.starts_with("<?=", at) {
+                Some((at, 3))
+            } else if self.source.get(at..at + 5).is_some_and(|tag| {
+                tag.iter()
+                    .zip("<?php".chars())
+                    .all(|(c, expected)| c.eq_ignore_ascii_case(&expected))
+            }) && self
+                .source
+                .get(at + 5)
+                .is_none_or(|c| matches!(c, ' ' | '\t' | '\r' | '\n'))
+            {
+                Some((at, 5))
+            } else {
+                None
+            }
+        });
+        let stop = opening.map_or(self.source.len(), |(at, _)| at);
+        if stop > start {
+            let text = self.slice(start, stop);
+            self.push(TokenType::InlineText, &text);
+            self.tokens.last_mut().unwrap().raw_span = Some((start, stop));
+            self.line += text.matches('\n').count();
+            self.push(TokenType::Newline, "\n");
+        }
+        self.index = opening.map_or(stop, |(at, width)| at + width);
+        if let Some((at, width)) = opening {
+            self.php_outside = false;
+            if width == 3 {
+                self.push(TokenType::Name, "echo");
+                self.tokens.last_mut().unwrap().raw_span = Some((at, self.index));
+            }
+        }
+        true
     }
 
     fn push(&mut self, kind: TokenType, value: &str) {
@@ -326,6 +436,7 @@ impl<'a> Lexer<'a> {
             trailing: None,
             block: false,
             span: None,
+            raw_span: None,
         });
     }
 
@@ -461,6 +572,9 @@ impl<'a> Lexer<'a> {
                 }
             }
         }
+        if id == "php" && self.at(0) == Some('#') {
+            return "#";
+        }
         self.syntax.line_comment
     }
 
@@ -475,7 +589,12 @@ impl<'a> Lexer<'a> {
         {
             return false;
         }
-        let stop = self.until_line_end();
+        let mut stop = self.until_line_end();
+        if self.syntax.id == "php"
+            && let Some(closing) = (self.index..stop).find(|at| self.starts_with("?>", *at))
+        {
+            stop = closing;
+        }
         let start = self.index + marker.chars().count();
         let text = self.slice(start, stop);
         self.push_comment(&comment_text(&text), false, (start, stop));
@@ -524,9 +643,18 @@ impl<'a> Lexer<'a> {
             return Ok(false);
         }
         let from = self.index + open.chars().count();
-        let end = (from..self.source.len())
-            .find(|position| self.starts_with(close, *position))
-            .ok_or_else(|| GrammarError::syntax("Unterminated comment", self.line))?;
+        let (after, closed) = block_comment_end(
+            &self.source,
+            self.index,
+            &open.chars().collect::<Vec<_>>(),
+            &close.chars().collect::<Vec<_>>(),
+            self.syntax.nested_comments,
+            self.syntax.comment_strings,
+        );
+        if !closed {
+            return Err(GrammarError::syntax("Unterminated comment", self.line));
+        }
+        let end = after - close.chars().count();
         let text = self.slice(from, end);
         self.push_comment(&block_comment_text(&text, self.column()), true, (from, end));
         self.line += text.matches('\n').count();
@@ -536,6 +664,20 @@ impl<'a> Lexer<'a> {
 
     /// Preprocessor lines such as `#include <stdio.h>`.
     fn directive(&mut self) -> bool {
+        let runtime = super::dialects::OBJC_RUNTIME_HEADER;
+        if self.syntax.id == "objc" && self.starts_with(runtime, self.index) {
+            let end = self.index + runtime.chars().count();
+            if self
+                .source
+                .get(end)
+                .is_none_or(|c| matches!(c, '\r' | '\n'))
+            {
+                self.push(TokenType::Directive, runtime);
+                self.index = end;
+                self.line += runtime.matches('\n').count();
+                return true;
+            }
+        }
         if self.syntax.line_comment == "#" || self.at(0) != Some('#') {
             return false;
         }
@@ -572,9 +714,19 @@ impl<'a> Lexer<'a> {
         let start = self.index + prefix.map_or(0, |prefix| prefix.chars().count());
         let quote = self.source[start];
         let doubled = self.syntax.doubled_quotes;
-        let (raw, end) = read_quoted(&self.source, start, quote, self.line, doubled)?;
+        let triple = self.syntax.id == "python"
+            && self
+                .source
+                .get(start..start + 3)
+                .is_some_and(|part| part.iter().all(|c| *c == quote));
+        let (raw, end) = read_quoted(&self.source, start, quote, self.line, doubled, triple)?;
         let style = interpolation_style(self.syntax, quote, prefix);
-        self.push_text(TokenType::Text, &raw, Some(quote), style);
+        let kind = if self.syntax.id == "sql" && quote == '"' {
+            TokenType::Name
+        } else {
+            TokenType::Text
+        };
+        self.push_text(kind, &raw, Some(quote), style);
         // Doubled quotes are already read, so the text has no escapes left.
         self.tokens.last_mut().expect("pushed").decoded = doubled;
         self.line += raw.matches('\n').count();
@@ -625,6 +777,11 @@ impl<'a> Lexer<'a> {
             length += 1;
         }
         let value = self.slice(self.index, self.index + length);
+        let value = if self.syntax.id == "sql" {
+            value.to_ascii_lowercase()
+        } else {
+            value
+        };
         self.push(TokenType::Name, &value);
         // Where the name stands, so identifiers can be renamed in place.
         self.tokens.last_mut().expect("pushed").span = Some((self.index, self.index + length));

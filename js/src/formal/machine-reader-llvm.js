@@ -16,6 +16,13 @@ import {
   relationsByJump,
   sourceLines,
 } from './machine-reader-shared.js';
+import { linesOrigin } from './machine-source.js';
+import {
+  combineOrigins,
+  pushComment,
+  sourceOrigin,
+  withOrigin,
+} from '../translation/source-origins.js';
 
 const llvmRelations = relationsByJump({
   equal: 'eq',
@@ -103,6 +110,7 @@ class LlvmBody {
     this.remaining = new Map();
     this.spills = [];
     this.code = [];
+    this.pendingOrigins = [];
     this.index = 0;
   }
 
@@ -152,14 +160,14 @@ class LlvmBody {
     }
     this.emit(gep.array);
     this.emit(gep.index);
-    this.code.push(['element-index']);
+    this.code.push(withOrigin(['element-index'], sourceOrigin(gep)));
   }
 
   emit(node) {
     const write = {
       push: () => this.code.push(['push', node.value]),
       temp: () => this.emitTemporary(node.name),
-      onstack: () => {},
+      onstack: () => this.attachLast(sourceOrigin(node)),
       load: () => this.code.push(['load', node.slot]),
       binary: () => {
         this.emit(node.left);
@@ -187,13 +195,25 @@ class LlvmBody {
         this.code.push(['array-length']);
       },
     };
+    const start = this.code.length;
     write[node.kind]();
+    for (const instruction of this.code.slice(start)) {
+      if (!sourceOrigin(instruction)) {
+        withOrigin(instruction, sourceOrigin(node));
+      }
+    }
+    if (this.code.length > start) {
+      this.attachLast(sourceOrigin(node));
+    }
   }
 
   // A value that is never used is dropped where it is made.
   define(name, node) {
+    withOrigin(node, linesOrigin(this.lines, this.index));
     this.defs.set(name, node);
-    const structural = ['gep', 'length-address', 'compare'];
+    // An unused spill reload creates no stack value. Dropping it would
+    // consume the value that survived the preceding branch instead.
+    const structural = ['gep', 'length-address', 'compare', 'onstack'];
     if (!structural.includes(node.kind) && !this.uses.get(name)) {
       this.emit(node);
       this.code.push(['pop']);
@@ -229,7 +249,13 @@ class LlvmBody {
     }
     const spill = address.match(/^%stack\.(?:ptr\.)?(\d+)$/);
     if (spill) {
-      this.spills.push({ index: Number(spill[1]), node: this.operand(value) });
+      this.spills.push({
+        index: Number(spill[1]),
+        node: withOrigin(
+          this.operand(value),
+          linesOrigin(this.lines, this.index)
+        ),
+      });
     } else if (this.defs.get(address)?.kind === 'gep') {
       this.element(address);
       this.emit(this.operand(value));
@@ -253,6 +279,15 @@ class LlvmBody {
     this.flushSpills();
     if (this.lines[this.index + 1] !== `${target}:`) {
       this.code.push(['jump', target]);
+    } else {
+      this.pendingOrigins.push(linesOrigin(this.lines, this.index));
+    }
+  }
+
+  attachLast(origin) {
+    const last = this.code.at(-1);
+    if (last) {
+      withOrigin(last, combineOrigins([sourceOrigin(last), origin]));
     }
   }
 
@@ -261,7 +296,15 @@ class LlvmBody {
     const { relation, left, right } = this.defs.get(condition);
     this.emit(left);
     this.emit(right);
-    this.code.push(['compare-jump', relation, target]);
+    this.code.push(
+      withOrigin(
+        ['compare-jump', relation, target],
+        combineOrigins([
+          sourceOrigin(this.defs.get(condition)),
+          linesOrigin(this.lines, this.index),
+        ])
+      )
+    );
   }
 
   print(text) {
@@ -369,6 +412,8 @@ class LlvmBody {
         ([, label]) => {
           if (!generatedBlock.test(label)) {
             this.code.push(['label', label]);
+          } else {
+            this.attachLast(linesOrigin(this.lines, this.index));
           }
         },
       ],
@@ -383,7 +428,21 @@ class LlvmBody {
       if (!rule) {
         throw readError('llvm', line, 'unknown instruction');
       }
+      const start = this.code.length;
       rule[1](line.match(rule[0]));
+      for (const instruction of this.code.slice(start)) {
+        if (!sourceOrigin(instruction)) {
+          withOrigin(instruction, linesOrigin(this.lines, this.index));
+        }
+      }
+      if (this.code.length > start && this.pendingOrigins.length) {
+        const instruction = this.code[start];
+        withOrigin(
+          instruction,
+          combineOrigins([sourceOrigin(instruction), ...this.pendingOrigins])
+        );
+        this.pendingOrigins = [];
+      }
     }
     return this.code;
   }
@@ -395,15 +454,14 @@ function readLlvmFunction(header, comments, lines, texts) {
     item.replace(/^\S+ /, '')
   );
   const slots = new Map();
-  const body = [];
-  for (const line of lines) {
+  const body = lines.filter((line) => {
     const slot = line.match(/^%(.+)\.addr = alloca \w+$/);
     if (slot) {
       slots.set(slot[1], slots.size);
-    } else if (!/^%\S+ = alloca \w+$/.test(line)) {
-      body.push(line);
+      return false;
     }
-  }
+    return !/^%\S+ = alloca \w+$/.test(line);
+  });
   const code = new LlvmBody(body, texts, slots, new Set(parameters)).read();
   return {
     name,
@@ -429,7 +487,7 @@ export function readLlvm(source) {
     const line = rest[index];
     const header = line.match(/^define (i32|i64|void) @(\w+)\((.*)\) \{$/);
     if (line.startsWith(';')) {
-      pending.push(line.replace(/^; ?/, ''));
+      pushComment(pending, line.replace(/^; ?/, ''), linesOrigin(rest, index));
     } else if (header) {
       const end = rest.indexOf('}', index);
       items.push(

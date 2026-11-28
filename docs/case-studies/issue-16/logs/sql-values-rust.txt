@@ -1,0 +1,51 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 10.15s
+     Running rust/tests/objpak.rs (target/debug/deps/objpak-03960ca91181b218)
+
+running 18 tests
+test aliases_and_insertion_results_keep_shared_identity ... ok
+test boolean_variable_tests_keep_their_value_role ... ok
+test a_changed_javascript_return_line_has_no_library_contract ... ok
+test generated_c89_entry_point_returns_a_successful_status ... ok
+test original_collection_program_has_portable_concepts ... ok
+test parameters_shadow_library_class_names ... ok
+test receiver_selectors_and_blocks_are_compositional ... ok
+test renamed_entry_and_braced_body_work ... ok
+test runtime_header_is_one_concrete_directive_without_ignoring_conditional_code ... ok
+test split_operators_and_hexadecimal_literals_have_no_library_contract ... ok
+test concrete_library_definitions_keep_utf8_bytes_and_verified_contracts ... ok
+test unknown_messages_and_pointer_misuse_are_not_guessed ... ok
+test void_parameter_markers_are_limited_to_c_family_grammars ... ok
+test updates_keep_prefix_postfix_values_and_a_previous_binding ... ok
+test conditions_distinguish_boolean_and_numeric_calls_after_inference ... ok
+test emitted_library_contracts_and_callers_round_trip ... ok
+test generated_library_contracts_survive_source_layout_and_explicit_styles ... ok
+test every_natural_grammar_round_trips_the_full_algorithm ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.34s
+
+     Running rust/tests/queries.rs (target/debug/deps/queries-b558c7c598abd427)
+
+running 8 tests
+test linq_comprehensions_and_filter_map_chains_keep_strategy_and_scope ... ok
+test query_results_are_collections_and_range_variables_have_local_types ... ok
+test sql_quoted_keywords_strings_and_case_are_data ... ok
+test scoped_predicates_and_projections_round_trip_four_formal_grammars ... ok
+test deferred_queries_and_unsupported_targets_are_explicit ... ok
+test query_capabilities_and_detection_are_explicit ... ok
+test query_questions_and_answers_compose_through_every_natural_standard ... ok
+test sql_negation_binds_below_comparisons_and_retains_explicit_groups ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.12s
+
+     Running rust/tests/sql_values.rs (target/debug/deps/sql_values-2838d60bc556b510)
+
+running 6 tests
+test multiple_libraries_keep_original_ranges_with_unicode_whitespace ... ok
+test javascript_and_typescript_return_newlines_change_the_library_contract ... ok
+test verified_sql_helpers_preserve_utf8_concrete_bytes_and_reject_changed_definitions ... ok
+test helper_names_are_fresh_and_caller_contracts_are_checked ... ok
+test nullable_operators_round_trip_all_query_grammars ... ok
+test nullable_operations_keep_their_own_meaning_and_natural_vocabulary ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.06s

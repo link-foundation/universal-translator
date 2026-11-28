@@ -5,6 +5,8 @@ fn program_language(language: &str) -> Result<&'static str, String> {
     match language {
         "javascript" | "JavaScript" => Ok("JavaScript"),
         "rust" | "Rust" => Ok("Rust"),
+        "lean" | "Lean" => Ok("Lean"),
+        "coq" | "Coq" | "rocq" | "Rocq" => Ok("Rocq"),
         _ => Err(format!("No portable program translator for {language}")),
     }
 }

@@ -546,7 +546,8 @@ describe('translation checks', () => {
       'node examples/programs/write-natural.mjs --check',
       'node scripts/check-requirements.mjs',
       'cargo test --locked',
-      'bash experiments/verify-syntax-exchange.sh',
+      'node scripts/update-meta-grammar.mjs --check',
+      'node experiments/verify-syntax-exchange.mjs',
     ]);
   });
 });

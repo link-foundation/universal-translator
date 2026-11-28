@@ -1,0 +1,11 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 13.26s
+     Running rust/tests/issue_8.rs (target/debug/deps/issue_8-598fb5d8812a00cf)
+
+running 3 tests
+test counts_freely_translated_prose_as_translated_lines ... ok
+test counts_the_lines_it_reads ... ok
+test counts_accepted_lines_only_after_the_target_writer_succeeds ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.37s
+

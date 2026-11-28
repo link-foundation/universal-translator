@@ -1,0 +1,19 @@
+Task supplied to each coding assistant
+Create a Node script in experiments/requirements-line-budget.mjs. It takes one Markdown file path, counts physical lines including interior blank lines and a final unterminated line, and exits 1 when over 1500 lines. Use only Node built-ins.
+
+Formal AI v0.356.11, original repository
+Error: "the stderr classifier is missing: ./scripts/classify-agent-cli-stderr.sh"
+
+Formal AI v0.357.2, clean Git repository unrelated to Formal AI
+Error: "the stderr classifier is missing: ./scripts/classify-agent-cli-stderr.sh"
+
+Formal AI v0.357.2, same repository with the classifier from the release tag
+Agent CLI v0.27.2 opened a session and proposed a read-only ls command.
+Error: "the Agent CLI did not write experiments/requirements-line-budget.mjs"
+
+Codex, same requested artifact
+The implementation used fs.readFileSync and counted LF separators plus one final unterminated line. Fixtures were passed to a separate Node process and assertions checked both its exit status and stdout.
+LF boundary: 1500 physical lines (maximum 1500), exit 0
+CRLF with interior blank lines and unterminated tail: 1500 physical lines (maximum 1500), exit 0
+One line over the budget: 1501 physical lines (maximum 1500), exit 1
+Empty: 0 physical lines (maximum 1500), exit 0

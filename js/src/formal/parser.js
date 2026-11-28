@@ -7,18 +7,43 @@ import { decodeEscapes, SyntaxError, tokenize } from './lexer.js';
 import { block, name, node, number, text } from '../meta/tree.js';
 import { dialects } from './dialects/index.js';
 import { withArrays } from './array-parser.js';
-import { stepOperators, withLoops } from './loop-parser.js';
+import { assignmentSymbols, stepOperators, withLoops } from './loop-parser.js';
 import { withFunctionForms } from './function-forms.js';
-import { slashOperator } from './numbers.js';
-
-const binaryLevels = [
-  { or: ['||', 'or'] },
-  { and: ['&&', 'and'] },
-  { equal: ['==', '==='], notEqual: ['!=', '!==', '~='] },
-  { less: ['<'], lessOrEqual: ['<='], greater: ['>'], greaterOrEqual: ['>='] },
-  { add: ['+', '..'], subtract: ['-'] },
-  { multiply: ['*'], divide: ['/', '//'], remainder: ['%'] },
-];
+import { arithmeticOperator, binaryLevels } from './numbers.js';
+import { powerSymbol } from './power.js';
+import { withEvaluationParser } from './evaluation-parser.js';
+import {
+  prototypeLength,
+  typeDepth,
+  typeHeadLength,
+  withAnnotations,
+} from './annotations.js';
+import { withExceptionParser } from './exception-parser.js';
+import { questionSuffix, propertyAssignment } from './question-parser.js';
+import { withObjpakParser } from './objpak-reader.js';
+import { withQueryParser } from './query-parser.js';
+import { parseSource } from './source-parser.js';
+import { sourceType } from './type-metadata.js';
+import {
+  cppDirectInitializer,
+  cppListInitializer,
+  cppStringInitializer,
+  cppTemplateArguments,
+  declarationTypeFields,
+  defaultCppString,
+  isCppFixedArray,
+  isCppTemplateDeclaration,
+  readCppDirectInitializer,
+  readCppInitializerList,
+  readCppStringInitializer,
+  recordCppBinding,
+  withCppValueScope,
+} from './cpp-library.js';
+import {
+  isNamespaceOrClass,
+  readClass,
+  readRustRecord,
+} from './record-parser.js';
 
 const typeWords = new Set([
   'int',
@@ -55,13 +80,10 @@ const modifiers = new Set([
 ]);
 
 export function parseProgram(source, syntax) {
-  const LanguageParser = parserFor(syntax);
-  return new LanguageParser(tokenize(source, syntax), syntax).program();
+  return parseSource(source, syntax, parserFor(syntax));
 }
 
-// Languages whose statements follow a grammar of their own (Fortran, Pascal,
-// Ada, Visual Basic, Bash, MATLAB, Zig, Lean, Rocq) extend the shared parser in
-// dialects/; they keep its expressions and token helpers.
+// Dialects extend the shared parser and retain its expression and token helpers.
 const dialectParsers = new Map();
 function parserFor(syntax) {
   const extend = dialects[syntax.id]?.parser;
@@ -84,6 +106,7 @@ const controlWords = new Set([
   'return',
   'do',
   'catch',
+  'throw',
 ]);
 
 class BaseParser {
@@ -91,6 +114,7 @@ class BaseParser {
     this.tokens = tokens;
     this.position = 0;
     this.syntax = syntax;
+    this.cppValueScopes = [];
     // Word operators such as Nim's mod and div, or Pascal's <>, join the
     // shared symbols of their level.
     const { remainder, integerDivide, and, or, equal, notEqual } =
@@ -103,7 +127,7 @@ class BaseParser {
       equal,
       notEqual,
     };
-    this.levels = binaryLevels.map((level) =>
+    this.levels = binaryLevels(syntax).map((level) =>
       Object.fromEntries(
         Object.entries(level).map(([operator, shared]) => {
           // Fortran joins text with //, which divides elsewhere.
@@ -136,6 +160,9 @@ class BaseParser {
   }
   is(value, offset = 0) {
     const token = this.peek(offset);
+    if (this.syntax.id === 'sql' && token.quote) {
+      return false;
+    }
     if (token.type === 'name' && this.syntax.caseInsensitive) {
       return token.value.toLowerCase() === String(value).toLowerCase();
     }
@@ -202,6 +229,10 @@ class BaseParser {
   }
 
   items(done) {
+    return withCppValueScope(this, [], (scope) => this.readItems(done, scope));
+  }
+
+  readItems(done, scope) {
     const items = [];
     this.skipSeparators();
     while (!done()) {
@@ -212,6 +243,7 @@ class BaseParser {
       }
       // A C-style loop that is not a counting loop becomes several statements.
       const item = this.item();
+      recordCppBinding(scope, item);
       items.push(...(item.kind === 'Statements' ? item.statements : [item]));
       this.skipSeparators();
     }
@@ -248,8 +280,11 @@ class BaseParser {
     if (this.isImportStart(token)) {
       return this.importStatement();
     }
-    if (this.isNamespaceOrClass()) {
-      return this.classDefinition();
+    if (this.syntax.id === 'rust' && this.is('pub') && this.is('struct', 1)) {
+      return readRustRecord(this);
+    }
+    if (isNamespaceOrClass(this, modifiers)) {
+      return readClass(this, modifiers);
     }
     const announcement = this.announcementLength();
     if (announcement) {
@@ -308,38 +343,6 @@ class BaseParser {
     return node('Import', {
       text: parts.join(' ').replace(/ \. /g, '.').replace(/ :: /g, '::'),
     });
-  }
-
-  isNamespaceOrClass() {
-    let offset = 0;
-    while (modifiers.has(this.peek(offset).value)) {
-      offset += 1;
-    }
-    return (
-      ['class', 'namespace', 'object'].includes(this.peek(offset).value) &&
-      this.peek(offset).type === 'name'
-    );
-  }
-
-  classDefinition() {
-    while (modifiers.has(this.peek().value)) {
-      this.next();
-    }
-    const kind = this.next().value;
-    const title = this.expectName();
-    // Scala: the body of `object Hello extends App { ... }` is the program.
-    if (this.syntax.id === 'scala' && this.is('extends') && this.is('App', 1)) {
-      this.position += 2;
-    }
-    while (this.peek().type === 'newline') {
-      this.next();
-    }
-    this.expect('{');
-    this.classDepth = (this.classDepth ?? 0) + 1;
-    const items = this.items(() => this.is('}'));
-    this.classDepth -= 1;
-    this.expect('}');
-    return node('Class', { form: kind, name: title, items });
   }
 
   isFunctionStart() {
@@ -480,14 +483,7 @@ class BaseParser {
     if (controlWords.has(this.peek().value)) {
       return 0;
     }
-    let offset = 0;
-    while (
-      this.peek(offset).type === 'name' ||
-      ['*', '::', '[', ']', '<', '>'].includes(this.peek(offset).value)
-    ) {
-      offset += 1;
-    }
-    return offset;
+    return typeHeadLength(this);
   }
 
   // The number of tokens that announce a function defined later, or 0:
@@ -496,7 +492,7 @@ class BaseParser {
   announcementLength() {
     switch (this.syntax.forwardDeclarations) {
       case 'prototype':
-        return this.prototypeLength();
+        return prototypeLength(this);
       case 'heading':
         return this.headingLength();
       case 'local':
@@ -504,14 +500,6 @@ class BaseParser {
       default:
         return 0;
     }
-  }
-
-  prototypeLength() {
-    const offset = this.prefixHeadLength();
-    const end = offset > 1 && this.closingParenthesis(offset);
-    return end && this.peek(offset - 1).type === 'name' && this.is(';', end + 1)
-      ? end + 2
-      : 0;
   }
 
   // A function heading whose line ends before the body marker.
@@ -568,8 +556,10 @@ class BaseParser {
     }
     let depth = 0;
     for (let index = offset; this.peek(index).type !== 'end'; index += 1) {
-      const { value } = this.peek(index);
-      depth += value === '(' ? 1 : value === ')' ? -1 : 0;
+      const { type, value } = this.peek(index);
+      if (type === 'symbol') {
+        depth += value === '(' ? 1 : value === ')' ? -1 : 0;
+      }
       if (depth === 0) {
         return index;
       }
@@ -621,7 +611,17 @@ class BaseParser {
     if (this.syntax.bodyAfter && this.syntax.blocks !== 'indentation') {
       this.accept(this.syntax.bodyAfter);
     }
-    const body = this.block();
+    const body =
+      this.syntax.id === 'cpp'
+        ? withCppValueScope(
+            this,
+            [
+              functionName,
+              ...parameters.map(({ name: parameter }) => parameter),
+            ],
+            () => this.block()
+          )
+        : this.block();
     this.closeKeywordBlock();
     // Perl: sub name { my ($first, $second) = @_; ... }
     if (body.statements[0]?.kind === 'Parameters') {
@@ -681,12 +681,7 @@ class BaseParser {
     let depth = 0;
     while (true) {
       const token = this.peek();
-      if (token.value === '<') {
-        depth += 1;
-      }
-      if (token.value === '>') {
-        depth -= 1;
-      }
+      depth += typeDepth(token.value);
       if (
         depth === 0 &&
         (token.type === 'newline' ||
@@ -757,6 +752,10 @@ class BaseParser {
   // ---- statements ----
   statement() {
     const token = this.peek();
+    if (token.type === 'inlineText') {
+      this.next();
+      return node('Print', { value: text(token.value), newline: false });
+    }
     const word = token.type === 'name' ? token.value : undefined;
     const keywords = {
       if: () => this.ifStatement(),
@@ -816,17 +815,17 @@ class BaseParser {
   }
 
   isTypedDeclaration() {
-    let offset = 0;
-    while (
-      this.peek(offset).type === 'name' ||
-      ['*', '::', '[', ']', '<', '>'].includes(this.peek(offset).value)
-    ) {
-      offset += 1;
+    const offset = typeHeadLength(this);
+    if (cppDirectInitializer(this, offset)) {
+      return true;
     }
     return (
       offset >= 2 &&
       this.peek(offset - 1).type === 'name' &&
-      (this.is('=', offset) || this.is(';', offset)) &&
+      (this.is('=', offset) ||
+        this.is(';', offset) ||
+        cppListInitializer(this, offset) ||
+        cppStringInitializer(this, offset)) &&
       (typeWords.has(this.peek().value) ||
         this.peek(1).type === 'name' ||
         this.is('<', 1))
@@ -834,18 +833,33 @@ class BaseParser {
   }
 
   typedDeclaration() {
-    const words = [];
-    while (!this.is('=') && !this.is(';')) {
-      words.push(this.next().value);
-    }
+    const head = typeHeadLength(this);
+    const directString = cppStringInitializer(this, head);
+    const direct = !directString && cppDirectInitializer(this, head);
+    const fixedArray = isCppFixedArray(this);
+    const words = Array.from({ length: head }, () => this.next().value);
     const variable = words.pop();
     const type = sourceType(words.join(' '));
-    const value = this.accept('=') ? this.expression() : undefined;
+    let value;
+    if (directString) {
+      value = readCppStringInitializer(this);
+    } else if (direct) {
+      value = readCppDirectInitializer(this);
+    } else if (isCppTemplateDeclaration(this.syntax, words) && this.is('{')) {
+      value = readCppInitializerList(this, true);
+    } else if (this.accept('=')) {
+      value =
+        isCppTemplateDeclaration(this.syntax, words) && this.is('{')
+          ? readCppInitializerList(this)
+          : this.expression();
+    }
     this.endStatement();
     return node('Declaration', {
       name: variable,
-      type,
-      value,
+      ...declarationTypeFields(this.syntax, words, type, value),
+      ...(direct ? { cppType: `source:${words.join(' ')}` } : {}),
+      ...(fixedArray ? { cppFixedArray: true } : {}),
+      value: value ?? defaultCppString(this.syntax, words),
       mutable: !words.includes('const'),
     });
   }
@@ -911,7 +925,10 @@ class BaseParser {
     if (this.isCommandCall()) {
       return this.commandCall();
     }
-    const expression = this.expression();
+    const expression = questionSuffix(this, this.expression());
+    if (this.accept('=')) {
+      return propertyAssignment(this, expression);
+    }
     const terminated = this.is(';');
     this.endStatement();
     if (this.syntax.id === 'rust' && !terminated && this.is('}')) {
@@ -982,7 +999,11 @@ class BaseParser {
       return true;
     }
     return (
-      ['text', 'number', 'name'].includes(following.type) &&
+      (['text', 'number', 'name'].includes(following.type) ||
+        (following.value === '-' &&
+          [this.syntax.print?.line, this.syntax.print?.write].includes(
+            this.peek().value
+          ))) &&
       following.line === this.peek().line &&
       !['do', 'then', 'if'].includes(following.value)
     );
@@ -1051,7 +1072,7 @@ class BaseParser {
   }
 
   additive() {
-    return this.binary(4);
+    return this.binary(this.syntax.id === 'cpp' ? 5 : 4);
   }
 
   binary(level) {
@@ -1067,7 +1088,6 @@ class BaseParser {
           (token.type === 'symbol' || token.type === 'name')
       );
       if (!operator) {
-        // C++ stream output: std::cout << a << b
         // PHP joins text with "."
         if (
           level === 4 &&
@@ -1082,7 +1102,7 @@ class BaseParser {
           });
           continue;
         }
-        if (level === 4 && token.value === '<<') {
+        if (level === 4 && token.value === '<<' && this.syntax.id !== 'cpp') {
           this.next();
           const right = this.binary(level + 1);
           left = node('Binary', { operator: 'stream', left, right });
@@ -1102,11 +1122,15 @@ class BaseParser {
       }
       const right = this.binary(level + 1);
       // `/` is true division or integer division, depending on the language.
-      const meaning =
-        token.value === '/' && operator[0] === 'divide'
-          ? slashOperator(this.syntax)
-          : operator[0];
-      left = node('Binary', { operator: meaning, left, right });
+      const meaning = arithmeticOperator(this.syntax, token.value, operator[0]);
+      left = node('Binary', {
+        operator: meaning,
+        left,
+        right,
+        ...(meaning === 'floorDivide' && token.value === '/'
+          ? { slashDivision: true }
+          : {}),
+      });
     }
   }
 
@@ -1129,12 +1153,23 @@ class BaseParser {
       this.position += 2;
       return node('Call', { callee: '~~', arguments: [this.unary()] });
     }
-    return this.postfix();
+    const left = this.postfix();
+    const power = powerSymbol(this.syntax.id);
+    return power && this.accept(power)
+      ? node('Binary', { operator: 'power', left, right: this.unary() })
+      : left;
   }
 
   postfix() {
     let expression = this.primary();
     while (true) {
+      let offset = 0;
+      while (this.peek(offset).type === 'newline') {
+        offset += 1;
+      }
+      if (this.syntax.blocks === 'braces' && this.is('.', offset)) {
+        this.position += offset;
+      }
       if (
         ((this.is('.') && this.syntax.operators.concatenate !== '.') ||
           this.is('::')) &&
@@ -1153,18 +1188,13 @@ class BaseParser {
         );
         continue;
       }
+      const typeArguments = cppTemplateArguments(this, expression);
       if (this.is('(')) {
-        const values = this.callArguments();
-        expression =
-          expression.kind === 'Method'
-            ? node('Call', {
-                callee: `.${expression.name}`,
-                arguments: [expression.receiver, ...values],
-              })
-            : node('Call', {
-                callee: calleeName(expression),
-                arguments: values,
-              });
+        expression = callExpression(
+          expression,
+          this.callArguments(),
+          typeArguments
+        );
         continue;
       }
       if (this.isTextCall(expression)) {
@@ -1268,15 +1298,28 @@ class BaseParser {
         parts.push(text(decode(piece)));
       } else {
         const innerSyntax = { ...this.syntax, variableSigil: '$' };
-        parts.push(
-          new this.constructor(
-            tokenize(piece.code, innerSyntax),
-            innerSyntax
-          ).expression()
+        const parser = new this.constructor(
+          tokenize(piece.code, innerSyntax),
+          innerSyntax
         );
+        const expression = parser.expression();
+        while (parser.peek().type === 'newline') {
+          parser.next();
+        }
+        if (parser.peek().type !== 'end') {
+          throw new SyntaxError(
+            `Unexpected "${parser.peek().value}" in interpolation`,
+            token.line
+          );
+        }
+        parts.push(expression);
       }
     }
-    if (parts.length === 1 && parts[0].kind === 'Text') {
+    if (
+      parts.length === 1 &&
+      parts[0].kind === 'Text' &&
+      this.syntax.id !== 'python'
+    ) {
       return parts[0];
     }
     return node('Interpolation', { parts });
@@ -1387,6 +1430,17 @@ function closingIndex(value, start, close) {
   return end;
 }
 
+// Constructing the node outside the parser leaves the entire postfix
+// expression, including its callee, as the observed concrete production.
+function callExpression(expression, values, typeArguments) {
+  const member = expression.kind === 'Method';
+  return node(typeArguments ? 'CppTemplateCall' : 'Call', {
+    callee: member ? `.${expression.name}` : calleeName(expression),
+    arguments: member ? [expression.receiver, ...values] : values,
+    ...(typeArguments ? { typeArguments } : {}),
+  });
+}
+
 function calleeName(expression) {
   if (expression.kind !== 'Name') {
     throw new SyntaxError('Only named functions can be called', 0);
@@ -1400,57 +1454,21 @@ export function numberLiteral(written) {
   return /[.eE]/.test(written) ? { ...literal, type: 'real' } : literal;
 }
 
-// Arrays, loops and type hints are read by mixins of their own, which the
-// dialects inherit.
-const Parser = withFunctionForms(withLoops(withArrays(BaseParser)));
-
-// Map a source type spelling to a meta type.
-export function sourceType(spelling) {
-  const words = spelling
-    .replace(/\b(const|static|unsigned|signed|mut)\b/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-  if (
-    /^(int|long|short|i8|i16|i32|i64|isize|u8|u16|u32|u64|usize|Int|Long|number|integer)$/.test(
-      words
+// Language dialects inherit the shared statement and expression rules.
+const Parser = withObjpakParser(
+  withQueryParser(
+    withExceptionParser(
+      withAnnotations(
+        withFunctionForms(
+          withLoops(withArrays(withEvaluationParser(BaseParser)))
+        )
+      )
     )
-  ) {
-    return 'integer';
-  }
-  if (
-    /^(char ?\*|std ?:: ?string|string|String|& ?str|&'static str)$/.test(words)
-  ) {
-    return 'text';
-  }
-  if (
-    /^((int|long|Long|number|i64) ?\[ ?\]|std ?:: ?vector ?< ?int ?>|Vec ?< ?i64 ?>|IntArray|\[ ?\] ?int|\[ ?Int ?\]|List ?< ?(int|Long) ?>|Array ?\[ ?Long ?\]|seq ?\[ ?int ?\]|\[ ?(\d+ ?)?\] ?i64)$/.test(
-      words
-    )
-  ) {
-    return 'array';
-  }
-  if (
-    /^(double|float|f32|f64|float32|float64|Double|Float|Float64|Long_Float|real|Real)$/.test(
-      words
-    )
-  ) {
-    return 'real';
-  }
-  if (/^(bool|boolean|Bool|Boolean)$/.test(words)) {
-    return 'boolean';
-  }
-  if (/^(void|\(\)|Unit|Void)$/.test(words)) {
-    return 'nothing';
-  }
-  if (words === '' || words === 'var' || words === 'auto') {
-    return undefined;
-  }
-  return `source:${words}`;
-}
+  )
+);
 
 const elseWords = ['else', 'elif', 'elsif', 'elseif'];
 const startsElse = (parser, offset = 0) =>
   [...elseWords, parser.syntax.elseIf ?? 'else'].some((word) =>
     parser.is(word, offset)
   );
-const assignmentSymbols = ['=', '+=', '-=', '*=', '/=', '%=', '++', '--'];

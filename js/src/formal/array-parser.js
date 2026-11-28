@@ -52,6 +52,11 @@ const withArrayConstructors = (Base) =>
     }
 
     newConstructor() {
+      if (this.syntax.id === 'csharp' && this.is('[', 1) && this.is(']', 2)) {
+        this.position += 3;
+        this.expect('{');
+        return node('ArrayLiteral', { elements: this.elementList('}') });
+      }
       // Java, Groovy and D: new int[n], filled with zeros.
       if (this.peek(1).type === 'name' && this.is('[', 2)) {
         this.next();
@@ -122,6 +127,16 @@ const withArrayConstructors = (Base) =>
     // C: sizeof a.
     sizeOf() {
       this.next();
+      if (
+        this.is('(') &&
+        (castTypes.has(this.peek(1).value) ||
+          (this.syntax.id === 'cpp' && this.is('char', 1))) &&
+        this.is(')', 2)
+      ) {
+        const type = this.peek(1).value;
+        this.position += 3;
+        return node('SizeOf', { operand: name(type) });
+      }
       return node('SizeOf', { operand: this.unary() });
     }
 
@@ -136,14 +151,20 @@ const withArrayConstructors = (Base) =>
 
     // C and C++: (int) value.
     cast() {
+      const castType = this.peek(1).value;
+      const cppChar = this.syntax.id === 'cpp' && castType === 'char';
       if (
         this.is('(') &&
-        castTypes.has(this.peek(1).value) &&
+        (castTypes.has(castType) || cppChar) &&
         this.is(')', 2) &&
         ['c', 'objc', 'cpp'].includes(this.syntax.family ?? this.syntax.id)
       ) {
         this.position += 3;
-        return this.unary();
+        const operand = this.unary();
+        return cppChar ||
+          ['CppCharacter', 'CppIntegralCast'].includes(operand.kind)
+          ? node('CppIntegralCast', { castType, operand })
+          : operand;
       }
       return undefined;
     }
@@ -165,11 +186,11 @@ const withArrayConstructors = (Base) =>
 const withArrayExpressions = (Base) =>
   class ArrayExpressionParser extends Base {
     // a, b, c up to the closing symbol.
-    elementList(close) {
+    elementList(close, readElement = () => this.expression()) {
       const elements = [];
       this.skipLineEnds();
       while (!this.is(close)) {
-        elements.push(this.expression());
+        elements.push(readElement());
         this.skipLineEnds();
         if (!this.accept(',')) {
           break;
@@ -213,6 +234,9 @@ const withArrayExpressions = (Base) =>
     arrayPrimary() {
       const id = this.syntax.family ?? this.syntax.id;
       const token = this.peek();
+      if (id === 'cpp' && token.quote === "'") {
+        return node('CppCharacter', { raw: this.next().value });
+      }
       if (this.is('[')) {
         return this.bracketPrimary();
       }
@@ -311,7 +335,12 @@ const withArrayStatements = (Base) =>
     // The tokens of a C array declaration: int a[] = ..., int a[n];
     // C++ vectors: std::vector<int> a = ..., std::vector<int> a(n, v);
     arrayDeclarationStart() {
-      if (this.is('std') && this.is('::', 1) && this.is('vector', 2)) {
+      if (
+        this.syntax.id === 'cpp' &&
+        ['std', '::', 'vector', '<', 'int', '>'].every((word, index) =>
+          this.is(word, index)
+        )
+      ) {
         return 'vector';
       }
       const c = ['c', 'objc'].includes(this.syntax.family ?? this.syntax.id);
@@ -350,6 +379,10 @@ const withArrayStatements = (Base) =>
           const fill = this.expression();
           this.expect(')');
           value = node('NewArray', { length, fill });
+        } else if (this.is('{')) {
+          value = this.arrayPrimary();
+        } else {
+          value = node('ArrayLiteral', { elements: [] });
         }
       } else {
         this.next();

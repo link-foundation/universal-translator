@@ -12,7 +12,28 @@ natural:
   true: 'सत्य'
   false: 'असत्य'
   note: 'टिप्पणी: {text}'
+  grammar:
+    terms:
+      interrogative: 'क्या है'
+      query-scope: '{source} में हर {variable} के लिए'
+      query-deferred: '“विलंबित”'
+    productions:
+      answer-type: '{subject} का प्रकार'
+      question-type: '@answer-type @interrogative'
+      answer-documentation: '{subject} का विवरण'
+      question-documentation: '@answer-documentation @interrogative'
+      answer-source: '{subject} का स्रोत कोड'
+      question-source: '@answer-source @interrogative'
+      answer-details: '{subject} की विस्तृत जानकारी'
+      question-details: '@answer-details @interrogative'
+      answer-query: '@query-scope {condition} होने पर {projection} के मान'
+      question-query: '@answer-query क्या हैं'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
+      element: '{array} में तत्व {index}'
+      set-element: '@element[array=name] को {value} में बदलें'
   templates:
+    documentation: 'विवरण है {value}'
     function: '{name} को {parameters} से परिभाषित करें'
     function-without-parameters: '{name} को परिभाषित करें'
     declare: '{name} को मान {value} के साथ बनाएँ'
@@ -50,9 +71,7 @@ natural:
     remainder: '{left} मॉड्यूलो {right}' '{left} % {right}'
     array: 'सूची ({elements})'
     new-array: 'सूची लंबाई {length} हर तत्व {fill}'
-    element: '{array} में तत्व {index}'
     length: '{array} की लंबाई'
-    set-element: '{name} में तत्व {index} को {value} में बदलें'
   words:
     ackermann: 'एकरमैन'
     bottles: 'बोतलें'

@@ -4,6 +4,7 @@
 //! tables, so supporting another language (or a project-specific dialect)
 //! means describing it here.
 
+pub use super::machine_languages::MACHINE_TARGETS;
 use super::more_languages::MORE_LANGUAGES;
 use super::rocq_runtime::ROCQ_RUNTIME;
 use super::versions::{split_version, with_version};
@@ -174,6 +175,8 @@ pub struct Syntax {
     pub blocks: Blocks,
     pub line_comment: &'static str,
     pub block_comment: Option<(&'static str, &'static str)>,
+    pub nested_comments: bool,
+    pub comment_strings: bool,
     pub quotes: &'static [char],
     pub interpolation: &'static [Interpolation],
     /// Characters escaped in plain text because they start an embedding.
@@ -389,6 +392,8 @@ pub(super) const JAVASCRIPT: Syntax = Syntax {
     blocks: Blocks::Braces,
     line_comment: "//",
     block_comment: SLASH_COMMENTS,
+    nested_comments: false,
+    comment_strings: false,
     quotes: SCRIPT_QUOTES,
     interpolation: &[embeds('`', InterpolationStyle::DollarBraces)],
     escape_sigils: &[],
@@ -580,6 +585,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "cpp",
+        quotes: &['"', '\''],
         for_each: Some("for ({type} {variable} : {array})"),
         label: "C++",
         print_line: "std::cout",
@@ -653,6 +659,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "rust",
+        nested_comments: true,
         for_each: Some("for &{variable} in &{array}"),
         label: "Rust",
         immutable_parameters: ImmutableParameters::Copied,
@@ -676,6 +683,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "kotlin",
+        nested_comments: true,
         for_each: Some("for ({variable} in {array})"),
         label: "Kotlin",
         naming: same(Convention::Camel),
@@ -699,6 +707,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "swift",
+        nested_comments: true,
         for_each: Some("for {variable} in {array}"),
         label: "Swift",
         naming: same(Convention::Camel),
@@ -757,6 +766,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "dart",
+        nested_comments: true,
         for_each: Some("for (final {variable} in {array})"),
         label: "Dart",
         naming: same(Convention::Camel),
@@ -788,6 +798,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "scala",
+        nested_comments: true,
         for_each: Some("for ({variable} <- {array})"),
         label: "Scala",
         naming: same(Convention::Camel),
@@ -826,6 +837,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "julia",
+        nested_comments: true,
         for_each: Some("for {variable} in {array}"),
         array_base: 1,
         label: "Julia",
@@ -925,6 +937,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "nim",
+        nested_comments: true,
         for_each: Some("for {variable} in {array}"),
         label: "Nim",
         naming: same(Convention::Camel),
@@ -1079,7 +1092,9 @@ pub static LANGUAGES: [Syntax; 32] = [
         declarations: &[],
         // Integer literals passed to integer(8) arguments carry the kind 8.
         long_suffix: Some("_8"),
-        symbols: &[".and.", ".or.", ".not.", ".true.", ".false.", "/="],
+        symbols: &[
+            ".and.", ".or.", ".not.", ".true.", ".false.", ".eqv.", ".neqv.", "/=",
+        ],
         function_keyword: None,
         compound_assignment: false,
         operators: Operators {
@@ -1294,6 +1309,7 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "lean",
+        nested_comments: true,
         for_each: None,
         label: "Lean",
         immutable_parameters: ImmutableParameters::Copied,
@@ -1329,6 +1345,8 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
     Syntax {
         id: "rocq",
+        comment_strings: true,
+        nested_comments: true,
         for_each: None,
         label: "Rocq",
         naming: same(Convention::Snake),
@@ -1364,100 +1382,6 @@ pub static LANGUAGES: [Syntax; 32] = [
     },
 ];
 
-/// The machine targets: x86-64 assembly (NASM and GNU as in AT&T syntax),
-/// ARM64 assembly, CIL, JVM bytecode, LLVM IR and WebAssembly text. Only the
-/// label, naming, comment marker and terms are read, by the context rules.
-pub const MACHINE_TARGETS: [Syntax; 7] = [
-    Syntax {
-        id: "nasm",
-        label: "x86-64 assembly (NASM)",
-        naming: same(Convention::Snake),
-        line_comment: ";",
-        terms: Terms {
-            call: "call instruction",
-            routine: "procedure",
-        },
-        machine: true,
-        forward_declarations: ForwardDeclarations::None,
-        ..C
-    },
-    Syntax {
-        id: "gas",
-        label: "x86-64 assembly (GNU as, AT&T)",
-        naming: same(Convention::Snake),
-        line_comment: "#",
-        terms: Terms {
-            call: "call instruction",
-            routine: "function",
-        },
-        machine: true,
-        forward_declarations: ForwardDeclarations::None,
-        ..C
-    },
-    Syntax {
-        id: "arm64",
-        label: "ARM64 assembly",
-        naming: same(Convention::Snake),
-        line_comment: "//",
-        terms: Terms {
-            call: "branch instruction",
-            routine: "function",
-        },
-        machine: true,
-        forward_declarations: ForwardDeclarations::None,
-        ..C
-    },
-    Syntax {
-        id: "cil",
-        label: "CIL",
-        naming: Naming {
-            function: Convention::Pascal,
-            variable: Convention::Camel,
-        },
-        line_comment: "//",
-        terms: METHOD_TERMS,
-        machine: true,
-        forward_declarations: ForwardDeclarations::None,
-        ..C
-    },
-    Syntax {
-        id: "jvm",
-        label: "JVM bytecode",
-        naming: same(Convention::Camel),
-        line_comment: ";",
-        terms: METHOD_TERMS,
-        machine: true,
-        forward_declarations: ForwardDeclarations::None,
-        ..C
-    },
-    Syntax {
-        id: "llvm",
-        label: "LLVM IR",
-        naming: same(Convention::Snake),
-        line_comment: ";",
-        terms: Terms {
-            call: "call instruction",
-            routine: "function",
-        },
-        machine: true,
-        forward_declarations: ForwardDeclarations::None,
-        ..C
-    },
-    Syntax {
-        id: "wat",
-        label: "WebAssembly text",
-        naming: same(Convention::Snake),
-        line_comment: ";;",
-        terms: Terms {
-            call: "call instruction",
-            routine: "function",
-        },
-        machine: true,
-        forward_declarations: ForwardDeclarations::None,
-        ..C
-    },
-];
-
 /// The identifiers of the machine targets.
 pub fn machine_target_ids() -> Vec<&'static str> {
     MACHINE_TARGETS.iter().map(|syntax| syntax.id).collect()
@@ -1472,6 +1396,7 @@ pub fn language_syntax(identifier: &str) -> Result<Syntax, GrammarError> {
     let syntax = LANGUAGES
         .iter()
         .chain(MORE_LANGUAGES.iter())
+        .chain(super::query_languages::QUERY_LANGUAGES.iter())
         .chain(MACHINE_TARGETS.iter())
         .find(|syntax| syntax.id == id)
         .cloned()

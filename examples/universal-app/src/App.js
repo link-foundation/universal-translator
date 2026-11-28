@@ -39,6 +39,7 @@ import {
 import { useEditorSync } from './editor-sync.js';
 import { debug, timed } from './debug.js';
 import { linoLexicon, metaWords, sourceLexicon } from './highlight.js';
+import { issueReportUrl } from './report-issue.js';
 
 const repositoryUrl =
   import.meta.env.VITE_REPOSITORY_URL ??
@@ -101,13 +102,19 @@ function translateWith(
       fragment,
     });
     if (result.readLines === 0 && !result.complete) {
-      return { error: result.errors[0].message, detected };
+      return {
+        error: result.errors[0].message,
+        errors: result.errors,
+        coverage: result.coverage,
+        detected,
+      };
     }
     return {
       output: result.text,
       errors: result.errors,
       coverage: result.coverage,
       lineMap: result.lineMap,
+      regionMap: result.regionMap,
       detected,
     };
   } catch (error) {
@@ -519,6 +526,7 @@ function Editors({ source, result, update, lexicons, editor, t }) {
     [sourcePane, targetPane],
     strip,
     result.lineMap,
+    result.regionMap,
     source,
     result.output
   );
@@ -542,6 +550,7 @@ function Editors({ source, result, update, lexicons, editor, t }) {
           className: 'map-strip',
           'aria-hidden': true,
           'data-line-map': result.lineMap ? result.lineMap.length : 0,
+          'data-region-map': result.regionMap ? result.regionMap.length : 0,
         })
       : null,
     h(TextPane, {
@@ -595,9 +604,17 @@ function useTranslation(state, rules) {
   );
 }
 
-function Translate({ entries, state, update, rules, editor, onWrap, t }) {
+function Translate({
+  entries,
+  state,
+  update,
+  rules,
+  result,
+  editor,
+  onWrap,
+  t,
+}) {
   const { source, from, to, showMeta } = state;
-  const result = useTranslation(state, rules);
   const natural = entries.filter((entry) => entry.group === 'natural');
   // The language the text is read in: the one chosen, or the detected one.
   const reading = from === 'auto' ? result.detected : from;
@@ -611,16 +628,9 @@ function Translate({ entries, state, update, rules, editor, onWrap, t }) {
     () => (failed ? undefined : lexiconOf(result.output, to)),
     [failed, result.output, to]
   );
-  // The left language changes: the text is said in it (from the
-  // translation on the right when there is one).
-  const changeFrom = (next) =>
-    update({
-      from: next,
-      source:
-        next === 'auto' || !reading
-          ? source
-          : sourceIn(next, { ...state, from: reading, output: result.output }),
-    });
+  // Correcting detection changes how the input is read. It never rewrites
+  // the user's input with a translation or partial-translation diagnostics.
+  const changeFrom = (next) => update({ from: next });
   const swap = () =>
     update({
       from: to,
@@ -714,6 +724,12 @@ export function App({ initialSettings }) {
   // Saved standards are new versions: the pickers list them after saving.
   const entries = useMemo(() => languageEntries(translator), [revision]);
   const rules = useRules(entries);
+  const result = useTranslation(state, rules);
+  const reportUrl = useMemo(
+    () =>
+      issueReportUrl(repositoryUrl, { ...state, rules: rules.rules }, result),
+    [state, rules.rules, result]
+  );
   rules.open = () => setTab('rules');
   const editor = {
     engine: settings.editor ?? 'monaco',
@@ -755,6 +771,7 @@ export function App({ initialSettings }) {
           state,
           update,
           rules,
+          result,
           editor,
           onWrap: (wrap) => changeSettings({ ...settings, wrap }),
           t,
@@ -824,16 +841,35 @@ export function App({ initialSettings }) {
       )
     ),
     panels[tab](),
+    h(AppFooter, { schema, settings, text, t, reportUrl, changeSettings })
+  );
+}
+
+function AppFooter({ schema, settings, text, t, reportUrl, changeSettings }) {
+  return h(
+    'footer',
+    { className: 'app-footer' },
+    h(SettingsLink, {
+      schema,
+      values: settings,
+      messages: text.panelMessages,
+      label: t('footer.settings'),
+      onChange: changeSettings,
+    }),
     h(
-      'footer',
-      { className: 'app-footer' },
-      h(SettingsLink, {
-        schema,
-        values: settings,
-        messages: text.panelMessages,
-        label: t('footer.settings'),
-        onChange: changeSettings,
-      })
+      'a',
+      {
+        id: 'report-issue',
+        href: reportUrl,
+        target: '_blank',
+        rel: 'noreferrer',
+      },
+      t('footer.reportIssue')
+    ),
+    h(
+      'a',
+      { href: repositoryUrl, target: '_blank', rel: 'noreferrer' },
+      t('footer.sourceCode')
     )
   );
 }

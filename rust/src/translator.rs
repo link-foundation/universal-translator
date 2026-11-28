@@ -26,6 +26,10 @@ use crate::comment_language::{self, CommentTranslator};
 use crate::custom_rules::CustomRules;
 pub use crate::detect::Detection;
 use crate::formal::versions::{Version, split_version, versions_of};
+use crate::formal::{
+    lowering::LoweredProgram, machine_reader_jvm_class::read_jvm_class,
+    machine_reader_wasm_binary::read_wasm_binary,
+};
 use crate::fragments;
 pub use crate::fragments::{Fragment, FragmentKind};
 pub use crate::partial::{PartError, PartStatus, PartialReading, PartialTranslation};
@@ -110,7 +114,11 @@ fn with_layout(
         &result.text,
         &crate::layout::Marks::of(&from_syntax),
         &crate::layout::Marks::of(&to_syntax),
-        options.layout == TextLayout::Source && !options.style.is_set(),
+        options.layout == TextLayout::Source
+            && !options.style.is_set()
+            && !(from == to
+                && options.comment_language.is_some()
+                && options.identifier_language.is_none()),
         split_version(to).0,
     );
     if !options.style.is_set() {
@@ -407,18 +415,65 @@ impl Translator {
             .map(crate::meta::imprecision::mark_imprecision)
     }
 
+    /// Read the supported WebAssembly version 1 binary instructions.
+    pub fn to_meta_wasm(&self, bytes: &[u8]) -> Result<Node, GrammarError> {
+        self.type_binary(&read_wasm_binary(bytes)?, "wat")
+    }
+
+    /// Read the supported straight-line JVM class file instructions.
+    pub fn to_meta_jvm_class(&self, bytes: &[u8]) -> Result<Node, GrammarError> {
+        self.type_binary(&read_jvm_class(bytes)?, "jvm")
+    }
+
+    fn type_binary(&self, machine: &LoweredProgram, from: &str) -> Result<Node, GrammarError> {
+        let settings = Settings {
+            from: from.to_owned(),
+            to: from.to_owned(),
+            target: from.to_owned(),
+            mode: Mode::default(),
+        };
+        self.type_machine(machine, None, &settings)
+            .map(crate::meta::imprecision::mark_imprecision)
+    }
+
     fn read_meta(&self, text: &str, from: &str) -> Result<Node, GrammarError> {
+        crate::emission_map::source_records(|| self.read_source(text, from))
+    }
+
+    fn type_machine(
+        &self,
+        machine: &LoweredProgram,
+        source: Option<&str>,
+        settings: &Settings,
+    ) -> Result<Node, GrammarError> {
+        let lifted =
+            rules::infer_mutability(meta::for_each::raise_for_each((self.stages.lift)(machine)?));
+        if let Some(source) = source {
+            self.report(
+                "parsed",
+                &crate::source_syntax::source_tree(source, &settings.from, &lifted),
+            );
+        }
+        self.report("lifted", &lifted);
+        let typed = apply_rules((self.stages.infer)(lifted), &self.meaning, settings);
+        self.report("typed", &typed);
+        Ok(typed)
+    }
+
+    fn read_source(&self, text: &str, from: &str) -> Result<Node, GrammarError> {
         let source = &self.rules.source(text, from);
         if natural::is_natural_language(from) {
-            // A controlled natural language is read sentence by sentence
-            // straight into the meta language; it has no source details to
-            // understand.
+            // Sentence reading supplies semantics alongside the concrete record.
             let language = match self.rules.natural_language(from) {
                 Some(language) => language,
                 None => natural::natural_language(from).map_err(GrammarError::new)?,
             };
             let read = (self.stages.read_natural)(source, from, language)?;
             let read = rules::infer_mutability(read);
+            self.report(
+                "parsed",
+                &crate::source_syntax::source_tree(source, from, &read),
+            );
             self.report("read", &read);
             let settings = Settings {
                 from: from.to_owned(),
@@ -440,18 +495,9 @@ impl Translator {
             mode: Mode::default(),
         };
         if syntax.machine {
-            // Machine code has no grammar to parse: read its instructions,
-            // lift them to the meta language and continue like any other
-            // source.
+            // Instruction reading and lifting retain the concrete source record.
             let machine = (self.stages.read_machine)(source, from)?;
-            let lifted =
-                rules::infer_mutability(meta::for_each::raise_for_each((self.stages.lift)(
-                    &machine,
-                )?));
-            self.report("lifted", &lifted);
-            let typed = apply_rules((self.stages.infer)(lifted), &self.meaning, &settings);
-            self.report("typed", &typed);
-            return Ok(typed);
+            return self.type_machine(&machine, Some(source), &settings);
         }
         let source_tree = (self.stages.parse)(source, &syntax)?;
         self.report("parsed", &source_tree);
@@ -534,6 +580,11 @@ impl Translator {
             Some(languages::language_syntax(to)?)
         };
         let machine = syntax.as_ref().is_some_and(|syntax| syntax.machine);
+        if options.common_library && languages::language_syntax(to).is_ok_and(|s| s.id == "sql") {
+            return Err(GrammarError::new(format!(
+                "Query targets have no common library ({to})"
+            )));
+        }
         if options.common_library && machine {
             return Err(GrammarError::new(format!(
                 "Machine targets have no common library ({to})"
@@ -565,16 +616,34 @@ impl Translator {
         }
         let transformed = self.in_identifier_language(transformed, options)?;
         self.report("transformed", &transformed);
+        let transformed = if matches!(settings.to.as_str(), "python" | "javascript" | "typescript")
+        {
+            crate::meta::evaluation_order::raise(transformed)
+        } else {
+            transformed
+        };
+        let transformed = crate::meta::integer_arithmetic::lower(transformed, &settings)?;
         if natural {
             return self.in_comment_language(transformed, options);
         }
-        let adapted = apply_rules(transformed, &self.context, &settings);
+        let sequenced = crate::meta::evaluation_order::lower(transformed, &settings);
+        let adapted = crate::formal::cpp_library::adapt_native_c_program(
+            apply_rules(sequenced, &self.context, &settings),
+            &settings,
+        );
         self.report("adapted", &adapted);
         self.in_comment_language(adapted, options)
     }
 
     /// Write an adapted program in a language, a machine target or words.
     pub fn write(&self, adapted: &Node, to: &str) -> Result<String, GrammarError> {
+        if !adapted.nodes("definitions").is_empty()
+            && (natural::is_natural_language(to) || machine_target_ids().contains(&to))
+        {
+            return Err(GrammarError::new(format!(
+                "Record definitions cannot be emitted in {to}"
+            )));
+        }
         let written = if natural::is_natural_language(to) {
             (self.stages.write_natural)(adapted, to)?
         } else if languages::language_syntax(to)?.machine {
@@ -613,34 +682,45 @@ impl Translator {
         options: Options,
         fragment: bool,
     ) -> Result<PartialTranslation, GrammarError> {
-        let machine = machine_target_ids().contains(&to)
-            || (!natural::is_natural_language(from) && languages::language_syntax(from)?.machine);
-        let whole = if fragment {
-            fragments::translate_fragment(self, source, from, to, options)
-        } else {
-            self.translate_plain(source, from, to, options)
-        };
-        let result = match whole {
-            Ok(text) => {
-                let lines = source
-                    .split('\n')
-                    .filter(|line| !line.trim().is_empty())
-                    .count();
-                PartialTranslation {
-                    text,
-                    line_map: Vec::new(),
-                    complete: true,
-                    errors: Vec::new(),
-                    lines,
-                    read_lines: lines,
-                    coverage: 1.0,
-                    prose: Vec::new(),
+        let (result, emissions) = crate::emission_map::capture(|| {
+            let machine = machine_target_ids().contains(&to)
+                || (!natural::is_natural_language(from)
+                    && languages::language_syntax(from)?.machine);
+            let whole = if fragment {
+                fragments::translate_fragment(self, source, from, to, options)
+            } else {
+                self.translate_plain(source, from, to, options)
+            };
+            let result = match whole {
+                Ok(text) => {
+                    let lines = source
+                        .split('\n')
+                        .filter(|line| !line.trim().is_empty())
+                        .count();
+                    PartialTranslation {
+                        region_map: Vec::new(),
+                        text,
+                        line_map: Vec::new(),
+                        complete: true,
+                        errors: Vec::new(),
+                        lines,
+                        read_lines: lines,
+                        coverage: 1.0,
+                        prose: Vec::new(),
+                    }
                 }
-            }
-            Err(error) if machine => return Err(error),
-            Err(_) => crate::partial::translate_partial(self, source, from, to, options)?,
-        };
-        with_layout(result, source, from, to, options)
+                Err(error) if machine => return Err(error),
+                Err(_) => crate::partial::translate_partial(self, source, from, to, options)?,
+            };
+            with_layout(result, source, from, to, options)
+        });
+        let mut result = result?;
+        let semantic =
+            crate::emission_map::emitted_map(&emissions, source, &result.text, split_version(to).0);
+        result.line_map = crate::emission_map::merge(semantic, result.line_map);
+        result.region_map =
+            crate::region_map::region_map(self, source, &result.text, from, to, &result.line_map);
+        Ok(result)
     }
 
     /// Rank the languages a text may be written in, likeliest first, and
@@ -649,7 +729,7 @@ impl Translator {
         crate::detect::detect_language(self, source, limit)
     }
 
-    /// Read a complete fragment: a whole program, function definitions or
+    /// Read a complete fragment: a whole program, definitions or
     /// statements.
     pub fn parse_fragment(&self, source: &str, from: &str) -> Result<Fragment, GrammarError> {
         fragments::parse_fragment(self, source, from)
@@ -694,6 +774,40 @@ impl Translator {
         styled(text, to, options.style)
     }
 
+    /// Translate a WebAssembly version 1 binary into a text target.
+    pub fn translate_wasm(
+        &self,
+        bytes: &[u8],
+        to: &str,
+        options: Options,
+    ) -> Result<String, GrammarError> {
+        self.write_binary(self.to_meta_wasm(bytes)?, "wat", to, options)
+    }
+
+    /// Translate a supported JVM class file into a text target.
+    pub fn translate_jvm_class(
+        &self,
+        bytes: &[u8],
+        to: &str,
+        options: Options,
+    ) -> Result<String, GrammarError> {
+        self.write_binary(self.to_meta_jvm_class(bytes)?, "jvm", to, options)
+    }
+
+    fn write_binary(
+        &self,
+        mut meta: Node,
+        from: &str,
+        to: &str,
+        options: Options,
+    ) -> Result<String, GrammarError> {
+        if matches!(split_version(to).0, "javascript" | "typescript") {
+            meta = meta::integer_arithmetic::normalize_machine_integer_zero(meta);
+        }
+        let adapted = self.adapt(&meta, to, Some(from), options)?;
+        styled(self.write(&adapted, to)?, to, options.style)
+    }
+
     /// The translation as the emitter writes it.
     fn translate_plain(
         &self,
@@ -704,10 +818,14 @@ impl Translator {
     ) -> Result<String, GrammarError> {
         // Same code, other comment or identifier language: change only the
         // comments and the names, in place.
-        if (options.comment_language.is_some() || options.identifier_language.is_some())
-            && from == to
+        let in_place_names = from == to
+            && options.identifier_language.is_some()
             && !natural::is_natural_language(from)
-            && !languages::language_syntax(from)?.machine
+            && !languages::language_syntax(from)?.machine;
+        if ((from == to
+            && options.comment_language.is_some()
+            && options.identifier_language.is_none())
+            || in_place_names)
             && let Some(kept) = self.in_place(source, from, options)?
         {
             return Ok(kept);
@@ -735,6 +853,8 @@ pub struct LanguageListing {
     /// Whether this is a machine target (assembly or an intermediate
     /// language) rather than a source language.
     pub machine: bool,
+    /// Whether the language accepts relation queries rather than imperative programs.
+    pub query: bool,
 }
 
 /// The programming languages with their labels and versions, then the
@@ -742,6 +862,7 @@ pub struct LanguageListing {
 pub fn languages() -> Vec<LanguageListing> {
     language_ids()
         .into_iter()
+        .chain(crate::formal::query_languages::query_language_ids())
         .chain(machine_target_ids())
         .filter_map(|id| languages::language_syntax(id).ok())
         .map(|syntax| LanguageListing {
@@ -749,6 +870,7 @@ pub fn languages() -> Vec<LanguageListing> {
             label: syntax.label,
             versions: versions_of(syntax.id),
             machine: syntax.machine,
+            query: syntax.id == "sql",
         })
         .collect()
 }

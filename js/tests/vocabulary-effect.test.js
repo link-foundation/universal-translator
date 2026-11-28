@@ -35,6 +35,7 @@ function greet(n) {
 }
 function show(n) {
   console.log(n % 3 == 1);
+  console.log(n != 3);
 }
 function list(n) {
   for (let i = 0; i < n; i++) {
@@ -73,6 +74,8 @@ const unshown = {
   kotlin: ['types.nothing'],
   objc: ['lineComment', 'types.text'],
   nim: ['types.nothing'],
+  // R's %% is floor modulo. Truncating remainder is now a shared algorithm.
+  r: ['operators.remainder'],
   d: ['operators.concatenate'],
   pascal: ['types.text', 'types.nothing'],
   fortran: [
@@ -87,14 +90,7 @@ const unshown = {
   bash: ['variableSigil'],
   zig: ['types.text'],
   lean: ['assignment', 'operators.concatenate', 'types.nothing'],
-  rocq: [
-    'lineComment',
-    'blockComment',
-    'assignment',
-    'operators.notEqual',
-    'operators.concatenate',
-    'types.nothing',
-  ],
+  rocq: ['lineComment', 'assignment', 'operators.notEqual', 'types.nothing'],
 };
 
 function attempt(work) {

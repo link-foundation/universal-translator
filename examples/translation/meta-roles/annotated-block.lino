@@ -1,0 +1,13 @@
+extension
+  body
+    block (label retry)
+      comments
+        comment 'Keep this metadata.'
+      statements
+        return
+          value
+            number 1
+  a-extension
+    text first
+  z-extension
+    text last

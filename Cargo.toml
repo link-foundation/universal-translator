@@ -9,11 +9,20 @@ include = [
     "/rust/src/**",
     "/data/**",
     "/rust/tests/**",
-    "/examples/translation/hello.c",
-    "/examples/translation/hello.cs",
+    "/examples/translation/**",
     "/examples/programs/**",
     "/examples/layout/**",
     "/examples/rules/**",
+    "/examples/objpak/hello.m",
+    "/examples/objpak/conditions.m",
+    "/examples/printing/arithmetic.py",
+    "/examples/arithmetic/division.c",
+    "/examples/arithmetic/evaluation.py",
+    "/examples/runtime-headers/php-modes.json",
+    "/examples/queries/identifiers.json",
+    "/examples/queries/negation.json",
+    "/examples/queries/nullable.json",
+    "/examples/queries/projected-rows.json",
     "/docs/case-studies/issue-14/data/hello-world-collection/programs.json",
     "/docs/case-studies/issue-14/hello-world-coverage.lino",
     "/README.md",
@@ -23,12 +32,16 @@ include = [
 [lib]
 path = "rust/src/lib.rs"
 
+[[test]]
+name = "concrete_syntax"
+path = "rust/tests/concrete_syntax.rs"
+
 [[bin]]
 name = "universal-translator"
 path = "rust/src/main.rs"
 
 [dependencies]
-meta-language = { version = "=1.0.0", default-features = false }
+meta-language = { version = "=1.1.0", default-features = false }
 relative-meta-logic = { version = "=0.21.0", default-features = false, features = ["core"] }
 regex = "1"
 serde = { version = "1", features = ["derive"] }
@@ -78,6 +91,10 @@ path = "rust/tests/natural.rs"
 [[test]]
 name = "fragments"
 path = "rust/tests/fragments.rs"
+
+[[test]]
+name = "records"
+path = "rust/tests/records.rs"
 
 [[test]]
 name = "issue_6"
@@ -160,9 +177,69 @@ name = "language_versions"
 path = "rust/tests/language_versions.rs"
 
 [[test]]
+name = "annotations"
+path = "rust/tests/annotations.rs"
+
+[[test]]
+name = "exceptions"
+path = "rust/tests/exceptions.rs"
+
+[[test]]
 name = "ranking"
 path = "rust/tests/ranking.rs"
 
 [[test]]
 name = "real_numbers"
 path = "rust/tests/real_numbers.rs"
+
+[[test]]
+name = "integer_arithmetic"
+path = "rust/tests/integer_arithmetic.rs"
+
+[[test]]
+name = "evaluation_order"
+path = "rust/tests/evaluation_order.rs"
+
+[[test]]
+name = "semantic_mapping"
+path = "rust/tests/semantic_mapping.rs"
+
+[[test]]
+name = "region_mapping"
+path = "rust/tests/region_mapping.rs"
+
+[[test]]
+name = "grammar_workspace"
+path = "rust/tests/grammar_workspace.rs"
+
+[[test]]
+name = "comment_mapping"
+path = "rust/tests/comment_mapping.rs"
+
+[[test]]
+name = "comment_whitespace"
+path = "rust/tests/comment_whitespace.rs"
+
+[[test]]
+name = "runtime_headers"
+path = "rust/tests/runtime_headers.rs"
+
+[[test]]
+name = "questions"
+path = "rust/tests/questions.rs"
+
+[[test]]
+name = "queries"
+path = "rust/tests/queries.rs"
+
+[[test]]
+name = "objpak"
+path = "rust/tests/objpak.rs"
+
+[[test]]
+name = "meta_notation"
+path = "rust/tests/meta_notation.rs"
+
+[[test]]
+name = "sql_values"
+path = "rust/tests/sql_values.rs"

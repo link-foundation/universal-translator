@@ -12,6 +12,8 @@
 
 use rml::probability::{Aggregator, TruthValue};
 
+use crate::corpus_frequencies::reading_counts;
+
 /// A value on the truth value grid: clamped to [0, 1], six decimals, half
 /// up; what is not a number is unknown (0.5).
 pub fn truth(value: f64) -> f64 {
@@ -31,6 +33,19 @@ pub fn priors(count: usize) -> Vec<f64> {
     (0..count)
         .map(|at| truth(1.0 / (at + 1) as f64 / total))
         .collect()
+}
+
+/// The observed proportions when each available reading has corpus evidence.
+pub(crate) fn reading_priors(language: &str, phrase: &str, meanings: &[&str]) -> Vec<f64> {
+    let counts = reading_counts(language, phrase, meanings.iter().copied());
+    if let Some(counts) = counts.filter(|counts| counts.len() > 1) {
+        let total: f64 = counts.iter().map(|count| f64::from(*count)).sum();
+        return counts
+            .into_iter()
+            .map(|count| truth(f64::from(count) / total))
+            .collect();
+    }
+    priors(meanings.len())
 }
 
 /// How much of `source` survives in `back`: the longest common subsequence

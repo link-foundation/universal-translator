@@ -1,0 +1,209 @@
+▶ detecting the language of every golden
+  ✔ detects javascript (.js) (1833.530787ms)
+  ✔ detects typescript (.ts) (200.384963ms)
+  ✔ detects python (.py) (193.813442ms)
+  ✔ detects ruby (.rb) (121.01931ms)
+  ✔ detects lua (.lua) (140.548569ms)
+  ✔ detects php (.php) (118.786827ms)
+  ✔ detects c (.c) (149.830294ms)
+  ✔ detects cpp (.cpp) (212.718827ms)
+  ✔ detects csharp (.cs) (177.929729ms)
+  ✔ detects java (.java) (179.521257ms)
+  ✔ detects go (.go) (157.765506ms)
+  ✔ detects rust (.rs) (130.442177ms)
+  ✔ detects kotlin (.kt) (95.064751ms)
+  ✔ detects swift (.swift) (94.59192ms)
+  ✔ detects perl (.pl) (146.238237ms)
+  ✔ detects dart (.dart) (97.315028ms)
+  ✔ detects scala (.scala) (114.447497ms)
+  ✔ detects julia (.jl) (73.207162ms)
+  ✔ detects r (.R) (83.363076ms)
+  ✔ detects groovy (.groovy) (80.615624ms)
+  ✔ detects objc (.m) (108.226199ms)
+  ✔ detects nim (.nim) (73.712194ms)
+  ✔ detects d (.d) (123.742376ms)
+  ✔ detects pascal (.pas) (85.582926ms)
+  ✔ detects fortran (.f90) (115.405343ms)
+  ✔ detects ada (.adb) (95.746613ms)
+  ✔ detects vb (.vb) (82.727832ms)
+  ✔ detects bash (.sh) (132.802457ms)
+  ✔ detects matlab (.matlab) (100.095742ms)
+  ✔ detects zig (.zig) (259.949172ms)
+  ✔ detects lean (.lean) (93.789525ms)
+  ✔ detects rocq (.v) (1642.664744ms)
+  ✔ detects gml (.gml) (135.108618ms)
+  ✔ detects nasm (.asm) (1645.594149ms)
+  ✔ detects gas (.s) (1634.409591ms)
+  ✔ detects arm64 (.arm64) (2586.89913ms)
+  ✔ detects cil (.il) (640.622379ms)
+  ✔ detects jvm (.j) (789.879296ms)
+  ✔ detects llvm (.ll) (657.285387ms)
+  ✔ detects wat (.wat) (814.155216ms)
+  ✔ detects the JavaScript source (72.162185ms)
+  ✔ tells Objective-C from C by its #import (101.775665ms)
+  ✔ reads machine code whole only (828.889839ms)
+✔ detecting the language of every golden (17230.080369ms)
+▶ words that start with an underscore
+  ✖ reads Perl argument lists as natural text without hanging (0.828053ms)
+✖ words that start with an underscore (1.094781ms)
+▶ Equivalence of a translation
+  ✔ holds for what the translator writes (572.855448ms)
+  ✔ leaves out comments, blank lines and the spelling of an update (6.907789ms)
+  ✔ leaves out types and mutability (23.599146ms)
+  ✖ finds a bound that is one off (13.41489ms)
+  ✔ finds another operator (5.560638ms)
+  ✔ keeps what a program does in the meta program (6.918899ms)
+✖ Equivalence of a translation (634.066606ms)
+▶ Equivalence of the example programs
+  ✔ holds from JavaScript to python (447.279144ms)
+  ✔ holds from JavaScript to rust (219.148374ms)
+  ✔ holds from JavaScript to c (264.999105ms)
+  ✔ holds from JavaScript to java (210.016079ms)
+  ✔ holds from JavaScript to go (275.385319ms)
+  ✔ holds from JavaScript to ruby (190.152778ms)
+  ✔ holds from JavaScript to nasm (172.320903ms)
+  ✔ holds from JavaScript to wat (185.109004ms)
+✔ Equivalence of the example programs (1966.478075ms)
+▶ Equivalence of the committed translations
+  ✔ holds for every committed translation of factorial (385.337544ms)
+  ✔ holds for every committed translation of greatest-common-divisor (272.605245ms)
+✔ Equivalence of the committed translations (658.97763ms)
+▶ Round trip of the example programs through Rust
+  ✔ keeps ackermann-function.js (18.061503ms)
+  ✔ keeps bubble-sort.js (17.175191ms)
+  ✔ keeps factorial.js (7.934844ms)
+  ✔ keeps fibonacci-sequence.js (10.071556ms)
+  ✔ keeps fizz-buzz.js (15.494157ms)
+  ✔ keeps greatest-common-divisor.js (9.642808ms)
+  ✔ keeps greatest-element-of-a-list.js (7.50419ms)
+  ✔ keeps hailstone-sequence.js (10.852222ms)
+  ✔ keeps hello-world.js (5.848354ms)
+  ✔ keeps leap-year.js (9.251557ms)
+  ✔ keeps linear-search.js (8.695682ms)
+  ✔ keeps loops-foreach.js (4.569428ms)
+  ✔ keeps mutual-recursion.js (16.167332ms)
+  ✔ keeps ninety-nine-bottles.js (9.483671ms)
+  ✔ keeps perfect-numbers.js (15.053615ms)
+  ✔ keeps primality-by-trial-division.js (13.477346ms)
+  ✔ keeps sieve-of-eratosthenes.js (10.782442ms)
+  ✔ keeps sum-and-product-of-an-array.js (8.015655ms)
+  ✔ keeps sum-digits-of-an-integer.js (7.18771ms)
+  ✔ keeps sum-multiples-of-3-and-5.js (7.891302ms)
+  ✔ keeps sum-of-squares.js (8.282161ms)
+  ✔ keeps towers-of-hanoi.js (11.114991ms)
+✔ Round trip of the example programs through Rust (235.635312ms)
+▶ check-equivalence command
+  ✖ reports an equivalent translation (5.950834ms)
+  ✖ fails on a translation that differs (3.161203ms)
+✖ check-equivalence command (9.537109ms)
+▶ comment languages and versions with partial translation
+  ✔ writes comments in another language into a version of a language (1497.454301ms)
+  ✔ keeps comment languages and versions in parts that translate (33.927321ms)
+  ✔ passes --comment-language and --comment-from through the partial default (4.66075ms)
+  ✔ translates only the comments of a text whose language is detected (617.341094ms)
+  ✔ refuses a comment language that does not exist before reading (0.621208ms)
+  ✔ reads a version of a language with the rules of the language (7.893998ms)
+  ✖ serves comment languages with detection and rules (184.886679ms)
+✖ comment languages and versions with partial translation (2351.439308ms)
+▶ public translation API
+  ✔ exports the grammar translator and its languages (16.881303ms)
+  ✔ translates the issue C source in all three modes (417.165061ms)
+✔ public translation API (442.85223ms)
+▶ same-language layers
+  ✔ translates Russian comments to English and keeps the code (19.550759ms)
+✔ same-language layers (19.951155ms)
+▶ command line
+  ✔ translates standard input and lists languages (39.978051ms)
+  ✖ prints the meta program and reports errors with a failure status (13.344047ms)
+  ✔ traces every pipeline stage with --trace (21.985328ms)
+✖ command line (76.355191ms)
+▶ dependent referents
+  ✔ prefers round-trip evidence and retains unresolved readings (1.832837ms)
+✔ dependent referents (2.239003ms)
+ℹ tests 98
+ℹ suites 12
+ℹ pass 92
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 17772.545213
+
+✖ failing tests:
+
+test at node_modules/test-anywhere/src/index.js:174:12
+✖ reads Perl argument lists as natural text without hanging (0.828053ms)
+  Error: No sentence template matches
+      at Object.toThrow (file:///tmp/gh-issue-solver-1795726129025/node_modules/test-anywhere/src/index.js:603:15)
+      at TestContext.<anonymous> (file:///tmp/gh-issue-solver-1795726129025/js/tests/detect-goldens.test.js:51:63)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at node:internal/test_runner/test:1903:71
+      at node:internal/per_context/primordials:505:82
+      at new Promise (<anonymous>)
+      at new SafePromise (node:internal/per_context/primordials:479:3)
+      at node:internal/per_context/primordials:505:9
+
+test at node_modules/test-anywhere/src/index.js:174:12
+✖ finds a bound that is one off (13.41489ms)
+  Error: Expected [{"line":10,"source":"number 4","target":"number 3"}] to equal [{"line":6,"source":"number 4","target":"number 3"}]
+      at Object.toEqual (file:///tmp/gh-issue-solver-1795726129025/node_modules/test-anywhere/src/index.js:399:15)
+      at TestContext.<anonymous> (file:///tmp/gh-issue-solver-1795726129025/js/tests/equivalence.test.js:61:32)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Suite.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Suite.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at node_modules/test-anywhere/src/index.js:174:12
+✖ reports an equivalent translation (5.950834ms)
+  Error: Expected "equivalent: true\nmetaLines: 23\n" to be "equivalent: true\nmetaLines: 12\n"
+      at Object.toBe (file:///tmp/gh-issue-solver-1795726129025/node_modules/test-anywhere/src/index.js:391:15)
+      at TestContext.<anonymous> (file:///tmp/gh-issue-solver-1795726129025/js/tests/equivalence.test.js:185:17)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at node:internal/test_runner/test:1903:71
+      at node:internal/per_context/primordials:505:82
+      at new Promise (<anonymous>)
+      at new SafePromise (node:internal/per_context/primordials:479:3)
+      at node:internal/per_context/primordials:505:9
+
+test at node_modules/test-anywhere/src/index.js:174:12
+✖ fails on a translation that differs (3.161203ms)
+  Error: Expected "equivalent: false\nmetaLines: 23\ndifferences:\n  (line 10) (source 'number 4') (target 'number 3')\n" to be "equivalent: false\nmetaLines: 12\ndifferences:\n  (line 6) (source 'number 4') (target 'number 3')\n"
+      at Object.toBe (file:///tmp/gh-issue-solver-1795726129025/node_modules/test-anywhere/src/index.js:391:15)
+      at TestContext.<anonymous> (file:///tmp/gh-issue-solver-1795726129025/js/tests/equivalence.test.js:198:17)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Suite.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Promise.all (index 0)
+      at async Suite.run (node:internal/test_runner/test:1905:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at node_modules/test-anywhere/src/index.js:174:12
+✖ serves comment languages with detection and rules (184.886679ms)
+  Error: Expected {"output":"# число\ncount = 1\nprint count\n","complete":true,"errors":[],"coverage":1,"lineMap":[[0,0],[1,1]],"detected":"javascript"} to equal {"output":"# число\ncount = 1\nprint count\n","complete":true,"errors":[],"coverage":1,"lineMap":[[1,1]],"detected":"javascript"}
+      at Object.toEqual (file:///tmp/gh-issue-solver-1795726129025/node_modules/test-anywhere/src/index.js:399:15)
+      at TestContext.<anonymous> (file:///tmp/gh-issue-solver-1795726129025/js/tests/issue-6-with-8.test.js:122:37)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Suite.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at node_modules/test-anywhere/src/index.js:174:12
+✖ prints the meta program and reports errors with a failure status (13.344047ms)
+  Error: Expected "program\n  main\n    evaluate\n      expression\n        call print-line (library standard)\n          arguments\n            number 1 (type integer)\n" to be "program\n  call print-line (library standard)\n    number 1 (type integer)\n"
+      at Object.toBe (file:///tmp/gh-issue-solver-1795726129025/node_modules/test-anywhere/src/index.js:391:15)
+      at TestContext.<anonymous> (file:///tmp/gh-issue-solver-1795726129025/js/tests/translation.test.js:87:63)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Suite.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Promise.all (index 0)
+      at async Suite.run (node:internal/test_runner/test:1905:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)

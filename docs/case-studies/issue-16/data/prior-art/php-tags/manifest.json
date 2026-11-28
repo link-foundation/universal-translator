@@ -1,0 +1,14 @@
+[
+  {
+    "url": "https://www.php.net/manual/en/language.basic-syntax.phpmode.php",
+    "file": "php-mode.html.gz",
+    "bytes": 42185,
+    "sha256": "d52c742a3e16715302393b4acdeb2017b408c4d34978744e043fc5c8f29b5869"
+  },
+  {
+    "url": "https://www.php.net/manual/en/language.basic-syntax.phptags.php",
+    "file": "php-tags.html.gz",
+    "bytes": 37891,
+    "sha256": "0fc2b5233df61fced53aa79cea7517f28ac399549efb4fbfdf731331243c2224"
+  }
+]

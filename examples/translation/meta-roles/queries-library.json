@@ -1,0 +1,63 @@
+{
+  "kind": "Block",
+  "statements": [
+    {
+      "kind": "PropertyAssignment",
+      "object": { "kind": "Name", "name": "meaning" },
+      "property": "__doc__",
+      "value": { "kind": "Text", "value": "A collection." }
+    },
+    {
+      "kind": "Declaration",
+      "name": "selected",
+      "value": {
+        "kind": "Query",
+        "variable": "item",
+        "source": { "kind": "Name", "name": "meaning" },
+        "condition": {
+          "kind": "Binary",
+          "operator": "greater",
+          "left": { "kind": "Name", "name": "item" },
+          "right": { "kind": "Number", "value": 2 }
+        },
+        "projection": {
+          "kind": "Question",
+          "aspect": "type",
+          "subject": { "kind": "Name", "name": "item" }
+        }
+      }
+    },
+    {
+      "kind": "Evaluate",
+      "expression": {
+        "kind": "Message",
+        "receiver": { "kind": "Name", "name": "selected" },
+        "selector": "do:",
+        "arguments": [
+          {
+            "kind": "BlockLambda",
+            "parameters": [{ "name": "each" }],
+            "body": {
+              "kind": "Block",
+              "statements": [
+                {
+                  "kind": "Print",
+                  "newline": true,
+                  "value": { "kind": "Name", "name": "each" }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "Return",
+      "value": {
+        "kind": "SetInsert",
+        "collection": { "kind": "Name", "name": "selected" },
+        "value": { "kind": "Text", "value": "new" }
+      }
+    }
+  ]
+}

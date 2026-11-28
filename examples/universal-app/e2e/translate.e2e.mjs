@@ -1,6 +1,6 @@
 // End-to-end check of the web demo in a real browser: translations between
-// languages and their versions, the left language changing with the text
-// said in it, the meta language of both texts, random examples (program,
+// languages and their versions, correcting the left language without changing
+// the source, contextual issue reports, the meta language of both texts, random examples (program,
 // function, statement), the comment language, the Standards tab (a
 // vocabulary saved as a standard of one's own, words defined through other
 // words), the settings panel (skin, scheme, interface language), the source
@@ -17,6 +17,7 @@
 //
 // Usage: node examples/universal-app/e2e/translate.e2e.mjs <url> [screenshot.png]
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
 async function loadChromium() {
   try {
@@ -155,6 +156,10 @@ async function detectsAndTranslatesPartially() {
   await page.waitForSelector('text=if n <= 1:');
 
   // Partial translation keeps what translates and lists the rest.
+  const unread = await translation('python', 'javascript', '???\n');
+  assert.equal(unread.failed, true, unread.text);
+  assert.match(await page.locator('#untranslated').textContent(), /^0%/u);
+  assert.match(await page.locator('#untranslated').textContent(), /Line 1:/u);
   const partial = await translation(
     'python',
     'javascript',
@@ -282,15 +287,34 @@ async function wrapsLongLines() {
 }
 
 async function changesTheLeftLanguage() {
-  await translation('javascript', 'python', 'console.log("Hi");\n');
-  // The text on the left is said in the new language, nothing fails.
-  await choose('source', 'rust');
-  assert.match(await page.inputValue('#source-text'), /println!\("Hi"\)/);
-  await output().waitFor();
-  assert.equal(await page.locator('#target-text-error').count(), 0);
-  await choose('source', 'english', 'english');
-  assert.match(await page.inputValue('#source-text'), /Hi/);
-  assert.equal(await page.locator('#target-text-error').count(), 0);
+  const source = 'console.log("Hi");\n';
+  await translation('javascript', 'python', source);
+  // Correcting a detection must preserve the original, including whitespace.
+  for (const language of ['rust', 'english', 'javascript']) {
+    await choose('source', language);
+    assert.equal(await page.inputValue('#source-text'), source);
+  }
+  const report = new URL(await page.getAttribute('#report-issue', 'href'));
+  const body = report.searchParams.get('body');
+  assert.equal(
+    report.pathname,
+    '/link-foundation/universal-translator/issues/new'
+  );
+  assert.match(body, /from javascript to python/);
+  assert.ok(body.includes(source));
+  assert.match(body, /print\("Hi"\)/);
+
+  const cpp = 'int main() { try { throw 8; } catch (int e) { return e; } }\n';
+  await page.selectOption('#source-language', 'auto');
+  await page.fill('#source-text', cpp);
+  await page.waitForSelector('#target-text:has-text("except BaseException")');
+  assert.match(
+    await page.locator('#source-language option[value="auto"]').textContent(),
+    /Auto-detect \(C\+\+\)/
+  );
+  await choose('source', 'cpp');
+  assert.equal(await page.inputValue('#source-text'), cpp);
+  await page.waitForSelector('#target-text:has-text("SystemExit")');
 }
 
 async function showsTheMetaLanguage() {
@@ -299,8 +323,14 @@ async function showsTheMetaLanguage() {
   const source = await page.locator('#source-meta').textContent();
   const target = await page.locator('#target-meta').textContent();
   assert.match(source, /^program/);
-  assert.match(source, /^ {4}text Hi \(type text\)$/m);
-  assert.doesNotMatch(source, /\bblock\b|\w:/, 'plain nesting, no labels');
+  assert.match(source, /^ +text Hi \(type text\)$/m);
+  assert.match(source, /^ +expression$/m, 'explicit expression field');
+  assert.match(source, /^ +arguments$/m, 'explicit argument list');
+  assert.doesNotMatch(
+    source,
+    /\bblock\b|\w:/,
+    'field names use Links Notation'
+  );
   assert.equal(target, source, 'one meaning on both sides');
   await page.uncheck('#show-meta');
 }
@@ -536,6 +566,7 @@ async function linksTheEditors() {
     });
     await tab.waitForSelector('#target-text .monaco-editor');
     assert.equal(await tab.getAttribute('html', 'data-editor'), 'monaco');
+    await wrapsInFreshMonaco(tab);
     // The options are below both editors.
     const editors = await tab.locator('#target-text').boundingBox();
     for (const id of ['#mode', '#fragment', '#show-meta', '#word-wrap']) {
@@ -557,9 +588,197 @@ async function linksTheEditors() {
     await linkedLines(tab);
     await linkedFolding(tab);
     await linkedScrolling(tab);
+    await linkedSemanticRegions(tab);
+    await linkedCommentHeaders(tab);
+    await linkedSublineRegions(tab);
   } finally {
     await fresh.close();
   }
+}
+
+async function wrapsInFreshMonaco(tab) {
+  assert.equal(await tab.getAttribute('html', 'data-wrap'), 'true');
+  assert.ok(await tab.isChecked('#word-wrap'));
+  const source = `const message = "${'Long text wraps in the source editor. '.repeat(8).trimEnd()}";`;
+  await typeInMonaco(tab, source);
+  await tab.waitForFunction((text) => {
+    const pane = globalThis.document.querySelector('#source-text');
+    return (
+      pane.dataset.value === text &&
+      pane.querySelectorAll('.view-line').length > 1
+    );
+  }, source);
+}
+
+async function tracesTheGutterOnlyInDebugMode() {
+  const tab = await context.newPage();
+  const topic = '[universal-translator:gutter]';
+  let logged = false;
+  tab.on('pageerror', (error) => errors.push(error.message));
+  tab.on('console', (message) => {
+    if (message.text().startsWith(topic)) {
+      logged = true;
+    }
+  });
+  try {
+    const clickGutter = () =>
+      tab.locator('#source-text .margin').click({ position: { x: 8, y: 90 } });
+    const visit = async (debug) => {
+      const address = new URL(url);
+      if (debug) {
+        address.searchParams.set('debug', '');
+      }
+      address.hash = 'settings=(settings%20(version%201)%20(editor%20monaco))';
+      await tab.goto(address.href);
+      await tab.waitForSelector('#source-text .monaco-editor');
+      await typeInMonaco(tab, 'print(1)');
+    };
+    await visit(false);
+    await clickGutter();
+    await tab.evaluate(
+      () =>
+        new Promise((resolve) =>
+          globalThis.requestAnimationFrame(() => resolve())
+        )
+    );
+    assert.equal(logged, false);
+    await visit(true);
+    const [message] = await Promise.all([
+      tab.waitForEvent('console', {
+        predicate: async (entry) =>
+          entry.text().startsWith(topic) &&
+          (await entry.args()[1].jsonValue()).event === 'pointerup',
+      }),
+      clickGutter(),
+    ]);
+    const release = await message.args()[1].jsonValue();
+    assert.equal(release.pane, 'source-text');
+    assert.equal(release.lines, 1);
+    assert.ok(release.y > release.lastLineBottom);
+  } finally {
+    await tab.close();
+  }
+}
+
+async function linkedSublineRegions(tab) {
+  await tab.selectOption('#source-language', 'javascript');
+  await tab.selectOption('#target-language', 'python');
+  await tab.selectOption('#comment-from', '');
+  await tab.selectOption('#comment-language', '');
+  await typeInMonaco(
+    tab,
+    'const first = 1; console.log(first); const second = 2; console.log(second);'
+  );
+  await tab.waitForSelector('#target-text[data-value*="print(second)"]');
+  await tab.waitForFunction(
+    () =>
+      Number(
+        globalThis.document.querySelector('.map-strip')?.dataset.regionMap
+      ) > 4
+  );
+  await tab.click('#source-text .view-lines');
+  await tab.keyboard.press('ControlOrMeta+Home');
+  for (let at = 0; at < 67; at++) {
+    await tab.keyboard.press('ArrowRight');
+  }
+  for (let at = 0; at < 6; at++) {
+    await tab.keyboard.press('Shift+ArrowRight');
+  }
+  // The cursor already paints an active region. Wait for Monaco to render
+  // the selection too before inspecting its line and width.
+  await tab.waitForSelector('#target-text .selected-text');
+  await tab.waitForSelector('#target-text .map-region.map-active');
+  assert.equal(await lineAt(tab, '#target-text', '.selected-text'), 4);
+  const selected = await tab
+    .locator('#target-text .selected-text')
+    .boundingBox();
+  assert.ok(
+    selected.width > 20 && selected.width < 100,
+    `expected a single name, selected ${selected.width}px`
+  );
+  const classes = await Promise.all(
+    ['source', 'target'].map((side) =>
+      tab.$eval(
+        `#${side}-text .map-region.map-active`,
+        (node) => node.className.match(/map-c\d/)[0]
+      )
+    )
+  );
+  assert.equal(classes[0], classes[1]);
+  if (screenshot) {
+    await tab.screenshot({
+      path: screenshot.replace(/\.png$/u, '-regions.png'),
+      fullPage: true,
+    });
+  }
+}
+
+async function linkedSemanticRegions(tab) {
+  await tab.selectOption('#source-language', 'java');
+  await tab.selectOption('#target-language', 'bash');
+  const source = readFileSync(
+    new URL('../../translation/mapping.java', import.meta.url),
+    'utf8'
+  );
+  await typeInMonaco(tab, source);
+  await tab.waitForSelector('#target-text[data-value*="echo"]');
+  const colours = await mappedColours(tab, [
+    ['print', '#source-text', 'System.out.println'],
+    ['call', '#target-text', 'fibonacci "$index"'],
+    ['echo', '#target-text', 'echo "fibonacci('],
+  ]);
+  assert.equal(colours.print, colours.call);
+  assert.equal(colours.print, colours.echo);
+}
+
+// Fortran puts the entry point before its functions. Translated comments
+// share colours with the corresponding translated meaning.
+async function linkedCommentHeaders(tab) {
+  await tab.selectOption('#source-language', 'fortran');
+  await tab.selectOption('#target-language', 'python');
+  await tab.selectOption('#comment-from', 'russian');
+  await tab.selectOption('#comment-language', 'english');
+  await typeInMonaco(
+    tab,
+    readFileSync(
+      new URL('../../translation/comment-headers.f90', import.meta.url),
+      'utf8'
+    )
+  );
+  await tab.waitForSelector('#target-text[data-value*="# sequence"]');
+  const colours = await mappedColours(tab, [
+    ['file', '#source-text', '! число'],
+    ['function', '#source-text', '! последовательность'],
+    ['entry', '#source-text', '! итеративно'],
+    ['fileTarget', '#target-text', '# number'],
+    ['functionTarget', '#target-text', '# sequence'],
+    ['entryTarget', '#target-text', '# iteratively'],
+  ]);
+  for (const key of ['file', 'function', 'entry']) {
+    assert.equal(colours[key], colours[`${key}Target`]);
+  }
+  assert.equal(new Set(Object.values(colours)).size, 3);
+}
+
+async function mappedColours(tab, selections) {
+  const mapped = await tab.waitForFunction((selections) => {
+    const find = (id, text) => {
+      const editor = globalThis.document.querySelector(id);
+      const line = [...editor.querySelectorAll('.view-line')].find((line) =>
+        line.textContent.replaceAll('\u00a0', ' ').includes(text)
+      );
+      if (!line) {
+        return undefined;
+      }
+      const top = line.getBoundingClientRect().top;
+      return [...editor.querySelectorAll('.map-line')]
+        .find((item) => Math.abs(item.getBoundingClientRect().top - top) < 1)
+        ?.className.match(/map-c\d/)?.[0];
+    };
+    const colours = selections.map(([key, id, text]) => [key, find(id, text)]);
+    return colours.every(([, colour]) => colour) && Object.fromEntries(colours);
+  }, selections);
+  return mapped.jsonValue();
 }
 
 // Types a text into the source Monaco editor. Monaco indents after a
@@ -719,6 +938,7 @@ try {
   await savesAStandard();
   await changesTheSettings();
   await editsInMonaco();
+  await tracesTheGutterOnlyInDebugMode();
   await linksTheEditors();
   assert.deepEqual(errors, []);
   console.log(

@@ -2,7 +2,9 @@
 //! parser produces and every emitter consumes. Node kinds use full words.
 //!
 //! ```text
-//!   Program        { comments, imports, functions, main, mainComments }
+//!   Program        { comments, imports, definitions?, functions, main, mainComments }
+//!   RecordDefinition { name, parameters: [text], fields: [RecordField], comments, constructorComments }
+//!   RecordField    { name, parameter }
 //!   Function       { name, parameters: [Parameter], returnType, body, comments }
 //!   Parameter      { name, type }
 //!   Block          { statements }
@@ -16,6 +18,10 @@
 //!   Return         { value }
 //!   Print          { value, newline }
 //!   Evaluate       { expression }
+//!   Question       { aspect: type | documentation | source | details, subject }
+//!   Query          { source, variable, condition, projection, eager }
+//!   Lambda         { parameters, body }
+//!   PropertyAssignment { object, property, value }
 //!   Comment        { text, trailing?, block? }   trailing: the spaces between
 //!                  the code and a comment on the same line; block: written
 //!                  as a block comment
@@ -59,10 +65,17 @@ pub enum Value {
 }
 
 /// A meta tree node: its kind and its fields.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct Node {
     pub kind: String,
     pub fields: BTreeMap<String, Value>,
+    pub(crate) origin: Option<std::sync::Arc<crate::source_origins::SourceOrigin>>,
+}
+
+impl PartialEq for Node {
+    fn eq(&self, other: &Self) -> bool {
+        self.kind == other.kind && self.fields == other.fields
+    }
 }
 
 impl From<Node> for Value {
@@ -135,6 +148,7 @@ impl Node {
         Node {
             kind: kind.to_owned(),
             fields: BTreeMap::new(),
+            origin: None,
         }
     }
 
@@ -352,7 +366,13 @@ where
             tree.fields.insert(key, value);
         }
     }
-    visit(tree)
+    let origin = tree.origin.clone();
+    visit(tree).map(|mut changed| {
+        if changed.origin.is_none() {
+            changed.origin = origin;
+        }
+        changed
+    })
 }
 
 /// Visit every node of a tree, children first, replacing each node with the
@@ -394,14 +414,17 @@ where
     visit_node(tree, &mut visit);
 }
 
-/// The functions that an earlier function calls before their own definition,
-/// which languages such as C must announce with a prototype.
-pub fn later_calls(functions: &[Node]) -> Vec<Node> {
+/// The functions called before their own definition by a function or a file
+/// initializer, which languages such as C must announce with a prototype.
+pub fn later_calls<'a>(items: impl IntoIterator<Item = &'a Node>) -> Vec<Node> {
+    let items: Vec<_> = items.into_iter().collect();
     let mut defined = std::collections::HashSet::new();
     let mut announced = std::collections::HashSet::new();
-    for item in functions {
-        defined.insert(item.str("name").unwrap_or_default().to_owned());
-        if let Some(body) = item.node("body") {
+    for item in &items {
+        if item.is("Function") {
+            defined.insert(item.str("name").unwrap_or_default().to_owned());
+        }
+        if let Some(body) = item.node("body").or_else(|| item.node("value")) {
             walk(body, |current| {
                 if current.is("Call") {
                     let callee = current.str("callee").unwrap_or_default();
@@ -412,16 +435,18 @@ pub fn later_calls(functions: &[Node]) -> Vec<Node> {
             });
         }
     }
-    functions
-        .iter()
-        .filter(|item| announced.contains(item.str("name").unwrap_or_default()))
+    items
+        .into_iter()
+        .filter(|item| {
+            item.is("Function") && announced.contains(item.str("name").unwrap_or_default())
+        })
         .cloned()
         .collect()
 }
 
 /// Fields that do not change behaviour: types that an untyped language cannot
 /// express, comments, imports and mutability.
-const IGNORED_KEYS: [&str; 9] = [
+const IGNORED_KEYS: [&str; 10] = [
     "type",
     "returnType",
     "comments",
@@ -429,6 +454,7 @@ const IGNORED_KEYS: [&str; 9] = [
     "imports",
     "mutable",
     "elementsAssigned",
+    "cppType",
     "blankAfter",
     "imprecision",
 ];

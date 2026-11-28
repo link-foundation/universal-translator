@@ -4,28 +4,34 @@ natural:
   extends: english
   profile: plain-language
   source: 'https://www.iso.org/standard/78907.html'
+  grammar:
+    terms:
+      explain-calculation: 'Here is how to work out {name}'
+      show-value: 'Show {value}'
+      if-not: 'If not'
+    productions:
+      function: '@explain-calculation from {parameters}'
+      function-without-parameters: '@explain-calculation'
+      print-line: '@show-value on its own line'
+      print: '@show-value'
+      if: '@conditional, @do-this'
+      else-if: '@if-not, but {condition}, @do-this'
+      else: '@if-not, @do-this'
+      for: '@range-loop, @do-this'
+      for-each: '@in-loop, @do-this'
+      less: '{left} is @less-than {right}' '{left} < {right}'
+      set-element: 'Set @element[array=name] to {value}'
   templates:
-    function: 'Here is how to work out {name} from {parameters}'
-    function-without-parameters: 'Here is how to work out {name}'
     declare: 'Let {name} start as {value}'
     assign: 'Set {name} to {value}'
-    print-line: 'Show {value} on its own line'
-    print: 'Show {value}'
     return-value: 'The answer is {value}'
-    if: 'If {condition}, do this'
-    else-if: 'If not, but {condition}, do this'
-    else: 'If not, do this'
     while: 'As long as {condition}, keep doing this'
-    for: 'For each {variable} from {start} to {last}, do this'
-    for-each: 'For each {variable} in {array}, do this'
     join: '{left} then {right}'
     equal: '{left} is {right}' '{left} = {right}' '{left} == {right}'
     not-equal: '{left} is not {right}' '{left} != {right}' '{left} ≠ {right}' '{left} <> {right}'
-    less: '{left} is less than {right}' '{left} < {right}'
     less-or-equal: '{left} is at most {right}' '{left} <= {right}' '{left} ≤ {right}'
     greater: '{left} is more than {right}' '{left} > {right}'
     greater-or-equal: '{left} is at least {right}' '{left} >= {right}' '{left} ≥ {right}'
-    set-element: 'Set item {index} of {name} to {value}'
   rules:
     max-sentence-words: 25
     average-sentence-words: 20

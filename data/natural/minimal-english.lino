@@ -6,6 +6,10 @@ natural:
   source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
   true: true
   false: untrue
+  grammar:
+    productions:
+      element: 'part {index} of {array}'
+      set-element: 'After this, @element[array=name] is {value}'
   templates:
     function: 'This is how someone does {name} with {parameters}'
     function-without-parameters: 'This is how someone does {name}'
@@ -34,9 +38,7 @@ natural:
     greater-or-equal: '{left} is not less than {right}' '{left} >= {right}' '{left} ≥ {right}'
     array: 'these things ({elements})'
     new-array: '{length} things like {fill}'
-    element: 'part {index} of {array}'
     length: 'how many parts {array} has'
-    set-element: 'After this, part {index} of {name} is {value}'
   rules:
     primes: english
     extra-words: it the on line answer stop with of from to then for or and plus minus times divided by modulo opposite untrue less than as anything things has

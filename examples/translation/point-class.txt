@@ -1,0 +1,6 @@
+class Point {
+  constructor(horizontal, vertical) {
+    this.x = horizontal;
+    this.y = vertical;
+  }
+}

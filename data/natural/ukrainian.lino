@@ -12,7 +12,28 @@ natural:
   true: 'істина'
   false: 'хиба'
   note: 'Примітка: {text}'
+  grammar:
+    terms:
+      interrogative: 'Що таке'
+      query-scope: 'для кожного {variable} у {source}'
+      query-deferred: '«відкладено»'
+    productions:
+      answer-type: 'тип сутності {subject}'
+      question-type: '@interrogative @answer-type'
+      answer-documentation: 'документація сутності {subject}'
+      question-documentation: '@interrogative @answer-documentation'
+      answer-source: 'вихідний код сутності {subject}'
+      question-source: '@interrogative @answer-source'
+      answer-details: 'докладна інформація про сутність {subject}'
+      question-details: '@interrogative @answer-details'
+      answer-query: 'значення {projection} @query-scope за умови {condition}'
+      question-query: 'Які значення {projection} @query-scope задовольняють {condition}'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
+      element: 'елемент {index} списку {array}'
+      set-element: 'Змінити @element[array=name] на {value}'
   templates:
+    documentation: 'Документація є {value}'
     function: 'Визначити {name} через {parameters}'
     function-without-parameters: 'Визначити {name}'
     declare: 'Створити {name} зі значенням {value}' 'Нехай {name} дорівнює {value}' 'Нехай {name} буде {value}'
@@ -50,9 +71,7 @@ natural:
     remainder: '{left} за модулем {right}' '{left} % {right}'
     array: 'список ({elements})'
     new-array: 'список довжини {length} зі значеннями {fill}'
-    element: 'елемент {index} списку {array}'
     length: 'довжина {array}'
-    set-element: 'Змінити елемент {index} списку {name} на {value}'
   words:
     ackermann: 'аккерман'
     bottles: 'пляшки'

@@ -206,6 +206,7 @@ describe('check-file-line-limits.sh', () => {
         'docs/case-studies/issue-99/data/raw.md': 5000,
         'docs/case-studies/issue-99/data/sample.cjs': 5000,
         'docs/case-studies/issue-99/data/external.yml': 5000,
+        'vendor/meta-language-grammar/src/grammar-runtime/executor.js': 5000,
         'README.md': 1,
       });
 

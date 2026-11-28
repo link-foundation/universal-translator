@@ -8,6 +8,47 @@ use super::emitter::{Emitter, Result};
 use super::languages::Syntax;
 use crate::meta::{Node, format_number};
 
+/// Binary operators by precedence level, loosest first, with their spellings.
+pub(crate) const BINARY_LEVELS: [&[(&str, &[&str])]; 6] = [
+    &[("or", &["||", "or"])],
+    &[("and", &["&&", "and"])],
+    &[
+        ("equal", &["==", "==="]),
+        ("notEqual", &["!=", "!==", "~="]),
+    ],
+    &[
+        ("less", &["<"]),
+        ("lessOrEqual", &["<="]),
+        ("greater", &[">"]),
+        ("greaterOrEqual", &[">="]),
+    ],
+    &[("add", &["+", ".."]), ("subtract", &["-"])],
+    &[
+        ("multiply", &["*"]),
+        ("divide", &["/", "//"]),
+        ("remainder", &["%"]),
+    ],
+];
+
+pub(crate) fn symbol(operator: &str) -> &str {
+    match operator {
+        "stream" => "<<",
+        "rightShift" => ">>",
+        "add" => "+",
+        "subtract" => "-",
+        "multiply" => "*",
+        "divide" | "floorDivide" | "realDivide" => "/",
+        "remainder" | "modulo" => "%",
+        "less" => "<",
+        "lessOrEqual" => "<=",
+        "greater" => ">",
+        "greaterOrEqual" => ">=",
+        "equal" => "==",
+        "notEqual" => "!=",
+        other => other,
+    }
+}
+
 const TRUE_DIVISION: &[&str] = &[
     "javascript",
     "typescript",
@@ -35,8 +76,30 @@ pub fn slash_is_real(syntax: &Syntax) -> bool {
 pub fn slash_operator(syntax: &Syntax) -> &'static str {
     if slash_is_real(syntax) {
         "realDivide"
+    } else if crate::meta::integer_arithmetic::floor_division(syntax.id) {
+        "floorDivide"
     } else {
         "divide"
+    }
+}
+
+pub(crate) fn arithmetic_operator(
+    syntax: &Syntax,
+    surface: &str,
+    operator: &'static str,
+) -> &'static str {
+    if operator == "divide" {
+        if surface == "/" {
+            slash_operator(syntax)
+        } else if crate::meta::integer_arithmetic::floor_division(syntax.id) {
+            "floorDivide"
+        } else {
+            "divide"
+        }
+    } else if operator == "remainder" && crate::meta::integer_arithmetic::floor_modulo(syntax.id) {
+        "modulo"
+    } else {
+        operator
     }
 }
 
@@ -103,8 +166,10 @@ fn arithmetic_or_comparison(operator: &str) -> bool {
             | "subtract"
             | "multiply"
             | "divide"
+            | "floorDivide"
             | "realDivide"
             | "remainder"
+            | "modulo"
             | "equal"
             | "notEqual"
             | "less"
@@ -116,7 +181,9 @@ fn arithmetic_or_comparison(operator: &str) -> bool {
 
 /// The written form of a real literal: 2 is written 2.0, so it stays real.
 pub fn real_text(value: f64) -> String {
-    if value.fract() == 0.0 && value.abs() < 1e21 {
+    if value == 0.0 && value.is_sign_negative() {
+        "-0.0".into()
+    } else if value.fract() == 0.0 && value.abs() < 1e21 {
         format!("{}.0", format_number(value))
     } else {
         format_number(value)
@@ -240,13 +307,14 @@ impl Emitter {
             let operand = expression.node("operand")?;
             return Some(self.converted_to_real(operand, parent));
         }
-        if !expression.is("Number")
-            || expression.str("type") != Some("real")
-            || one_number_type(self.syntax.id)
-        {
+        if !expression.is("Number") || expression.str("type") != Some("real") {
             return None;
         }
         let value = expression.number("value").unwrap_or(0.0);
+        let negative_zero = value == 0.0 && value.is_sign_negative();
+        if one_number_type(self.syntax.id) && !negative_zero {
+            return None;
+        }
         let mut written = real_text(value);
         if self.syntax.id == "fortran" {
             written = if written.contains('e') {
@@ -255,7 +323,7 @@ impl Emitter {
                 format!("{written}d0")
             };
         }
-        Some(Ok(if value < 0.0 && parent > 6.0 {
+        Some(Ok(if (value < 0.0 || negative_zero) && parent > 6.0 {
             format!("({written})")
         } else {
             written

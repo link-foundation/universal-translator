@@ -12,7 +12,28 @@ natural:
   true: 'সত্য'
   false: 'মিথ্যা'
   note: 'টীকা: {text}'
+  grammar:
+    terms:
+      interrogative: 'কী'
+      query-scope: '{source} এর প্রতিটি {variable} এর জন্য'
+      query-deferred: '“বিলম্বিত”'
+    productions:
+      answer-type: '{subject} এর ধরন'
+      question-type: '@answer-type @interrogative'
+      answer-documentation: '{subject} এর বিবরণ'
+      question-documentation: '@answer-documentation @interrogative'
+      answer-source: '{subject} এর উৎস কোড'
+      question-source: '@answer-source @interrogative'
+      answer-details: '{subject} এর বিস্তারিত তথ্য'
+      question-details: '@answer-details @interrogative'
+      answer-query: '@query-scope {condition} হলে {projection} এর মান'
+      question-query: '@answer-query কী'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
+      element: '{array} মধ্যে উপাদান {index}'
+      set-element: '@element[array=name] কে {value} তে বদলাও'
   templates:
+    documentation: 'বিবরণ হলো {value}'
     function: '{name} কে {parameters} দিয়ে সংজ্ঞায়িত করো'
     function-without-parameters: '{name} কে সংজ্ঞায়িত করো'
     declare: '{name} তৈরি করো মান {value} দিয়ে'
@@ -50,9 +71,7 @@ natural:
     remainder: '{left} মডুলো {right}' '{left} % {right}'
     array: 'তালিকা ({elements})'
     new-array: 'তালিকা দৈর্ঘ্য {length} প্রতিটি উপাদান {fill}'
-    element: '{array} মধ্যে উপাদান {index}'
     length: '{array} তালিকার দৈর্ঘ্য'
-    set-element: '{name} মধ্যে উপাদান {index} কে {value} তে বদলাও'
   words:
     ackermann: 'আকারম্যান'
     bottles: 'বোতল'

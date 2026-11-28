@@ -5,11 +5,62 @@
 
 use std::sync::Arc;
 
+use crate::formal::comment_syntax::block_comment_end;
 use crate::formal::languages::language_syntax;
 use crate::formal::lexer::{TokenType, tokenize};
 use crate::formal::rules::map_comments;
+use crate::layout::{Kind, Marks, layout_tokens};
 use crate::meta::{GrammarError, Node};
-use crate::natural::{detect_comment_language, translate_comment_text};
+use crate::natural::{self, detect_comment_language, translate_comment_text};
+
+fn comment_spans(source: &str, language: &str) -> Result<Vec<(usize, usize)>, GrammarError> {
+    if natural::is_natural_language(language) {
+        let language = natural::natural_language(language).map_err(GrammarError::new)?;
+        return Ok(natural::note_spans(source, language));
+    }
+    let syntax = language_syntax(language)?;
+    let offsets: Vec<_> = source
+        .char_indices()
+        .map(|(at, _)| at)
+        .chain([source.len()])
+        .collect();
+    if !syntax.machine {
+        return Ok(tokenize(source, &syntax)?
+            .iter()
+            .filter(|token| token.kind == TokenType::Comment)
+            .filter_map(|token| token.span)
+            .map(|(start, end)| (offsets[start], offsets[end]))
+            .collect());
+    }
+    let chars: Vec<_> = source.chars().collect();
+    let marks = Marks::of(&syntax);
+    layout_tokens(&chars, &marks)
+        .into_iter()
+        .filter(|token| token.kind == Kind::Comment)
+        .map(|token| {
+            let start = offsets[token.start];
+            let end = offsets[token.end];
+            let (open, close) = syntax
+                .block_comment
+                .filter(|(open, _)| source[start..].starts_with(open))
+                .unwrap_or((syntax.line_comment, ""));
+            if !close.is_empty()
+                && !block_comment_end(
+                    &chars,
+                    token.start,
+                    &marks.block_comment.as_ref().unwrap().0,
+                    &marks.block_comment.as_ref().unwrap().1,
+                    marks.nested_comments,
+                    marks.comment_strings,
+                )
+                .1
+            {
+                return Err(GrammarError::new("Unterminated comment"));
+            }
+            Ok((start + open.len(), end - close.len()))
+        })
+        .collect()
+}
 
 /// Translates the text of one comment: `(text, from, to)`. The default is
 /// the word-by-word dictionary of [`translate_comment_text`]; a better
@@ -41,14 +92,8 @@ pub fn translate_comments_with(
     to: &str,
     translate: &CommentTranslator,
 ) -> Result<String, GrammarError> {
-    let syntax = language_syntax(language)?;
-    let characters: Vec<char> = source.chars().collect();
-    let slice = |(start, end): (usize, usize)| characters[start..end].iter().collect::<String>();
-    let spans: Vec<(usize, usize)> = tokenize(source, &syntax)?
-        .iter()
-        .filter(|token| token.kind == TokenType::Comment)
-        .filter_map(|token| token.span)
-        .collect();
+    let slice = |(start, end): (usize, usize)| &source[start..end];
+    let spans = comment_spans(source, language)?;
     let from = match from {
         Some(from) => from,
         None => detect_comment_language(&spans.iter().map(|span| slice(*span)).collect::<Vec<_>>()),
@@ -56,11 +101,11 @@ pub fn translate_comments_with(
     let mut output = String::new();
     let mut at = 0;
     for (start, end) in spans {
-        output.push_str(&slice((at, start)));
-        output.push_str(&translate(&slice((start, end)), from, to).map_err(GrammarError::new)?);
+        output.push_str(slice((at, start)));
+        output.push_str(&translate(slice((start, end)), from, to).map_err(GrammarError::new)?);
         at = end;
     }
-    output.push_str(&slice((at, characters.len())));
+    output.push_str(slice((at, source.len())));
     Ok(output)
 }
 

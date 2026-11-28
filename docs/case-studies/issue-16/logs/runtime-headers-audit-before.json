@@ -1,0 +1,48 @@
+{
+  "lexer": "08e200c",
+  "cases": [
+    {
+      "index": 0,
+      "line": 4,
+      "expectedLine": 88,
+      "tokenCount": 34,
+      "error": "Expected values to be strictly equal:\n\n4 !== 88\n"
+    },
+    {
+      "index": 1,
+      "line": 49,
+      "expectedLine": 49,
+      "tokenCount": 1088,
+      "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    {\n      quote: undefined,\n      type: 'name',\n+     value: 'From'\n+   },\n+   {\n+     quote: undefined,\n+     type: 'name',\n+     value: 'Stdlib'\n+   },\n+   {\n+     quote: undefined,\n+     type: 'name',\n+     value: 'Require'\n+   },\n+   {\n+     quote: undefined,\n+     type: 'name',\n+     value: 'Import'\n+   },\n+   {\n+     quote: undefined,\n+     type: 'name',\n+     value: 'ZArith'\n+   },\n+   {\n+     quote: undefined,\n+     type: 'name',\n+     value: 'String'\n+   },\n+   {\n+     quote: undefined,\n+     type:"
+    },
+    {
+      "index": 2,
+      "line": 48,
+      "expectedLine": 48,
+      "tokenCount": 1088,
+      "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    {\n      quote: undefined,\n      type: 'name',\n+     value: 'From'\n+   },\n+   {\n+     quote: undefined,\n+     type: 'name',\n+     value: 'Stdlib'\n+   },\n+   {\n+     quote: undefined,\n+     type: 'name',\n+     value: 'Require'\n+   },\n+   {\n+     quote: undefined,\n+     type: 'name',\n+     value: 'Import'\n+   },\n+   {\n+     quote: undefined,\n+     type: 'name',\n+     value: 'ZArith'\n+   },\n+   {\n+     quote: undefined,\n+     type: 'name',\n+     value: 'String'\n+   },\n+   {\n+     quote: undefined,\n+     type:"
+    },
+    {
+      "index": 3,
+      "line": 95,
+      "expectedLine": 95,
+      "tokenCount": 1088,
+      "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    {\n      quote: undefined,\n      type: 'name',\n+     value: 'From'\n+   },\n+   {\n+     quote: undefined,\n+     type: 'name',\n+     value: 'Stdlib'\n+   },\n+   {\n+     quote: undefined,\n+     type: 'name',\n+     value: 'Require'\n+   },\n+   {\n+     quote: undefined,\n+     type: 'name',\n+     value: 'Import'\n+   },\n+   {\n+     quote: undefined,\n+     type: 'name',\n+     value: 'ZArith'\n+   },\n+   {\n+     quote: undefined,\n+     type: 'name',\n+     value: 'String'\n+   },\n+   {\n+     quote: undefined,\n+     type:"
+    },
+    {
+      "index": 4,
+      "line": 48,
+      "expectedLine": 48,
+      "tokenCount": 1088,
+      "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    {\n      quote: undefined,\n      type: 'name',\n+     value: 'From'\n+   },\n+   {\n+     quote: undefined,\n+     type: 'name',\n+     value: 'Stdlib'\n+   },\n+   {\n+     quote: undefined,\n+     type: 'name',\n+     value: 'Require'\n+   },\n+   {\n+     quote: undefined,\n+     type: 'name',\n+     value: 'Import'\n+   },\n+   {\n+     quote: undefined,\n+     type: 'name',\n+     value: 'ZArith'\n+   },\n+   {\n+     quote: undefined,\n+     type: 'name',\n+     value: 'String'\n+   },\n+   {\n+     quote: undefined,\n+     type:"
+    },
+    {
+      "index": 5,
+      "line": 49,
+      "expectedLine": 49,
+      "tokenCount": 1090,
+      "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    {\n      quote: undefined,\n      type: 'name',\n+     value: 'From'\n+   },\n+   {\n+     quote: undefined,\n+     type: 'name',\n+     value: 'Stdlib'\n+   },\n+   {\n+     quote: undefined,\n+     type: 'name',\n+     value: 'Require'\n+   },\n+   {\n+     quote: undefined,\n+     type: 'name',\n+     value: 'Import'\n+   },\n+   {\n+     quote: undefined,\n+     type: 'name',\n+     value: 'ZArith'\n+   },\n+   {\n+     quote: undefined,\n+     type: 'name',\n+     value: 'String'\n+   },\n+   {\n+     quote: undefined,\n+     type:"
+    }
+  ],
+  "failures": 6
+}

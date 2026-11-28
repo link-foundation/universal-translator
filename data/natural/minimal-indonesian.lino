@@ -4,6 +4,10 @@ natural:
   extends: indonesian
   profile: minimal-english
   source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  grammar:
+    productions:
+      element: 'bagian {index} dari {array}'
+      set-element: 'Setelah ini, @element[array=name] adalah {value}'
   templates:
     function: 'Begini seseorang melakukan {name} dengan {parameters}'
     function-without-parameters: 'Begini seseorang melakukan {name}'
@@ -28,9 +32,7 @@ natural:
     greater-or-equal: '{left} tidak lebih sedikit dari {right}'
     array: 'semua hal ini ({elements})'
     new-array: '{length} hal seperti {fill}'
-    element: 'bagian {index} dari {array}'
     length: 'berapa banyak bagian di dalam {array}'
-    set-element: 'Setelah ini, bagian {index} dari {name} adalah {value}'
   rules:
     primes: indonesian
     extra-words: dengan yaitu pada baris jawabannya berhenti pun kali untuk dari sampai lalu berapa atau dan negatif ditambah dikurangi dikali dibagi modulo salah

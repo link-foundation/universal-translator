@@ -12,6 +12,7 @@
     "bin/",
     "common-library/",
     "js/src/",
+    "vendor/meta-language-grammar/",
     "data/",
     "CHANGELOG.md",
     "LICENSE",
@@ -21,6 +22,10 @@
     ".": {
       "types": "./js/src/index.d.ts",
       "import": "./js/src/index.js"
+    },
+    "./grammar": {
+      "types": "./js/src/grammar/index.d.ts",
+      "import": "./js/src/grammar/index.js"
     }
   },
   "scripts": {
@@ -101,8 +106,9 @@
     ]
   },
   "dependencies": {
+    "@noble/hashes": "1.8.0",
     "links-notation": "0.31.8",
     "lino-arguments": "0.4.1",
-    "meta-language": "0.46.0"
+    "web-tree-sitter": "0.27.0"
   }
 }

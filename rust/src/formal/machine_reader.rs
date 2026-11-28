@@ -17,9 +17,10 @@ use super::machine_reader_assembly::{read_arm64, read_gas};
 use super::machine_reader_llvm::read_llvm;
 use super::machine_reader_shared::{
     ReadRule, Result, fixed, group, integer, leading_comments, pattern_regex, procedure, program,
-    read_error, read_instructions, rule, trimmed_lines, without_results,
+    read_error, read_instructions, resolve_results, rule, trimmed_lines, without_results,
 };
 use super::machine_reader_wasm::read_wat;
+use crate::emission_map::clone_source_line;
 use crate::meta::GrammarError;
 
 fn arithmetic(operation: &str) -> Option<&'static str> {
@@ -276,14 +277,7 @@ fn read_nasm_procedure(
     )?;
     // "call f; push rax" is a call whose result stays on the stack. A call
     // without "push rax" is a call to a procedure that returns nothing.
-    let mut code: Vec<Instruction> = Vec::new();
-    for instruction in raw {
-        match instruction {
-            Some(instruction) => code.push(instruction),
-            None if matches!(code.last(), Some(Instruction::Call(..))) => {}
-            None => return Err(read_error("nasm", "push rax", "not after a call")),
-        }
-    }
+    let code = resolve_results(raw, "nasm", "push rax")?;
     let returns = code.contains(&Instruction::Return);
     Ok(procedure(
         name.to_owned(),
@@ -311,7 +305,9 @@ pub fn read_nasm(source: &str) -> Result<LoweredProgram> {
     while index < text.len() {
         let line = &text[index];
         if let Some(comment) = line.strip_prefix(';') {
-            pending.push(comment.strip_prefix(' ').unwrap_or(comment).to_owned());
+            pending.push(crate::emission_map::map_source_line(line, |_| {
+                comment.strip_prefix(' ').unwrap_or(comment).to_owned()
+            }));
         } else if let Some(found) = label.captures(line)
             && text
                 .get(index + 1)
@@ -477,7 +473,9 @@ pub fn read_cil(source: &str) -> Result<LoweredProgram> {
     while index < rest.len() {
         let line = &rest[index];
         if let Some(comment) = line.strip_prefix("//") {
-            pending.push(comment.strip_prefix(' ').unwrap_or(comment).to_owned());
+            pending.push(crate::emission_map::map_source_line(line, |_| {
+                comment.strip_prefix(' ').unwrap_or(comment).to_owned()
+            }));
             index += 1;
             continue;
         }
@@ -503,7 +501,7 @@ pub fn read_cil(source: &str) -> Result<LoweredProgram> {
             .unwrap_or_default()
             .iter()
             .filter(|item| !directive.is_match(item))
-            .cloned()
+            .map(|line| clone_source_line(line))
             .collect();
         let mut slot_names = parameters.clone();
         if body.first().is_some_and(|line| line.starts_with(".locals")) {
@@ -673,7 +671,9 @@ pub fn read_jvm(source: &str) -> Result<LoweredProgram> {
     while index < rest.len() {
         let line = &rest[index];
         if let Some(comment) = line.strip_prefix(';') {
-            pending.push(comment.strip_prefix(' ').unwrap_or(comment).to_owned());
+            pending.push(crate::emission_map::map_source_line(line, |_| {
+                comment.strip_prefix(' ').unwrap_or(comment).to_owned()
+            }));
             index += 1;
             continue;
         }
@@ -694,7 +694,7 @@ pub fn read_jvm(source: &str) -> Result<LoweredProgram> {
             .unwrap_or_default()
             .iter()
             .filter(|item| !item.starts_with(".limit"))
-            .cloned()
+            .map(|line| clone_source_line(line))
             .collect();
         let mut named: Vec<Option<String>> = Vec::new();
         while body.first().is_some_and(|line| line.starts_with(".var")) {

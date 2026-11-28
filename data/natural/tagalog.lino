@@ -12,7 +12,28 @@ natural:
   true: 'totoo'
   false: 'mali'
   note: 'Tala: {text}'
+  grammar:
+    terms:
+      interrogative: 'Ano ang'
+      query-scope: 'para sa bawat {variable} sa {source}'
+      query-deferred: '“ipinagpaliban”'
+    productions:
+      answer-type: 'uri ng {subject}'
+      question-type: '@interrogative @answer-type'
+      answer-documentation: 'dokumentasyon ng {subject}'
+      question-documentation: '@interrogative @answer-documentation'
+      answer-source: 'source code ng {subject}'
+      question-source: '@interrogative @answer-source'
+      answer-details: 'detalyadong impormasyon tungkol sa {subject}'
+      question-details: '@interrogative @answer-details'
+      answer-query: 'mga halaga ng {projection} @query-scope kung {condition}'
+      question-query: 'Anong @answer-query'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
+      element: 'elemento {index} sa {array}'
+      set-element: 'Palitan ang @element[array=name] ng {value}'
   templates:
+    documentation: 'Ang dokumentasyon ay {value}'
     function: 'Tukuyin ang {name} gamit ang {parameters}'
     function-without-parameters: 'Tukuyin ang {name}'
     declare: 'Lumikha ng {name} na may halagang {value}'
@@ -50,9 +71,7 @@ natural:
     remainder: '{left} modulo {right}' '{left} % {right}'
     array: 'listahan ({elements})'
     new-array: 'listahang may habang {length} na puno ng {fill}'
-    element: 'elemento {index} sa {array}'
     length: 'haba ng {array}'
-    set-element: 'Palitan ang elemento {index} sa {name} ng {value}'
   words:
     ackermann: 'ackermann'
     bottles: 'bote'

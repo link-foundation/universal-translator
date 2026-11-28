@@ -1,0 +1,30 @@
+▶ compositional selection queries
+  ✔ registers and detects SQL with explicit query capabilities (1492.321001ms)
+  ✔ keeps source, scoped variable, predicate and projection as expressions (59.620516ms)
+  ✔ recognizes LINQ, comprehensions and chained filter/projection (29.609338ms)
+✔ compositional selection queries (1583.840796ms)
+▶ selection queries in controlled natural languages
+  ✔ composes query questions and answers through every natural grammar (1255.504807ms)
+  ✔ retains deferred strategy in natural questions and answer expressions (196.843638ms)
+✔ selection queries in controlled natural languages (1452.782934ms)
+▶ selection data, scopes and execution
+  ✔ preserves SQL strings and quoted identifiers without treating them as keywords (5.600807ms)
+  ✔ infers query collection results and keeps range variables in their own scope (35.869345ms)
+  ✔ preserves filter-before-map side effects when either callback calls a function (300.641973ms)
+  ✔ agrees with native SQLite, Python and JavaScript on filtered projections (359.762347ms)
+✔ selection data, scopes and execution (702.745607ms)
+✔ keeps mapping rereads out of the public trace and restores tracing afterward (289.265134ms)
+✔ distinguishes independent statements and repeated names on one physical line (29.794474ms)
+✔ uses UTF-8 ranges and keeps original indentation and CRLF in wrapped fragments (10.517097ms)
+✔ excludes nested same-line statements from the region owned by their condition (11.056423ms)
+✔ retains precise parser spans without exposing them as semantic fields (2.478684ms)
+✔ retains many-to-many regions through Bash call lowering and its inverse (39.910621ms)
+✔ provides valid semantic regions for all current reader and writer families (1504.247988ms)
+ℹ tests 16
+ℹ suites 3
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4238.875848

@@ -3,15 +3,19 @@
 // which the braces and indentation of the shared grammar do not cover.
 
 import { node } from '../../meta/tree.js';
+import { inheritOrigin } from '../../translation/source-origins.js';
 
 // A comment token as a Comment node, keeping where it stood (after code on
 // the same line) and whether it was a block comment.
 export function commentNode(token) {
-  return node('Comment', {
-    text: token.value,
-    ...(token.trailing ? { trailing: token.trailing } : {}),
-    ...(token.block ? { block: true } : {}),
-  });
+  return inheritOrigin(
+    node('Comment', {
+      text: token.value,
+      ...(token.trailing ? { trailing: token.trailing } : {}),
+      ...(token.block ? { block: true } : {}),
+    }),
+    token
+  );
 }
 
 // Empty lines of a newline token as a Blank node, or nothing.

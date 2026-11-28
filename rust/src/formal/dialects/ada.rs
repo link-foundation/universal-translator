@@ -202,7 +202,7 @@ fn statements(p: &mut Parser, done: &dyn Fn(&Parser) -> bool) -> Parsed<Vec<Node
         }
         if p.kind(0) == TokenType::Comment {
             let comment = p.next()?;
-            found.push(comment_node(&comment));
+            found.push(comment_node(p, &comment));
         } else {
             let statement = p.statement()?;
             if statement.is("Sequence") {
@@ -520,9 +520,7 @@ impl EmitterDialect for Ada {
     }
 
     fn function_definition(&self, e: &mut Emitter, item: &Node) -> Result<()> {
-        for text in item.texts("comments") {
-            e.comment(&text);
-        }
+        e.comments(item, "comments");
         let heading = heading(e, item);
         e.line(&format!("{heading} is"));
         e.depth += 1;
@@ -559,17 +557,13 @@ impl EmitterDialect for Ada {
         e.depth = 0;
         e.line("begin");
         e.depth = 1;
-        for text in program.texts("mainComments") {
-            e.comment(&text);
-        }
+        e.comments(program, "mainComments");
         e.body(main)?;
         e.depth = 0;
         e.line("end Main;");
         let body = std::mem::take(&mut e.lines);
         let comments = program.texts("comments");
-        for text in &comments {
-            e.comment(text);
-        }
+        e.comments(program, "comments");
         if !comments.is_empty() {
             e.line("");
         }
@@ -577,7 +571,7 @@ impl EmitterDialect for Ada {
         let mut all = std::mem::take(&mut e.lines);
         all.extend(announced);
         all.extend(body);
-        Ok(format!("{}\n", all.join("\n")))
+        Ok(all.render(e.syntax.id))
     }
 }
 

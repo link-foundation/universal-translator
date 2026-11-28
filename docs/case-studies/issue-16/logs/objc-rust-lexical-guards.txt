@@ -1,0 +1,9 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 1.24s
+     Running rust/tests/objpak.rs (target/debug/deps/objpak-03960ca91181b218)
+
+running 1 test
+test split_operators_and_hexadecimal_literals_have_no_library_contract ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.41s
+

@@ -1,0 +1,15 @@
+
+/tmp/gh-issue-solver-1795726129025/js/src/formal/machine-assembly.js
+  10:1  error  './machine-shared.js' import is duplicated  no-duplicate-imports
+
+/tmp/gh-issue-solver-1795726129025/js/src/formal/machine-llvm.js
+  8:1  error  './machine-shared.js' import is duplicated  no-duplicate-imports
+
+/tmp/gh-issue-solver-1795726129025/js/src/formal/machine-wasm.js
+  11:1  error  './machine-shared.js' import is duplicated  no-duplicate-imports
+
+/tmp/gh-issue-solver-1795726129025/js/tests/semantic-mapping.test.js
+  19:51  warning  Arrow function has too many lines (170). Maximum allowed is 150  max-lines-per-function
+
+✖ 4 problems (3 errors, 1 warning)
+

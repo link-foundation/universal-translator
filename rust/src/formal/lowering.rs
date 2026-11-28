@@ -153,6 +153,7 @@ struct FunctionLowering<'a> {
     parameter_count: usize,
     arrays: std::collections::HashSet<String>,
     code: Vec<Instruction>,
+    origins: Vec<(usize, crate::emission_map::Origins)>,
     labels: usize,
     depth: i64,
     max_depth: i64,
@@ -180,10 +181,15 @@ impl<'a> FunctionLowering<'a> {
             labels: 0,
             depth: 0,
             max_depth: 0,
+            origins: Vec::new(),
         }
     }
 
     fn emit(&mut self, instruction: Instruction) {
+        let origins = crate::emission_map::current();
+        if !origins.is_empty() {
+            self.origins.push((self.code.len(), origins));
+        }
         let effect = match &instruction {
             Instruction::Push(_) | Instruction::Load(_) | Instruction::Dup => 1,
             Instruction::Store(_)
@@ -231,6 +237,7 @@ impl<'a> FunctionLowering<'a> {
     }
 
     fn statement(&mut self, node: &Node) -> Result<()> {
+        let _origin = crate::emission_map::active(node);
         match node.kind.as_str() {
             "Comment" => {
                 for line in node.str("text").unwrap_or_default().split('\n') {
@@ -537,6 +544,7 @@ impl<'a> FunctionLowering<'a> {
             .iter()
             .map(|name| self.arrays.contains(name))
             .collect();
+        crate::emission_map::register_instructions(&self.code, self.origins);
         Procedure {
             name: self.name,
             parameter_count: self.parameter_count,
@@ -590,13 +598,13 @@ pub fn lower_program(program: &Node) -> Result<LoweredProgram> {
         let mut lowering =
             FunctionLowering::new(name, &item.nodes("parameters"), returns, &functions);
         lowering.block(field(item, "body")?)?;
-        lowered.push(lowering.finish(item.texts("comments")));
+        lowered.push(lowering.finish(crate::emission_map::comment_texts(item, "comments")));
     }
     let mut main = FunctionLowering::new("main", &[], false, &functions);
     main.block(field(program, "main")?)?;
     Ok(LoweredProgram {
-        comments: program.texts("comments"),
+        comments: crate::emission_map::comment_texts(program, "comments"),
         functions: lowered,
-        main: main.finish(program.texts("mainComments")),
+        main: main.finish(crate::emission_map::comment_texts(program, "mainComments")),
     })
 }

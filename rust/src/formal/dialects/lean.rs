@@ -290,7 +290,7 @@ impl ParserDialect for Lean {
     fn item(&self, p: &mut Parser) -> Parsed {
         if p.kind(0) == TokenType::Comment {
             let token = p.next()?;
-            return Ok(comment_node(&token));
+            return Ok(comment_node(p, &token));
         }
         if p.accept("import") {
             let mut words = Vec::new();
@@ -622,9 +622,7 @@ impl EmitterDialect for Lean {
     }
 
     fn function_definition(&self, e: &mut Emitter, item: &Node) -> Result<()> {
-        for comment in item.texts("comments") {
-            e.comment(&comment);
-        }
+        e.comments(item, "comments");
         let signature = e.signature(item);
         e.line(&signature);
         let body = field(item, "body")?;
@@ -659,9 +657,7 @@ impl EmitterDialect for Lean {
             let last = e.lines.len() - 1;
             e.lines.insert(last, "end".to_owned());
         }
-        for comment in program.texts("mainComments") {
-            e.comment(&comment);
-        }
+        e.comments(program, "mainComments");
         e.line("def main : IO Unit := do");
         indented(e, field(program, "main")?)
     }

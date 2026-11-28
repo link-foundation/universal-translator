@@ -1,0 +1,60 @@
+▶ meta view
+  ✔ shows the meta program as Links Notation (342.929369ms)
+  ✔ shows the same meta program for every language that says the same (28.701876ms)
+  ✔ shows fragments and skips empty fields (0.699564ms)
+  ✔ distinguishes parameters, conditions, operands and statement bodies (11.76239ms)
+  ✔ uses repeated field names without defining unique links (3.647193ms)
+✔ meta view (390.472518ms)
+▶ the standard library of the meta language
+  ✔ writes printing and lengths as calls to library procedures (4.162032ms)
+  ✔ reads the general form back to the same program (4.122379ms)
+  ✔ translates a program written with library calls (3.305745ms)
+  ✔ keeps calls a program declares itself (0.497858ms)
+✔ the standard library of the meta language (15.23638ms)
+▶ nested grammars
+  ✔ reads a comment as prose and the code it quotes (1217.946949ms)
+  ✔ reads a string as code when it looks like code (55.646684ms)
+  ✔ reads Russian prose, a question and its phrases (11.266795ms)
+  ✔ keeps a long text once and refers to it by id (4.515504ms)
+  ✔ reads the comment lists of a program (4.640345ms)
+  ✔ translates a nested program like the plain one (7.005918ms)
+  ✔ leaves text without a known word unread (0.843253ms)
+  ✔ prints the nested meta program on the command line, --shallow the plain one (5.84892ms)
+✔ nested grammars (1310.893937ms)
+▶ probabilities
+  ✔ keeps truth values on a grid of six decimals in [0, 1] (1.761716ms)
+  ✔ combines independent values by their product (0.465588ms)
+  ✔ gives the most frequent reading the largest prior (3.513924ms)
+  ✔ measures what survives a round trip in order (0.82619ms)
+✔ probabilities (10.367428ms)
+▶ ranking
+  ✔ ranks the readings of prose, the default first (770.127568ms)
+  ✔ keeps prose in its own language as it is (0.684797ms)
+  ✔ makes the most probable candidate the default translation (20.706071ms)
+  ✔ ranks the comments of a program (194.907525ms)
+  ✔ scores code without prose by its coverage (48.08069ms)
+  ✔ prints the candidates on the command line (38.26884ms)
+✔ ranking (1074.236368ms)
+▶ imprecision
+  ✔ marks the ambiguous and the untranslated words of prose (1.775943ms)
+  ✔ marks numbers an integer type loses (5.011818ms)
+  ✔ marks a number with a fraction typed as an integer (0.381622ms)
+  ✔ shows imprecision in the meta program and not in a translation (17.242862ms)
+✔ imprecision (24.978782ms)
+▶ real numbers
+  ✔ reads literals with a point or an exponent as reals (315.740206ms)
+  ✔ reads `/` of JavaScript and Python 3 as true division (26.688329ms)
+  ✔ writes a true division with real operands where `/` divides integers (28.880709ms)
+  ✔ converts integer variables that meet a real (12.118864ms)
+  ✔ keeps integer division apart from true division (7.115672ms)
+  ✔ reads real declarations and %g placeholders of C (5.251566ms)
+  ✔ turns `/=` into the division of the source language (9.229817ms)
+✔ real numbers (407.902718ms)
+ℹ tests 38
+ℹ suites 7
+ℹ pass 38
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1827.598545

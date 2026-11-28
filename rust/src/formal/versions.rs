@@ -142,7 +142,26 @@ const LANGUAGE_VERSIONS: &[LanguageVersions] = &[
     LanguageVersions {
         id: "python",
         versions: &[
-            (version("3", "Python 3 (3.6+, f-strings)", true), no_change),
+            (
+                version(
+                    "3",
+                    "Python 3 (current, f-strings and cleaned docstrings)",
+                    true,
+                ),
+                no_change,
+            ),
+            (
+                version("3.13", "Python 3.13 (cleaned docstrings)", false),
+                no_change,
+            ),
+            (
+                version(
+                    "3.12",
+                    "Python 3.12 (original docstring indentation)",
+                    false,
+                ),
+                no_change,
+            ),
             (version("3.5", "Python 3.5", false), python_3_5),
             (version("2", "Python 2.7", false), python_2),
         ],

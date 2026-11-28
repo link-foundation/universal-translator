@@ -1,0 +1,218 @@
+{
+  "repository": "https://github.com/link-foundation/meta-language",
+  "revision": "a79782093cae3b33606483ac9f3e1d05faf36de0",
+  "bytes": 680224,
+  "files": {
+    "js/src/grammar-importers.js": {
+      "bytes": 756,
+      "sha256": "3668a301352dda4a838dfb6e3bf4f6ce73243c4564a87e6518bb85ba23ff6bb0",
+      "external": []
+    },
+    "js/src/grammar-emitters.js": {
+      "bytes": 698,
+      "sha256": "48feb0651e4b916b99a41c74be7ac18057e600894ca745a1c789e60e83908229",
+      "external": []
+    },
+    "js/src/grammar-runtime.js": {
+      "bytes": 8806,
+      "sha256": "9157c49c2d917dff5d3e13dbbbf60940971a837f6edc588fc80bf2682362cef1",
+      "external": []
+    },
+    "js/src/grammar-merge.js": {
+      "bytes": 24983,
+      "sha256": "699f07bef199913623818704c5fe2627b4efc7f31b95d44a748d73d08f27b751",
+      "external": [
+        "node:crypto"
+      ]
+    },
+    "js/src/grammar-rename.js": {
+      "bytes": 6449,
+      "sha256": "b57d5d59d49d5b53f61fa0ba8bd2788047866e7a9cdc5d136c602f558d6a09d9",
+      "external": []
+    },
+    "js/src/grammar-interchange.js": {
+      "bytes": 31565,
+      "sha256": "dae77978886db93cdef9aeeb577839543c0d9edf78ade9618476b89d025ec7ec",
+      "external": []
+    },
+    "js/src/grammar-importers/abnf.js": {
+      "bytes": 8103,
+      "sha256": "67c5e1201f6b69e5087b177e01117ea9a30836d07b9db35250f6884231875310",
+      "external": []
+    },
+    "js/src/grammar-importers/antlr.js": {
+      "bytes": 26866,
+      "sha256": "91004bf19d14ca9658b9315ec6c47af3b8ae6fe5e61debd486a732cc94fa8801",
+      "external": []
+    },
+    "js/src/grammar-importers/bnf-ebnf.js": {
+      "bytes": 6721,
+      "sha256": "01138b6dc43be2146b2dfbd8e85697c8e07eeff5bf721b7eb394af0742edc239",
+      "external": []
+    },
+    "js/src/grammar-importers/common.js": {
+      "bytes": 4332,
+      "sha256": "201c023470c7552f6a70ed693a20a33963b293e805cb608876591c5c27c16a95",
+      "external": []
+    },
+    "js/src/grammar-importers/gbnf.js": {
+      "bytes": 16262,
+      "sha256": "9ae70860256c1f7e995a6fbe766ca13c16d4cd286086e00c3c09fae9ff07ef9d",
+      "external": []
+    },
+    "js/src/grammar-importers/lark.js": {
+      "bytes": 11662,
+      "sha256": "5e358770f05cf2c25ae1d0f692f94ea3448cf9c9931981c36acf1e22d9f6c0ee",
+      "external": []
+    },
+    "js/src/grammar-importers/pest.js": {
+      "bytes": 4879,
+      "sha256": "75f5e821c3664e07d8bc92a9a3dbda152e422cb86b4d486e0a0d96a90cf09c92",
+      "external": []
+    },
+    "js/src/grammar-importers/tree-sitter-json.js": {
+      "bytes": 6251,
+      "sha256": "296cef1fec1e936fec5b5a99a70c58aac8ce1a3b1f35faf934485202695755b7",
+      "external": []
+    },
+    "js/src/grammar-emitters/abnf.js": {
+      "bytes": 4349,
+      "sha256": "b5b2682e79eb197fcc1db1963de90b9316f9e40b8a63c4420542f639c342a893",
+      "external": []
+    },
+    "js/src/grammar-emitters/antlr.js": {
+      "bytes": 18277,
+      "sha256": "3d1b25aca65df5a6bd9d0ae6da056dd7f6451df26199cc045597394cbdced29e",
+      "external": []
+    },
+    "js/src/grammar-emitters/bnf-ebnf.js": {
+      "bytes": 10802,
+      "sha256": "2906a6a3590b3c5ceec7ea7c063eb627d986f25605a2a1f901adb5834972e7bc",
+      "external": []
+    },
+    "js/src/grammar-emitters/common.js": {
+      "bytes": 7238,
+      "sha256": "921c9ecffd86e476f0503e1129ef8653e1fb4582c799109d10c73a84cfaa53d0",
+      "external": []
+    },
+    "js/src/grammar-emitters/gbnf.js": {
+      "bytes": 12263,
+      "sha256": "75c8d7723795292b20839be333cdb75eb42145bbafffd7b8e32b81b9e30dc604",
+      "external": []
+    },
+    "js/src/grammar-emitters/lark.js": {
+      "bytes": 18115,
+      "sha256": "06ba6edd0bed371085cb7e5676d63fdb69de9c8af30f0467bb30e9693446b48a",
+      "external": []
+    },
+    "js/src/grammar-emitters/pest.js": {
+      "bytes": 5465,
+      "sha256": "b2796a76c7653979153632b97dcaaeb7868ad4663c7a76b53970e2becb9fc4ed",
+      "external": []
+    },
+    "js/src/grammar-emitters/tree-sitter-json.js": {
+      "bytes": 7986,
+      "sha256": "080b71be2e3e4a1829f387ab7a3efdfa88253f677ebb8acabbbc5d4313c7185a",
+      "external": []
+    },
+    "js/src/grammar-runtime/executor.js": {
+      "bytes": 212779,
+      "sha256": "4865669668b754878ad17e9f39cb0ac8bf73086af5c8e114d4c646c7eb52aeab",
+      "external": []
+    },
+    "js/src/grammar-runtime/load.js": {
+      "bytes": 30213,
+      "sha256": "190ddcc664fd04d2a1ff34458788e59a3d89a2f0a623a2bcac36d84fad8e3dd4",
+      "external": []
+    },
+    "js/src/grammar-decorators.js": {
+      "bytes": 4735,
+      "sha256": "c793d4ec2e498a598e2844f5e60ca44b5ed4e3c253c6717974224d4c41b2e523",
+      "external": []
+    },
+    "js/src/grammar-runtime/syntax-tree.js": {
+      "bytes": 5206,
+      "sha256": "40c1621e428e11660bdfffa6eee1bc9bdb535a4ff07a0d9afa7b8b76559a6a5a",
+      "external": []
+    },
+    "js/src/grammar-runtime/text.js": {
+      "bytes": 5919,
+      "sha256": "445388c8a0bb21c4f41f2a4408edee9e505b47e72032d4966daea3d04f5a5829",
+      "external": []
+    },
+    "js/src/grammar.js": {
+      "bytes": 14731,
+      "sha256": "4a5cd4523f32df492d9b07ffd0199d73b999902450b65cc1e1bf3f1febed70f1",
+      "external": []
+    },
+    "js/src/grammar-feature-forms.js": {
+      "bytes": 18505,
+      "sha256": "719bf9ea947202cf3595ca09fefd21e30086c69c12fd8c76aaa946706d4fa3e1",
+      "external": []
+    },
+    "js/src/grammar-links.js": {
+      "bytes": 22857,
+      "sha256": "6c475fe2d636378845f46a10f3dda2c34ec108bbfa0c813a421540597d7af175",
+      "external": [
+        "links-notation"
+      ]
+    },
+    "js/src/decorators.js": {
+      "bytes": 9307,
+      "sha256": "e8e66c56c16a93e21e9eb5bb0cf46bcc32345a9df6576abfa1b1c9ee09316cec",
+      "external": []
+    },
+    "js/src/grammar-merge-normalize.js": {
+      "bytes": 8709,
+      "sha256": "3f394714d9b5b35e4f34da446f9c573b41ffe590253f58d31eadd4fd27519056",
+      "external": []
+    },
+    "js/src/grammar-reconcile.js": {
+      "bytes": 24260,
+      "sha256": "0121d740a82664c2535c2dbcf6f0df1738436a8fd1f5dad963995fb360c2c72d",
+      "external": []
+    },
+    "js/src/grammar-round-trip.js": {
+      "bytes": 7282,
+      "sha256": "f86c41b3363274d46d60382062a10bcc5f45307d315ba38f610bf56bcc13c9a1",
+      "external": []
+    },
+    "js/src/grammar-validate.js": {
+      "bytes": 15723,
+      "sha256": "19cd7e6369ea7ed1a844eddecacebb60bfef7fc30c02a7b45d67bfa47267034c",
+      "external": []
+    },
+    "js/src/grammar-importers/antlr-lexer.js": {
+      "bytes": 10667,
+      "sha256": "7d771f1409b9e3de150ce683d5099cb4ff897700740d71f14f6f3a04956d62bc",
+      "external": []
+    },
+    "js/src/grammar-importers/lark-lexer.js": {
+      "bytes": 8155,
+      "sha256": "09b9d3183a6f5cbca622af7fdf6b7ad80798283c366ee4e75c3fc819ab02fcff",
+      "external": []
+    },
+    "js/src/grammar-emitters/structural.js": {
+      "bytes": 12808,
+      "sha256": "fbde4c977e9d1f8b143497b1d1a3f7ec3c622e1ff9e50bef11a6cd6252e42fde",
+      "external": []
+    },
+    "js/src/grammar-runtime/operations.js": {
+      "bytes": 9266,
+      "sha256": "40da01ef401a395099c92ed41c05e4f9e55971c3cae6af9282313b538842cbf8",
+      "external": []
+    },
+    "js/src/lino-serialization.js": {
+      "bytes": 9853,
+      "sha256": "54256f24e35df374d8ffc47aaf4cebdbb3e9e65b8c36d5dd96bc4baa84286e94",
+      "external": [
+        "links-notation"
+      ]
+    },
+    "js/src/primitives.js": {
+      "bytes": 6421,
+      "sha256": "46f8d0850d5e0a1fc13e9651fca8c7cc3efbd1d4c40fcee2f87608dc2d172247",
+      "external": []
+    }
+  }
+}

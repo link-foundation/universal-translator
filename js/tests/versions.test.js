@@ -28,6 +28,8 @@ describe('programming language versions', () => {
     expect(pythons.map(({ id }) => id)).toEqual(['python']);
     expect(pythons[0].versions.map(({ version }) => version)).toEqual([
       '3',
+      '3.13',
+      '3.12',
       '3.5',
       '2',
     ]);
@@ -94,9 +96,11 @@ describe('older versions of Lua, PHP and C#', () => {
   });
 
   it('divides integers in Lua 5.1 and PHP 5 without // and intdiv', () => {
-    expect(translate(source, 'javascript', 'lua')).toContain('return n // 2');
+    expect(translate(source, 'javascript', 'lua')).toContain(
+      'return ut_integer_divide(n, 2)'
+    );
     expect(translate(source, 'javascript', 'lua@5.1')).toContain(
-      'return math.floor(n / 2)'
+      'return ut_integer_divide(n, 2)'
     );
     expect(translate(source, 'javascript', 'php@5')).toContain(
       'return (int) ($n / 2);'

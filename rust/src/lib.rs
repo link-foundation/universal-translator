@@ -4,11 +4,15 @@
 
 mod candidates;
 pub mod comment_language;
+mod concrete_syntax;
+mod corpus_frequencies;
 pub mod custom_rules;
 mod detect;
+mod emission_map;
 pub mod equivalence;
 pub mod formal;
 pub mod fragments;
+pub mod grammar_workspace;
 pub mod identifier_language;
 pub mod layout;
 pub mod meta;
@@ -17,14 +21,19 @@ pub mod nesting;
 mod partial;
 mod program;
 mod referents;
+mod region_map;
 pub mod server;
 mod source_document;
+mod source_origins;
+mod source_spans;
+mod source_syntax;
 pub mod stages;
 pub mod style;
 pub mod translator;
 
 pub use candidates::TranslationCandidate;
 pub use comment_language::{CommentTranslator, translate_comments};
+pub use concrete_syntax::reconstruct_concrete;
 pub use custom_rules::CustomRules;
 pub use equivalence::{Difference, Equivalence, check_equivalence, effect_of};
 pub use formal::versions::{Version, split_version, versions_of};
@@ -36,6 +45,7 @@ pub use program::translate_program;
 pub use referents::{
     Candidate, Observation, RankedCandidate, Ranking, rank_interpretations, read_referent_input,
 };
+pub use region_map::{ByteRange, TranslationRegion};
 pub use source_document::SourceDocument;
 pub use style::{Braces, Indent, Style};
 pub use translator::{
@@ -73,7 +83,7 @@ pub fn translate(source: &str, from: &str, to: &str, mode: Mode) -> Result<Strin
     Translator::new().translate(source, from, to, mode)
 }
 
-/// Read a fragment (a whole program, function definitions or statements)
+/// Read a fragment (a whole program, definitions or statements)
 /// with the default grammar translator.
 pub fn parse_fragment(source: &str, from: &str) -> Result<Fragment, GrammarError> {
     Translator::new().parse_fragment(source, from)

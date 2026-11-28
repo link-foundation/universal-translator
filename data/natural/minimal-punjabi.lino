@@ -4,6 +4,10 @@ natural:
   extends: punjabi
   profile: minimal-english
   source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  grammar:
+    productions:
+      element: '{array} ਵਿੱਚ ਹਿੱਸਾ {index}'
+      set-element: 'ਇਸ ਤੋਂ ਬਾਅਦ @element[array=name] {value} ਹੈ'
   templates:
     function: 'ਕੋਈ {name} ਨੂੰ {parameters} ਨਾਲ ਇਸ ਤਰ੍ਹਾਂ ਕਰਦਾ ਹੈ'
     function-without-parameters: 'ਕੋਈ {name} ਨੂੰ ਇਸ ਤਰ੍ਹਾਂ ਕਰਦਾ ਹੈ'
@@ -23,9 +27,7 @@ natural:
     greater-or-equal: '{left} {right} ਤੋਂ ਘੱਟ ਨਹੀਂ ਹੈ'
     array: 'ਇਹ ਚੀਜ਼ਾਂ ({elements})'
     new-array: '{fill} ਵਰਗੀਆਂ {length} ਚੀਜ਼ਾਂ'
-    element: '{array} ਵਿੱਚ ਹਿੱਸਾ {index}'
     length: '{array} ਵਿੱਚ ਕਿੰਨੇ ਹਿੱਸੇ'
-    set-element: 'ਇਸ ਤੋਂ ਬਾਅਦ {name} ਵਿੱਚ ਹਿੱਸਾ {index} {value} ਹੈ'
   rules:
     primes: punjabi
     extra-words: ਨੂੰ ਨਾਲ ਤੋਂ ਤੱਕ ਵਿੱਚ ਲਈ ਸਤਰ ਜਵਾਬ ਰੁਕੋ ਤਾਂ ਵਰਨਾ ਵਾਰ ਕਿੰਨੇ ਜਾਂ ਅਤੇ ਰਿਣ ਜਮ੍ਹਾਂ ਘਟਾਓ ਗੁਣਾ ਭਾਗ ਮੋਡਿਊਲੋ ਝੂਠ

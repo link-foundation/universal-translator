@@ -1,0 +1,30 @@
+    Checking universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+error: writing `&String` instead of `&str` involves a new object where a slice will do
+   --> rust/src/emission_map.rs:106:34
+    |
+106 | pub(crate) fn line_origins(line: &String) -> Origins {
+    |                                  ^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#ptr_arg
+    = note: `-D clippy::ptr-arg` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::ptr_arg)]`
+help: change this to
+    |
+106 - pub(crate) fn line_origins(line: &String) -> Origins {
+106 + pub(crate) fn line_origins(line: &str) -> Origins {
+    |
+
+error: writing `&String` instead of `&str` involves a new object where a slice will do
+   --> rust/src/emission_map.rs:140:41
+    |
+140 | pub(crate) fn include_source_line(line: &String, omitted: &String) {
+    |                                         ^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#ptr_arg
+help: change this to
+    |
+140 - pub(crate) fn include_source_line(line: &String, omitted: &String) {
+140 + pub(crate) fn include_source_line(line: &str, omitted: &String) {
+    |
+
+error: could not compile `universal-translator` (lib) due to 2 previous errors

@@ -1,0 +1,88 @@
+{
+  "kind": "Function",
+  "name": "inspect",
+  "documentation": { "kind": "Text", "value": "Inspect one value." },
+  "parameters": [{ "name": "value", "type": "integer" }],
+  "body": {
+    "kind": "Block",
+    "statements": [
+      {
+        "kind": "While",
+        "condition": { "kind": "Name", "name": "pending" },
+        "body": {
+          "kind": "Block",
+          "statements": [
+            {
+              "kind": "If",
+              "condition": { "kind": "Name", "name": "ready" },
+              "then": {
+                "kind": "Block",
+                "statements": [
+                  {
+                    "kind": "Evaluate",
+                    "expression": {
+                      "kind": "Call",
+                      "callee": "consume",
+                      "arguments": [{ "kind": "Name", "name": "value" }]
+                    }
+                  }
+                ]
+              },
+              "otherwise": {
+                "kind": "Block",
+                "statements": [
+                  {
+                    "kind": "Return",
+                    "value": { "kind": "Number", "value": 0 }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "kind": "Try",
+        "body": {
+          "kind": "Block",
+          "statements": [
+            { "kind": "Throw", "value": { "kind": "Name", "name": "failure" } }
+          ]
+        },
+        "handlers": [
+          {
+            "kind": "Catch",
+            "name": "error",
+            "body": {
+              "kind": "Block",
+              "statements": [
+                {
+                  "kind": "Return",
+                  "value": { "kind": "Name", "name": "error" }
+                }
+              ]
+            }
+          }
+        ],
+        "success": {
+          "kind": "Block",
+          "statements": [
+            {
+              "kind": "Evaluate",
+              "expression": { "kind": "Call", "callee": "finish" }
+            }
+          ]
+        },
+        "finalizer": {
+          "kind": "Block",
+          "statements": [
+            {
+              "kind": "Evaluate",
+              "expression": { "kind": "Call", "callee": "cleanup" }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

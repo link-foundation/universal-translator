@@ -12,7 +12,28 @@ natural:
   true: 'verdadeiro'
   false: 'falso'
   note: 'Nota: {text}'
+  grammar:
+    terms:
+      interrogative: 'Qual é'
+      query-scope: 'para cada {variable} em {source}'
+      query-deferred: '“adiado”'
+    productions:
+      answer-type: 'o tipo de {subject}'
+      question-type: '@interrogative @answer-type'
+      answer-documentation: 'a documentação de {subject}'
+      question-documentation: '@interrogative @answer-documentation'
+      answer-source: 'o código fonte de {subject}'
+      question-source: '@interrogative @answer-source'
+      answer-details: 'a informação detalhada sobre {subject}'
+      question-details: '@interrogative @answer-details'
+      answer-query: 'os valores de {projection} @query-scope onde {condition}'
+      question-query: 'Quais valores de {projection} @query-scope satisfazem {condition}'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
+      element: 'o elemento {index} de {array}'
+      set-element: 'Mudar @element[array=name] para {value}'
   templates:
+    documentation: 'A documentação é {value}'
     function: 'Definir {name} usando {parameters}'
     function-without-parameters: 'Definir {name}'
     declare: 'Criar {name} com valor {value}' 'Seja {name} igual a {value}'
@@ -50,9 +71,7 @@ natural:
     remainder: '{left} módulo {right}' '{left} % {right}'
     array: 'a lista ({elements})'
     new-array: 'uma lista de {length} cópias de {fill}'
-    element: 'o elemento {index} de {array}'
     length: 'o comprimento de {array}'
-    set-element: 'Mudar o elemento {index} de {name} para {value}'
   words:
     ackermann: 'ackermann'
     bottles: 'garrafas'

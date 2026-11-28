@@ -1,0 +1,1 @@
+examples/universal-app/e2e/translate.e2e.mjs 359ms

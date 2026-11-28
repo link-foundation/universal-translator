@@ -4,6 +4,10 @@ natural:
   extends: tagalog
   profile: minimal-english
   source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  grammar:
+    productions:
+      element: 'bahagi {index} ng {array}'
+      set-element: 'Pagkatapos nito, ang @element[array=name] ay {value}'
   templates:
     function: 'Ganito ginagawa ng isang tao ang {name} gamit ang {parameters}'
     function-without-parameters: 'Ganito ginagawa ng isang tao ang {name}'
@@ -31,9 +35,7 @@ natural:
     greater-or-equal: '{left} ay hindi mas kaunti kaysa {right}'
     array: 'itong mga bagay ({elements})'
     new-array: '{length} bagay na tulad ng {fill}'
-    element: 'bahagi {index} ng {array}'
     length: 'ang dami ng bahagi ng {array}'
-    set-element: 'Pagkatapos nito, ang bahagi {index} ng {name} ay {value}'
   rules:
     primes: tagalog
     extra-words: ang ng sa mga na nang gamit linya sagot huminto walang beses para mula hanggang saka o at kabaligtaran kaysa dagdag bawas hinati modulo mali dami

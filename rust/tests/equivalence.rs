@@ -32,7 +32,7 @@ fn holds_for_what_the_translator_writes() {
     assert!(result.equivalent);
     assert!(result.differences.is_empty());
     assert!(result.translation.contains("range(1, 4)"));
-    assert_eq!(result.meta_lines, 12);
+    assert_eq!(result.meta_lines, 23);
 }
 
 #[test]
@@ -57,7 +57,7 @@ fn finds_a_bound_that_is_one_off() {
     assert_eq!(
         result.differences,
         vec![Difference {
-            line: 6,
+            line: 10,
             source: "number 4".into(),
             target: "number 3".into(),
         }]

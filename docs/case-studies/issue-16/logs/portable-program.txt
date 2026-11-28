@@ -1,0 +1,23 @@
+Meta Language 1.0.0 source, explicit module path
+{"engine":"JavaScript","inputKind":"JavaScript","from":"JavaScript","to":"Rust","stdout":"42\n"}
+{"engine":"Rust","inputKind":"cst","from":"JavaScript","to":"Rust","stdout":"42\n"}
+{"engine":"Rust","inputKind":"JavaScript","from":"JavaScript","to":"Rust","stdout":"42\n"}
+{"engine":"JavaScript","inputKind":"cst","from":"JavaScript","to":"Rust","stdout":"42\n"}
+{"engine":"JavaScript","inputKind":"Rust","from":"Rust","to":"JavaScript","stdout":"42\n"}
+{"engine":"Rust","inputKind":"cst","from":"Rust","to":"JavaScript","stdout":"42\n"}
+{"engine":"Rust","inputKind":"Rust","from":"Rust","to":"JavaScript","stdout":"42\n"}
+{"engine":"JavaScript","inputKind":"cst","from":"Rust","to":"JavaScript","stdout":"42\n"}
+{"engine":"JavaScript","rejected":["syntax error","unsupported class"]}
+{"engine":"Rust","rejected":["syntax error","unsupported class"]}
+
+Packed JavaScript CLI, compatible engine installed and no explicit module path
+{"engine":"JavaScript","inputKind":"JavaScript","from":"JavaScript","to":"Rust","stdout":"42\n"}
+{"engine":"Rust","inputKind":"cst","from":"JavaScript","to":"Rust","stdout":"42\n"}
+{"engine":"Rust","inputKind":"JavaScript","from":"JavaScript","to":"Rust","stdout":"42\n"}
+{"engine":"JavaScript","inputKind":"cst","from":"JavaScript","to":"Rust","stdout":"42\n"}
+{"engine":"JavaScript","inputKind":"Rust","from":"Rust","to":"JavaScript","stdout":"42\n"}
+{"engine":"Rust","inputKind":"cst","from":"Rust","to":"JavaScript","stdout":"42\n"}
+{"engine":"Rust","inputKind":"Rust","from":"Rust","to":"JavaScript","stdout":"42\n"}
+{"engine":"JavaScript","inputKind":"cst","from":"Rust","to":"JavaScript","stdout":"42\n"}
+{"engine":"JavaScript","rejected":["syntax error","unsupported class"]}
+{"engine":"Rust","rejected":["syntax error","unsupported class"]}

@@ -8,7 +8,13 @@
 import { lowerProgram } from './lowering.js';
 import { writeArm64, writeGas } from './machine-assembly.js';
 import { writeLlvm } from './machine-llvm.js';
-import { comments, createsArrays } from './machine-shared.js';
+import {
+  comments,
+  createsArrays,
+  mapInstructions,
+  mappedText,
+  renderMachine,
+} from './machine-shared.js';
 import { writeWat } from './machine-wasm.js';
 
 // Jasmin reads these words as instructions or keywords, so a variable named
@@ -57,6 +63,7 @@ export const machineTargets = {
     machine: true,
     naming: 'snake',
     lineComment: ';',
+    quotes: ['"', "'", '`'],
     terms: { call: 'call instruction', routine: 'procedure' },
   },
   gas: {
@@ -64,6 +71,7 @@ export const machineTargets = {
     machine: true,
     naming: 'snake',
     lineComment: '#',
+    blockComment: ['/*', '*/'],
     terms: { call: 'call instruction', routine: 'function' },
   },
   arm64: {
@@ -71,6 +79,7 @@ export const machineTargets = {
     machine: true,
     naming: 'snake',
     lineComment: '//',
+    blockComment: ['/*', '*/'],
     terms: { call: 'branch instruction', routine: 'function' },
   },
   cil: {
@@ -78,6 +87,8 @@ export const machineTargets = {
     machine: true,
     naming: { function: 'pascal', variable: 'camel' },
     lineComment: '//',
+    blockComment: ['/*', '*/'],
+    quotes: ['"', "'"],
     terms: { call: 'method call', routine: 'method' },
   },
   jvm: {
@@ -95,10 +106,12 @@ export const machineTargets = {
     terms: { call: 'call instruction', routine: 'function' },
   },
   wat: {
+    nestedComments: true,
     label: 'WebAssembly text',
     machine: true,
     naming: 'snake',
     lineComment: ';;',
+    blockComment: ['(;', ';)'],
     terms: { call: 'call instruction', routine: 'function' },
   },
 };
@@ -221,14 +234,22 @@ function nasmProcedure(item, texts) {
     ],
     'array-length': () => ['pop rax', 'push qword [rax - 8]'],
   };
-  for (const [operation, ...operands] of item.code) {
-    body.push(...instructions[operation](...operands));
+  for (const instruction of item.code) {
+    const [operation, ...operands] = instruction;
+    body.push(
+      ...mapInstructions(instructions[operation](...operands), instruction)
+    );
   }
   body.push('%pop');
   return [
     ...lines,
     ...body.map((line) =>
-      line.startsWith('.') || line.startsWith(';') ? line : `    ${line}`
+      mappedText(
+        line.startsWith('.') || line.startsWith(';')
+          ? String(line)
+          : `    ${line}`,
+        line
+      )
     ),
   ];
 }
@@ -288,32 +309,35 @@ function writeNasm(program) {
     '    leave',
     '    ret',
   ];
-  return [
-    ...comments(';', program.comments),
-    ...(program.comments.length ? [''] : []),
-    'default rel',
-    'extern printf',
-    ...(arrays ? ['extern malloc'] : []),
-    'global main',
-    '',
-    'section .data',
-    'integer_format: db "%lld", 0',
-    'text_format: db "%s", 0',
-    'newline_format: db 10, 0',
-    ...[...texts].map(([text, label]) => `${label}: db ${nasmText(text)}, 0`),
-    '',
-    'section .text',
-    ...procedures.flatMap((lines) => [...lines, '']),
-    ...(arrays ? nasmNewArray : []),
-    ...helper('print_integer', 'integer_format', ['mov rsi, rdi']),
-    '',
-    ...helper('print_text', 'text_format', ['mov rsi, rdi']),
-    '',
-    ...helper('print_newline', 'newline_format', []),
-    '',
-    'section .note.GNU-stack noalloc noexec nowrite progbits',
-    '',
-  ].join('\n');
+  return renderMachine(
+    [
+      ...comments(';', program.comments),
+      ...(program.comments.length ? [''] : []),
+      'default rel',
+      'extern printf',
+      ...(arrays ? ['extern malloc'] : []),
+      'global main',
+      '',
+      'section .data',
+      'integer_format: db "%lld", 0',
+      'text_format: db "%s", 0',
+      'newline_format: db 10, 0',
+      ...[...texts].map(([text, label]) => `${label}: db ${nasmText(text)}, 0`),
+      '',
+      'section .text',
+      ...procedures.flatMap((lines) => [...lines, '']),
+      ...(arrays ? nasmNewArray : []),
+      ...helper('print_integer', 'integer_format', ['mov rsi, rdi']),
+      '',
+      ...helper('print_text', 'text_format', ['mov rsi, rdi']),
+      '',
+      ...helper('print_newline', 'newline_format', []),
+      '',
+      'section .note.GNU-stack noalloc noexec nowrite progbits',
+      '',
+    ],
+    'nasm'
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -401,15 +425,19 @@ function cilMethod(item, signatures, entryName) {
     `.maxstack ${Math.max(item.maxDepth, 1)}`,
     ...(locals.length ? [`.locals init (${locals.join(', ')})`] : []),
   ];
-  for (const [operation, ...operands] of item.code) {
-    body.push(...write[operation](...operands));
+  for (const instruction of item.code) {
+    const [operation, ...operands] = instruction;
+    body.push(...mapInstructions(write[operation](...operands), instruction));
   }
   return [
     ...comments('//', item.comments, '    '),
     `    .method public static ${item.returns ? 'int64' : 'void'} ${name}(${parameters}) cil managed`,
     '    {',
     ...body.map((line) =>
-      /^\w+:$/.test(line) ? `      ${line}` : `        ${line}`
+      mappedText(
+        /^\w+:$/.test(line) ? `      ${line}` : `        ${line}`,
+        line
+      )
     ),
     '    }',
   ];
@@ -441,24 +469,27 @@ function writeCil(program) {
       `${item.returns ? 'int64' : 'void'} Program::${item.name}(${Array.from({ length: item.parameterCount }, () => 'int64').join(', ')})`,
     ])
   );
-  return [
-    ...comments('//', program.comments),
-    ...(program.comments.length ? [''] : []),
-    `.assembly extern System.Runtime { .publickeytoken = ${frameworkKey} .ver 4:0:0:0 }`,
-    `.assembly extern System.Console { .publickeytoken = ${frameworkKey} .ver 4:0:0:0 }`,
-    '.assembly Program { }',
-    '',
-    '.class public abstract sealed auto ansi Program',
-    '  extends [System.Runtime]System.Object',
-    '{',
-    ...[...program.functions, program.main].flatMap((item, index) => [
-      ...(index ? [''] : []),
-      ...cilMethod(item, signatures, 'Main'),
-    ]),
-    ...(createsArrays(program) ? cilNewArrayMethod : []),
-    '}',
-    '',
-  ].join('\n');
+  return renderMachine(
+    [
+      ...comments('//', program.comments),
+      ...(program.comments.length ? [''] : []),
+      `.assembly extern System.Runtime { .publickeytoken = ${frameworkKey} .ver 4:0:0:0 }`,
+      `.assembly extern System.Console { .publickeytoken = ${frameworkKey} .ver 4:0:0:0 }`,
+      '.assembly Program { }',
+      '',
+      '.class public abstract sealed auto ansi Program',
+      '  extends [System.Runtime]System.Object',
+      '{',
+      ...[...program.functions, program.main].flatMap((item, index) => [
+        ...(index ? [''] : []),
+        ...cilMethod(item, signatures, 'Main'),
+      ]),
+      ...(createsArrays(program) ? cilNewArrayMethod : []),
+      '}',
+      '',
+    ],
+    'cil'
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -553,13 +584,16 @@ function jvmMethod(item, descriptors) {
         `.var ${slot(index)} is ${jasminName(slotName)} ${isArray(index) ? '[J' : 'J'}`
     ),
   ];
-  for (const [operation, ...operands] of item.code) {
-    body.push(...write[operation](...operands));
+  for (const instruction of item.code) {
+    const [operation, ...operands] = instruction;
+    body.push(...mapInstructions(write[operation](...operands), instruction));
   }
   return [
     ...comments(';', item.comments),
     `.method public static ${isMain ? 'main([Ljava/lang/String;)V' : descriptors.get(item.name)}`,
-    ...body.map((line) => (/^\w+:$/.test(line) ? line : `    ${line}`)),
+    ...body.map((line) =>
+      mappedText(/^\w+:$/.test(line) ? String(line) : `    ${line}`, line)
+    ),
     '.end method',
   ];
 }
@@ -587,18 +621,21 @@ function writeJvm(program) {
       `${item.name}(${'J'.repeat(item.parameterCount)})${item.returns ? 'J' : 'V'}`,
     ])
   );
-  return [
-    ...comments(';', program.comments),
-    ...(program.comments.length ? [''] : []),
-    '.class public Program',
-    '.super java/lang/Object',
-    '',
-    ...[...program.functions, program.main].flatMap((item) => [
-      ...jvmMethod(item, descriptors),
+  return renderMachine(
+    [
+      ...comments(';', program.comments),
+      ...(program.comments.length ? [''] : []),
+      '.class public Program',
+      '.super java/lang/Object',
       '',
-    ]),
-    ...(createsArrays(program) ? jvmNewArrayMethod : []),
-  ].join('\n');
+      ...[...program.functions, program.main].flatMap((item) => [
+        ...jvmMethod(item, descriptors),
+        '',
+      ]),
+      ...(createsArrays(program) ? jvmNewArrayMethod : []),
+    ],
+    'jvm'
+  );
 }
 
 const writers = {

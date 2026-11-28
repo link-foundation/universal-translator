@@ -1,0 +1,13 @@
+▶ member calls on computed receivers
+  ✔ keeps the receiver before a member call (563.276341ms)
+  ✔ continues Java fluent calls on the next line (8.047776ms)
+  ✔ reads multiline calls back to the same expression (22.872075ms)
+✔ member calls on computed receivers (598.133296ms)
+ℹ tests 3
+ℹ suites 1
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1234.044539

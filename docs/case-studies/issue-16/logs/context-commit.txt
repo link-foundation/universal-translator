@@ -1,0 +1,10 @@
+[issue-16-fb080613587e 2cb4773] fix: preserve translation context and expression semantics
+ 32 files changed, 770 insertions(+), 80 deletions(-)
+ create mode 100644 .changeset/preserve-translation-context.md
+ create mode 100644 docs/screenshots/issue-16/source-correction-after.png
+ create mode 100644 docs/screenshots/issue-16/source-correction-before.png
+ create mode 100644 examples/universal-app/src/report-issue.js
+ create mode 100644 js/src/formal/power.js
+ create mode 100644 js/tests/issue-16.test.js
+ create mode 100644 js/tests/issue-report.test.js
+ create mode 100644 rust/src/formal/power.rs

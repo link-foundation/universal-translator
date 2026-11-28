@@ -114,7 +114,7 @@ fn reads_a_whole_program_functions_or_statements() {
     assert_eq!(kinds, expected);
     assert_eq!(
         FragmentKind::ALL.map(FragmentKind::as_str),
-        ["program", "functions", "statements"]
+        ["program", "functions", "definitions", "statements"]
     );
 }
 

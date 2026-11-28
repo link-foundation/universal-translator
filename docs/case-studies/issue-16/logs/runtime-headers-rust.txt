@@ -1,0 +1,9 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 10.63s
+     Running rust/tests/runtime_headers.rs (target/debug/deps/runtime_headers-b5595ef9fb883cf6)
+
+running 2 tests
+test changed_rocq_runtime_tokens_and_literal_values_are_not_discarded ... ok
+test token_equivalent_rocq_runtime_headers_keep_layout_comments_and_real_line_numbers ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.22s

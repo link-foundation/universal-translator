@@ -13,6 +13,7 @@
 
 import { useEffect, useRef } from 'react';
 import { lineLink } from './line-map.js';
+import { regionLink, regionDecorations } from './region-map.js';
 import { connectorPaths, mappingDecorations } from './mapping.js';
 import { debug } from './debug.js';
 
@@ -156,6 +157,8 @@ function makeState(api, editors, strip) {
     editors,
     strip,
     link: lineLink([], editors.map(lineCount)),
+    regions: regionLink(),
+    activeRegion: undefined,
     active: undefined,
     applying: false,
     settledAt: 0,
@@ -167,14 +170,15 @@ function makeState(api, editors, strip) {
   // Paints the colours of both editors and, at the next frame, the strip.
   state.paint = () => {
     state.collections.forEach((collection, side) => {
-      collection.set(
-        mappingDecorations(
+      collection.set([
+        ...mappingDecorations(
           state.link,
           side,
           state.active,
           lineCount(editors[side])
-        )
-      );
+        ),
+        ...regionDecorations(state.regions, side, state.activeRegion),
+      ]);
     });
     state.redraw();
   };
@@ -205,6 +209,10 @@ function followSelection(state, side, event) {
   const { selection } = event;
   const [first, last] = selectionLines(selection);
   state.active = state.link.groupAt(side, selection.positionLineNumber - 1);
+  state.activeRegion = state.regions.groupAt(side, {
+    lineNumber: selection.startLineNumber,
+    column: selection.startColumn,
+  });
   const other = state.editors[1 - side];
   const count = lineCount(other);
   if (count) {
@@ -213,7 +221,31 @@ function followSelection(state, side, event) {
     const model = other.getModel();
     state.applying = true;
     try {
-      if (selection.isEmpty()) {
+      const regions = state.regions.mapSelection(side, selection);
+      if (regions.length) {
+        const ranges = regions.map((range) =>
+          state.regions.positions[1 - side].range(range)
+        );
+        if (selection.isEmpty()) {
+          other.setPosition({
+            lineNumber: ranges[0].startLineNumber,
+            column: ranges[0].startColumn,
+          });
+        } else {
+          other.setSelections(
+            ranges.map(
+              (range) =>
+                new state.api.Selection(
+                  range.startLineNumber,
+                  range.startColumn,
+                  range.endLineNumber,
+                  range.endColumn
+                )
+            )
+          );
+        }
+        other.revealRangeInCenterIfOutsideViewport(ranges[0]);
+      } else if (selection.isEmpty()) {
         other.setPosition({
           lineNumber: from,
           column: model.getLineFirstNonWhitespaceColumn(from) || 1,
@@ -321,12 +353,20 @@ export function linkEditors(api, editors, strip) {
   const resize = () => state.redraw();
   globalThis.addEventListener?.('resize', resize);
   return {
-    update(lineMap) {
+    update(lineMap, regionMap) {
       state.link = lineLink(lineMap, editors.map(lineCount));
+      state.regions = regionLink(
+        regionMap,
+        editors.map((editor) => editor.getModel()?.getValue() ?? '')
+      );
       const position = editors[0].getPosition();
       state.active =
         position && editors[0].hasTextFocus()
           ? state.link.groupAt(0, position.lineNumber - 1)
+          : undefined;
+      state.activeRegion =
+        position && editors[0].hasTextFocus()
+          ? state.regions.groupAt(0, position)
           : undefined;
       debug('sync', 'line map', lineMap, state.link.groups.length);
       state.paint();
@@ -355,7 +395,14 @@ export function linkEditors(api, editors, strip) {
 // gives them ({ editor, api } or undefined); the link is made when both
 // are there and follows `lineMap` and the texts (whose line counts it
 // needs).
-export function useEditorSync(panes, strip, lineMap, source, target) {
+export function useEditorSync(
+  panes,
+  strip,
+  lineMap,
+  regionMap,
+  source,
+  target
+) {
   const [sourcePane, targetPane] = panes;
   const link = useRef();
   useEffect(() => {
@@ -374,6 +421,6 @@ export function useEditorSync(panes, strip, lineMap, source, target) {
     };
   }, [sourcePane, targetPane, strip]);
   useEffect(() => {
-    link.current?.update(lineMap);
-  }, [sourcePane, targetPane, lineMap, source, target]);
+    link.current?.update(lineMap, regionMap);
+  }, [sourcePane, targetPane, lineMap, regionMap, source, target]);
 }

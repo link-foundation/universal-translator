@@ -4,6 +4,10 @@ natural:
   extends: swahili
   profile: minimal-english
   source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  grammar:
+    productions:
+      element: 'sehemu {index} ya {array}'
+      set-element: 'Baada ya hii, @element[array=name] ni {value}'
   templates:
     function: 'Hivi ndivyo mtu anavyofanya {name} kwa {parameters}'
     function-without-parameters: 'Hivi ndivyo mtu anavyofanya {name}'
@@ -24,9 +28,7 @@ natural:
     join: '{left} kisha {right}'
     array: 'vitu hivi ({elements})'
     new-array: 'vitu {length} kama {fill}'
-    element: 'sehemu {index} ya {array}'
     length: 'idadi ya sehemu za {array}'
-    set-element: 'Baada ya hii, sehemu {index} ya {name} ni {value}'
   rules:
     primes: swahili
     extra-words: ndivyo kwa ya za kwenye mstari jibu simama mara kutoka hadi kisha au na jumlisha toa gawanya modulo hasi uongo idadi

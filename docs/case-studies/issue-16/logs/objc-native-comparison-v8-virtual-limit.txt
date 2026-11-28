@@ -1,0 +1,127 @@
+
+<--- Last few GCs --->
+
+
+
+#
+# Fatal process out of memory: SegmentedTable::InitializeTable (subspace allocation)
+#
+----- Native stack trace -----
+
+ 1: 0xaa00a1  [/home/box/.nvm/versions/node/v26.13.1/bin/node]
+ 2: 0x29485a2 v8::base::FatalOOM(v8::base::OOMType, char const*) [/home/box/.nvm/versions/node/v26.13.1/bin/node]
+ 3: 0xcd715c  [/home/box/.nvm/versions/node/v26.13.1/bin/node]
+ 4: 0xe7e1a2  [/home/box/.nvm/versions/node/v26.13.1/bin/node]
+ 5: 0xe74dee  [/home/box/.nvm/versions/node/v26.13.1/bin/node]
+ 6: 0xe73812  [/home/box/.nvm/versions/node/v26.13.1/bin/node]
+ 7: 0xe74789  [/home/box/.nvm/versions/node/v26.13.1/bin/node]
+ 8: 0x142d7fd  [/home/box/.nvm/versions/node/v26.13.1/bin/node]
+ 9: 0xcfc340 v8::Isolate::Initialize(v8::Isolate*, v8::Isolate::CreateParams const&) [/home/box/.nvm/versions/node/v26.13.1/bin/node]
+10: 0x8b8af2 node::NewIsolate(v8::Isolate::CreateParams*, uv_loop_s*, node::MultiIsolatePlatform*, node::SnapshotData const*, node::IsolateSettings const&) [/home/box/.nvm/versions/node/v26.13.1/bin/node]
+11: 0xa55438 node::NodeMainInstance::NodeMainInstance(node::SnapshotData const*, uv_loop_s*, node::MultiIsolatePlatform*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&) [/home/box/.nvm/versions/node/v26.13.1/bin/node]
+12: 0x98ebd6 node::Start(int, char**) [/home/box/.nvm/versions/node/v26.13.1/bin/node]
+13: 0x7338537771ca  [/lib/x86_64-linux-gnu/libc.so.6]
+14: 0x73385377728b __libc_start_main [/lib/x86_64-linux-gnu/libc.so.6]
+15: 0x8b24ce _start [/home/box/.nvm/versions/node/v26.13.1/bin/node]
+node:internal/errors:999
+  const err = new Error(message);
+              ^
+
+Error: Command failed: bash -c ulimit -c 0; ulimit -v 1048576; ulimit -s 16384; exec "$@" bounded-objpak /home/box/.nvm/versions/node/v26.13.1/bin/node /tmp/universal-objpak-J35jNa/original.mjs
+
+<--- Last few GCs --->
+
+
+
+#
+# Fatal process out of memory: SegmentedTable::InitializeTable (subspace allocation)
+#
+----- Native stack trace -----
+
+ 1: 0xaa00a1  [/home/box/.nvm/versions/node/v26.13.1/bin/node]
+ 2: 0x29485a2 v8::base::FatalOOM(v8::base::OOMType, char const*) [/home/box/.nvm/versions/node/v26.13.1/bin/node]
+ 3: 0xcd715c  [/home/box/.nvm/versions/node/v26.13.1/bin/node]
+ 4: 0xe7e1a2  [/home/box/.nvm/versions/node/v26.13.1/bin/node]
+ 5: 0xe74dee  [/home/box/.nvm/versions/node/v26.13.1/bin/node]
+ 6: 0xe73812  [/home/box/.nvm/versions/node/v26.13.1/bin/node]
+ 7: 0xe74789  [/home/box/.nvm/versions/node/v26.13.1/bin/node]
+ 8: 0x142d7fd  [/home/box/.nvm/versions/node/v26.13.1/bin/node]
+ 9: 0xcfc340 v8::Isolate::Initialize(v8::Isolate*, v8::Isolate::CreateParams const&) [/home/box/.nvm/versions/node/v26.13.1/bin/node]
+10: 0x8b8af2 node::NewIsolate(v8::Isolate::CreateParams*, uv_loop_s*, node::MultiIsolatePlatform*, node::SnapshotData const*, node::IsolateSettings const&) [/home/box/.nvm/versions/node/v26.13.1/bin/node]
+11: 0xa55438 node::NodeMainInstance::NodeMainInstance(node::SnapshotData const*, uv_loop_s*, node::MultiIsolatePlatform*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&) [/home/box/.nvm/versions/node/v26.13.1/bin/node]
+12: 0x98ebd6 node::Start(int, char**) [/home/box/.nvm/versions/node/v26.13.1/bin/node]
+13: 0x7338537771ca  [/lib/x86_64-linux-gnu/libc.so.6]
+14: 0x73385377728b __libc_start_main [/lib/x86_64-linux-gnu/libc.so.6]
+15: 0x8b24ce _start [/home/box/.nvm/versions/node/v26.13.1/bin/node]
+
+    at genericNodeError (node:internal/errors:999:15)
+    at wrappedFn (node:internal/errors:544:14)
+    at checkExecSyncError (node:child_process:990:11)
+    at execFileSync (node:child_process:1026:15)
+    at run (file:///tmp/gh-issue-solver-1795726129025/examples/objpak/verify-native.mjs:13:46)
+    at native (file:///tmp/gh-issue-solver-1795726129025/examples/objpak/verify-native.mjs:18:35)
+    at file:///tmp/gh-issue-solver-1795726129025/examples/objpak/verify-native.mjs:53:22
+    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async node:internal/modules/esm/loader:650:26 {
+  status: null,
+  signal: 'SIGTRAP',
+  output: [
+    null,
+    '',
+    '\n' +
+      '<--- Last few GCs --->\n' +
+      '\n' +
+      '\n' +
+      '\n' +
+      '#\n' +
+      '# Fatal process out of memory: SegmentedTable::InitializeTable (subspace allocation)\n' +
+      '#\n' +
+      '----- Native stack trace -----\n' +
+      '\n' +
+      ' 1: 0xaa00a1  [/home/box/.nvm/versions/node/v26.13.1/bin/node]\n' +
+      ' 2: 0x29485a2 v8::base::FatalOOM(v8::base::OOMType, char const*) [/home/box/.nvm/versions/node/v26.13.1/bin/node]\n' +
+      ' 3: 0xcd715c  [/home/box/.nvm/versions/node/v26.13.1/bin/node]\n' +
+      ' 4: 0xe7e1a2  [/home/box/.nvm/versions/node/v26.13.1/bin/node]\n' +
+      ' 5: 0xe74dee  [/home/box/.nvm/versions/node/v26.13.1/bin/node]\n' +
+      ' 6: 0xe73812  [/home/box/.nvm/versions/node/v26.13.1/bin/node]\n' +
+      ' 7: 0xe74789  [/home/box/.nvm/versions/node/v26.13.1/bin/node]\n' +
+      ' 8: 0x142d7fd  [/home/box/.nvm/versions/node/v26.13.1/bin/node]\n' +
+      ' 9: 0xcfc340 v8::Isolate::Initialize(v8::Isolate*, v8::Isolate::CreateParams const&) [/home/box/.nvm/versions/node/v26.13.1/bin/node]\n' +
+      '10: 0x8b8af2 node::NewIsolate(v8::Isolate::CreateParams*, uv_loop_s*, node::MultiIsolatePlatform*, node::SnapshotData const*, node::IsolateSettings const&) [/home/box/.nvm/versions/node/v26.13.1/bin/node]\n' +
+      '11: 0xa55438 node::NodeMainInstance::NodeMainInstance(node::SnapshotData const*, uv_loop_s*, node::MultiIsolatePlatform*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&) [/home/box/.nvm/versions/node/v26.13.1/bin/node]\n' +
+      '12: 0x98ebd6 node::Start(int, char**) [/home/box/.nvm/versions/node/v26.13.1/bin/node]\n' +
+      '13: 0x7338537771ca  [/lib/x86_64-linux-gnu/libc.so.6]\n' +
+      '14: 0x73385377728b __libc_start_main [/lib/x86_64-linux-gnu/libc.so.6]\n' +
+      '15: 0x8b24ce _start [/home/box/.nvm/versions/node/v26.13.1/bin/node]\n'
+  ],
+  pid: 97723,
+  stdout: '',
+  stderr: '\n' +
+    '<--- Last few GCs --->\n' +
+    '\n' +
+    '\n' +
+    '\n' +
+    '#\n' +
+    '# Fatal process out of memory: SegmentedTable::InitializeTable (subspace allocation)\n' +
+    '#\n' +
+    '----- Native stack trace -----\n' +
+    '\n' +
+    ' 1: 0xaa00a1  [/home/box/.nvm/versions/node/v26.13.1/bin/node]\n' +
+    ' 2: 0x29485a2 v8::base::FatalOOM(v8::base::OOMType, char const*) [/home/box/.nvm/versions/node/v26.13.1/bin/node]\n' +
+    ' 3: 0xcd715c  [/home/box/.nvm/versions/node/v26.13.1/bin/node]\n' +
+    ' 4: 0xe7e1a2  [/home/box/.nvm/versions/node/v26.13.1/bin/node]\n' +
+    ' 5: 0xe74dee  [/home/box/.nvm/versions/node/v26.13.1/bin/node]\n' +
+    ' 6: 0xe73812  [/home/box/.nvm/versions/node/v26.13.1/bin/node]\n' +
+    ' 7: 0xe74789  [/home/box/.nvm/versions/node/v26.13.1/bin/node]\n' +
+    ' 8: 0x142d7fd  [/home/box/.nvm/versions/node/v26.13.1/bin/node]\n' +
+    ' 9: 0xcfc340 v8::Isolate::Initialize(v8::Isolate*, v8::Isolate::CreateParams const&) [/home/box/.nvm/versions/node/v26.13.1/bin/node]\n' +
+    '10: 0x8b8af2 node::NewIsolate(v8::Isolate::CreateParams*, uv_loop_s*, node::MultiIsolatePlatform*, node::SnapshotData const*, node::IsolateSettings const&) [/home/box/.nvm/versions/node/v26.13.1/bin/node]\n' +
+    '11: 0xa55438 node::NodeMainInstance::NodeMainInstance(node::SnapshotData const*, uv_loop_s*, node::MultiIsolatePlatform*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&) [/home/box/.nvm/versions/node/v26.13.1/bin/node]\n' +
+    '12: 0x98ebd6 node::Start(int, char**) [/home/box/.nvm/versions/node/v26.13.1/bin/node]\n' +
+    '13: 0x7338537771ca  [/lib/x86_64-linux-gnu/libc.so.6]\n' +
+    '14: 0x73385377728b __libc_start_main [/lib/x86_64-linux-gnu/libc.so.6]\n' +
+    '15: 0x8b24ce _start [/home/box/.nvm/versions/node/v26.13.1/bin/node]\n'
+}
+
+Node.js v26.13.1

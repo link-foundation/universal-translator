@@ -2,11 +2,17 @@
 //!
 //! The JavaScript twin lives in js/src/natural/.
 
+mod agreement;
 pub mod catalog;
+mod collection_templates;
 pub mod comments;
+mod grammar;
 pub mod levels;
+mod lines;
+pub(crate) use lines::note_spans;
 pub mod probability;
 pub mod prose_reading;
+mod query_templates;
 pub mod reader;
 pub mod rules;
 pub mod standards;

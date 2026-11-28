@@ -1,0 +1,12 @@
+[issue-16-fb080613587e 3f0302e] fix: translate typed exceptions and preserve entry-point returns
+ 23 files changed, 1049 insertions(+), 7 deletions(-)
+ create mode 100644 docs/screenshots/issue-16/exceptions-after.png
+ create mode 100644 examples/translation/exceptions.cpp
+ create mode 100644 examples/translation/verify-exceptions.mjs
+ create mode 100644 js/src/formal/exception-handlers.js
+ create mode 100644 js/src/formal/exception-parser.js
+ create mode 100644 js/src/formal/exceptions.js
+ create mode 100644 js/tests/exceptions.test.js
+ create mode 100644 rust/src/formal/exceptions.rs
+ create mode 100644 rust/src/formal/parser/exceptions.rs
+ create mode 100644 rust/tests/exceptions.rs

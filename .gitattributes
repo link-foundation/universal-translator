@@ -1,0 +1,3 @@
+*.pdf binary
+# The upstream snapshot is verified byte for byte by its digest manifest.
+vendor/meta-language-grammar/src/** -text -whitespace

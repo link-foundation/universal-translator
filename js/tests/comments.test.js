@@ -18,6 +18,14 @@ const codeOf = (source, marker) =>
     .join('\n');
 
 describe('comment language', () => {
+  it('translates the vocabulary of iterative sequences', () => {
+    expect(
+      translateCommentText('sequence iteratively', {
+        from: 'english',
+        to: 'russian',
+      })
+    ).toBe('последовательность итеративно');
+  });
   it('translates comment words through the shared meanings', () => {
     expect(
       translateCommentText('Sum of squares', { from: 'english', to: 'russian' })

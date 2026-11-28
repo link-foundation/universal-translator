@@ -1,0 +1,16 @@
+✔ maps independent statements to their full expansion in every machine target (260.776213ms)
+▶ semantic many-to-many line mapping
+  ✔ maps the complete Fibonacci interpolation reported in issue 16 (42.27726ms)
+  ✔ maps a Java print to both the Bash command and its echo, and back (9.583962ms)
+  ✔ maps translated sentences in every controlled natural language in both directions (348.666473ms)
+  ✔ preserves origin metadata through output style and fragment wrappers (4.153684ms)
+  ✔ restores the capture context after failure and reentrant translations (6.192751ms)
+✔ semantic many-to-many line mapping (412.478983ms)
+ℹ tests 6
+ℹ suites 1
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1235.607778

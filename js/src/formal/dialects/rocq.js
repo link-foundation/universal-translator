@@ -12,6 +12,7 @@
 // result of a function that returns one, and a procedure is the action
 // itself. The last command evaluates `run main`, which Rocq prints.
 
+import { mappedLine } from '../../translation/emission-map.js';
 import { laterCalls, name, node } from '../../meta/tree.js';
 import {
   blankNode,
@@ -290,6 +291,12 @@ const expressionParser = (Base) =>
     application(callee, values) {
       const [first, second] = values;
       switch (callee) {
+        case 'Bool.eqb':
+          return node('Binary', {
+            operator: 'equal',
+            left: first,
+            right: second,
+          });
         case 'Z.quot':
           return node('Binary', {
             operator: 'divide',
@@ -503,7 +510,12 @@ const statementEmitter = (Base) =>
 
     // Adds text to the last line written.
     append(text) {
-      this.lines[this.lines.length - 1] += text;
+      const last = this.lines.length - 1;
+      this.lines[last] = mappedLine(
+        this,
+        `${this.lines[last]}${text}`,
+        this.lines[last]
+      );
     }
 
     // The statements of a block, one level deeper, and the state it hands
@@ -699,6 +711,9 @@ const expressionEmitter = (Base) =>
       if (operator === 'and' || operator === 'or') {
         return this.logical(expression, parent);
       }
+      if (operator === 'equal' && left.type === 'boolean') {
+        return this.application('Bool.eqb', [left, right], parent);
+      }
       if (operator === 'notEqual') {
         return this.applied(
           `negb (${this.binary({ ...expression, operator: 'equal' }, 0)})`,
@@ -768,9 +783,7 @@ const emitter = (Base) =>
     }
 
     functionDefinition(item) {
-      for (const text of item.comments ?? []) {
-        this.comment(text);
-      }
+      this.comments(item, 'comments');
       const grouped = this.group?.includes(item);
       const first = !grouped || item === this.group[0];
       if (first) {
@@ -799,9 +812,7 @@ const emitter = (Base) =>
     }
 
     main(program) {
-      for (const text of program.mainComments ?? []) {
-        this.comment(text);
-      }
+      this.comments(program, 'mainComments');
       this.line('Definition main : Action unit unit := (');
       this.functionBody(program.main, 'pure tt');
       this.append(').');

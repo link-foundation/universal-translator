@@ -19,8 +19,14 @@ import { declaredVariables } from '../formal/dialects/shared.js';
 import { languageSyntax } from '../formal/languages.js';
 import { machineTargetIds } from '../formal/machine.js';
 import { isNaturalLanguage } from '../natural/catalog.js';
+import { remapOrigins, withOrigin } from './source-origins.js';
 
-export const fragmentKinds = ['program', 'functions', 'statements'];
+export const fragmentKinds = [
+  'program',
+  'functions',
+  'definitions',
+  'statements',
+];
 
 const marker = 'universal-translator-fragment';
 const startMarker = `${marker}-start`;
@@ -224,13 +230,20 @@ const notComplete = (message) =>
 // What a whole program read from the source holds.
 function programKind(meta) {
   const hasFunctions = meta.functions.length > 0;
+  const hasDefinitions = meta.definitions?.length > 0;
   const hasStatements = meta.main.statements.some(
     (statement) => statement.kind !== 'Comment'
   );
   // A main function or procedure makes the source a program even when it
   // is empty.
-  if (meta.mainComments !== undefined || (hasFunctions && hasStatements)) {
+  if (
+    meta.mainComments !== undefined ||
+    ((hasFunctions || hasDefinitions) && hasStatements)
+  ) {
     return 'program';
+  }
+  if (hasDefinitions) {
+    return 'definitions';
   }
   if (hasFunctions) {
     return 'functions';
@@ -241,6 +254,9 @@ function programKind(meta) {
 // The fragment of a wrapped program, or a reason why the wrapper changed
 // shape (the fragment closed a block it did not open).
 function unwrap(meta, empty, kind) {
+  if (meta.definitions?.length) {
+    return { problem: 'it holds type definitions outside a complete program' };
+  }
   if (kind !== 'functions') {
     if (
       meta.functions.length !== empty.functions.length ||
@@ -298,27 +314,35 @@ function writeBetweenMarkers(adapted, kind, to, emit) {
             comment(endMarker),
           ]),
         }
-      : {
-          ...adapted,
-          comments: [],
-          mainComments: [],
-          main: block(),
-          functions: [
-            ...adapted.functions.map((item, index) =>
-              index === 0
-                ? {
-                    ...item,
-                    comments: [
-                      startMarker,
-                      ...(adapted.comments ?? []),
-                      ...(item.comments ?? []),
-                    ],
-                  }
-                : item
-            ),
-            closingFunction([endMarker]),
-          ],
-        };
+      : kind === 'definitions'
+        ? {
+            ...adapted,
+            comments: [startMarker, ...(adapted.comments ?? [])],
+            mainComments: [],
+            main: block(),
+            functions: [...adapted.functions, closingFunction([endMarker])],
+          }
+        : {
+            ...adapted,
+            comments: [],
+            mainComments: [],
+            main: block(),
+            functions: [
+              ...adapted.functions.map((item, index) =>
+                index === 0
+                  ? {
+                      ...item,
+                      comments: [
+                        startMarker,
+                        ...(adapted.comments ?? []),
+                        ...(item.comments ?? []),
+                      ],
+                    }
+                  : item
+              ),
+              closingFunction([endMarker]),
+            ],
+          };
   const lines = sourceLines(emit(shape, to));
   const start = markerLine(lines, startMarker);
   const end = markerLine(lines, endMarker);
@@ -326,6 +350,9 @@ function writeBetweenMarkers(adapted, kind, to, emit) {
     throw new Error(`${to} cannot write ${kind} on their own`);
   }
   const inner = lines.slice(start + 1, end);
+  if (kind === 'definitions') {
+    return `${dedent(inner).join('\n')}\n`;
+  }
   if (kind === 'statements') {
     const declarations = declarationLines(
       lines.slice(0, start),
@@ -411,7 +438,7 @@ export function createFragmentTranslator({ toMeta, adapt, write, emit }) {
         if (result.fragment) {
           return {
             kind: kind === 'functions' ? kind : 'statements',
-            program: result.fragment,
+            program: remapOrigins(result.fragment, source, wrapped.origins),
           };
         }
         failure = { message: result.problem, line: 0 };
@@ -452,11 +479,16 @@ export function createFragmentTranslator({ toMeta, adapt, write, emit }) {
   // Comments that stand on their own as statements of the target (notes in
   // a natural language). Partial translation marks what it cannot
   // translate with them. The texts are kept as written (literal mode).
-  function writeNotes(texts, to) {
+  function writeNotes(texts, to, source) {
     const meta = program({
-      statements: texts.map((text) =>
+      statements: texts.map((text, index) =>
         // A comment must not close a block comment early.
-        comment(text.replaceAll('*/', '* /'))
+        withOrigin(
+          comment(text.replaceAll('*/', '* /')),
+          source === undefined
+            ? undefined
+            : { source, lines: [Math.max(0, index - 1)] }
+        )
       ),
     });
     const adapted = adapt(meta, to, { from: to, mode: 'literal' });

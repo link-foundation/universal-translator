@@ -1,0 +1,35 @@
+▶ declaration annotations and named types
+  ✔ keeps Spring annotations separate from names and types (305.276691ms)
+  ✔ writes annotations and fluent calls to Python and reads them back (36.803875ms)
+  ✔ balances nested generic commas and empty multiline parameter lists (5.277496ms)
+  ✔ preserves annotation arguments as expressions (1.99902ms)
+  ✔ requires an explicit mapping for targets without annotation syntax (4.558024ms)
+✔ declaration annotations and named types (356.274024ms)
+▶ arrow functions
+  ✔ read as the Function a function declaration reads as (335.715178ms)
+  ✔ read with two parameters and statements before the result (4.51344ms)
+  ✔ translate to Python as the function declaration does (10.363104ms)
+  ✔ are written back as function declarations (2.4279ms)
+  ✔ leave other arrows and declarations to the expression reader (2.542332ms)
+  ✔ do what the function declaration does (32.522547ms)
+✔ arrow functions (391.203312ms)
+▶ Python type hints
+  ✔ give the meta types of parameters, results and assignments (5.388673ms)
+  ✔ map built-ins and retain application and generic types (2.642309ms)
+  ✔ read a hint without a value as nothing to do (2.715185ms)
+  ✔ translate as the unhinted program does (28.883217ms)
+  ✔ leave what the program does unchanged (11.15377ms)
+✔ Python type hints (52.204748ms)
+▶ member calls on computed receivers
+  ✔ keeps the receiver before a member call (307.114608ms)
+  ✔ continues Java fluent calls on the next line (7.178802ms)
+  ✔ reads multiline calls back to the same expression (21.086631ms)
+✔ member calls on computed receivers (337.592401ms)
+ℹ tests 19
+ℹ suites 4
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 935.566011

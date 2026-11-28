@@ -3,10 +3,16 @@
 use strict;
 use warnings;
 
+sub ut_integer_remainder {
+    my ($first, $second) = @_;
+    my $quotient = int($first / $second);
+    return $first - $quotient * $second;
+}
+
 my $total = 0;
 for my $number (1 .. 999) {
-    if ($number % 3 == 0 || $number % 5 == 0) {
+    if (ut_integer_remainder($number, 3) == 0 || ut_integer_remainder($number, 5) == 0) {
         $total += $number;
     }
 }
-print $total . "\n";
+print($total . "\n");

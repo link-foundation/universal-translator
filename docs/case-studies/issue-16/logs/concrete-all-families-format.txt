@@ -1,0 +1,10 @@
+js/src/translation/concrete-syntax.js 135ms
+js/src/translation/source-syntax.js 51ms
+js/src/translation/partial.js 155ms (unchanged)
+js/src/translation/concrete-syntax.d.ts 128ms (unchanged)
+js/src/translator.js 154ms (unchanged)
+js/src/translator.d.ts 148ms
+js/src/index.d.ts 185ms (unchanged)
+js/tests/concrete-syntax.test.js 43ms
+docs/concrete-syntax.md 72ms (unchanged)
+examples/universal-app/vite.config.js 30ms (unchanged)

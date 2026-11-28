@@ -59,7 +59,7 @@ describe('common library route', () => {
     expect(Object.keys(commonLibraryAccess)).toEqual(
       createTranslator()
         .languages()
-        .filter(({ machine }) => !machine)
+        .filter(({ machine, query }) => !machine && !query)
         .map(({ id }) => id)
     );
   });

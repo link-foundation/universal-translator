@@ -12,7 +12,28 @@ natural:
   true: 'benar'
   false: 'salah'
   note: 'Catatan: {text}'
+  grammar:
+    terms:
+      interrogative: 'Apa'
+      query-scope: 'untuk setiap {variable} dalam {source}'
+      query-deferred: '“tertunda”'
+    productions:
+      answer-type: 'tipe dari {subject}'
+      question-type: '@interrogative @answer-type'
+      answer-documentation: 'dokumentasi dari {subject}'
+      question-documentation: '@interrogative @answer-documentation'
+      answer-source: 'kode sumber dari {subject}'
+      question-source: '@interrogative @answer-source'
+      answer-details: 'informasi terperinci tentang {subject}'
+      question-details: '@interrogative @answer-details'
+      answer-query: 'nilai {projection} @query-scope dengan {condition}'
+      question-query: 'Apa @answer-query'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
+      element: 'elemen {index} pada {array}'
+      set-element: 'Ubah @element[array=name] menjadi {value}'
   templates:
+    documentation: 'Dokumentasinya adalah {value}'
     function: 'Definisikan {name} dengan {parameters}'
     function-without-parameters: 'Definisikan {name}'
     declare: 'Buat {name} dengan nilai {value}'
@@ -50,9 +71,7 @@ natural:
     remainder: '{left} modulo {right}' '{left} % {right}'
     array: 'daftar ({elements})'
     new-array: 'daftar sepanjang {length} berisi {fill}'
-    element: 'elemen {index} pada {array}'
     length: 'panjang {array}'
-    set-element: 'Ubah elemen {index} pada {name} menjadi {value}'
   words:
     ackermann: 'ackermann'
     bottles: 'botol'

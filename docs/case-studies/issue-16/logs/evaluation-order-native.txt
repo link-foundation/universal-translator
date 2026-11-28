@@ -1,0 +1,8 @@
+c -O0 matches CPython output
+c -O2 matches CPython output
+cpp -O0 matches CPython output
+cpp -O2 matches CPython output
+c to cpp -O0 matches CPython output
+c to cpp -O2 matches CPython output
+objc -O0 matches CPython output
+objc -O2 matches CPython output

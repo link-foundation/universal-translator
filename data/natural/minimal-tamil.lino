@@ -4,6 +4,10 @@ natural:
   extends: tamil
   profile: minimal-english
   source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  grammar:
+    productions:
+      element: '{array} இல் பகுதி {index}'
+      set-element: 'இதன் பிறகு @element[array=name] இப்போது {value}'
   templates:
     function: 'யாரோ {name} ஐ {parameters} கொண்டு இப்படிச் செய்கிறார்'
     function-without-parameters: 'யாரோ {name} ஐ இப்படிச் செய்கிறார்'
@@ -29,9 +33,7 @@ natural:
     greater-or-equal: '{left} என்பது {right} ஐ விட குறைவு அல்ல'
     array: 'இந்தப் பொருட்கள் ({elements})'
     new-array: '{fill} போன்ற {length} பொருட்கள்'
-    element: '{array} இல் பகுதி {index}'
     length: '{array} இல் எத்தனை பகுதிகள்'
-    set-element: 'இதன் பிறகு {name} இல் பகுதி {index} இப்போது {value}'
   rules:
     primes: tamil
     extra-words: ஐ கொண்டு வரியில் பதில் நிறுத்து செய்யாதே முறை க்கும் முதல் வரை உம் என்பது விட இல் எத்தனை அல்லது மற்றும் எதிர்மறை கூட்டல் கழித்தல் பெருக்கல் வகுத்தல் மாடுலோ பொய்

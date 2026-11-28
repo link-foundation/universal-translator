@@ -1,0 +1,12 @@
+[issue-16-fb080613587e 316f703] fix: retain semantic source ownership through translation
+ 54 files changed, 1606 insertions(+), 229 deletions(-)
+ create mode 100644 docs/screenshots/issue-16/semantic-mapping-after.png
+ create mode 100644 examples/translation/mapping.java
+ create mode 100644 experiments/issue-16-source-origins.mjs
+ create mode 100644 js/src/translation/emission-map.js
+ create mode 100644 js/src/translation/source-origins.js
+ create mode 100644 js/tests/semantic-mapping.test.js
+ create mode 100644 rust/src/emission_map.rs
+ create mode 100644 rust/src/formal/parser/types.rs
+ create mode 100644 rust/src/source_origins.rs
+ create mode 100644 rust/tests/semantic_mapping.rs

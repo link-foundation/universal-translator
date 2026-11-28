@@ -14,7 +14,17 @@ import { countingLoops } from './lifting.js';
 import { raiseTruthFunctions } from '../meta/truth.js';
 import { languageSyntax, namingConvention } from './languages.js';
 import { splitVersion, versionsOf } from './versions.js';
-import { slashOperator } from './numbers.js';
+import { arithmeticOperator, slashOperator } from './numbers.js';
+import { recognizeQuestions } from './questions.js';
+import { recognizeDocumentation } from './documentation.js';
+import { normalizeObjectiveCConditions, recognizeObjpak } from './objpak.js';
+import { recognizeSqlValues } from './sql-values.js';
+import { recognizeRecordInstances } from './record-instances.js';
+import { isRustPrint, nativeRustPrint, rustPrintParts } from './rust-print.js';
+import {
+  floorDivision,
+  raiseIntegerArithmetic,
+} from '../meta/integer-arithmetic.js';
 import {
   asciiName,
   avoidReserved,
@@ -29,6 +39,14 @@ import {
   recognizeArrays,
 } from './arrays.js';
 import { expandForEach, raiseForEach } from './for-each.js';
+import { isCppCharacterConcat, markCppFileItems } from './cpp-library.js';
+import {
+  attachComments,
+  inheritOrigin,
+  mapOrigins,
+  pushComment,
+  sourceOrigin,
+} from '../translation/source-origins.js';
 
 // ---------------------------------------------------------------------------
 // Understanding layer
@@ -95,8 +113,11 @@ function collectItems(items) {
     main: block(),
   });
   let pending = [];
-  const texts = (trivia) =>
-    trivia.filter(({ kind }) => kind === 'Comment').map(({ text }) => text);
+  const append = (trivia) => {
+    for (const item of trivia.filter(({ kind }) => kind === 'Comment')) {
+      pushComment(program.comments, item.text, sourceOrigin(item));
+    }
+  };
   for (const item of items) {
     if (item.kind === 'Comment' || item.kind === 'Blank') {
       pending.push(item);
@@ -105,13 +126,14 @@ function collectItems(items) {
     const isFirstCode =
       program.imports.length +
         program.functions.length +
+        (program.definitions?.length ?? 0) +
         program.main.statements.length ===
       0;
     if (isFirstCode) {
       // Comments before the last empty line describe the file; the ones
       // after it (all of them without an empty line) describe the first item.
       const split = pending.findLastIndex(({ kind }) => kind === 'Blank');
-      program.comments.push(...texts(pending.slice(0, Math.max(split, 0))));
+      append(pending.slice(0, Math.max(split, 0)));
       pending = pending.slice(split + 1);
     }
     // An empty line after a function is kept only where the source has one.
@@ -121,14 +143,23 @@ function collectItems(items) {
     }
     if (item.kind === 'Import') {
       // An import keeps no comments: the ones above it describe the file.
-      program.comments.push(...texts(pending));
+      append(pending);
       program.imports.push(item.text);
     } else if (item.kind === 'Function') {
-      program.functions.push({
-        ...item,
-        comments: texts(pending),
-      });
+      program.functions.push(
+        attachComments(inheritOrigin({ ...item }, item), 'comments', pending)
+      );
+    } else if (item.kind === 'RecordDefinition') {
+      (program.definitions ??= []).push(
+        attachComments(inheritOrigin({ ...item }, item), 'comments', pending)
+      );
     } else {
+      if (item.cppFileOrder !== undefined) {
+        pending = mapOrigins(pending, (trivia) => ({
+          ...trivia,
+          cppFileOrder: item.cppFileOrder,
+        }));
+      }
       program.main.statements.push(...pending, item);
     }
     pending = [];
@@ -146,9 +177,13 @@ const isExitSuccess = (statement) =>
 // Collect functions, the entry point and file comments into a Program. The
 // body of `main` becomes the program's main block.
 export function findEntryPoint(source, { from } = {}) {
+  const items =
+    from && splitVersion(from).id === 'cpp'
+      ? markCppFileItems(source.items)
+      : source.items;
   const program = unqualifyClassCalls(
-    collectItems(flattenClasses(source.items)),
-    source.items
+    collectItems(flattenClasses(items)),
+    items
   );
   const own = from && languageSyntax(from).mainName;
   const entry = program.functions.find(
@@ -166,12 +201,15 @@ export function findEntryPoint(source, { from } = {}) {
   if (isExitSuccess(statements.at(-1))) {
     statements.pop();
   }
-  return {
-    ...program,
-    functions: program.functions.filter((item) => item !== entry),
-    main: block(statements),
-    mainComments: entry.comments,
-  };
+  return inheritOrigin(
+    {
+      ...program,
+      functions: program.functions.filter((item) => item !== entry),
+      main: block(statements),
+      mainComments: entry.comments,
+    },
+    program
+  );
 }
 
 // The output procedures of each language, described as data.
@@ -195,12 +233,7 @@ const textCalls = new Set([
   'sys.stdout.write',
   'io.write',
 ]);
-const formatCalls = {
-  printf: 'percent',
-  'fmt.Printf': 'percent',
-  'println!': 'braces',
-  'print!': 'braces',
-};
+const percentCalls = new Set(['printf', 'fmt.Printf']);
 
 function joinWithSpaces(values, separator = text(' ')) {
   if (values.length === 1) {
@@ -216,11 +249,8 @@ function joinWithSpaces(values, separator = text(' ')) {
   return node('Interpolation', { parts });
 }
 
-function readFormat(format, values, style) {
-  const pattern =
-    style === 'percent'
-      ? /%(?:l{0,2}d|i|s|c|v|t|%|(?:\.\d+)?l?[fgeG])/g
-      : /\{\{|\}\}|\{\}/g;
+function readPercentFormat(format, values) {
+  const pattern = /%(?:l{0,2}d|i|s|c|v|t|%|(?:\.\d+)?l?[fgeG])/g;
   const parts = [];
   let last = 0;
   let index = 0;
@@ -230,10 +260,6 @@ function readFormat(format, values, style) {
     }
     if (match[0] === '%%') {
       parts.push(text('%'));
-    } else if (match[0] === '{{') {
-      parts.push(text('{'));
-    } else if (match[0] === '}}') {
-      parts.push(text('}'));
     } else {
       parts.push(values[index++]);
     }
@@ -285,7 +311,8 @@ function streamParts(expression) {
 const knownPrint = (callee) =>
   lineCalls.has(callee) ||
   textCalls.has(callee) ||
-  Object.hasOwn(formatCalls, callee) ||
+  percentCalls.has(callee) ||
+  isRustPrint(callee) ||
   callee === 'echo';
 
 // Which kind of output procedure a call names: 'line' when it ends the line,
@@ -337,10 +364,14 @@ function printFromCall(call, syntax) {
   const values = call.arguments.filter(
     (value) => value.kind !== 'NamedArgument'
   );
+  const namedArguments = call.arguments.filter(
+    (value) => value.kind === 'NamedArgument'
+  );
+  if (isRustPrint(call.callee)) {
+    return printFromRust(call, values, namedArguments);
+  }
   const named = Object.fromEntries(
-    call.arguments
-      .filter((value) => value.kind === 'NamedArgument')
-      .map((value) => [value.name, value.value])
+    namedArguments.map((value) => [value.name, value.value])
   );
   // D's writeln prints its arguments one after another, without spaces.
   if (kind === 'line' && syntax.printCalls?.adjacent) {
@@ -359,19 +390,33 @@ function printFromCall(call, syntax) {
     const { parts, newline } = withoutTrailingNewline(flat);
     return node('Print', { value: partsToValue(parts), newline });
   }
-  const style = Object.hasOwn(formatCalls, call.callee)
-    ? formatCalls[call.callee]
-    : undefined;
-  if (style && values[0]?.kind === 'Text') {
+  if (percentCalls.has(call.callee) && values[0]?.kind === 'Text') {
     const { parts, newline } = withoutTrailingNewline(
-      readFormat(values[0].value, values.slice(1), style)
+      readPercentFormat(values[0].value, values.slice(1))
     );
-    return node('Print', {
-      value: partsToValue(parts),
-      newline: newline || call.callee === 'println!',
-    });
+    return node('Print', { value: partsToValue(parts), newline });
   }
   return undefined;
+}
+
+function printFromRust(call, [format, ...values], named) {
+  const line = call.callee === 'println!';
+  if (line && !format && named.length === 0) {
+    return node('Print', { value: text(''), newline: true });
+  }
+  if (format?.kind !== 'Text') {
+    return undefined;
+  }
+  const formatParts = rustPrintParts(format.value, values, named);
+  if (formatParts === undefined) {
+    return node('Evaluate', {
+      expression: nativeRustPrint(call, format.value, named),
+    });
+  }
+  const { parts, newline } = line
+    ? { parts: formatParts, newline: true }
+    : withoutTrailingNewline(formatParts);
+  return node('Print', { value: partsToValue(parts), newline });
 }
 
 // Replace each known output procedure with the Print concept.
@@ -479,7 +524,7 @@ export function declareOnFirstAssignment(program) {
     const read = new Set();
     const visitBlock = (current) => ({
       ...current,
-      statements: current.statements.map(visitStatement),
+      statements: mapOrigins(current.statements, visitStatement),
     });
     const visitStatement = (statement) => {
       if (statement.kind === 'If') {
@@ -534,7 +579,7 @@ export function declareOnFirstAssignment(program) {
   };
   return {
     ...program,
-    functions: program.functions.map((item) => ({
+    functions: mapOrigins(program.functions, (item) => ({
       ...item,
       body: declareIn(
         item.body,
@@ -552,11 +597,26 @@ export function inferMutability(program) {
   const assigned = new Set();
   const stored = new Set();
   rewrite(program, (current) => {
-    if (current.kind === 'Assignment') {
+    if (['Assignment', 'AssignmentExpression'].includes(current.kind)) {
       assigned.add(current.name);
+    }
+    if (current.kind === 'Update' && current.operand.kind === 'Name') {
+      assigned.add(current.operand.name);
+    }
+    if (current.kind === 'SetInsert' && current.collection.kind === 'Name') {
+      stored.add(current.collection.name);
     }
     if (current.kind === 'IndexAssignment') {
       stored.add(current.name);
+    }
+    if (current.kind === 'Call') {
+      const mutator =
+        /^(.*)\.(?:push|pop|shift|unshift|splice|sort|reverse|append|extend|insert|remove|clear)$/u.exec(
+          current.callee
+        );
+      if (mutator) {
+        stored.add(mutator[1]);
+      }
     }
     return current;
   });
@@ -598,6 +658,12 @@ export function expandCompoundAssignment(program, { from } = {}) {
   const meanings = {
     ...compoundMeanings,
     '/=': from ? slashOperator(languageSyntax(from)) : 'divide',
+    '//=': from
+      ? arithmeticOperator(languageSyntax(from), '//', 'divide')
+      : 'divide',
+    '%=': from
+      ? arithmeticOperator(languageSyntax(from), '%', 'remainder')
+      : 'remainder',
   };
   return rewrite(program, (current) => {
     if (current.kind !== 'Assignment' || current.operator === '=') {
@@ -612,6 +678,9 @@ export function expandCompoundAssignment(program, { from } = {}) {
       operator: '=',
       value: node('Binary', {
         operator,
+        ...(operator === 'floorDivide' && current.operator === '/='
+          ? { slashDivision: true }
+          : {}),
         left: { kind: 'Name', name: current.name },
         right: current.value,
       }),
@@ -646,7 +715,7 @@ export function concatenationOperator(program, { from } = {}) {
 export function dropParameterCopies(program) {
   return {
     ...program,
-    functions: program.functions.map((item) => {
+    functions: mapOrigins(program.functions, (item) => {
       const statements = [...item.body.statements];
       let parameters = item.parameters;
       const copiedParameter = (statement) =>
@@ -686,22 +755,25 @@ const copyName = (name) => ['initial', ...nameWords(name)].join('-');
 // the meta operator "divide". The language description names its spelling.
 const integerDivisionSpellings = [
   { wrapper: 'Math.trunc' },
+  { wrapper: 'Math.floor', operator: 'floorDivide' },
   { wrapper: '~~' },
   { wrapper: 'int' },
   { call: 'intdiv' },
 ];
 
-function integerDivision(call, { wrapper, call: callee, method }) {
+function integerDivision(
+  call,
+  { wrapper, call: callee, method, operator = 'divide' }
+) {
   const [first, second] = call.arguments;
-  const divide = (left, right) =>
-    node('Binary', { operator: 'divide', left, right });
+  const divide = (left, right) => node('Binary', { operator, left, right });
   if (
     call.callee === wrapper &&
     call.arguments.length === 1 &&
     first.kind === 'Binary' &&
-    ['divide', 'realDivide'].includes(first.operator)
+    ['divide', 'floorDivide', 'realDivide'].includes(first.operator)
   ) {
-    return { ...first, operator: 'divide' };
+    return { ...first, operator };
   }
   if (call.callee === callee && call.arguments.length === 2) {
     return divide(first, second);
@@ -735,7 +807,11 @@ function ownIntegerDivisions(from) {
     ...versionsOf(id).map(({ version }) => languageSyntax(`${id}@${version}`)),
   ]
     .map(({ integerDivision }) => integerDivision)
-    .filter(Boolean);
+    .filter(Boolean)
+    .map((spelling) => ({
+      ...spelling,
+      operator: floorDivision(id) ? 'floorDivide' : 'divide',
+    }));
 }
 
 export function integerDivisionCalls(program, { from } = {}) {
@@ -796,7 +872,11 @@ export function dropEmptyStatements(program, { from } = {}) {
 }
 
 export const understandingRules = [
+  recognizeDocumentation,
+  recognizeSqlValues,
+  recognizeObjpak,
   findEntryPoint,
+  recognizeQuestions,
   concatenationOperator,
   integerDivisionCalls,
   recognizeArrays,
@@ -812,6 +892,7 @@ export const understandingRules = [
   raiseForEach,
   raiseTruthValues,
   inferMutability,
+  recognizeRecordInstances,
   dropSourceDetails,
   neutralNames,
 ];
@@ -822,13 +903,17 @@ export const understandingRules = [
 
 // `"Total: " + total` is text concatenation, which the meta language keeps
 // as one interpolation independent of the target's operator.
-export function concatenationToInterpolation(program) {
+export function concatenationToInterpolation(program, { from } = {}) {
+  const cpp = from && splitVersion(from).id === 'cpp';
   return rewrite(program, (current) => {
-    if (
-      current.kind === 'Binary' &&
-      current.operator === 'add' &&
-      current.type === 'text'
-    ) {
+    if (current.kind === 'Binary' && current.operator === 'add') {
+      if (cpp && isCppCharacterConcat(current.left, current.right)) {
+        // The native overload adds a character, not its decimal code.
+        return { ...current, kind: 'CppCharacterConcat', type: 'text' };
+      }
+      if (current.type !== 'text') {
+        return current;
+      }
       const parts = [current.left, current.right].flatMap((part) =>
         part.kind === 'Interpolation' ? part.parts : [part]
       );
@@ -842,7 +927,11 @@ export function concatenationToInterpolation(program) {
   });
 }
 
-export const meaningRules = [concatenationToInterpolation];
+export const meaningRules = [
+  raiseIntegerArithmetic,
+  concatenationToInterpolation,
+  normalizeObjectiveCConditions,
+];
 
 // ---------------------------------------------------------------------------
 // Context layer: adapt comments to the target language.
@@ -876,12 +965,18 @@ export function adaptComments(program, { from, to, mode }) {
     const stripped = rewrite(program, (current) =>
       current.kind === 'Comment' ? undefined : current
     );
-    return {
-      ...stripped,
-      comments: [],
-      mainComments: [],
-      functions: stripped.functions.map((item) => ({ ...item, comments: [] })),
-    };
+    return inheritOrigin(
+      {
+        ...stripped,
+        comments: [],
+        mainComments: [],
+        functions: mapOrigins(stripped.functions, (item) => ({
+          ...item,
+          comments: [],
+        })),
+      },
+      stripped
+    );
   }
   if (mode === 'literal' || from === to) {
     return program;
@@ -896,15 +991,18 @@ export function mapComments(program, change) {
       ? { ...current, text: change(current.text) }
       : current
   );
-  return {
-    ...adapted,
-    comments: (adapted.comments ?? []).map(change),
-    mainComments: (adapted.mainComments ?? []).map(change),
-    functions: adapted.functions.map((item) => ({
-      ...item,
-      comments: (item.comments ?? []).map(change),
-    })),
-  };
+  return inheritOrigin(
+    {
+      ...adapted,
+      comments: (adapted.comments ?? []).map(change),
+      mainComments: (adapted.mainComments ?? []).map(change),
+      functions: mapOrigins(adapted.functions, (item) => ({
+        ...item,
+        comments: (item.comments ?? []).map(change),
+      })),
+    },
+    adapted
+  );
 }
 
 // A rule that replaces glossary phrases in comments, longest phrase first.
@@ -935,7 +1033,7 @@ export function copyReassignedParameters(program, { to }) {
   }
   return {
     ...program,
-    functions: program.functions.map((item) => {
+    functions: mapOrigins(program.functions, (item) => {
       const assigned = new Set();
       rewrite(item.body, (current) => {
         if (current.kind === 'Assignment') {

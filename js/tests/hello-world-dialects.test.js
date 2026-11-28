@@ -76,12 +76,12 @@ describe('Fortran output statements', () => {
 });
 
 describe('calls and layouts of the other collection programs', () => {
-  it('reads PHP up to its closing tag', () => {
+  it('reads PHP closing tags and following literal output', () => {
     expect(toJavaScript("<?php\necho 'a';\n?>\n", 'php')).toBe(
       'process.stdout.write("a");\n'
     );
-    expect(() => toJavaScript("<?php\necho 'a';\n?>\ntext\n", 'php')).toThrow(
-      'Text after the closing "?>" tag'
+    expect(toJavaScript("<?php\necho 'a';\n?>\ntext\n", 'php')).toBe(
+      'process.stdout.write("a");\nprocess.stdout.write("text\\n");\n'
     );
   });
 

@@ -1,0 +1,406 @@
+{
+  "floorDivision": ["python", "ruby", "lua", "r"],
+  "floorModulo": ["python", "ruby", "lua", "r", "perl"],
+  "helpers": {
+    "floorDivide": {
+      "kind": "Function",
+      "name": "ut-integer-floor-divide",
+      "parameters": [
+        { "name": "first", "type": "integer" },
+        { "name": "second", "type": "integer" }
+      ],
+      "returnType": "integer",
+      "body": {
+        "kind": "Block",
+        "statements": [
+          {
+            "kind": "Declaration",
+            "name": "quotient",
+            "value": {
+              "kind": "Binary",
+              "operator": "divide",
+              "left": { "kind": "Name", "name": "first", "type": "integer" },
+              "right": { "kind": "Name", "name": "second", "type": "integer" },
+              "type": "integer"
+            },
+            "mutable": true,
+            "type": "integer"
+          },
+          {
+            "kind": "Declaration",
+            "name": "residue",
+            "value": {
+              "kind": "Binary",
+              "operator": "subtract",
+              "left": { "kind": "Name", "name": "first", "type": "integer" },
+              "right": {
+                "kind": "Binary",
+                "operator": "multiply",
+                "left": {
+                  "kind": "Name",
+                  "name": "quotient",
+                  "type": "integer"
+                },
+                "right": {
+                  "kind": "Name",
+                  "name": "second",
+                  "type": "integer"
+                },
+                "type": "integer"
+              },
+              "type": "integer"
+            },
+            "mutable": false,
+            "type": "integer"
+          },
+          {
+            "kind": "If",
+            "condition": {
+              "kind": "Binary",
+              "operator": "notEqual",
+              "left": { "kind": "Name", "name": "residue", "type": "integer" },
+              "right": { "kind": "Number", "value": 0, "type": "integer" },
+              "type": "boolean"
+            },
+            "then": {
+              "kind": "Block",
+              "statements": [
+                {
+                  "kind": "If",
+                  "condition": {
+                    "kind": "Binary",
+                    "operator": "notEqual",
+                    "left": {
+                      "kind": "Binary",
+                      "operator": "less",
+                      "left": {
+                        "kind": "Name",
+                        "name": "first",
+                        "type": "integer"
+                      },
+                      "right": {
+                        "kind": "Number",
+                        "value": 0,
+                        "type": "integer"
+                      },
+                      "type": "boolean"
+                    },
+                    "right": {
+                      "kind": "Binary",
+                      "operator": "less",
+                      "left": {
+                        "kind": "Name",
+                        "name": "second",
+                        "type": "integer"
+                      },
+                      "right": {
+                        "kind": "Number",
+                        "value": 0,
+                        "type": "integer"
+                      },
+                      "type": "boolean"
+                    },
+                    "type": "boolean"
+                  },
+                  "then": {
+                    "kind": "Block",
+                    "statements": [
+                      {
+                        "kind": "Assignment",
+                        "name": "quotient",
+                        "operator": "=",
+                        "value": {
+                          "kind": "Binary",
+                          "operator": "subtract",
+                          "left": {
+                            "kind": "Name",
+                            "name": "quotient",
+                            "type": "integer"
+                          },
+                          "right": {
+                            "kind": "Number",
+                            "value": 1,
+                            "type": "integer"
+                          },
+                          "type": "integer"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "kind": "If",
+            "condition": {
+              "kind": "Binary",
+              "operator": "equal",
+              "left": { "kind": "Name", "name": "quotient", "type": "integer" },
+              "right": { "kind": "Number", "value": 0, "type": "integer" },
+              "type": "boolean"
+            },
+            "then": {
+              "kind": "Block",
+              "statements": [
+                {
+                  "kind": "Assignment",
+                  "name": "quotient",
+                  "operator": "=",
+                  "value": { "kind": "Number", "value": 0, "type": "integer" }
+                }
+              ]
+            }
+          },
+          {
+            "kind": "Return",
+            "value": { "kind": "Name", "name": "quotient", "type": "integer" }
+          }
+        ]
+      },
+      "comments": []
+    },
+    "divide": {
+      "kind": "Function",
+      "name": "ut-integer-divide",
+      "parameters": [
+        { "name": "first", "type": "integer" },
+        { "name": "second", "type": "integer" }
+      ],
+      "returnType": "integer",
+      "body": {
+        "kind": "Block",
+        "statements": [
+          {
+            "kind": "Declaration",
+            "name": "quotient",
+            "value": {
+              "kind": "Binary",
+              "operator": "floorDivide",
+              "left": { "kind": "Name", "name": "first", "type": "integer" },
+              "right": { "kind": "Name", "name": "second", "type": "integer" },
+              "type": "integer"
+            },
+            "mutable": true,
+            "type": "integer"
+          },
+          {
+            "kind": "Declaration",
+            "name": "residue",
+            "value": {
+              "kind": "Binary",
+              "operator": "subtract",
+              "left": { "kind": "Name", "name": "first", "type": "integer" },
+              "right": {
+                "kind": "Binary",
+                "operator": "multiply",
+                "left": {
+                  "kind": "Name",
+                  "name": "quotient",
+                  "type": "integer"
+                },
+                "right": {
+                  "kind": "Name",
+                  "name": "second",
+                  "type": "integer"
+                },
+                "type": "integer"
+              },
+              "type": "integer"
+            },
+            "mutable": false,
+            "type": "integer"
+          },
+          {
+            "kind": "If",
+            "condition": {
+              "kind": "Binary",
+              "operator": "notEqual",
+              "left": { "kind": "Name", "name": "residue", "type": "integer" },
+              "right": { "kind": "Number", "value": 0, "type": "integer" },
+              "type": "boolean"
+            },
+            "then": {
+              "kind": "Block",
+              "statements": [
+                {
+                  "kind": "If",
+                  "condition": {
+                    "kind": "Binary",
+                    "operator": "less",
+                    "left": {
+                      "kind": "Name",
+                      "name": "quotient",
+                      "type": "integer"
+                    },
+                    "right": {
+                      "kind": "Number",
+                      "value": 0,
+                      "type": "integer"
+                    },
+                    "type": "boolean"
+                  },
+                  "then": {
+                    "kind": "Block",
+                    "statements": [
+                      {
+                        "kind": "Assignment",
+                        "name": "quotient",
+                        "operator": "=",
+                        "value": {
+                          "kind": "Binary",
+                          "operator": "add",
+                          "left": {
+                            "kind": "Name",
+                            "name": "quotient",
+                            "type": "integer"
+                          },
+                          "right": {
+                            "kind": "Number",
+                            "value": 1,
+                            "type": "integer"
+                          },
+                          "type": "integer"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "kind": "If",
+            "condition": {
+              "kind": "Binary",
+              "operator": "equal",
+              "left": { "kind": "Name", "name": "quotient", "type": "integer" },
+              "right": { "kind": "Number", "value": 0, "type": "integer" },
+              "type": "boolean"
+            },
+            "then": {
+              "kind": "Block",
+              "statements": [
+                {
+                  "kind": "Assignment",
+                  "name": "quotient",
+                  "operator": "=",
+                  "value": { "kind": "Number", "value": 0, "type": "integer" }
+                }
+              ]
+            }
+          },
+          {
+            "kind": "Return",
+            "value": { "kind": "Name", "name": "quotient", "type": "integer" }
+          }
+        ]
+      },
+      "comments": []
+    },
+    "modulo": {
+      "kind": "Function",
+      "name": "ut-integer-modulo",
+      "parameters": [
+        { "name": "first", "type": "integer" },
+        { "name": "second", "type": "integer" }
+      ],
+      "returnType": "integer",
+      "body": {
+        "kind": "Block",
+        "statements": [
+          {
+            "kind": "Declaration",
+            "name": "quotient",
+            "value": {
+              "kind": "Binary",
+              "operator": "floorDivide",
+              "left": { "kind": "Name", "name": "first", "type": "integer" },
+              "right": { "kind": "Name", "name": "second", "type": "integer" },
+              "type": "integer"
+            },
+            "mutable": false,
+            "type": "integer"
+          },
+          {
+            "kind": "Return",
+            "value": {
+              "kind": "Binary",
+              "operator": "subtract",
+              "left": { "kind": "Name", "name": "first", "type": "integer" },
+              "right": {
+                "kind": "Binary",
+                "operator": "multiply",
+                "left": {
+                  "kind": "Name",
+                  "name": "quotient",
+                  "type": "integer"
+                },
+                "right": {
+                  "kind": "Name",
+                  "name": "second",
+                  "type": "integer"
+                },
+                "type": "integer"
+              },
+              "type": "integer"
+            }
+          }
+        ]
+      },
+      "comments": []
+    },
+    "remainder": {
+      "kind": "Function",
+      "name": "ut-integer-remainder",
+      "parameters": [
+        { "name": "first", "type": "integer" },
+        { "name": "second", "type": "integer" }
+      ],
+      "returnType": "integer",
+      "body": {
+        "kind": "Block",
+        "statements": [
+          {
+            "kind": "Declaration",
+            "name": "quotient",
+            "value": {
+              "kind": "Binary",
+              "operator": "divide",
+              "left": { "kind": "Name", "name": "first", "type": "integer" },
+              "right": { "kind": "Name", "name": "second", "type": "integer" },
+              "type": "integer"
+            },
+            "mutable": false,
+            "type": "integer"
+          },
+          {
+            "kind": "Return",
+            "value": {
+              "kind": "Binary",
+              "operator": "subtract",
+              "left": { "kind": "Name", "name": "first", "type": "integer" },
+              "right": {
+                "kind": "Binary",
+                "operator": "multiply",
+                "left": {
+                  "kind": "Name",
+                  "name": "quotient",
+                  "type": "integer"
+                },
+                "right": {
+                  "kind": "Name",
+                  "name": "second",
+                  "type": "integer"
+                },
+                "type": "integer"
+              },
+              "type": "integer"
+            }
+          }
+        ]
+      },
+      "comments": []
+    }
+  }
+}

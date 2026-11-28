@@ -1,0 +1,21 @@
+Strict C99 compilation before the fix
+before.c: In function ‘main’:
+before.c:3:17: error: implicit declaration of function ‘getchar’ [-Wimplicit-function-declaration]
+    3 |     while ((c = getchar()) != EOF) {
+      |                 ^~~~~~~
+before.c:1:1: note: ‘getchar’ is defined in header ‘<stdio.h>’; did you forget to ‘#include <stdio.h>’?
+  +++ |+#include <stdio.h>
+    1 | int main(void) {
+before.c:3:31: error: ‘EOF’ undeclared (first use in this function)
+    3 |     while ((c = getchar()) != EOF) {
+      |                               ^~~
+before.c:3:31: note: ‘EOF’ is defined in header ‘<stdio.h>’; did you forget to ‘#include <stdio.h>’?
+before.c:3:31: note: each undeclared identifier is reported only once for each function it appears in
+before.c:4:9: error: implicit declaration of function ‘putchar’ [-Wimplicit-function-declaration]
+    4 |         putchar(c);
+      |         ^~~~~~~
+before.c:4:9: note: include ‘<stdio.h>’ or provide a declaration of ‘putchar’
+
+Native results for both CLIs after the fix
+{"engine":"JavaScript","revid":417213,"sourceSha256":"563b6eb0a68c96ec2743b38e5c86da4259ea324dc002fd227c7cae75d9bedb8b","bytes":34,"stdoutSha256":"8477664c3a65d6445337092f29f0b17fcb9e35db24d969840a3f594da14a81af"}
+{"engine":"Rust","revid":417213,"sourceSha256":"563b6eb0a68c96ec2743b38e5c86da4259ea324dc002fd227c7cae75d9bedb8b","bytes":34,"stdoutSha256":"8477664c3a65d6445337092f29f0b17fcb9e35db24d969840a3f594da14a81af"}

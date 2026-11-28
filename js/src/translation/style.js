@@ -52,9 +52,10 @@ export function checkStyle({ braces, indent } = {}, syntax) {
 // (else, catch, while) follows.
 function braceLines(text, syntax) {
   const lines = new Map();
-  const tokens = tokenize(text, syntax).filter(
-    (token) => token.type !== 'newline' && token.type !== 'end'
-  );
+  const tokens = tokenize(text, {
+    ...syntax,
+    symbols: ['^', '~', ...(syntax.symbols ?? [])],
+  }).filter((token) => token.type !== 'newline' && token.type !== 'end');
   tokens.forEach((token, index) => {
     const next = tokens[index + 1];
     const previous = tokens[index - 1];

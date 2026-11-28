@@ -13,4 +13,5 @@ void moveDisks(int count, int source, int target, int spare) {
 
 int main(void) {
     moveDisks(4, 1, 3, 2);
+    return 0;
 }

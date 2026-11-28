@@ -22,9 +22,11 @@ use std::rc::Rc;
 
 use super::lowering::{Instruction, LoweredProgram, Procedure};
 use super::names::neutral_name;
+use crate::emission_map::{Origins, active_instruction, current, instruction_origins};
 use crate::meta::GrammarError;
 use crate::meta::truth::raise_truth_functions;
 use crate::meta::{Node, Value, binary, block, name, number, text, walk};
+use crate::source_origins::{combine_origins, expression_origins};
 
 type Result<T> = std::result::Result<T, GrammarError>;
 
@@ -53,14 +55,22 @@ fn negate(condition: &Node) -> Node {
         if operator == "and" || operator == "or" {
             let side = |key| negate(condition.node(key).expect("binary operand"));
             let swapped = if operator == "and" { "or" } else { "and" };
-            return binary(swapped, side("left"), side("right"));
+            let mut result = binary(swapped, side("left"), side("right"));
+            result.origin = condition.origin.clone();
+            return result;
         }
     }
     if condition.is("Unary")
         && operator == "not"
         && let Some(operand) = condition.node("operand")
     {
-        return operand.clone();
+        let mut result = operand.clone();
+        let origins = [result.origin.clone(), condition.origin.clone()]
+            .into_iter()
+            .flatten()
+            .collect::<Vec<_>>();
+        result.origin = combine_origins(&origins);
+        return result;
     }
     Node::new("Unary")
         .with("operator", "not")
@@ -166,6 +176,7 @@ struct BlockLifting {
     statements: Vec<Node>,
     stack: Vec<Node>,
     prints: Vec<Node>,
+    print_origins: Origins,
     /// Array literals whose elements are still being stored: their places
     /// on the stack and their lengths.
     building: Vec<(usize, usize)>,
@@ -178,6 +189,7 @@ impl BlockLifting {
             statements: Vec::new(),
             stack: Vec::new(),
             prints: Vec::new(),
+            print_origins: Vec::new(),
             building: Vec::new(),
         }
     }
@@ -198,15 +210,18 @@ impl BlockLifting {
             1 => prints.into_iter().next().expect("one print"),
             _ => Node::new("Interpolation").with("parts", prints),
         };
-        self.statements.push(
-            Node::new("Print")
-                .with("value", value)
-                .with("newline", newline),
-        );
+        let mut statement = Node::new("Print")
+            .with("value", value)
+            .with("newline", newline);
+        statement.origin = combine_origins(&std::mem::take(&mut self.print_origins));
+        self.statements.push(statement);
     }
 
-    fn add(&mut self, statement: Node) {
+    fn add(&mut self, mut statement: Node) {
         self.flush(false);
+        if statement.origin.is_none() {
+            statement.origin = combine_origins(&current());
+        }
         self.statements.push(statement);
     }
 
@@ -241,6 +256,9 @@ impl BlockLifting {
         };
         let at = size - 1;
         if self.building.iter().any(|&(place, _)| place == at) && top.is("ArrayLiteral") {
+            let mut origins = current();
+            origins.extend(top.origin.clone());
+            self.stack[at].origin = combine_origins(&origins);
             self.stack.push(building(at));
             return Ok(());
         }
@@ -253,7 +271,10 @@ impl BlockLifting {
             }
             _ => return Err(lift_error("a dup that does not build an array literal")),
         };
+        let mut origins = current();
+        origins.extend(expression_origins(top));
         self.stack[at] = Node::new("ArrayLiteral").with("elements", Vec::<Node>::new());
+        self.stack[at].origin = combine_origins(&origins);
         if length > 0.0 {
             self.building.push((at, length as usize));
         }
@@ -279,6 +300,11 @@ impl BlockLifting {
             if let Some(Value::List(elements)) = literal.fields.get_mut("elements") {
                 elements.push(Value::Node(value));
             }
+            let mut origins = current();
+            origins.extend(literal.origin.clone());
+            origins.extend(index.origin.clone());
+            origins.extend(array.origin.clone());
+            literal.origin = combine_origins(&origins);
             // A full literal is no longer being built.
             self.building
                 .retain(|&(place, length)| place != at || count + 1 < length);
@@ -301,13 +327,25 @@ impl BlockLifting {
             && last.is("Text")
         {
             let joined = format!("{}{value}", last.str("value").unwrap_or_default());
+            let mut origins = current();
+            origins.extend(last.origin.clone());
             *last = text(joined);
+            last.origin = combine_origins(&origins);
         } else {
-            self.prints.push(text(value));
+            let mut part = text(value);
+            part.origin = combine_origins(&current());
+            self.prints.push(part);
         }
     }
 
     fn instruction(&mut self, lifting: &FunctionLifting, instruction: &Instruction) -> Result<()> {
+        let _origin = active_instruction(instruction);
+        if matches!(
+            instruction,
+            Instruction::PrintInteger | Instruction::PrintText(_) | Instruction::PrintNewline
+        ) {
+            self.print_origins.extend(current());
+        }
         match instruction {
             Instruction::Comment(comment) => {
                 self.add(Node::new("Comment").with("text", comment.as_str()));
@@ -426,8 +464,15 @@ impl<'a> FunctionLifting<'a> {
                 Some(Instruction::CompareJump(relation, target)) if values.len() == 2 => {
                     let right = values.pop().expect("two values");
                     let left = values.pop().expect("two values");
+                    let mut test = self.relation(relation, left, right);
+                    let mut origins = self
+                        .at(position)
+                        .map(instruction_origins)
+                        .unwrap_or_default();
+                    origins.extend(test.origin.clone());
+                    test.origin = combine_origins(&origins);
                     return Ok(Some(Comparison {
-                        test: self.relation(relation, left, right),
+                        test,
                         target: target.clone(),
                         next: position + 1,
                     }));
@@ -457,11 +502,15 @@ impl<'a> FunctionLifting<'a> {
             && self.is_boolean(&left)
             && (operator == "equal" || operator == "notEqual")
         {
-            return if operator == "notEqual" {
+            let mut origins = expression_origins(&left);
+            origins.extend(expression_origins(&right));
+            let mut result = if operator == "notEqual" {
                 left
             } else {
                 negate(&left)
             };
+            result.origin = combine_origins(&origins);
+            return result;
         }
         binary(operator, left, right)
     }
@@ -590,6 +639,11 @@ impl<'a> FunctionLifting<'a> {
             }
             _ => return Err(lift_error(format!("\"{operation}\" is not an expression"))),
         }
+        if let Some(value) = stack.last_mut() {
+            let mut origins = instruction_origins(instruction);
+            origins.extend(value.origin.clone());
+            value.origin = combine_origins(&origins);
+        }
         Ok(())
     }
 
@@ -601,20 +655,31 @@ impl<'a> FunctionLifting<'a> {
             let Some(instruction) = self.at(index) else {
                 break;
             };
+            let _origin = active_instruction(instruction);
             match instruction {
                 Instruction::Label(_) => index = self.while_loop(index, &mut lifted)?,
                 Instruction::CompareJump(relation, target) => {
                     let right = lifted.pop()?;
                     let left = lifted.pop()?;
+                    let mut test = self.relation(relation, left, right);
+                    let mut origins = current();
+                    origins.extend(test.origin.clone());
+                    test.origin = combine_origins(&origins);
                     let first = Comparison {
-                        test: self.relation(relation, left, right),
+                        test,
                         target: target.clone(),
                         next: index + 1,
                     };
                     let found = self.condition(index, Some(first))?;
                     if self.is_boolean_value(&found) {
                         index = found.end + 5;
-                        lifted.stack.push(found.condition);
+                        let mut condition = found.condition;
+                        let mut origins = condition.origin.clone().into_iter().collect::<Vec<_>>();
+                        for instruction in &self.item.code[found.end..index] {
+                            origins.extend(instruction_origins(instruction));
+                        }
+                        condition.origin = combine_origins(&origins);
+                        lifted.stack.push(condition);
                     } else {
                         index = self.branch(found, &mut lifted)?;
                     }
@@ -658,6 +723,11 @@ impl<'a> FunctionLifting<'a> {
         let mut statement = Node::new("If")
             .with("condition", found.condition)
             .with("then", then);
+        let mut origins = current();
+        for index in [otherwise - 1, otherwise, done_index] {
+            origins.extend(instruction_origins(&self.item.code[index]));
+        }
+        statement.origin = combine_origins(&origins);
         let mut rest_statements = rest.node_list("statements");
         if rest_statements.len() == 1 && rest_statements[0].is("If") {
             statement.set("otherwise", rest_statements.remove(0));
@@ -685,11 +755,15 @@ impl<'a> FunctionLifting<'a> {
             }
         }
         let body = self.block(found.end, exit - 1, &lifted.scope)?;
-        lifted.add(
-            Node::new("While")
-                .with("condition", found.condition)
-                .with("body", body),
-        );
+        let mut statement = Node::new("While")
+            .with("condition", found.condition)
+            .with("body", body);
+        let mut origins = current();
+        for index in [exit - 1, exit] {
+            origins.extend(instruction_origins(&self.item.code[index]));
+        }
+        statement.origin = combine_origins(&origins);
+        lifted.add(statement);
         Ok(exit + 1)
     }
 
@@ -887,7 +961,7 @@ pub(crate) fn counting_loops(statements: Vec<Node>) -> Vec<Node> {
         let lifted = lifted.expect("the loop");
         let mut body = lifted.node("body").cloned().expect("the loop body");
         let mut inner = body.node_list("statements");
-        inner.pop();
+        let step = inner.pop();
         body.set("statements", inner);
         let end = lifted
             .node("condition")
@@ -898,6 +972,12 @@ pub(crate) fn counting_loops(statements: Vec<Node>) -> Vec<Node> {
             .with("variable", start.str("name").unwrap_or_default())
             .with("end", end)
             .with("body", body);
+        let mut origins = expression_origins(start);
+        origins.extend(expression_origins(lifted));
+        if let Some(step) = step {
+            origins.extend(expression_origins(&step));
+        }
+        counting.origin = combine_origins(&origins);
         if let Some(value) = start.get("value") {
             counting.set("start", value.clone());
         }
@@ -980,22 +1060,29 @@ pub fn lift_program(machine: &LoweredProgram) -> Result<Node> {
         } else {
             "integer"
         };
-        lifted_functions.push(
+        lifted_functions.push(crate::source_origins::attach_comment_texts(
             Node::new("Function")
                 .with("name", neutral_name(&item.name))
                 .with("parameters", parameters)
                 .with("body", body)
-                .with("returnType", return_type)
-                .with("comments", item.comments.clone()),
-        );
+                .with("returnType", return_type),
+            "comments",
+            &item.comments,
+        ));
     }
     let (_, main) = FunctionLifting::new(&machine.main, &functions, &boolean_functions).lift()?;
     Ok(raise_truth_functions(
-        Node::new("Program")
-            .with("comments", machine.comments.clone())
-            .with("imports", Value::List(Vec::new()))
-            .with("functions", lifted_functions)
-            .with("main", main)
-            .with("mainComments", machine.main.comments.clone()),
+        crate::source_origins::attach_comment_texts(
+            crate::source_origins::attach_comment_texts(
+                Node::new("Program")
+                    .with("imports", Value::List(Vec::new()))
+                    .with("functions", lifted_functions)
+                    .with("main", main),
+                "comments",
+                &machine.comments,
+            ),
+            "mainComments",
+            &machine.main.comments,
+        ),
     ))
 }

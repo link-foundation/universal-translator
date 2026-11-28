@@ -1,9 +1,9 @@
 // Language detection: the web demo and the command line can
 // translate without being told the source language.
 //
-// Every language the translator reads is a candidate. A candidate whose
-// grammar reads the whole text wins over one that reads only a part, and
-// one that reads nothing comes last. Ties are broken by evidence from the
+// Every language the translator reads is a candidate. Whole grammar or
+// lexically complete prose readings precede partial coverage. Among them,
+// candidates are ordered by evidence from the
 // language's own syntax tables (its function keyword, print call,
 // comment marker and declaration keywords) and, for controlled natural
 // languages, by how many words of the text are words of its templates.
@@ -12,14 +12,20 @@
 // intermediate languages) is read whole only: each dialect's reader takes
 // its own programs and no other text.
 
-import { grammarLanguageIds, languageSyntax } from '../formal/languages.js';
+import {
+  grammarLanguageIds,
+  queryLanguageIds,
+  languageSyntax,
+} from '../formal/languages.js';
 import { machineTargetIds } from '../formal/machine.js';
 import { naturalLanguage, naturalLanguageIds } from '../natural/catalog.js';
 import { tokenize } from '../natural/tokens.js';
 import { isKnownWord, wordsOf } from '../natural/comments.js';
+import { codeTaskFrequency } from './corpus-frequencies.js';
 
 // Patterns that only one language (or a small family) writes.
 const signatures = {
+  sql: [/\bselect\b[\s\S]+\bfrom\b/iu],
   javascript: [/\bconsole\.log\s*\(/u, /\b(?:let|const)\s+\w+\s*=/u, /===/u],
   typescript: [
     /\b(?:let|const)\s+\w+\s*:\s*\w+/u,
@@ -35,8 +41,17 @@ const signatures = {
   lua: [/^\s*local\s+\w+/mu, /\bthen\s*$/mu, /~=/u],
   php: [/<\?php/u, /\$\w+\s*=/u, /\becho\b/u],
   c: [/#include\s*<stdio\.h>/u, /\bprintf\s*\(/u, /\bint\s+main\s*\(/u],
-  cpp: [/#include\s*<iostream>/u, /std::cout/u, /\bstd::/u],
-  csharp: [/\bConsole\.Write(?:Line)?\s*\(/u, /\busing\s+System\b/u],
+  cpp: [
+    /#include\s*<iostream>/u,
+    /std::cout/u,
+    /\bstd::/u,
+    /\b(?:try|catch|throw|template|namespace)\b/u,
+  ],
+  csharp: [
+    /\bConsole\.Write(?:Line)?\s*\(/u,
+    /\busing\s+System\b/u,
+    /\bfrom\s+\w+\s+in\b[\s\S]+\bselect\b/u,
+  ],
   java: [
     /\bSystem\.out\.print(?:ln)?\s*\(/u,
     /\bpublic\s+static\s+void\s+main\b/u,
@@ -92,7 +107,7 @@ const signatures = {
 // Patterns a language never writes: Objective-C imports its headers, C and
 // C++ include them, so "#import" rules C and C++ out.
 const contradictions = {
-  c: [/^\s*#import\b/mu],
+  c: [/^\s*#import\b/mu, /\b(?:try|catch|throw|template|namespace)\b/u],
   cpp: [/^\s*#import\b/mu],
 };
 
@@ -181,7 +196,7 @@ function proseCoverage(source, id) {
 
 // Every language a text may be written in, with the evidence for it.
 const candidatesOf = (source) => [
-  ...grammarLanguageIds.map((id) => ({
+  ...[...grammarLanguageIds, ...queryLanguageIds].map((id) => ({
     id,
     natural: false,
     evidence: syntaxEvidence(source, id),
@@ -220,6 +235,7 @@ export function createLanguageDetector({ parseFragment, parsePartial }) {
     for (const candidate of candidates) {
       candidate.reads = candidate.evidence > -1 && reads(source, candidate.id);
       candidate.coverage = candidate.reads ? 1 : 0;
+      candidate.complete = candidate.reads;
     }
     // Read the best of the rest partially: the likeliest programming and
     // natural languages by evidence, so a text no grammar reads whole still
@@ -244,21 +260,35 @@ export function createLanguageDetector({ parseFragment, parsePartial }) {
     }
     for (const candidate of candidates) {
       if (candidate.natural && !candidate.reads) {
-        candidate.coverage = Math.max(
-          candidate.coverage,
-          proseCoverage(source, candidate.id)
-        );
+        const prose = proseCoverage(source, candidate.id);
+        candidate.coverage = Math.max(candidate.coverage, prose);
+        candidate.complete = prose === 1;
       }
     }
     return candidates
-      .map(({ id, natural, evidence, reads: whole, coverage }) => ({
+      .map(({ id, natural, evidence, reads: whole, coverage, complete }) => ({
         id,
         natural,
         reads: whole,
         coverage,
+        complete,
         score: Math.round((100 * coverage + evidence) * 100) / 100,
       }))
       .filter((candidate) => candidate.score > 0)
-      .sort((a, b) => b.score - a.score);
+      .sort(
+        (a, b) =>
+          Number(b.complete) - Number(a.complete) ||
+          b.score - a.score ||
+          Number(b.id === 'english') - Number(a.id === 'english') ||
+          codeTaskFrequency(b.id) - codeTaskFrequency(a.id) ||
+          a.id.localeCompare(b.id)
+      )
+      .map(({ id, natural, reads: whole, coverage, score }) => ({
+        id,
+        natural,
+        reads: whole,
+        coverage,
+        score,
+      }));
   };
 }

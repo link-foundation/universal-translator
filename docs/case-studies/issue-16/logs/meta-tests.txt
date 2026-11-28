@@ -1,0 +1,21 @@
+▶ meta view
+  ✔ shows the meta program as Links Notation (224.535701ms)
+  ✔ shows the same meta program for every language that says the same (15.336586ms)
+  ✔ shows fragments and skips empty fields (0.60575ms)
+  ✔ distinguishes parameters, conditions, operands and statement bodies (6.11212ms)
+  ✔ uses repeated field names without defining unique links (3.175122ms)
+✔ meta view (252.284338ms)
+▶ the standard library of the meta language
+  ✔ writes printing and lengths as calls to library procedures (3.446188ms)
+  ✔ reads the general form back to the same program (2.56272ms)
+  ✔ translates a program written with library calls (2.502478ms)
+  ✔ keeps calls a program declares itself (0.442465ms)
+✔ the standard library of the meta language (9.855964ms)
+ℹ tests 9
+ℹ suites 2
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 632.603183

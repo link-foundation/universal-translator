@@ -1,0 +1,29 @@
+[
+  [
+    "<p>😀</p><?php echo \"ok\"; ?>\n<footer>end</footer>",
+    "<p>😀</p>ok<footer>end</footer>"
+  ],
+  [
+    "<p>// number /* not a comment */</p>",
+    "<p>// number /* not a comment */</p>"
+  ],
+  ["<?php echo \"a\"?>b<?php echo \"c\"?>d", "abcd"],
+  ["<?= \"a\" ?>b<?= \"c\" ?>", "abc"],
+  ["<p><?= 2 + 3 ?></p>", "<p>5</p>"],
+  ["<?php if (true) { ?>yes<?php } else { ?>no<?php } ?>end", "yesend"],
+  ["<?php if (false) { ?>yes<?php } else { ?>no<?php } ?>end", "noend"],
+  ["<?php for ($i = 0; $i < 3; $i++) { ?>x<?= $i ?><?php } ?>", "x0x1x2"],
+  ["<?php echo \"a\"; // number ?>b<?php echo \"c\";", "abc"],
+  ["<?php echo \"a\"; # number ?>b<?= \"c\" ?>", "abc"],
+  ["<?php /* ?> number */ echo \"?>\"; ?>end", "?>end"],
+  ["<?php echo \"<?php ?>\"; ?>end", "<?php ?>end"],
+  [
+    "<?php echo \"no\";?>raw<?PHP echo \"ok\" ?>\r\nend",
+    "<?php echo \"no\";?>rawokend"
+  ],
+  ["<?php echo \"a\" ?>\r\n\t<?php echo \"b\" ?>\nend", "a\tbend"],
+  [
+    "<?xml version=\"1.0\"?>\n<p><?= \"ok\" ?></p>",
+    "<?xml version=\"1.0\"?>\n<p>ok</p>"
+  ]
+]

@@ -12,7 +12,28 @@ natural:
   true: '真'
   false: '假'
   note: '注：{text}'
+  grammar:
+    terms:
+      interrogative: '什么是'
+      query-scope: '对于 {source} 中的每个 {variable}'
+      query-deferred: '“延迟”'
+    productions:
+      answer-type: '{subject} 的类型'
+      question-type: '@interrogative @answer-type'
+      answer-documentation: '{subject} 的文档'
+      question-documentation: '@interrogative @answer-documentation'
+      answer-source: '{subject} 的源代码'
+      question-source: '@interrogative @answer-source'
+      answer-details: '{subject} 的详细信息'
+      question-details: '@interrogative @answer-details'
+      answer-query: '@query-scope 满足 {condition} 的 {projection} 值'
+      question-query: '@answer-query是什么'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
+      element: '{array} 第 {index} 项'
+      set-element: '把 @element[array=name] 改 为 {value}'
   templates:
+    documentation: '文档是 {value}'
     function: '定义 {name} 使用 {parameters}'
     function-without-parameters: '定义 {name}'
     declare: '创建 {name} 值 为 {value}'
@@ -50,9 +71,7 @@ natural:
     remainder: '{left} 模 {right}' '{left} % {right}'
     array: '列表 ({elements})'
     new-array: '列表 含 {length} 个 {fill}'
-    element: '{array} 第 {index} 项'
     length: '{array} 长度'
-    set-element: '把 {name} 第 {index} 项 改 为 {value}'
   words:
     ackermann: '阿克曼'
     bottles: '瓶子'

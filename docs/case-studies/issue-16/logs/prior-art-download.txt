@@ -1,0 +1,62 @@
+[
+  {
+    "name": "antlr-import",
+    "url": "https://raw.githubusercontent.com/antlr/antlr4/master/doc/grammars.md",
+    "file": "docs/case-studies/issue-16/data/prior-art/antlr-import.txt",
+    "bytes": 7710
+  },
+  {
+    "name": "antlr-token-stream",
+    "url": "https://raw.githubusercontent.com/antlr/antlr4/master/runtime/Java/src/org/antlr/v4/runtime/TokenStreamRewriter.java",
+    "file": "docs/case-studies/issue-16/data/prior-art/antlr-token-stream.txt",
+    "bytes": 20621
+  },
+  {
+    "name": "tree-sitter-grammar",
+    "url": "https://tree-sitter.github.io/tree-sitter/creating-parsers/2-the-grammar-dsl.html",
+    "file": "docs/case-studies/issue-16/data/prior-art/tree-sitter-grammar.html",
+    "bytes": 37834
+  },
+  {
+    "name": "tree-sitter-incremental",
+    "url": "https://tree-sitter.github.io/tree-sitter/using-parsers/3-advanced-parsing.html",
+    "file": "docs/case-studies/issue-16/data/prior-art/tree-sitter-incremental.html",
+    "bytes": 30485
+  },
+  {
+    "name": "spacy",
+    "url": "https://spacy.io/usage/linguistic-features",
+    "file": "docs/case-studies/issue-16/data/prior-art/spacy.html",
+    "bytes": 377480
+  },
+  {
+    "name": "stanza",
+    "url": "https://stanfordnlp.github.io/stanza/",
+    "file": "docs/case-studies/issue-16/data/prior-art/stanza.html",
+    "bytes": 25481
+  },
+  {
+    "name": "nltk",
+    "url": "https://www.nltk.org/book/ch08.html",
+    "file": "docs/case-studies/issue-16/data/prior-art/nltk.txt",
+    "bytes": 164432
+  },
+  {
+    "name": "lark",
+    "url": "https://raw.githubusercontent.com/lark-parser/lark/master/docs/grammar.md",
+    "file": "docs/case-studies/issue-16/data/prior-art/lark.txt",
+    "bytes": 10207
+  },
+  {
+    "name": "gf",
+    "url": "https://www.grammaticalframework.org/lib/doc/synopsis/",
+    "file": "docs/case-studies/issue-16/data/prior-art/gf.html",
+    "bytes": 1508132
+  },
+  {
+    "name": "link-grammar",
+    "url": "https://raw.githubusercontent.com/opencog/link-grammar/master/README.md",
+    "file": "docs/case-studies/issue-16/data/prior-art/link-grammar.txt",
+    "bytes": 76257
+  }
+]

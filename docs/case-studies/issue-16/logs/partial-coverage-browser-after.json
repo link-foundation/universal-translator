@@ -1,0 +1,233 @@
+[
+  {
+    "value": "int main(int argc, char** argv)\n{\n    try{\n        int i=0;\n        throw 8;\n    }\n    catch(int e)\n    {\n        return e;\n    }\n    return 0;\n}",
+    "height": 266,
+    "bottom": 754.390625,
+    "classes": [
+      {
+        "class": "translator-panel",
+        "background": "color(srgb 0.170588 0.191765 0.184706)",
+        "style": null
+      },
+      {
+        "class": "workspace",
+        "background": "rgba(0, 0, 0, 0)",
+        "style": null
+      },
+      {
+        "class": "app-shell",
+        "background": "rgba(0, 0, 0, 0)",
+        "style": null
+      },
+      {
+        "class": "",
+        "background": "rgba(0, 0, 0, 0)",
+        "style": null
+      },
+      {
+        "class": "underline-links",
+        "background": "rgb(20, 26, 24)",
+        "style": null
+      },
+      {
+        "class": "",
+        "background": "rgb(20, 26, 24)",
+        "style": "--text-size: 16px;"
+      }
+    ],
+    "children": [
+      {
+        "class": "glyph-margin",
+        "top": 502,
+        "height": 266,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "margin-view-zones",
+        "top": 502,
+        "height": 0,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "margin-view-overlays",
+        "top": 502,
+        "height": 266,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "",
+        "top": 502,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "current-line current-line-margin-both",
+        "top": 502,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "line-numbers active-line-number",
+        "top": 502,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "",
+        "top": 523,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "cldr alwaysShowFoldIcons codicon codicon-folding-expanded",
+        "top": 523,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "line-numbers",
+        "top": 523,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "",
+        "top": 544,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "cldr alwaysShowFoldIcons codicon codicon-folding-expanded",
+        "top": 544,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "line-numbers",
+        "top": 544,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "",
+        "top": 565,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "line-numbers",
+        "top": 565,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "",
+        "top": 586,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "line-numbers",
+        "top": 586,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "",
+        "top": 607,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "line-numbers",
+        "top": 607,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "",
+        "top": 628,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "line-numbers",
+        "top": 628,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "",
+        "top": 649,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "cldr alwaysShowFoldIcons codicon codicon-folding-expanded",
+        "top": 649,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "line-numbers",
+        "top": 649,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "",
+        "top": 670,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "line-numbers",
+        "top": 670,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "",
+        "top": 691,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "line-numbers",
+        "top": 691,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "",
+        "top": 712,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "line-numbers",
+        "top": 712,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "",
+        "top": 733,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "line-numbers",
+        "top": 733,
+        "height": 21,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "class": "glyph-margin-widgets",
+        "top": 502,
+        "height": 0,
+        "background": "rgba(0, 0, 0, 0)"
+      }
+    ]
+  }
+]

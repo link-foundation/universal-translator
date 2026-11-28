@@ -102,6 +102,57 @@ fn the_issue_example_maps_its_lines() {
     assert_eq!(written.line_map, vec![(1, 0)]);
 }
 
+#[test]
+fn a_translated_comment_still_anchors_the_blank_line_after_it() {
+    let result = Translator::new()
+        .translate_partial(
+            "// Привет\n\nconsole.log( \"Hello World!\");\n",
+            "javascript",
+            "python",
+            Options {
+                comment_language: Some("english"),
+                ..Options::default()
+            },
+            true,
+        )
+        .unwrap();
+    assert_eq!(result.text, "# Hello\n\nprint( \"Hello World!\")\n");
+    assert_eq!(result.line_map, vec![(0, 0), (2, 2)]);
+}
+
+#[test]
+fn r_comment_translation_does_not_change_the_code_anchors() {
+    let source =
+        "\r\n# number\r\n\r\nn <- 1L\r\n# sequence\r\ncat(n + 2L, \"\\n\", sep = \"\")\r\n\r\n";
+    let translator = Translator::new();
+    let baseline = translator
+        .translate_partial(source, "r", "bash", Options::default(), false)
+        .unwrap();
+    let result = translator
+        .translate_partial(
+            source,
+            "r",
+            "bash",
+            Options {
+                comment_from: Some("english"),
+                comment_language: Some("russian"),
+                ..Options::default()
+            },
+            false,
+        )
+        .unwrap();
+    assert!(result.complete);
+    assert_eq!(
+        result.text,
+        baseline
+            .text
+            .replace("number", "число")
+            .replace("sequence", "последовательность")
+    );
+    assert!(result.text.contains("# число\r\n\r\nn=1"));
+    assert_eq!(result.line_map, baseline.line_map);
+}
+
 fn keys(text: &str, language: &str) -> Vec<String> {
     let chars: Vec<char> = text.chars().collect();
     layout_tokens(&chars, &marks(language))

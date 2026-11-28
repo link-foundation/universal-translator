@@ -36,10 +36,13 @@ against the rules of a controlled language.
 Modes: context-dependent (default), literal, same-effect
 --trace writes every pipeline stage to standard error as \"[stage] <json>\".
 --common-library prints through common-library/ calls.
---fragment translates statements or functions on their own.
+--fragment translates statements or definitions on their own.
 Parts that cannot be translated become comments and are listed on
 standard error; --all-or-nothing fails instead.
 The source language may be \"auto\" to detect it.
+translate-program accepts JavaScript, Rust, Lean and Rocq.
+Use \"wasm\" for the supported WebAssembly version 1 binary subset.
+Use \"jvm-class\" for the supported JVM class file subset.
 --rules <file.lino> adds source, templates, names and output rules
 (indented Links Notation; JSON files are read too).
 --comment-language <natural> translates the comments too (only them when
@@ -97,6 +100,18 @@ fn source(file: Option<&str>) -> Result<String, String> {
         let mut input = String::new();
         io::stdin()
             .read_to_string(&mut input)
+            .map_err(|error| error.to_string())?;
+        Ok(input)
+    }
+}
+
+fn source_bytes(file: Option<&str>) -> Result<Vec<u8>, String> {
+    if let Some(file) = file.filter(|file| *file != "-") {
+        fs::read(file).map_err(|error| format!("{file}: {error}"))
+    } else {
+        let mut input = Vec::new();
+        io::stdin()
+            .read_to_end(&mut input)
             .map_err(|error| error.to_string())?;
         Ok(input)
     }
@@ -462,6 +477,23 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
             .with_identifier_language(identifier_language, identifier_from)
             .map_err(|error| error.to_string())?;
     }
+    if matches!(from, "wasm" | "jvm-class") {
+        if fragment || candidates {
+            return Err(if from == "wasm" {
+                "WebAssembly binary translation requires a complete module and one reading"
+            } else {
+                "JVM class translation requires a complete class and one reading"
+            }
+            .into());
+        }
+        let source = source_bytes(file)?;
+        return if from == "wasm" {
+            translator.translate_wasm(&source, to, options)
+        } else {
+            translator.translate_jvm_class(&source, to, options)
+        }
+        .map_err(|error| error.to_string());
+    }
     let source = source(file)?;
     let language = if from == "auto" {
         let detected = translator
@@ -483,7 +515,7 @@ fn translate(from: &str, to: &str, arguments: &[&str]) -> Result<String, String>
             fragment || all_or_nothing,
         );
     }
-    // --fragment translates a single statement, function definitions or a
+    // --fragment translates statements, definitions or a
     // whole program into the same kind of fragment. By default every part
     // that can be translated is, and the others are marked and listed on
     // standard error; --all-or-nothing fails at the first part it cannot

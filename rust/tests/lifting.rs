@@ -276,6 +276,7 @@ fn traces_every_pipeline_stage() {
             "typed",
             "transformed",
             "adapted",
+            "parsed",
             "lifted",
             "typed",
             "transformed",

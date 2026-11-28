@@ -1,0 +1,15 @@
+JavaScript writer
+PASS mixed SQL projection fields across SQLite, Python, Node and C#
+PASS 99 nullable SQL value/WHERE cases across SQLite, Python, Node and C#
+PASS SQLite, Python, Node and C# filtered projections: [19,43]
+PASS C# eager [19,43] versus deferred [22,43] after source mutation
+PASS native C# query bindings, typed returns and nested/shadowed scopes
+PASS 23 SQL negation/grouping predicates across SQLite, Python, Node and C#
+
+Rust writer
+PASS mixed SQL projection fields across SQLite, Python, Node and C#
+PASS 99 nullable SQL value/WHERE cases across SQLite, Python, Node and C#
+PASS SQLite, Python, Node and C# filtered projections: [19,43]
+PASS C# eager [19,43] versus deferred [22,43] after source mutation
+PASS native C# query bindings, typed returns and nested/shadowed scopes
+PASS 23 SQL negation/grouping predicates across SQLite, Python, Node and C#

@@ -19,4 +19,5 @@ int main(void) {
     for (int number = 1; number < 11; number++) {
         printf("%d takes %d steps\n", number, hailstoneSteps(number));
     }
+    return 0;
 }

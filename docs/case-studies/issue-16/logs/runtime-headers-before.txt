@@ -1,0 +1,28 @@
+✖ reads token-equivalent Rocq runtime headers with native layout and comments (20.224576ms)
+✔ does not discard changed Rocq helpers or changed quoted runtime values (32.823912ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 778.841515
+
+✖ failing tests:
+
+test at node_modules/.deno/test-anywhere@0.8.50/node_modules/test-anywhere/src/index.js:174:12
+✖ reads token-equivalent Rocq runtime headers with native layout and comments (20.224576ms)
+  SyntaxError [Error]: Expected ":" but found "State" (line 12)
+      at Proxy.expect (file:///tmp/gh-issue-solver-1795726129025/js/src/formal/parser.js:165:13)
+      at Proxy.<anonymous> (file:///tmp/gh-issue-solver-1795726129025/js/src/translation/concrete-syntax.js:27:32)
+      at Proxy.definition (file:///tmp/gh-issue-solver-1795726129025/js/src/formal/dialects/rocq.js:408:14)
+      at Proxy.<anonymous> (file:///tmp/gh-issue-solver-1795726129025/js/src/translation/concrete-syntax.js:27:32)
+      at Proxy.item (file:///tmp/gh-issue-solver-1795726129025/js/src/formal/dialects/rocq.js:373:21)
+      at Proxy.<anonymous> (file:///tmp/gh-issue-solver-1795726129025/js/src/translation/concrete-syntax.js:27:32)
+      at Proxy.items (file:///tmp/gh-issue-solver-1795726129025/js/src/formal/parser.js:223:25)
+      at Proxy.<anonymous> (file:///tmp/gh-issue-solver-1795726129025/js/src/translation/concrete-syntax.js:27:32)
+      at Proxy.program (file:///tmp/gh-issue-solver-1795726129025/js/src/formal/parser.js:209:24)
+      at Proxy.<anonymous> (file:///tmp/gh-issue-solver-1795726129025/js/src/translation/concrete-syntax.js:27:32) {
+    line: 12
+  }

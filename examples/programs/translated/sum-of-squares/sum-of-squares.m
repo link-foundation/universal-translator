@@ -16,4 +16,5 @@ int main(void) {
     int limit = 10;
     printf("Sum of squares from 1 to %d:\n", limit);
     printf("%d\n", sumOfSquares(limit));
+    return 0;
 }

@@ -4,6 +4,10 @@ natural:
   extends: arabic
   profile: minimal-english
   source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  grammar:
+    productions:
+      element: 'الجزء {index} من {array}'
+      set-element: 'بعد هذا @element[array=name] هو {value}'
   templates:
     function: 'هكذا يفعل شخص {name} مع {parameters}'
     function-without-parameters: 'هكذا يفعل شخص {name}'
@@ -29,9 +33,7 @@ natural:
     greater-or-equal: '{left} ليس أقل من {right}'
     array: 'هذه الأشياء ({elements})'
     new-array: '{length} أشياء مثل {fill}'
-    element: 'الجزء {index} من {array}'
     length: 'كم جزءا في {array}'
-    set-element: 'بعد هذا الجزء {index} من {name} هو {value}'
   rules:
     primes: arabic
     extra-words: مع وهو في سطر الجواب توقف وإلا مرات لكل إلى ثم كم جزءا أو و زائد ناقص مضروبا مقسوما على بمقياس سالب خطأ

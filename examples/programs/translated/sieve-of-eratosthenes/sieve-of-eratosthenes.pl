@@ -9,7 +9,7 @@ $is_prime[0] = 0;
 $is_prime[1] = 0;
 for my $number (2 .. $limit) {
     if ($is_prime[$number] == 1) {
-        print $number . "\n";
+        print($number . "\n");
         my $multiple = $number * $number;
         while ($multiple <= $limit) {
             $is_prime[$multiple] = 0;

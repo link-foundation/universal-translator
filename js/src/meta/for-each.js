@@ -9,6 +9,7 @@
 // that every language round-trips to the same meta program.
 
 import { block, node, number, rewrite, walk } from './tree.js';
+import { inheritOrigin } from '../translation/source-origins.js';
 
 // The names a function body and its parameters already use.
 export function usedNames(body, parameters = []) {
@@ -95,29 +96,40 @@ export function lowerForEach(program, keep) {
     }
     if (tree.kind === 'ForEach' && !keep(tree)) {
       const index = freshName(new Set([...used, ...around]));
-      return lowered(
-        tree,
-        index,
-        expand(tree.body, used, new Set([...around, index]))
+      return inheritOrigin(
+        lowered(
+          tree,
+          index,
+          expand(tree.body, used, new Set([...around, index]))
+        ),
+        tree
       );
     }
-    return Object.fromEntries(
-      Object.entries(tree).map(([key, value]) => [
-        key,
-        value && typeof value === 'object'
-          ? expand(value, used, around)
-          : value,
-      ])
+    return inheritOrigin(
+      Object.fromEntries(
+        Object.entries(tree).map(([key, value]) => [
+          key,
+          value && typeof value === 'object'
+            ? expand(value, used, around)
+            : value,
+        ])
+      ),
+      tree
     );
   };
   const inside = (body, parameters = []) =>
     expand(body, usedNames(body, parameters), new Set());
   return {
     ...program,
-    functions: program.functions.map((item) => ({
-      ...item,
-      body: inside(item.body, item.parameters),
-    })),
+    functions: program.functions.map((item) =>
+      inheritOrigin(
+        {
+          ...item,
+          body: inside(item.body, item.parameters),
+        },
+        item
+      )
+    ),
     main: inside(program.main),
   };
 }

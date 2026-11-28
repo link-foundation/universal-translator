@@ -17,4 +17,5 @@ int main(void) {
     for (int index = 0; index < 21; index++) {
         printf("fibonacci(%d) = %d\n", index, fibonacci(index));
     }
+    return 0;
 }

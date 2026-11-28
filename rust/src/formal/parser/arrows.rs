@@ -22,11 +22,13 @@ impl Parser {
         let mut depth = 0i64;
         let mut index = offset;
         while self.kind(index) != TokenType::End {
-            depth += match self.value(index) {
-                "(" => 1,
-                ")" => -1,
-                _ => 0,
-            };
+            if self.kind(index) == TokenType::Symbol {
+                depth += match self.value(index) {
+                    "(" => 1,
+                    ")" => -1,
+                    _ => 0,
+                };
+            }
             if depth == 0 {
                 return Some(index);
             }

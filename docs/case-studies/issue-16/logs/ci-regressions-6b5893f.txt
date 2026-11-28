@@ -1,0 +1,39 @@
+▶ comment languages and versions with partial translation
+  ✔ writes comments in another language into a version of a language (883.774765ms)
+  ✔ keeps comment languages and versions in parts that translate (85.845544ms)
+  ✔ passes --comment-language and --comment-from through the partial default (12.468564ms)
+  ✔ translates only the comments of a text whose language is detected (424.80697ms)
+  ✔ refuses a comment language that does not exist before reading (0.98598ms)
+  ✔ reads a version of a language with the rules of the language (31.366922ms)
+  ✔ serves comment languages with detection and rules (242.810386ms)
+✔ comment languages and versions with partial translation (1685.309172ms)
+✔ keeps mapping rereads out of the public trace and restores tracing afterward (308.805084ms)
+✔ distinguishes independent statements and repeated names on one physical line (21.90621ms)
+✔ uses UTF-8 ranges and keeps original indentation and CRLF in wrapped fragments (20.283353ms)
+✔ excludes nested same-line statements from the region owned by their condition (24.390926ms)
+✔ retains precise parser spans without exposing them as semantic fields (6.382117ms)
+✔ retains many-to-many regions through Bash call lowering and its inverse (46.641098ms)
+✔ provides valid semantic regions for all current reader and writer families (1538.618557ms)
+▶ public translation API
+  ✔ exports the grammar translator and its languages (8.791903ms)
+  ✔ translates the issue C source in all three modes (299.197258ms)
+✔ public translation API (310.987075ms)
+▶ same-language layers
+  ✔ translates Russian comments to English and keeps the code (22.806671ms)
+✔ same-language layers (23.145133ms)
+▶ command line
+  ✔ translates standard input and lists languages (37.546571ms)
+  ✔ prints the meta program and reports errors with a failure status (21.071954ms)
+  ✔ traces every pipeline stage with --trace (12.989135ms)
+✔ command line (74.104467ms)
+▶ dependent referents
+  ✔ prefers round-trip evidence and retains unresolved readings (2.625388ms)
+✔ dependent referents (3.222653ms)
+ℹ tests 21
+ℹ suites 5
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2517.749379

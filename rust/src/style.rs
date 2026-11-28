@@ -113,7 +113,9 @@ struct BraceLine {
 }
 
 fn brace_lines(text: &str, syntax: &Syntax) -> Result<HashMap<usize, BraceLine>, GrammarError> {
-    let tokens: Vec<_> = tokenize(text, syntax)?
+    let mut lexical = syntax.clone();
+    lexical.symbols = &["^", "~"];
+    let tokens: Vec<_> = tokenize(text, &lexical)?
         .into_iter()
         .filter(|token| {
             !matches!(

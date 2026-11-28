@@ -1,0 +1,529 @@
+# Previous requirements that are not delivered yet
+Issue 14 asks to "collect all previous not delivered requirements from all issues (description + comments), pull requests (description,
+comments). Everything that is not yet done must be fully tracked".
+This file is that inventory. It was built from the raw data in [`data/`](data/README.md): issues 1, 2, 6, 8, 10, 12 and 14, and pull
+requests 3, 4, 5, 7, 9, 11, 13 and 15. Every requirement the owner (`konard`) wrote is listed with the exact quote, the source and its
+status checked against the repository at commit `d09dc14` (branch `issue-14-213b02ae6953`) on 2026-11-26. The first check, at `b20bde4` (the
+start of PR 15), found most items open; every row that was not `done` there is checked again here by running the command named in its
+evidence, and the quoted output is the real output of that command. The older inventories (`docs/case-
+studies/issue-{1,6,8}/requirements.lino`) were not trusted: their `done` claims were re-checked, and `scripts/check-requirements.mjs` only
+verifies that evidence exists, not translation quality.
+Statuses:
+- `done`: delivered, with the file, test or command output that shows it.
+- `partial`: some of it exists; the text says exactly what is missing.
+- `not-done`: nothing, or only a stub, exists.
+- `blocked`: it needs something outside the repository; the text says what.
+The status is the state of the code at the head of PR 15 when this file was last changed.
+Commands are shown as `translate ...`, `meta ...`, `detect ...` and `check-equivalence ...`; each runs as `node bin/universal-translator.js
+<command>`.
+Where the owner wrote the same requirement more than once, it is listed once in the place it first appeared and the later quotes are added
+to it.
+## Where requirements live
+Owner comments in PR 5: [7092772656](https://github.com/link-foundation/universal-translator/pull/5#issuecomment-7092772656),
+[7106301969](https://github.com/link-foundation/universal-translator/pull/5#issuecomment-7106301969), [7111124596](https://github.com/link-
+foundation/universal-translator/pull/5#issuecomment-7111124596), [7128628018](https://github.com/link-foundation/universal-
+translator/pull/5#issuecomment-7128628018), [7131215220](https://github.com/link-foundation/universal-
+translator/pull/5#issuecomment-7131215220), [7137697837](https://github.com/link-foundation/universal-
+translator/pull/5#issuecomment-7137697837), [7142240472](https://github.com/link-foundation/universal-
+translator/pull/5#issuecomment-7142240472), [7144027760](https://github.com/link-foundation/universal-
+translator/pull/5#issuecomment-7144027760) and [7145130071](https://github.com/link-foundation/universal-
+translator/pull/5#issuecomment-7145130071) (the last three only link to issue 1), and [7146732093](https://github.com/link-
+foundation/universal-translator/pull/5#issuecomment-7146732093). Owner comment in PR 7: [7161725341](https://github.com/link-
+foundation/universal-translator/pull/7#issuecomment-7161725341).
+## Issue 1: A tool to do translation between languages
+Source: https://github.com/link-foundation/universal-translator/issues/1 (description).
+1.1 | "So we always work with ranges, and by calculating frequencies of language corpus we can have some probabilities which more specific
+type or description is most likely." and "for best translation (most likely and more correct) we should prefer such translation, which
+survives the round trip." | partial | Prose is ranked in the pipeline: `js/src/translation/candidates.js` and `rust/src/candidates.rs` score
+every candidate by frequency, round trip and coverage as relative-meta-logic truth values (`js/src/natural/probability.js`), and the most
+probable one is the default translation. `echo 'мир' \ | translate russian english - --candidates` gives `(text 'world') (probability
+0.666667) (frequency 0.666667) (roundTrip 1) (coverage 1)` before `(text 'peace') (probability 0)`. Missing: the frequencies are Zipf priors
+over the order of `data/natural/vocabulary.lino`, not counted from a language corpus; code is translated by its rules one way, without
+competing readings.
+
+1.2 | "We also need to make sure we precisely record any imprecision of any statement." | done | `js/src/meta/imprecision.js` and
+`rust/src/meta/imprecision.rs` record what a reading loses (`ambiguous`, `untranslated`, `truncated`, `rounded`) with `alternatives` and
+`probability`. `meta javascript` on `// Привет мир` prints `word мир (alternatives 2) (concept world) (imprecision ambiguous) (part noun)
+(probability 0.666667)`. Covered by `js/tests/ranking.test.js` (14 pass) and `rust/tests/ranking.rs`.
+
+1.3 | "We should start by supporting full translation of something simple via meta language ... By simple I mean
+http://helloworldcollection.de, and https://rosettacode.org/wiki/Rosetta_Code" | partial | Hello World is covered by the `hello-world`
+program. The Hello World Collection is downloaded, extracted and measured by `scripts/hello-world-collection.mjs`: `docs/case-
+studies/issue-14/hello-world-coverage.lino` records 33 of its 34 programs read (both Fortran programs, Groovy, Lua, PHP, Scala, Visual Basic
+and Zig now read too, `js/tests/hello-world-dialects.test.js` and `rust/tests/hello_world_dialects.rs`, 11 pass each; `js/tests/hello-world-
+collection.test.js` and `rust/tests/hello_world_collection.rs` check every status) and 2 languages the collection lacks (Lean, Rocq).
+Blocked: the Objective-C program is Portable Object Compiler code that clang rejects (`objpak.h` missing, `Set` and `String` undeclared, the
+`{ :each | ... }`block;`experiments/issue-14/objc-hello-check.sh`) and it greets the command-line arguments, which the meta language does
+not have. Missing: Rosetta Code beyond the 22 tasks (see 1.8).
+
+1.4 | "So once we take top 20-30 most used programming languages and support parsing all of them into meta language and back (basic
+roundtrip CST survival)" | done | 33 programming languages (Lean, Rocq and GameMaker Language included) are listed by `universal-translator
+languages`. The round trip keeps whitespace: `translate javascript python experiments/issue-14/whitespace.js` gives `print( "Hello
+World!")`, a blank line and `print(1+ 2)`, and JavaScript to JavaScript returns the source unchanged (`js/src/translation/layout.js`,
+`rust/src/layout.rs`; `js/tests/layout.test.js`, 11 pass).
+
+1.5 | "we should also support translation from meta language expression to meta language expression, where we still in meta language, yet
+convert one abstraction to another (equivalent translation, with different levels of abstractions)" | done | `same-effect` mode lowers and
+lifts meta trees: `js/src/formal/lifting.js` and `js/src/formal/lowering.js`, with the Rust equivalents in `rust/src/formal`.
+
+1.6 | "So if we select configuration of translation as `same effect` ... If `literal` translation configuration ... So by default we should
+use context dependent translation, with multiple configuration options like I described." | done | Three modes, with `context-dependent` as
+the default (`js/src/translation`, covered by the translation tests). The C to C# example from the issue is a test.
+
+1.7 | "for example in `context dependent` translation we may also parse comments in natural language and transform them accordingly." and
+the example "`print "Hello World!" into console followed by new line symbol by function call` ... `method call`" | done | Comments are read
+as prose and translated: `translate javascript python experiments/issue-14/comment.js --comment-language english` gives `# Hello world`, and
+`// Вывести привет мир` gives `# Print hello world` (`js/tests/comments.test.js`, 44 pass). The comment edit is general: a C comment `Print
+hello world into console by function call in C` becomes `/* Print hello world into console by method call in C# */` in C#.
+
+1.8 | "Once we finish with stabilization of translation between hello world programs, we should stabilize translation between all rosetta
+code examples." | partial | 22 Rosetta Code tasks (`examples/programs/*.js`) are translated into all 33 programming languages and 7 machine
+targets (`examples/programs/translated/`), and `node experiments/rust-round-trip.mjs` reports each of them `equivalent stable`. Real numbers
+are read: `console.log(7 / 2)` gives Python `print(7 / 2)`. Missing: the rest of the Rosetta set; strings, higher-order functions, data
+structures, input/output, objects and concurrency are still blocked in `docs/case-studies/issue-1/rosetta-coverage.lino`. See 5.5.
+
+1.9 | "We start by implementing our translator in JavaScript and Rust at the same time." | done | Both exist, share `data/`, and each
+feature has a JavaScript and a Rust twin. The Rust CLI has `serve` (`rust/tests/serve.rs`), Wikidata definitions (`define_word`,
+`wikidata_lookup` and `precached_definitions` in `rust/src/natural/standards.rs`, over the shipped cache `data/definitions/wikidata-
+english.lino`; it makes no network requests), and reads `translate-program` through the `meta-language = "=1.0.0"` crate (`Cargo.toml`).
+
+1.10 | "it should have best possible architecture, with everything configurable, everything replaceable, decoratable (based on decorator
+pattern) and so on." | done | `js/src/translation/decorators.js` and `rust/src/stages.rs`: every stage (`parse`, `infer`, `lift`,
+`readMachine`, `readNatural`, `emit`, `emitMachineCode`, `writeNatural`) can be wrapped by decorators that compose in order. Covered by
+`js/tests/decorators.test.js` (10 pass) and `rust/tests/decorators.rs`. Rules, languages and standards stay replaceable data.
+
+1.11 | "We also should support multiple layers of translation rules." | done | Rule stages `source`, `templates`, `names`, `output`, plus
+per-project `.lino` rules.
+
+1.12 | "Ideally in the future, it should be possible to prove that translation is equivalent in some narrow set of translation requirements,
+for example effect of code in programs in both languages can be the same." | done | `check-equivalence` compares the general meta trees of
+two programs (`js/src/translation/equivalence.js`, `rust/src/equivalence.rs`). `check-equivalence javascript rust
+examples/programs/factorial.js` prints `equivalent: true metaLines: 25` and exits 0; a mismatched pair prints `equivalent: false` with
+`(line 3) (source 'number 1') (target 'number 2')` and exits 1. This is a check of equal meaning for the subset the readers cover, plus the
+native run of `examples/programs/verify-native.mjs`; there is no machine-checked proof.
+
+1.13 | "it should be possible in future make full deep translation not only a code of application, but also the code of standard libraries
+and other libraries and so on." | not-done | The meta standard library (`js/src/meta/library.js`, `rust/src/meta/library.rs`) maps library
+calls such as `print-line` between languages, and the common library maps standard functions; the code of standard and other libraries is
+not translated. The owner marks it "in the future".
+
+1.14 | "Even if we only have binaries, we can still translate asm to C# CIL or Java ByteCode and so on (by the way we should also have these
+examples) for translation between different version of asm and CIL and byte code and so on, all again via meta language." | partial | Seven
+machine targets are written and read back through the meta language: `nasm`, `gas`, `arm64`, `llvm`, `wat`, `cil` and `jvm`
+(`js/src/formal/machine*.js`, `rust/src/formal/machine_reader.rs`; `js/tests/machine-dialects.test.js`, 75 pass). They are in `languages`
+and in a picker group of their own. `translate javascript arm64` followed by `translate arm64 python` gives `print(1 + 2)`. Missing: a
+reader of binaries (only assembly and IR text is read), and versions of each dialect (for example 32-bit x86 or JVM class file versions).
+
+1.15 | "we first implement library in both languages, translate C code to meta language, replace only function calls to common library
+implementation ... that means translation will be nearly line to line translation." | done | `js/src/common-library.mjs`,
+`js/src/formal/common-library.js`, and the matching Rust code. The owner later said the library must not hold whole algorithms (see 5.11).
+
+1.16 | "There also may be transformation/translation rules specific to repository/project/organization, we also may have translation or
+tranformation in the same language but changing only style or for example translate C# code and russian comments to C# code and English
+comments" | done | Rules per project work, and so does the same-language case of the quote: JavaScript to JavaScript with `--comment-
+language english` turns `// Привет мир` into `// Hello world`. Style translation: `--braces same-line | next-line`and`--indent <n |
+tab>`(CLI, servers and the Braces and Indent pickers of the web app) write`translate javascript csharp factorial.js --braces next-line
+--indent 2` in the traditional C# style, or JavaScript into JavaScript with another indent (`js/src/translation/style.js`,
+`rust/src/style.rs`, `js/tests/style.test.js`, `rust/tests/style.rs`, `docs/case-studies/issue-14/screenshots/app-style.png`).
+
+1.17 | "So our architecture should use best of https://github.com/link-assistant/formal-ai/blob/main/docs/associative-tech-stack.md" | done
+| Mapped in `docs/case-studies/issue-1/best-practices.md`.
+
+1.18 | "we should use our github.com/link-foundation/meta-language and github.com/link-foundation/relative-meta-logic and
+https://github.com/link-assistant/router/pull/775" | done | relative-meta-logic 0.21.0 truth values score translations
+(`js/src/natural/probability.js`; `rust/src/natural/probability.rs` uses its `TruthValue` and `Aggregator::Product`). Rust reads programs
+through the `meta-language = "=1.0.0"` crate. The JavaScript CLI still loads Meta Language from `UNIVERSAL_TRANSLATOR_META_LANGUAGE`,
+because npm latest is 0.46.0 (link-foundation/meta-language issue 230, open); `requirements.lino` reports that part as `meta-language-npm`,
+blocked.
+
+1.19 | "We focus on best possible readability - use full english words ... each algorithm should be correct in principle and work" | done |
+`examples/programs/*.js` use full words.
+
+1.20 | "We need to collect data related about the issue to this repository, make sure we compile that data to `./docs/case-
+studies/issue-{id}` folder" | done | `docs/case-studies/issue-1`.
+
+## Issue 2: Rename the package before the first publish
+Source: https://github.com/link-foundation/universal-translator/issues/2.
+2.1 | "Rename the npm package to `universal-translator`." | blocked | `package.json` has `"name": "@link-foundation/universal-translator"`.
+Publishing the unscoped name needs the owner's npm account (`npm-unscoped-name` in `requirements.lino`).
+
+2.2 | "Rename the bin entry and its file to `universal-translator`." | done | `bin/universal-translator.js`.
+
+2.3 | "No reference to `@link-foundation/example-package-name` remains in the package metadata, docs, or release workflow." | done | Checked
+by the release preflight.
+
+2.4 | "`npm view universal-translator version` succeeds after the release." and "`npx universal-translator --version` works." | blocked |
+`npm view @link-foundation/universal-translator version` gives `0.15.0`; `npm view universal-translator version` gives `E404`. The unscoped
+name needs the owner's npm account.
+
+2.5 | "The first release is bootstrapped and the trusted publisher is attached for `link-foundation/universal-translator` and its release
+workflow." | blocked | Needs the owner's npm account to bootstrap the unscoped package and attach the trusted publisher.
+
+## Issue 6: Fixes and improvements (merged as PR 7)
+Source: https://github.com/link-foundation/universal-translator/issues/6.
+6.1 | "We should have an option to get meta language version of left and right language expression." | done | Meta view in the web app,
+`formatMeta`, and the `--meta` CLI option.
+
+6.2 | "if we change left translation we should not fail by default, that should mean we can use expression to the right to translate it to
+new selected language to the left." | done | Covered by e2e; the app retranslates from the other side.
+
+6.3 | "button on tops should generate random example ... select random of them, and 2 random languages (all supported natural and english)
+and show example." and "go with random examples on click for program, function, statement." | done | Random example button in
+`examples/universal-app/src/App.js`.
+
+6.4 | "We also must support semantic primes (semantic meta language) as dictionary modifier for exactly all human languages." | done |
+`js/src/natural/levels.js` and `data/natural`.
+
+6.5 | "For each language we should have different versions of it. For example for python we can have different major versions and may be
+some grammar variations, and for natural languages we can have biggest dictionary/vocabulary by default + variations like american/british"
+| partial | `js/src/formal/versions.js` and `rust/src/formal/versions.rs` define `javascript@es5`, `php@5`, `csharp@5` and `python@2` next
+to the default versions: ES5 writes `var a`, counting loops and `"x=" + String(x)`; PHP 5 writes `array(1, 2)`; C# 5 writes
+`System.Convert.ToString`; Python 2 writes `print "x=" + str(x)` and Python 3.5 `print("x=" + str(x))`; `scala@2.9` writes `"x=" +
+String.valueOf(x)`; `lua@5.1` divides with `math.floor(a / b)`; `java@1.4` counts over the indexes where Java 1.4 has no for-each; `swift@1`
+writes and reads `println(x)` and `print(x)` (Swift 2 and later read `print(x, terminator: "")`, and any other `terminator:`, `separator:`,
+`end=` or `sep=` is printed with the values) (`js/tests/language-versions.test.js`, 82 pass; `rust/tests/language_versions.rs`, 17 pass).
+`registerLanguageVersion` adds a version of one's own. Missing: versions of the other 25 programming languages and grammar variations; the
+only natural variant is British English (`js/src/natural/variants.js`).
+
+6.6 | "(we also can match selection of american/british to selected user's languages in the browser)" | done | `preferredNaturalVersion` in
+`js/src/natural/variants.js` picks American or British English from `navigator.languages`, used by `examples/universal-app/src/App.js`,
+`LanguagePicker.js` and `languages.js`, and tested in `js/tests/versions.test.js`. It predates `b20bde4`; the earlier `not-done` was wrong.
+
+6.7 | "We also should fully support multi language support, theme selection, skin update and so on (in UI settings - small link on the
+bottom of the page), so we have https://github.com/link-foundation/ui fully supported by default" | done | `SettingsLink.js`, `i18n.js` with
+7 interface languages, skins fixed in PR 13. Two upstream bugs are reported (link-foundation/ui#292, #293).
+
+6.8 | "we focus on supporting CST by default, that means we should our best to preserve whitespace as it is on both sides of the
+translation, including comments and whitespace inside comments." | done | `translate javascript python experiments/issue-14/whitespace.js`
+gives `print( "Hello World!")`, a blank line and `print(1+ 2)`; comments keep their inner spaces (`# two spaces inside`, `x = 1 # trailing
+comment`). Same as 14.1.
+
+6.9 | "We should also be able to select language not only of logic/code, but also language of comments, so we can have same code in same
+language, but translate only for comments and so on." | done | Comment and identifier languages are chosen on each side (`SideOptions` in
+`examples/universal-app/src/Options.js`; `commentFrom`/`commentLanguage` in the library and both CLIs). Same code, comments only: JavaScript
+to JavaScript with `--comment-language english` turns `// Привет мир` into `// Hello world`.
+
+6.10 | "double check we fully symmetrically support all the features across all the languages, support well known standards for all
+languages, not just English and so on." | done | Every one of the 31 base natural languages describes every sentence of the meta language,
+increase and decrease included, and reads every wording of declare, assign, increase, decrease and print-line (`js/tests/natural-
+wordings.test.js`, `rust/tests/natural_wordings.rs`; 221 wordings, JavaScript and Rust agree: `experiments/issue-14/everyday-wordings.mjs`).
+Everyday wordings are read in English, Russian, Ukrainian, German, French, Spanish, Italian, Portuguese, Polish and Dutch: `while n is less
+than 3, do this` gives `while n < 3:`; `Пусть n равно 0.`, `Пока n меньше 3, сделать это:`, `Напечатать n.`, `Установить n в n + 1.` and
+`вывести n` give `n = 0`, `while n < 3:`, `print(n)`, `n += 1` and `print(n)`; `Erhöhe n um 3.`, `Subtrahiere 1 von n.` and `Gib n aus.`
+give `n += 3`, `n -= 1` and `print(n)`. Controlled standards for 30+ languages keep to their vocabulary, as they do not inherit the everyday
+wordings.
+
+6.11 | "We also should be able to edit every standard manually in separate tab/link/section, meaning it should be possible to see all the
+words we have, how they translate to meta language concepts and so on." | done | `StandardsView.js`, `saved-standards.js`.
+
+6.12 | "if there any programming language missing we can take closest and adjust and save our own standard" | done | Saved standards in the
+Standards tab.
+
+6.13 | "using words streamed/loaded/with cache + pre-cache for tests from wikidata ... which will find our existing words in the standard
+and will recursively try to translate each unknown word's definition to these words" | done | `defineWord` and `wikidataLookup`
+(`js/src/natural/standards.js`) define an unknown word from its Wikidata definition, recursively down to words the standard has. The
+Standards tab (`examples/universal-app/src/StandardsView.js`) looks words up live and pre-caches `data/definitions/wikidata-english.lino`
+for tests. Rust has the same `define_word` over that cache (`rust/src/natural/standards.rs`), without network requests.
+
+6.14 | "We also need to double check all previous requirements of https://github.com/link-foundation/universal-translator/issues/1, that are
+fully delivered, and do all requirements that are not yet done" | partial | Of the issue 1 items, 1.1, 1.3, 1.8, 1.13 and 1.14 are still
+open (this document); the rest are done.
+
+6.15 | "list of each and all requirements from the issue, and propose possible solutions and solution plans" | done | `docs/case-
+studies/issue-6`.
+
+## Issue 8: Better translation quality (merged as PR 9)
+Source: https://github.com/link-foundation/universal-translator/issues/8.
+8.1 | "`Если n меньше или равно 1, сделать это:` / `Если n больше или равно 1, сделать это:` These are not supported, as well as other
+obvious variations, we need to fix that." | done | Both Russian lines are read: with `Написать n и закончить строку.` they give `if (n <=
+1)` and `if (n >= 1)`. The everyday Russian forms are read too: `Пусть n равно 0.`, `Пока n меньше 3, сделать это:`, `Напечатать n.`,
+`Установить n в n + 1.` and `вывести n` give Python `n = 0`, `while n < 3:`, `print(n)`, `n += 1` and `print(n)` in JavaScript and Rust
+(`js/tests/natural-wordings.test.js`, `rust/tests/natural_wordings.rs`).
+
+8.2 | "we need to make sure we can translate entire dataset of https://rosettacode.org/wiki/Category:Solutions_by_Programming_Task tasks, we
+should have algorithm to automatically load them all, sort by simplest meaning" and "We need to learn how to translate exactly everything we
+have in rosettacode.org finished tasks." | partial | `scripts/rosetta-code.mjs` loads every task of the category and `sortBySimplicity`
+sorts them from the simplest meaning. It predates `b20bde4`, so the earlier `not-done` missed it. Missing: translating the whole set; 22
+tasks are translated (see 1.8 and 5.5).
+
+8.3 | "support parsing mode, where we parse everything we can, except parts we cannot, so in such way we can calculate how many missing
+parts we have in the task's algorithm" | done | `parsePartial` and the `coverage` command in both CLIs.
+
+8.4 | "by default should translate everything we can translate and clearly mark parts we cannot translate with errors listed ... Yet we
+should still have everything configurable if user wants all or nothing mode." | done | `translatePartial`, `--all-or-nothing`, the server's
+`allOrNothing`, and the checkbox in the web app.
+
+8.5 | "our system have ability to add additional configurable rules at each stage of translation. We also should have a visual editor for
+translation rules in our UI/UX demo" | done | `js/src/translation/custom-rules.js`; `RulesEditor.js`; Rules tab.
+
+8.6 | "in our UI/UX we should have ability to auto detect language by default" | done | `from: 'auto'` is the default in the web app, and
+short text is detected: `echo 'Привет' \ | detect -` prints `(id russian) (natural true) (reads false) (coverage 1) (score 110)` first, and
+`echo 'Как хорошо покакать?' \ | translate auto english -` prints `Detected language: russian` and `How good to poop?` (`js/tests/detect-
+goldens.test.js`, 44 pass).
+
+8.7 | "If issue related to any other repository/project ... please do so." (report upstream) | done | link-foundation/ui#292 and #293 were
+filed from issue 12.
+
+8.8 | "If there is not enough data to find actual root cause, add debug output and verbose mode" | done | `--trace` in both CLIs; `?debug`
+in the demo.
+
+## Issue 10: CI/CD false positives, false negatives, warnings and errors (merged as PR 11)
+Source: https://github.com/link-foundation/universal-translator/issues/10.
+10.1 | "Check for all false positives, false negatives, warnings and errors in CI/CD and fix them all" | partial | On PR 15 every workflow
+passes (`Example app` run 45757026472, every job including Check Preview Images). On `main` the `Example app` run 45675992251 is still red:
+the preview images drifted and the job needs `RELEASE_PR_TOKEN` to push them; commit `26f9c5d` makes the failure say how to fix it. Missing:
+merging PR 15 with current images, or the owner adding the `RELEASE_PR_TOKEN` secret.
+
+10.2 | "Use all the best practices from CI/CD templates (check full file tree to compare for all GitHub workflow and CI/CD scripts file), if
+the same issue is found in template report issue also in templates" | done | Comparison in `dev/log/issues/10/pulls/11/README.md`.
+
+10.3 | "Follow the CI/CD best practices collected in https://github.com/link-assistant/hive-mind/blob/main/docs/CI-CD-BEST-PRACTICES.md" |
+done | Mapped in `docs/case-studies/issue-1/best-practices.md` and the PR 11 case study.
+
+## Issue 12: Improve and polish the UI/UX and the entire codebase (merged as PR 13)
+Source: https://github.com/link-foundation/universal-translator/issues/12.
+12.1 | "We need to make sure our UI out of the box support different sizes of the content, for example in these screenshots we see that
+title and input boxes are jumping around all the time." | done | `styles.css`; e2e `keepsTheLayoutStill`.
+
+12.2 | "We also should support optional monaco editor with our custom highlighting of code based on our own meta language markup." | done |
+`CodeEditor.js`, `monaco.js`, `highlight.js`. Monaco is the default: `settings.js` has `(default monaco)` (14.2).
+
+12.3 | "In all cases the height of left and right examples should be the same" | done | e2e `keepsTheLayoutStill`.
+
+12.4 | "`How it works` block can be moved down" | done | `about-panel` below the translator.
+
+12.5 | "We also need a way to turn on/off the word wrapping." | done | `#word-wrap` switch.
+
+12.6 | "Rules must go to separate tab/section as language standards" | done | Rules tab.
+
+12.7 | "We don't use JSON by default for rules or language standards or UI/UX settings, in all places - links notation in indented/nested
+form is preferred." | done | `readRules` and `formatRules` in both languages; `coverage` and `detect` print Links Notation.
+
+12.8 | "In meta language, we should use `x:` syntax only if we are sure something is unique ... `body: block` looks crazy" | done |
+`formatMeta` nests children; checked by `js/tests/meta-notation.test.js`. Issue 14 goes further (14.13).
+
+12.9 | "In UI/UX skins does not work" | done | Fixed and covered by e2e `changesTheSettings`; upstream bugs filed.
+
+12.10 | "Double check that entire codebase works perfectly and we have no undelivered requirements left (the scope is entire repository and
+all previous issues and pull requests)." | partial | Of the PR 13 gaps below, B2, B3 (Rust), P1, P2, P3, P5, P6, P10, P12 and arrow
+functions are done; P4 and P7 are partial; classes of objects are open. Everything still open in this document is listed at the end.
+
+12.11 | "All UI/UX elements must be carefully aligned." | done | Screenshots in `docs/screenshots/issue-12`.
+
+Items listed as "Not done in this PR" in the PR 13 description (known gaps) and their current state:
+## Pull request 5 (issue 1): owner comments
+5.1 | "To iterate faster we should drop CI/CD support for windows, macOS." | [7092772656](https://github.com/link-foundation/universal-
+translator/pull/5#issuecomment-7092772656) | done | `.github/workflows` has no windows or macOS job.
+
+5.2 | "We also need to use https://github.com/link-foundation/links-notation in all places instead of JSON, and for meta language itself." |
+7092772656 | done | Meta trees, rules, standards and settings are Links Notation; JSON only with `--json`.
+
+5.3 | "We should also take best CI/CD practices of multi-language repository from https://github.com/link-foundation/links-notation." |
+7092772656 | done | See `docs/case-studies/issue-1/best-practices.md`.
+
+5.4 | "But we must do all examples from these for top 50 programming languages and 20 human languages. By that I mean we should describe all
+the same algorithms in plain natural language (maximum specific) similar to algorithms in hello world, rosetta code and so on, and all of
+them should be translated via meta language to each other." | 7092772656 | partial | 33 programming languages and 30+ natural languages. 28
+of the TIOBE top 50 are covered, and `.changeset/issue-14.md` gives the reason for each of the other 22. Every one of the 22 algorithms is
+described in plain natural language in all 71 natural languages and standards (`examples/programs/natural/<task>/`) and translated through
+the meta language. Missing: 22 of the TIOBE top 50, and the algorithms beyond the 22 tasks.
+
+5.5 | "We need to make full coverage of `1758` Rosetta Code examples. We should focus on supporting Any rosetta code language into meta
+language translation (all examples) and back meta language to original language, must survive roundtrip" |
+[7106301969](https://github.com/link-foundation/universal-translator/pull/5#issuecomment-7106301969) | partial | 22 tasks are translated
+into every language and survive the round trip (see 1.8). Both runtimes restore the pinned Rosetta files as text byte for byte, which is
+storage, not translation. Missing: the translation of the other tasks and their original-language round trip.
+
+5.6 | "Start with JavaScript and Rust example, make sure we can do full JavaScript -> Meta Language (with transformations if needed) ->
+Rust, translation and back Rust -> Meta Language (with transformations if needed) -> JavaScript." | 7106301969 | partial | JavaScript to
+Rust and back holds for all 22 example programs: `node experiments/rust-round-trip.mjs` reports each `equivalent stable`
+(`js/tests/equivalence.test.js`, `rust/tests/equivalence.rs`). Arrow functions, static-method classes and real numbers are read. Missing:
+classes of objects; `class Point { constructor… }` gives "Translated 2 of 5 lines; 3 part(s) could not be translated".
+
+5.7 | "All these must be strictly verifiable with CI/CD" | 7106301969 | done | The round trip and the equivalence of every example program
+run in CI (`js/tests/equivalence.test.js`, 40 pass; `rust/tests/equivalence.rs`), and `check-equivalence` exits 1 when a translation does
+not do what its source does. What is not translated yet (5.5) has nothing to verify.
+
+5.8 | "we should have ./data (goes with a JavaScript and Rust packages), ./js, ./rust folders in root, all of them with ./js/src and
+./rust/src and also ./js/tests and ./rust/tests, we never mix source code and tests." | 7106301969 | done | The layout exists, and every
+Rust test lives in `rust/tests`: `grep -rn "cfg(test)" rust/src` prints nothing.
+
+5.9 | "Our development process is broken now, please find root cause of it and fix it. ... explain me the reason my comment ... was
+effectively ignored, find a way to unlock full delivery of all requirements in this single pull request and do it fully." |
+[7111124596](https://github.com/link-foundation/universal-translator/pull/5#issuecomment-7111124596) | partial | `docs/case-
+studies/issue-1/readiness.md` explains the premature ready-for-review transition and points to the upstream fix (link-assistant/hive-
+mind#3929). That issue is still open, so the process problem is not solved upstream.
+
+5.10 | "I think we do faking the solution, we don't actually doing translation, I see no parser of languages into meta language and back and
+so on. Vision from https://github.com/link-foundation/universal-translator/issues/1 is fully ignored." |
+[7128628018](https://github.com/link-foundation/universal-translator/pull/5#issuecomment-7128628018) | done | Real lexers, parsers and
+emitters exist in `js/src/formal` and `rust/src/formal`. Quality gaps are tracked under 1.x and 14.x.
+
+5.11 | "Common library is pure fake (it should not contain entire algorithms implementations)" | [7131215220](https://github.com/link-
+foundation/universal-translator/pull/5#issuecomment-7131215220) | done | `js/src/formal/common-library.js` maps standard library functions
+between languages and holds no algorithms.
+
+5.12 | "we should prefer storing .lino files in ./data folder and prefer to import from there." | 7131215220 | done | `data/definitions`,
+`data/natural`, `data/translation`.
+
+5.13 | "we should never use special links as separate lines, and prefer indented style of links notation." | 7131215220 | done | Notation
+tests.
+
+5.14 | "We need to have real foundation and architecture for actual formal and natural language processing. We should use all the best
+practices we can get from grammar/rule based processing." | [7137697837](https://github.com/link-foundation/universal-
+translator/pull/5#issuecomment-7137697837) | partial | Rule-based readers and emitters exist for every language. Prose is read as `Prose >
+Sentence > Word` with concept, part of speech, verb forms and object cases (`js/src/natural/prose-reading.js`). Missing: phrase and clause
+structure; a sentence is still a flat list of words (see 14.9).
+
+5.15 | "Check all requirements from https://github.com/link-foundation/universal-translator/issues/1 and in comments of this pull request."
+(repeated by the bare issue 1 links in [7142240472](https://github.com/link-foundation/universal-translator/pull/5#issuecomment-7142240472),
+[7144027760](https://github.com/link-foundation/universal-translator/pull/5#issuecomment-7144027760), [7145130071](https://github.com/link-
+foundation/universal-translator/pull/5#issuecomment-7145130071)) | 7137697837 | partial | Every issue 1 requirement and PR 5 comment is
+checked in this document; 1.1, 1.3, 1.8, 1.13, 1.14 and the PR 5 rows marked partial remain.
+
+5.16 | "I think we should update our structure ... ./src/meta (common) ./src/formal (for programming languages and Lean, Rocq) ./src/natural
+(for unrestricted grammars for human languages and so on)" and "for natural instead of parser and emitter we have reader and writer." |
+[7146732093](https://github.com/link-foundation/universal-translator/pull/5#issuecomment-7146732093) | done | `js/src/meta`,
+`js/src/formal`, `js/src/natural` (with `reader.js` and `writer.js`), and the same in `rust/src`.
+
+5.17 | "we also must use all the best from associative tech stack ... code-architecture-principles ... CI-CD-BEST-PRACTICES" | 7146732093 |
+done | Decorators wrap every stage (1.10). `docs/case-studies/issue-1/best-practices.md` maps the associative stack, the architecture
+principles and the CI/CD practices, and gives the reason for each part that is not used.
+
+5.18 | "Also we must have nice web app demo (where it should be possible to check if our parser can parse any part of any language and
+translate to target language equivalent of it), double check we provide extensible CLI, lib, API, docker and so on." | 7146732093 | done |
+`examples/universal-app`, `bin/`, `js/src/server.js`, `Dockerfile`, and the Rust `serve` command with the same JSON API
+(`rust/tests/serve.rs`).
+
+5.19 | "So we should be able to parse each statements, functions, classes and so on separately, we only should require that if we start with
+a function we should end with its closing and so on." | 7146732093 | partial | Statements, functions, whole programs and classes of static
+methods are fragments: `Program.square(3)` becomes Python `def square(n)` and `print(square(3))`. Missing: classes of objects; the meta
+language has no objects yet, so `class Point { constructor… }` is not read.
+
+5.20 | "We need to ensure all changes are correct, consistent, validated, tested, documented, logged ... The scope is the entire repository
+... Ensure all CI/CD checks pass." (recurring in 7092772656, 7106301969, 7137697837) | 7137697837 | partial | The pull request's checks
+pass; main's `Example app` workflow is red (10.1).
+
+## Pull request 7 (issue 6): owner comment
+7.1 | "We need to resolve conflicts" ([7161725341](https://github.com/link-foundation/universal-translator/pull/7#issuecomment-7161725341))
+| done | PR 7 merged.
+
+7.2 | "double check that all requirements from all our issues, and all registered requirements all requirements are fully delivered and we
+have no undelivered requirements across the entire codebase, issues, pull requests and so on." | partial | This document and `docs/case-
+studies/issue-14/requirements.lino` (checked by `scripts/check-requirements.mjs`) track every requirement. The two items PR 7 left blocked,
+"Every Rosetta Code algorithm type" and "Classes as fragments", are still open (1.8, 5.19); the rest open is listed at the end.
+
+## Issue 14: CST by default and other fixes
+Source: https://github.com/link-foundation/universal-translator/issues/14. PR 15 delivers these items; each row gives the evidence, and the
+rows that are not `done` say what is missing. `requirements.lino` in this folder holds the same items in the format of `scripts/check-
+requirements.mjs`.
+14.1 | "CST must be by default, that means whitespace should be preserved as close as possible in translation" | done | `translate
+javascript python experiments/issue-14/whitespace.js` gives `print( "Hello World!")`, a blank line and `print(1+ 2)`; JavaScript to
+JavaScript returns the source unchanged. `js/src/translation/layout.js`, `rust/src/layout.rs`, `--layout source` by default;
+`js/tests/layout.test.js` (11 pass), `rust/tests/layout.rs`.
+
+14.2 | "We should also make monaco editor default, and make sure we provide correct display for collapsable/expandable regions." | done |
+`settings.js` has `(default monaco)`; `folding.js` gives folding regions for every language (`js/tests/universal-app-editors.test.js`, 48
+pass).
+
+14.3 | "We should also should make them in sync in left and right editor, so if left block is collapsed, the equivalent also collapsed on
+the right." | done | `examples/universal-app/src/editor-sync.js` folds the equivalent block on the other side through the `lineMap` (`line-
+map.js`); unit tests and e2e.
+
+14.4 | "Selection on the left should be reflected also on the right and so on." and "So it is easy to see visually what translates to what."
+| done | The translator returns a `lineMap`; `editor-sync.js` mirrors the selection, and `mapping.js` colours matching lines (`docs/case-
+studies/issue-14/screenshots/app-mapping.png`).
+
+14.5 | "Cursor and scrolling also, though some regions of code can be smaller or larger in translated language in that case scrolling should
+adjust for that. We should also need to have mapping visualization, I seen it in diffs or something else, find best solution for such UI/UX
+cases online." | done | `editor-sync.js` mirrors the cursor and scrolls block by block, so a block of 3 lines that becomes 7 scrolls
+proportionally; `mapping.js` shows the mapping in the Compiler Explorer style (`prior-art.md` section 4).
+
+14.6 | "`Comment language`, `Identifiers language` and so on should be both to the left and to the right, so we can translate each of them
+separately. So for example comments in russian can be mapped to comments in english, and identifiers in chinese to identifies in hindi and
+so on." | done | `SideOptions` in `examples/universal-app/src/Options.js` puts the comment and identifier languages on both sides.
+`--identifier-language russian` to C gives `int summa_iz_kvadraty(int kolichestvo)` (`js/tests/identifiers.test.js`, 10 pass;
+`rust/tests/identifiers.rs`).
+
+14.7 | "Also it is clearly visible we didn't translate comments language at all, yet I selected English." | done | `translate javascript
+python experiments/issue-14/comment.js --comment-language english` gives `# Hello world`.
+
+14.8 | "All checkboxes settings can be moved to botton (under all monaco editors, as used not so frequently)." | done | `Options` renders
+below the editors in `examples/universal-app/src/App.js`; covered by e2e.
+
+14.9 | "We also need to make our grammar and dictionary deeper/recursive, meaning we should better reflect details of natural languages,
+words, sentences, parts of speech and so on." | partial | Prose is read as `Prose > Sentence > Word` with concept, part of speech,
+inflections, verb forms and object cases (`js/src/natural/prose-reading.js`, `rust/src/natural/prose_reading.rs`,
+`data/natural/vocabulary.lino`, `data/natural/grammar.lino`), and grammars nest (14.12). Missing: phrase and clause structure; a sentence is
+a flat list of words. `requirements.lino` marks `deep-grammar` done for words, sentences and parts of speech; this row keeps the deeper
+structure open.
+
+14.10 | "Not all statements/questions in natural language can be translated to a programming language, but we still should be able to
+translate them between each other as perfectly as we can, best option of translation is the most frequent cases on both sides which are
+likely to survive roundtrip." | done | `echo 'Привет мир' \ | translate russian english -` gives `Hello world`; `echo 'Как хорошо покакать?'
+\ | translate auto english -` gives `How good to poop?`. The most probable candidate that survives the round trip is the default (1.1;
+`js/tests/ranking.test.js`).
+
+14.11 | "(language autodetect failed)" and "(translation failed)" (two screenshots) | done | `echo 'Привет' \ | detect -` prints `(id
+russian) (natural true) (reads false) (coverage 1) (score 110)` first; see 8.6.
+
+14.12 | "In the meta language itself comment if contains message in natural language should be deeply parsed (if it is too verbose we can
+just have a link with identifier for it, which we can reuse in the code expresssion), and we should support nesting of grammars to each
+other, for example we can have natural language, where code experession is nested, and also we can have programming language where natural
+language is nested, also we can have string where expression in other programming language or natural language is nested and so on." | done
+| `js/src/translation/nesting.js` and `rust/src/nesting.rs`: comments and strings carry `Prose`, `Sentence`, `Word` and `Code` readings,
+long texts are kept once by id, and code nests in prose and prose in code (`js/tests/nesting.test.js`, 8 pass; `rust/tests/nesting.rs`).
+
+14.13 | "Also meta language itself can be much better quality, and should be readable closer to how most programming languages are
+structured, but more verbose and much more explicit. And also more general, as `print` should not be a special part, we should generalize it
+to what it actually is - call to some function and so on. So we should be less specific and more generalized." | done | `meta javascript`
+prints `call print-line (library standard)` for `console.log`: printing and lengths are library calls (`js/src/meta/library.js`,
+`rust/src/meta/library.rs`; `js/tests/meta-notation.test.js`, 9 pass).
+
+14.14 | "Also in list of programming languages I don't see assembly (with multiple versions/dialects - take most popular) and also I don't
+see intermediate languages from popular ecosystems like Java bytecode, .NET CIL and others." | done | `universal-translator languages` lists
+`nasm`, `gas`, `arm64`, `cil`, `jvm`, `llvm` and `wat`, and the web app shows them in a picker group of their own. Three assembly dialects
+(NASM, GNU as, ARM64). Versions of each dialect are open under 1.14.
+
+14.15 | "We need to deeply rethink the quality, and everything that is not of the best possible quality should be updated." | partial |
+Open-ended; most rows of this document are done, and the rows still open are listed at the end.
+
+14.16 | "Also we need to expand on supported cases/tasks from Rosetta Code, and making our grammar, parsers, emitters much more detailed and
+correct." | partial | Four more Rosetta tasks with for-each loops (22 in all), and the readers take arrow functions, Python type hints, real
+numbers and GameMaker Language. Missing: the rest of the Rosetta set (see 5.5).
+
+## Cross-cutting findings
+- The earlier inventories are optimistic. `docs/case-studies/issue-1/requirements.lino` lists only `rosetta-algorithm-types` and `class-
+fragments` as blocked. The check script only looks for evidence, so every row marked `partial` above passes it.
+- The first check of this file was too pessimistic in two places: 6.6 (`preferredNaturalVersion`) and 8.2 (`sortBySimplicity`) were
+delivered before `b20bde4` and are corrected here.
+- Two files of the issue 1 case study are out of date: the `floating-point` row of `docs/case-studies/issue-1/rosetta-coverage.lino` still
+gives the reason "Machine targets and the meta language work with 64-bit integers only", although the meta language has real numbers (B2),
+and `docs/case-studies/issue-1/best-practices.md` still says the demo interface is English only, although `i18n.js` has 7 interface
+languages (6.7).
+- The owner's wording "Nothing should be defered or delayed" appears in nearly every comment, but the descriptions of PR 5, 7 and 13 each
+close with a "blocked" or "Not done" list, and the following issues did not carry those lists forward. That is why issue 14 asks for
+tracking.
+- `Example app` on `main` is red (run 45675992251): generated preview images drifted, and the job needs `RELEASE_PR_TOKEN` to push them. On
+PR 15 the same workflow passes (run 45757026472).
+## Concise list: everything still open
+1. 1.1: the frequencies of the ranking are Zipf priors over the vocabulary order, not counted from a language corpus.
+2. 1.3 (blocked): the Objective-C program of the Hello World Collection is Portable Object Compiler code that clang rejects and that reads
+the command-line arguments; the other 33 programs read.
+3. 1.8 / 5.5 / 8.2 / 12 P7 / 14.16: 22 Rosetta Code tasks are translated, not the whole set; strings, higher-order functions, data
+structures, input/output, objects and concurrency are blocked in `rosetta-coverage.lino`, and the 39.4% line coverage is not measured again.
+4. 1.13: the code of standard and other libraries is not translated (the owner marks it "in the future").
+5. 1.14: no reader of binaries, and no versions of the assembly and intermediate dialects.
+6. 2.1 / 2.4 / 2.5 (blocked): the unscoped npm name `universal-translator` and its trusted publisher need the owner's npm account; `npm view
+universal-translator version` gives `E404`.
+7. 1.18 / 12 B3, JavaScript side (blocked): the JavaScript CLI loads Meta Language from `UNIVERSAL_TRANSLATOR_META_LANGUAGE` until it is
+published to npm (link-foundation/meta-language issue 230).
+8. 6.5 / 12 P4: 8 of the 33 programming languages have versions (Python, JavaScript, PHP, C#, Lua, Java, Swift and Scala); the only natural
+variant is British English.
+9. 5.4: 22 of the TIOBE top 50 languages are not supported (among them OCaml, Standard ML, Haskell, Common Lisp and Clojure).
+10. 5.6 / 5.19 / PR 13 gap: classes of objects are not read, and so not fragments.
+11. 5.9: the upstream fix of the process problem (link-assistant/hive-mind#3929) is open.
+12. 5.14 / 14.9: natural-language sentences have no phrase or clause structure; a sentence is a flat list of words.
+13. 10.1 / 5.20: `Example app` on `main` is red until PR 15 is merged or the owner adds `RELEASE_PR_TOKEN`.
+14. 6.14 / 7.2 / 12.10 / 5.15 / 14.15: the requests to deliver every earlier requirement and to raise the quality of everything stay open
+while items 1 to 13 do.

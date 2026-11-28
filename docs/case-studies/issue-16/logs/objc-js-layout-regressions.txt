@@ -1,0 +1,44 @@
+▶ concrete syntax as the default source record
+  ✔ partitions every byte, including quotes, directives and trivia (26.055485ms)
+  ✔ exposes source syntax to decorators before semantic rewriting (445.337849ms)
+  ✔ retains source syntax when reading words and every machine format (169.938455ms)
+  ✔ keeps accepted regions and explicit errors in incomplete source (13.955428ms)
+  ✔ keeps a lossless record for empty and whitespace-only input (1.127132ms)
+✔ concrete syntax as the default source record (659.405908ms)
+▶ Portable Object Compiler messages and Objpak collections
+  ✔ parses receivers, multi-part selectors and block parameters independently (26.484254ms)
+  ✔ reads the original collection example into argument, update and set concepts (471.898927ms)
+  ✔ handles renamed entries, whitespace, braces and duplicate literals compositionally (46.979288ms)
+  ✔ does not guess unknown library messages or unsupported pointer uses (16.477413ms)
+  ✔ keeps aliases as references and models insertion as returning its set (12.56793ms)
+  ✔ rejects editions without the required runtime constructs (27.719858ms)
+✔ Portable Object Compiler messages and Objpak collections (606.364343ms)
+▶ Objpak expressions in controlled natural languages
+  ✔ round-trips the full algorithm through every natural grammar (1478.804853ms)
+  ✔ distinguishes an empty set from the identical quoted text and uses no extra vocabulary (320.937716ms)
+✔ Objpak expressions in controlled natural languages (1800.368326ms)
+▶ generated Objpak library contracts
+  ✔ round-trips generated callers through four formal grammars (151.725817ms)
+  ✔ returns a successful status from a generated C89 entry point (8.974277ms)
+  ✔ reads source layout and explicit indentation and brace styles (337.695591ms)
+  ✔ rejects a line break that changes JavaScript return semantics (2.426405ms)
+  ✔ rejects whitespace that splits an operator or numeric literal (3.78035ms)
+  ✔ preserves the concrete library bytes and refuses a modified helper contract (57.562027ms)
+  ✔ does not assign library contracts to comments, literals or nested definitions (2.067947ms)
+  ✔ distinguishes prefix and postfix results and protects a previous variable (28.746243ms)
+  ✔ respects parameters shadowing native library class names (4.642739ms)
+✔ generated Objpak library contracts (598.970082ms)
+▶ brace placement and indent width
+  ✔ puts each opening brace of C# on a line of its own (490.161487ms)
+  ✔ indents JavaScript by two spaces and Rust by a tab (27.175363ms)
+  ✔ indents blocks without braces and leaves their lines alone (33.678743ms)
+  ✔ rejects styles a language cannot be written in (13.022226ms)
+✔ brace placement and indent width (566.589922ms)
+ℹ tests 26
+ℹ suites 5
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3645.039218

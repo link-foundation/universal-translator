@@ -13,6 +13,17 @@ const forEachOpener = (syntax) =>
 
 // Increment and decrement statements, as the compound assignment they mean.
 export const stepOperators = { '++': '+=', '--': '-=' };
+export const assignmentSymbols = [
+  '=',
+  '+=',
+  '-=',
+  '*=',
+  '/=',
+  '//=',
+  '%=',
+  '++',
+  '--',
+];
 
 // `for (i = a; i < b; i++)` is a counting loop. Every other C-style loop
 // becomes its initial assignment followed by a while loop that ends with

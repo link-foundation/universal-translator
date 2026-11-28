@@ -4,6 +4,9 @@ natural:
   extends: english
   profile: sbvr
   source: 'https://www.omg.org/spec/SBVR/'
+  grammar:
+    productions:
+      set-element: 'It is obligatory that @element[array=name] becomes {value}'
   templates:
     function: 'Rule {name} with {parameters} is defined as follows'
     function-without-parameters: 'Rule {name} is defined as follows'
@@ -27,6 +30,5 @@ natural:
     less-or-equal: '{left} is at most {right}' '{left} <= {right}' '{left} ≤ {right}'
     greater: '{left} is greater than {right}' '{left} > {right}'
     greater-or-equal: '{left} is at least {right}' '{left} >= {right}' '{left} ≥ {right}'
-    set-element: 'It is obligatory that item {index} of {name} becomes {value}'
   rules:
     sentence-starts: rule it if otherwise as for

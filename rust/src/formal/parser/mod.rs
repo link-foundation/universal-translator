@@ -4,42 +4,19 @@
 //! interpret. The parser never decides what a program means.
 
 use std::any::Any;
-use std::sync::OnceLock;
-
-use regex::Regex;
+use std::collections::HashMap;
 
 use super::dialects::shared::comment_node;
 use super::dialects::{ParserDialect, parser_dialect, rocq_comparison};
 use super::interpolation::{Piece, split_interpolation};
 use super::languages::{Blocks, CommandCalls, ForwardDeclarations, Syntax, Typed};
 use super::lexer::{InterpolationStyle, Token, TokenType, decode_escapes, tokenize};
-use super::numbers::slash_operator;
+use super::numbers::{BINARY_LEVELS, arithmetic_operator};
+use super::power::power_symbol;
 use crate::meta::GrammarError;
 use crate::meta::{Node, binary, block, name, number, text};
 
-/// Binary operators by precedence level, loosest first, with their spellings.
-const BINARY_LEVELS: [&[(&str, &[&str])]; 6] = [
-    &[("or", &["||", "or"])],
-    &[("and", &["&&", "and"])],
-    &[
-        ("equal", &["==", "==="]),
-        ("notEqual", &["!=", "!==", "~="]),
-    ],
-    &[
-        ("less", &["<"]),
-        ("lessOrEqual", &["<="]),
-        ("greater", &[">"]),
-        ("greaterOrEqual", &[">="]),
-    ],
-    &[("add", &["+", ".."]), ("subtract", &["-"])],
-    &[
-        ("multiply", &["*"]),
-        ("divide", &["/", "//"]),
-        ("remainder", &["%"]),
-    ],
-];
-
-/// The level of additive operators, where ranges and streams also live.
+/// The additive level in grammars that use range expressions.
 const ADDITIVE: usize = 4;
 
 const TYPE_WORDS: [&str; 17] = [
@@ -60,16 +37,27 @@ const MODIFIERS: [&str; 10] = [
     "local",
 ];
 
-const CONTROL_WORDS: [&str; 9] = [
-    "if", "else", "while", "for", "foreach", "switch", "return", "do", "catch",
+const CONTROL_WORDS: [&str; 10] = [
+    "if", "else", "while", "for", "foreach", "switch", "return", "do", "catch", "throw",
 ];
 
-const ASSIGNMENT_SYMBOLS: [&str; 8] = ["=", "+=", "-=", "*=", "/=", "%=", "++", "--"];
+const ASSIGNMENT_SYMBOLS: [&str; 9] = ["=", "+=", "-=", "*=", "/=", "//=", "%=", "++", "--"];
 
+mod annotations;
 mod arrays;
 mod arrows;
+mod concrete;
+mod cpp_template;
+mod evaluation;
+mod exceptions;
 mod forms;
 mod loops;
+mod queries;
+mod questions;
+mod records;
+mod types;
+
+pub use types::source_type;
 
 use loops::step_operator;
 
@@ -77,7 +65,7 @@ pub(crate) type Parsed<T = Node> = Result<T, GrammarError>;
 
 /// Parse a whole source text into a `SourceProgram` tree.
 pub fn parse_program(source: &str, syntax: &Syntax) -> Parsed {
-    Parser::new(tokenize(source, syntax)?, syntax.clone()).program()
+    concrete::parse_program(source, syntax)
 }
 
 /// Binary operators by precedence level with their spellings.
@@ -96,12 +84,15 @@ pub(crate) struct Parser {
     state: Box<dyn Any>,
     /// How many classes enclose the current item.
     class_depth: usize,
+    cpp_value_scopes: Vec<HashMap<String, bool>>,
+    productions: Vec<Node>,
+    source: Option<crate::source_origins::SourceLocator>,
 }
 
 impl Parser {
     pub(crate) fn new(tokens: Vec<Token>, syntax: Syntax) -> Self {
         let operators = syntax.operators;
-        let levels = BINARY_LEVELS
+        let mut levels: Levels = BINARY_LEVELS
             .iter()
             .map(|level| {
                 level
@@ -137,6 +128,12 @@ impl Parser {
                     .collect()
             })
             .collect();
+        if syntax.id == "cpp" {
+            levels.insert(
+                ADDITIVE,
+                vec![("stream", vec!["<<"]), ("rightShift", vec![">>"])],
+            );
+        }
         let dialect = parser_dialect(syntax.id);
         Parser {
             tokens: dialect.tokens(tokens),
@@ -146,6 +143,9 @@ impl Parser {
             dialect,
             state: Box::new(()),
             class_depth: 0,
+            cpp_value_scopes: Vec::new(),
+            productions: Vec::new(),
+            source: None,
         }
     }
 
@@ -218,6 +218,9 @@ impl Parser {
     /// Whether the token at `offset` is the symbol or word `value`.
     pub(crate) fn is_at(&self, value: &str, offset: usize) -> bool {
         let token = self.peek(offset);
+        if self.syntax.id == "sql" && token.quote.is_some() {
+            return false;
+        }
         if token.kind == TokenType::Name && self.syntax.case_insensitive {
             return token.value.eq_ignore_ascii_case(value);
         }
@@ -339,6 +342,10 @@ impl Parser {
     }
 
     pub(crate) fn base_items(&mut self, done: &dyn Fn(&Self) -> bool) -> Parsed<Vec<Node>> {
+        self.with_cpp_value_scope(std::iter::empty(), |parser| parser.read_items(done))
+    }
+
+    fn read_items(&mut self, done: &dyn Fn(&Self) -> bool) -> Parsed<Vec<Node>> {
         let mut items = Vec::new();
         self.skip_separators();
         while !done(self) {
@@ -349,6 +356,7 @@ impl Parser {
             }
             // A C-style loop that is not a counting loop becomes several statements.
             let item = self.item()?;
+            self.record_cpp_binding(&item);
             if item.is("Statements") {
                 items.extend(item.node_list("statements"));
             } else {
@@ -378,8 +386,18 @@ impl Parser {
     }
 
     pub(crate) fn item(&mut self) -> Parsed {
+        self.concrete_rule("item", Self::concrete_item)
+    }
+
+    fn concrete_item(&mut self) -> Parsed {
+        let annotations = self.annotations()?;
         let dialect = self.dialect;
-        dialect.item(self)
+        let item = dialect.item(self)?;
+        Ok(if annotations.is_empty() {
+            item
+        } else {
+            item.with("annotations", annotations)
+        })
     }
 
     pub(crate) fn base_item(&mut self) -> Parsed {
@@ -387,7 +405,7 @@ impl Parser {
         match token.kind {
             TokenType::Comment => {
                 self.position += 1;
-                return Ok(comment_node(&token));
+                return Ok(comment_node(self, &token));
             }
             TokenType::Directive => {
                 self.position += 1;
@@ -397,6 +415,9 @@ impl Parser {
                 return self.import_statement();
             }
             _ => {}
+        }
+        if self.syntax.id == "rust" && self.is("pub") && self.is_at("struct", 1) {
+            return self.rust_record();
         }
         if self.is_namespace_or_class() {
             return self.class_definition();
@@ -439,34 +460,6 @@ impl Parser {
         Ok(Node::new("Import").with("text", joined))
     }
 
-    pub(crate) fn is_namespace_or_class(&self) -> bool {
-        let offset = self.modifier_count();
-        ["class", "namespace", "object"].contains(&self.value(offset))
-            && self.kind(offset) == TokenType::Name
-    }
-
-    pub(crate) fn class_definition(&mut self) -> Parsed {
-        self.skip_modifiers();
-        let form = self.next_value()?;
-        let title = self.expect_name()?;
-        // Scala: the body of `object Hello extends App { ... }` is the
-        // program.
-        if self.syntax.id == "scala" && self.is("extends") && self.is_at("App", 1) {
-            self.position += 2;
-        }
-        self.skip_newlines();
-        self.expect("{")?;
-        self.class_depth += 1;
-        let items = self.items(&|parser| parser.is("}"));
-        self.class_depth -= 1;
-        let items = items?;
-        self.expect("}")?;
-        Ok(Node::new("Class")
-            .with("form", form)
-            .with("name", title)
-            .with("items", items))
-    }
-
     pub(crate) fn is_function_start(&self) -> bool {
         if self.syntax.assigned_functions {
             return self.kind(0) == TokenType::Name
@@ -500,15 +493,7 @@ impl Parser {
     fn plain_announcement_length(&self) -> usize {
         match self.syntax.forward_declarations {
             ForwardDeclarations::None => 0,
-            ForwardDeclarations::Prototype => {
-                let offset = self.prefix_head_length();
-                let after = self.after_parentheses(offset);
-                let prototype = offset > 1
-                    && self.is_at("(", offset)
-                    && self.kind(offset - 1) == TokenType::Name
-                    && self.is_at(";", after);
-                if prototype { after + 1 } else { 0 }
-            }
+            ForwardDeclarations::Prototype => self.prototype_length(),
             ForwardDeclarations::Heading => self.heading_length(),
             ForwardDeclarations::Local => {
                 let announced = self.value(1);
@@ -550,13 +535,7 @@ impl Parser {
         if CONTROL_WORDS.contains(&self.value(0)) {
             return 0;
         }
-        (0..)
-            .take_while(|offset| {
-                self.kind(*offset) == TokenType::Name
-                    || ["*", "::", "[", "]"].contains(&self.value(*offset))
-            })
-            .take(self.tokens.len())
-            .count()
+        self.type_head_length()
     }
 
     /// The index after the parentheses opening at `offset` and any newlines.
@@ -586,7 +565,9 @@ impl Parser {
 
     pub(crate) fn function_definition(&mut self) -> Parsed {
         let dialect = self.dialect;
-        dialect.function_definition(self)
+        self.concrete_rule("functionDefinition", |parser| {
+            dialect.function_definition(parser)
+        })
     }
 
     pub(crate) fn base_function_definition(&mut self) -> Parsed {
@@ -626,7 +607,14 @@ impl Parser {
         {
             self.accept(symbol);
         }
-        let mut body = self.block()?;
+        let mut body = self.with_cpp_value_scope(
+            std::iter::once(function_name.as_str()).chain(
+                parameters
+                    .iter()
+                    .filter_map(|parameter| parameter.str("name")),
+            ),
+            Self::block,
+        )?;
         self.close_keyword_block()?;
         // Perl: sub name { my ($first, $second) = @_; ... }
         let mut statements = body.node_list("statements");
@@ -650,7 +638,14 @@ impl Parser {
     }
 
     pub(crate) fn parameter_list(&mut self) -> Parsed<Vec<Node>> {
+        if self.syntax.id == "kotlin" {
+            return self.annotated_parameters();
+        }
         self.expect("(")?;
+        self.skip_newlines();
+        if matches!(self.syntax.id, "c" | "cpp" | "objc") && self.is("void") && self.is_at(")", 1) {
+            self.position += 1;
+        }
         let mut parameters = Vec::new();
         let mut pending_names = Vec::new();
         let parameter = |name: String, kind: Option<String>| {
@@ -661,9 +656,7 @@ impl Parser {
         while !self.is(")") {
             match self.syntax.typed {
                 Typed::Prefix => {
-                    let mut words = self.words_until(&[",", ")"])?;
-                    let parameter_name = words.pop().unwrap_or_default();
-                    parameters.push(parameter(parameter_name, source_type(&words.join(" "))));
+                    parameters.push(self.prefix_parameter()?);
                 }
                 Typed::Suffix => {
                     pending_names.push(self.expect_name()?);
@@ -684,12 +677,13 @@ impl Parser {
                     } else {
                         None
                     };
-                    parameters.push(parameter(parameter_name, kind));
+                    parameters.push(self.annotated_hint(parameter(parameter_name, kind))?);
                 }
             }
             if !self.accept(",") {
                 break;
             }
+            self.skip_newlines();
         }
         self.expect(")")?;
         Ok(parameters)
@@ -708,11 +702,7 @@ impl Parser {
         let mut depth = 0i64;
         loop {
             let token = self.current();
-            match token.value.as_str() {
-                "<" => depth += 1,
-                ">" => depth -= 1,
-                _ => {}
-            }
+            depth += annotations::type_depth(&token.value);
             let stops = token.kind == TokenType::Newline
                 || ["{", "=", "=>", ",", ")", ";"].contains(&token.value.as_str());
             if (depth == 0 && stops) || token.kind == TokenType::End {
@@ -794,10 +784,19 @@ impl Parser {
 
     pub(crate) fn statement(&mut self) -> Parsed {
         let dialect = self.dialect;
-        dialect.statement(self)
+        self.concrete_rule("statement", |parser| dialect.statement(parser))
     }
 
     pub(crate) fn base_statement(&mut self) -> Parsed {
+        if self.kind(0) == TokenType::InlineText {
+            let token = self.next()?;
+            return Ok(Node::new("Print")
+                .with("value", text(&token.value))
+                .with("newline", false));
+        }
+        if self.is_exception_start() {
+            return self.exception_statement();
+        }
         let word = if self.kind(0) == TokenType::Name {
             self.value(0).to_owned()
         } else {
@@ -866,34 +865,65 @@ impl Parser {
     }
 
     fn plain_is_typed_declaration(&self) -> bool {
-        let offset = (0..)
-            .take_while(|offset| {
-                self.kind(*offset) == TokenType::Name
-                    || ["*", "::", "[", "]", "<", ">"].contains(&self.value(*offset))
-            })
-            .take(self.tokens.len())
-            .count();
+        let offset = self.type_head_length();
+        if self.cpp_direct_initializer(offset) {
+            return true;
+        }
         offset >= 2
             && self.kind(offset - 1) == TokenType::Name
-            && (self.is_at("=", offset) || self.is_at(";", offset))
+            && (self.is_at("=", offset)
+                || self.is_at(";", offset)
+                || self.cpp_list_initializer(offset)
+                || self.cpp_string_initializer(offset))
             && (TYPE_WORDS.contains(&self.value(0))
                 || self.kind(1) == TokenType::Name
                 || self.is_at("<", 1))
     }
 
     fn plain_typed_declaration(&mut self) -> Parsed {
-        let mut words = self.words_until(&["=", ";"])?;
+        let head = self.type_head_length();
+        let direct_string = self.cpp_string_initializer(head);
+        let direct = !direct_string && self.cpp_direct_initializer(head);
+        let fixed_array = self.is_cpp_fixed_array();
+        let mut words = (0..head)
+            .map(|_| self.next_value())
+            .collect::<Parsed<Vec<_>>>()?;
         let variable = words.pop().unwrap_or_default();
-        let kind = source_type(&words.join(" "));
-        let value = if self.accept("=") {
-            Some(self.expression()?)
+        let spelling = words.join(" ");
+        let kind = source_type(&spelling);
+        let cpp_template = cpp_template::is_cpp_template_declaration(self.syntax.id, &words);
+        let value = if direct_string {
+            Some(self.read_cpp_string_initializer()?)
+        } else if direct {
+            Some(self.read_cpp_direct_initializer()?)
+        } else if cpp_template && self.is("{") {
+            Some(self.read_cpp_initializer_list(true)?)
+        } else if self.accept("=") {
+            Some(if cpp_template && self.is("{") {
+                self.read_cpp_initializer_list(false)?
+            } else {
+                self.expression()?
+            })
+        } else if self.syntax.id == "cpp" && matches!(spelling.as_str(), "std :: string" | "string")
+        {
+            Some(text(""))
         } else {
             None
         };
         self.end_statement()?;
+        let cpp_kind = cpp_template::cpp_declaration_type(
+            self.syntax.id,
+            &words,
+            kind.as_deref(),
+            value.as_ref(),
+        );
+        let cpp_template = cpp_kind.is_some().then_some(true);
         Ok(Node::new("Declaration")
             .with("name", variable)
-            .with_opt("type", kind)
+            .with_opt("type", cpp_kind.or(kind))
+            .with_opt("cppType", direct.then(|| format!("source:{spelling}")))
+            .with_opt("cppTemplateType", cpp_template)
+            .with_opt("cppFixedArray", fixed_array.then_some(true))
             .with_opt("value", value)
             .with("mutable", !words.iter().any(|word| word == "const")))
     }
@@ -965,6 +995,10 @@ impl Parser {
             return self.command_call(None);
         }
         let expression = self.expression()?;
+        let expression = self.question_suffix(expression)?;
+        if self.accept("=") {
+            return self.property_assignment(expression);
+        }
         let terminated = self.is(";");
         self.end_statement()?;
         if self.syntax.id == "rust" && !terminated && self.is("}") {
@@ -1052,10 +1086,15 @@ impl Parser {
             _ => {}
         }
         let following = self.peek(1);
-        matches!(
+        (matches!(
             following.kind,
             TokenType::Text | TokenType::Number | TokenType::Name
-        ) && following.line == self.current().line
+        ) || (following.value == "-"
+            && (self.syntax.print_line == self.value(0)
+                || self.syntax.print_calls.is_some_and(|print| {
+                    print.line.contains(&self.value(0)) || print.text.contains(&self.value(0))
+                }))))
+            && following.line == self.current().line
             && !["do", "then", "if"].contains(&following.value.as_str())
     }
 
@@ -1133,7 +1172,18 @@ impl Parser {
     // ---- expressions ----
 
     pub(crate) fn expression(&mut self) -> Parsed {
-        self.binary(0)
+        self.concrete_rule("expression", |parser| {
+            let dialect = parser.dialect;
+            dialect.expression(parser)
+        })
+    }
+
+    pub(crate) fn base_expression(&mut self) -> Parsed {
+        if let Some(lambda) = self.query_lambda()? {
+            return Ok(lambda);
+        }
+        let value = self.binary(0)?;
+        self.assignment_expression(value)
     }
 
     /// The meta operator spelled by the current token at a precedence level.
@@ -1149,6 +1199,10 @@ impl Parser {
     }
 
     pub(crate) fn binary(&mut self, level: usize) -> Parsed {
+        self.concrete_rule("binary", |parser| parser.concrete_binary(level))
+    }
+
+    fn concrete_binary(&mut self, level: usize) -> Parsed {
         if level == self.levels.len() {
             return self.unary();
         }
@@ -1156,14 +1210,14 @@ impl Parser {
         loop {
             let Some(operator) = self.binary_operator(level) else {
                 let token = self.current();
-                // PHP joins text with "."; C++ streams output with "<<".
+                // PHP joins text with ".".
                 let surface = if level != ADDITIVE {
                     None
                 } else if token.kind == TokenType::Symbol
                     && Some(token.value.as_str()) == self.syntax.operators.concatenate
                 {
                     Some("concatenate")
-                } else if token.value == "<<" {
+                } else if token.value == "<<" && self.syntax.id != "cpp" {
                     Some("stream")
                 } else {
                     None
@@ -1187,14 +1241,14 @@ impl Parser {
                 return Ok(binary("concatenate", left, right));
             }
             // `/` is true division or integer division, depending on the language.
-            let operator = if operator == "divide" && self.value(0) == "/" {
-                slash_operator(&self.syntax)
-            } else {
-                operator
-            };
+            let operator = arithmetic_operator(&self.syntax, self.value(0), operator);
+            let slash = operator == "floorDivide" && self.value(0) == "/";
             self.position += 1;
             let right = self.binary(level + 1)?;
             left = binary(operator, left, right);
+            if slash {
+                left.set("slashDivision", true);
+            }
         }
     }
 
@@ -1224,12 +1278,34 @@ impl Parser {
                 .with("callee", "~~")
                 .with("arguments", vec![operand]));
         }
-        self.postfix()
+        let left = self.postfix()?;
+        if let Some(power) = power_symbol(self.syntax.id)
+            && self.accept(power)
+        {
+            let right = self.unary()?;
+            Ok(binary("power", left, right))
+        } else {
+            Ok(left)
+        }
     }
 
     pub(crate) fn postfix(&mut self) -> Parsed {
+        self.concrete_rule("postfix", |parser| {
+            let value = parser.concrete_postfix().map(queries::query_call)?;
+            parser.objc_postfix(value)
+        })
+    }
+
+    fn concrete_postfix(&mut self) -> Parsed {
         let mut expression = self.primary()?;
         loop {
+            let mut offset = 0;
+            while self.kind(offset) == TokenType::Newline {
+                offset += 1;
+            }
+            if self.syntax.blocks == Blocks::Braces && self.is_at(".", offset) {
+                self.position += offset;
+            }
             let member =
                 (self.is(".") && self.syntax.operators.concatenate != Some(".")) || self.is("::");
             if member && self.kind(1) == TokenType::Name {
@@ -1244,6 +1320,7 @@ impl Parser {
                 expression = name(format!("{}{separator}{member}", callee_name(&expression)?));
                 continue;
             }
+            let type_arguments = self.cpp_template_arguments(&expression);
             if self.accept("(") {
                 let mut values = Vec::new();
                 while !self.is(")") {
@@ -1271,18 +1348,24 @@ impl Parser {
                     }
                 }
                 self.expect(")")?;
-                expression = if expression.is("Method") {
+                let (callee, values) = if expression.is("Method") {
                     let method = expression.str("name").unwrap_or_default();
                     let receiver = expression.node("receiver").cloned();
-                    Node::new("Call").with("callee", format!(".{method}")).with(
-                        "arguments",
-                        receiver.into_iter().chain(values).collect::<Vec<_>>(),
+                    (
+                        format!(".{method}"),
+                        receiver.into_iter().chain(values).collect(),
                     )
                 } else {
-                    Node::new("Call")
-                        .with("callee", callee_name(&expression)?)
-                        .with("arguments", values)
+                    (callee_name(&expression)?, values)
                 };
+                expression = Node::new(if type_arguments.is_some() {
+                    "CppTemplateCall"
+                } else {
+                    "Call"
+                })
+                .with("callee", callee)
+                .with("arguments", values)
+                .with_opt("typeArguments", type_arguments);
                 continue;
             }
             // Lua: a call with one text argument needs no parentheses, f "x".
@@ -1304,8 +1387,13 @@ impl Parser {
     }
 
     pub(crate) fn primary(&mut self) -> Parsed {
-        let dialect = self.dialect;
-        dialect.primary(self)
+        self.concrete_rule("primary", |parser| {
+            if let Some(query) = parser.query_primary()? {
+                return Ok(query);
+            }
+            let dialect = parser.dialect;
+            dialect.primary(parser)
+        })
     }
 
     fn plain_primary(&mut self) -> Parsed {
@@ -1325,9 +1413,7 @@ impl Parser {
                 });
             }
             TokenType::Symbol if token.value == "(" => {
-                let inner = self.expression()?;
-                self.expect(")")?;
-                return Ok(inner);
+                return self.evaluation_parenthesized();
             }
             _ => {}
         }
@@ -1339,6 +1425,9 @@ impl Parser {
 
     pub(crate) fn text_literal(&self, token: &Token) -> Parsed {
         let single = token.quote == Some('\'');
+        if single && self.syntax.id == "cpp" {
+            return Ok(Node::new("CppCharacter").with("raw", token.value.clone()));
+        }
         let style = if single && ["php", "ruby"].contains(&self.syntax.id) {
             InterpolationStyle::Plain
         } else {
@@ -1369,11 +1458,20 @@ impl Parser {
                         ..self.syntax.clone()
                     };
                     let tokens = tokenize(&code, &inner)?;
-                    parts.push(Parser::new(tokens, inner).expression()?);
+                    let mut parser = Parser::new(tokens, inner);
+                    let expression = parser.expression()?;
+                    parser.skip_newlines();
+                    if parser.current().kind != TokenType::End {
+                        return Err(GrammarError::syntax(
+                            format!("Unexpected \"{}\" in interpolation", parser.value(0)),
+                            token.line,
+                        ));
+                    }
+                    parts.push(expression);
                 }
             }
         }
-        if parts.len() == 1 && parts[0].is("Text") {
+        if parts.len() == 1 && parts[0].is("Text") && self.syntax.id != "python" {
             return Ok(parts.remove(0));
         }
         Ok(Node::new("Interpolation").with("parts", parts))
@@ -1405,59 +1503,4 @@ pub fn number_literal(written: &str) -> Node {
     } else {
         literal
     }
-}
-
-/// Map a source type spelling to a meta type: integer, text, boolean,
-/// nothing, `source:<spelling>` for other types, or `None` when the source
-/// leaves the type to inference.
-pub fn source_type(spelling: &str) -> Option<String> {
-    static QUALIFIERS: OnceLock<Regex> = OnceLock::new();
-    let qualifiers = QUALIFIERS.get_or_init(|| {
-        Regex::new(r"\b(const|static|unsigned|signed|mut)\b").expect("valid pattern")
-    });
-    let stripped = qualifiers.replace_all(spelling, "");
-    let words = stripped.split_whitespace().collect::<Vec<_>>().join(" ");
-    let meta = match words.as_str() {
-        "int" | "long" | "short" | "i8" | "i16" | "i32" | "i64" | "isize" | "u8" | "u16"
-        | "u32" | "u64" | "usize" | "Int" | "Long" | "number" | "integer" => "integer",
-        "string" | "String" | "&'static str" => "text",
-        _ if is_spaced_variant(&words) => "text",
-        _ if array_pattern().is_match(&words) => "array",
-        "double" | "float" | "f32" | "f64" | "float32" | "float64" | "Double" | "Float"
-        | "Float64" | "Long_Float" | "real" | "Real" => "real",
-        "bool" | "boolean" | "Bool" | "Boolean" => "boolean",
-        "void" | "()" | "Unit" | "Void" => "nothing",
-        "" | "var" | "auto" => return None,
-        _ => return Some(format!("source:{words}")),
-    };
-    Some(meta.to_owned())
-}
-
-/// The spellings of an array of integers: `int[]`, `std::vector<int>`,
-/// `Vec<i64>`, `IntArray`, `[]int`, `[Int]`, `List<Long>`, `Array[Long]`,
-/// `seq[int]` and `[n]i64`.
-fn array_pattern() -> &'static Regex {
-    static ARRAY: OnceLock<Regex> = OnceLock::new();
-    ARRAY.get_or_init(|| {
-        Regex::new(
-            r"^((int|long|Long|number|i64) ?\[ ?\]|std ?:: ?vector ?< ?int ?>|Vec ?< ?i64 ?>|IntArray|\[ ?\] ?int|\[ ?Int ?\]|List ?< ?(int|Long) ?>|Array ?\[ ?Long ?\]|seq ?\[ ?int ?\]|\[ ?(\d+ ?)?\] ?i64)$",
-        )
-        .expect("valid pattern")
-    })
-}
-
-/// Whether `words` spells `char *`, `std::string` or `&str` with at most one
-/// space at each place the type pattern allows one.
-fn is_spaced_variant(words: &str) -> bool {
-    [
-        "char*",
-        "char *",
-        "std::string",
-        "std ::string",
-        "std:: string",
-        "std :: string",
-        "&str",
-        "& str",
-    ]
-    .contains(&words)
 }

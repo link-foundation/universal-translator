@@ -124,9 +124,17 @@ export function mapPosition(anchors, position, side = 0) {
 }
 
 // A link between the lines of two texts. `counts` are their line counts.
-export function lineLink(lineMap = [], counts = [0, 0]) {
+export function lineLink(lineMap = [], counts) {
   const pairs = (lineMap ?? []).filter(
-    (pair) => Array.isArray(pair) && pair.length === 2
+    (pair) =>
+      Array.isArray(pair) &&
+      pair.length === 2 &&
+      pair.every(
+        (line, side) =>
+          Number.isInteger(line) &&
+          line >= 0 &&
+          (!counts || line < counts[side])
+      )
   );
   const groups = components(pairs)
     .sort((a, b) => a[0][0] - b[0][0] || a[1][0] - b[1][0])
@@ -139,7 +147,7 @@ export function lineLink(lineMap = [], counts = [0, 0]) {
       }
     });
   }
-  const anchors = anchorsOf(pairs, counts);
+  const anchors = anchorsOf(pairs, counts ?? [0, 0]);
   return {
     pairs,
     groups,

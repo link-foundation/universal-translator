@@ -1,0 +1,31 @@
+▶ issue 16 regression cases
+  ✔ keeps the complete exponentiation inside an interpolation (332.176675ms)
+  ✔ associates powers right and preserves a grouped left operand (47.084947ms)
+  ✔ rejects unread tokens instead of silently truncating interpolation (5.69924ms)
+  ✔ keeps the blank line after a comment whose language changes (543.187572ms)
+  ✔ declares an array mutable in Rust when its JavaScript binding is const (7.935141ms)
+✔ issue 16 regression cases (943.566474ms)
+▶ layout of the source (issue 14)
+  ✔ keeps the blank lines and the spaces of the issue example (289.976359ms)
+  ✔ keeps the blank line after a leading comment of a fragment (5.454965ms)
+  ✔ writes the layout of the target on request (1.736218ms)
+  ✔ matches every example under examples/layout (153.666423ms)
+  ✔ cuts operators, strings, comments and names into tokens (0.827072ms)
+  ✔ aligns unique tokens first and the rest between them (0.580333ms)
+  ✔ never joins a name and a string or a name and its call (1.170022ms)
+  ✔ leaves strings that span lines and space sensitive targets alone (0.614837ms)
+  ✔ keeps Windows line ends and the blank lines at the end (0.969898ms)
+  ✔ indents in the steps of the source (0.714774ms)
+  ✔ maps lines only when the source has no code (0.743086ms)
+✔ layout of the source (issue 14) (459.653968ms)
+▶ lines of the layout
+  ✔ maps each closing brace to the brace that closes its own block (0.637118ms)
+✔ lines of the layout (0.918373ms)
+ℹ tests 17
+ℹ suites 3
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1542.468999

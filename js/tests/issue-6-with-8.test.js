@@ -124,9 +124,18 @@ describe('comment languages and versions with partial translation', () => {
         complete: true,
         errors: [],
         coverage: 1,
-        // The renamed name and the translated comment differ from the
-        // source, so only the line with the same tokens is matched.
-        lineMap: [[1, 1]],
+        // Semantic ownership survives comment translation, renaming and
+        // the different print spelling used by Python 2.
+        lineMap: [
+          [0, 0],
+          [1, 1],
+          [2, 2],
+        ],
+        regionMap: [
+          { source: { start: 0, end: 9 }, target: { start: 0, end: 12 } },
+          { source: { start: 18, end: 19 }, target: { start: 21, end: 22 } },
+          { source: { start: 21, end: 36 }, target: { start: 23, end: 34 } },
+        ],
         detected: 'javascript',
       });
     } finally {

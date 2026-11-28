@@ -4,6 +4,10 @@ natural:
   extends: telugu
   profile: minimal-english
   source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  grammar:
+    productions:
+      element: '{array} లో భాగం {index}'
+      set-element: 'దీని తర్వాత @element[array=name] ఇప్పుడు {value}'
   templates:
     function: 'ఎవరో {name} ను {parameters} తో ఇలా చేస్తారు'
     function-without-parameters: 'ఎవరో {name} ను ఇలా చేస్తారు'
@@ -29,9 +33,7 @@ natural:
     greater-or-equal: '{left} అనేది {right} కంటే తక్కువ కాదు'
     array: 'ఈ వస్తువులు ({elements})'
     new-array: '{fill} లాంటి {length} వస్తువులు'
-    element: '{array} లో భాగం {index}'
     length: '{array} లో ఎన్ని భాగాలు'
-    set-element: 'దీని తర్వాత {name} లో భాగం {index} ఇప్పుడు {value}'
   rules:
     primes: telugu
     extra-words: ను తో పంక్తిలో జవాబు ఆగు చేయవద్దు సార్లు కి నుండి వరకు అనేది కంటే లో ఎన్ని లేదా మరియు రుణ కూడిక తీసివేత గుణకారం భాగహారం మాడ్యులో అబద్ధం

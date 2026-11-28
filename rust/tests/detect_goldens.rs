@@ -72,6 +72,35 @@ fn reads_machine_code_whole_only() {
     );
 }
 
+#[test]
+fn breaks_code_ties_by_corpus_presence_after_checking_whole_readings() {
+    let translator = Translator::new();
+    let detected = translator.detect_language("c", 5);
+    let first: Vec<_> = detected
+        .iter()
+        .take(4)
+        .map(|d| (d.id.as_str(), d.reads, d.score))
+        .collect();
+    assert_eq!(
+        first,
+        [
+            ("english", true, 100.0),
+            ("julia", true, 100.0),
+            ("python", true, 100.0),
+            ("java", true, 100.0)
+        ]
+    );
+    let detected = translator.detect_language("x = 1\n% hello", 5);
+    assert_eq!(
+        (detected[0].id.as_str(), detected[0].reads),
+        ("matlab", true)
+    );
+    assert_eq!(
+        (detected[1].id.as_str(), detected[1].reads),
+        ("python", false)
+    );
+}
+
 /// "_" alone, or a word that starts with it, is one word: the tokenizer
 /// moves past it and the reading ends with an ordinary error.
 #[test]

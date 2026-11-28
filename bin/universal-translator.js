@@ -28,7 +28,7 @@ const COMMANDS = {
 };
 
 const GRAMMAR_ENGINE =
-  'Set UNIVERSAL_TRANSLATOR_META_LANGUAGE to the Meta Language 1.0 module file';
+  'Set UNIVERSAL_TRANSLATOR_META_LANGUAGE to override the bundled Meta Language module';
 const GRAMMAR_COMMANDS = ['encode-cst', 'decode-cst', 'translate-program'];
 const TRANSLATION_COMMANDS = [
   'translate',
@@ -55,7 +55,7 @@ function usage() {
     '  multiply  Multiply two numbers',
     '  translate <from> <to> [file|-] [--mode <mode>] [--trace] [--common-library] [--fragment] [--layout source|target] [--braces same-line|next-line] [--indent <n|tab>]  Translate through the meta language',
     '            --common-library prints through common-library/ calls',
-    '            --fragment translates statements or functions on their own',
+    '            --fragment translates statements or definitions on their own',
     '            --comment-language <natural> translates the comments too (only them when <from> is <to>)',
     '            --comment-from <natural> names the language of the comments (detected otherwise)',
     '            --identifier-language <natural> translates the declared names too (only them, in place, when <from> is <to>)',
@@ -71,9 +71,11 @@ function usage() {
     '            Parts that cannot be translated become comments and are listed',
     '            on standard error; --all-or-nothing fails instead',
     '            The source language may be "auto" to detect it',
+    '            Use "wasm" for the supported WebAssembly version 1 binary subset',
+    '            Use "jvm-class" for the supported JVM class file subset',
     '            --rules <file.lino> adds source, templates, names and output rules',
     '            (indented Links Notation; JSON files are read too)',
-    '  translate-program <from|cst> <to> [file|-]  Translate a checked JavaScript or Rust program',
+    '  translate-program <from|cst> <to> [file|-]  Translate checked JavaScript, Rust, Lean or Rocq',
     '  meta <language> [file|-] [--json] [--shallow]  Print the typed meta program as indented Links Notation',
     '            --json prints it as JSON instead',
     '            comments and strings are read with the grammars they are written in',
@@ -155,15 +157,17 @@ export function readStandardInput(read = readSync) {
   return Buffer.concat(chunks);
 }
 
+function readBytes(file) {
+  return file === '-' || file === undefined
+    ? readStandardInput()
+    : readFileSync(file);
+}
+
 function readSource(file) {
-  const input =
-    file === '-' || file === undefined
-      ? readStandardInput()
-      : readFileSync(file);
   return new globalThis.TextDecoder('utf-8', {
     fatal: true,
     ignoreBOM: true,
-  }).decode(input);
+  }).decode(readBytes(file));
 }
 
 // Options with a value, and the translation option each one sets.
@@ -237,26 +241,32 @@ function checkWords(text, language) {
   return `The text keeps the rules of ${language}\n`;
 }
 
-// --fragment translates a single statement, function definitions or a
+const binaryTranslation = new Map([
+  [
+    'wasm',
+    [
+      'translateWasm',
+      'WebAssembly binary translation requires a complete module and one reading',
+    ],
+  ],
+  [
+    'jvm-class',
+    [
+      'translateJvmClass',
+      'JVM class translation requires a complete class and one reading',
+    ],
+  ],
+]);
+
+// --fragment translates statements, definitions or a
 // whole program into the same kind of fragment. By default every part that
 // can be translated is, and the others are marked and listed on standard
 // error; --all-or-nothing throws at the first part it cannot read.
 function translateCommand(
   translator,
   { from, to, file, options },
-  read,
-  write,
-  stderr
+  { read, write, stderr }
 ) {
-  const source = read(file);
-  const language =
-    from === 'auto' ? translator.detectLanguage(source)[0]?.id : from;
-  if (!language) {
-    throw new Error('The language of the text could not be detected');
-  }
-  if (from === 'auto') {
-    stderr(`Detected language: ${language}`);
-  }
   const settings = {
     mode: options.mode,
     commonLibrary: options.commonLibrary,
@@ -269,6 +279,24 @@ function translateCommand(
     braces: options.braces,
     indent: options.indent,
   };
+  const binary = binaryTranslation.get(from);
+  if (binary) {
+    const [method, usage] = binary;
+    if (options.fragment || options.candidates) {
+      throw new Error(usage);
+    }
+    write(translator[method](readBytes(file), to, settings));
+    return;
+  }
+  const source = read(file);
+  const language =
+    from === 'auto' ? translator.detectLanguage(source)[0]?.id : from;
+  if (!language) {
+    throw new Error('The language of the text could not be detected');
+  }
+  if (from === 'auto') {
+    stderr(`Detected language: ${language}`);
+  }
   if (options.candidates) {
     write(
       candidatesReport(translator, [source, language, to], options, settings)
@@ -415,7 +443,8 @@ function runEquivalence(allArgs, read, write) {
   equivalenceReport(createTranslator(), args, { read, write, json });
 }
 
-function runTranslation(command, allArgs, read, write, stderr) {
+function runTranslation(command, allArgs, io) {
+  const { read, write, stderr } = io;
   const { json, shallow, args } = reportFlags(command, allArgs);
   const [from, to, ...trailing] = args;
   const { file, options = {} } =
@@ -429,13 +458,7 @@ function runTranslation(command, allArgs, read, write, stderr) {
   } else if (command === 'detect' && args.length <= 1) {
     write(detectionReport(translator.detectLanguage(read(from)), { json }));
   } else if (command === 'translate' && from && to) {
-    translateCommand(
-      translator,
-      { from, to, file, options },
-      read,
-      write,
-      stderr
-    );
+    translateCommand(translator, { from, to, file, options }, io);
   } else {
     throw new Error(usage());
   }
@@ -479,7 +502,7 @@ function startServer({ port, host }, stdout) {
 
 function runGrammarCommand(command, args, read, write, grammarEngine) {
   if (!grammarEngine) {
-    throw new Error(GRAMMAR_ENGINE);
+    throw new Error('Expected the Meta Language grammar engine');
   }
   const [from, to, file] = args;
   const codec = createSourceSyntaxCodec(grammarEngine.LinkNetwork);
@@ -515,7 +538,7 @@ function runSourceCommand(
   } else if (GRAMMAR_COMMANDS.includes(command)) {
     runGrammarCommand(command, args, read, write, grammarEngine);
   } else if (TRANSLATION_COMMANDS.includes(command)) {
-    runTranslation(command, args, read, write, stderr);
+    runTranslation(command, args, { read, write, stderr });
   } else if (command === 'check-equivalence') {
     runEquivalence(args, read, write);
   } else {
@@ -595,6 +618,20 @@ function isCliEntryPoint() {
   }
 }
 
+async function cliGrammarEngine(command, moduleFile) {
+  if (!GRAMMAR_COMMANDS.includes(command)) {
+    return undefined;
+  }
+  if (moduleFile) {
+    return import(pathToFileURL(moduleFile).href);
+  }
+  const [{ LinkNetwork }, { translateProgram }] = await Promise.all([
+    import('../vendor/meta-language-grammar/src/network.js'),
+    import('../vendor/meta-language-grammar/src/program-translation.js'),
+  ]);
+  return { LinkNetwork, translateProgram };
+}
+
 if (isCliEntryPoint()) {
   // A reader that stops early (`| head`) closes the pipe: stop quietly, as
   // other command line tools do.
@@ -605,9 +642,10 @@ if (isCliEntryPoint()) {
     throw error;
   });
   try {
-    const moduleFile = process.env.UNIVERSAL_TRANSLATOR_META_LANGUAGE;
-    const grammarEngine =
-      moduleFile && (await import(pathToFileURL(moduleFile).href));
+    const grammarEngine = await cliGrammarEngine(
+      process.argv[2],
+      process.env.UNIVERSAL_TRANSLATOR_META_LANGUAGE
+    );
     process.exitCode = runCli(process.argv.slice(2), {
       grammarEngine,
       write: (output) => process.stdout.write(output),

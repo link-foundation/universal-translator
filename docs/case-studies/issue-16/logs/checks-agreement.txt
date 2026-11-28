@@ -1,0 +1,32 @@
+Rust and cross-language translation	fail	45s	https://github.com/link-foundation/universal-translator/actions/runs/45897988883/job/140176912114	
+Test (bun)	fail	1m18s	https://github.com/link-foundation/universal-translator/actions/runs/45897988883/job/140176912207	
+Test (deno)	fail	1m5s	https://github.com/link-foundation/universal-translator/actions/runs/45897988883/job/140176912092	
+Test (node)	fail	1m13s	https://github.com/link-foundation/universal-translator/actions/runs/45897988883/job/140176912150	
+Audit npm lock (.)	pass	11s	https://github.com/link-foundation/universal-translator/actions/runs/45897988799/job/140176537678	
+Audit npm lock (examples/universal-app)	pass	22s	https://github.com/link-foundation/universal-translator/actions/runs/45897988799/job/140176537595	
+Build web app	pass	27s	https://github.com/link-foundation/universal-translator/actions/runs/45897988926/job/140176537496	
+Check File Line Limits	pass	9s	https://github.com/link-foundation/universal-translator/actions/runs/45897988883/job/140176706867	
+Check Links	pass	11s	https://github.com/link-foundation/universal-translator/actions/runs/45897988895/job/140176537665	
+Check Preview Images	pass	1m7s	https://github.com/link-foundation/universal-translator/actions/runs/45897988926/job/140176537839	
+Deploy GitHub Pages	skipping	0	https://github.com/link-foundation/universal-translator/actions/runs/45897988926/job/140176728253	
+Check for Changesets	pass	17s	https://github.com/link-foundation/universal-translator/actions/runs/45897988883/job/140176707041	
+Test Compilation	pass	22s	https://github.com/link-foundation/universal-translator/actions/runs/45897988883/job/140176706933	
+Native translation	pending	0	https://github.com/link-foundation/universal-translator/actions/runs/45897988883/job/140176706811	
+Lint and Format Check	pass	31s	https://github.com/link-foundation/universal-translator/actions/runs/45897988883/job/140176706907	
+Build Android app	skipping	0	https://github.com/link-foundation/universal-translator/actions/runs/45897988926/job/140176539196	
+Check for Manual Version Changes	pass	8s	https://github.com/link-foundation/universal-translator/actions/runs/45897988883/job/140176659909	
+Release Preflight	pass	14s	https://github.com/link-foundation/universal-translator/actions/runs/45897988883/job/140176659501	
+Detect Changes	pass	5s	https://github.com/link-foundation/universal-translator/actions/runs/45897988883/job/140176660056	
+Pipeline Status	pass	7s	https://github.com/link-foundation/universal-translator/actions/runs/45897988895/job/140176621057	
+Docker Image Build Check	pass	40s	https://github.com/link-foundation/universal-translator/actions/runs/45897988883/job/140176706792	
+Dependency Review	pass	8s	https://github.com/link-foundation/universal-translator/actions/runs/45897988799/job/140176537221	
+Package desktop app (Ubuntu)	pass	40s	https://github.com/link-foundation/universal-translator/actions/runs/45897988926/job/140176537896	
+CodeQL	pass	7s	https://github.com/link-foundation/universal-translator/runs/140176820620	
+Pipeline Status	pass	7s	https://github.com/link-foundation/universal-translator/actions/runs/45897988926/job/140177063830	
+Create Changeset PR	skipping	0	https://github.com/link-foundation/universal-translator/actions/runs/45897988883/job/140176913713	
+CodeQL (actions)	pass	57s	https://github.com/link-foundation/universal-translator/actions/runs/45897988799/job/140176537564	
+Pipeline Status	pass	7s	https://github.com/link-foundation/universal-translator/actions/runs/45897988799/job/140177002556	
+Web demo end-to-end	pass	1m21s	https://github.com/link-foundation/universal-translator/actions/runs/45897988926/job/140176537859	
+CodeQL (javascript-typescript)	pass	1m12s	https://github.com/link-foundation/universal-translator/actions/runs/45897988799/job/140176537741	
+Regenerate Preview Images	skipping	0	https://github.com/link-foundation/universal-translator/actions/runs/45897988926/job/140176539385	
+Validate Documentation	skipping	0	https://github.com/link-foundation/universal-translator/actions/runs/45897988883/job/140176709260	

@@ -97,6 +97,8 @@ en
     source "Source and CLI"
   footer
     settings "Settings"
+    reportIssue "Report issue"
+    sourceCode "Source code"
   standards
     intro "Every word of a language and the meta language concept it stands for. Change the words and save them as a standard of your own."
     closest "Closest language"
@@ -256,6 +258,8 @@ ru
     source "Исходный код и CLI"
   footer
     settings "Настройки"
+    reportIssue "Сообщить об ошибке"
+    sourceCode "Исходный код"
   standards
     intro "Каждое слово языка и понятие метаязыка, которое оно обозначает. Измените слова и сохраните их как свой стандарт."
     closest "Ближайший язык"
@@ -415,6 +419,8 @@ de
     source "Quellcode und CLI"
   footer
     settings "Einstellungen"
+    reportIssue "Problem melden"
+    sourceCode "Quellcode"
   standards
     intro "Jedes Wort einer Sprache und der Begriff der Metasprache, für den es steht. Ändern Sie die Wörter und speichern Sie sie als eigenen Standard."
     closest "Nächste Sprache"
@@ -574,6 +580,8 @@ fr
     source "Source et CLI"
   footer
     settings "Paramètres"
+    reportIssue "Signaler un problème"
+    sourceCode "Code source"
   standards
     intro "Chaque mot d’une langue et le concept du métalangage qu’il désigne. Modifiez les mots et enregistrez-les comme votre propre standard."
     closest "Langue la plus proche"
@@ -733,6 +741,8 @@ es
     source "Código fuente y CLI"
   footer
     settings "Ajustes"
+    reportIssue "Reportar un problema"
+    sourceCode "Código fuente"
   standards
     intro "Cada palabra de un idioma y el concepto del metalenguaje que representa. Cambie las palabras y guárdelas como su propio estándar."
     closest "Idioma más cercano"
@@ -892,6 +902,8 @@ zh
     source "源代码和命令行"
   footer
     settings "设置"
+    reportIssue "报告问题"
+    sourceCode "源代码"
   standards
     intro "语言中的每个词及其代表的元语言概念。修改这些词并另存为您自己的标准。"
     closest "最接近的语言"
@@ -1051,6 +1063,8 @@ hi
     source "स्रोत कोड और CLI"
   footer
     settings "सेटिंग्स"
+    reportIssue "समस्या की रिपोर्ट करें"
+    sourceCode "स्रोत कोड"
   standards
     intro "भाषा का हर शब्द और वह मेटा भाषा की जिस अवधारणा को दर्शाता है। शब्द बदलें और उन्हें अपने मानक के रूप में सहेजें।"
     closest "सबसे निकट भाषा"

@@ -12,7 +12,28 @@ natural:
   true: 'prawda'
   false: 'fałsz'
   note: 'Uwaga: {text}'
+  grammar:
+    terms:
+      interrogative: 'Czym jest'
+      query-scope: 'dla każdego {variable} w {source}'
+      query-deferred: '„odroczone”'
+    productions:
+      answer-type: 'typ obiektu {subject}'
+      question-type: '@interrogative @answer-type'
+      answer-documentation: 'dokumentacja obiektu {subject}'
+      question-documentation: '@interrogative @answer-documentation'
+      answer-source: 'kod źródłowy obiektu {subject}'
+      question-source: '@interrogative @answer-source'
+      answer-details: 'szczegółowa informacja o obiekcie {subject}'
+      question-details: '@interrogative @answer-details'
+      answer-query: 'wartości {projection} @query-scope gdy {condition}'
+      question-query: 'Jakie wartości {projection} @query-scope spełniają {condition}'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
+      element: 'element {index} listy {array}'
+      set-element: 'Zmień @element[array=name] na {value}'
   templates:
+    documentation: 'Dokumentacja to {value}'
     function: 'Zdefiniuj {name} używając {parameters}'
     function-without-parameters: 'Zdefiniuj {name}'
     declare: 'Utwórz {name} z wartością {value}' 'Niech {name} będzie równe {value}'
@@ -50,9 +71,7 @@ natural:
     remainder: '{left} modulo {right}' '{left} % {right}'
     array: 'lista ({elements})'
     new-array: 'lista długości {length} wypełniona {fill}'
-    element: 'element {index} listy {array}'
     length: 'długość {array}'
-    set-element: 'Zmień element {index} listy {name} na {value}'
   words:
     ackermann: 'ackermann'
     bottles: 'butelki'

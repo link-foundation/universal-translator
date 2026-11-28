@@ -1,0 +1,60 @@
+{
+  "reader": "current",
+  "cases": [
+    {
+      "index": 0,
+      "expected": "<?phpecho \"ok\";",
+      "output": "<?phpecho \"ok\";",
+      "error": null
+    },
+    {
+      "index": 1,
+      "expected": "<?php\fecho \"ok\";",
+      "output": "<?php\fecho \"ok\";",
+      "error": null
+    },
+    {
+      "index": 2,
+      "expected": "<?php echo \"ok\";",
+      "output": "<?php echo \"ok\";",
+      "error": null
+    },
+    {
+      "index": 3,
+      "expected": "\r\nok\n",
+      "output": "\r\nok\n",
+      "error": null
+    },
+    {
+      "index": 4,
+      "expected": " \tok\r\n",
+      "output": " \tok\r\n",
+      "error": null
+    },
+    {
+      "index": 5,
+      "expected": "ok \n",
+      "output": "ok \n",
+      "error": null
+    },
+    {
+      "index": 6,
+      "expected": "ok",
+      "output": "ok",
+      "error": null
+    },
+    {
+      "index": 7,
+      "expected": "ok",
+      "output": "ok",
+      "error": null
+    },
+    {
+      "index": 8,
+      "expected": "\r\n😀\t",
+      "output": "\r\n😀\t",
+      "error": null
+    }
+  ],
+  "failures": 0
+}

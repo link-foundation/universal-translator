@@ -12,7 +12,28 @@ natural:
   true: 'vrai'
   false: 'faux'
   note: 'Remarque : {text}'
+  grammar:
+    terms:
+      interrogative: 'Quel est'
+      query-scope: 'pour chaque {variable} dans {source}'
+      query-deferred: '«différé»'
+    productions:
+      answer-type: 'le type de {subject}'
+      question-type: '@interrogative @answer-type'
+      answer-documentation: 'la documentation de {subject}'
+      question-documentation: '@interrogative @answer-documentation'
+      answer-source: 'le code source de {subject}'
+      question-source: '@interrogative @answer-source'
+      answer-details: 'les informations détaillées sur {subject}'
+      question-details: '@interrogative @answer-details'
+      answer-query: 'les valeurs de {projection} @query-scope où {condition}'
+      question-query: 'Quelles valeurs de {projection} @query-scope vérifient {condition}'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
+      element: "l'élément {index} de {array}"
+      set-element: "Changer @element[array=name] en {value}"
   templates:
+    documentation: 'La documentation est {value}'
     function: 'Définir {name} avec {parameters}'
     function-without-parameters: 'Définir {name}'
     declare: 'Créer {name} avec la valeur {value}' 'Soit {name} égal à {value}'
@@ -50,9 +71,7 @@ natural:
     remainder: '{left} modulo {right}' '{left} % {right}'
     array: 'la liste ({elements})'
     new-array: 'une liste de {length} copies de {fill}'
-    element: "l'élément {index} de {array}"
     length: 'la longueur de {array}'
-    set-element: "Changer l'élément {index} de {name} en {value}"
   words:
     ackermann: 'ackermann'
     bottles: 'bouteilles'

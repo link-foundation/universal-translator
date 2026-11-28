@@ -29,11 +29,18 @@ export declare const delay: (ms: number) => Promise<void>;
 export {
   createGrammarTranslator as createTranslator,
   parseFragment,
+  parsePartial,
   translate,
+  translatePartial,
   translateCandidates,
   translateFragment,
 } from './translator.js';
 export declare const fragmentKinds: FragmentKind[];
+export { reconstructConcrete } from './translation/concrete-syntax.js';
+export type {
+  ConcreteLeaf,
+  ConcreteSyntax,
+} from './translation/concrete-syntax.js';
 export declare const stageNames: import('./translator.js').StageName[];
 export declare function decorateStages(
   stages: import('./translator.js').Stages,
@@ -43,6 +50,11 @@ export type {
   TranslationCandidate,
   Fragment,
   FragmentKind,
+  PartialError,
+  PartialReading,
+  PartialTranslation,
+  ByteRange,
+  TranslationRegion,
   GrammarTranslator,
   GrammarTranslatorOptions,
   Decorator,
@@ -61,6 +73,8 @@ export declare function liftProgram(machine: unknown): unknown;
 export declare function readNasm(source: string): unknown;
 export declare function readCil(source: string): unknown;
 export declare function readJvm(source: string): unknown;
+export declare function readWasmBinary(source: Uint8Array): unknown;
+export declare function readJvmClass(source: Uint8Array): unknown;
 export declare const machineReaders: Record<
   string,
   (source: string) => unknown
@@ -317,6 +331,8 @@ export declare function commentGlossary(
 ): Rule;
 export * from './translation/source-document.js';
 export * from './translation/program.js';
+export * as grammarEngine from './grammar/engine.js';
+export * from './grammar/workspace.js';
 export declare const commonLibraryOperations: string[];
 export declare const commonLibraryAccess: Record<
   string,

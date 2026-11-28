@@ -4,8 +4,7 @@
 
 import { node } from '../meta/tree.js';
 
-// Python hints with a meta type. Every other hint (float, dict[str, int],
-// a class name) is read and left to type inference.
+// Built-in hints use shared types; application types retain their spelling.
 const hintTypes = new Map([
   ['int', 'integer'],
   ['str', 'text'],
@@ -13,9 +12,11 @@ const hintTypes = new Map([
   ['None', 'nothing'],
   ['list[int]', 'array'],
   ['List[int]', 'array'],
+  ['float', 'real'],
 ]);
 
-export const hintType = (spelling) => hintTypes.get(spelling);
+export const hintType = (spelling) =>
+  hintTypes.get(spelling) ?? (spelling ? `source:${spelling}` : undefined);
 
 // Words that start a Python statement and may be followed by ":".
 const pythonKeywords = new Set([
@@ -50,7 +51,10 @@ export const withFunctionForms = (Base) =>
       const words = [];
       let depth = 0;
       while (!['newline', 'end'].includes(this.peek().type)) {
-        if (depth === 0 && [':', '=', ',', ')'].some((stop) => this.is(stop))) {
+        if (
+          depth === 0 &&
+          [':', '=', ',', ')', ']'].some((stop) => this.is(stop))
+        ) {
           break;
         }
         depth += this.is('[') ? 1 : this.is(']') ? -1 : 0;

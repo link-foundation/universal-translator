@@ -1,0 +1,14 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+error[E0599]: no method named `values` found for struct `catalog::Ordered<T>` in the current scope
+   --> rust/src/natural/agreement.rs:64:33
+    |
+ 64 |         .chain(language.lexicon.values())
+    |                                 ^^^^^^ method not found in `catalog::Ordered<std::string::String>`
+    |
+   ::: rust/src/natural/catalog.rs:396:1
+    |
+396 | pub struct Ordered<T> {
+    | --------------------- method `values` not found for this struct
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `universal-translator` (lib) due to 1 previous error

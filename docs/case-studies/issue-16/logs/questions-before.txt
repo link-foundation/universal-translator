@@ -1,0 +1,5 @@
+{"source":"type(meaning)\n","from":"python","to":"english","output":"Run type of (meaning).\n"}
+{"source":"meaning.__doc__\n","from":"python","to":"english","output":"Run meaning.__doc__.\n"}
+{"source":"import inspect\ninspect.getsource(meaning)\n","from":"python","to":"english","output":"Run inspect.getsource of (meaning).\n"}
+{"source":"meaning??\n","from":"python","to":"english","error":"Unexpected \"?\" after statement (line 1)"}
+{"source":"def meaning(value):\n    \"\"\"Explain the meaning.\n\n    Retain this indentation.\n    \"\"\"\n    return value\n\nprint(meaning.__doc__)\n","from":"python","to":"javascript","error":"Unterminated text literal (line 2)"}

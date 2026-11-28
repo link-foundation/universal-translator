@@ -10,4 +10,4 @@ for my $number (@numbers) {
         $greatest = $number;
     }
 }
-print "The greatest element is " . $greatest . "\n";
+print("The greatest element is " . $greatest . "\n");

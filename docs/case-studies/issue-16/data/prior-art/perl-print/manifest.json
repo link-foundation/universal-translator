@@ -1,0 +1,14 @@
+[
+  {
+    "url": "https://perldoc.perl.org/functions/print",
+    "file": "perl-print.html.gz",
+    "bytes": 18234,
+    "sha256": "4aa8dbefcc7a95201c94b84c0a643a46f7b652b4c4c5436d88acdc4b5cf56935"
+  },
+  {
+    "url": "https://perldoc.perl.org/perlop",
+    "file": "perl-operators.html.gz",
+    "bytes": 243050,
+    "sha256": "25583b7fea3d5fc8dd5f731c8f62bed2dfbd3daa8f32d63dda37b09ce3e104ab"
+  }
+]

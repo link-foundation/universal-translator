@@ -1,0 +1,14 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 9.78s
+     Running rust/tests/region_mapping.rs (target/debug/deps/region_mapping-92b0d9971328ee5c)
+
+running 6 tests
+test preserves_utf8_ranges_indentation_and_crlf_in_wrapped_fragments ... ok
+test mapping_rereads_do_not_enter_the_public_trace ... ok
+test excludes_nested_same_line_statements_from_the_parent_condition_region ... ok
+test separates_statements_and_repeated_names_on_the_same_line ... ok
+test keeps_regions_through_bash_call_lowering_and_its_inverse ... ok
+test supplies_valid_regions_for_all_reader_and_writer_families ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.22s
+

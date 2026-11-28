@@ -12,7 +12,28 @@ natural:
   true: 'จริง'
   false: 'เท็จ'
   note: 'หมายเหตุ: {text}'
+  grammar:
+    terms:
+      interrogative: 'คืออะไร'
+      query-scope: 'สำหรับแต่ละ {variable} ใน {source}'
+      query-deferred: '“เลื่อนออกไป”'
+    productions:
+      answer-type: 'ชนิดของ {subject}'
+      question-type: '@answer-type @interrogative'
+      answer-documentation: 'เอกสารของ {subject}'
+      question-documentation: '@answer-documentation @interrogative'
+      answer-source: 'รหัสต้นฉบับของ {subject}'
+      question-source: '@answer-source @interrogative'
+      answer-details: 'ข้อมูลโดยละเอียดเกี่ยวกับ {subject}'
+      question-details: '@answer-details @interrogative'
+      answer-query: 'ค่าของ {projection} @query-scope เมื่อ {condition}'
+      question-query: '@answer-query คืออะไร'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
+      element: 'ช่อง {index} ของ {array}'
+      set-element: 'เปลี่ยน @element[array=name] เป็น {value}'
   templates:
+    documentation: 'เอกสารคือ {value}'
     function: 'นิยาม {name} ด้วย {parameters}'
     function-without-parameters: 'นิยาม {name}'
     declare: 'สร้าง {name} ด้วย ค่า {value}'
@@ -50,9 +71,7 @@ natural:
     remainder: '{left} มอดุโล {right}' '{left} % {right}'
     array: 'รายการ ({elements})'
     new-array: 'รายการ ยาว {length} ที่ ทุก ช่อง เป็น {fill}'
-    element: 'ช่อง {index} ของ {array}'
     length: 'ความยาว ของ {array}'
-    set-element: 'เปลี่ยน ช่อง {index} ของ {name} เป็น {value}'
   words:
     ackermann: 'อัคเคอร์มันน์'
     bottles: 'ขวด'

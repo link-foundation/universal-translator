@@ -16,6 +16,9 @@ use super::machine_reader_shared::{
     Result, decode_bytes, group, integer, leading_comments, pattern_regex, procedure, program,
     read_error, trimmed_lines,
 };
+use crate::emission_map::{
+    Origins, active_origins, clone_source_line, current, line_origins, register_instructions,
+};
 use crate::meta::GrammarError;
 
 fn llvm_relation(relation: &str) -> Option<&'static str> {
@@ -196,10 +199,13 @@ struct LlvmBody<'a> {
     parameters: &'a HashSet<String>,
     uses: HashMap<String, i64>,
     defs: HashMap<String, Node>,
+    def_origins: HashMap<String, Origins>,
     emitted: HashSet<String>,
     remaining: HashMap<String, i64>,
-    spills: Vec<(usize, Operand)>,
+    spills: Vec<(usize, Operand, Origins)>,
     code: Vec<Instruction>,
+    code_origins: Vec<(usize, Origins)>,
+    pending_origins: Origins,
     index: usize,
 }
 
@@ -217,11 +223,25 @@ impl<'a> LlvmBody<'a> {
             parameters,
             uses: use_counts(lines),
             defs: HashMap::new(),
+            def_origins: HashMap::new(),
             emitted: HashSet::new(),
             remaining: HashMap::new(),
             spills: Vec::new(),
             code: Vec::new(),
+            code_origins: Vec::new(),
+            pending_origins: Vec::new(),
             index: 0,
+        }
+    }
+
+    fn push(&mut self, instruction: Instruction) {
+        self.code_origins.push((self.code.len(), current()));
+        self.code.push(instruction);
+    }
+
+    fn attach_last(&mut self, origins: Origins) {
+        if let Some((_, previous)) = self.code_origins.last_mut() {
+            previous.extend(origins);
         }
     }
 
@@ -246,7 +266,7 @@ impl<'a> LlvmBody<'a> {
 
     fn emit_operand(&mut self, operand: &Operand) -> Result<()> {
         match operand {
-            Operand::Push(value) => self.code.push(Instruction::Push(*value)),
+            Operand::Push(value) => self.push(Instruction::Push(*value)),
             Operand::Temp(name) => self.emit_temporary(name)?,
         }
         Ok(())
@@ -255,6 +275,8 @@ impl<'a> LlvmBody<'a> {
     /// A temporary with a single use is written at that use; a temporary
     /// with several uses is written at the first and stays on the stack.
     fn emit_temporary(&mut self, name: &str) -> Result<()> {
+        let enclosing = current();
+        let _origin = active_origins(self.def_origins.get(name).cloned().unwrap_or_default());
         let node = self
             .defs
             .get(name)
@@ -262,7 +284,9 @@ impl<'a> LlvmBody<'a> {
             .ok_or_else(|| read_error("llvm", name, "unknown value"))?;
         let total = self.uses.get(name).copied().unwrap_or(0);
         if total <= 1 {
-            return self.emit(&node);
+            self.emit(&node)?;
+            self.attach_last(enclosing);
+            return Ok(());
         }
         if !self.emitted.contains(name) {
             self.emit(&node)?;
@@ -272,54 +296,55 @@ impl<'a> LlvmBody<'a> {
         let left = self.remaining.get(name).copied().unwrap_or(0) - 1;
         self.remaining.insert(name.to_owned(), left);
         if left > 0 {
-            self.code.push(Instruction::Dup);
+            self.push(Instruction::Dup);
         }
         Ok(())
     }
 
     fn element(&mut self, address: &str) -> Result<()> {
+        let _origin = active_origins(self.def_origins.get(address).cloned().unwrap_or_default());
         let Some(Node::Gep(array, index)) = self.defs.get(address).cloned() else {
             return Err(read_error("llvm", address, "not an element address"));
         };
         self.emit_operand(&array)?;
         self.emit_operand(&index)?;
-        self.code.push(Instruction::ElementIndex);
+        self.push(Instruction::ElementIndex);
         Ok(())
     }
 
     fn emit(&mut self, node: &Node) -> Result<()> {
         match node {
-            Node::OnStack | Node::Gep(..) | Node::LengthAddress(_) | Node::Compare(..) => {}
-            Node::Load(slot) => self.code.push(Instruction::Load(*slot)),
+            Node::OnStack => self.attach_last(current()),
+            Node::Gep(..) | Node::LengthAddress(_) | Node::Compare(..) => {}
+            Node::Load(slot) => self.push(Instruction::Load(*slot)),
             Node::Binary(operation, left, right) => {
                 self.emit_operand(left)?;
                 self.emit_operand(right)?;
-                self.code.push(Instruction::Arithmetic(operation));
+                self.push(Instruction::Arithmetic(operation));
             }
             Node::Negate(value) => {
                 self.emit_operand(value)?;
-                self.code.push(Instruction::Negate);
+                self.push(Instruction::Negate);
             }
             Node::Call(name, arguments) => {
                 for argument in arguments {
                     self.emit_operand(argument)?;
                 }
-                self.code
-                    .push(Instruction::Call(name.clone(), arguments.len()));
+                self.push(Instruction::Call(name.clone(), arguments.len()));
             }
             Node::NewArray(arguments) => {
                 for argument in arguments {
                     self.emit_operand(argument)?;
                 }
-                self.code.push(Instruction::NewArray);
+                self.push(Instruction::NewArray);
             }
             Node::LoadElement(address) => {
                 self.element(address)?;
-                self.code.push(Instruction::LoadElement);
+                self.push(Instruction::LoadElement);
             }
             Node::ArrayLength(array) => {
                 self.emit_operand(array)?;
-                self.code.push(Instruction::ArrayLength);
+                self.push(Instruction::ArrayLength);
             }
         }
         Ok(())
@@ -327,14 +352,16 @@ impl<'a> LlvmBody<'a> {
 
     /// A value that is never used is dropped where it is made.
     fn define(&mut self, name: &str, node: Node) -> Result<()> {
+        self.def_origins.insert(name.to_owned(), current());
         self.defs.insert(name.to_owned(), node.clone());
         let structural = matches!(
             node,
-            Node::Gep(..) | Node::LengthAddress(_) | Node::Compare(..)
+            // A spill reload creates no new stack value to drop.
+            Node::Gep(..) | Node::LengthAddress(_) | Node::Compare(..) | Node::OnStack
         );
         if !structural && self.uses.get(name).copied().unwrap_or(0) == 0 {
             self.emit(&node)?;
-            self.code.push(Instruction::Pop);
+            self.push(Instruction::Pop);
         }
         Ok(())
     }
@@ -371,16 +398,16 @@ impl<'a> LlvmBody<'a> {
         if let Some(found) = spill.captures(address) {
             let index = group(&found, 1).parse::<usize>().unwrap_or(0);
             let node = self.operand(value)?;
-            self.spills.push((index, node));
+            self.spills.push((index, node, current()));
         } else if matches!(self.defs.get(address), Some(Node::Gep(..))) {
             self.element(address)?;
             let operand = self.operand(value)?;
             self.emit_operand(&operand)?;
-            self.code.push(Instruction::StoreElement);
+            self.push(Instruction::StoreElement);
         } else {
             let operand = self.operand(value)?;
             self.emit_operand(&operand)?;
-            self.code.push(Instruction::Store(self.slot(address)?));
+            self.push(Instruction::Store(self.slot(address)?));
         }
         Ok(())
     }
@@ -389,9 +416,11 @@ impl<'a> LlvmBody<'a> {
     /// positions.
     fn flush_spills(&mut self) -> Result<()> {
         let mut spills = std::mem::take(&mut self.spills);
-        spills.sort_by_key(|(index, _)| *index);
-        for (_, operand) in spills {
+        spills.sort_by_key(|(index, _, _)| *index);
+        for (_, operand, origins) in spills {
+            let _origin = active_origins(origins.clone());
             self.emit_operand(&operand)?;
+            self.attach_last(origins);
         }
         Ok(())
     }
@@ -400,20 +429,24 @@ impl<'a> LlvmBody<'a> {
         self.flush_spills()?;
         let next = format!("{target}:");
         if self.lines.get(self.index + 1) != Some(&next) {
-            self.code.push(Instruction::Jump(target.to_owned()));
+            self.push(Instruction::Jump(target.to_owned()));
+        } else {
+            self.pending_origins.extend(current());
         }
         Ok(())
     }
 
     fn conditional_branch(&mut self, condition: &str, target: &str) -> Result<()> {
+        let mut origins = current();
+        origins.extend(self.def_origins.get(condition).cloned().unwrap_or_default());
+        let _origin = active_origins(origins);
         self.flush_spills()?;
         let Some(Node::Compare(relation, left, right)) = self.defs.get(condition).cloned() else {
             return Err(read_error("llvm", condition, "not a comparison"));
         };
         self.emit_operand(&left)?;
         self.emit_operand(&right)?;
-        self.code
-            .push(Instruction::CompareJump(relation, target.to_owned()));
+        self.push(Instruction::CompareJump(relation, target.to_owned()));
         Ok(())
     }
 
@@ -422,13 +455,13 @@ impl<'a> LlvmBody<'a> {
         if parts[0] == "ptr @integer_format" {
             let operand = self.operand(argument_value(parts.get(1).copied().unwrap_or("")))?;
             self.emit_operand(&operand)?;
-            self.code.push(Instruction::PrintInteger);
+            self.push(Instruction::PrintInteger);
         } else if parts[0] == "ptr @text_format" {
             let key = parts.get(1).and_then(|part| part.get(5..)).unwrap_or("");
             let text = self.texts.get(key).cloned().unwrap_or_default();
-            self.code.push(Instruction::PrintText(text));
+            self.push(Instruction::PrintText(text));
         } else {
-            self.code.push(Instruction::PrintNewline);
+            self.push(Instruction::PrintNewline);
         }
         Ok(())
     }
@@ -436,7 +469,7 @@ impl<'a> LlvmBody<'a> {
     fn run(&mut self, kind: Line, found: &Captures) -> Result<()> {
         let at = |index: usize| group(found, index);
         match kind {
-            Line::Comment => self.code.push(Instruction::Comment(at(1).into())),
+            Line::Comment => self.push(Instruction::Comment(at(1).into())),
             Line::Load => self.load(at(1), at(2))?,
             Line::Negate => {
                 let value = self.operand(at(2))?;
@@ -476,16 +509,18 @@ impl<'a> LlvmBody<'a> {
             Line::Print => self.print(at(1))?,
             Line::Branch => self.branch(at(1))?,
             Line::ConditionalBranch => self.conditional_branch(at(1), at(2))?,
-            Line::ReturnNothing => self.code.push(Instruction::ReturnNothing),
+            Line::ReturnNothing => self.push(Instruction::ReturnNothing),
             Line::ReturnValue => {
                 let operand = self.operand(at(1))?;
                 self.emit_operand(&operand)?;
-                self.code.push(Instruction::Return);
+                self.push(Instruction::Return);
             }
             Line::Unreachable => {}
             Line::Label => {
                 if !pattern_regex(r"^(entry|next|dead)\.\d+$").is_match(at(1)) {
-                    self.code.push(Instruction::Label(at(1).into()));
+                    self.push(Instruction::Label(at(1).into()));
+                } else {
+                    self.attach_last(current());
                 }
             }
         }
@@ -497,13 +532,22 @@ impl<'a> LlvmBody<'a> {
         let lines = self.lines;
         while self.index < lines.len() {
             let line = &lines[self.index];
+            let _origin = active_origins(line_origins(line));
             let (kind, found) = rules
                 .iter()
                 .find_map(|(kind, pattern)| pattern.captures(line).map(|found| (*kind, found)))
                 .ok_or_else(|| read_error("llvm", line, "unknown instruction"))?;
+            let start = self.code.len();
             self.run(kind, &found)?;
+            if self.code.len() > start
+                && !self.pending_origins.is_empty()
+                && let Some((_, origins)) = self.code_origins.get_mut(start)
+            {
+                origins.extend(std::mem::take(&mut self.pending_origins));
+            }
             self.index += 1;
         }
+        register_instructions(&self.code, self.code_origins);
         Ok(self.code)
     }
 }
@@ -530,7 +574,7 @@ fn read_llvm_function(
             slots.insert(group(&found, 1).to_owned(), slots.len());
             slot_names.push(group(&found, 1).to_owned());
         } else if !alloca.is_match(line) {
-            body.push(line.clone());
+            body.push(clone_source_line(line));
         }
     }
     let set: HashSet<String> = parameters.iter().cloned().collect();
@@ -557,7 +601,9 @@ pub fn read_llvm(source: &str) -> Result<LoweredProgram> {
     while index < rest.len() {
         let line = &rest[index];
         if let Some(text) = line.strip_prefix(';') {
-            pending.push(text.strip_prefix(' ').unwrap_or(text).to_owned());
+            pending.push(crate::emission_map::map_source_line(line, |_| {
+                text.strip_prefix(' ').unwrap_or(text).to_owned()
+            }));
         } else if let Some(found) = header.captures(line) {
             let end = rest[index..]
                 .iter()

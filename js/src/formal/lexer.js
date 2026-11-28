@@ -2,6 +2,12 @@
 // language description only decides which comment markers, quotes and
 // layout rules (indentation, line ends) apply.
 
+import { objectiveCRuntimeHeader } from './dialects/objc.js';
+import { blockCommentEnd } from '../translation/comment-syntax.js';
+
+export const asciiLowercase = (value) =>
+  value.replace(/[A-Z]/gu, (letter) => letter.toLowerCase());
+
 const symbols = [
   '...',
   '..<',
@@ -9,6 +15,7 @@ const symbols = [
   '===',
   '!==',
   '**',
+  '//=',
   '//',
   '<<',
   '>>',
@@ -81,11 +88,19 @@ export class SyntaxError extends Error {
 // Text between quotes. Most languages escape with a backslash; Pascal, Ada,
 // Fortran and Visual Basic write a quote inside text as two quotes instead,
 // and keep backslashes as they are.
-function readQuoted(source, start, quote, line, doubled = false) {
-  let index = start + 1;
+function readQuoted(
+  source,
+  start,
+  quote,
+  line,
+  doubled = false,
+  triple = false
+) {
+  const delimiter = triple ? quote.repeat(3) : quote;
+  let index = start + delimiter.length;
   let raw = '';
   while (index < source.length) {
-    if (source[index] === quote) {
+    if (source.startsWith(delimiter, index)) {
       if (!doubled || source[index + 1] !== quote) {
         break;
       }
@@ -95,7 +110,7 @@ function readQuoted(source, start, quote, line, doubled = false) {
       raw += source.slice(index, index + 2);
       index += 2;
     } else {
-      if (source[index] === '\n' && quote !== '`') {
+      if (source[index] === '\n' && quote !== '`' && !triple) {
         throw new SyntaxError('Unterminated text literal', line);
       }
       raw += source[index];
@@ -105,7 +120,7 @@ function readQuoted(source, start, quote, line, doubled = false) {
   if (index >= source.length) {
     throw new SyntaxError('Unterminated text literal', line);
   }
-  return { raw, end: index + 1 };
+  return { raw, end: index + delimiter.length };
 }
 
 export function decodeEscapes(raw) {
@@ -136,7 +151,40 @@ export function blockCommentText(raw, column) {
 }
 
 export function tokenize(source, syntax) {
-  return new Lexer(source, syntax).run();
+  const tokens = new Lexer(source, syntax).run();
+  if (
+    syntax.id !== 'rocq' ||
+    !syntax.header ||
+    source.startsWith(syntax.header)
+  ) {
+    return tokens;
+  }
+  // Runtime recognition follows lexical tokens, so native layout and comments
+  // may vary while names, operators and quoted values must remain identical.
+  const expected = new Lexer(syntax.header, { ...syntax, header: undefined })
+    .run()
+    .filter((token) => !['newline', 'comment', 'end'].includes(token.type));
+  let position = 0;
+  const comments = [];
+  for (const token of expected) {
+    while (['newline', 'comment'].includes(tokens[position]?.type)) {
+      if (tokens[position].type === 'comment') {
+        comments.push(tokens[position]);
+      }
+      position += 1;
+    }
+    const actual = tokens[position];
+    if (
+      !actual ||
+      ['type', 'value', 'quote', 'style', 'decoded'].some(
+        (key) => actual[key] !== token[key]
+      )
+    ) {
+      return tokens;
+    }
+    position += 1;
+  }
+  return [...comments, ...tokens.slice(position)];
 }
 
 // Reads one token kind at a time. Each reader returns true when it consumed
@@ -146,11 +194,14 @@ class Lexer {
     this.source = source;
     this.syntax = syntax;
     this.tokens = [];
+    // PHP documents start in output mode; tagless code snippets keep their
+    // existing implicit code mode. Markup cannot begin a PHP expression.
+    this.phpOutside = syntax.id === 'php' && /^\s*</.test(source);
     this.index =
-      syntax.header && source.startsWith(syntax.header)
+      !this.phpOutside && syntax.header && source.startsWith(syntax.header)
         ? syntax.header.length
         : 0;
-    this.line = 1;
+    this.line = source.slice(0, this.index).split('\n').length;
     this.lineStart = true;
     this.indentation = [0];
     this.depth = 0; // open brackets; newlines inside them are not significant
@@ -174,10 +225,15 @@ class Lexer {
       if (this.lineStart && this.syntax.blocks === 'indentation') {
         this.indent();
       }
-      if (this.closingTag()) {
-        break;
+      if (this.phpMode()) {
+        continue;
       }
+      const start = this.index;
+      const first = this.tokens.length;
       this.readers.some((read) => read());
+      for (const token of this.tokens.slice(first)) {
+        token.rawSpan = [start, this.index];
+      }
     }
     if (this.tokens.length && this.tokens.at(-1).type !== 'newline') {
       this.push('newline', '\n');
@@ -189,16 +245,44 @@ class Lexer {
     return this.tokens;
   }
 
-  // PHP: the closing ?> tag ends the program when only whitespace follows
-  // it; text after it would be output, which is not read.
-  closingTag() {
-    if (this.syntax.id !== 'php' || !this.source.startsWith('?>', this.index)) {
+  // Code and literal output share block scope across PHP mode changes.
+  // Strings/block comments consume their own contents before this is called.
+  phpMode() {
+    if (this.syntax.id !== 'php') {
       return false;
     }
-    if (this.source.slice(this.index + 2).trim()) {
-      throw new SyntaxError('Text after the closing "?>" tag', this.line);
+    if (!this.phpOutside && this.source.startsWith('?>', this.index)) {
+      const start = this.index;
+      this.index += 2;
+      // A close tag terminates a statement, including an echo shorthand.
+      this.push('symbol', ';', { rawSpan: [start, this.index] });
+      this.index += /^(?:\r\n|\n|\r)/.exec(this.rest())?.[0].length ?? 0;
+      this.line += this.source.slice(start, this.index).split('\n').length - 1;
+      this.phpOutside = true;
+      return true;
     }
-    this.index = this.source.length;
+    if (!this.phpOutside) {
+      return false;
+    }
+    const start = this.index;
+    const opening = /<\?(?:php(?=[ \t\r\n]|$)|=)/gi;
+    opening.lastIndex = start;
+    const match = opening.exec(this.source);
+    const stop = match?.index ?? this.source.length;
+    if (stop > start) {
+      this.push('inlineText', this.source.slice(start, stop), {
+        rawSpan: [start, stop],
+      });
+      this.line += this.source.slice(start, stop).split('\n').length - 1;
+      this.push('newline', '\n');
+    }
+    this.index = match ? stop + match[0].length : stop;
+    if (match) {
+      this.phpOutside = false;
+      if (match[0] === '<?=') {
+        this.push('name', 'echo', { rawSpan: [stop, this.index] });
+      }
+    }
     return true;
   }
 
@@ -314,6 +398,9 @@ class Lexer {
         return fixed[1];
       }
     }
+    if (id === 'php' && this.source[this.index] === '#') {
+      return '#';
+    }
     return lineComment;
   }
 
@@ -328,7 +415,13 @@ class Lexer {
     ) {
       return false;
     }
-    const stop = this.untilLineEnd();
+    let stop = this.untilLineEnd();
+    if (this.syntax.id === 'php') {
+      const closing = this.source.indexOf('?>', this.index);
+      if (closing >= 0 && closing < stop) {
+        stop = closing;
+      }
+    }
     const start = this.index + marker.length;
     this.pushComment(commentText(this.source.slice(start, stop)), {
       span: [start, stop],
@@ -362,10 +455,17 @@ class Lexer {
     if (!open || !this.source.startsWith(open, this.index)) {
       return false;
     }
-    const end = this.source.indexOf(close, this.index + open.length);
-    if (end < 0) {
+    const scanned = blockCommentEnd(
+      this.source,
+      this.index,
+      [open, close],
+      this.syntax.nestedComments,
+      this.syntax.commentStrings
+    );
+    if (!scanned.closed) {
       throw new SyntaxError('Unterminated comment', this.line);
     }
+    const end = scanned.end - close.length;
     const text = this.source.slice(this.index + open.length, end);
     this.pushComment(blockCommentText(text, this.column()), {
       block: true,
@@ -378,6 +478,20 @@ class Lexer {
 
   // Preprocessor lines such as #include <stdio.h>.
   directive() {
+    // This known header alternative defines the same scalar type on both
+    // runtimes. Arbitrary conditional code still requires preprocessing.
+    if (
+      this.syntax.id === 'objc' &&
+      this.source.startsWith(objectiveCRuntimeHeader, this.index) &&
+      /^(?:\r?\n|$)/.test(
+        this.source.slice(this.index + objectiveCRuntimeHeader.length)
+      )
+    ) {
+      this.push('directive', objectiveCRuntimeHeader);
+      this.index += objectiveCRuntimeHeader.length;
+      this.line += objectiveCRuntimeHeader.split('\n').length - 1;
+      return true;
+    }
     if (
       this.syntax.lineComment === '#' ||
       !/^#\s*(include|import)/.test(this.rest())
@@ -410,11 +524,18 @@ class Lexer {
       start,
       quote,
       this.line,
-      doubled
+      doubled,
+      this.syntax.id === 'python' &&
+        this.source.startsWith(quote.repeat(3), start)
     );
     const style = interpolationStyle(this.syntax, quote, prefixed);
     // Doubled quotes are already read, so the text has no escapes left.
-    this.push('text', raw, { quote, style, decoded: doubled });
+    const identifier = this.syntax.id === 'sql' && quote === '"';
+    this.push(identifier ? 'name' : 'text', raw, {
+      quote,
+      style,
+      decoded: doubled,
+    });
     this.line += raw.split('\n').length - 1;
     this.index = end;
     return true;
@@ -452,9 +573,13 @@ class Lexer {
       name[0].endsWith('!') && this.source[this.index + name[0].length] === '='
         ? name[0].slice(0, -1)
         : name[0];
-    this.push('name', value, {
-      span: [this.index, this.index + value.length],
-    });
+    this.push(
+      'name',
+      this.syntax.id === 'sql' ? asciiLowercase(value) : value,
+      {
+        span: [this.index, this.index + value.length],
+      }
+    );
     this.index += value.length;
     return true;
   }

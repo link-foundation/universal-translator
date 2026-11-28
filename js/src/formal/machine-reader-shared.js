@@ -1,6 +1,15 @@
 // Helpers shared by the machine code readers (machine-reader.js and the
 // dialect readers next to it).
 
+import {
+  combineOrigins,
+  trackComments,
+  sourceOrigin,
+  withOrigin,
+} from '../translation/source-origins.js';
+import { linesOrigin } from './machine-source.js';
+export { sourceLines } from './machine-source.js';
+
 export const relationsByJump = (table) =>
   Object.fromEntries(Object.entries(table).map(([key, value]) => [value, key]));
 
@@ -11,10 +20,6 @@ export function readError(target, line, message) {
 // A pattern that matches a whole line exactly.
 export const exact = (line) =>
   new RegExp(`^${line.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`);
-
-// The trimmed lines of a source text.
-export const sourceLines = (source) =>
-  source.split('\n').map((line) => line.trim());
 
 // Read instructions with a list of rules. A rule is [patterns, build]: the
 // patterns match consecutive lines, and build turns the matches into
@@ -32,7 +37,10 @@ export function readInstructions(lines, rules, target) {
       if (matches.every(Boolean)) {
         const built = build(...matches);
         if (built) {
-          code.push(...built);
+          const origin = linesOrigin(lines, index, patterns.length);
+          code.push(
+            ...built.map((instruction) => withOrigin(instruction, origin))
+          );
           index += patterns.length;
           matched = true;
           break;
@@ -54,6 +62,10 @@ export function leadingComments(lines, prefix, start) {
     .slice(0, Math.max(first, 0))
     .filter((line) => line.startsWith(prefix))
     .map((line) => line.slice(prefix.length).replace(/^ /, ''));
+  trackComments(
+    comments,
+    comments.map((_, index) => linesOrigin(comments, index))
+  );
   return { comments, rest: lines.slice(first) };
 }
 
@@ -88,6 +100,11 @@ export function resolveResults(raw, target, line) {
       code.push(instruction);
     } else if (code.at(-1)?.[0] !== 'call') {
       throw readError(target, line, 'not after a call');
+    } else {
+      withOrigin(
+        code.at(-1),
+        combineOrigins([sourceOrigin(code.at(-1)), sourceOrigin(instruction)])
+      );
     }
   }
   return code;

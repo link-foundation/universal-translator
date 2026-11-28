@@ -1,0 +1,1294 @@
+
+added 2 packages in 822ms
+Both implementations encoded and restored 7 grammar CST specimens
+The tagged JavaScript engine round-tripped 27 ranked grammar specimens
+Both implementations compiled and ran checked JavaScript and Rust translations from exchanged CSTs
+node:internal/modules/run_main:111
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Objpak objc reader
++ actual - expected
+... Skipped lines
+
+  '{\n' +
+-   '  "kind": "Program",\n' +
+    '  "comments": [\n' +
+    '    {\n' +
+    '      "kind": "Comment",\n' +
+    '      "reference": "text-1"\n' +
+    '    }\n' +
+    '  ],\n' +
++   '  "functions": [],\n' +
+    '  "imports": [\n' +
+    '    "#import <stdio.h>",\n' +
+    '    "#include <objpak.h>"\n' +
+    '  ],\n' +
++   '  "kind": "Program",\n' +
+-   '  "functions": [],\n' +
+    '  "main": {\n' +
+    '    "kind": "Block",\n' +
+    '    "statements": [\n' +
+    '      {\n' +
+    '        "kind": "Declaration",\n' +
++   '        "mutable": false,\n' +
+    '        "name": "process-arguments",\n' +
+    '        "type": "array<text>",\n' +
+    '        "value": {\n' +
++   '          "includeProgram": true,\n' +
+    '          "kind": "ProcessArguments",\n' +
+-   '          "includeProgram": true,\n' +
+    '          "type": "array<text>"\n' +
++   '        }\n' +
+-   '        },\n' +
+-   '        "mutable": false\n' +
+    '      },\n' +
+    '      {\n' +
+    '        "kind": "Declaration",\n' +
++   '        "mutable": true,\n' +
+    '        "name": "argc",\n' +
+    '        "type": "integer",\n' +
+    '        "value": {\n' +
+-   '          "kind": "Length",\n' +
+    '          "array": {\n' +
+    '            "kind": "Name",\n' +
+    '            "name": "process-arguments",\n' +
+    '            "type": "array<text>"\n' +
+    '          },\n' +
++   '          "kind": "Length",\n' +
+    '          "type": "integer"\n' +
++   '        }\n' +
+-   '        },\n' +
+-   '        "mutable": true\n' +
+    '      },\n' +
+    '      {\n' +
+    '        "kind": "Declaration",\n' +
++   '        "mutable": true,\n' +
+    '        "name": "argv",\n' +
+    '        "type": "integer",\n' +
+    '        "value": {\n' +
+    '          "kind": "Number",\n' +
++   '          "type": "integer",\n' +
++   '          "value": 0\n' +
++   '        }\n' +
+-   '          "value": 0,\n' +
+-   '          "type": "integer"\n' +
+-   '        },\n' +
+-   '        "mutable": true\n' +
+    '      },\n' +
+    '      {\n' +
++   '        "elementsAssigned": true,\n' +
+    '        "kind": "Declaration",\n' +
++   '        "mutable": false,\n' +
+    '        "name": "set",\n' +
+    '        "type": "set<text>",\n' +
+    '        "value": {\n' +
++   '          "elements": [],\n' +
+    '          "kind": "SetLiteral",\n' +
+-   '          "elements": [],\n' +
+    '          "order": "objpak-string",\n' +
+    '          "type": "set<text>"\n' +
++   '        }\n' +
+-   '        },\n' +
+-   '        "mutable": false,\n' +
+-   '        "elementsAssigned": true\n' +
+    '      },\n' +
+    '      {\n' +
+    '        "kind": "Assignment",\n' +
+    '        "name": "argv",\n' +
+    '        "operator": "=",\n' +
+    '        "value": {\n' +
+    '          "kind": "Binary",\n' +
+-   '          "operator": "add",\n' +
+    '          "left": {\n' +
+    '            "kind": "Name",\n' +
+    '            "name": "argv",\n' +
+    '            "type": "integer"\n' +
+    '          },\n' +
++   '          "operator": "add",\n' +
+    '          "right": {\n' +
+    '            "kind": "Number",\n' +
++   '            "type": "integer",\n' +
++   '            "value": 1\n' +
+-   '            "value": 1,\n' +
+-   '            "type": "integer"\n' +
+    '          },\n' +
+    '          "type": "integer"\n' +
+    '        }\n' +
+    '      },\n' +
+    '      {\n' +
+-   '        "kind": "While",\n' +
+-   '        "condition": {\n' +
+-   '          "kind": "Binary",\n' +
+-   '          "operator": "notEqual",\n' +
+-   '          "left": {\n' +
+-   '            "kind": "Update",\n' +
+-   '            "operand": {\n' +
+-   '              "kind": "Name",\n' +
+-   '              "name": "argc",\n' +
+-   '              "type": "integer"\n' +
+-   '            },\n' +
+-   '            "delta": -1,\n' +
+-   '            "prefix": true,\n' +
+-   '            "type": "integer"\n' +
+-   '          },\n' +
+-   '          "right": {\n' +
+-   '            "kind": "Number",\n' +
+-   '            "value": 0,\n' +
+-   '            "type": "integer"\n' +
+-   '          },\n' +
+-   '          "type": "boolean"\n' +
+-   '        },\n' +
+    '        "body": {\n' +
+    '          "kind": "Block",\n' +
+    '          "statements": [\n' +
+    '            {\n' +
+-   '              "kind": "Evaluate",\n' +
+    '              "expression": {\n' +
+-   '                "kind": "SetInsert",\n' +
+    '                "collection": {\n' +
+    '                  "kind": "Name",\n' +
+    '                  "name": "set",\n' +
+    '                  "type": "set<text>"\n' +
+    '                },\n' +
++   '                "kind": "SetInsert",\n' +
++   '                "type": "set<text>",\n' +
+    '                "value": {\n' +
+-   '                  "kind": "Index",\n' +
+    '                  "array": {\n' +
+    '                    "kind": "Name",\n' +
+    '                    "name": "process-arguments",\n' +
+    '                    "type": "array<text>"\n' +
+    '                  },\n' +
+    '                  "index": {\n' +
++   '                    "delta": 1,\n' +
+    '                    "kind": "Update",\n' +
+    '                    "operand": {\n' +
+    '                      "kind": "Name",\n' +
+    '                      "name": "argv",\n' +
+    '                      "type": "integer"\n' +
+    '                    },\n' +
+-   '                    "delta": 1,\n' +
+    '                    "prefix": false,\n' +
+    '                    "type": "integer"\n' +
+    '                  },\n' +
++   '                  "kind": "Index",\n' +
+    '                  "type": "text"\n' +
++   '                }\n' +
++   '              },\n' +
++   '              "kind": "Evaluate"\n' +
+-   '                },\n' +
+-   '                "type": "set<text>"\n' +
+-   '              }\n' +
+    '            }\n' +
+    '          ]\n' +
++   '        },\n' +
++   '        "condition": {\n' +
++   '          "kind": "Binary",\n' +
++   '          "left": {\n' +
++   '            "delta": -1,\n' +
++   '            "kind": "Update",\n' +
++   '            "operand": {\n' +
++   '              "kind": "Name",\n' +
++   '              "name": "argc",\n' +
++   '              "type": "integer"\n' +
++   '            },\n' +
++   '            "prefix": true,\n' +
++   '            "type": "integer"\n' +
++   '          },\n' +
++   '          "operator": "notEqual",\n' +
++   '          "right": {\n' +
++   '            "kind": "Number",\n' +
++   '            "type": "integer",\n' +
++   '            "value": 0\n' +
++   '          },\n' +
++   '          "type": "boolean"\n' +
++   '        },\n' +
++   '        "kind": "While"\n' +
+-   '        }\n' +
+    '      },\n' +
+    '      {\n' +
+-   '        "kind": "ForEach",\n' +
+-   '        "variable": "each",\n' +
+    '        "array": {\n' +
+    '          "kind": "Name",\n' +
+    '          "name": "set",\n' +
+    '          "type": "set<text>"\n' +
+    '        },\n' +
+...
+    '              "kind": "Print",\n' +
++   '              "newline": true,\n' +
+    '              "value": {\n' +
+    '                "kind": "Interpolation",\n' +
+    '                "parts": [\n' +
+    '                  {\n' +
+    '                    "kind": "Text",\n' +
+-   '                    "value": "hello, ",\n' +
+-   '                    "type": "text",\n' +
+    '                    "reading": {\n' +
+    '                      "kind": "Prose",\n' +
+    '                      "language": "english",\n' +
+    '                      "sentences": [\n' +
+    '                        {\n' +
+...
+    '                            {\n' +
++   '                              "concept": "hello",\n' +
+    '                              "kind": "Word",\n' +
++   '                              "part": "interjection",\n' +
++   '                              "text": "hello"\n' +
+-   '                              "text": "hello",\n' +
+-   '                              "concept": "hello",\n' +
+-   '                              "part": "interjection"\n' +
+    '                            }\n' +
+    '                          ]\n' +
+    '                        }\n' +
+    '                      ]\n' +
++   '                    },\n' +
++   '                    "type": "text",\n' +
++   '                    "value": "hello, "\n' +
+-   '                    }\n' +
+    '                  },\n' +
+    '                  {\n' +
+    '                    "kind": "Name",\n' +
+    '                    "name": "each",\n' +
+    '                    "type": "text"\n' +
+...
+    '                    "kind": "Text",\n' +
++   '                    "type": "text",\n' +
++   '                    "value": "!"\n' +
+-   '                    "value": "!",\n' +
+-   '                    "type": "text"\n' +
+    '                  }\n' +
+    '                ],\n' +
+    '                "type": "text"\n' +
++   '              }\n' +
+-   '              },\n' +
+-   '              "newline": true\n' +
+    '            }\n' +
+    '          ]\n' +
+    '        },\n' +
++   '        "kind": "ForEach",\n' +
++   '        "type": "text",\n' +
++   '        "variable": "each"\n' +
+-   '        "type": "text"\n' +
+    '      }\n' +
+    '    ]\n' +
+    '  },\n' +
+    '  "mainComments": [],\n' +
+    '  "texts": [\n' +
+    '    {\n' +
++   '      "id": "text-1",\n' +
+    '      "kind": "Paragraph",\n' +
+-   '      "id": "text-1",\n' +
+-   '      "text": "Hello World in Objective-C.\\n** Since the standard implementation is identical to K&R C,\\n** a version that says hello to a set of people passed on\\n** the command line is shown here.",\n' +
+    '      "reading": {\n' +
+    '        "kind": "Prose",\n' +
+    '        "language": "english",\n' +
+    '        "sentences": [\n' +
+    '          {\n' +
+...
+    '              {\n' +
++   '                "concept": "hello",\n' +
+    '                "kind": "Word",\n' +
++   '                "part": "interjection",\n' +
++   '                "text": "Hello"\n' +
+-   '                "text": "Hello",\n' +
+-   '                "concept": "hello",\n' +
+-   '                "part": "interjection"\n' +
+    '              },\n' +
+    '              {\n' +
++   '                "concept": "world",\n' +
+    '                "kind": "Word",\n' +
++   '                "part": "noun",\n' +
++   '                "text": "World"\n' +
+-   '                "text": "World",\n' +
+-   '                "concept": "world",\n' +
+-   '                "part": "noun"\n' +
+    '              },\n' +
+    '              {\n' +
++   '                "concept": "in",\n' +
+    '                "kind": "Word",\n' +
++   '                "part": "preposition",\n' +
++   '                "text": "in"\n' +
+-   '                "text": "in",\n' +
+-   '                "concept": "in",\n' +
+-   '                "part": "preposition"\n' +
+    '              },\n' +
+    '              {\n' +
++   '                "imprecision": "untranslated",\n' +
+    '                "kind": "Word",\n' +
++   '                "text": "Objective-C"\n' +
+-   '                "text": "Objective-C",\n' +
+-   '                "imprecision": "untranslated"\n' +
+    '              }\n' +
+    '            ]\n' +
+    '          },\n' +
+    '          {\n' +
+    '            "kind": "Sentence",\n' +
+    '            "words": [\n' +
+    '              {\n' +
++   '                "concept": "from",\n' +
+    '                "kind": "Word",\n' +
++   '                "part": "preposition",\n' +
++   '                "text": "Since"\n' +
+-   '                "text": "Since",\n' +
+-   '                "concept": "from",\n' +
+-   '                "part": "preposition"\n' +
+    '              },\n' +
+    '              {\n' +
++   '                "concept": "the",\n' +
+    '                "kind": "Word",\n' +
++   '                "part": "article",\n' +
++   '                "text": "the"\n' +
+-   '                "text": "the",\n' +
+-   '                "concept": "the",\n' +
+-   '                "part": "article"\n' +
+    '              },\n' +
+    '              {\n' +
++   '                "imprecision": "untranslated",\n' +
+    '                "kind": "Word",\n' +
++   '                "text": "standard"\n' +
+-   '                "text": "standard",\n' +
+-   '                "imprecision": "untranslated"\n' +
+    '              },\n' +
+    '              {\n' +
++   '                "imprecision": "untranslated",\n' +
+    '                "kind": "Word",\n' +
++   '                "text": "implementation"\n' +
+-   '                "text": "implementation",\n' +
+-   '                "imprecision": "untranslated"\n' +
+    '              },\n' +
+    '              {\n' +
++   '                "alternatives": 3,\n' +
++   '                "imprecision": "ambiguous",\n' +
+    '                "kind": "Word",\n' +
++   '                "part": "name",\n' +
++   '                "probability": 0.545455,\n' +
+    '                "text": "is",\n' +
++   '                "word": "is"\n' +
+-   '                "word": "is",\n' +
+-   '                "part": "name",\n' +
+-   '                "imprecision": "ambiguous",\n' +
+-   '                "alternatives": 3,\n' +
+-   '                "probability": 0.545455\n' +
+    '              },\n' +
+    '              {\n' +
++   '                "imprecision": "untranslated",\n' +
+    '                "kind": "Word",\n' +
++   '                "text": "identical"\n' +
+-   '                "text": "identical",\n' +
+-   '                "imprecision": "untranslated"\n' +
+    '              },\n' +
+    '              {\n' +
++   '                "concept": "to",\n' +
+    '                "kind": "Word",\n' +
++   '                "part": "preposition",\n' +
++   '                "text": "to"\n' +
+-   '                "text": "to",\n' +
+-   '                "concept": "to",\n' +
+-   '                "part": "preposition"\n' +
+    '              },\n' +
+    '              {\n' +
++   '                "imprecision": "untranslated",\n' +
+    '                "kind": "Word",\n' +
++   '                "text": "K"\n' +
+-   '                "text": "K",\n' +
+-   '                "imprecision": "untranslated"\n' +
+    '              },\n' +
+    '              {\n' +
++   '                "imprecision": "untranslated",\n' +
+    '                "kind": "Word",\n' +
++   '                "text": "R"\n' +
+-   '                "text": "R",\n' +
+-   '                "imprecision": "untranslated"\n' +
+    '              },\n' +
+    '              {\n' +
++   '                "imprecision": "untranslated",\n' +
+    '                "kind": "Word",\n' +
++   '                "text": "C"\n' +
+-   '                "text": "C",\n' +
+-   '                "imprecision": "untranslated"\n' +
+    '              },\n' +
+    '              {\n' +
++   '                "concept": "a",\n' +
+    '                "kind": "Word",\n' +
++   '                "part": "article",\n' +
++   '                "text": "a"\n' +
+-   '                "text": "a",\n' +
+-   '                "concept": "a",\n' +
+-   '                "part": "article"\n' +
+    '              },\n' +
+    '              {\n' +
++   '                "imprecision": "untranslated",\n' +
+    '                "kind": "Word",\n' +
++   '                "text": "version"\n' +
+-   '                "text": "version",\n' +
+-   '                "imprecision": "untranslated"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
++   '                "part": "prime",\n' +
+-   '                "text": "that",\n' +
+    '                "prime": "this",\n' +
++   '                "text": "that"\n' +
+-   '                "part": "prime"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
++   '                "part": "prime",\n' +
+-   '                "text": "says",\n' +
+    '                "prime": "say",\n' +
++   '                "text": "says"\n' +
+-   '                "part": "prime"\n' +
+    '              },\n' +
+    '              {\n' +
++   '                "concept": "hello",\n' +
+    '                "kind": "Word",\n' +
++   '                "part": "interjection",\n' +
++   '                "text": "hello"\n' +
+-   '                "text": "hello",\n' +
+-   '                "concept": "hello",\n' +
+-   '                "part": "interjection"\n' +
+    '              },\n' +
+    '              {\n' +
++   '                "concept": "to",\n' +
+    '                "kind": "Word",\n' +
++   '                "part": "preposition",\n' +
++   '                "text": "to"\n' +
+-   '                "text": "to",\n' +
+-   '                "concept": "to",\n' +
+-   '                "part": "preposition"\n' +
+    '              },\n' +
+    '              {\n' +
++   '                "concept": "a",\n' +
+    '                "kind": "Word",\n' +
++   '                "part": "article",\n' +
++   '                "text": "a"\n' +
+-   '                "text": "a",\n' +
+-   '                "concept": "a",\n' +
+-   '                "part": "article"\n' +
+    '              },\n' +
+    '              {\n' +
++   '                "imprecision": "untranslated",\n' +
+    '                "kind": "Word",\n' +
++   '                "text": "set"\n' +
+-   '                "text": "set",\n' +
+-   '                "imprecision": "untranslated"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
++   '                "part": "name",\n' +
+    '                "text": "of",\n' +
++   '                "word": "of"\n' +
+-   '                "word": "of",\n' +
+-   '                "part": "name"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
++   '                "part": "prime",\n' +
+-   '                "text": "people",\n' +
+    '                "prime": "people",\n' +
++   '                "text": "people"\n' +
+-   '                "part": "prime"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
++   '                "part": "name",\n' +
+    '                "text": "passed",\n' +
++   '                "word": "pass"\n' +
+-   '                "word": "pass",\n' +
+-   '                "part": "name"\n' +
+    '              },\n' +
+    '              {\n' +
++   '                "concept": "on",\n' +
+    '                "kind": "Word",\n' +
++   '                "part": "preposition",\n' +
++   '                "text": "on"\n' +
+-   '                "text": "on",\n' +
+-   '                "concept": "on",\n' +
+-   '                "part": "preposition"\n' +
+    '              },\n' +
+    '              {\n' +
++   '                "concept": "the",\n' +
+    '                "kind": "Word",\n' +
++   '                "part": "article",\n' +
++   '                "text": "the"\n' +
++   '              },\n' +
++   '              {\n' +
++   '                "imprecision": "untranslated",\n' +
++   '                "kind": "Word",\n' +
++   '                "text": "command"\n' +
++   '  '... 1036 more characters
+-   '                "text": "the",\n' +
+-   '               '... 1036 more characters
+
+    at file:///tmp/gh-issue-solver-1795726129025/experiments/verify-syntax-exchange.mjs:219:10 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: '{\n' +
+    '  "comments": [\n' +
+    '    {\n' +
+    '      "kind": "Comment",\n' +
+    '      "reference": "text-1"\n' +
+    '    }\n' +
+    '  ],\n' +
+    '  "functions": [],\n' +
+    '  "imports": [\n' +
+    '    "#import <stdio.h>",\n' +
+    '    "#include <objpak.h>"\n' +
+    '  ],\n' +
+    '  "kind": "Program",\n' +
+    '  "main": {\n' +
+    '    "kind": "Block",\n' +
+    '    "statements": [\n' +
+    '      {\n' +
+    '        "kind": "Declaration",\n' +
+    '        "mutable": false,\n' +
+    '        "name": "process-arguments",\n' +
+    '        "type": "array<text>",\n' +
+    '        "value": {\n' +
+    '          "includeProgram": true,\n' +
+    '          "kind": "ProcessArguments",\n' +
+    '          "type": "array<text>"\n' +
+    '        }\n' +
+    '      },\n' +
+    '      {\n' +
+    '        "kind": "Declaration",\n' +
+    '        "mutable": true,\n' +
+    '        "name": "argc",\n' +
+    '        "type": "integer",\n' +
+    '        "value": {\n' +
+    '          "array": {\n' +
+    '            "kind": "Name",\n' +
+    '            "name": "process-arguments",\n' +
+    '            "type": "array<text>"\n' +
+    '          },\n' +
+    '          "kind": "Length",\n' +
+    '          "type": "integer"\n' +
+    '        }\n' +
+    '      },\n' +
+    '      {\n' +
+    '        "kind": "Declaration",\n' +
+    '        "mutable": true,\n' +
+    '        "name": "argv",\n' +
+    '        "type": "integer",\n' +
+    '        "value": {\n' +
+    '          "kind": "Number",\n' +
+    '          "type": "integer",\n' +
+    '          "value": 0\n' +
+    '        }\n' +
+    '      },\n' +
+    '      {\n' +
+    '        "elementsAssigned": true,\n' +
+    '        "kind": "Declaration",\n' +
+    '        "mutable": false,\n' +
+    '        "name": "set",\n' +
+    '        "type": "set<text>",\n' +
+    '        "value": {\n' +
+    '          "elements": [],\n' +
+    '          "kind": "SetLiteral",\n' +
+    '          "order": "objpak-string",\n' +
+    '          "type": "set<text>"\n' +
+    '        }\n' +
+    '      },\n' +
+    '      {\n' +
+    '        "kind": "Assignment",\n' +
+    '        "name": "argv",\n' +
+    '        "operator": "=",\n' +
+    '        "value": {\n' +
+    '          "kind": "Binary",\n' +
+    '          "left": {\n' +
+    '            "kind": "Name",\n' +
+    '            "name": "argv",\n' +
+    '            "type": "integer"\n' +
+    '          },\n' +
+    '          "operator": "add",\n' +
+    '          "right": {\n' +
+    '            "kind": "Number",\n' +
+    '            "type": "integer",\n' +
+    '            "value": 1\n' +
+    '          },\n' +
+    '          "type": "integer"\n' +
+    '        }\n' +
+    '      },\n' +
+    '      {\n' +
+    '        "body": {\n' +
+    '          "kind": "Block",\n' +
+    '          "statements": [\n' +
+    '            {\n' +
+    '              "expression": {\n' +
+    '                "collection": {\n' +
+    '                  "kind": "Name",\n' +
+    '                  "name": "set",\n' +
+    '                  "type": "set<text>"\n' +
+    '                },\n' +
+    '                "kind": "SetInsert",\n' +
+    '                "type": "set<text>",\n' +
+    '                "value": {\n' +
+    '                  "array": {\n' +
+    '                    "kind": "Name",\n' +
+    '                    "name": "process-arguments",\n' +
+    '                    "type": "array<text>"\n' +
+    '                  },\n' +
+    '                  "index": {\n' +
+    '                    "delta": 1,\n' +
+    '                    "kind": "Update",\n' +
+    '                    "operand": {\n' +
+    '                      "kind": "Name",\n' +
+    '                      "name": "argv",\n' +
+    '                      "type": "integer"\n' +
+    '                    },\n' +
+    '                    "prefix": false,\n' +
+    '                    "type": "integer"\n' +
+    '                  },\n' +
+    '                  "kind": "Index",\n' +
+    '                  "type": "text"\n' +
+    '                }\n' +
+    '              },\n' +
+    '              "kind": "Evaluate"\n' +
+    '            }\n' +
+    '          ]\n' +
+    '        },\n' +
+    '        "condition": {\n' +
+    '          "kind": "Binary",\n' +
+    '          "left": {\n' +
+    '            "delta": -1,\n' +
+    '            "kind": "Update",\n' +
+    '            "operand": {\n' +
+    '              "kind": "Name",\n' +
+    '              "name": "argc",\n' +
+    '              "type": "integer"\n' +
+    '            },\n' +
+    '            "prefix": true,\n' +
+    '            "type": "integer"\n' +
+    '          },\n' +
+    '          "operator": "notEqual",\n' +
+    '          "right": {\n' +
+    '            "kind": "Number",\n' +
+    '            "type": "integer",\n' +
+    '            "value": 0\n' +
+    '          },\n' +
+    '          "type": "boolean"\n' +
+    '        },\n' +
+    '        "kind": "While"\n' +
+    '      },\n' +
+    '      {\n' +
+    '        "array": {\n' +
+    '          "kind": "Name",\n' +
+    '          "name": "set",\n' +
+    '          "type": "set<text>"\n' +
+    '        },\n' +
+    '        "body": {\n' +
+    '          "kind": "Block",\n' +
+    '          "statements": [\n' +
+    '            {\n' +
+    '              "kind": "Print",\n' +
+    '              "newline": true,\n' +
+    '              "value": {\n' +
+    '                "kind": "Interpolation",\n' +
+    '                "parts": [\n' +
+    '                  {\n' +
+    '                    "kind": "Text",\n' +
+    '                    "reading": {\n' +
+    '                      "kind": "Prose",\n' +
+    '                      "language": "english",\n' +
+    '                      "sentences": [\n' +
+    '                        {\n' +
+    '                          "kind": "Sentence",\n' +
+    '                          "words": [\n' +
+    '                            {\n' +
+    '                              "concept": "hello",\n' +
+    '                              "kind": "Word",\n' +
+    '                              "part": "interjection",\n' +
+    '                              "text": "hello"\n' +
+    '                            }\n' +
+    '                          ]\n' +
+    '                        }\n' +
+    '                      ]\n' +
+    '                    },\n' +
+    '                    "type": "text",\n' +
+    '                    "value": "hello, "\n' +
+    '                  },\n' +
+    '                  {\n' +
+    '                    "kind": "Name",\n' +
+    '                    "name": "each",\n' +
+    '                    "type": "text"\n' +
+    '                  },\n' +
+    '                  {\n' +
+    '                    "kind": "Text",\n' +
+    '                    "type": "text",\n' +
+    '                    "value": "!"\n' +
+    '                  }\n' +
+    '                ],\n' +
+    '                "type": "text"\n' +
+    '              }\n' +
+    '            }\n' +
+    '          ]\n' +
+    '        },\n' +
+    '        "kind": "ForEach",\n' +
+    '        "type": "text",\n' +
+    '        "variable": "each"\n' +
+    '      }\n' +
+    '    ]\n' +
+    '  },\n' +
+    '  "mainComments": [],\n' +
+    '  "texts": [\n' +
+    '    {\n' +
+    '      "id": "text-1",\n' +
+    '      "kind": "Paragraph",\n' +
+    '      "reading": {\n' +
+    '        "kind": "Prose",\n' +
+    '        "language": "english",\n' +
+    '        "sentences": [\n' +
+    '          {\n' +
+    '            "kind": "Sentence",\n' +
+    '            "words": [\n' +
+    '              {\n' +
+    '                "concept": "hello",\n' +
+    '                "kind": "Word",\n' +
+    '                "part": "interjection",\n' +
+    '                "text": "Hello"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "concept": "world",\n' +
+    '                "kind": "Word",\n' +
+    '                "part": "noun",\n' +
+    '                "text": "World"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "concept": "in",\n' +
+    '                "kind": "Word",\n' +
+    '                "part": "preposition",\n' +
+    '                "text": "in"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "imprecision": "untranslated",\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "Objective-C"\n' +
+    '              }\n' +
+    '            ]\n' +
+    '          },\n' +
+    '          {\n' +
+    '            "kind": "Sentence",\n' +
+    '            "words": [\n' +
+    '              {\n' +
+    '                "concept": "from",\n' +
+    '                "kind": "Word",\n' +
+    '                "part": "preposition",\n' +
+    '                "text": "Since"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "concept": "the",\n' +
+    '                "kind": "Word",\n' +
+    '                "part": "article",\n' +
+    '                "text": "the"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "imprecision": "untranslated",\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "standard"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "imprecision": "untranslated",\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "implementation"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "alternatives": 3,\n' +
+    '                "imprecision": "ambiguous",\n' +
+    '                "kind": "Word",\n' +
+    '                "part": "name",\n' +
+    '                "probability": 0.545455,\n' +
+    '                "text": "is",\n' +
+    '                "word": "is"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "imprecision": "untranslated",\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "identical"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "concept": "to",\n' +
+    '                "kind": "Word",\n' +
+    '                "part": "preposition",\n' +
+    '                "text": "to"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "imprecision": "untranslated",\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "K"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "imprecision": "untranslated",\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "R"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "imprecision": "untranslated",\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "C"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "concept": "a",\n' +
+    '                "kind": "Word",\n' +
+    '                "part": "article",\n' +
+    '                "text": "a"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "imprecision": "untranslated",\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "version"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "part": "prime",\n' +
+    '                "prime": "this",\n' +
+    '                "text": "that"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "part": "prime",\n' +
+    '                "prime": "say",\n' +
+    '                "text": "says"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "concept": "hello",\n' +
+    '                "kind": "Word",\n' +
+    '                "part": "interjection",\n' +
+    '                "text": "hello"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "concept": "to",\n' +
+    '                "kind": "Word",\n' +
+    '                "part": "preposition",\n' +
+    '                "text": "to"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "concept": "a",\n' +
+    '                "kind": "Word",\n' +
+    '                "part": "article",\n' +
+    '                "text": "a"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "imprecision": "untranslated",\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "set"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "part": "name",\n' +
+    '                "text": "of",\n' +
+    '                "word": "of"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "part": "prime",\n' +
+    '                "prime": "people",\n' +
+    '                "text": "people"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "part": "name",\n' +
+    '                "text": "passed",\n' +
+    '                "word": "pass"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "concept": "on",\n' +
+    '                "kind": "Word",\n' +
+    '                "part": "preposition",\n' +
+    '                "text": "on"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "concept": "the",\n' +
+    '                "kind": "Word",\n' +
+    '                "part": "article",\n' +
+    '                "text": "the"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "imprecision": "untranslated",\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "command"\n' +
+    '  '... 1036 more characters,
+  expected: '{\n' +
+    '  "kind": "Program",\n' +
+    '  "comments": [\n' +
+    '    {\n' +
+    '      "kind": "Comment",\n' +
+    '      "reference": "text-1"\n' +
+    '    }\n' +
+    '  ],\n' +
+    '  "imports": [\n' +
+    '    "#import <stdio.h>",\n' +
+    '    "#include <objpak.h>"\n' +
+    '  ],\n' +
+    '  "functions": [],\n' +
+    '  "main": {\n' +
+    '    "kind": "Block",\n' +
+    '    "statements": [\n' +
+    '      {\n' +
+    '        "kind": "Declaration",\n' +
+    '        "name": "process-arguments",\n' +
+    '        "type": "array<text>",\n' +
+    '        "value": {\n' +
+    '          "kind": "ProcessArguments",\n' +
+    '          "includeProgram": true,\n' +
+    '          "type": "array<text>"\n' +
+    '        },\n' +
+    '        "mutable": false\n' +
+    '      },\n' +
+    '      {\n' +
+    '        "kind": "Declaration",\n' +
+    '        "name": "argc",\n' +
+    '        "type": "integer",\n' +
+    '        "value": {\n' +
+    '          "kind": "Length",\n' +
+    '          "array": {\n' +
+    '            "kind": "Name",\n' +
+    '            "name": "process-arguments",\n' +
+    '            "type": "array<text>"\n' +
+    '          },\n' +
+    '          "type": "integer"\n' +
+    '        },\n' +
+    '        "mutable": true\n' +
+    '      },\n' +
+    '      {\n' +
+    '        "kind": "Declaration",\n' +
+    '        "name": "argv",\n' +
+    '        "type": "integer",\n' +
+    '        "value": {\n' +
+    '          "kind": "Number",\n' +
+    '          "value": 0,\n' +
+    '          "type": "integer"\n' +
+    '        },\n' +
+    '        "mutable": true\n' +
+    '      },\n' +
+    '      {\n' +
+    '        "kind": "Declaration",\n' +
+    '        "name": "set",\n' +
+    '        "type": "set<text>",\n' +
+    '        "value": {\n' +
+    '          "kind": "SetLiteral",\n' +
+    '          "elements": [],\n' +
+    '          "order": "objpak-string",\n' +
+    '          "type": "set<text>"\n' +
+    '        },\n' +
+    '        "mutable": false,\n' +
+    '        "elementsAssigned": true\n' +
+    '      },\n' +
+    '      {\n' +
+    '        "kind": "Assignment",\n' +
+    '        "name": "argv",\n' +
+    '        "operator": "=",\n' +
+    '        "value": {\n' +
+    '          "kind": "Binary",\n' +
+    '          "operator": "add",\n' +
+    '          "left": {\n' +
+    '            "kind": "Name",\n' +
+    '            "name": "argv",\n' +
+    '            "type": "integer"\n' +
+    '          },\n' +
+    '          "right": {\n' +
+    '            "kind": "Number",\n' +
+    '            "value": 1,\n' +
+    '            "type": "integer"\n' +
+    '          },\n' +
+    '          "type": "integer"\n' +
+    '        }\n' +
+    '      },\n' +
+    '      {\n' +
+    '        "kind": "While",\n' +
+    '        "condition": {\n' +
+    '          "kind": "Binary",\n' +
+    '          "operator": "notEqual",\n' +
+    '          "left": {\n' +
+    '            "kind": "Update",\n' +
+    '            "operand": {\n' +
+    '              "kind": "Name",\n' +
+    '              "name": "argc",\n' +
+    '              "type": "integer"\n' +
+    '            },\n' +
+    '            "delta": -1,\n' +
+    '            "prefix": true,\n' +
+    '            "type": "integer"\n' +
+    '          },\n' +
+    '          "right": {\n' +
+    '            "kind": "Number",\n' +
+    '            "value": 0,\n' +
+    '            "type": "integer"\n' +
+    '          },\n' +
+    '          "type": "boolean"\n' +
+    '        },\n' +
+    '        "body": {\n' +
+    '          "kind": "Block",\n' +
+    '          "statements": [\n' +
+    '            {\n' +
+    '              "kind": "Evaluate",\n' +
+    '              "expression": {\n' +
+    '                "kind": "SetInsert",\n' +
+    '                "collection": {\n' +
+    '                  "kind": "Name",\n' +
+    '                  "name": "set",\n' +
+    '                  "type": "set<text>"\n' +
+    '                },\n' +
+    '                "value": {\n' +
+    '                  "kind": "Index",\n' +
+    '                  "array": {\n' +
+    '                    "kind": "Name",\n' +
+    '                    "name": "process-arguments",\n' +
+    '                    "type": "array<text>"\n' +
+    '                  },\n' +
+    '                  "index": {\n' +
+    '                    "kind": "Update",\n' +
+    '                    "operand": {\n' +
+    '                      "kind": "Name",\n' +
+    '                      "name": "argv",\n' +
+    '                      "type": "integer"\n' +
+    '                    },\n' +
+    '                    "delta": 1,\n' +
+    '                    "prefix": false,\n' +
+    '                    "type": "integer"\n' +
+    '                  },\n' +
+    '                  "type": "text"\n' +
+    '                },\n' +
+    '                "type": "set<text>"\n' +
+    '              }\n' +
+    '            }\n' +
+    '          ]\n' +
+    '        }\n' +
+    '      },\n' +
+    '      {\n' +
+    '        "kind": "ForEach",\n' +
+    '        "variable": "each",\n' +
+    '        "array": {\n' +
+    '          "kind": "Name",\n' +
+    '          "name": "set",\n' +
+    '          "type": "set<text>"\n' +
+    '        },\n' +
+    '        "body": {\n' +
+    '          "kind": "Block",\n' +
+    '          "statements": [\n' +
+    '            {\n' +
+    '              "kind": "Print",\n' +
+    '              "value": {\n' +
+    '                "kind": "Interpolation",\n' +
+    '                "parts": [\n' +
+    '                  {\n' +
+    '                    "kind": "Text",\n' +
+    '                    "value": "hello, ",\n' +
+    '                    "type": "text",\n' +
+    '                    "reading": {\n' +
+    '                      "kind": "Prose",\n' +
+    '                      "language": "english",\n' +
+    '                      "sentences": [\n' +
+    '                        {\n' +
+    '                          "kind": "Sentence",\n' +
+    '                          "words": [\n' +
+    '                            {\n' +
+    '                              "kind": "Word",\n' +
+    '                              "text": "hello",\n' +
+    '                              "concept": "hello",\n' +
+    '                              "part": "interjection"\n' +
+    '                            }\n' +
+    '                          ]\n' +
+    '                        }\n' +
+    '                      ]\n' +
+    '                    }\n' +
+    '                  },\n' +
+    '                  {\n' +
+    '                    "kind": "Name",\n' +
+    '                    "name": "each",\n' +
+    '                    "type": "text"\n' +
+    '                  },\n' +
+    '                  {\n' +
+    '                    "kind": "Text",\n' +
+    '                    "value": "!",\n' +
+    '                    "type": "text"\n' +
+    '                  }\n' +
+    '                ],\n' +
+    '                "type": "text"\n' +
+    '              },\n' +
+    '              "newline": true\n' +
+    '            }\n' +
+    '          ]\n' +
+    '        },\n' +
+    '        "type": "text"\n' +
+    '      }\n' +
+    '    ]\n' +
+    '  },\n' +
+    '  "mainComments": [],\n' +
+    '  "texts": [\n' +
+    '    {\n' +
+    '      "kind": "Paragraph",\n' +
+    '      "id": "text-1",\n' +
+    '      "text": "Hello World in Objective-C.\\n** Since the standard implementation is identical to K&R C,\\n** a version that says hello to a set of people passed on\\n** the command line is shown here.",\n' +
+    '      "reading": {\n' +
+    '        "kind": "Prose",\n' +
+    '        "language": "english",\n' +
+    '        "sentences": [\n' +
+    '          {\n' +
+    '            "kind": "Sentence",\n' +
+    '            "words": [\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "Hello",\n' +
+    '                "concept": "hello",\n' +
+    '                "part": "interjection"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "World",\n' +
+    '                "concept": "world",\n' +
+    '                "part": "noun"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "in",\n' +
+    '                "concept": "in",\n' +
+    '                "part": "preposition"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "Objective-C",\n' +
+    '                "imprecision": "untranslated"\n' +
+    '              }\n' +
+    '            ]\n' +
+    '          },\n' +
+    '          {\n' +
+    '            "kind": "Sentence",\n' +
+    '            "words": [\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "Since",\n' +
+    '                "concept": "from",\n' +
+    '                "part": "preposition"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "the",\n' +
+    '                "concept": "the",\n' +
+    '                "part": "article"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "standard",\n' +
+    '                "imprecision": "untranslated"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "implementation",\n' +
+    '                "imprecision": "untranslated"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "is",\n' +
+    '                "word": "is",\n' +
+    '                "part": "name",\n' +
+    '                "imprecision": "ambiguous",\n' +
+    '                "alternatives": 3,\n' +
+    '                "probability": 0.545455\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "identical",\n' +
+    '                "imprecision": "untranslated"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "to",\n' +
+    '                "concept": "to",\n' +
+    '                "part": "preposition"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "K",\n' +
+    '                "imprecision": "untranslated"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "R",\n' +
+    '                "imprecision": "untranslated"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "C",\n' +
+    '                "imprecision": "untranslated"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "a",\n' +
+    '                "concept": "a",\n' +
+    '                "part": "article"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "version",\n' +
+    '                "imprecision": "untranslated"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "that",\n' +
+    '                "prime": "this",\n' +
+    '                "part": "prime"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "says",\n' +
+    '                "prime": "say",\n' +
+    '                "part": "prime"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "hello",\n' +
+    '                "concept": "hello",\n' +
+    '                "part": "interjection"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "to",\n' +
+    '                "concept": "to",\n' +
+    '                "part": "preposition"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "a",\n' +
+    '                "concept": "a",\n' +
+    '                "part": "article"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "set",\n' +
+    '                "imprecision": "untranslated"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "of",\n' +
+    '                "word": "of",\n' +
+    '                "part": "name"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "people",\n' +
+    '                "prime": "people",\n' +
+    '                "part": "prime"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "passed",\n' +
+    '                "word": "pass",\n' +
+    '                "part": "name"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "on",\n' +
+    '                "concept": "on",\n' +
+    '                "part": "preposition"\n' +
+    '              },\n' +
+    '              {\n' +
+    '                "kind": "Word",\n' +
+    '                "text": "the",\n' +
+    '               '... 1036 more characters,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v26.13.1

@@ -52,10 +52,18 @@ impl Parser {
 
     /// a, b, c up to the closing symbol.
     pub(crate) fn element_list(&mut self, close: &str) -> Parsed<Vec<Node>> {
+        self.element_list_with(close, Self::expression)
+    }
+
+    pub(super) fn element_list_with(
+        &mut self,
+        close: &str,
+        read_element: fn(&mut Self) -> Parsed,
+    ) -> Parsed<Vec<Node>> {
         let mut elements = Vec::new();
         self.skip_newlines();
         while !self.is(close) {
-            elements.push(self.expression()?);
+            elements.push(read_element(self)?);
             self.skip_newlines();
             if !self.accept(",") {
                 break;
@@ -71,6 +79,9 @@ impl Parser {
     }
 
     pub(crate) fn base_primary(&mut self) -> Parsed {
+        if let Some(expression) = self.objpak_primary()? {
+            return Ok(expression);
+        }
         let mut expression = match self.array_primary()? {
             Some(read) => read,
             None => self.plain_primary()?,
@@ -149,6 +160,11 @@ impl Parser {
 
     fn named_constructor(&mut self, word: &str) -> Parsed<Option<Node>> {
         let named = self.kind(1) == TokenType::Name;
+        if word == "new" && self.syntax.id == "csharp" && self.is_at("[", 1) && self.is_at("]", 2) {
+            self.position += 3;
+            self.expect("{")?;
+            return self.array_literal("}").map(Some);
+        }
         // Java, Groovy and D: new int[n], filled with zeros.
         if word == "new" && named && self.is_at("[", 2) {
             self.position += 3;
@@ -205,7 +221,17 @@ impl Parser {
         // C: sizeof a. D: cast(long) value.
         if word == "sizeof" {
             self.position += 1;
-            let operand = self.unary()?;
+            let operand = if self.is("(")
+                && (CAST_TYPES.contains(&self.value(1))
+                    || (self.syntax.id == "cpp" && self.is_at("char", 1)))
+                && self.is_at(")", 2)
+            {
+                let kind = self.value(1).to_owned();
+                self.position += 3;
+                name(&kind)
+            } else {
+                self.unary()?
+            };
             return Ok(Some(Node::new("SizeOf").with("operand", operand)));
         }
         if word == "cast" && self.is_at("(", 1) && self.is_at(")", 3) {
@@ -217,13 +243,25 @@ impl Parser {
 
     /// C and C++: (int) value.
     fn cast(&mut self) -> Parsed<Option<Node>> {
+        let cast_type = self.value(1);
+        let cpp_char = self.syntax.id == "cpp" && cast_type == "char";
         if self.is("(")
-            && CAST_TYPES.contains(&self.value(1))
+            && (CAST_TYPES.contains(&cast_type) || cpp_char)
             && self.is_at(")", 2)
             && ["c", "objc", "cpp"].contains(&self.family())
         {
+            let cast_type = cast_type.to_owned();
             self.position += 3;
-            return self.unary().map(Some);
+            let operand = self.unary()?;
+            return Ok(Some(
+                if cpp_char || operand.is("CppCharacter") || operand.is("CppIntegralCast") {
+                    Node::new("CppIntegralCast")
+                        .with("castType", cast_type)
+                        .with("operand", operand)
+                } else {
+                    operand
+                },
+            ));
         }
         Ok(None)
     }
@@ -243,6 +281,13 @@ impl Parser {
     }
 
     pub(crate) fn unary(&mut self) -> Parsed {
+        self.concrete_rule("unary", Self::concrete_unary)
+    }
+
+    fn concrete_unary(&mut self) -> Parsed {
+        if let Some(value) = self.objc_prefix()? {
+            return Ok(value);
+        }
         // Lua: #a is the length of a.
         if self.syntax.id == "lua" && self.accept("#") {
             let array = self.unary()?;
@@ -277,7 +322,12 @@ impl Parser {
     }
 
     fn array_declaration_start(&self) -> Option<ArrayStart> {
-        if self.is("std") && self.is_at("::", 1) && self.is_at("vector", 2) {
+        if self.syntax.id == "cpp"
+            && ["std", "::", "vector", "<", "int", ">"]
+                .iter()
+                .enumerate()
+                .all(|(offset, word)| self.is_at(word, offset))
+        {
             return Some(ArrayStart::Vector);
         }
         let c = ["c", "objc"].contains(&self.family());
@@ -303,7 +353,7 @@ impl Parser {
         let Some(start) = self.array_declaration_start() else {
             return self.plain_typed_declaration();
         };
-        let mut value = None;
+        let mut value;
         let variable;
         if start == ArrayStart::Vector {
             self.position += 6; // std :: vector < int >
@@ -314,6 +364,10 @@ impl Parser {
                 let fill = self.expression()?;
                 self.expect(")")?;
                 value = Some(new_array(length, fill));
+            } else if self.accept("{") {
+                value = Some(self.array_literal("}")?);
+            } else {
+                value = Some(Node::new("ArrayLiteral").with("elements", Vec::<Node>::new()));
             }
         } else {
             self.position += 1;

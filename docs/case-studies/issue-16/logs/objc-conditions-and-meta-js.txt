@@ -1,0 +1,21 @@
+▶ explicit meta child roles shared with Rust
+  ✔ shows every role in control-flow (5.023109ms)
+  ✔ shows every role in queries-library (2.227665ms)
+  ✔ shows every role in nested-prose (3.278726ms)
+  ✔ shows every role in annotated-block (1.161046ms)
+✔ explicit meta child roles shared with Rust (14.331403ms)
+✔ keeps condition/action and value/effect roles through every reader family (1277.921445ms)
+▶ Objective-C condition types
+  ✔ preserves boolean calls and normalizes numeric calls after inference (531.371811ms)
+  ✔ reads the C-family void parameter marker without inventing a variable (20.613172ms)
+  ✔ preserves boolean variable conditions and types every numeric test (11.709823ms)
+  ✔ retains the runtime header as one concrete directive and rejects conditional code (1.325492ms)
+✔ Objective-C condition types (567.426366ms)
+ℹ tests 9
+ℹ suites 2
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1783.138707

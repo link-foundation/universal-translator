@@ -1,0 +1,13 @@
+{
+  "kind": "Extension",
+  "body": {
+    "kind": "Block",
+    "label": "retry",
+    "comments": [{ "kind": "Comment", "text": "Keep this metadata." }],
+    "statements": [
+      { "kind": "Return", "value": { "kind": "Number", "value": 1 } }
+    ]
+  },
+  "zExtension": { "kind": "Text", "value": "last" },
+  "aExtension": { "kind": "Text", "value": "first" }
+}

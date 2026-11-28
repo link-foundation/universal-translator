@@ -1,0 +1,44 @@
+node experiments/issue-16-portable-program.mjs --default target/debug/universal-translator
+{"engine":"JavaScript","inputKind":"JavaScript","from":"JavaScript","to":"Rust","stdout":"42\n"}
+{"engine":"Rust","inputKind":"cst","from":"JavaScript","to":"Rust","stdout":"42\n"}
+{"engine":"Rust","inputKind":"JavaScript","from":"JavaScript","to":"Rust","stdout":"42\n"}
+{"engine":"JavaScript","inputKind":"cst","from":"JavaScript","to":"Rust","stdout":"42\n"}
+{"engine":"JavaScript","inputKind":"Rust","from":"Rust","to":"JavaScript","stdout":"42\n"}
+{"engine":"Rust","inputKind":"cst","from":"Rust","to":"JavaScript","stdout":"42\n"}
+{"engine":"Rust","inputKind":"Rust","from":"Rust","to":"JavaScript","stdout":"42\n"}
+{"engine":"JavaScript","inputKind":"cst","from":"Rust","to":"JavaScript","stdout":"42\n"}
+{"engine":"JavaScript","rejected":["syntax error","unsupported class"]}
+{"engine":"Rust","rejected":["syntax error","unsupported class"]}
+
+Pinned grammar parser cases retained exactly after Links Notation interchange
+PASS Python
+PASS C
+PASS Java
+PASS C++
+PASS C#
+PASS JavaScript
+PASS R
+PASS sql-ansi
+PASS sql-sqlite
+PASS sql-server
+PASS Visual Basic
+PASS Go
+PASS Rust
+PASS PHP
+PASS Perl
+PASS MATLAB
+PASS Swift
+PASS Delphi/Object Pascal
+PASS Dart
+PASS Ruby
+PASS Lua
+PASS Kotlin
+PASS OCaml
+PASS Scala
+PASS Haskell
+PASS TypeScript
+PASS Solidity
+
+npm artifact, source document, workspace and browser-chunk checks: 20 passed.
+
+Node 20.19.6 default engine: generated Rust ran and printed 42.

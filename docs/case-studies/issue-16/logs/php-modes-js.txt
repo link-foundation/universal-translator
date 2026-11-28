@@ -1,0 +1,37 @@
+▶ concrete syntax as the default source record
+  ✔ partitions every byte, including quotes, directives and trivia (50.243575ms)
+  ✔ exposes source syntax to decorators before semantic rewriting (712.756764ms)
+  ✔ retains source syntax when reading words and every machine format (173.756363ms)
+  ✔ keeps accepted regions and explicit errors in incomplete source (15.611318ms)
+  ✔ keeps a lossless record for empty and whitespace-only input (1.120319ms)
+✔ concrete syntax as the default source record (956.078713ms)
+▶ Fortran output statements
+  ✔ reads write control lists, new_line and the // operator (585.694686ms)
+  ✔ writes a line end inside text with new_line (25.769085ms)
+  ✔ reads fixed-form comments, labelled formats and a final stop (15.306509ms)
+  ✔ keeps an assignment to c a statement, not a comment (14.81275ms)
+  ✔ reports formats it cannot print (7.826058ms)
+✔ Fortran output statements (654.488883ms)
+▶ calls and layouts of the other collection programs
+  ✔ reads PHP closing tags and following literal output (20.691575ms)
+  ✔ reads a Lua #! line and a call with one text argument (22.426149ms)
+  ✔ reads Groovy println without parentheses (9.670638ms)
+  ✔ reads a Scala object that extends App (7.236718ms)
+  ✔ reads a Visual Basic class after Imports System.Console (21.838173ms)
+  ✔ reads Zig before 0.1 (14.285414ms)
+✔ calls and layouts of the other collection programs (97.299444ms)
+✔ retains PHP output whitespace outside its opening and closing tags (1429.394908ms)
+✔ composes PHP markup, repeated sections, short echoes and shared block scopes (256.390744ms)
+✔ keeps tagless PHP snippets and strings containing tag text in code mode (5.278926ms)
+✔ writes PHP comments containing closing tags without switching to output mode (9.834062ms)
+✔ maps literal PHP markup and code to distinct UTF-8 output regions (6.927612ms)
+✔ reads token-equivalent Rocq runtime headers with native layout and comments (1086.335911ms)
+✔ does not discard changed Rocq helpers or changed quoted runtime values (46.181659ms)
+ℹ tests 23
+ℹ suites 3
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2440.237778

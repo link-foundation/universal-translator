@@ -12,7 +12,28 @@ natural:
   true: 'vero'
   false: 'falso'
   note: 'Nota: {text}'
+  grammar:
+    terms:
+      interrogative: 'Qual è'
+      query-scope: 'per ogni {variable} in {source}'
+      query-deferred: '«differito»'
+    productions:
+      answer-type: 'il tipo di {subject}'
+      question-type: '@interrogative @answer-type'
+      answer-documentation: 'la documentazione di {subject}'
+      question-documentation: '@interrogative @answer-documentation'
+      answer-source: 'il codice sorgente di {subject}'
+      question-source: '@interrogative @answer-source'
+      answer-details: 'le informazioni dettagliate su {subject}'
+      question-details: '@interrogative @answer-details'
+      answer-query: 'i valori di {projection} @query-scope dove {condition}'
+      question-query: 'Quali valori di {projection} @query-scope soddisfano {condition}'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
+      element: "l'elemento {index} di {array}"
+      set-element: "Cambia @element[array=name] in {value}"
   templates:
+    documentation: 'La documentazione è {value}'
     function: 'Definisci {name} usando {parameters}'
     function-without-parameters: 'Definisci {name}'
     declare: 'Crea {name} con valore {value}' 'Sia {name} uguale a {value}'
@@ -50,9 +71,7 @@ natural:
     remainder: '{left} modulo {right}' '{left} % {right}'
     array: 'la lista ({elements})'
     new-array: 'una lista di {length} copie di {fill}'
-    element: "l'elemento {index} di {array}"
     length: 'la lunghezza di {array}'
-    set-element: "Cambia l'elemento {index} di {name} in {value}"
   words:
     ackermann: 'ackermann'
     bottles: 'bottiglie'

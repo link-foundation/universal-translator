@@ -2,6 +2,7 @@
 //! x86-64 in GNU as (AT&T syntax, System V, libc printf) and AArch64 in GNU
 //! as (AAPCS64, libc printf). Both mirror the NASM writer in `machine`.
 
+use crate::emission_map::{SourceLines, active_instruction};
 use std::collections::HashMap;
 
 use super::lowering::{Instruction, LoweredProgram, Procedure};
@@ -110,7 +111,7 @@ fn gas_function(
     item: &Procedure,
     calls: &HashMap<String, bool>,
     texts: &mut Vec<String>,
-) -> Result<Vec<String>> {
+) -> Result<SourceLines> {
     let symbol = |slot: usize| format!("{}(%rbp)", slot_symbol(item, slot));
     let frame = item.slot_count.div_ceil(2) * 16;
     if item.parameter_count > GAS_ARGUMENTS.len() {
@@ -119,7 +120,7 @@ fn gas_function(
             item.name
         )));
     }
-    let mut body: Vec<String> = (0..item.slot_names.len())
+    let mut body: SourceLines = (0..item.slot_names.len())
         .map(|slot| {
             format!(
                 ".set {}, {}",
@@ -136,6 +137,7 @@ fn gas_function(
         body.push(format!("movq %{register}, {}", symbol(index)));
     }
     for instruction in &item.code {
+        let _origin = active_instruction(instruction);
         match instruction {
             Instruction::Comment(text) => {
                 body.extend(comments("#", std::slice::from_ref(text), ""))
@@ -219,10 +221,10 @@ fn gas_function(
             }
         }
     }
-    let mut lines = comments("#", &item.comments, "");
+    let mut lines: SourceLines = comments("#", &item.comments, "");
     lines.push(format!(".type {}, @function", item.name));
     lines.push(format!("{}:", item.name));
-    lines.extend(body.into_iter().map(indent));
+    lines.extend(body.map_text(indent));
     lines.push(format!(".size {}, .-{}", item.name, item.name));
     Ok(lines)
 }
@@ -280,7 +282,7 @@ pub fn write_gas(program: &LoweredProgram) -> Result<String> {
     for item in all_functions(program) {
         functions.push(gas_function(item, &calls, &mut texts)?);
     }
-    let mut lines = comments("#", &program.comments, "");
+    let mut lines: SourceLines = comments("#", &program.comments, "");
     if !program.comments.is_empty() {
         lines.push(String::new());
     }
@@ -303,7 +305,7 @@ pub fn write_gas(program: &LoweredProgram) -> Result<String> {
     lines.push(String::new());
     lines.push("    .section .note.GNU-stack,\"\",@progbits".into());
     lines.push(String::new());
-    Ok(lines.join("\n"))
+    Ok(lines.render_ending("gas", ""))
 }
 
 // ---------------------------------------------------------------------------
@@ -342,7 +344,7 @@ fn arm_function(
     item: &Procedure,
     calls: &HashMap<String, bool>,
     texts: &mut Vec<String>,
-) -> Result<Vec<String>> {
+) -> Result<SourceLines> {
     let offset = |slot: usize| format!("[x29, #{}]", slot_symbol(item, slot));
     let frame = item.slot_count.div_ceil(2) * 16;
     if item.parameter_count > 8 {
@@ -357,7 +359,7 @@ fn arm_function(
         "ldp x29, x30, [sp], #16".to_owned(),
         "ret".to_owned(),
     ];
-    let mut body: Vec<String> = (0..item.slot_names.len())
+    let mut body: SourceLines = (0..item.slot_names.len())
         .map(|slot| format!(".set {}, {}", slot_symbol(item, slot), 8 * slot))
         .collect();
     body.push("stp x29, x30, [sp, #-16]!".into());
@@ -367,6 +369,7 @@ fn arm_function(
         body.push(format!("str x{index}, {}", offset(index)));
     }
     for instruction in &item.code {
+        let _origin = active_instruction(instruction);
         match instruction {
             Instruction::Comment(text) => {
                 body.extend(comments("//", std::slice::from_ref(text), ""))
@@ -471,10 +474,10 @@ fn arm_function(
             }
         }
     }
-    let mut lines = comments("//", &item.comments, "");
+    let mut lines: SourceLines = comments("//", &item.comments, "");
     lines.push(format!(".type {}, %function", item.name));
     lines.push(format!("{}:", item.name));
-    lines.extend(body.into_iter().map(indent));
+    lines.extend(body.map_text(indent));
     lines.push(format!(".size {}, .-{}", item.name, item.name));
     Ok(lines)
 }
@@ -527,7 +530,7 @@ pub fn write_arm64(program: &LoweredProgram) -> Result<String> {
     for item in all_functions(program) {
         functions.push(arm_function(item, &calls, &mut texts)?);
     }
-    let mut lines = comments("//", &program.comments, "");
+    let mut lines: SourceLines = comments("//", &program.comments, "");
     if !program.comments.is_empty() {
         lines.push(String::new());
     }
@@ -550,5 +553,5 @@ pub fn write_arm64(program: &LoweredProgram) -> Result<String> {
     lines.push(String::new());
     lines.push("    .section .note.GNU-stack,\"\",%progbits".into());
     lines.push(String::new());
-    Ok(lines.join("\n"))
+    Ok(lines.render_ending("arm64", ""))
 }

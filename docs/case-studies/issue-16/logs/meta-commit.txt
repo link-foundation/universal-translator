@@ -1,0 +1,3 @@
+[issue-16-fb080613587e dda22e5] Make meta notation label conditions, actions, and expression fields
+ 7 files changed, 180 insertions(+), 160 deletions(-)
+ create mode 100644 .changeset/clear-conditions-and-actions.md

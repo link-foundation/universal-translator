@@ -15,6 +15,38 @@ fn to(source: &str, from: &str, target: &str) -> String {
 }
 
 #[test]
+fn grammatical_case_preserves_constant_and_variable_identity() {
+    for value in ["истина", "истину"] {
+        assert_eq!(
+            to(&format!("Вернуть {value}."), "russian", "python"),
+            "def _ut_main0():\n    return True\n    return 0\n\nraise SystemExit(_ut_main0())\n"
+        );
+    }
+    assert_eq!(
+        to("return True\n", "python", "russian"),
+        "Вернуть истину.\n"
+    );
+    assert_eq!(
+        to(
+            "Создать число со значением 7.\nЕсли делитель не больше числа, сделать это:\n  Вернуть истину.\n",
+            "russian",
+            "python"
+        ),
+        "def _ut_main0():\n    number = 7\n    if divisor <= number:\n        return True\n    return 0\n\nraise SystemExit(_ut_main0())\n"
+    );
+}
+
+#[test]
+fn round_trips_array_reads_and_writes_through_every_shipped_profile() {
+    let source = "values = [1, 2]\nvalues[1 - 1] = values[1] + 3\nprint(values[0])\n";
+    let expected = to(source, "python", "python");
+    for id in universal_translator::natural::catalog::natural_language_ids() {
+        let natural = to(source, "python", id);
+        assert_eq!(to(&natural, id, "python"), expected, "{id}");
+    }
+}
+
+#[test]
 fn read_like_the_canonical_sentences() {
     assert_eq!(
         to(EVERYDAY, "english", "python"),
@@ -60,7 +92,10 @@ fn reads_arithmetic_written_with_symbols() {
     let cases = [
         ("Let n be 0.\nSet n to n + 1.\n", "n += 1"),
         ("Let n be 2 * 3 + 1.\nPrint n.\n", "n = 2 * 3 + 1"),
-        ("Let n be 7 - 2.\nPrint n % 4.\n", "print(n % 4)"),
+        (
+            "Let n be 7 - 2.\nPrint n % 4.\n",
+            "print(ut_integer_remainder(n, 4))",
+        ),
     ];
     for (source, expected) in cases {
         let output = to(source, "english", "python");

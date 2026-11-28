@@ -1,0 +1,1133 @@
+﻿2026-11-27T02:10:51.5398088Z Current runner version: '2.338.2'
+2026-11-27T02:10:51.5415825Z ##[group]Runner Image Provisioner
+2026-11-27T02:10:51.5416406Z Hosted Compute Agent
+2026-11-27T02:10:51.5416870Z Version: 20261111.635
+2026-11-27T02:10:51.5417338Z Commit: b8a594ea514ff44cadb5342986c68b1eac6e22ed
+2026-11-27T02:10:51.5418160Z Build Date: 2026-11-11T01:49:01Z
+2026-11-27T02:10:51.5418639Z Worker ID: {e5011149-c14a-477f-9f0b-d97d5198c420}
+2026-11-27T02:10:51.5419113Z Region: us-east-1
+2026-11-27T02:10:51.5419523Z Cloud: AWS
+2026-11-27T02:10:51.5419924Z ##[endgroup]
+2026-11-27T02:10:51.5420947Z ##[group]Operating System
+2026-11-27T02:10:51.5421371Z Ubuntu
+2026-11-27T02:10:51.5421713Z 24.04.5
+2026-11-27T02:10:51.5422102Z LTS
+2026-11-27T02:10:51.5422478Z ##[endgroup]
+2026-11-27T02:10:51.5422890Z ##[group]Runner Image
+2026-11-27T02:10:51.5423301Z Image: ubuntu-24.04
+2026-11-27T02:10:51.5423677Z Version: 20261116.133.1
+2026-11-27T02:10:51.5424673Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261116.133/images/ubuntu/Ubuntu2404-Readme.md
+2026-11-27T02:10:51.5425760Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261116.133
+2026-11-27T02:10:51.5426455Z ##[endgroup]
+2026-11-27T02:10:51.5427233Z ##[group]GITHUB_TOKEN Permissions
+2026-11-27T02:10:51.5429287Z Contents: read
+2026-11-27T02:10:51.5429726Z Metadata: read
+2026-11-27T02:10:51.5430118Z ##[endgroup]
+2026-11-27T02:10:51.5431799Z Secret source: Actions
+2026-11-27T02:10:51.5432453Z Cache mode: write
+2026-11-27T02:10:51.5433008Z Prepare workflow directory
+2026-11-27T02:10:51.5695723Z Prepare all required actions
+2026-11-27T02:10:51.5732345Z Getting action download info
+2026-11-27T02:10:51.7731668Z Download action repository 'actions/checkout@v7' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-11-27T02:10:53.6506884Z Download action repository 'actions/setup-node@v7' (SHA:949feb2413d6458794dcd2491c4babbbce0c15c1)
+2026-11-27T02:10:53.8447206Z Download action repository 'dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca' (SHA:39008827e6b4319a349e9a42dfc90579dd25f1ca)
+2026-11-27T02:10:53.9344983Z Download action repository 'Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0' (SHA:d1527c8f67ef9af357290475d4af4b0fab8f12e0)
+2026-11-27T02:10:54.2624248Z Complete job name: Rust and cross-language translation
+2026-11-27T02:10:54.3570402Z ##[group]Run actions/checkout@v7
+2026-11-27T02:10:54.3571329Z with:
+2026-11-27T02:10:54.3571909Z   fetch-depth: 0
+2026-11-27T02:10:54.3572556Z   persist-credentials: false
+2026-11-27T02:10:54.3573360Z   repository: link-foundation/universal-translator
+2026-11-27T02:10:54.3579474Z   token: ***
+2026-11-27T02:10:54.3580149Z   ssh-strict: true
+2026-11-27T02:10:54.3580844Z   ssh-user: git
+2026-11-27T02:10:54.3581494Z   clean: true
+2026-11-27T02:10:54.3582173Z   sparse-checkout-cone-mode: true
+2026-11-27T02:10:54.3582956Z   fetch-tags: false
+2026-11-27T02:10:54.3583638Z   show-progress: true
+2026-11-27T02:10:54.3584310Z   lfs: false
+2026-11-27T02:10:54.3584951Z   submodules: false
+2026-11-27T02:10:54.3585706Z   set-safe-directory: true
+2026-11-27T02:10:54.3586471Z   allow-unsafe-pr-checkout: false
+2026-11-27T02:10:54.3587398Z env:
+2026-11-27T02:10:54.3588121Z   GIT_CONFIG_COUNT: 1
+2026-11-27T02:10:54.3588820Z   GIT_CONFIG_KEY_0: init.defaultBranch
+2026-11-27T02:10:54.3589635Z   GIT_CONFIG_VALUE_0: main
+2026-11-27T02:10:54.3590327Z   CARGO_BUILD_JOBS: 1
+2026-11-27T02:10:54.3590979Z   CARGO_INCREMENTAL: 0
+2026-11-27T02:10:54.3591657Z   CARGO_PROFILE_DEV_DEBUG: 0
+2026-11-27T02:10:54.3592377Z   CARGO_PROFILE_TEST_DEBUG: 0
+2026-11-27T02:10:54.3593073Z ##[endgroup]
+2026-11-27T02:10:58.0589792Z Syncing repository: link-foundation/universal-translator
+2026-11-27T02:10:58.0591354Z ##[group]Getting Git version info
+2026-11-27T02:10:58.0591768Z Working directory is '/home/runner/work/universal-translator/universal-translator'
+2026-11-27T02:10:58.0592271Z [command]/usr/bin/git version
+2026-11-27T02:10:58.2717131Z git version 2.56.1
+2026-11-27T02:10:58.2734062Z ##[endgroup]
+2026-11-27T02:10:58.2742405Z Temporarily overriding HOME='/home/runner/work/_temp/01060647-5e92-4aab-b6c5-43dc0acdd005' before making global git config changes
+2026-11-27T02:10:58.2743684Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-27T02:10:58.2746879Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/universal-translator/universal-translator
+2026-11-27T02:10:58.3210302Z Deleting the contents of '/home/runner/work/universal-translator/universal-translator'
+2026-11-27T02:10:58.3212731Z ##[group]Determining repository object format
+2026-11-27T02:10:58.3213887Z ##[endgroup]
+2026-11-27T02:10:58.3214383Z ##[group]Initializing the repository
+2026-11-27T02:10:58.3218054Z [command]/usr/bin/git init /home/runner/work/universal-translator/universal-translator
+2026-11-27T02:10:58.3682168Z Initialized empty Git repository in /home/runner/work/universal-translator/universal-translator/.git/
+2026-11-27T02:10:58.3688656Z [command]/usr/bin/git remote add origin https://github.com/link-foundation/universal-translator
+2026-11-27T02:10:58.3735184Z ##[endgroup]
+2026-11-27T02:10:58.3735626Z ##[group]Disabling automatic garbage collection
+2026-11-27T02:10:58.3737444Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-27T02:10:58.3760295Z ##[endgroup]
+2026-11-27T02:10:58.3760715Z ##[group]Setting up auth
+2026-11-27T02:10:58.3760984Z Removing SSH command configuration
+2026-11-27T02:10:58.3763808Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-27T02:10:58.3797147Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-27T02:10:58.6574497Z Removing HTTP extra header
+2026-11-27T02:10:58.6578558Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-27T02:10:58.6609696Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-27T02:10:58.6753217Z Removing includeIf entries pointing to credentials config files
+2026-11-27T02:10:58.6757382Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-27T02:10:58.6780307Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-27T02:10:58.6927074Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-20d52d67-59fb-47a0-88f9-35b1c00fad7e.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-27T02:10:58.6963078Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/universal-translator/universal-translator/.git.path /home/runner/work/_temp/git-credentials-20d52d67-59fb-47a0-88f9-35b1c00fad7e.config
+2026-11-27T02:10:58.6984807Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/universal-translator/universal-translator/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-20d52d67-59fb-47a0-88f9-35b1c00fad7e.config
+2026-11-27T02:10:58.7007837Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-20d52d67-59fb-47a0-88f9-35b1c00fad7e.config
+2026-11-27T02:10:58.7035824Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-20d52d67-59fb-47a0-88f9-35b1c00fad7e.config
+2026-11-27T02:10:58.7061892Z ##[endgroup]
+2026-11-27T02:10:58.7062234Z ##[group]Fetching the repository
+2026-11-27T02:10:58.7068498Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/* +b4adac6ad40db77a6a6dab4385f71bd05d43c65c:refs/remotes/pull/17/merge
+2026-11-27T02:10:59.9842796Z From https://github.com/link-foundation/universal-translator
+2026-11-27T02:10:59.9843645Z  * [new branch]      issue-1-35d65b774bf6                     -> origin/issue-1-35d65b774bf6
+2026-11-27T02:10:59.9844145Z  * [new branch]      issue-10-ac0b270fdd45                    -> origin/issue-10-ac0b270fdd45
+2026-11-27T02:10:59.9844636Z  * [new branch]      issue-12-6c3cea9725cc                    -> origin/issue-12-6c3cea9725cc
+2026-11-27T02:10:59.9845077Z  * [new branch]      issue-14-213b02ae6953                    -> origin/issue-14-213b02ae6953
+2026-11-27T02:10:59.9845540Z  * [new branch]      issue-16-fb080613587e                    -> origin/issue-16-fb080613587e
+2026-11-27T02:10:59.9845969Z  * [new branch]      issue-2-15825f954cd5                     -> origin/issue-2-15825f954cd5
+2026-11-27T02:10:59.9846391Z  * [new branch]      issue-6-c597ff1041d9                     -> origin/issue-6-c597ff1041d9
+2026-11-27T02:10:59.9846903Z  * [new branch]      issue-8-a666e1cbe6e5                     -> origin/issue-8-a666e1cbe6e5
+2026-11-27T02:10:59.9847361Z  * [new branch]      main                                     -> origin/main
+2026-11-27T02:10:59.9848152Z  * [new branch]      recovery/issue-14-213b02ae6953           -> origin/recovery/issue-14-213b02ae6953
+2026-11-27T02:10:59.9848649Z  * [new tag]         v0.11.32                                 -> v0.11.32
+2026-11-27T02:10:59.9849035Z  * [new tag]         v0.12.0                                  -> v0.12.0
+2026-11-27T02:10:59.9849395Z  * [new tag]         v0.13.0                                  -> v0.13.0
+2026-11-27T02:10:59.9849758Z  * [new tag]         v0.14.0                                  -> v0.14.0
+2026-11-27T02:10:59.9850205Z  * [new tag]         v0.14.1                                  -> v0.14.1
+2026-11-27T02:10:59.9850607Z  * [new tag]         v0.15.0                                  -> v0.15.0
+2026-11-27T02:10:59.9850959Z  * [new tag]         v0.16.0                                  -> v0.16.0
+2026-11-27T02:10:59.9851360Z  * [new ref]         b4adac6ad40db77a6a6dab4385f71bd05d43c65c -> pull/17/merge
+2026-11-27T02:10:59.9852512Z ##[endgroup]
+2026-11-27T02:10:59.9852888Z ##[group]Determining the checkout info
+2026-11-27T02:10:59.9853279Z ##[endgroup]
+2026-11-27T02:10:59.9853524Z [command]/usr/bin/git sparse-checkout disable
+2026-11-27T02:10:59.9920656Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-27T02:10:59.9945069Z ##[group]Checking out the ref
+2026-11-27T02:10:59.9947359Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/17/merge
+2026-11-27T02:11:00.4219260Z Note: switching to 'refs/remotes/pull/17/merge'.
+2026-11-27T02:11:00.4219847Z 
+2026-11-27T02:11:00.4220210Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-11-27T02:11:00.4220656Z changes and commit them, and you can discard any commits you make in this
+2026-11-27T02:11:00.4220983Z state without impacting any branches by switching back to a branch.
+2026-11-27T02:11:00.4221166Z 
+2026-11-27T02:11:00.4221300Z If you want to create a new branch to retain commits you create, you may
+2026-11-27T02:11:00.4221631Z do so (now or later) by using -c with the switch command. Example:
+2026-11-27T02:11:00.4221811Z 
+2026-11-27T02:11:00.4221896Z   git switch -c <new-branch-name>
+2026-11-27T02:11:00.4222023Z 
+2026-11-27T02:11:00.4222096Z Or undo this operation with:
+2026-11-27T02:11:00.4222211Z 
+2026-11-27T02:11:00.4222288Z   git switch -
+2026-11-27T02:11:00.4222380Z 
+2026-11-27T02:11:00.4222531Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-11-27T02:11:00.4222727Z 
+2026-11-27T02:11:00.4251337Z HEAD is now at b4adac6 Merge 6bf0e95724399bc14e9eeb2f278a74d197833c84 into 52f339ddaa96c45e9a2c0862b4159a713ceae312
+2026-11-27T02:11:00.4252291Z ##[endgroup]
+2026-11-27T02:11:00.4296842Z [command]/usr/bin/git log -1 --format=%H
+2026-11-27T02:11:00.4318297Z b4adac6ad40db77a6a6dab4385f71bd05d43c65c
+2026-11-27T02:11:00.4324254Z ##[group]Removing auth
+2026-11-27T02:11:00.4324709Z Removing SSH command configuration
+2026-11-27T02:11:00.4326815Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-27T02:11:00.4350171Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-27T02:11:00.4507729Z Removing HTTP extra header
+2026-11-27T02:11:00.4509964Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-27T02:11:00.4531561Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-27T02:11:00.4679311Z Removing includeIf entries pointing to credentials config files
+2026-11-27T02:11:00.4681114Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-27T02:11:00.4709483Z includeif.gitdir:/home/runner/work/universal-translator/universal-translator/.git.path
+2026-11-27T02:11:00.4710147Z includeif.gitdir:/home/runner/work/universal-translator/universal-translator/.git/worktrees/*.path
+2026-11-27T02:11:00.4710596Z includeif.gitdir:/github/workspace/.git.path
+2026-11-27T02:11:00.4710944Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-11-27T02:11:00.4714664Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/universal-translator/universal-translator/.git.path
+2026-11-27T02:11:00.4731571Z /home/runner/work/_temp/git-credentials-20d52d67-59fb-47a0-88f9-35b1c00fad7e.config
+2026-11-27T02:11:00.4737944Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/universal-translator/universal-translator/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-20d52d67\-59fb\-47a0\-88f9\-35b1c00fad7e\.config
+2026-11-27T02:11:00.4766717Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/universal-translator/universal-translator/.git/worktrees/*.path
+2026-11-27T02:11:00.4784401Z /home/runner/work/_temp/git-credentials-20d52d67-59fb-47a0-88f9-35b1c00fad7e.config
+2026-11-27T02:11:00.4789416Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/universal-translator/universal-translator/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-20d52d67\-59fb\-47a0\-88f9\-35b1c00fad7e\.config
+2026-11-27T02:11:00.4812254Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-11-27T02:11:00.4828593Z /github/runner_temp/git-credentials-20d52d67-59fb-47a0-88f9-35b1c00fad7e.config
+2026-11-27T02:11:00.4834326Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-20d52d67\-59fb\-47a0\-88f9\-35b1c00fad7e\.config
+2026-11-27T02:11:00.4857783Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-11-27T02:11:00.4875318Z /github/runner_temp/git-credentials-20d52d67-59fb-47a0-88f9-35b1c00fad7e.config
+2026-11-27T02:11:00.4880249Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-20d52d67\-59fb\-47a0\-88f9\-35b1c00fad7e\.config
+2026-11-27T02:11:00.4902768Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-27T02:11:00.5046624Z Removing credentials config '/home/runner/work/_temp/git-credentials-20d52d67-59fb-47a0-88f9-35b1c00fad7e.config'
+2026-11-27T02:11:00.5052877Z ##[endgroup]
+2026-11-27T02:11:00.5210745Z ##[group]Run bash scripts/simulate-fresh-merge.sh
+2026-11-27T02:11:00.5211094Z [36;1mbash scripts/simulate-fresh-merge.sh[0m
+2026-11-27T02:11:00.7777780Z shell: /usr/bin/bash -e {0}
+2026-11-27T02:11:00.7777990Z env:
+2026-11-27T02:11:00.7778136Z   GIT_CONFIG_COUNT: 1
+2026-11-27T02:11:00.7778320Z   GIT_CONFIG_KEY_0: init.defaultBranch
+2026-11-27T02:11:00.7778518Z   GIT_CONFIG_VALUE_0: main
+2026-11-27T02:11:00.7778687Z   CARGO_BUILD_JOBS: 1
+2026-11-27T02:11:00.7778998Z   CARGO_INCREMENTAL: 0
+2026-11-27T02:11:00.7779164Z   CARGO_PROFILE_DEV_DEBUG: 0
+2026-11-27T02:11:00.7779340Z   CARGO_PROFILE_TEST_DEBUG: 0
+2026-11-27T02:11:00.7779560Z   BASE_REF: main
+2026-11-27T02:11:00.7779760Z ##[endgroup]
+2026-11-27T02:11:00.7847731Z === Synchronizing PR with latest main ===
+2026-11-27T02:11:00.7848152Z This prevents stale merge preview issues (see docs/case-studies/issue-23)
+2026-11-27T02:11:00.7848427Z 
+2026-11-27T02:11:00.7869915Z Fetching latest main...
+2026-11-27T02:11:00.8745446Z From https://github.com/link-foundation/universal-translator
+2026-11-27T02:11:00.8745860Z  * branch            main       -> FETCH_HEAD
+2026-11-27T02:11:00.8784461Z Current checkout (merge preview): b4adac6ad40db77a6a6dab4385f71bd05d43c65c
+2026-11-27T02:11:00.8784818Z Latest base branch (main): 52f339ddaa96c45e9a2c0862b4159a713ceae312
+2026-11-27T02:11:00.8785016Z 
+2026-11-27T02:11:00.8797363Z Merge preview is up-to-date with main. No simulation needed.
+2026-11-27T02:11:00.8797804Z 
+2026-11-27T02:11:00.8866366Z ##[group]Run actions/setup-node@v7
+2026-11-27T02:11:00.8866570Z with:
+2026-11-27T02:11:00.8866722Z   node-version: 24.x
+2026-11-27T02:11:00.8866877Z   cache: npm
+2026-11-27T02:11:00.8867024Z   check-latest: false
+2026-11-27T02:11:00.8869046Z   token: ***
+2026-11-27T02:11:00.8869219Z   package-manager-cache: true
+2026-11-27T02:11:00.8869409Z env:
+2026-11-27T02:11:00.8869551Z   GIT_CONFIG_COUNT: 1
+2026-11-27T02:11:00.8869723Z   GIT_CONFIG_KEY_0: init.defaultBranch
+2026-11-27T02:11:00.8869922Z   GIT_CONFIG_VALUE_0: main
+2026-11-27T02:11:00.8870091Z   CARGO_BUILD_JOBS: 1
+2026-11-27T02:11:00.8870247Z   CARGO_INCREMENTAL: 0
+2026-11-27T02:11:00.8870416Z   CARGO_PROFILE_DEV_DEBUG: 0
+2026-11-27T02:11:00.8870592Z   CARGO_PROFILE_TEST_DEBUG: 0
+2026-11-27T02:11:00.8870765Z ##[endgroup]
+2026-11-27T02:11:01.0972470Z Found in cache @ /opt/hostedtoolcache/node/24.22.3/x64
+2026-11-27T02:11:02.8664576Z ##[group]Environment details
+2026-11-27T02:11:06.2264737Z node: v24.22.3
+2026-11-27T02:11:06.2265080Z npm: 11.19.1
+2026-11-27T02:11:06.2265231Z yarn: 1.22.22
+2026-11-27T02:11:06.2265627Z ##[endgroup]
+2026-11-27T02:11:06.2280387Z [command]/opt/hostedtoolcache/node/24.22.3/x64/bin/npm config get cache
+2026-11-27T02:11:06.7514768Z /home/runner/.npm
+2026-11-27T02:11:06.8586415Z Cache hit for: node-cache-Linux-x64-npm-1600d864fd7259625d236031199ccb40449c0a67bd81cf71464f8e118c553b2b
+2026-11-27T02:11:06.9707462Z Received 5707 of 5707 (100.0%), 0.2 MBs/sec
+2026-11-27T02:11:06.9708001Z Cache Size: ~0 MB (5707 B)
+2026-11-27T02:11:06.9728041Z [command]/usr/bin/tar -xf /home/runner/work/_temp/66056507-4b63-49fd-a4d6-c83c61e8cb14/cache.tzst -P -C /home/runner/work/universal-translator/universal-translator --use-compress-program unzstd
+2026-11-27T02:11:06.9764405Z Cache restored successfully
+2026-11-27T02:11:06.9767045Z Cache restored from key: node-cache-Linux-x64-npm-1600d864fd7259625d236031199ccb40449c0a67bd81cf71464f8e118c553b2b
+2026-11-27T02:11:06.9949456Z ##[group]Run dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca
+2026-11-27T02:11:06.9949755Z with:
+2026-11-27T02:11:06.9949920Z   components: rustfmt, clippy
+2026-11-27T02:11:06.9950123Z   targets: wasm32-unknown-unknown
+2026-11-27T02:11:06.9950303Z   toolchain: stable
+2026-11-27T02:11:06.9950451Z env:
+2026-11-27T02:11:06.9950588Z   GIT_CONFIG_COUNT: 1
+2026-11-27T02:11:06.9950763Z   GIT_CONFIG_KEY_0: init.defaultBranch
+2026-11-27T02:11:06.9950958Z   GIT_CONFIG_VALUE_0: main
+2026-11-27T02:11:06.9951174Z   CARGO_BUILD_JOBS: 1
+2026-11-27T02:11:06.9951331Z   CARGO_INCREMENTAL: 0
+2026-11-27T02:11:06.9951502Z   CARGO_PROFILE_DEV_DEBUG: 0
+2026-11-27T02:11:06.9951680Z   CARGO_PROFILE_TEST_DEBUG: 0
+2026-11-27T02:11:06.9951856Z ##[endgroup]
+2026-11-27T02:11:07.0001555Z ##[start-action display=Parse toolchain version;id=__dtolnay_rust-toolchain.parse]
+2026-11-27T02:11:07.0034476Z ##[group]Run if [[ -z $toolchain ]]; then
+2026-11-27T02:11:07.0034796Z [36;1mif [[ -z $toolchain ]]; then[0m
+2026-11-27T02:11:07.0035175Z [36;1m  # GitHub does not enforce `required: true` inputs itself. https://github.com/actions/runner/issues/1070[0m
+2026-11-27T02:11:07.0035735Z [36;1m  echo "'toolchain' is a required input" >&2[0m
+2026-11-27T02:11:07.0035959Z [36;1m  exit 1[0m
+2026-11-27T02:11:07.0036206Z [36;1melif [[ $toolchain =~ ^stable' '[0-9]+' '(year|month|week|day)s?' 'ago$ ]]; then[0m
+2026-11-27T02:11:07.0036493Z [36;1m  if [[ Linux == macOS ]]; then[0m
+2026-11-27T02:11:07.0036864Z [36;1m    echo "toolchain=1.$((($(date -v-$(sed 's/stable \([0-9]*\) \(.\).*/\1\2/' <<< $toolchain) +%s)/60/60/24-16569)/7/6))" >> $GITHUB_OUTPUT[0m
+2026-11-27T02:11:07.0037222Z [36;1m  else[0m
+2026-11-27T02:11:07.0037511Z [36;1m    echo "toolchain=1.$((($(date --date "${toolchain#stable }" +%s)/60/60/24-16569)/7/6))" >> $GITHUB_OUTPUT[0m
+2026-11-27T02:11:07.0038042Z [36;1m  fi[0m
+2026-11-27T02:11:07.0038277Z [36;1melif [[ $toolchain =~ ^stable' 'minus' '[0-9]+' 'releases?$ ]]; then[0m
+2026-11-27T02:11:07.0038655Z [36;1m  echo "toolchain=1.$((($(date +%s)/60/60/24-16569)/7/6-${toolchain//[^0-9]/}))" >> $GITHUB_OUTPUT[0m
+2026-11-27T02:11:07.0038980Z [36;1melif [[ $toolchain =~ ^1\.[0-9]+$ ]]; then[0m
+2026-11-27T02:11:07.0039349Z [36;1m  echo "toolchain=1.$((i=${toolchain#1.}, c=($(date +%s)/60/60/24-16569)/7/6, i+9*i*(10*i<=c)+90*i*(100*i<=c)))" >> $GITHUB_OUTPUT[0m
+2026-11-27T02:11:07.0039701Z [36;1melse[0m
+2026-11-27T02:11:07.0039853Z [36;1m  delimiter=EOF[0m
+2026-11-27T02:11:07.0040073Z [36;1m  while [[ $toolchain == *$delimiter* ]]; do delimiter+=_; done[0m
+2026-11-27T02:11:07.0040427Z [36;1m  printf 'toolchain<<%s\n%s\n%s\n' "$delimiter" "$toolchain" "$delimiter" >> $GITHUB_OUTPUT[0m
+2026-11-27T02:11:07.0040719Z [36;1mfi[0m
+2026-11-27T02:11:07.0395832Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-11-27T02:11:07.0396079Z env:
+2026-11-27T02:11:07.0396240Z   GIT_CONFIG_COUNT: 1
+2026-11-27T02:11:07.0396417Z   GIT_CONFIG_KEY_0: init.defaultBranch
+2026-11-27T02:11:07.0396625Z   GIT_CONFIG_VALUE_0: main
+2026-11-27T02:11:07.0396797Z   CARGO_BUILD_JOBS: 1
+2026-11-27T02:11:07.0396971Z   CARGO_INCREMENTAL: 0
+2026-11-27T02:11:07.0397140Z   CARGO_PROFILE_DEV_DEBUG: 0
+2026-11-27T02:11:07.0397322Z   CARGO_PROFILE_TEST_DEBUG: 0
+2026-11-27T02:11:07.0397499Z   toolchain: stable
+2026-11-27T02:11:07.0397796Z ##[endgroup]
+2026-11-27T02:11:07.0461810Z ##[end-action id=__dtolnay_rust-toolchain.parse;outcome=success;conclusion=success;duration_ms=45]
+2026-11-27T02:11:07.0464677Z ##[start-action display=Set $CARGO_HOME;id=__dtolnay_rust-toolchain.__run]
+2026-11-27T02:11:07.0479147Z ##[group]Run echo CARGO_HOME=${CARGO_HOME:-"$HOME/.cargo"} >> $GITHUB_ENV
+2026-11-27T02:11:07.0479497Z [36;1mecho CARGO_HOME=${CARGO_HOME:-"$HOME/.cargo"} >> $GITHUB_ENV[0m
+2026-11-27T02:11:07.0500409Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-11-27T02:11:07.0500662Z env:
+2026-11-27T02:11:07.0500812Z   GIT_CONFIG_COUNT: 1
+2026-11-27T02:11:07.0501000Z   GIT_CONFIG_KEY_0: init.defaultBranch
+2026-11-27T02:11:07.0501328Z   GIT_CONFIG_VALUE_0: main
+2026-11-27T02:11:07.0501509Z   CARGO_BUILD_JOBS: 1
+2026-11-27T02:11:07.0501669Z   CARGO_INCREMENTAL: 0
+2026-11-27T02:11:07.0501835Z   CARGO_PROFILE_DEV_DEBUG: 0
+2026-11-27T02:11:07.0502065Z   CARGO_PROFILE_TEST_DEBUG: 0
+2026-11-27T02:11:07.0502242Z ##[endgroup]
+2026-11-27T02:11:07.0544953Z ##[end-action id=__dtolnay_rust-toolchain.__run;outcome=success;conclusion=success;duration_ms=7]
+2026-11-27T02:11:07.0546552Z ##[start-action display=Install rustup if needed;id=__dtolnay_rust-toolchain.__run_2]
+2026-11-27T02:11:07.0562461Z ##[group]Run if ! command -v rustup &>/dev/null; then
+2026-11-27T02:11:07.0562758Z [36;1mif ! command -v rustup &>/dev/null; then[0m
+2026-11-27T02:11:07.0563298Z [36;1m  curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused --location --silent --show-error --fail https://sh.rustup.rs | sh -s -- --default-toolchain none -y[0m
+2026-11-27T02:11:07.0563828Z [36;1m  echo "$CARGO_HOME/bin" >> $GITHUB_PATH[0m
+2026-11-27T02:11:07.0564055Z [36;1mfi[0m
+2026-11-27T02:11:07.0583595Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-11-27T02:11:07.0583941Z env:
+2026-11-27T02:11:07.0584108Z   GIT_CONFIG_COUNT: 1
+2026-11-27T02:11:07.0584286Z   GIT_CONFIG_KEY_0: init.defaultBranch
+2026-11-27T02:11:07.0584485Z   GIT_CONFIG_VALUE_0: main
+2026-11-27T02:11:07.0584655Z   CARGO_BUILD_JOBS: 1
+2026-11-27T02:11:07.0584817Z   CARGO_INCREMENTAL: 0
+2026-11-27T02:11:07.0584982Z   CARGO_PROFILE_DEV_DEBUG: 0
+2026-11-27T02:11:07.0585162Z   CARGO_PROFILE_TEST_DEBUG: 0
+2026-11-27T02:11:07.0585347Z   CARGO_HOME: /home/runner/.cargo
+2026-11-27T02:11:07.0585528Z ##[endgroup]
+2026-11-27T02:11:07.0625279Z ##[end-action id=__dtolnay_rust-toolchain.__run_2;outcome=success;conclusion=success;duration_ms=7]
+2026-11-27T02:11:07.0627250Z ##[start-action display=Install rustup if needed on windows;id=__dtolnay_rust-toolchain.__run_3]
+2026-11-27T02:11:07.0632811Z ##[end-action id=__dtolnay_rust-toolchain.__run_3;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-11-27T02:11:07.0642249Z ##[start-action display=rustup toolchain install stable;id=__dtolnay_rust-toolchain.__run_4]
+2026-11-27T02:11:07.0658178Z ##[group]Run set -f  # split targets and components on commas and whitespace, without glob expansion
+2026-11-27T02:11:07.0658725Z [36;1mset -f  # split targets and components on commas and whitespace, without glob expansion[0m
+2026-11-27T02:11:07.0659112Z [36;1mflags=()[0m
+2026-11-27T02:11:07.0659404Z [36;1mfor t in ${targets//,/ }; do flags+=(--target "$t"); done[0m
+2026-11-27T02:11:07.0659758Z [36;1mfor c in ${components//,/ }; do flags+=(--component "$c"); done[0m
+2026-11-27T02:11:07.0660177Z [36;1mif [[ $toolchain == nightly && -n $components ]]; then flags+=(--allow-downgrade); fi[0m
+2026-11-27T02:11:07.0660527Z [36;1mlog=$(mktemp)[0m
+2026-11-27T02:11:07.0660815Z [36;1mtrap 'rm -f "$log"' EXIT[0m
+2026-11-27T02:11:07.0661070Z [36;1mfor attempt in 1 2 3 4 5; do[0m
+2026-11-27T02:11:07.0661540Z [36;1m  if rustup toolchain install "$toolchain" "${flags[@]}" --profile minimal --no-self-update --force-non-host 2>&1 | tee "$log"; then[0m
+2026-11-27T02:11:07.0662034Z [36;1m    break[0m
+2026-11-27T02:11:07.0662234Z [36;1m  else[0m
+2026-11-27T02:11:07.0662493Z [36;1m    status=$?[0m
+2026-11-27T02:11:07.0662714Z [36;1m  fi[0m
+2026-11-27T02:11:07.0663029Z [36;1m  if [[ $attempt == 5 ]] || ! grep -Fq 'checksum failed for ' "$log" \[0m
+2026-11-27T02:11:07.0663484Z [36;1m      || ! grep -Fq 'this is likely due to an ongoing update of the official release server' "$log"; then[0m
+2026-11-27T02:11:07.0663861Z [36;1m    exit "$status"[0m
+2026-11-27T02:11:07.0664133Z [36;1m  fi[0m
+2026-11-27T02:11:07.0664558Z [36;1m  echo "Retrying rustup toolchain install in 30 seconds (retry $attempt of 4)" >&2[0m
+2026-11-27T02:11:07.0664975Z [36;1m  sleep 30[0m
+2026-11-27T02:11:07.0665187Z [36;1mdone[0m
+2026-11-27T02:11:07.0684129Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-11-27T02:11:07.0684449Z env:
+2026-11-27T02:11:07.0684832Z   GIT_CONFIG_COUNT: 1
+2026-11-27T02:11:07.0685131Z   GIT_CONFIG_KEY_0: init.defaultBranch
+2026-11-27T02:11:07.0685421Z   GIT_CONFIG_VALUE_0: main
+2026-11-27T02:11:07.0685673Z   CARGO_BUILD_JOBS: 1
+2026-11-27T02:11:07.0685934Z   CARGO_INCREMENTAL: 0
+2026-11-27T02:11:07.0686213Z   CARGO_PROFILE_DEV_DEBUG: 0
+2026-11-27T02:11:07.0686474Z   CARGO_PROFILE_TEST_DEBUG: 0
+2026-11-27T02:11:07.0686729Z   CARGO_HOME: /home/runner/.cargo
+2026-11-27T02:11:07.0686969Z   toolchain: stable
+2026-11-27T02:11:07.0687221Z   targets: wasm32-unknown-unknown
+2026-11-27T02:11:07.0687474Z   components: rustfmt, clippy
+2026-11-27T02:11:07.0687887Z   RUSTUP_PERMIT_COPY_RENAME: 1
+2026-11-27T02:11:07.0688143Z ##[endgroup]
+2026-11-27T02:11:11.8240733Z info: syncing channel updates for stable-x86_64-unknown-linux-gnu
+2026-11-27T02:11:12.1003914Z info: latest update on 2026-11-12 for version 1.100.0 (0ef1bc386 2026-11-09)
+2026-11-27T02:11:12.1107011Z info: component clippy is up to date
+2026-11-27T02:11:12.1107834Z info: component rustfmt is up to date
+2026-11-27T02:11:12.1112891Z info: downloading component rust-std
+2026-11-27T02:11:13.6291281Z 
+2026-11-27T02:11:13.6354876Z   stable-x86_64-unknown-linux-gnu updated - rustc 1.100.0 (0ef1bc386 2026-11-09) (from rustc 1.100.0 (0ef1bc386 2026-11-09))
+2026-11-27T02:11:13.6355267Z 
+2026-11-27T02:11:13.6390370Z ##[end-action id=__dtolnay_rust-toolchain.__run_4;outcome=success;conclusion=success;duration_ms=6574]
+2026-11-27T02:11:13.6395421Z ##[start-action display=rustup default stable;id=__dtolnay_rust-toolchain.__run_5]
+2026-11-27T02:11:13.6411851Z ##[group]Run rustup default "$toolchain" --force-non-host
+2026-11-27T02:11:13.6412245Z [36;1mrustup default "$toolchain" --force-non-host[0m
+2026-11-27T02:11:13.6438045Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-11-27T02:11:13.6438391Z env:
+2026-11-27T02:11:13.6438616Z   GIT_CONFIG_COUNT: 1
+2026-11-27T02:11:13.6438865Z   GIT_CONFIG_KEY_0: init.defaultBranch
+2026-11-27T02:11:13.6439230Z   GIT_CONFIG_VALUE_0: main
+2026-11-27T02:11:13.6439541Z   CARGO_BUILD_JOBS: 1
+2026-11-27T02:11:13.6439779Z   CARGO_INCREMENTAL: 0
+2026-11-27T02:11:13.6440010Z   CARGO_PROFILE_DEV_DEBUG: 0
+2026-11-27T02:11:13.6440284Z   CARGO_PROFILE_TEST_DEBUG: 0
+2026-11-27T02:11:13.6440520Z   CARGO_HOME: /home/runner/.cargo
+2026-11-27T02:11:13.6440803Z   toolchain: stable
+2026-11-27T02:11:13.6441014Z ##[endgroup]
+2026-11-27T02:11:13.6516678Z info: using existing install for stable-x86_64-unknown-linux-gnu
+2026-11-27T02:11:13.6520088Z info: default toolchain set to stable-x86_64-unknown-linux-gnu
+2026-11-27T02:11:13.6520376Z 
+2026-11-27T02:11:13.6576197Z   stable-x86_64-unknown-linux-gnu unchanged - rustc 1.100.0 (0ef1bc386 2026-11-09)
+2026-11-27T02:11:13.6576527Z 
+2026-11-27T02:11:13.6587991Z ##[end-action id=__dtolnay_rust-toolchain.__run_5;outcome=success;conclusion=success;duration_ms=19]
+2026-11-27T02:11:13.6590973Z ##[start-action display=Create cachekey;id=__dtolnay_rust-toolchain.rustc-version]
+2026-11-27T02:11:13.6605641Z ##[group]Run DATE=$(rustc +"$toolchain" --version --verbose | sed -ne 's/^commit-date: \(20[0-9][0-9]\)-\([01][0-9]\)-\([0-3][0-9]\)$/\1\2\3/p')
+2026-11-27T02:11:13.6606296Z [36;1mDATE=$(rustc +"$toolchain" --version --verbose | sed -ne 's/^commit-date: \(20[0-9][0-9]\)-\([01][0-9]\)-\([0-3][0-9]\)$/\1\2\3/p')[0m
+2026-11-27T02:11:13.6606863Z [36;1mHASH=$(rustc +"$toolchain" --version --verbose | sed -ne 's/^commit-hash: //p')[0m
+2026-11-27T02:11:13.6607277Z [36;1mecho "cachekey=$(echo $DATE$HASH | head -c12)" >> $GITHUB_OUTPUT[0m
+2026-11-27T02:11:13.6627196Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-11-27T02:11:13.6627752Z env:
+2026-11-27T02:11:13.6628029Z   GIT_CONFIG_COUNT: 1
+2026-11-27T02:11:13.6628286Z   GIT_CONFIG_KEY_0: init.defaultBranch
+2026-11-27T02:11:13.6628558Z   GIT_CONFIG_VALUE_0: main
+2026-11-27T02:11:13.6628806Z   CARGO_BUILD_JOBS: 1
+2026-11-27T02:11:13.6629077Z   CARGO_INCREMENTAL: 0
+2026-11-27T02:11:13.6629302Z   CARGO_PROFILE_DEV_DEBUG: 0
+2026-11-27T02:11:13.6629656Z   CARGO_PROFILE_TEST_DEBUG: 0
+2026-11-27T02:11:13.6629938Z   CARGO_HOME: /home/runner/.cargo
+2026-11-27T02:11:13.6630180Z   toolchain: stable
+2026-11-27T02:11:13.6630441Z ##[endgroup]
+2026-11-27T02:11:13.7285406Z ##[end-action id=__dtolnay_rust-toolchain.rustc-version;outcome=success;conclusion=success;duration_ms=69]
+2026-11-27T02:11:13.7287354Z ##[start-action display=Disable incremental compilation;id=__dtolnay_rust-toolchain.__run_6]
+2026-11-27T02:11:13.7301395Z ##[group]Run if [ -z "${CARGO_INCREMENTAL+set}" ]; then
+2026-11-27T02:11:13.7301727Z [36;1mif [ -z "${CARGO_INCREMENTAL+set}" ]; then[0m
+2026-11-27T02:11:13.7302061Z [36;1m  echo CARGO_INCREMENTAL=0 >> $GITHUB_ENV[0m
+2026-11-27T02:11:13.7302320Z [36;1mfi[0m
+2026-11-27T02:11:13.7320947Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-11-27T02:11:13.7321269Z env:
+2026-11-27T02:11:13.7321586Z   GIT_CONFIG_COUNT: 1
+2026-11-27T02:11:13.7321824Z   GIT_CONFIG_KEY_0: init.defaultBranch
+2026-11-27T02:11:13.7322076Z   GIT_CONFIG_VALUE_0: main
+2026-11-27T02:11:13.7322352Z   CARGO_BUILD_JOBS: 1
+2026-11-27T02:11:13.7322564Z   CARGO_INCREMENTAL: 0
+2026-11-27T02:11:13.7322923Z   CARGO_PROFILE_DEV_DEBUG: 0
+2026-11-27T02:11:13.7323156Z   CARGO_PROFILE_TEST_DEBUG: 0
+2026-11-27T02:11:13.7323417Z   CARGO_HOME: /home/runner/.cargo
+2026-11-27T02:11:13.7323650Z ##[endgroup]
+2026-11-27T02:11:13.7362529Z ##[end-action id=__dtolnay_rust-toolchain.__run_6;outcome=success;conclusion=success;duration_ms=7]
+2026-11-27T02:11:13.7364490Z ##[start-action display=Enable colors in Cargo output;id=__dtolnay_rust-toolchain.__run_7]
+2026-11-27T02:11:13.7378850Z ##[group]Run if [ -z "${CARGO_TERM_COLOR+set}" ]; then
+2026-11-27T02:11:13.7379211Z [36;1mif [ -z "${CARGO_TERM_COLOR+set}" ]; then[0m
+2026-11-27T02:11:13.7379581Z [36;1m  echo CARGO_TERM_COLOR=always >> $GITHUB_ENV[0m
+2026-11-27T02:11:13.7379865Z [36;1mfi[0m
+2026-11-27T02:11:13.7398014Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-11-27T02:11:13.7398322Z env:
+2026-11-27T02:11:13.7398584Z   GIT_CONFIG_COUNT: 1
+2026-11-27T02:11:13.7398829Z   GIT_CONFIG_KEY_0: init.defaultBranch
+2026-11-27T02:11:13.7399128Z   GIT_CONFIG_VALUE_0: main
+2026-11-27T02:11:13.7399370Z   CARGO_BUILD_JOBS: 1
+2026-11-27T02:11:13.7399611Z   CARGO_INCREMENTAL: 0
+2026-11-27T02:11:13.7399853Z   CARGO_PROFILE_DEV_DEBUG: 0
+2026-11-27T02:11:13.7400121Z   CARGO_PROFILE_TEST_DEBUG: 0
+2026-11-27T02:11:13.7400378Z   CARGO_HOME: /home/runner/.cargo
+2026-11-27T02:11:13.7400628Z ##[endgroup]
+2026-11-27T02:11:13.7439375Z ##[end-action id=__dtolnay_rust-toolchain.__run_7;outcome=success;conclusion=success;duration_ms=7]
+2026-11-27T02:11:13.7442481Z ##[start-action display=Enable Cargo sparse registry;id=__dtolnay_rust-toolchain.__run_8]
+2026-11-27T02:11:13.7456825Z ##[group]Run # implemented in 1.66, stabilized in 1.68, made default in 1.70
+2026-11-27T02:11:13.7457259Z [36;1m# implemented in 1.66, stabilized in 1.68, made default in 1.70[0m
+2026-11-27T02:11:13.7458229Z [36;1mif [ -z "${CARGO_REGISTRIES_CRATES_IO_PROTOCOL+set}" -o -f "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol ]; then[0m
+2026-11-27T02:11:13.7458852Z [36;1m  if rustc +"$toolchain" --version --verbose | grep -q '^release: 1\.6[89]\.'; then[0m
+2026-11-27T02:11:13.7459321Z [36;1m    touch "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol || true[0m
+2026-11-27T02:11:13.7459764Z [36;1m    echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse >> $GITHUB_ENV[0m
+2026-11-27T02:11:13.7460183Z [36;1m  elif rustc +"$toolchain" --version --verbose | grep -q '^release: 1\.6[67]\.'; then[0m
+2026-11-27T02:11:13.7460648Z [36;1m    touch "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol || true[0m
+2026-11-27T02:11:13.7461108Z [36;1m    echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=git >> $GITHUB_ENV[0m
+2026-11-27T02:11:13.7461421Z [36;1m  fi[0m
+2026-11-27T02:11:13.7461628Z [36;1mfi[0m
+2026-11-27T02:11:13.7479282Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-11-27T02:11:13.7479622Z env:
+2026-11-27T02:11:13.7479927Z   GIT_CONFIG_COUNT: 1
+2026-11-27T02:11:13.7480193Z   GIT_CONFIG_KEY_0: init.defaultBranch
+2026-11-27T02:11:13.7480461Z   GIT_CONFIG_VALUE_0: main
+2026-11-27T02:11:13.7480684Z   CARGO_BUILD_JOBS: 1
+2026-11-27T02:11:13.7480927Z   CARGO_INCREMENTAL: 0
+2026-11-27T02:11:13.7481168Z   CARGO_PROFILE_DEV_DEBUG: 0
+2026-11-27T02:11:13.7481490Z   CARGO_PROFILE_TEST_DEBUG: 0
+2026-11-27T02:11:13.7481746Z   CARGO_HOME: /home/runner/.cargo
+2026-11-27T02:11:13.7481993Z   CARGO_TERM_COLOR: always
+2026-11-27T02:11:13.7482272Z   toolchain: stable
+2026-11-27T02:11:13.7482487Z ##[endgroup]
+2026-11-27T02:11:13.7680198Z ##[end-action id=__dtolnay_rust-toolchain.__run_8;outcome=success;conclusion=success;duration_ms=23]
+2026-11-27T02:11:13.7683182Z ##[start-action display=Work around spurious network errors in curl 8.0;id=__dtolnay_rust-toolchain.__run_9]
+2026-11-27T02:11:13.7697132Z ##[group]Run # https://rust-lang.zulipchat.com/#narrow/stream/246057-t-cargo/topic/timeout.20investigation
+2026-11-27T02:11:13.7698012Z [36;1m# https://rust-lang.zulipchat.com/#narrow/stream/246057-t-cargo/topic/timeout.20investigation[0m
+2026-11-27T02:11:13.7698637Z [36;1mif rustc +"$toolchain" --version --verbose | grep -q '^release: 1\.7[01]\.'; then[0m
+2026-11-27T02:11:13.7699031Z [36;1m  echo CARGO_HTTP_MULTIPLEXING=false >> $GITHUB_ENV[0m
+2026-11-27T02:11:13.7699346Z [36;1mfi[0m
+2026-11-27T02:11:13.7716867Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-11-27T02:11:13.7717172Z env:
+2026-11-27T02:11:13.7717380Z   GIT_CONFIG_COUNT: 1
+2026-11-27T02:11:13.7717786Z   GIT_CONFIG_KEY_0: init.defaultBranch
+2026-11-27T02:11:13.7718032Z   GIT_CONFIG_VALUE_0: main
+2026-11-27T02:11:13.7718305Z   CARGO_BUILD_JOBS: 1
+2026-11-27T02:11:13.7718520Z   CARGO_INCREMENTAL: 0
+2026-11-27T02:11:13.7718777Z   CARGO_PROFILE_DEV_DEBUG: 0
+2026-11-27T02:11:13.7719019Z   CARGO_PROFILE_TEST_DEBUG: 0
+2026-11-27T02:11:13.7719251Z   CARGO_HOME: /home/runner/.cargo
+2026-11-27T02:11:13.7719534Z   CARGO_TERM_COLOR: always
+2026-11-27T02:11:13.7719767Z   toolchain: stable
+2026-11-27T02:11:13.7720020Z ##[endgroup]
+2026-11-27T02:11:13.7833772Z ##[end-action id=__dtolnay_rust-toolchain.__run_9;outcome=success;conclusion=success;duration_ms=14]
+2026-11-27T02:11:13.7837127Z ##[start-action display=rustc +stable --version --verbose;id=__dtolnay_rust-toolchain.__run_10]
+2026-11-27T02:11:13.7851171Z ##[group]Run rustc +"$toolchain" --version --verbose
+2026-11-27T02:11:13.7851526Z [36;1mrustc +"$toolchain" --version --verbose[0m
+2026-11-27T02:11:13.7869929Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-11-27T02:11:13.7870280Z env:
+2026-11-27T02:11:13.7870490Z   GIT_CONFIG_COUNT: 1
+2026-11-27T02:11:13.7870757Z   GIT_CONFIG_KEY_0: init.defaultBranch
+2026-11-27T02:11:13.7871043Z   GIT_CONFIG_VALUE_0: main
+2026-11-27T02:11:13.7871309Z   CARGO_BUILD_JOBS: 1
+2026-11-27T02:11:13.7871528Z   CARGO_INCREMENTAL: 0
+2026-11-27T02:11:13.7871827Z   CARGO_PROFILE_DEV_DEBUG: 0
+2026-11-27T02:11:13.7872100Z   CARGO_PROFILE_TEST_DEBUG: 0
+2026-11-27T02:11:13.7872354Z   CARGO_HOME: /home/runner/.cargo
+2026-11-27T02:11:13.7872613Z   CARGO_TERM_COLOR: always
+2026-11-27T02:11:13.7872875Z   toolchain: stable
+2026-11-27T02:11:13.7873096Z ##[endgroup]
+2026-11-27T02:11:13.7976948Z rustc 1.100.0 (0ef1bc386 2026-11-09)
+2026-11-27T02:11:13.7977480Z binary: rustc
+2026-11-27T02:11:13.7978142Z commit-hash: 0ef1bc386059596dada8fb65b50425aab2ea637a
+2026-11-27T02:11:13.7978598Z commit-date: 2026-11-09
+2026-11-27T02:11:13.7978948Z host: x86_64-unknown-linux-gnu
+2026-11-27T02:11:13.7979251Z release: 1.100.0
+2026-11-27T02:11:13.7979559Z LLVM version: 23.1.5
+2026-11-27T02:11:13.7990174Z ##[end-action id=__dtolnay_rust-toolchain.__run_10;outcome=success;conclusion=success;duration_ms=15]
+2026-11-27T02:11:13.8064276Z ##[group]Run Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0
+2026-11-27T02:11:13.8064614Z with:
+2026-11-27T02:11:13.8064833Z   prefix-key: v0-rust
+2026-11-27T02:11:13.8065094Z   add-job-id-key: true
+2026-11-27T02:11:13.8065360Z   add-rust-environment-hash-key: true
+2026-11-27T02:11:13.8065626Z   cache-targets: true
+2026-11-27T02:11:13.8065856Z   cache-all-crates: false
+2026-11-27T02:11:13.8066140Z   cache-workspace-crates: false
+2026-11-27T02:11:13.8066397Z   save-if: true
+2026-11-27T02:11:13.8066638Z   cache-provider: github
+2026-11-27T02:11:13.8066865Z   cache-bin: true
+2026-11-27T02:11:13.8067115Z   lookup-only: false
+2026-11-27T02:11:13.8067333Z   cmd-format: {0}
+2026-11-27T02:11:13.8067825Z env:
+2026-11-27T02:11:13.8068067Z   GIT_CONFIG_COUNT: 1
+2026-11-27T02:11:13.8068326Z   GIT_CONFIG_KEY_0: init.defaultBranch
+2026-11-27T02:11:13.8068596Z   GIT_CONFIG_VALUE_0: main
+2026-11-27T02:11:13.8068848Z   CARGO_BUILD_JOBS: 1
+2026-11-27T02:11:13.8069166Z   CARGO_INCREMENTAL: 0
+2026-11-27T02:11:13.8069399Z   CARGO_PROFILE_DEV_DEBUG: 0
+2026-11-27T02:11:13.8069669Z   CARGO_PROFILE_TEST_DEBUG: 0
+2026-11-27T02:11:13.8069924Z   CARGO_HOME: /home/runner/.cargo
+2026-11-27T02:11:13.8070192Z   CARGO_TERM_COLOR: always
+2026-11-27T02:11:13.8070432Z ##[endgroup]
+2026-11-27T02:11:15.9050218Z ##[group]Cache Configuration
+2026-11-27T02:11:15.9050727Z Cache Provider:
+2026-11-27T02:11:15.9051237Z     github
+2026-11-27T02:11:15.9051501Z Workspaces:
+2026-11-27T02:11:15.9051990Z     /home/runner/work/universal-translator/universal-translator
+2026-11-27T02:11:15.9052405Z Cache Paths:
+2026-11-27T02:11:15.9052758Z     /home/runner/.cargo/bin
+2026-11-27T02:11:15.9053103Z     /home/runner/.cargo/.crates.toml
+2026-11-27T02:11:15.9053479Z     /home/runner/.cargo/.crates2.json
+2026-11-27T02:11:15.9053810Z     /home/runner/.cargo/registry
+2026-11-27T02:11:15.9054099Z     /home/runner/.cargo/git
+2026-11-27T02:11:15.9054541Z     /home/runner/work/universal-translator/universal-translator/target
+2026-11-27T02:11:15.9054902Z Restore Key:
+2026-11-27T02:11:15.9055238Z     v0-rust-translation-Linux-x64-78cf2f21
+2026-11-27T02:11:15.9055657Z Cache Key:
+2026-11-27T02:11:15.9056041Z     v0-rust-translation-Linux-x64-78cf2f21-983532e6
+2026-11-27T02:11:15.9056416Z .. Prefix:
+2026-11-27T02:11:15.9056722Z   - v0-rust-translation-Linux-x64
+2026-11-27T02:11:15.9057050Z .. Environment considered:
+2026-11-27T02:11:15.9057402Z   - Rust Versions:
+2026-11-27T02:11:15.9058061Z     - 1.100.0 x86_64-unknown-linux-gnu 0ef1bc386059596dada8fb65b50425aab2ea637a
+2026-11-27T02:11:15.9058424Z   - CARGO_BUILD_JOBS
+2026-11-27T02:11:15.9058687Z   - CARGO_HOME
+2026-11-27T02:11:15.9058905Z   - CARGO_INCREMENTAL
+2026-11-27T02:11:15.9059140Z   - CARGO_PROFILE_DEV_DEBUG
+2026-11-27T02:11:15.9059436Z   - CARGO_PROFILE_TEST_DEBUG
+2026-11-27T02:11:15.9059664Z   - CARGO_TERM_COLOR
+2026-11-27T02:11:15.9059923Z .. Lockfiles considered:
+2026-11-27T02:11:15.9060289Z   - /home/runner/work/universal-translator/universal-translator/Cargo.lock
+2026-11-27T02:11:15.9060741Z   - /home/runner/work/universal-translator/universal-translator/Cargo.toml
+2026-11-27T02:11:15.9061271Z ##[endgroup]
+2026-11-27T02:11:15.9061403Z 
+2026-11-27T02:11:15.9061522Z ... Restoring cache ...
+2026-11-27T02:11:15.9732161Z Cache hit for restore-key: v0-rust-translation-Linux-x64-78cf2f21-68674829
+2026-11-27T02:11:17.0178307Z Received 247463936 of 288884246 (85.7%), 236.0 MBs/sec
+2026-11-27T02:11:17.3089049Z Received 288884246 of 288884246 (100.0%), 214.1 MBs/sec
+2026-11-27T02:11:17.3089652Z Cache Size: ~276 MB (288884246 B)
+2026-11-27T02:11:17.3132837Z [command]/usr/bin/tar -xf /home/runner/work/_temp/f61d53cf-a240-42d1-a8d0-e3f19a6204ce/cache.tzst -P -C /home/runner/work/universal-translator/universal-translator --use-compress-program unzstd
+2026-11-27T02:11:18.2588682Z Cache restored successfully
+2026-11-27T02:11:18.2675100Z Restored from cache key "v0-rust-translation-Linux-x64-78cf2f21-68674829" full match: false.
+2026-11-27T02:11:18.3033767Z ##[group]Run npm ci
+2026-11-27T02:11:18.3034069Z [36;1mnpm ci[0m
+2026-11-27T02:11:18.3059840Z shell: /usr/bin/bash -e {0}
+2026-11-27T02:11:18.3060257Z env:
+2026-11-27T02:11:18.3060538Z   GIT_CONFIG_COUNT: 1
+2026-11-27T02:11:18.3060778Z   GIT_CONFIG_KEY_0: init.defaultBranch
+2026-11-27T02:11:18.3061091Z   GIT_CONFIG_VALUE_0: main
+2026-11-27T02:11:18.3061325Z   CARGO_BUILD_JOBS: 1
+2026-11-27T02:11:18.3061598Z   CARGO_INCREMENTAL: 0
+2026-11-27T02:11:18.3061842Z   CARGO_PROFILE_DEV_DEBUG: 0
+2026-11-27T02:11:18.3062092Z   CARGO_PROFILE_TEST_DEBUG: 0
+2026-11-27T02:11:18.3062367Z   CARGO_HOME: /home/runner/.cargo
+2026-11-27T02:11:18.3062601Z   CARGO_TERM_COLOR: always
+2026-11-27T02:11:18.3062872Z   CACHE_ON_FAILURE: false
+2026-11-27T02:11:18.3063129Z ##[endgroup]
+2026-11-27T02:11:21.2064464Z 
+2026-11-27T02:11:21.2065145Z > @link-foundation/universal-translator@0.16.0 prepare
+2026-11-27T02:11:21.2065711Z > node scripts/install-git-hooks.mjs
+2026-11-27T02:11:21.2066131Z 
+2026-11-27T02:11:21.2573888Z 
+2026-11-27T02:11:21.2575037Z added 199 packages, and audited 200 packages in 3s
+2026-11-27T02:11:21.2575588Z 
+2026-11-27T02:11:21.2575932Z 66 packages are looking for funding
+2026-11-27T02:11:21.2576628Z   run `npm fund` for details
+2026-11-27T02:11:21.2582485Z 
+2026-11-27T02:11:21.2583017Z found 0 vulnerabilities
+2026-11-27T02:11:21.2820184Z ##[group]Run node examples/programs/write-translations.mjs --check
+2026-11-27T02:11:21.2820741Z [36;1mnode examples/programs/write-translations.mjs --check[0m
+2026-11-27T02:11:21.2821216Z [36;1mnode examples/programs/fragments/write-fragments.mjs --check[0m
+2026-11-27T02:11:21.2846694Z shell: /usr/bin/bash -e {0}
+2026-11-27T02:11:21.2846999Z env:
+2026-11-27T02:11:21.2847262Z   GIT_CONFIG_COUNT: 1
+2026-11-27T02:11:21.2847506Z   GIT_CONFIG_KEY_0: init.defaultBranch
+2026-11-27T02:11:21.2847943Z   GIT_CONFIG_VALUE_0: main
+2026-11-27T02:11:21.2848228Z   CARGO_BUILD_JOBS: 1
+2026-11-27T02:11:21.2848465Z   CARGO_INCREMENTAL: 0
+2026-11-27T02:11:21.2848745Z   CARGO_PROFILE_DEV_DEBUG: 0
+2026-11-27T02:11:21.2848994Z   CARGO_PROFILE_TEST_DEBUG: 0
+2026-11-27T02:11:21.2849255Z   CARGO_HOME: /home/runner/.cargo
+2026-11-27T02:11:21.2849550Z   CARGO_TERM_COLOR: always
+2026-11-27T02:11:21.2849799Z   CACHE_ON_FAILURE: false
+2026-11-27T02:11:21.2850038Z ##[endgroup]
+2026-11-27T02:11:23.7523718Z ##[group]Run node scripts/build-natural-sources.mjs --check
+2026-11-27T02:11:23.7524162Z [36;1mnode scripts/build-natural-sources.mjs --check[0m
+2026-11-27T02:11:23.7524605Z [36;1mnode examples/programs/write-natural.mjs --check[0m
+2026-11-27T02:11:23.7551796Z shell: /usr/bin/bash -e {0}
+2026-11-27T02:11:23.7552101Z env:
+2026-11-27T02:11:23.7552335Z   GIT_CONFIG_COUNT: 1
+2026-11-27T02:11:23.7552632Z   GIT_CONFIG_KEY_0: init.defaultBranch
+2026-11-27T02:11:23.7552904Z   GIT_CONFIG_VALUE_0: main
+2026-11-27T02:11:23.7553153Z   CARGO_BUILD_JOBS: 1
+2026-11-27T02:11:23.7553423Z   CARGO_INCREMENTAL: 0
+2026-11-27T02:11:23.7553660Z   CARGO_PROFILE_DEV_DEBUG: 0
+2026-11-27T02:11:23.7553939Z   CARGO_PROFILE_TEST_DEBUG: 0
+2026-11-27T02:11:23.7554180Z   CARGO_HOME: /home/runner/.cargo
+2026-11-27T02:11:23.7554456Z   CARGO_TERM_COLOR: always
+2026-11-27T02:11:23.7554735Z   CACHE_ON_FAILURE: false
+2026-11-27T02:11:23.7554975Z ##[endgroup]
+2026-11-27T02:11:23.8012757Z js/src/natural/sources*.js match 74 files
+2026-11-27T02:11:24.8431115Z ##[group]Run node scripts/check-requirements.mjs
+2026-11-27T02:11:24.8431712Z [36;1mnode scripts/check-requirements.mjs[0m
+2026-11-27T02:11:24.8458844Z shell: /usr/bin/bash -e {0}
+2026-11-27T02:11:24.8459145Z env:
+2026-11-27T02:11:24.8459378Z   GIT_CONFIG_COUNT: 1
+2026-11-27T02:11:24.8459657Z   GIT_CONFIG_KEY_0: init.defaultBranch
+2026-11-27T02:11:24.8459912Z   GIT_CONFIG_VALUE_0: main
+2026-11-27T02:11:24.8460158Z   CARGO_BUILD_JOBS: 1
+2026-11-27T02:11:24.8460417Z   CARGO_INCREMENTAL: 0
+2026-11-27T02:11:24.8460643Z   CARGO_PROFILE_DEV_DEBUG: 0
+2026-11-27T02:11:24.8460913Z   CARGO_PROFILE_TEST_DEBUG: 0
+2026-11-27T02:11:24.8461148Z   CARGO_HOME: /home/runner/.cargo
+2026-11-27T02:11:24.8461416Z   CARGO_TERM_COLOR: always
+2026-11-27T02:11:24.8461686Z   CACHE_ON_FAILURE: false
+2026-11-27T02:11:24.8461925Z ##[endgroup]
+2026-11-27T02:11:25.0473617Z DONE    meta-language
+2026-11-27T02:11:25.0474548Z DONE    thirty-programming-languages
+2026-11-27T02:11:25.0475144Z DONE    hello-world-everywhere
+2026-11-27T02:11:25.0475658Z DONE    every-task-everywhere
+2026-11-27T02:11:25.0476049Z DONE    machine-code
+2026-11-27T02:11:25.0476561Z DONE    thirty-natural-languages
+2026-11-27T02:11:25.0477078Z DONE    controlled-english-and-russian
+2026-11-27T02:11:25.0477495Z DONE    semantic-primes
+2026-11-27T02:11:25.0478112Z DONE    controlled-standards
+2026-11-27T02:11:25.0478661Z DONE    parse-natural-algorithms
+2026-11-27T02:11:25.0479114Z DONE    natural-to-formal
+2026-11-27T02:11:25.0479464Z DONE    formal-to-natural
+2026-11-27T02:11:25.0479894Z DONE    javascript-and-rust
+2026-11-27T02:11:25.0480306Z BLOCKED rosetta-algorithm-types
+2026-11-27T02:11:25.0481360Z         Rosetta Code has more than 1,300 tasks. The meta language covers the algorithm types listed as covered in rosetta-coverage.lino; the types listed there as blocked need values the meta language does not have yet
+2026-11-27T02:11:25.0482663Z DONE    requirements-gate
+2026-11-27T02:11:25.0483167Z DONE    lean-and-rocq
+2026-11-27T02:11:25.0483497Z DONE    fragments
+2026-11-27T02:11:25.0483842Z BLOCKED class-fragments
+2026-11-27T02:11:25.0484576Z         The meta language has no objects or classes yet (objects-and-concurrency in rosetta-coverage.lino), so a class has no meaning to translate
+2026-11-27T02:11:25.0485581Z DONE    web-demo
+2026-11-27T02:11:25.0485973Z DONE    cli-library-api-docker
+2026-11-27T02:11:25.0486390Z DONE    best-practices
+2026-11-27T02:11:25.0486766Z DONE    test-coverage
+2026-11-27T02:11:25.0487072Z DONE    source-layout
+2026-11-27T02:11:25.0487425Z DONE    case-study
+2026-11-27T02:11:25.0487955Z DONE    meta-view
+2026-11-27T02:11:25.0488338Z DONE    forgiving-left-language
+2026-11-27T02:11:25.0488737Z DONE    random-examples
+2026-11-27T02:11:25.0489122Z DONE    primes-for-every-language
+2026-11-27T02:11:25.0489517Z DONE    language-versions
+2026-11-27T02:11:25.0489903Z DONE    one-entry-per-language
+2026-11-27T02:11:25.0490292Z DONE    ui-settings
+2026-11-27T02:11:25.0490650Z DONE    cst-by-default
+2026-11-27T02:11:25.0491004Z DONE    comment-language
+2026-11-27T02:11:25.0491353Z DONE    symmetric-features
+2026-11-27T02:11:25.0491729Z DONE    well-known-standards
+2026-11-27T02:11:25.0492136Z DONE    standards-editor
+2026-11-27T02:11:25.0492482Z DONE    small-standards
+2026-11-27T02:11:25.0492828Z DONE    recursive-definitions
+2026-11-27T02:11:25.0493405Z BLOCKED issue-1-recheck
+2026-11-27T02:11:25.0494812Z         Every issue 1 requirement is done except two that stay blocked in docs/case-studies/issue-1/requirements.lino: the Rosetta Code algorithm types that need floating point, strings, higher-order functions, data structures, input and output, objects or concurrency, and classes as fragments (the meta language has no objects yet)
+2026-11-27T02:11:25.0496189Z DONE    with-partial-translation
+2026-11-27T02:11:25.0496579Z DONE    issue-6-case-study
+2026-11-27T02:11:25.0496927Z DONE    russian-comparisons
+2026-11-27T02:11:25.0497278Z DONE    comparison-variations
+2026-11-27T02:11:25.0497868Z DONE    rosetta-download
+2026-11-27T02:11:25.0498386Z DONE    rosetta-sorting
+2026-11-27T02:11:25.0498771Z DONE    partial-parsing
+2026-11-27T02:11:25.0499099Z DONE    partial-by-default
+2026-11-27T02:11:25.0499486Z DONE    all-or-nothing
+2026-11-27T02:11:25.0499819Z DONE    rules-as-data
+2026-11-27T02:11:25.0500155Z DONE    rules-editor
+2026-11-27T02:11:25.0500492Z DONE    auto-detect
+2026-11-27T02:11:25.0500810Z DONE    issue-8-case-study
+2026-11-27T02:11:25.0501214Z DONE    debug-output
+2026-11-27T02:11:25.0501534Z DONE    upstream-reports
+2026-11-27T02:11:25.0501894Z DONE    whole-codebase
+2026-11-27T02:11:25.0502220Z DONE    cst-by-default
+2026-11-27T02:11:25.0502566Z DONE    monaco-default
+2026-11-27T02:11:25.0502900Z DONE    synced-editors
+2026-11-27T02:11:25.0503256Z DONE    mapping-visualization
+2026-11-27T02:11:25.0503610Z DONE    side-selectors
+2026-11-27T02:11:25.0503915Z DONE    comments-translated
+2026-11-27T02:11:25.0504291Z DONE    options-below
+2026-11-27T02:11:25.0504613Z DONE    deep-grammar
+2026-11-27T02:11:25.0504977Z DONE    free-natural-translation
+2026-11-27T02:11:25.0505412Z DONE    autodetect-and-translation-failures
+2026-11-27T02:11:25.0505837Z DONE    nested-grammars
+2026-11-27T02:11:25.0506181Z DONE    general-meta-language
+2026-11-27T02:11:25.0506551Z DONE    machine-languages
+2026-11-27T02:11:25.0506885Z DONE    equivalence-check
+2026-11-27T02:11:25.0507265Z DONE    rust-round-trip
+2026-11-27T02:11:25.0507716Z DONE    decorators
+2026-11-27T02:11:25.0508073Z DONE    language-versions
+2026-11-27T02:11:25.0508455Z DONE    hello-world-collection
+2026-11-27T02:11:25.0508830Z DONE    ranking-and-imprecision
+2026-11-27T02:11:25.0509304Z DONE    rust-serve
+2026-11-27T02:11:25.0509636Z DONE    tests-apart-from-sources
+2026-11-27T02:11:25.0510014Z DONE    prior-art
+2026-11-27T02:11:25.0510311Z DONE    formal-ai-tryout
+2026-11-27T02:11:25.0510720Z DONE    previous-requirements
+2026-11-27T02:11:25.0511051Z DONE    issue-14-case-study
+2026-11-27T02:11:25.0511411Z DONE    debug-output
+2026-11-27T02:11:25.0511762Z DONE    meta-language-rust
+2026-11-27T02:11:25.0512102Z BLOCKED meta-language-npm
+2026-11-27T02:11:25.0513312Z         Meta Language 1.1.0 is tagged in link-foundation/meta-language, but its npm release workflow fails and npm latest is still 0.46.0 (link-foundation/meta-language issue 230); until it is published the CLI loads the module from the path in UNIVERSAL_TRANSLATOR_META_LANGUAGE
+2026-11-27T02:11:25.0514525Z BLOCKED npm-unscoped-name
+2026-11-27T02:11:25.0515070Z         needs the owner's npm account to publish the unscoped name and attach the trusted publisher
+2026-11-27T02:11:25.0515588Z DONE    real-numbers
+2026-11-27T02:11:25.0515968Z DONE    python-type-hints
+2026-11-27T02:11:25.0516326Z DONE    programming-words-in-comments
+2026-11-27T02:11:25.0516776Z DONE    hello-world-strip-tags
+2026-11-27T02:11:25.0517110Z DONE    gamemaker-language
+2026-11-27T02:11:25.0517452Z DONE    code-style
+2026-11-27T02:11:25.0517988Z DONE    everyday-russian-wordings
+2026-11-27T02:11:25.0518424Z Every requirement is done or reported as blocked
+2026-11-27T02:11:25.0618218Z ##[group]Run cargo fmt --check
+2026-11-27T02:11:25.0618517Z [36;1mcargo fmt --check[0m
+2026-11-27T02:11:25.0640993Z shell: /usr/bin/bash -e {0}
+2026-11-27T02:11:25.0641259Z env:
+2026-11-27T02:11:25.0641484Z   GIT_CONFIG_COUNT: 1
+2026-11-27T02:11:25.0641758Z   GIT_CONFIG_KEY_0: init.defaultBranch
+2026-11-27T02:11:25.0642013Z   GIT_CONFIG_VALUE_0: main
+2026-11-27T02:11:25.0642268Z   CARGO_BUILD_JOBS: 1
+2026-11-27T02:11:25.0642478Z   CARGO_INCREMENTAL: 0
+2026-11-27T02:11:25.0642688Z   CARGO_PROFILE_DEV_DEBUG: 0
+2026-11-27T02:11:25.0643052Z   CARGO_PROFILE_TEST_DEBUG: 0
+2026-11-27T02:11:25.0643296Z   CARGO_HOME: /home/runner/.cargo
+2026-11-27T02:11:25.0643624Z   CARGO_TERM_COLOR: always
+2026-11-27T02:11:25.0643852Z   CACHE_ON_FAILURE: false
+2026-11-27T02:11:25.0644097Z ##[endgroup]
+2026-11-27T02:11:27.5295194Z ##[group]Run bash scripts/check-cargo-warnings.sh cargo clippy --locked --all-targets -- -D warnings
+2026-11-27T02:11:27.5295816Z [36;1mbash scripts/check-cargo-warnings.sh cargo clippy --locked --all-targets -- -D warnings[0m
+2026-11-27T02:11:27.5321515Z shell: /usr/bin/bash -e {0}
+2026-11-27T02:11:27.5321814Z env:
+2026-11-27T02:11:27.5322107Z   GIT_CONFIG_COUNT: 1
+2026-11-27T02:11:27.5322361Z   GIT_CONFIG_KEY_0: init.defaultBranch
+2026-11-27T02:11:27.5322640Z   GIT_CONFIG_VALUE_0: main
+2026-11-27T02:11:27.5323000Z   CARGO_BUILD_JOBS: 1
+2026-11-27T02:11:27.5323232Z   CARGO_INCREMENTAL: 0
+2026-11-27T02:11:27.5323529Z   CARGO_PROFILE_DEV_DEBUG: 0
+2026-11-27T02:11:27.5323810Z   CARGO_PROFILE_TEST_DEBUG: 0
+2026-11-27T02:11:27.5324086Z   CARGO_HOME: /home/runner/.cargo
+2026-11-27T02:11:27.5324374Z   CARGO_TERM_COLOR: always
+2026-11-27T02:11:27.5324621Z   CACHE_ON_FAILURE: false
+2026-11-27T02:11:27.5324885Z ##[endgroup]
+2026-11-27T02:11:28.3192535Z     Updating crates.io index
+2026-11-27T02:11:29.1444586Z     Checking universal-translator v0.1.0 (/home/runner/work/universal-translator/universal-translator)
+2026-11-27T02:11:44.9399847Z     Finished `dev` profile [unoptimized] target(s) in 17.29s
+2026-11-27T02:11:44.9660368Z ##[group]Run cargo doc --locked --no-deps
+2026-11-27T02:11:44.9660939Z [36;1mcargo doc --locked --no-deps[0m
+2026-11-27T02:11:44.9686263Z shell: /usr/bin/bash -e {0}
+2026-11-27T02:11:44.9686580Z env:
+2026-11-27T02:11:44.9686817Z   GIT_CONFIG_COUNT: 1
+2026-11-27T02:11:44.9687128Z   GIT_CONFIG_KEY_0: init.defaultBranch
+2026-11-27T02:11:44.9687405Z   GIT_CONFIG_VALUE_0: main
+2026-11-27T02:11:44.9687814Z   CARGO_BUILD_JOBS: 1
+2026-11-27T02:11:44.9688094Z   CARGO_INCREMENTAL: 0
+2026-11-27T02:11:44.9688362Z   CARGO_PROFILE_DEV_DEBUG: 0
+2026-11-27T02:11:44.9688641Z   CARGO_PROFILE_TEST_DEBUG: 0
+2026-11-27T02:11:44.9688890Z   CARGO_HOME: /home/runner/.cargo
+2026-11-27T02:11:44.9689153Z   CARGO_TERM_COLOR: always
+2026-11-27T02:11:44.9689406Z   CACHE_ON_FAILURE: false
+2026-11-27T02:11:44.9689683Z   RUSTDOCFLAGS: -D warnings
+2026-11-27T02:11:44.9689918Z ##[endgroup]
+2026-11-27T02:11:45.0731381Z [1m[92m Documenting[0m universal-translator v0.1.0 (/home/runner/work/universal-translator/universal-translator)
+2026-11-27T02:11:46.6424492Z [1m[92m    Finished[0m `dev` profile [unoptimized] target(s) in 1.66s
+2026-11-27T02:11:46.6504310Z [1m[92m   Generated[0m /home/runner/work/universal-translator/universal-translator/target/doc/universal_translator/index.html
+2026-11-27T02:11:46.6574603Z ##[group]Run bash scripts/run-with-budget-warning.sh 540 "Rust test suite" cargo test --locked
+2026-11-27T02:11:46.6575187Z [36;1mbash scripts/run-with-budget-warning.sh 540 "Rust test suite" cargo test --locked[0m
+2026-11-27T02:11:46.6601802Z shell: /usr/bin/bash -e {0}
+2026-11-27T02:11:46.6602173Z env:
+2026-11-27T02:11:46.6602478Z   GIT_CONFIG_COUNT: 1
+2026-11-27T02:11:46.6602860Z   GIT_CONFIG_KEY_0: init.defaultBranch
+2026-11-27T02:11:46.6603233Z   GIT_CONFIG_VALUE_0: main
+2026-11-27T02:11:46.6603731Z   CARGO_BUILD_JOBS: 1
+2026-11-27T02:11:46.6604054Z   CARGO_INCREMENTAL: 0
+2026-11-27T02:11:46.6604404Z   CARGO_PROFILE_DEV_DEBUG: 0
+2026-11-27T02:11:46.6604704Z   CARGO_PROFILE_TEST_DEBUG: 0
+2026-11-27T02:11:46.6604977Z   CARGO_HOME: /home/runner/.cargo
+2026-11-27T02:11:46.6605289Z   CARGO_TERM_COLOR: always
+2026-11-27T02:11:46.6605561Z   CACHE_ON_FAILURE: false
+2026-11-27T02:11:46.6605803Z ##[endgroup]
+2026-11-27T02:11:46.6755074Z Running Rust test suite with a 540s budget (warning at 378s).
+2026-11-27T02:11:47.7313103Z [1m[92m   Compiling[0m universal-translator v0.1.0 (/home/runner/work/universal-translator/universal-translator)
+2026-11-27T02:12:16.0950008Z 
+2026-11-27T02:12:16.0950680Z running 1 test
+2026-11-27T02:12:16.0951520Z test emission_map::tests::capture_context_is_restored_after_panics_and_nested_translations ... ok
+2026-11-27T02:12:16.0951898Z 
+2026-11-27T02:12:16.0952267Z test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+2026-11-27T02:12:16.0952527Z 
+2026-11-27T02:12:16.0952533Z 
+2026-11-27T02:12:16.0952641Z running 0 tests
+2026-11-27T02:12:16.0952779Z 
+2026-11-27T02:12:16.0953057Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-11-27T02:12:16.0953313Z 
+2026-11-27T02:12:16.0953318Z 
+2026-11-27T02:12:16.0953423Z running 3 tests
+2026-11-27T02:12:16.0953998Z test annotation_arguments_remain_expressions ... ok
+2026-11-27T02:12:16.0954813Z test generics_balance_commas_and_combined_closing_brackets ... ok
+2026-11-27T02:12:16.0955622Z test spring_annotations_named_types_and_fluent_calls_survive_translation ... ok
+2026-11-27T02:12:16.0956265Z 
+2026-11-27T02:12:16.0956734Z test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+2026-11-27T02:12:16.0957231Z 
+2026-11-27T02:12:16.0957334Z 
+2026-11-27T02:12:16.0957704Z running 11 tests
+2026-11-27T02:12:16.0958316Z test a_hint_without_a_value_is_nothing_to_do ... ok
+2026-11-27T02:12:16.0958995Z test arrows_leave_other_declarations_to_the_expression_reader ... ok
+2026-11-27T02:12:16.0959758Z test arrows_are_written_back_as_function_declarations ... ok
+2026-11-27T02:12:16.0960468Z test arrows_read_with_two_parameters_and_statements_before_the_result ... ok
+2026-11-27T02:12:16.0961290Z test arrows_translate_to_python_as_the_function_declaration_does ... ok
+2026-11-27T02:12:16.0961966Z test arrows_do_what_the_function_declaration_does ... ok
+2026-11-27T02:12:16.0962696Z test hints_give_the_meta_types_of_parameters_results_and_assignments ... ok
+2026-11-27T02:12:16.0963356Z test hints_map_builtins_and_retain_application_and_generic_types ... ok
+2026-11-27T02:12:16.0964032Z test arrows_read_as_the_function_a_declaration_reads_as ... ok
+2026-11-27T02:12:16.0964685Z test hints_leave_what_the_program_does_unchanged ... ok
+2026-11-27T02:12:16.0965315Z test hints_translate_as_the_unhinted_program_does ... ok
+2026-11-27T02:12:16.0965609Z 
+2026-11-27T02:12:16.0965939Z test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+2026-11-27T02:12:16.0966314Z 
+2026-11-27T02:12:16.0966390Z 
+2026-11-27T02:12:16.0966578Z running 5 tests
+2026-11-27T02:12:16.0967137Z test leaves_a_constant_that_holds_a_value_a_variable ... ok
+2026-11-27T02:12:16.0967934Z test calls_a_function_of_the_program_by_its_own_name ... ok
+2026-11-27T02:12:16.0968885Z test keeps_the_typescript_parameter_and_return_types ... ok
+2026-11-27T02:12:16.0969712Z test reads_a_javascript_class_of_static_methods_as_functions ... ok
+2026-11-27T02:12:16.0970310Z test reads_expression_and_block_bodies_with_or_without_parentheses ... ok
+2026-11-27T02:12:16.0970610Z 
+2026-11-27T02:12:16.0970960Z test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+2026-11-27T02:12:16.0971313Z 
+2026-11-27T02:12:16.0971387Z 
+2026-11-27T02:12:16.0971565Z running 3 tests
+2026-11-27T02:12:16.0992712Z [1m[92m    Finished[0m `test` profile [unoptimized] target(s) in 28.87s
+2026-11-27T02:12:16.0996139Z [1m[92m     Running[0m unittests rust/src/lib.rs (target/debug/build/universal-translator/ee40fa7e9376c7fb/out/universal_translator-ee40fa7e9376c7fb)
+2026-11-27T02:12:16.0998162Z [1m[92m     Running[0m unittests rust/src/main.rs (target/debug/build/universal-translator/adf5c3d25555073a/out/universal_translator-adf5c3d25555073a)
+2026-11-27T02:12:16.0999795Z [1m[92m     Running[0m rust/tests/annotations.rs (target/debug/build/universal-translator/88956fec1d1a8b0d/out/annotations-88956fec1d1a8b0d)
+2026-11-27T02:12:16.1001342Z [1m[92m     Running[0m rust/tests/arrow_and_hints.rs (target/debug/build/universal-translator/87fd8b224c0672b0/out/arrow_and_hints-87fd8b224c0672b0)
+2026-11-27T02:12:16.1002858Z [1m[92m     Running[0m rust/tests/arrow_functions.rs (target/debug/build/universal-translator/e9ff628f4991e652/out/arrow_functions-e9ff628f4991e652)
+2026-11-27T02:12:16.1004470Z [1m[92m     Running[0m rust/tests/comment_mapping.rs (target/debug/build/universal-translator/13de6a0a75550cdc/out/comment_mapping-13de6a0a75550cdc)
+2026-11-27T02:12:17.1132187Z test formal_headers_map_independently_of_their_translated_spelling ... ok
+2026-11-27T02:12:18.1289452Z test translated_header_comments_keep_their_origins_in_every_writer ... ok
+2026-11-27T02:12:18.1291433Z test natural_and_machine_readers_retain_header_comment_origins ... ok
+2026-11-27T02:12:18.1291982Z 
+2026-11-27T02:12:18.1292540Z test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.04s
+2026-11-27T02:12:18.1293025Z 
+2026-11-27T02:12:18.1293132Z 
+2026-11-27T02:12:18.1293373Z running 5 tests
+2026-11-27T02:12:18.1293934Z test has_an_implementation_for_every_language ... ok
+2026-11-27T02:12:18.1337405Z [1m[92m     Running[0m rust/tests/common_library.rs (target/debug/build/universal-translator/b42924fa8b323b5d/out/common_library-b42924fa8b323b5d)
+2026-11-27T02:12:19.1457764Z test is_rejected_for_machine_targets ... ok
+2026-11-27T02:12:19.1458592Z test replaces_prints_with_library_calls_and_imports_the_library ... ok
+2026-11-27T02:12:19.1459129Z test is_available_from_the_command_line ... ok
+2026-11-27T02:12:20.1581064Z test reads_library_calls_back_as_the_same_program_in_every_language ... ok
+2026-11-27T02:12:20.1581388Z 
+2026-11-27T02:12:20.1581661Z test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.24s
+2026-11-27T02:12:20.1581941Z 
+2026-11-27T02:12:20.1581973Z 
+2026-11-27T02:12:20.1582181Z running 5 tests
+2026-11-27T02:12:20.1582483Z test reconstruction_requires_a_concrete_tree ... ok
+2026-11-27T02:12:20.1582891Z test concrete_tokens_partition_every_source_byte ... ok
+2026-11-27T02:12:20.1583284Z test empty_and_whitespace_input_have_lossless_records ... ok
+2026-11-27T02:12:20.1583734Z test incomplete_source_retains_accepted_regions_and_explicit_errors ... ok
+2026-11-27T02:12:20.1584206Z test words_and_all_machine_formats_retain_their_source_record ... ok
+2026-11-27T02:12:20.1584439Z 
+2026-11-27T02:12:20.1584710Z test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.46s
+2026-11-27T02:12:20.1584982Z 
+2026-11-27T02:12:20.1584987Z 
+2026-11-27T02:12:20.1585085Z running 8 tests
+2026-11-27T02:12:20.1585388Z test rewrites_the_output_of_the_emitter ... ok
+2026-11-27T02:12:20.1585736Z test keeps_the_decorators_when_the_rules_change ... ok
+2026-11-27T02:12:20.1586126Z test rewrites_the_input_of_the_parser ... ok
+2026-11-27T02:12:20.1586709Z test composes_the_decorators_of_one_stage_in_order_the_last_outermost ... ok
+2026-11-27T02:12:20.1587249Z test runs_a_decorator_that_traces_the_calls_of_a_stage ... ok
+2026-11-27T02:12:20.1587787Z test wraps_a_replacement_of_a_stage ... ok
+2026-11-27T02:12:20.1588169Z test wraps_the_readers_and_the_writer_of_words ... ok
+2026-11-27T02:12:20.1588582Z test wraps_the_machine_code_reader_lifting_and_emitter ... ok
+2026-11-27T02:12:20.1588784Z 
+2026-11-27T02:12:20.1589069Z test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
+2026-11-27T02:12:20.1589318Z 
+2026-11-27T02:12:20.1589346Z 
+2026-11-27T02:12:20.1589428Z running 4 tests
+2026-11-27T02:12:20.1589797Z test reads_perl_argument_lists_as_natural_text_without_hanging ... ok
+2026-11-27T02:12:20.1628166Z [1m[92m     Running[0m rust/tests/concrete_syntax.rs (target/debug/build/universal-translator/6c2fce0db5f4a480/out/concrete_syntax-6c2fce0db5f4a480)
+2026-11-27T02:12:20.1629214Z [1m[92m     Running[0m rust/tests/decorators.rs (target/debug/build/universal-translator/e44978bbc92dc5bc/out/decorators-e44978bbc92dc5bc)
+2026-11-27T02:12:20.1630251Z [1m[92m     Running[0m rust/tests/detect_goldens.rs (target/debug/build/universal-translator/484c53f4030b9a09/out/detect_goldens-484c53f4030b9a09)
+2026-11-27T02:12:21.1769421Z test tells_objective_c_from_c_by_its_import ... ok
+2026-11-27T02:12:23.2038888Z test reads_machine_code_whole_only ... ok
+2026-11-27T02:12:50.4869915Z test detects_every_golden ... ok
+2026-11-27T02:12:50.5170261Z 
+2026-11-27T02:12:50.5209339Z [1m[92m     Running[0m rust/tests/equivalence.rs (target/debug/build/universal-translator/55b4208399b8c096/out/equivalence-55b4208399b8c096)
+2026-11-27T02:12:50.5210332Z test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 30.25s
+2026-11-27T02:12:50.5210971Z 
+2026-11-27T02:12:50.5211042Z 
+2026-11-27T02:12:50.5258933Z running 9 tests
+2026-11-27T02:12:50.5259318Z test finds_another_operator ... ok
+2026-11-27T02:12:50.5259749Z test finds_a_bound_that_is_one_off ... ok
+2026-11-27T02:12:50.5260162Z test holds_for_what_the_translator_writes ... ok
+2026-11-27T02:12:50.5260615Z test keeps_what_a_program_does_in_the_meta_program ... ok
+2026-11-27T02:12:50.5261140Z test leaves_out_comments_blank_lines_and_the_spelling_of_an_update ... ok
+2026-11-27T02:12:50.5261631Z test leaves_out_types_and_mutability ... ok
+2026-11-27T02:12:51.5159316Z test keeps_the_example_programs_through_a_round_trip_in_rust ... ok
+2026-11-27T02:12:51.5159860Z test holds_for_the_example_programs ... ok
+2026-11-27T02:12:52.5286853Z test holds_for_every_committed_translation_of_two_tasks ... ok
+2026-11-27T02:12:52.5287108Z 
+2026-11-27T02:12:52.5287372Z test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.69s
+2026-11-27T02:12:52.5287807Z 
+2026-11-27T02:12:52.5287815Z 
+2026-11-27T02:12:52.5287924Z running 4 tests
+2026-11-27T02:12:52.5288242Z test exception_names_preserve_user_bindings ... ok
+2026-11-27T02:12:52.5288695Z test finally_runs_before_a_function_returns ... ok
+2026-11-27T02:12:52.5289130Z test translated_cpp_exceptions_keep_the_exit_status ... ok
+2026-11-27T02:12:52.5327860Z [1m[92m     Running[0m rust/tests/exceptions.rs (target/debug/build/universal-translator/2f0b40a6b0b8a9e6/out/exceptions-2f0b40a6b0b8a9e6)
+2026-11-27T02:12:53.5440554Z test cpp_try_typed_catch_and_throw_keep_explicit_boundaries ... ok
+2026-11-27T02:12:53.5440902Z 
+2026-11-27T02:12:53.5441262Z test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.71s
+2026-11-27T02:12:53.5441602Z 
+2026-11-27T02:12:53.5441609Z 
+2026-11-27T02:12:53.5441720Z running 12 tests
+2026-11-27T02:12:53.5442042Z test reads_a_range_loop_as_a_counting_loop ... ok
+2026-11-27T02:12:53.5442377Z test picks_an_index_that_no_name_of_the_program_uses ... ok
+2026-11-27T02:12:53.5442690Z test reads_for_of_as_a_for_each_over_the_array ... ok
+2026-11-27T02:12:53.5442984Z test reads_python_for_in_over_an_array ... ok
+2026-11-27T02:12:53.5443377Z test types_the_loop_variable_with_the_element_type ... ok
+2026-11-27T02:12:53.5443995Z test round_trips_javascript_through_the_meta_language ... ok
+2026-11-27T02:12:53.5444557Z test writes_a_counting_loop_when_the_body_changes_the_loop_variable ... ok
+2026-11-27T02:12:53.5445098Z test writes_a_counting_loop_over_a_fresh_index_without_a_for_each ... ok
+2026-11-27T02:12:53.5445631Z test writes_a_sentence_in_the_controlled_languages_that_have_one ... ok
+2026-11-27T02:12:53.5446194Z test lowers_the_loop_in_the_controlled_languages_without_a_sentence ... ok
+2026-11-27T02:12:53.5446698Z test writes_the_loop_natively_in_the_languages_that_have_one ... ok
+2026-11-27T02:12:53.5447164Z test keeps_its_meaning_through_every_grammar_language ... ok
+2026-11-27T02:12:53.5447406Z 
+2026-11-27T02:12:53.5447900Z test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+2026-11-27T02:12:53.5448251Z 
+2026-11-27T02:12:53.5448257Z 
+2026-11-27T02:12:53.5448368Z running 9 tests
+2026-11-27T02:12:53.5448741Z test incomplete_fragments_fail_with_the_reason_and_the_line ... ok
+2026-11-27T02:12:53.5449205Z test keeps_a_whole_program_with_its_main_function ... ok
+2026-11-27T02:12:53.5449653Z test reads_a_whole_program_functions_or_statements ... ok
+2026-11-27T02:12:53.5450098Z test reads_and_writes_a_sentence_as_a_statement ... ok
+2026-11-27T02:12:53.5450577Z test rejects_statements_and_functions_for_machine_targets ... ok
+2026-11-27T02:12:53.5451071Z test writes_statements_and_functions_without_a_main_or_a_class ... ok
+2026-11-27T02:12:53.5451613Z test reads_the_length_of_an_array_the_fragment_only_indexes ... ok
+2026-11-27T02:12:53.5452111Z test ends_every_rocq_function_group_with_its_period ... ok
+2026-11-27T02:12:53.5452528Z test matches_the_shared_goldens_and_reads_them_back ... ok
+2026-11-27T02:12:53.5452762Z 
+2026-11-27T02:12:53.5453096Z test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.77s
+2026-11-27T02:12:53.5453436Z 
+2026-11-27T02:12:53.5453442Z 
+2026-11-27T02:12:53.5453548Z running 27 tests
+2026-11-27T02:12:53.5483060Z [1m[92m     Running[0m rust/tests/for_each.rs (target/debug/build/universal-translator/96e53be89af3704a/out/for_each-96e53be89af3704a)
+2026-11-27T02:12:53.5484186Z [1m[92m     Running[0m rust/tests/fragments.rs (target/debug/build/universal-translator/63b6f291ba33dfa3/out/fragments-63b6f291ba33dfa3)
+2026-11-27T02:12:53.5484995Z [1m[92m     Running[0m rust/tests/grammar.rs (target/debug/build/universal-translator/64e25a85b5e8858a/out/grammar-64e25a85b5e8858a)
+2026-11-27T02:12:54.5593560Z test applies_custom_meta_layers_before_the_context_rules ... ok
+2026-11-27T02:12:54.5594138Z test adapts_comments_to_the_target_language_by_default ... ok
+2026-11-27T02:12:54.5594623Z test explains_syntax_errors_with_the_line_number ... ok
+2026-11-27T02:12:54.5594979Z test adapts_comments_and_spells_names_for_assembly_cil_and_jvm ... ok
+2026-11-27T02:12:54.5595374Z test copies_reassigned_parameters_where_parameters_are_immutable ... ok
+2026-11-27T02:12:54.5595774Z test keeps_a_comment_right_above_a_function_with_that_function ... ok
+2026-11-27T02:12:54.5596148Z test keeps_a_comment_right_above_an_import_as_a_file_comment ... ok
+2026-11-27T02:12:54.5596476Z test keeps_a_comment_that_opens_an_indented_block ... ok
+2026-11-27T02:12:54.5596785Z test keeps_comments_that_close_an_indented_block ... ok
+2026-11-27T02:12:54.5597188Z test keeps_comments_word_for_word_in_literal_mode ... ok
+2026-11-27T02:12:54.5597763Z test keeps_only_the_behaviour_in_same_effect_mode ... ok
+2026-11-27T02:12:54.5598179Z test lets_callers_remove_or_decorate_a_rule ... ok
+2026-11-27T02:12:54.5598683Z test hand_written_programs_mean_the_same_as_the_javascript_programs ... ok
+2026-11-27T02:12:54.5599222Z test member_calls_keep_computed_receivers_and_java_continuations ... ok
+2026-11-27T02:12:54.5599708Z test nests_meta_parameters_and_names_a_field_after_a_block ... ok
+2026-11-27T02:12:54.5600143Z test reads_a_lone_return_1_back_as_a_number ... ok
+2026-11-27T02:12:54.5600551Z test refuses_programs_it_cannot_lower ... ok
+2026-11-27T02:12:54.5601204Z test rejects_unknown_modes_and_languages ... ok
+2026-11-27T02:12:54.5601671Z test reports_every_stage_through_the_trace_hook ... ok
+2026-11-27T02:12:54.5602119Z test short_circuits_conditions_with_jumps ... ok
+2026-11-27T02:12:54.5602549Z test shows_the_meta_program_as_links_notation ... ok
+2026-11-27T02:12:54.5603035Z test spells_declared_names_in_each_language_convention ... ok
+2026-11-27T02:12:54.5603621Z test turns_text_concatenation_into_each_language_interpolation ... ok
+2026-11-27T02:12:54.5604222Z test writes_compound_assignment_only_where_the_language_has_it ... ok
+2026-11-27T02:12:54.5604817Z test keeps_functions_without_an_empty_line_between_them_in_every_language ... ok
+2026-11-27T02:12:54.5605305Z test matches_every_golden_file_for_all_targets ... ok
+2026-11-27T02:12:57.5915098Z test every_translation_returns_to_the_same_meta_program ... ok
+2026-11-27T02:12:57.5915461Z 
+2026-11-27T02:12:57.5915839Z test result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.79s
+2026-11-27T02:12:57.5916202Z 
+2026-11-27T02:12:57.5916208Z 
+2026-11-27T02:12:57.5916291Z running 9 tests
+2026-11-27T02:12:57.5916621Z test bad_configuration_lossy_conversion_and_invalid_ranges_are_errors ... ok
+2026-11-27T02:12:57.5917057Z test concrete_trees_preserve_unicode_crlf_trivia_nesting_and_failed_input ... ok
+2026-11-27T02:12:57.5917476Z test bounded_recovery_preserves_missing_tokens_and_error_leaves ... ok
+2026-11-27T02:12:57.5918268Z test subsequent_merges_reuse_prior_identities_without_manual_cache_options ... ok
+2026-11-27T02:12:57.5918773Z test imports_follow_updated_dependencies_and_parser_limits_are_finite ... ok
+2026-11-27T02:12:57.5919215Z test transforms_reapply_to_updates_and_tracing_is_explicit ... ok
+2026-11-27T02:12:57.5919748Z test updates_keep_separate_sources_editions_and_stable_merge_identities ... ok
+2026-11-27T02:12:57.5920305Z test all_import_formats_produce_executable_lossless_concrete_trees ... ok
+2026-11-27T02:12:57.5920831Z test imported_grammar_joins_the_normal_translator_pipeline ... ok
+2026-11-27T02:12:57.5921080Z 
+2026-11-27T02:12:57.5921410Z test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+2026-11-27T02:12:57.5921742Z 
+2026-11-27T02:12:57.5921747Z 
+2026-11-27T02:12:57.5921839Z running 2 tests
+2026-11-27T02:12:57.5922154Z test reads_every_program_but_the_blocked_ones ... ok
+2026-11-27T02:12:57.5922627Z test reads_the_programs_the_coverage_file_lists_as_read ... ok
+2026-11-27T02:12:57.5922888Z 
+2026-11-27T02:12:57.5923266Z test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+2026-11-27T02:12:57.5923592Z 
+2026-11-27T02:12:57.5923599Z 
+2026-11-27T02:12:57.5923699Z running 11 tests
+2026-11-27T02:12:57.5954375Z [1m[92m     Running[0m rust/tests/grammar_workspace.rs (target/debug/build/universal-translator/eabc0743952c387a/out/grammar_workspace-eabc0743952c387a)
+2026-11-27T02:12:57.5955471Z [1m[92m     Running[0m rust/tests/hello_world_collection.rs (target/debug/build/universal-translator/72429c6ff217e0d8/out/hello_world_collection-72429c6ff217e0d8)
+2026-11-27T02:12:57.5956418Z [1m[92m     Running[0m rust/tests/hello_world_dialects.rs (target/debug/build/universal-translator/f80c6fb14070f117/out/hello_world_dialects-f80c6fb14070f117)
+2026-11-27T02:12:58.6289007Z test reads_a_lua_hash_bang_line_and_a_call_with_one_text_argument ... ok
+2026-11-27T02:12:58.6348609Z test reads_a_scala_object_that_extends_app ... ok
+2026-11-27T02:12:58.6379326Z [1m[92m     Running[0m rust/tests/identifiers.rs (target/debug/build/universal-translator/b0bc027eed903d54/out/identifiers-b0bc027eed903d54)
+2026-11-27T02:12:58.6380118Z test keeps_an_assignment_to_c_a_statement ... ok
+2026-11-27T02:12:58.6380641Z test reads_a_visual_basic_class_after_imports_system_console ... ok
+2026-11-27T02:12:58.6381132Z test reads_groovy_println_without_parentheses ... ok
+2026-11-27T02:12:58.6381535Z test reads_php_up_to_its_closing_tag ... ok
+2026-11-27T02:12:58.6382052Z test reads_fixed_form_comments_labelled_formats_and_a_final_stop ... ok
+2026-11-27T02:12:58.6382832Z test reports_formats_it_cannot_print ... ok
+2026-11-27T02:12:58.6383406Z test writes_a_line_end_inside_fortran_text_with_new_line ... ok
+2026-11-27T02:12:58.6383944Z test reads_write_control_lists_new_line_and_concatenation ... ok
+2026-11-27T02:12:58.6384467Z test reads_zig_before_0_1 ... ok
+2026-11-27T02:12:58.6409091Z [1m[92m     Running[0m rust/tests/issue_12.rs (target/debug/build/universal-translator/49b73491b0dc0942/out/issue_12-49b73491b0dc0942)
+2026-11-27T02:12:58.6409651Z 
+2026-11-27T02:12:58.6439029Z [1m[92m     Running[0m rust/tests/issue_6.rs (target/debug/build/universal-translator/9275b15ec13e958b/out/issue_6-9275b15ec13e958b)
+2026-11-27T02:12:58.6439961Z test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+2026-11-27T02:12:58.6467931Z 
+2026-11-27T02:12:58.6497911Z 
+2026-11-27T02:12:58.6528230Z running 9 tests
+2026-11-27T02:12:58.6558361Z test refuses_identifier_languages_that_do_not_exist ... ok
+2026-11-27T02:12:58.6588290Z test reads_names_written_in_other_scripts ... ok
+2026-11-27T02:12:58.6618288Z test is_an_option_of_the_command_line ... ok
+2026-11-27T02:12:58.6648243Z test never_makes_two_names_one ... ok
+2026-11-27T02:12:58.6678404Z test renames_the_declared_names_in_place_keeping_every_other_character ... ok
+2026-11-27T02:12:58.6708366Z test spells_translated_names_in_the_convention_of_the_target ... ok
+2026-11-27T02:12:58.6738390Z test renames_names_inside_interpolated_texts_through_the_meta_program ... ok
+2026-11-27T02:12:58.6768351Z test transliterates_names_for_languages_with_ascii_names_only ... ok
+2026-11-27T02:12:58.6798290Z test translates_the_comments_and_the_names_together ... ok
+2026-11-27T02:12:58.6827890Z 
+2026-11-27T02:12:58.6858422Z test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.40s
+2026-11-27T02:12:58.6887896Z 
+2026-11-27T02:12:58.6917897Z 
+2026-11-27T02:12:58.6948139Z running 8 tests
+2026-11-27T02:12:58.6978352Z test reads_a_rule_without_replace_and_writes_nothing_for_no_rules ... ok
+2026-11-27T02:12:58.7008243Z test reads_the_example_rule_file ... ok
+2026-11-27T02:12:58.7038197Z test says_what_is_wrong ... ok
+2026-11-27T02:12:58.7068234Z test still_reads_rules_written_as_json ... ok
+2026-11-27T02:12:58.7098275Z test quotes_texts_with_spaces_brackets_and_quotes ... ok
+2026-11-27T02:12:58.7128193Z test writes_the_same_text_back ... ok
+2026-11-27T02:12:58.7158250Z test translates_with_the_rules_given_as_text ... ok
+2026-11-27T02:12:58.7188261Z test reads_a_lino_rule_file_on_the_command_line ... ok
+2026-11-27T02:12:58.7217888Z 
+2026-11-27T02:12:58.7248419Z test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+2026-11-27T02:12:58.7277925Z 
+2026-11-27T02:12:58.7307902Z 
+2026-11-27T02:12:58.7338404Z running 27 tests
+2026-11-27T02:12:58.7338917Z test comment_options_take_a_single_value ... ok
+2026-11-27T02:12:58.7339530Z test keeps_a_comment_right_above_a_function_with_that_function ... ok
+2026-11-27T02:12:58.7340168Z test keeps_a_comment_right_above_an_import_as_a_file_comment ... ok
+2026-11-27T02:12:58.7340770Z test keeps_a_comment_that_opens_an_indented_block ... ok
+2026-11-27T02:12:58.7341268Z test detects_the_language_of_the_comments ... ok
+2026-11-27T02:12:58.7341840Z test changes_only_the_comments_when_the_code_language_stays ... ok
+2026-11-27T02:12:58.7342460Z test comment_language_is_available_from_the_command_line ... ok
+2026-11-27T02:12:58.7343038Z test keeps_comments_that_close_an_indented_block ... ok
+2026-11-27T02:12:58.7343557Z test keeps_the_gaps_and_the_case_of_each_comment_word ... ok
+2026-11-27T02:12:58.7344183Z test keeps_comment_languages_and_versions_in_parts_that_translate ... ok
+2026-11-27T02:12:58.7344750Z test lists_each_natural_language_once ... ok
+2026-11-27T02:12:58.7345311Z test lists_one_python_with_its_versions_python_3_first ... FAILED
+2026-11-27T02:12:58.7345987Z test orders_versions_from_the_full_vocabulary_down_to_the_standards ... ok
+2026-11-27T02:12:58.7346907Z test picks_american_or_british_english_from_the_browser_languages ... ok
+2026-11-27T02:12:58.7347799Z test reads_a_lone_return_1_back_as_a_number ... ok
+2026-11-27T02:12:58.7348335Z test reads_both_versions_as_one_python ... ok
+2026-11-27T02:12:59.6434518Z test spells_british_english_with_british_spellings ... ok
+2026-11-27T02:12:59.6434915Z test takes_a_translator_of_its_own_for_the_comments ... ok
+2026-11-27T02:12:59.6435264Z test translates_comment_words_through_the_shared_meanings ... ok
+2026-11-27T02:12:59.6435595Z test translates_comments_together_with_the_code ... ok
+2026-11-27T02:12:59.6435929Z test keeps_functions_without_an_empty_line_between_them ... ok
+2026-11-27T02:12:59.6436308Z test writes_comments_in_another_language_into_a_version_of_a_language ... ok
+2026-11-27T02:12:59.6436724Z test writes_python_2_without_f_strings_and_with_the_print_statement ... ok
+2026-11-27T02:12:59.6437068Z test writes_the_common_library_route_in_python_2 ... ok
+2026-11-27T02:12:59.6437425Z test keeps_the_meaning_of_every_task_written_in_python_2 ... ok
+2026-11-27T02:12:59.6437959Z test passes_comment_options_through_the_partial_default ... ok
+2026-11-27T02:12:59.6438346Z test translates_only_the_comments_of_a_text_whose_language_is_detected ... ok
+2026-11-27T02:12:59.6438569Z 
+2026-11-27T02:12:59.6438641Z failures:
+2026-11-27T02:12:59.6438734Z 
+2026-11-27T02:12:59.6438922Z ---- lists_one_python_with_its_versions_python_3_first stdout ----
+2026-11-27T02:12:59.6439118Z 
+2026-11-27T02:12:59.6439416Z thread 'lists_one_python_with_its_versions_python_3_first' (4465) panicked at rust/tests/issue_6.rs:110:5:
+2026-11-27T02:12:59.6439793Z assertion `left == right` failed
+2026-11-27T02:12:59.6440021Z   left: ["3", "3.13", "3.12", "3.5", "2"]
+2026-11-27T02:12:59.6440229Z  right: ["3", "3.5", "2"]
+2026-11-27T02:12:59.6440539Z note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+2026-11-27T02:12:59.6440751Z 
+2026-11-27T02:12:59.6440755Z 
+2026-11-27T02:12:59.6440829Z failures:
+2026-11-27T02:12:59.6441041Z     lists_one_python_with_its_versions_python_3_first
+2026-11-27T02:12:59.6441204Z 
+2026-11-27T02:12:59.6441462Z test result: FAILED. 26 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.18s
+2026-11-27T02:12:59.6441711Z 
+2026-11-27T02:12:59.6480059Z [1m[91merror[0m: test failed, to rerun pass `--test issue_6`
+2026-11-27T02:12:59.6503002Z Rust test suite finished in 73s of its 540s budget (exit 101).
+2026-11-27T02:12:59.6524137Z ##[error]Process completed with exit code 101.
+2026-11-27T02:12:59.6614278Z Post job cleanup.
+2026-11-27T02:12:59.7255110Z [command]/usr/bin/git version
+2026-11-27T02:12:59.7282138Z git version 2.56.1
+2026-11-27T02:12:59.7304113Z Temporarily overriding HOME='/home/runner/work/_temp/d01ea1cf-1d74-4618-a688-17b304bb2622' before making global git config changes
+2026-11-27T02:12:59.7305402Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-27T02:12:59.7307263Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/universal-translator/universal-translator
+2026-11-27T02:12:59.7327437Z Removing SSH command configuration
+2026-11-27T02:12:59.7332257Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-27T02:12:59.7355240Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-27T02:12:59.7509221Z Removing HTTP extra header
+2026-11-27T02:12:59.7513745Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-27T02:12:59.7536779Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-27T02:12:59.7690237Z Removing includeIf entries pointing to credentials config files
+2026-11-27T02:12:59.7694981Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-27T02:12:59.7715814Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-27T02:12:59.7988924Z Cleaning up orphan processes

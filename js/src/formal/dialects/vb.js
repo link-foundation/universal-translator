@@ -1,6 +1,7 @@
 // Visual Basic .NET: a module whose functions and subs end with End
 // Function and End Sub, and whose Sub Main is the entry point.
 
+import { renderLines } from '../../translation/emission-map.js';
 import { add, block, node, number } from '../../meta/tree.js';
 import { defaultValues, keywordParser } from './shared.js';
 import { offset } from '../arrays.js';
@@ -355,9 +356,7 @@ const emitter = (Base) =>
     }
 
     functionDefinition(item) {
-      for (const text of item.comments ?? []) {
-        this.comment(text);
-      }
+      this.comments(item, 'comments');
       const parameters = item.parameters
         .map(({ name, type }) => `${name} As ${this.type(type)}`)
         .join(', ');
@@ -369,9 +368,7 @@ const emitter = (Base) =>
     }
 
     program(program) {
-      for (const text of program.comments) {
-        this.comment(text);
-      }
+      this.comments(program, 'comments');
       if (program.comments.length) {
         this.line();
       }
@@ -383,15 +380,13 @@ const emitter = (Base) =>
           this.line();
         }
       });
-      for (const text of program.mainComments ?? []) {
-        this.comment(text);
-      }
+      this.comments(program, 'mainComments');
       this.line('Sub Main()');
       this.indented(program.main);
       this.line('End Sub');
       this.depth = 0;
       this.line('End Module');
-      return `${this.lines.join('\n')}\n`;
+      return renderLines(this, this.lines);
     }
   };
 

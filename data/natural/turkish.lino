@@ -12,7 +12,28 @@ natural:
   true: 'doğru'
   false: 'yanlış'
   note: 'Not: {text}'
+  grammar:
+    terms:
+      interrogative: 'nedir'
+      query-scope: '{source} içindeki her {variable} için'
+      query-deferred: '“ertelenmiş”'
+    productions:
+      answer-type: '{subject} türü'
+      question-type: '@answer-type @interrogative'
+      answer-documentation: '{subject} belgesi'
+      question-documentation: '@answer-documentation @interrogative'
+      answer-source: '{subject} kaynak kodu'
+      question-source: '@answer-source @interrogative'
+      answer-details: '{subject} hakkında ayrıntılı bilgi'
+      question-details: '@answer-details @interrogative'
+      answer-query: '@query-scope {condition} olduğunda {projection} değerleri'
+      question-query: '@answer-query nelerdir'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
+      element: '{array} listesinin {index} öğesi'
+      set-element: '@element[array=name]ni {value} yap'
   templates:
+    documentation: 'Belge şudur {value}'
     function: '{name} işlevini {parameters} ile tanımla'
     function-without-parameters: '{name} işlevini tanımla'
     declare: '{name} değişkenini {value} değeriyle oluştur'
@@ -50,9 +71,7 @@ natural:
     remainder: '{left} mod {right}' '{left} % {right}'
     array: 'liste ({elements})'
     new-array: 'uzunluğu {length} olan {fill} listesi'
-    element: '{array} listesinin {index} öğesi'
     length: '{array} uzunluğu'
-    set-element: '{name} listesinin {index} öğesini {value} yap'
   words:
     ackermann: 'ackermann'
     bottles: 'şişeler'

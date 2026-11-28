@@ -12,7 +12,28 @@ natural:
   true: '참'
   false: '거짓'
   note: '참고: {text}'
+  grammar:
+    terms:
+      interrogative: '은 무엇인가'
+      query-scope: '{source} 의 각 {variable} 에 대해'
+      query-deferred: '“지연”'
+    productions:
+      answer-type: '{subject} 의 유형'
+      question-type: '@answer-type @interrogative'
+      answer-documentation: '{subject} 의 문서'
+      question-documentation: '@answer-documentation @interrogative'
+      answer-source: '{subject} 의 소스 코드'
+      question-source: '@answer-source @interrogative'
+      answer-details: '{subject} 의 상세 정보'
+      question-details: '@answer-details @interrogative'
+      answer-query: '@query-scope {condition} 를 만족하는 {projection} 의 값'
+      question-query: '@answer-query은 무엇인가'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
+      element: '{array} 원소 {index}'
+      set-element: '@element[array=name] 을 {value} 로 바꾼다'
   templates:
+    documentation: '문서는 {value}'
     function: '{name} 을 {parameters} 로 정의한다'
     function-without-parameters: '{name} 을 정의한다'
     declare: '{name} 을 값 {value} 로 만든다'
@@ -50,9 +71,7 @@ natural:
     remainder: '{left} 모듈로 {right}' '{left} % {right}'
     array: '목록 ({elements})'
     new-array: '길이 {length} 초기값 {fill} 목록'
-    element: '{array} 원소 {index}'
     length: '{array} 길이'
-    set-element: '{name} 원소 {index} 을 {value} 로 바꾼다'
   words:
     ackermann: '아커만'
     bottles: '병'

@@ -1,0 +1,56 @@
+[
+  {
+    "file": "c11-n1570.pdf",
+    "url": "https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf",
+    "bytes": 1692004,
+    "sha256": "208969fec021e4f4ce87a1873765298c73e7bbb5209b1c5868967c7adfc8492e"
+  },
+  {
+    "file": "ecmascript-expressions.html.gz",
+    "url": "https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html",
+    "bytes": 1121211,
+    "sha256": "73dce5f1d332aa7e9186ec489c0b8657e0c7fabb8b37c968308280c114b727fb"
+  },
+  {
+    "file": "ecmascript-numbers.html.gz",
+    "url": "https://tc39.es/ecma262/multipage/numbers-and-dates.html",
+    "bytes": 976387,
+    "sha256": "684d05c7cb2a7df1cfbc0f67568a755024c362212ed57dd4b088e676b8fd6247"
+  },
+  {
+    "file": "perl-int.html.gz",
+    "url": "https://perldoc.perl.org/functions/int",
+    "bytes": 16647,
+    "sha256": "8478052877987401851bde928df1e21e9d2fd8acdfad6a9e100beb7f30ed215f"
+  },
+  {
+    "file": "python-expressions.html.gz",
+    "url": "https://docs.python.org/3/reference/expressions.html",
+    "bytes": 274555,
+    "sha256": "d563bf4dd6e439d976ae87ce382b8e2c0e1b095d24d387ccaac2572380f84766"
+  },
+  {
+    "file": "perl-operators.html.gz",
+    "url": "https://perldoc.perl.org/perlop",
+    "bytes": 243050,
+    "sha256": "25583b7fea3d5fc8dd5f731c8f62bed2dfbd3daa8f32d63dda37b09ce3e104ab"
+  },
+  {
+    "file": "lua54-manual.html.gz",
+    "url": "https://www.lua.org/manual/5.4/manual.html",
+    "bytes": 364567,
+    "sha256": "139df56e1fad429aa336fff43392e929bea3aa32372ca3026c45156d5ffdae86"
+  },
+  {
+    "file": "r-arithmetic.html.gz",
+    "url": "https://stat.ethz.ch/R-manual/R-devel/library/base/html/Arithmetic.html",
+    "bytes": 12205,
+    "sha256": "d60c4353169928456606dccfe9b8217dfac01806fd4d204631b9b2eac595046d"
+  },
+  {
+    "file": "ruby-integer.html.gz",
+    "url": "https://docs.ruby-lang.org/en/master/Integer.html",
+    "bytes": 350713,
+    "sha256": "b451a3903ad33f94d5adfc0d65c71eaebdde51ea914e416cb270da01e36ee393"
+  }
+]

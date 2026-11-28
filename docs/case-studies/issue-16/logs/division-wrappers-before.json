@@ -1,0 +1,40 @@
+{
+  "results": [
+    {
+      "language": "javascript",
+      "written": "console.log(Math.trunc(7 + 5 / 1 + 3));\nconsole.log(Math.trunc(18 - 4 / 6 - 2));\nconsole.log(Math.trunc(3 * 4 / 2 * 3));\nconsole.log(Math.trunc(Math.trunc(20 / 2 + 3) / Math.trunc(8 / 4)));\nconsole.log(Math.trunc(24 / Math.trunc(8 / 2)));\nconsole.log(Math.trunc(7 + 5 / -4));\nconsole.log(Math.trunc(-7 / 1 + 2));\nconsole.log(Math.trunc(-(7 + 5) / 1 + 4));\nconsole.log(Math.trunc(2 + 3 / 10 - 3));\nconsole.log(Math.trunc(2 * (3 + 4) / 9 - 5));\n",
+      "output": "15\n15\n18\n6\n6\n5\n-5\n-8\n-0\n-3\n",
+      "expected": "3\n3\n2\n2\n6\n-3\n-2\n-2\n0\n3\n",
+      "passed": false
+    },
+    {
+      "language": "javascript@es5",
+      "written": "console.log(~~(7 + 5 / 1 + 3));\nconsole.log(~~(18 - 4 / 6 - 2));\nconsole.log(~~(3 * 4 / 2 * 3));\nconsole.log(~~(~~(20 / 2 + 3) / ~~(8 / 4)));\nconsole.log(~~(24 / ~~(8 / 2)));\nconsole.log(~~(7 + 5 / -4));\nconsole.log(~~(-7 / 1 + 2));\nconsole.log(~~(-(7 + 5) / 1 + 4));\nconsole.log(~~(2 + 3 / 10 - 3));\nconsole.log(~~(2 * (3 + 4) / 9 - 5));\n",
+      "output": "15\n15\n18\n6\n6\n5\n-5\n-8\n0\n-3\n",
+      "expected": "3\n3\n2\n2\n6\n-3\n-2\n-2\n0\n3\n",
+      "passed": false
+    },
+    {
+      "language": "typescript",
+      "written": "console.log(Math.trunc(7 + 5 / 1 + 3));\nconsole.log(Math.trunc(18 - 4 / 6 - 2));\nconsole.log(Math.trunc(3 * 4 / 2 * 3));\nconsole.log(Math.trunc(Math.trunc(20 / 2 + 3) / Math.trunc(8 / 4)));\nconsole.log(Math.trunc(24 / Math.trunc(8 / 2)));\nconsole.log(Math.trunc(7 + 5 / -4));\nconsole.log(Math.trunc(-7 / 1 + 2));\nconsole.log(Math.trunc(-(7 + 5) / 1 + 4));\nconsole.log(Math.trunc(2 + 3 / 10 - 3));\nconsole.log(Math.trunc(2 * (3 + 4) / 9 - 5));\n",
+      "output": "15\n15\n18\n6\n6\n5\n-5\n-8\n-0\n-3\n",
+      "expected": "3\n3\n2\n2\n6\n-3\n-2\n-2\n0\n3\n",
+      "passed": false
+    },
+    {
+      "language": "perl",
+      "written": "use strict;\nuse warnings;\n\nprint(int(7 + 5 / 1 + 3) . \"\\n\");\nprint(int(18 - 4 / 6 - 2) . \"\\n\");\nprint(int(3 * 4 / 2 * 3) . \"\\n\");\nprint(int(int(20 / 2 + 3) / int(8 / 4)) . \"\\n\");\nprint(int(24 / int(8 / 2)) . \"\\n\");\nprint(int(7 + 5 / -4) . \"\\n\");\nprint(int(-7 / 1 + 2) . \"\\n\");\nprint(int(-(7 + 5) / 1 + 4) . \"\\n\");\nprint(int(2 + 3 / 10 - 3) . \"\\n\");\nprint(int(2 * (3 + 4) / 9 - 5) . \"\\n\");\n",
+      "output": "15\n15\n18\n6\n6\n5\n-5\n-8\n0\n-3\n",
+      "expected": "3\n3\n2\n2\n6\n-3\n-2\n-2\n0\n3\n",
+      "passed": false
+    },
+    {
+      "language": "php@5",
+      "written": "<?php\n\necho (int) (7 + 5 / 1 + 3) . \"\\n\";\necho (int) (18 - 4 / 6 - 2) . \"\\n\";\necho (int) (3 * 4 / 2 * 3) . \"\\n\";\necho (int) ((int) (20 / 2 + 3) / (int) (8 / 4)) . \"\\n\";\necho (int) (24 / (int) (8 / 2)) . \"\\n\";\necho (int) (7 + 5 / -4) . \"\\n\";\necho (int) (-7 / 1 + 2) . \"\\n\";\necho (int) (-(7 + 5) / 1 + 4) . \"\\n\";\necho (int) (2 + 3 / 10 - 3) . \"\\n\";\necho (int) (2 * (3 + 4) / 9 - 5) . \"\\n\";\n",
+      "output": "15\n15\n18\n6\n6\n5\n-5\n-8\n0\n-3\n",
+      "expected": "3\n3\n2\n2\n6\n-3\n-2\n-2\n0\n3\n",
+      "passed": false
+    }
+  ],
+  "failures": 5
+}

@@ -5,6 +5,10 @@ natural:
   profile: minimal-english
   source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
   false: unwahr
+  grammar:
+    productions:
+      element: 'Teil {index} von {array}'
+      set-element: 'Danach ist @element[array=name] jetzt {value}'
   templates:
     function: 'So tut jemand {name} mit {parameters}'
     function-without-parameters: 'So tut jemand {name}'
@@ -32,9 +36,7 @@ natural:
     greater-or-equal: '{left} ist nicht weniger als {right}'
     array: 'diese Dinge ({elements})'
     new-array: '{length} Dinge wie {fill}'
-    element: 'Teil {index} von {array}'
     length: 'wie viele Teile {array} hat'
-    set-element: 'Danach ist Teil {index} von {name} jetzt {value}'
   rules:
     primes: german
     extra-words: mit auf Zeile die Antwort höre nichts solange Male für von bis dann Gegenteil als oder und plus minus mal geteilt durch modulo unwahr hat

@@ -1,0 +1,11 @@
+▶ the vocabulary of a standard of one own
+  ✔ rocq: every changed word takes effect (1270.343967ms)
+✔ the vocabulary of a standard of one own (1273.558083ms)
+ℹ tests 1
+ℹ suites 1
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1571.936512

@@ -12,7 +12,28 @@ natural:
   true: '真'
   false: '偽'
   note: '注：{text}'
+  grammar:
+    terms:
+      interrogative: 'は何ですか'
+      query-scope: '{source} 内の各 {variable} について'
+      query-deferred: '「遅延」'
+    productions:
+      answer-type: '{subject} の型'
+      question-type: '@answer-type @interrogative'
+      answer-documentation: '{subject} の文書'
+      question-documentation: '@answer-documentation @interrogative'
+      answer-source: '{subject} のソースコード'
+      question-source: '@answer-source @interrogative'
+      answer-details: '{subject} の詳細情報'
+      question-details: '@answer-details @interrogative'
+      answer-query: '@query-scope {condition} を満たす {projection} の値'
+      question-query: '@answer-queryは何か'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
+      element: '{array} の 要素 {index}'
+      set-element: '@element[array=name] を {value} に 変える'
   templates:
+    documentation: '文書は {value}'
     function: '{name} を {parameters} で 定義 する'
     function-without-parameters: '{name} を 定義 する'
     declare: '{name} を 値 {value} で 作る'
@@ -50,9 +71,7 @@ natural:
     remainder: '{left} 剰余 {right}' '{left} % {right}'
     array: 'リスト ({elements})'
     new-array: '長さ {length} で 全て {fill} の リスト'
-    element: '{array} の 要素 {index}'
     length: '{array} の 長さ'
-    set-element: '{name} の 要素 {index} を {value} に 変える'
   words:
     ackermann: 'アッカーマン'
     bottles: '瓶'

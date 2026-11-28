@@ -1,0 +1,5 @@
+{"title":"Non-decimal radices/Input","revid":413803,"sha256":"e58b0b4d50349d5dc6ac6901c04bfbea13abe136039ae41bf5b3b626c9397662","error":"Unexpected \">>\" after statement (line 8)"}
+{"title":"User input/Text","revid":419450,"sha256":"34e484ef9e41f26bc10a7efde070643bb9f8175bedd33ab246c4dd714b8614ad","error":"Unexpected \">>\" after statement (line 12)"}
+{"title":"Repeat a string","revid":418530,"sha256":"bde269cef9e2461880a670e0f0a4448498597af4e172db5afd22595dbd4eea93","error":"Unexpected character \"'\" (line 5)"}
+{"title":"Kernighans large earthquake problem","revid":420008,"sha256":"d8e08722f8166b962572d21dc868ce7a49f31099544d2ec8aa3113cabfcdf022","error":"Expected \")\" but found \">>\" (line 18)"}
+{"title":"Set right-adjacent bits","revid":417616,"sha256":"29d9e1133b0f77e2ba2dba69870a61ee0bb3c62387c684c10e37588997fa2269","error":"Unexpected character \"'\" (line 9)"}

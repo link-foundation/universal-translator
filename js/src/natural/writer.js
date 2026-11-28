@@ -6,6 +6,9 @@
 // differently.
 
 import { naturalLanguage } from './catalog.js';
+import { questionAspects, questionKey, answerKey } from '../meta/questions.js';
+import { queryKey } from '../meta/queries.js';
+import { collectionPhrase } from '../meta/collection-phrases.js';
 import {
   binaryTemplates,
   levelIndex,
@@ -15,6 +18,14 @@ import {
 } from './levels.js';
 import { lowerForEach } from '../meta/for-each.js';
 import { layout, subtract, number } from '../meta/tree.js';
+import { agree, slotCase } from './agreement.js';
+import { foldWord } from './tokens.js';
+import {
+  mappedComments,
+  mappedEmitter,
+  mappedLine,
+  renderLines,
+} from '../translation/emission-map.js';
 
 const indentUnit = '  ';
 
@@ -45,7 +56,7 @@ function fill(language, key, slots) {
         `Template "${key}" of ${language.id} uses {${token.value}}`
       );
     }
-    return value;
+    return agree(value, language, slotCase(language, key, token.value));
   });
 }
 
@@ -103,32 +114,113 @@ const operand = (expression, language) =>
 // Expressions separated by the list separator, as call arguments are.
 function separated(expressions, language) {
   const separator = { type: 'separator', value: language.listSeparator };
-  return expressions.flatMap((expression, index) => [
-    ...(index ? [separator] : []),
-    ...writeExpression(expression, language, 0),
-  ]);
+  return expressions.flatMap((expression, index) => {
+    const tokens = writeExpression(expression, language, 0);
+    let depth = 0;
+    const hasOwnSeparator = tokens.some(({ type }) => {
+      if (type === 'open') {
+        depth += 1;
+      }
+      if (type === 'close') {
+        depth -= 1;
+      }
+      return type === 'separator' && depth === 0;
+    });
+    return [
+      ...(index ? [separator] : []),
+      ...(hasOwnSeparator ? parenthesize(tokens) : tokens),
+    ];
+  });
+}
+
+function matchesReflectionFrame(tokens, language) {
+  const matches = (literal, token) =>
+    literal.type === token.type &&
+    (literal.type === 'word'
+      ? literal.folded === foldWord(token.value)
+      : literal.value === token.value);
+  return questionAspects.some((aspect) =>
+    language.compiled[answerKey(aspect)].some((phrase) => {
+      const subject = phrase.findIndex(
+        ({ type, value }) => type === 'slot' && value === 'subject'
+      );
+      return (
+        subject !== -1 &&
+        tokens.length >= phrase.length &&
+        phrase
+          .slice(0, subject)
+          .every((literal, index) => matches(literal, tokens[index])) &&
+        phrase
+          .slice(subject + 1)
+          .every((literal, index, suffix) =>
+            matches(literal, tokens[tokens.length - suffix.length + index])
+          )
+      );
+    })
+  );
+}
+
+function writeCall(expression, language) {
+  const callee = writeName(expression.callee, language);
+  const key = expression.arguments.length ? 'call' : 'call-without-arguments';
+  const slots = {
+    callee: [word(callee)],
+    arguments: separated(expression.arguments, language),
+  };
+  const tokens = fill(language, key, slots);
+  // A contextual reflection phrase takes priority over a bare callee spelling.
+  if (!callee.endsWith('_') && matchesReflectionFrame(tokens, language)) {
+    return fill(language, key, { ...slots, callee: [word(`${callee}_`)] });
+  }
+  return tokens;
+}
+
+function collectionExpression(expression, language) {
+  const phrase = collectionPhrase(expression);
+  if (phrase) {
+    return fill(
+      language,
+      phrase.key,
+      Object.fromEntries(
+        Object.entries(phrase.slots).map(([key, value]) => [
+          key,
+          parenthesize(writeExpression(value, language, 0)),
+        ])
+      )
+    );
+  }
+  throw new Error(`Cannot write a ${expression.kind} expression in words`);
 }
 
 function primary(expression, language) {
   switch (expression.kind) {
+    case 'Query':
+      return fill(
+        language,
+        queryKey(expression.eager),
+        querySlots(expression, language)
+      );
+    case 'Question':
+      return fill(language, answerKey(expression.aspect), {
+        subject: operand(expression.subject, language),
+      });
     case 'Number':
       return [{ type: 'number', value: expression.value }];
     case 'Text':
       return [{ type: 'text', value: expression.value }];
     case 'Boolean':
-      return [word(expression.value ? language.true : language.false)];
+      return [
+        {
+          ...word(expression.value ? language.true : language.false),
+          reference: true,
+        },
+      ];
     case 'Name':
-      return [word(writeName(expression.name, language))];
-    case 'Call': {
-      const callee = [word(writeName(expression.callee, language))];
-      if (!expression.arguments.length) {
-        return fill(language, 'call-without-arguments', { callee });
-      }
-      return fill(language, 'call', {
-        callee,
-        arguments: separated(expression.arguments, language),
-      });
-    }
+      return [
+        { ...word(writeName(expression.name, language)), reference: true },
+      ];
+    case 'Call':
+      return writeCall(expression, language);
     // An empty array is a new array of no zeros: no template lists nothing.
     case 'ArrayLiteral':
       return expression.elements.length
@@ -154,8 +246,20 @@ function primary(expression, language) {
         array: operand(expression.array, language),
       });
     default:
-      throw new Error(`Cannot write a ${expression.kind} expression in words`);
+      return collectionExpression(expression, language);
   }
+}
+
+function querySlots(expression, language) {
+  return {
+    variable: [word(writeName(expression.variable, language))],
+    ...Object.fromEntries(
+      ['source', 'condition', 'projection'].map((key) => [
+        key,
+        operand(expression[key], language),
+      ])
+    ),
+  };
 }
 
 // Tokens of an expression that must bind at least as tightly as `minimum`.
@@ -217,15 +321,21 @@ class Writer {
   sentence(depth, key, slots, opensBlock = false) {
     const { language } = this;
     const text = renderTokens(fill(language, key, slots), language);
-    const end = opensBlock ? language.blockEnd : language.sentenceEnd;
-    this.lines.push(`${indentUnit.repeat(depth)}${capitalize(text)}${end}`);
+    const end = opensBlock
+      ? language.blockEnd
+      : key.startsWith('question-')
+        ? '?'
+        : language.sentenceEnd;
+    this.lines.push(
+      mappedLine(this, `${indentUnit.repeat(depth)}${capitalize(text)}${end}`)
+    );
   }
 
   // A comment of several lines becomes one note per line.
   note(depth, text) {
     for (const part of text.split('\n')) {
       const line = this.language.note.replace('{text}', part.trim());
-      this.lines.push(`${indentUnit.repeat(depth)}${line}`);
+      this.lines.push(mappedLine(this, `${indentUnit.repeat(depth)}${line}`));
     }
   }
 
@@ -276,9 +386,7 @@ class Writer {
       case 'Return':
         return this.giveBack(statement, depth);
       case 'Evaluate':
-        return this.sentence(depth, 'evaluate', {
-          expression: this.expression(statement.expression),
-        });
+        return this.evaluation(statement.expression, depth);
       case 'If':
         return this.conditional(statement, depth);
       case 'While':
@@ -290,6 +398,24 @@ class Writer {
       default:
         throw new Error(`Cannot write a ${statement.kind} statement in words`);
     }
+  }
+
+  evaluation(expression, depth) {
+    if (expression.kind === 'Query') {
+      return this.sentence(
+        depth,
+        queryKey(expression.eager, true),
+        querySlots(expression, this.language)
+      );
+    }
+    if (expression.kind === 'Question') {
+      return this.sentence(depth, questionKey(expression.aspect), {
+        subject: this.expression(expression.subject),
+      });
+    }
+    return this.sentence(depth, 'evaluate', {
+      expression: this.expression(expression),
+    });
   }
 
   printing(statement, depth) {
@@ -372,7 +498,7 @@ class Writer {
 
   function(item) {
     const { language } = this;
-    (item.comments ?? []).forEach((text) => this.note(0, text));
+    this.notes(item);
     const name = [word(writeName(item.name, language))];
     if (item.parameters.length) {
       const parameters = list(
@@ -385,12 +511,20 @@ class Writer {
     } else {
       this.sentence(0, 'function-without-parameters', { name }, true);
     }
+    if (item.documentation) {
+      this.sentence(1, 'documentation', {
+        value: this.expression(item.documentation),
+      });
+    }
     this.block(item.body, 1);
   }
 
+  notes(owner, key = 'comments') {
+    mappedComments(this, owner[key] ?? [], (text) => this.note(0, text));
+  }
+
   program(program) {
-    const header = [...(program.comments ?? [])];
-    header.forEach((text) => this.note(0, text));
+    this.notes(program);
     for (const item of program.functions) {
       if (this.lines.length) {
         this.lines.push('');
@@ -402,15 +536,17 @@ class Writer {
       if (this.lines.length) {
         this.lines.push('');
       }
-      (program.mainComments ?? []).forEach((text) => this.note(0, text));
+      this.notes(program, 'mainComments');
       layout(main).forEach((statement) => this.statement(statement, 0));
     }
-    return `${this.lines.join('\n')}\n`;
+    return renderLines(this, this.lines);
   }
 }
 
 export function writeNatural(program, id) {
   const language = naturalLanguage(id);
   const sentence = language.compiled['for-each'].length > 0;
-  return new Writer(language).program(lowerForEach(program, () => sentence));
+  return mappedEmitter(new Writer(language)).program(
+    lowerForEach(program, () => sentence)
+  );
 }

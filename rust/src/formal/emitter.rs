@@ -5,11 +5,13 @@
 use std::any::Any;
 use std::collections::HashSet;
 
+use super::cpp_library::native_import_key;
 use super::dialects::{EmitterDialect, emitter_dialect};
 use super::languages::{
     Blocks, EntryPoint, ForwardDeclarations, IntegerDivision, Syntax, language_syntax,
 };
-use super::numbers::{rust_type, with_real_operands};
+use super::numbers::{rust_type, symbol, with_real_operands};
+use super::power::write_power;
 use crate::meta::GrammarError;
 use crate::meta::{Node, add, block, format_number, later_calls, layout, number, text};
 
@@ -21,26 +23,10 @@ pub(crate) fn precedence(operator: &str) -> f64 {
         "and" => 2.0,
         "equal" | "notEqual" => 3.0,
         "less" | "lessOrEqual" | "greater" | "greaterOrEqual" => 4.0,
+        "stream" | "rightShift" => 4.5,
         "add" | "subtract" => 5.0,
-        "multiply" | "divide" | "realDivide" | "remainder" => 6.0,
+        "multiply" | "divide" | "floorDivide" | "realDivide" | "remainder" | "modulo" => 6.0,
         _ => f64::NAN,
-    }
-}
-
-pub(crate) fn symbol(operator: &str) -> &str {
-    match operator {
-        "add" => "+",
-        "subtract" => "-",
-        "multiply" => "*",
-        "divide" | "realDivide" => "/",
-        "remainder" => "%",
-        "less" => "<",
-        "lessOrEqual" => "<=",
-        "greater" => ">",
-        "greaterOrEqual" => ">=",
-        "equal" => "==",
-        "notEqual" => "!=",
-        other => other,
     }
 }
 
@@ -114,13 +100,16 @@ fn is_literal_range(start: &Node, end: &Node) -> bool {
 pub(crate) type Result<T> = std::result::Result<T, GrammarError>;
 
 pub(crate) struct Emitter {
+    pub(crate) objpak_name: String,
+    pub(crate) sql_value_name: String,
     pub(crate) syntax: Syntax,
     pub(crate) unit: &'static str,
-    pub(crate) lines: Vec<String>,
+    pub(crate) lines: crate::emission_map::SourceLines,
     pub(crate) depth: usize,
     pub(crate) uses: HashSet<&'static str>,
     /// Functions announced before the definitions, as Lua's `local male`.
     pub(crate) announced: HashSet<String>,
+    pub(crate) exceptions: super::exceptions::ExceptionState,
     /// The statements and layout of a language with a grammar of its own.
     pub(crate) dialect: &'static dyn EmitterDialect,
     /// What a dialect remembers while it writes (see `state`).
@@ -129,14 +118,17 @@ pub(crate) struct Emitter {
 
 /// The import lines a used feature needs, before and after the common
 /// library imports.
-const IMPORTS_BEFORE_LIBRARY: [(&str, &str); 4] = [
+const IMPORTS_BEFORE_LIBRARY: [(&str, &str); 7] = [
+    ("System.Linq", "using System.Linq;"),
+    ("inspect", "import inspect"),
     ("sys", "import sys"),
+    ("typing", "from typing import Annotated"),
     ("strformat", "import std/strformat"),
     ("std.conv", "import std.conv;"),
     ("dart:io", "import 'dart:io';"),
 ];
 const IMPORTS_AFTER_LIBRARY: [(&str, &str); 6] = [
-    ("objc", "#import <objc/objc.h>"),
+    ("objc", super::dialects::OBJC_RUNTIME_HEADER),
     ("stdbool", "#include <stdbool.h>"),
     ("stdio", "#include <stdio.h>"),
     ("iostream", "#include <iostream>"),
@@ -151,12 +143,18 @@ pub fn comment_lines(syntax: &Syntax, id: &str, text: &str, preferred: bool) -> 
         "" => marker.to_owned(),
         _ => format!("{marker} {line}"),
     };
+    // ?> ends a PHP line comment. A block retains code mode; escape a
+    // foreign block terminator as failure-note comments already do.
+    let php_closing_tag = id == "php" && text.contains("?>");
+    let escaped = php_closing_tag.then(|| text.replace("*/", "* /"));
+    let text = escaped.as_deref().unwrap_or(text);
     let lines: Vec<&str> = text.split('\n').collect();
     let (several, line_comment) = (lines.len() > 1, syntax.line_comment);
     match syntax.block_comment {
         Some((open, close))
             if !text.contains(close)
                 && (matches!(id, "c" | "csharp")
+                    || php_closing_tag
                     || (preferred && several)
                     || line_comment == open
                     || (several && line_comment.is_empty())) =>
@@ -185,12 +183,15 @@ impl Emitter {
         let syntax_id = syntax.id;
         let unit = if syntax.id == "go" { "\t" } else { "    " };
         Emitter {
+            objpak_name: String::new(),
+            sql_value_name: String::new(),
             syntax,
             unit,
-            lines: Vec::new(),
+            lines: Default::default(),
             depth: 0,
             uses: HashSet::new(),
             announced: HashSet::new(),
+            exceptions: Default::default(),
             dialect: emitter_dialect(syntax_id),
             state: Box::new(()),
         }
@@ -259,6 +260,12 @@ impl Emitter {
     }
 
     pub(crate) fn type_name(&mut self, meta: &str) -> String {
+        if let Some(written) = super::query_writer::type_name(self, meta) {
+            return written;
+        }
+        if let Some(name) = meta.strip_prefix("source:") {
+            return super::type_metadata::named_type(name, self.id());
+        }
         if meta == "array"
             && let Some(written) = self.array_type_name()
         {
@@ -339,9 +346,14 @@ impl Emitter {
         } else {
             operator.to_owned()
         };
-        let operand = self.expression_in(field(expression, "operand")?, 7.0)?;
+        let operand = self.expression_in(field(expression, "operand")?, 9.0)?;
         let result = format!("{spaced}{operand}");
-        Ok(if parent > 7.0 {
+        let level = if self.id() == "python" && expression.str("operator") == Some("not") {
+            2.0
+        } else {
+            7.0
+        };
+        Ok(if parent > level {
             format!("({result})")
         } else {
             result
@@ -353,6 +365,7 @@ impl Emitter {
     }
 
     pub(crate) fn expression_in(&mut self, expression: &Node, parent: f64) -> Result<String> {
+        let _origin = crate::emission_map::active(expression);
         let dialect = self.dialect;
         dialect.expression_in(self, expression, parent)
     }
@@ -380,6 +393,9 @@ impl Emitter {
                     shown
                 })
             }
+            "RecordConstruction" | "RecordFieldRead" => {
+                super::records::write_expression(self, expression)
+            }
             "Text" => Ok(self.quote(expression.str("value").unwrap_or_default())),
             "Boolean" => {
                 let value = expression.flag("value").unwrap_or(false);
@@ -388,25 +404,120 @@ impl Emitter {
                     None => value.to_string(),
                 })
             }
-            "Name" => Ok(self.variable(expression.str("name").unwrap_or_default())),
+            "Name" => {
+                let variable = self.variable(expression.str("name").unwrap_or_default());
+                Ok(
+                    if self.id() == "rust" && expression.str("type") == Some("set<text>") {
+                        format!("{variable}.clone()")
+                    } else {
+                        variable
+                    },
+                )
+            }
+            "AssignmentExpression" if matches!(self.id(), "c" | "cpp" | "objc") => Ok(format!(
+                "({} = {})",
+                self.variable(expression.str("name").unwrap_or_default()),
+                self.expression(field(expression, "value")?)?
+            )),
+            "ExpressionSequence" if matches!(self.id(), "c" | "cpp" | "objc") => {
+                let mut values = expression.node_list("steps");
+                values.push(field(expression, "value")?.clone());
+                let written = values
+                    .iter()
+                    .map(|v| self.expression(v))
+                    .collect::<Result<Vec<_>>>()?;
+                Ok(format!("({})", written.join(", ")))
+            }
+            "Query" => super::query_writer::write_query(self, expression),
+            "Null" | "SqlBinary" | "SqlUnary" | "SqlTruth" | "SqlBetween" | "SqlIn" => {
+                super::sql_values::expression(self, expression)
+            }
+            "ProcessArguments" | "Update" | "SetLiteral" | "SetInsert" => {
+                super::objpak_writer::expression(self, expression)
+            }
+            "Lambda" => super::query_writer::write_lambda(self, expression),
+            "Question" => super::questions::write_question(self, expression),
+            "Method" if matches!(self.id(), "python" | "javascript" | "typescript") => {
+                let receiver = self.expression(field(expression, "receiver")?)?;
+                Ok(format!(
+                    "({receiver}).{}",
+                    expression.str("name").unwrap_or_default()
+                ))
+            }
             "Interpolation" => {
                 let parts = expression.node_list("parts");
                 self.interpolation(&parts)
             }
-            "Call" => {
-                let arguments = expression
-                    .nodes("arguments")
+            "CppInitializerList" if self.id() == "cpp" => {
+                let fields = expression
+                    .nodes("elements")
                     .into_iter()
-                    .map(|argument| self.expression(argument))
+                    .map(|value| self.expression(value))
+                    .collect::<Result<Vec<_>>>()?;
+                Ok(format!("{{{}}}", fields.join(", ")))
+            }
+            "SizeOf" if ["c", "cpp", "objc"].contains(&self.id()) => {
+                let operand = self.expression(field(expression, "operand")?)?;
+                Ok(format!("sizeof({operand})"))
+            }
+            "CppCharacter" | "CppIntegralCast" if self.id() == "cpp" => {
+                super::cpp_library::write_character_expression(self, expression)
+            }
+            "CppStringLiteral" if self.id() == "cpp" => {
+                Ok(format!("\"{}\"", expression.str("raw").unwrap_or_default()))
+            }
+            "Call" | "CppTemplateCall" => {
+                let types = match expression.str("typeArguments") {
+                    Some(types) if self.id() == "cpp" => {
+                        format!("<{}>", super::type_metadata::named_type(types, self.id()))
+                    }
+                    Some(_) => {
+                        return Err(GrammarError::new(format!(
+                            "C++ template call requires a library mapping for {}",
+                            self.id()
+                        )));
+                    }
+                    None => String::new(),
+                };
+                let callee = expression.str("callee").unwrap_or_default();
+                let values = expression.nodes("arguments");
+                if super::rust_print::is_print(callee) && self.id() != "rust" {
+                    return Err(GrammarError::new(format!(
+                        "Rust format requires a native macro in {}",
+                        self.id()
+                    )));
+                }
+                let member = callee.starts_with('.');
+                let receiver = if member {
+                    self.expression_in(
+                        values
+                            .first()
+                            .ok_or_else(|| GrammarError::new("A method call needs a receiver"))?,
+                        9.0,
+                    )?
+                } else {
+                    String::new()
+                };
+                let arguments = values
+                    .into_iter()
+                    .skip(usize::from(member))
+                    .map(|argument| {
+                        if super::rust_print::is_print(callee) && argument.is("NamedArgument") {
+                            let name = argument.str("name").unwrap_or_default();
+                            let value = self.expression(field(argument, "value")?)?;
+                            return Ok(format!("{name} = {value}"));
+                        }
+                        self.expression(argument)
+                    })
                     .collect::<Result<Vec<_>>>()?;
                 Ok(format!(
-                    "{}({})",
-                    expression.str("callee").unwrap_or_default(),
+                    "{receiver}{callee}{types}({})",
                     arguments.join(", ")
                 ))
             }
             "Unary" => self.unary(expression, parent),
             "Binary" => self.binary(expression, parent),
+            "CppCharacterConcat" if self.id() == "cpp" => self.binary(expression, parent),
             kind => Err(GrammarError::new(format!(
                 "Cannot emit {kind} as an expression"
             ))),
@@ -419,15 +530,25 @@ impl Emitter {
     }
 
     pub(crate) fn base_binary(&mut self, expression: &Node, parent: f64) -> Result<String> {
+        if expression.str("operator") == Some("power") {
+            return write_power(self, expression, parent);
+        }
         let converted = with_real_operands(expression, &self.syntax);
         let expression = converted.as_ref().unwrap_or(expression);
         let operator = expression.str("operator").unwrap_or_default();
+        if matches!(operator, "stream" | "rightShift") && self.id() != "cpp" {
+            return Err(GrammarError::new(format!(
+                "C++ shift or stream operator requires a mapping for {}",
+                self.id()
+            )));
+        }
         let level = precedence(operator);
         let left_node = field(expression, "left")?;
         let right_node = field(expression, "right")?;
         // R's %% and %/% bind tighter than * and /, so their operands that are
         // themselves operations keep parentheses.
-        let tight = self.id() == "r" && matches!(operator, "divide" | "remainder");
+        let tight = self.id() == "r"
+            && matches!(operator, "divide" | "floorDivide" | "remainder" | "modulo");
         // `a && b || c` keeps its meaning without parentheses, but readers (and
         // C compilers with -Wparentheses) expect them around the inner "and".
         let inner = if operator == "or" {
@@ -435,19 +556,45 @@ impl Emitter {
         } else {
             level
         };
-        let left = self.expression_in(left_node, if tight { 7.0 } else { inner })?;
-        let right =
-            self.expression_in(right_node, if tight { 7.0 } else { inner.max(level + 1.0) })?;
-        let result = if operator == "divide" {
+        // Nested boolean comparisons need explicit grouping: grammars may
+        // chain them, reject adjacent operators, or warn at strict levels.
+        let comparisons = [
+            "equal",
+            "notEqual",
+            "less",
+            "lessOrEqual",
+            "greater",
+            "greaterOrEqual",
+        ];
+        let comparison = |part: &Node| {
+            comparisons.contains(&operator)
+                && part.is("Binary")
+                && part
+                    .str("operator")
+                    .is_some_and(|op| comparisons.contains(&op))
+        };
+        let left_level = if comparison(left_node) {
+            9.0
+        } else if tight {
+            7.0
+        } else {
+            inner
+        };
+        let right_level = if comparison(right_node) {
+            9.0
+        } else if tight {
+            7.0
+        } else {
+            inner.max(level + 1.0)
+        };
+        let left = self.expression_in(left_node, left_level)?;
+        let right = self.expression_in(right_node, right_level)?;
+        let result = if matches!(operator, "divide" | "floorDivide") {
             if let Some(integer) = self.syntax.operators.integer_divide {
                 format!("{left} {integer} {right}")
             } else if let Some(spelling) = self.syntax.integer_division {
                 return Ok(match spelling {
-                    IntegerDivision::Wrapper(wrapper) => format!(
-                        "{wrapper}({} / {})",
-                        self.expression(left_node)?,
-                        self.expression(right_node)?
-                    ),
+                    IntegerDivision::Wrapper(wrapper) => format!("{wrapper}({left} / {right})"),
                     IntegerDivision::Call(call) => format!(
                         "{call}({}, {})",
                         self.expression(left_node)?,
@@ -465,7 +612,11 @@ impl Emitter {
         } else {
             let spelled = self
                 .syntax
-                .operator(operator)
+                .operator(if operator == "modulo" {
+                    "remainder"
+                } else {
+                    operator
+                })
                 .unwrap_or_else(|| symbol(operator));
             format!("{left} {spelled} {right}")
         };
@@ -509,6 +660,7 @@ impl Emitter {
         {
             last.push_str(trailing);
             last.push_str(only);
+            self.lines.append_origin();
             return;
         }
         for line in &lines {
@@ -558,6 +710,7 @@ impl Emitter {
 
     pub(crate) fn open_block(&mut self, header: &str) {
         match self.syntax.blocks {
+            Blocks::Braces if header.is_empty() => self.line("{"),
             Blocks::Braces => self.line(&format!("{header} {{")),
             // Nim's procedure heads end with "=" instead of ":".
             Blocks::Indentation if header.ends_with('=') => self.line(header),
@@ -597,6 +750,7 @@ impl Emitter {
     }
 
     pub(crate) fn statement(&mut self, statement: &Node) -> Result<()> {
+        let _origin = crate::emission_map::active(statement);
         let dialect = self.dialect;
         dialect.statement(self, statement)
     }
@@ -604,6 +758,14 @@ impl Emitter {
     pub(crate) fn base_statement(&mut self, statement: &Node) -> Result<()> {
         if let Some(written) = self.array_statement(statement) {
             return written;
+        }
+        if statement.is("Import")
+            && self.id() == "cpp"
+            && let Some(using) =
+                super::cpp_library::cpp_using_statement(statement.str("text").unwrap_or_default())
+        {
+            self.line(&using);
+            return Ok(());
         }
         let end = self.terminator();
         match statement.kind.as_str() {
@@ -621,6 +783,14 @@ impl Emitter {
                 let line = format!("{}{end}", self.expression(field(statement, "expression")?)?);
                 self.line(&line);
             }
+            "PropertyAssignment" if matches!(self.id(), "python" | "javascript" | "typescript") => {
+                let object = self.expression(field(statement, "object")?)?;
+                let value = self.expression(field(statement, "value")?)?;
+                self.line(&format!(
+                    "{object}.{} = {value}{end}",
+                    statement.str("property").unwrap_or_default()
+                ));
+            }
             "Return" => {
                 let line = self.return_statement(statement)?;
                 self.line(&line);
@@ -637,6 +807,7 @@ impl Emitter {
             "While" => self.while_statement(statement)?,
             "CountingLoop" => self.counting_loop(statement)?,
             "ForEach" => self.for_each_loop(statement)?,
+            "Try" | "Throw" => self.exception_statement(statement)?,
             kind => {
                 return Err(GrammarError::new(format!(
                     "Cannot emit {kind} as a statement"
@@ -654,11 +825,56 @@ impl Emitter {
     pub(crate) fn base_declaration(&mut self, statement: &Node) -> Result<String> {
         let name = statement.str("name").unwrap_or_default();
         let kind = statement.str("type").unwrap_or_default();
+        if let Some(value) = statement.node("value")
+            && value.is("CppDirectInitializer")
+        {
+            if self.id() != "cpp" {
+                return Err(GrammarError::new(format!(
+                    "C++ direct initialization requires a library mapping for {}",
+                    self.id()
+                )));
+            }
+            let cpp_kind = self.type_name(statement.str("cppType").unwrap_or(kind));
+            let arguments = value
+                .nodes("arguments")
+                .into_iter()
+                .map(|argument| self.expression(argument))
+                .collect::<Result<Vec<_>>>()?;
+            return Ok(format!("{cpp_kind} {name}({});", arguments.join(", ")));
+        }
+        if statement.flag("cppTemplateType") == Some(true) {
+            if self.id() != "cpp" {
+                return Err(GrammarError::new(format!(
+                    "C++ template type requires a library mapping for {}",
+                    self.id()
+                )));
+            }
+            if statement.node("value").is_none() {
+                return Ok(format!(
+                    "{} {name}{}",
+                    self.type_name(kind),
+                    self.terminator()
+                ));
+            }
+            if let Some(value) = statement.node("value")
+                && value.is("CppInitializerList")
+                && value.flag("direct") == Some(true)
+            {
+                return Ok(format!(
+                    "{} {name}{};",
+                    self.type_name(kind),
+                    self.expression(value)?
+                ));
+            }
+        }
         let initial = match statement.node("value") {
             Some(value) => self.initial_value(value, kind)?,
             None => self.initial_value(&number(0.0), kind)?,
         };
         let mutable = statement.flag("mutable").unwrap_or(false);
+        if self.id() == "csharp" && statement.node("value").is_some_and(|v| v.is("Query")) {
+            return Ok(format!("var {name} = {initial};"));
+        }
         Ok(match self.id() {
             "javascript" | "typescript" => {
                 let keyword = self.syntax.declaration_keyword.unwrap_or(if mutable {
@@ -877,18 +1093,26 @@ impl Emitter {
     /// The loop header is the language's `for_each` template with the loop
     /// variable, its type and the array filled in.
     pub(crate) fn for_each_loop(&mut self, statement: &Node) -> Result<()> {
+        if self.syntax.id == "objc"
+            && statement.node("array").and_then(|a| a.str("type")) == Some("set<text>")
+        {
+            return super::objpak_objc::for_each(self, statement);
+        }
         let array = field(statement, "array")?;
-        let element = self.type_name("integer");
+        let element = self.type_name(statement.str("type").unwrap_or("integer"));
         let variable = self.variable(statement.str("variable").unwrap_or_default());
         let written = self.expression(array)?;
-        let header = self
-            .syntax
-            .for_each
-            .unwrap_or_default()
-            .replace("{type}", &element)
-            .replace("{variable}", &variable)
-            .replace("{array-name}", array.str("name").unwrap_or_default())
-            .replace("{array}", &written);
+        let header = if self.id() == "rust" && array.str("type") == Some("set<text>") {
+            format!("for {variable} in {written}.iter()")
+        } else {
+            self.syntax
+                .for_each
+                .unwrap_or_default()
+                .replace("{type}", &element)
+                .replace("{variable}", &variable)
+                .replace("{array-name}", array.str("name").unwrap_or_default())
+                .replace("{array}", &written)
+        };
         self.open_block(&header);
         self.body(field(statement, "body")?)?;
         self.close_block();
@@ -936,13 +1160,17 @@ impl Emitter {
 
     pub(crate) fn base_signature(&mut self, item: &Node) -> String {
         let name = item.str("name").unwrap_or_default();
+        let cpp = self.id() == "cpp";
         let parameters: Vec<(String, String)> = item
             .nodes("parameters")
             .iter()
             .map(|parameter| {
+                let kind = if cpp { parameter.str("cppType") } else { None };
                 (
                     parameter.str("name").unwrap_or_default().to_owned(),
-                    parameter.str("type").unwrap_or_default().to_owned(),
+                    kind.or_else(|| parameter.str("type"))
+                        .unwrap_or_default()
+                        .to_owned(),
                 )
             })
             .collect();
@@ -1018,15 +1246,29 @@ impl Emitter {
     }
 
     pub(crate) fn function_definition(&mut self, item: &Node) -> Result<()> {
+        let _origin = crate::emission_map::active(item);
+        if item.node("documentation").is_some()
+            && !matches!(self.id(), "python" | "javascript" | "typescript")
+        {
+            return Err(GrammarError::new(format!(
+                "Cannot emit runtime documentation in {}",
+                self.id()
+            )));
+        }
         let dialect = self.dialect;
         dialect.function_definition(self, item)
     }
 
+    pub(crate) fn comments(&mut self, owner: &Node, key: &str) {
+        crate::emission_map::for_each_comment(owner, key, |text| self.comment(text));
+    }
+
     pub(crate) fn base_function_definition(&mut self, item: &Node) -> Result<()> {
-        for text in item.texts("comments") {
-            self.comment(&text);
-        }
-        let mut signature = self.signature(item);
+        self.comments(item, "comments");
+        self.write_annotations(item)?;
+        let mut signature = self
+            .metadata_signature(item)?
+            .unwrap_or_else(|| self.signature(item));
         // Lua defines a function it declared ahead without `local`, which
         // would declare a second variable.
         if self.syntax.forward_declarations == ForwardDeclarations::Local
@@ -1037,6 +1279,12 @@ impl Emitter {
             signature = signature.trim_start_matches("local ").to_owned();
         }
         self.open_block(&signature);
+        if self.id() == "python"
+            && let Some(documentation) = item.node("documentation")
+        {
+            let written = self.expression(documentation)?;
+            self.line(&written);
+        }
         // Perl receives its arguments in @_.
         let parameters = item.nodes("parameters");
         if self.syntax.unpacked_parameters && !parameters.is_empty() {
@@ -1048,6 +1296,7 @@ impl Emitter {
         }
         self.body(field(item, "body")?)?;
         self.close_block();
+        super::documentation::write_assignment(self, item)?;
         Ok(())
     }
 
@@ -1096,8 +1345,9 @@ impl Emitter {
     }
 
     pub(crate) fn base_main(&mut self, program: &Node) -> Result<()> {
-        for text in program.texts("mainComments") {
-            self.comment(&text);
+        self.comments(program, "mainComments");
+        if self.exception_main(program)? {
+            return Ok(());
         }
         let main = field(program, "main")?;
         if let Some(header) = self.main_header() {
@@ -1121,6 +1371,12 @@ impl Emitter {
     }
 
     pub(crate) fn base_program(&mut self, program: &Node) -> Result<String> {
+        self.prepare_exceptions(program);
+        let items = if self.id() == "cpp" {
+            super::cpp_library::cpp_file_items(program)
+        } else {
+            program.nodes("functions")
+        };
         let inside_class = self.syntax.entry_point == EntryPoint::ClassMethod;
         if inside_class {
             let container = self.syntax.container.unwrap_or(if self.id() == "csharp" {
@@ -1131,7 +1387,7 @@ impl Emitter {
             self.open_block(container);
         }
         if self.syntax.forward_declarations != ForwardDeclarations::None {
-            let announced = later_calls(&program.node_list("functions"));
+            let announced = later_calls(items.iter().copied());
             for item in &announced {
                 let name = item.str("name").unwrap_or_default().to_owned();
                 let announcement = self.forward_declaration(item);
@@ -1142,12 +1398,19 @@ impl Emitter {
                 self.line("");
             }
         }
-        let functions = program.nodes("functions");
-        for (index, item) in functions.iter().enumerate() {
+        for definition in program.nodes("definitions") {
+            super::records::write_record(self, definition)?;
+            self.line("");
+        }
+        for (index, item) in items.iter().enumerate() {
+            if !item.is("Function") {
+                self.statement(item)?;
+                continue;
+            }
             self.function_definition(item)?;
             // A main procedure of its own is set apart from the functions.
             if item.flag("blankAfter") != Some(false)
-                || (index + 1 == functions.len() && self.main_header().is_some())
+                || (index + 1 == items.len() && self.main_header().is_some())
             {
                 self.line("");
             }
@@ -1166,16 +1429,14 @@ impl Emitter {
             self.lines.push(String::new());
         }
         let comments = program.texts("comments");
-        for text in &comments {
-            self.comment(text);
-        }
+        self.comments(program, "comments");
         if !comments.is_empty() {
             self.line("");
         }
         let mut all = std::mem::take(&mut self.lines);
         all.extend(self.prelude(program));
         all.extend(body);
-        Ok(format!("{}\n", all.join("\n")))
+        Ok(all.render(self.syntax.id))
     }
 
     pub(crate) fn prelude(&mut self, program: &Node) -> Vec<String> {
@@ -1197,9 +1458,16 @@ impl Emitter {
                 .map(|(_, line)| (*line).to_owned())
                 .collect()
         };
+        let library = program.texts("libraryImports");
+        let imported: HashSet<_> = library.iter().map(|line| native_import_key(line)).collect();
+        let after = used(&IMPORTS_AFTER_LIBRARY);
         lines.extend(used(&IMPORTS_BEFORE_LIBRARY));
-        lines.extend(program.texts("libraryImports"));
-        lines.extend(used(&IMPORTS_AFTER_LIBRARY));
+        lines.extend(library.iter().cloned());
+        lines.extend(
+            after
+                .into_iter()
+                .filter(|line| !imported.contains(native_import_key(line))),
+        );
         if lines.last().is_some_and(|line| !line.is_empty()) {
             lines.push(String::new());
         }
@@ -1212,6 +1480,8 @@ impl Emitter {
             }
         }
         self.array_prelude(&mut lines);
+        super::objpak_writer::prelude(self, &mut lines);
+        super::sql_values::prelude(self, &mut lines);
         lines
     }
 }
@@ -1224,5 +1494,21 @@ pub fn spaced_after<N: std::borrow::Borrow<Node>>(functions: &[N], index: usize)
 }
 
 pub fn emit_program(program: &Node, language: &str) -> Result<String> {
-    Emitter::new(language_syntax(language)?).program(program)
+    let syntax = language_syntax(language)?;
+    if !program.nodes("definitions").is_empty() {
+        if !super::records::supports_records(&syntax) {
+            return Err(GrammarError::new(format!(
+                "Record definitions cannot be emitted in {language}"
+            )));
+        }
+        super::records::check_record_references(program)?;
+    }
+    let mut emitter = Emitter::new(syntax);
+    super::objpak_writer::prepare(&mut emitter, program);
+    super::sql_values::prepare_emitter(&mut emitter, program);
+    if emitter.syntax.id == "csharp" {
+        emitter.program(&super::query_writer::csharp_query_names(program.clone()))
+    } else {
+        emitter.program(program)
+    }
 }

@@ -12,7 +12,28 @@ natural:
   true: 'đúng'
   false: 'sai'
   note: 'Ghi chú: {text}'
+  grammar:
+    terms:
+      interrogative: 'là gì'
+      query-scope: 'cho mỗi {variable} trong {source}'
+      query-deferred: '“trì hoãn”'
+    productions:
+      answer-type: 'kiểu của {subject}'
+      question-type: '@answer-type @interrogative'
+      answer-documentation: 'tài liệu của {subject}'
+      question-documentation: '@answer-documentation @interrogative'
+      answer-source: 'mã nguồn của {subject}'
+      question-source: '@answer-source @interrogative'
+      answer-details: 'thông tin chi tiết về {subject}'
+      question-details: '@answer-details @interrogative'
+      answer-query: 'các giá trị của {projection} @query-scope khi {condition}'
+      question-query: 'Các giá trị nào của {projection} @query-scope thỏa mãn {condition}'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
+      element: 'phần tử {index} trong {array}'
+      set-element: 'Đổi @element[array=name] thành {value}'
   templates:
+    documentation: 'Tài liệu là {value}'
     function: 'Định nghĩa {name} với {parameters}'
     function-without-parameters: 'Định nghĩa {name}'
     declare: 'Tạo {name} với giá trị {value}'
@@ -50,9 +71,7 @@ natural:
     remainder: '{left} chia lấy dư {right}' '{left} % {right}'
     array: 'danh sách ({elements})'
     new-array: 'danh sách dài {length} toàn {fill}'
-    element: 'phần tử {index} trong {array}'
     length: 'độ dài {array}'
-    set-element: 'Đổi phần tử {index} trong {name} thành {value}'
   words:
     ackermann: 'ackermann'
     bottles: 'chai'

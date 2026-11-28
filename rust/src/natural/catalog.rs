@@ -364,7 +364,24 @@ pub const TEMPLATE_KEYS: [&str; 38] = [
 /// as the counting loop it lowers to, and increase and decrease (everyday
 /// wordings of an assignment that adds to or subtracts from the variable)
 /// are written as the assignment.
-pub const OPTIONAL_TEMPLATE_KEYS: [&str; 3] = ["for-each", "increase", "decrease"];
+pub const OPTIONAL_TEMPLATE_KEYS: [&str; 16] = [
+    "answer-query",
+    "question-query",
+    "answer-deferred-query",
+    "question-deferred-query",
+    "for-each",
+    "increase",
+    "decrease",
+    "documentation",
+    "answer-type",
+    "question-type",
+    "answer-documentation",
+    "question-documentation",
+    "answer-source",
+    "question-source",
+    "answer-details",
+    "question-details",
+];
 
 /// Everyday wordings a profile with its own rules does not inherit: a
 /// controlled standard keeps to its vocabulary, and the assignment still
@@ -425,7 +442,9 @@ impl<T: Clone> Ordered<T> {
 struct Description {
     scalars: BTreeMap<String, String>,
     quotes: Option<Vec<String>>,
+    template_fields: Vec<Link>,
     templates: Ordered<Vec<String>>,
+    grammar_bindings: super::grammar::Bindings,
     words: Ordered<String>,
     rules: Ordered<Vec<String>>,
     base: Option<String>,
@@ -533,12 +552,8 @@ fn read_description(source: &str) -> Result<Description, String> {
                 .insert(id.to_owned(), plain(values).join(" "));
         } else if id == "quotes" {
             description.quotes = Some(plain(values));
-        } else if id == "templates" {
-            for entry in values {
-                description
-                    .templates
-                    .insert(label_of(entry), plain(values_of(entry)));
-            }
+        } else if matches!(id, "templates" | "grammar") {
+            description.template_fields.push(field.clone());
         } else if id == "words" {
             for entry in values {
                 description
@@ -558,6 +573,26 @@ fn read_description(source: &str) -> Result<Description, String> {
     Ok(description)
 }
 
+fn resolve_template_fields(
+    fields: &[Link],
+    bindings: &mut super::grammar::Bindings,
+) -> Result<Ordered<Vec<String>>, String> {
+    let mut templates = Ordered::default();
+    for field in fields {
+        let values = values_of(field);
+        if label_of(field) == "templates" {
+            for entry in values {
+                templates.insert(label_of(entry), plain(values_of(entry)));
+            }
+        } else {
+            for (key, variants) in super::grammar::productions(values, bindings)?.entries {
+                templates.insert(&key, variants);
+            }
+        }
+    }
+    Ok(templates)
+}
+
 /// A profile inherits everything it does not state from the language it
 /// extends; its own rules replace the inherited rules.
 fn resolve(
@@ -568,27 +603,37 @@ fn resolve(
     let description = descriptions
         .get(id)
         .ok_or_else(|| format!("No natural language \"{id}\""))?;
-    let Some(extends) = description.scalars.get("extends") else {
-        return Ok(description.clone());
-    };
     if !seen.insert(id.to_owned()) {
         return Err(format!("Natural language \"{id}\" extends itself"));
     }
-    let base = resolve(descriptions, extends, seen)?;
-    let mut scalars = base.scalars.clone();
-    scalars.extend(description.scalars.clone());
-    Ok(Description {
-        scalars,
-        quotes: description.quotes.clone().or(base.quotes.clone()),
-        templates: inherited_templates(&base, description),
-        words: base.words.merged(&description.words),
+    let mut base = description
+        .scalars
+        .get("extends")
+        .map(|extends| resolve(descriptions, extends, seen))
+        .transpose()?;
+    let mut grammar_bindings = base.as_mut().map_or_else(Default::default, |base| {
+        std::mem::take(&mut base.grammar_bindings)
+    });
+    let templates = resolve_template_fields(&description.template_fields, &mut grammar_bindings)?;
+    let mut resolved = Description {
+        scalars: description.scalars.clone(),
+        quotes: description.quotes.clone(),
+        templates,
+        grammar_bindings,
+        words: description.words.clone(),
         rules: description.rules.clone(),
-        base: Some(
-            base.base
-                .clone()
-                .unwrap_or_else(|| base.scalars.get("id").cloned().unwrap_or_default()),
-        ),
-    })
+        ..Default::default()
+    };
+    if let Some(base) = base {
+        resolved.templates = inherited_templates(&base, &resolved);
+        resolved.base = base.base.or_else(|| base.scalars.get("id").cloned());
+        resolved.words = base.words.merged(&resolved.words);
+        resolved.quotes = resolved.quotes.or(base.quotes);
+        let mut scalars = base.scalars;
+        scalars.extend(resolved.scalars);
+        resolved.scalars = scalars;
+    }
+    Ok(resolved)
 }
 
 fn inherited_templates(base: &Description, description: &Description) -> Ordered<Vec<String>> {
@@ -598,7 +643,62 @@ fn inherited_templates(base: &Description, description: &Description) -> Ordered
             .entries
             .retain(|(key, _)| !EVERYDAY_TEMPLATE_KEYS.contains(&key.as_str()));
     }
+    reflection_templates(base, description, &mut templates);
     templates.merged(&description.templates)
+}
+
+// Quoted operation names are technical data. Restricted standards reuse their
+// own instruction syntax instead of inheriting words outside their vocabulary.
+fn reflection_templates(
+    base: &Description,
+    description: &Description,
+    templates: &mut Ordered<Vec<String>>,
+) {
+    let constrained = ["vocabulary", "primes", "forbidden-words", "sentence-starts"]
+        .iter()
+        .any(|key| {
+            description
+                .rules
+                .get(key)
+                .is_some_and(|words| !words.is_empty())
+        });
+    if !constrained {
+        return;
+    }
+    templates
+        .entries
+        .retain(|(key, _)| !crate::meta::queries::KEYS.contains(&key.as_str()));
+    let quotes = description.quotes.as_ref().or(base.quotes.as_ref());
+    let open = quotes
+        .and_then(|pair| pair.first())
+        .map_or("\"", String::as_str);
+    let close = quotes
+        .and_then(|pair| pair.get(1))
+        .map_or("\"", String::as_str);
+    let instruction = description
+        .templates
+        .get("evaluate")
+        .or_else(|| templates.get("evaluate"))
+        .and_then(|variants| variants.first())
+        .cloned()
+        .unwrap_or_default();
+    let operation = |name: &str, slot: &str| format!("{open}{name}{close} ({{{slot}}})");
+    for aspect in ["type", "documentation", "source", "details"] {
+        let answer = operation(aspect, "subject");
+        templates.insert(&format!("answer-{aspect}"), vec![answer.clone()]);
+        templates.insert(
+            &format!("question-{aspect}"),
+            vec![instruction.replace("{expression}", &answer)],
+        );
+    }
+    templates.insert(
+        "documentation",
+        vec![instruction.replace("{expression}", &operation("__doc__", "value"))],
+    );
+}
+
+fn contextual_template(key: &str) -> bool {
+    key == "documentation" || key.starts_with("question-") || key.starts_with("answer-")
 }
 
 /// Templates become token lists once, with slot tokens for the holes.
@@ -641,19 +741,21 @@ fn compile(description: Description) -> Result<Language, String> {
         reserved: HashSet::new(),
         id,
     };
-    for (key, texts) in &description.templates.entries {
+    super::query_templates::derive(&mut language);
+    super::collection_templates::derive(&mut language);
+    for (key, texts) in &language.templates.entries {
         let variants = texts
             .iter()
             .map(|text| tokenize(text, &language.spelling(), true))
             .collect::<Result<Vec<_>, _>>()?;
         language.compiled.insert(key.clone(), variants);
     }
-    // Every word that appears literally in a template is reserved: a program
-    // name spelled the same way gets a trailing "_" so it stays a name.
+    // Reflection phrases use contextual words so existing names stay stable.
     let mut reserved: HashSet<String> = language
         .compiled
-        .values()
-        .flatten()
+        .iter()
+        .filter(|(key, _)| !contextual_template(key))
+        .flat_map(|(_, variants)| variants)
         .flatten()
         .filter(|token| token.kind == super::tokens::Kind::Word)
         .map(|token| fold(&token.folded))
@@ -755,7 +857,7 @@ pub fn with_templates(id: &str, templates: &[(String, Vec<String>)]) -> Result<L
             .map(|text| tokenize(text, &language.spelling(), true))
             .collect::<Result<Vec<_>, _>>()?;
         for token in compiled.iter().flatten() {
-            if token.kind == super::tokens::Kind::Word {
+            if token.kind == super::tokens::Kind::Word && !contextual_template(key) {
                 language.reserved.insert(fold(&token.folded));
             }
         }
@@ -763,4 +865,42 @@ pub fn with_templates(id: &str, templates: &[(String, Vec<String>)]) -> Result<L
         language.templates.insert(key, merged);
     }
     Ok(language)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn profiles_reference_ancestor_rules_and_shadow_terms_locally() {
+        let definitions = [
+            (
+                "base",
+                "  grammar:\n    terms:\n      voice: 'Announce {value}'\n      aloud: aloud\n    productions:\n      print-line: '@voice @aloud'",
+            ),
+            (
+                "middle",
+                "  extends: base\n  grammar:\n    terms:\n      voice: 'Report {value}'\n    productions:\n      print: '@voice @aloud'",
+            ),
+            (
+                "child",
+                "  extends: middle\n  grammar:\n    productions:\n      return-value: '@print-line again'",
+            ),
+        ];
+        let descriptions = definitions
+            .into_iter()
+            .map(|(id, body)| {
+                let source = format!("natural:\n  id: {id}\n{body}\n");
+                (id.to_owned(), read_description(&source).unwrap())
+            })
+            .collect();
+        let resolved = resolve(&descriptions, "child", &mut HashSet::new()).unwrap();
+        for (key, expected) in [
+            ("print", "Report {value} aloud"),
+            ("print-line", "Announce {value} aloud"),
+            ("return-value", "Announce {value} aloud again"),
+        ] {
+            assert_eq!(resolved.templates.get(key).unwrap(), &[expected]);
+        }
+    }
 }

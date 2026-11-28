@@ -668,9 +668,7 @@ impl EmitterDialect for Zig {
 
     /// Zig rejects a parameter that is never read, so it is discarded.
     fn function_definition(&self, e: &mut Emitter, item: &Node) -> Result<()> {
-        for comment in item.texts("comments") {
-            e.comment(&comment);
-        }
+        e.comments(item, "comments");
         let signature = e.signature(item);
         e.open_block(&signature);
         let body = field(item, "body")?;
@@ -701,9 +699,7 @@ impl EmitterDialect for Zig {
     }
 
     fn main(&self, e: &mut Emitter, program: &Node) -> Result<()> {
-        for comment in program.texts("mainComments") {
-            e.comment(&comment);
-        }
+        e.comments(program, "mainComments");
         let writes = e.state::<Writing>().writes;
         e.open_block(if writes {
             "pub fn main(init: std.process.Init) void"

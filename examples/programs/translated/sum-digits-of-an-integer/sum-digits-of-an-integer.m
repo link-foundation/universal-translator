@@ -13,4 +13,5 @@ int sumOfDigits(int number) {
 
 int main(void) {
     printf("The digits of 1234567890 sum to %d\n", sumOfDigits(1234567890));
+    return 0;
 }

@@ -13,4 +13,4 @@ for my $number (@numbers) {
     }
     $current += 1;
 }
-print "Found " . $wanted . " at position " . $position . "\n";
+print("Found " . $wanted . " at position " . $position . "\n");

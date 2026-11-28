@@ -1,9 +1,16 @@
 //! Helpers shared by the machine code readers (`machine_reader` and the
 //! dialect readers next to it).
 
+use std::collections::HashMap;
+use std::sync::{LazyLock, RwLock};
+
 use regex::{Captures, Regex};
 
 use super::lowering::{Instruction, LoweredProgram, Procedure};
+use crate::emission_map::{
+    clone_source_line, cloned_source_lines, instruction_origins, line_origins, map_source_line,
+    register_instructions, register_source_lines,
+};
 use crate::meta::GrammarError;
 
 pub(super) type Result<T> = std::result::Result<T, GrammarError>;
@@ -42,7 +49,20 @@ pub(super) fn fixed<'a, S: AsRef<str>>(patterns: &[S], code: Vec<Instruction>) -
 }
 
 pub(super) fn pattern_regex(pattern: &str) -> Regex {
-    Regex::new(pattern).expect("reader patterns are valid regular expressions")
+    // The instruction grammar repeats the same patterns for every procedure.
+    // Keep the cache bounded even if a future reader generates new patterns.
+    const LIMIT: usize = 512;
+    static PATTERNS: LazyLock<RwLock<HashMap<String, Regex>>> =
+        LazyLock::new(|| RwLock::new(HashMap::new()));
+    if let Some(regex) = PATTERNS.read().expect("reader regex cache").get(pattern) {
+        return regex.clone();
+    }
+    let regex = Regex::new(pattern).expect("reader patterns are valid regular expressions");
+    let mut patterns = PATTERNS.write().expect("reader regex cache");
+    if patterns.len() < LIMIT {
+        patterns.insert(pattern.to_owned(), regex.clone());
+    }
+    regex
 }
 
 pub(super) fn read_error(target: &str, line: &str, message: &str) -> GrammarError {
@@ -57,6 +77,7 @@ pub(super) fn read_instructions(
     target: &str,
 ) -> Result<Vec<Raw>> {
     let mut code = Vec::new();
+    let mut origins = Vec::new();
     let mut index = 0;
     'lines: while index < lines.len() {
         for rule in rules {
@@ -73,18 +94,36 @@ pub(super) fn read_instructions(
             if let Some(matches) = matches
                 && let Some(built) = (rule.build)(&matches)?
             {
-                code.extend(built);
+                let source = lines[index..index + rule.patterns.len()]
+                    .iter()
+                    .flat_map(|line| line_origins(line))
+                    .collect::<Vec<_>>();
+                for instruction in built {
+                    origins.push((code.len(), source.clone()));
+                    code.push(instruction);
+                }
                 index += rule.patterns.len();
                 continue 'lines;
             }
         }
         return Err(read_error(target, &lines[index], "unknown instruction"));
     }
+    register_instructions(&code, origins);
     Ok(code)
 }
 
 pub(super) fn without_results(code: Vec<Raw>) -> Vec<Instruction> {
-    code.into_iter().flatten().collect()
+    let owners: Vec<_> = code.iter().map(instruction_origins).collect();
+    let mut result = Vec::new();
+    let mut origins = Vec::new();
+    for (instruction, origin) in code.into_iter().zip(owners) {
+        if let Some(instruction) = instruction {
+            origins.push((result.len(), origin));
+            result.push(instruction);
+        }
+    }
+    register_instructions(&result, origins);
+    result
 }
 
 /// Split a file into the program comments (before the first line that
@@ -99,12 +138,23 @@ pub(super) fn leading_comments(
         Some(first) => {
             let comments = lines[..first]
                 .iter()
-                .filter_map(|line| line.strip_prefix(prefix))
-                .map(|text| text.strip_prefix(' ').unwrap_or(text).to_owned())
+                .filter(|line| line.starts_with(prefix))
+                .map(|line| {
+                    map_source_line(line, |line| {
+                        line[prefix.len()..].trim_start_matches(' ').to_owned()
+                    })
+                })
                 .collect();
-            (comments, lines[first..].to_vec())
+            (comments, cloned_source_lines(&lines[first..]))
         }
-        None => (Vec::new(), lines.last().cloned().into_iter().collect()),
+        None => (
+            Vec::new(),
+            lines
+                .last()
+                .map(|line| clone_source_line(line))
+                .into_iter()
+                .collect(),
+        ),
     }
 }
 
@@ -123,10 +173,12 @@ pub(super) fn group<'t>(captures: &'t Captures, index: usize) -> &'t str {
 }
 
 pub(super) fn trimmed_lines(source: &str) -> Vec<String> {
-    source
+    let lines = source
         .split('\n')
         .map(|line| line.trim().to_owned())
-        .collect()
+        .collect::<Vec<_>>();
+    register_source_lines(source, &lines);
+    lines
 }
 
 /// The program after reading: "main" is the entry point.
@@ -168,14 +220,24 @@ pub(super) fn procedure(
 /// result of f; the rules read that instruction as `None`. A call without it
 /// is a call to a function that returns nothing.
 pub(super) fn resolve_results(raw: Vec<Raw>, target: &str, line: &str) -> Result<Vec<Instruction>> {
+    let owners: Vec<_> = raw.iter().map(instruction_origins).collect();
     let mut code: Vec<Instruction> = Vec::new();
-    for instruction in raw {
+    let mut origins: Vec<(usize, crate::emission_map::Origins)> = Vec::new();
+    for (instruction, origin) in raw.into_iter().zip(owners) {
         match instruction {
-            Some(instruction) => code.push(instruction),
-            None if matches!(code.last(), Some(Instruction::Call(..))) => {}
+            Some(instruction) => {
+                origins.push((code.len(), origin));
+                code.push(instruction);
+            }
+            None if matches!(code.last(), Some(Instruction::Call(..))) => {
+                if let Some((_, previous)) = origins.last_mut() {
+                    previous.extend(origin);
+                }
+            }
             None => return Err(read_error(target, line, "not after a call")),
         }
     }
+    register_instructions(&code, origins);
     Ok(code)
 }
 

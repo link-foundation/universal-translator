@@ -1,0 +1,40 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 1.47s
+     Running rust/tests/comment_whitespace.rs (target/debug/deps/comment_whitespace-d860e54e4156c4ee)
+
+running 7 tests
+test changing_comment_words_keeps_every_reader_familys_other_bytes ... ok
+test rocq_strings_inside_comments_hide_delimiters_but_other_grammars_do_not ... ok
+test nested_block_comments_follow_each_language_grammar ... ok
+test sql_query_comments_and_whitespace_are_kept_in_place ... ok
+test machine_strings_unicode_offsets_and_nested_comments_are_preserved ... ok
+test note_like_lines_inside_multiline_natural_literals_are_not_comments ... ok
+test partial_translations_through_every_reader_family_retain_the_source_layout ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.00s
+
+     Running rust/tests/concrete_syntax.rs (target/debug/deps/concrete_syntax-73d8ce8bb13300f8)
+
+running 5 tests
+test reconstruction_requires_a_concrete_tree ... ok
+test concrete_tokens_partition_every_source_byte ... ok
+test empty_and_whitespace_input_have_lossless_records ... ok
+test incomplete_source_retains_accepted_regions_and_explicit_errors ... ok
+test words_and_all_machine_formats_retain_their_source_record ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.44s
+
+     Running rust/tests/layout.rs (target/debug/deps/layout-7115051de5850449)
+
+running 9 tests
+test each_closing_brace_maps_to_the_brace_that_closes_its_own_block ... ok
+test alignment_follows_unique_anchors ... ok
+test line_ends_blank_lines_and_indentation_follow_the_source ... ok
+test spaces_never_join_tokens ... ok
+test tokens_are_operators_strings_comments_and_names ... ok
+test the_issue_example_maps_its_lines ... ok
+test every_layout_example_keeps_the_source_layout ... ok
+test r_comment_translation_does_not_change_the_code_anchors ... ok
+test a_translated_comment_still_anchors_the_blank_line_after_it ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.16s

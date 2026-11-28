@@ -1,0 +1,96 @@
+{
+  "reader": "current",
+  "cases": [
+    {
+      "index": 0,
+      "expected": "<p>😀</p>ok<footer>end</footer>",
+      "output": "<p>😀</p>ok<footer>end</footer>",
+      "error": null
+    },
+    {
+      "index": 1,
+      "expected": "<p>// number /* not a comment */</p>",
+      "output": "<p>// number /* not a comment */</p>",
+      "error": null
+    },
+    {
+      "index": 2,
+      "expected": "abcd",
+      "output": "abcd",
+      "error": null
+    },
+    {
+      "index": 3,
+      "expected": "abc",
+      "output": "abc",
+      "error": null
+    },
+    {
+      "index": 4,
+      "expected": "<p>5</p>",
+      "output": "<p>5</p>",
+      "error": null
+    },
+    {
+      "index": 5,
+      "expected": "yesend",
+      "output": "yesend",
+      "error": null
+    },
+    {
+      "index": 6,
+      "expected": "noend",
+      "output": "noend",
+      "error": null
+    },
+    {
+      "index": 7,
+      "expected": "x0x1x2",
+      "output": "x0x1x2",
+      "error": null
+    },
+    {
+      "index": 8,
+      "expected": "abc",
+      "output": "abc",
+      "error": null
+    },
+    {
+      "index": 9,
+      "expected": "abc",
+      "output": "abc",
+      "error": null
+    },
+    {
+      "index": 10,
+      "expected": "?>end",
+      "output": "?>end",
+      "error": null
+    },
+    {
+      "index": 11,
+      "expected": "<?php ?>end",
+      "output": "<?php ?>end",
+      "error": null
+    },
+    {
+      "index": 12,
+      "expected": "<?php echo \"no\";?>rawokend",
+      "output": "<?php echo \"no\";?>rawokend",
+      "error": null
+    },
+    {
+      "index": 13,
+      "expected": "a\tbend",
+      "output": "a\tbend",
+      "error": null
+    },
+    {
+      "index": 14,
+      "expected": "<?xml version=\"1.0\"?>\n<p>ok</p>",
+      "output": "<?xml version=\"1.0\"?>\n<p>ok</p>",
+      "error": null
+    }
+  ],
+  "failures": 0
+}

@@ -7,7 +7,7 @@
 
 use std::collections::{HashMap, HashSet};
 
-use super::tree::{Node, Value, rewrite, walk};
+use super::tree::{Node, Value, walk};
 
 type Scope = HashMap<String, String>;
 
@@ -32,9 +32,32 @@ fn is_comparison(operator: &str) -> bool {
 fn expression_type(expression: &Node, scope: &Scope, signatures: &Signatures) -> Option<String> {
     match expression.kind.as_str() {
         "Number" => Some(number_type(expression).into()),
-        "Text" | "Interpolation" => Some("text".into()),
+        "RecordConstruction" => Some("record".into()),
+        "RecordFieldRead" => expression.str("type").map(str::to_owned),
+        "Text" | "Interpolation" | "CppCharacterConcat" => Some("text".into()),
         "Boolean" => Some("boolean".into()),
+        "Null" | "SqlBinary" | "SqlUnary" | "SqlBetween" | "SqlIn" => Some("object".into()),
+        "SqlTruth" => Some("boolean".into()),
+        "Question" if matches!(expression.str("aspect"), Some("documentation" | "source")) => {
+            Some("text".into())
+        }
         "Name" => scope.get(expression.str("name")?).cloned(),
+        "AssignmentExpression" | "ExpressionSequence" => expression
+            .node("value")
+            .and_then(|v| expression_type(v, scope, signatures)),
+        "Query" => {
+            let local = query_scope(expression, scope, signatures);
+            let element = expression
+                .node("projection")
+                .and_then(|p| expression_type(p, &local, signatures))
+                .unwrap_or_else(|| "object".into());
+            let container = if expression.flag("eager").unwrap_or(true) {
+                "array"
+            } else {
+                "sequence"
+            };
+            Some(format!("{container}<{element}>"))
+        }
         "Unary" => Some(if expression.str("operator") == Some("not") {
             "boolean".into()
         } else if expression
@@ -62,7 +85,15 @@ fn expression_type(expression: &Node, scope: &Scope, signatures: &Signatures) ->
             let is_real = |value: &Option<String>| value.as_deref() == Some("real");
             if operator == "add" && (is_text(&left) || is_text(&right)) {
                 Some("text".into())
-            } else if operator == "realDivide" || is_real(&left) || is_real(&right) {
+            } else if operator == "realDivide"
+                || is_real(&left)
+                || is_real(&right)
+                || (operator == "power"
+                    && expression.node("right").is_some_and(|right| {
+                        !right.is("Number")
+                            || right.number("value").is_some_and(|value| value < 0.0)
+                    }))
+            {
                 Some("real".into())
             } else {
                 Some("integer".into())
@@ -72,9 +103,57 @@ fn expression_type(expression: &Node, scope: &Scope, signatures: &Signatures) ->
             .get(expression.str("callee")?)
             .and_then(|signature| signature.return_type.clone()),
         "ArrayLiteral" | "NewArray" => Some("array".into()),
-        "Index" | "Length" => Some("integer".into()),
+        "Length" => Some("integer".into()),
+        "ProcessArguments" => Some("array<text>".into()),
+        "SetLiteral" => Some("set<text>".into()),
+        "SetInsert" => expression
+            .node("collection")
+            .and_then(|c| expression_type(c, scope, signatures)),
+        "Update" => expression
+            .node("operand")
+            .and_then(|o| expression_type(o, scope, signatures))
+            .or_else(|| Some("integer".into())),
+        "Index" => Some(
+            expression
+                .node("array")
+                .and_then(|a| expression_type(a, scope, signatures))
+                .and_then(|a| collection_element(&a).map(str::to_owned))
+                .unwrap_or_else(|| "integer".into()),
+        ),
         _ => None,
     }
+}
+
+fn query_scope(expression: &Node, scope: &Scope, signatures: &Signatures) -> Scope {
+    let source = expression
+        .node("source")
+        .and_then(|s| expression_type(s, scope, signatures));
+    let element = source
+        .as_deref()
+        .and_then(|s| {
+            s.strip_prefix("array<")
+                .or_else(|| s.strip_prefix("sequence<"))
+        })
+        .and_then(|s| s.strip_suffix('>'));
+    let mut local = scope.clone();
+    local.insert(
+        expression.str("variable").unwrap_or_default().into(),
+        element
+            .unwrap_or(if source.as_deref() == Some("array") {
+                "integer"
+            } else {
+                "object"
+            })
+            .into(),
+    );
+    local
+}
+
+fn collection_element(kind: &str) -> Option<&str> {
+    kind.strip_prefix("array<")
+        .or_else(|| kind.strip_prefix("sequence<"))
+        .or_else(|| kind.strip_prefix("set<"))
+        .and_then(|k| k.strip_suffix('>'))
 }
 
 fn number_type(expression: &Node) -> &'static str {
@@ -87,22 +166,60 @@ fn number_type(expression: &Node) -> &'static str {
 }
 
 /// A division with a real operand is a true division (C's `7.0 / 2`).
-fn annotate(expression: Node, scope: &Scope, signatures: &Signatures) -> Node {
-    rewrite(expression, |current| {
-        match expression_type(&current, scope, signatures) {
-            Some(kind) => {
-                let divides = current.is("Binary") && current.str("operator") == Some("divide");
-                let real = kind == "real";
-                let typed = current.with("type", kind);
-                if divides && real {
-                    typed.with("operator", "realDivide")
-                } else {
-                    typed
-                }
-            }
-            None => current,
+fn annotate(mut expression: Node, scope: &Scope, signatures: &Signatures) -> Node {
+    fn child(value: Value, scope: &Scope, signatures: &Signatures) -> Value {
+        match value {
+            Value::Node(node) => Value::Node(annotate(node, scope, signatures)),
+            Value::List(items) => Value::List(
+                items
+                    .into_iter()
+                    .map(|item| child(item, scope, signatures))
+                    .collect(),
+            ),
+            other => other,
         }
-    })
+    }
+    let local = if expression.is("Query") {
+        Some(query_scope(&expression, scope, signatures))
+    } else if expression.is("Lambda") {
+        let mut local = scope.clone();
+        for parameter in expression.texts("parameters") {
+            local.remove(&parameter);
+        }
+        Some(local)
+    } else {
+        None
+    };
+    let local = local.as_ref().unwrap_or(scope);
+    expression.fields = std::mem::take(&mut expression.fields)
+        .into_iter()
+        .map(|(key, value)| {
+            let value = child(
+                value,
+                if key == "source" { scope } else { local },
+                signatures,
+            );
+            (key, value)
+        })
+        .collect();
+    let slash_division = expression.flag("slashDivision").unwrap_or(false);
+    expression.remove("slashDivision");
+    let current = expression;
+    match expression_type(&current, scope, signatures) {
+        Some(kind) => {
+            let divides = current.is("Binary")
+                && (current.str("operator") == Some("divide")
+                    || (current.str("operator") == Some("floorDivide") && slash_division));
+            let real = kind == "real";
+            let typed = current.with("type", kind);
+            if divides && real {
+                typed.with("operator", "realDivide")
+            } else {
+                typed
+            }
+        }
+        None => current,
+    }
 }
 
 /// An integer literal stored in a real variable is a real literal (0 is 0.0).
@@ -160,8 +277,7 @@ struct Reals {
 }
 
 fn known(kind: Option<&str>) -> Option<String> {
-    kind.filter(|kind| !kind.starts_with("source:"))
-        .map(str::to_owned)
+    kind.map(str::to_owned)
 }
 
 struct Context<'a> {
@@ -233,7 +349,7 @@ impl Context<'_> {
                 stored(&mut statement, scope.get(&name).map(String::as_str));
                 statement
             }
-            "Print" => {
+            "Print" | "Throw" => {
                 self.typed(&mut statement, "value", scope);
                 statement
             }
@@ -274,6 +390,28 @@ impl Context<'_> {
                 }
                 statement
             }
+            "Try" => {
+                self.block_field(&mut statement, "body", scope);
+                let handlers: Vec<Node> = statement
+                    .node_list("handlers")
+                    .into_iter()
+                    .map(|mut handler| {
+                        let mut inner = scope.clone();
+                        if let Some(name) = handler.str("name") {
+                            inner.insert(
+                                name.to_owned(),
+                                handler.str("type").unwrap_or("integer").to_owned(),
+                            );
+                        }
+                        self.block_field(&mut handler, "body", &inner);
+                        handler
+                    })
+                    .collect();
+                statement.set("handlers", handlers);
+                self.block_field(&mut statement, "success", scope);
+                self.block_field(&mut statement, "finalizer", scope);
+                statement
+            }
             "While" => {
                 self.typed(&mut statement, "condition", scope);
                 self.block_field(&mut statement, "body", scope);
@@ -291,11 +429,17 @@ impl Context<'_> {
             }
             "ForEach" => {
                 let mut inner = scope.clone();
-                if let Some(variable) = statement.str("variable") {
-                    inner.insert(variable.to_owned(), "integer".into());
-                }
-                statement.set("type", "integer");
                 self.typed(&mut statement, "array", scope);
+                let kind = statement
+                    .node("array")
+                    .and_then(|a| a.str("type"))
+                    .and_then(collection_element)
+                    .unwrap_or("integer")
+                    .to_owned();
+                if let Some(variable) = statement.str("variable") {
+                    inner.insert(variable.to_owned(), kind.clone());
+                }
+                statement.set("type", kind);
                 self.block_field(&mut statement, "body", &inner);
                 statement
             }
@@ -315,9 +459,15 @@ fn child_order(kind: &str) -> &'static [&'static str] {
         "ForEach" => &["array", "body"],
         "Declaration" | "Assignment" | "Return" | "Print" => &["value"],
         "Evaluate" => &["expression"],
+        "Question" => &["subject"],
+        "Query" => &["source", "condition", "projection"],
+        "Lambda" => &["body"],
+        "PropertyAssignment" => &["object", "value"],
         "While" => &["condition", "body"],
-        "Binary" => &["left", "right"],
-        "Unary" => &["operand"],
+        "Binary" | "SqlBinary" | "CppCharacterConcat" => &["left", "right"],
+        "Unary" | "SqlUnary" | "SqlTruth" => &["operand"],
+        "SqlBetween" => &["value", "lower", "upper"],
+        "SqlIn" => &["value", "choices"],
         "Call" => &["arguments"],
         "IndexAssignment" => &["index", "value"],
         "ArrayLiteral" => &["elements"],

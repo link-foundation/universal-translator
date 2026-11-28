@@ -4,6 +4,7 @@
 //! of operands, and a stack that is not empty at a jump or a label is saved
 //! in "%stack.N" allocas around it.
 
+use crate::emission_map::{SourceLines, active_instruction};
 use std::collections::HashMap;
 
 use super::lowering::{Instruction, LoweredProgram, Procedure};
@@ -63,7 +64,7 @@ struct LlvmFunction<'a> {
     item: &'a Procedure,
     calls: &'a HashMap<String, bool>,
     texts: &'a mut Vec<String>,
-    lines: Vec<String>,
+    lines: SourceLines,
     stack: Vec<Operand>,
     temporaries: usize,
     blocks: usize,
@@ -90,7 +91,7 @@ impl<'a> LlvmFunction<'a> {
             item,
             calls,
             texts,
-            lines: Vec::new(),
+            lines: SourceLines::default(),
             stack: Vec::new(),
             temporaries: 0,
             blocks: 0,
@@ -366,10 +367,11 @@ impl<'a> LlvmFunction<'a> {
         }
     }
 
-    fn write(mut self) -> Vec<String> {
+    fn write(mut self) -> SourceLines {
         let item = self.item;
         let is_main = item.name == "main";
         for instruction in &item.code {
+            let _origin = active_instruction(instruction);
             self.instruction(instruction);
         }
         if !self.terminated {
@@ -388,7 +390,7 @@ impl<'a> LlvmFunction<'a> {
         } else {
             "void"
         };
-        let mut lines = comments(";", &item.comments, "");
+        let mut lines: SourceLines = comments(";", &item.comments, "");
         lines.push(format!("define {result} @{}({parameters}) {{", item.name));
         lines.push("entry.0:".into());
         for (slot, name) in item.slot_names.iter().enumerate() {
@@ -450,7 +452,7 @@ pub fn write_llvm(program: &LoweredProgram) -> Result<String> {
             llvm_text(text)
         )
     };
-    let mut lines = comments(";", &program.comments, "");
+    let mut lines: SourceLines = comments(";", &program.comments, "");
     if !program.comments.is_empty() {
         lines.push(String::new());
     }
@@ -473,6 +475,6 @@ pub fn write_llvm(program: &LoweredProgram) -> Result<String> {
     if creates_arrays(program) {
         lines.extend(LLVM_NEW_ARRAY.map(String::from));
     }
-    let text = lines.join("\n");
+    let text = lines.render_ending("llvm", "");
     Ok(format!("{}\n", text.trim_end_matches('\n')))
 }

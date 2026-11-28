@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+fibonacci() {
+    local count=$1
+    local previous=0
+    local current=1
+    local step
+    for (( step = 0; step < count; step++ )); do
+        local next=$((previous + current))
+        previous=$current
+        current=$next
+    done
+    REPLY=$previous; return
+}
+
+for (( index = 0; index < 21; index++ )); do
+    fibonacci "$index"
+    echo "fibonacci($index) = $REPLY"
+done
+
+parsed CountingLoop step {
+  own: [ 6, 7, 8, 9, 10 ],
+  expressions: [ [ 6, 7, 8, 9, 10 ], [ 6 ], [ 6 ] ]
+}
+parsed CountingLoop index {
+  own: [ 14, 15, 16, 17 ],
+  expressions: [ [ 14, 15, 16, 17 ], [ 14 ], [ 14 ] ]
+}
+parsed Print  { own: [ 16 ], expressions: [ [ 16 ], [ 15 ] ] }
+parsed Call fibonacci { own: undefined, expressions: [ [ 15 ] ] }
+understood CountingLoop step {
+  own: [ 6, 7, 8, 9, 10 ],
+  expressions: [ [ 6, 7, 8, 9, 10 ], [ 6 ], [ 6 ] ]
+}
+understood CountingLoop index {
+  own: [ 14, 15, 16, 17 ],
+  expressions: [ [ 14, 15, 16, 17 ], [ 14 ], [ 14 ] ]
+}
+understood Print  { own: [ 16 ], expressions: [ [ 16 ], [ 15 ] ] }
+understood Call fibonacci { own: undefined, expressions: [ [ 15 ] ] }
+typed CountingLoop step {
+  own: [ 6, 7, 8, 9, 10 ],
+  expressions: [ [ 6, 7, 8, 9, 10 ], [ 6 ], [ 6 ] ]
+}
+typed CountingLoop index {
+  own: [ 14, 15, 16, 17 ],
+  expressions: [ [ 14, 15, 16, 17 ], [ 14 ], [ 14 ] ]
+}
+typed Print  { own: [ 16 ], expressions: [ [ 16 ], [ 15 ] ] }
+typed Call fibonacci { own: undefined, expressions: [ [ 15 ] ] }
+adapted CountingLoop step {
+  own: [ 6, 7, 8, 9, 10 ],
+  expressions: [ [ 6, 7, 8, 9, 10 ], [ 6 ], [ 6 ] ]
+}
+adapted CountingLoop index {
+  own: [ 14, 15, 16, 17 ],
+  expressions: [ [ 14, 15, 16, 17 ], [ 14 ], [ 14 ] ]
+}
+adapted Print  { own: [ 16 ], expressions: [ [ 16 ], [ 15 ] ] }
+adapted Call fibonacci { own: undefined, expressions: [ [ 15 ] ] }
+{
+  text: 'class Main {\n' +
+    '    static int fibonacci(int count) {\n' +
+    '        int previous = 0;\n' +
+    '        int current = 1;\n' +
+    '        for (int step = 0; step < count; step++) {\n' +
+    '            int next = previous + current;\n' +
+    '            previous = current;\n' +
+    '            current = next;\n' +
+    '        }\n' +
+    '        return previous;\n' +
+    '    }\n' +
+    '\n' +
+    '    public static void main(String[] args) {\n' +
+    '        for (int index = 0; index < 21; index++) {\n' +
+    '            System.out.println("fibonacci(" + index + ") = " + fibonacci(index));\n' +
+    '        }\n' +
+    '    }\n' +
+    '}\n',
+  complete: true,
+  errors: [],
+  lines: 17,
+  readLines: 17,
+  coverage: 1,
+  prose: [],
+  lineMap: [
+    [ 1, 1 ],   [ 1, 10 ],  [ 2, 1 ],
+    [ 2, 10 ],  [ 3, 2 ],   [ 4, 3 ],
+    [ 5, 1 ],   [ 5, 10 ],  [ 6, 4 ],
+    [ 6, 8 ],   [ 7, 4 ],   [ 7, 5 ],
+    [ 7, 8 ],   [ 8, 4 ],   [ 8, 6 ],
+    [ 8, 8 ],   [ 9, 4 ],   [ 9, 7 ],
+    [ 9, 8 ],   [ 10, 4 ],  [ 10, 8 ],
+    [ 11, 9 ],  [ 12, 1 ],  [ 12, 10 ],
+    [ 14, 13 ], [ 14, 15 ], [ 15, 13 ],
+    [ 15, 14 ], [ 15, 15 ], [ 16, 13 ],
+    [ 16, 14 ], [ 16, 15 ], [ 17, 13 ],
+    [ 17, 15 ]
+  ]
+}

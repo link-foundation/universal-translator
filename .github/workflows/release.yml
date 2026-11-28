@@ -472,6 +472,9 @@ jobs:
       - name: Check the requirements of issue 1
         run: node scripts/check-requirements.mjs
 
+      - name: Validate the active requirements and completed archive
+        run: node scripts/check-active-requirements.mjs
+
       - name: Check Rust formatting
         run: cargo fmt --check
 
@@ -492,8 +495,12 @@ jobs:
 
       - name: Check that the JavaScript and Rust command lines agree
         run: |
+          node scripts/update-meta-grammar.mjs --check
           cargo build --locked --bin universal-translator
-          bash experiments/verify-syntax-exchange.sh
+          node experiments/verify-syntax-exchange.mjs
+          node examples/translation/verify-portable-programs.mjs target/debug/universal-translator
+          node examples/translation/verify-exceptions.mjs target/debug/universal-translator
+          node examples/translation/verify-records.mjs target/debug/universal-translator
           node examples/translation/dependent-meanings.mjs
 
   native-translation:
@@ -629,7 +636,22 @@ jobs:
           LUA: lua5.4
         run: |
           bash scripts/run-with-budget-warning.sh 540 "Native translations" \
-            node examples/programs/verify-native.mjs --require-all
+            bash -e -c '
+              node examples/programs/verify-native.mjs --require-all
+              node examples/queries/verify-native.mjs
+              node examples/objpak/verify-native.mjs
+              node examples/printing/verify-native.mjs
+              node examples/arithmetic/verify-native.mjs
+              node examples/arithmetic/verify-rounding.mjs --require-all
+              node examples/runtime-headers/verify-native.mjs
+              node examples/translation/verify-portable-programs.mjs --native-logic
+              OBJC=gcc node experiments/issue-16-evaluation-order.mjs
+              node experiments/issue-16-cpp-member-calls.mjs
+              node experiments/issue-16-c-stdio.mjs
+              node experiments/issue-16-rust-print.mjs
+              node experiments/issue-16-wasm-binary.mjs
+              node experiments/issue-16-jvm-class.mjs
+            '
 
       - name: Run every common library translation with its native toolchain
         timeout-minutes: 10

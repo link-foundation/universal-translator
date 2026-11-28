@@ -22,4 +22,5 @@ int main(void) {
     for (int index = 0; index < 20; index++) {
         printf("%d: %d %d\n", index, female(index), male(index));
     }
+    return 0;
 }

@@ -12,7 +12,28 @@ natural:
   true: 'gaskiya'
   false: 'ƙarya'
   note: 'Lura: {text}'
+  grammar:
+    terms:
+      interrogative: 'Mene ne'
+      query-scope: 'ga kowane {variable} a cikin {source}'
+      query-deferred: '“jinkiri”'
+    productions:
+      answer-type: 'nau’in {subject}'
+      question-type: '@interrogative @answer-type'
+      answer-documentation: 'bayanin {subject}'
+      question-documentation: '@interrogative @answer-documentation'
+      answer-source: 'lambar asalin {subject}'
+      question-source: '@interrogative @answer-source'
+      answer-details: 'cikakken bayani game da {subject}'
+      question-details: '@interrogative @answer-details'
+      answer-query: 'ƙimomin {projection} @query-scope idan {condition}'
+      question-query: 'Waɗanne @answer-query'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
+      element: 'abu {index} a cikin {array}'
+      set-element: 'Canza @element[array=name] zuwa {value}'
   templates:
+    documentation: 'Bayani shi ne {value}'
     function: 'Ayyana {name} da {parameters}'
     function-without-parameters: 'Ayyana {name}'
     declare: 'Ƙirƙiri {name} mai ƙima {value}'
@@ -50,9 +71,7 @@ natural:
     remainder: '{left} modulo {right}' '{left} % {right}'
     array: 'jeri ({elements})'
     new-array: 'jeri mai tsawon {length} cike da {fill}'
-    element: 'abu {index} a cikin {array}'
     length: 'tsawon {array}'
-    set-element: 'Canza abu {index} a cikin {name} zuwa {value}'
   words:
     ackermann: 'ackermann'
     bottles: 'kwalabe'

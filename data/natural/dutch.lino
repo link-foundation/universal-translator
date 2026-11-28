@@ -12,7 +12,28 @@ natural:
   true: 'waar'
   false: 'onwaar'
   note: 'Opmerking: {text}'
+  grammar:
+    terms:
+      interrogative: 'Wat is'
+      query-scope: 'voor elke {variable} in {source}'
+      query-deferred: '“uitgesteld”'
+    productions:
+      answer-type: 'het type van {subject}'
+      question-type: '@interrogative @answer-type'
+      answer-documentation: 'de documentatie van {subject}'
+      question-documentation: '@interrogative @answer-documentation'
+      answer-source: 'de broncode van {subject}'
+      question-source: '@interrogative @answer-source'
+      answer-details: 'de gedetailleerde informatie over {subject}'
+      question-details: '@interrogative @answer-details'
+      answer-query: 'de waarden van {projection} @query-scope waarvoor {condition}'
+      question-query: 'Welke waarden van {projection} @query-scope voldoen aan {condition}'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
+      element: 'element {index} van {array}'
+      set-element: 'Verander @element[array=name] in {value}'
   templates:
+    documentation: 'Documentatie is {value}'
     function: 'Definieer {name} met {parameters}'
     function-without-parameters: 'Definieer {name}'
     declare: 'Maak {name} met waarde {value}' 'Laat {name} gelijk zijn aan {value}'
@@ -50,9 +71,7 @@ natural:
     remainder: '{left} modulo {right}' '{left} % {right}'
     array: 'de lijst ({elements})'
     new-array: 'een lijst van {length} kopieën van {fill}'
-    element: 'element {index} van {array}'
     length: 'de lengte van {array}'
-    set-element: 'Verander element {index} van {name} in {value}'
   words:
     ackermann: 'ackermann'
     bottles: 'flessen'

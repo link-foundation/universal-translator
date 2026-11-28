@@ -7,15 +7,19 @@ import { fileURLToPath, pathToFileURL, URL } from 'node:url';
 import { extensions } from '../examples/programs/verify-native.mjs';
 import {
   createSourceSyntaxCodec,
+  queryLanguageIds,
   writeSourceDocument,
 } from '../js/src/index.js';
 import { linkFields, parseLinks, references } from '../js/src/meta/links.js';
 
 const [modulePath, executable = 'target/debug/universal-translator'] =
-  process.argv.slice(2);
-assert.ok(modulePath, 'Pass the Meta Language 1.0 JavaScript module path');
-const grammarEngine = await import(pathToFileURL(resolve(modulePath)));
-const { LinkNetwork, LinkType } = grammarEngine;
+  process.argv.slice(2).filter((argument) => argument !== '--objpak-only');
+const { LinkNetwork, LinkType } = modulePath
+  ? await import(pathToFileURL(resolve(modulePath)))
+  : {
+      ...(await import('../vendor/meta-language-grammar/src/network.js')),
+      ...(await import('../vendor/meta-language-grammar/src/primitives.js')),
+    };
 const codec = createSourceSyntaxCodec(LinkNetwork);
 
 function run(program, arguments_, options) {
@@ -36,14 +40,52 @@ function success(result) {
 const rustCli = (arguments_, input) =>
   run(resolve(executable), arguments_, { input });
 const rust = (arguments_, input) => success(rustCli(arguments_, input));
+const jsEnvironment = { ...process.env };
+delete jsEnvironment.UNIVERSAL_TRANSLATOR_META_LANGUAGE;
+if (modulePath) {
+  jsEnvironment.UNIVERSAL_TRANSLATOR_META_LANGUAGE = resolve(modulePath);
+}
 const jsCli = (arguments_, input) =>
   run(process.execPath, ['bin/universal-translator.js', ...arguments_], {
     input,
-    env: {
-      ...process.env,
-      UNIVERSAL_TRANSLATOR_META_LANGUAGE: resolve(modulePath),
-    },
+    env: jsEnvironment,
   });
+
+function verifyObjpakParity() {
+  const objpak = readFileSync(
+    new URL('../examples/objpak/hello.m', import.meta.url),
+    'utf8'
+  );
+  for (const target of [
+    'objc',
+    'python',
+    'javascript',
+    'rust',
+    'english',
+    'russian',
+  ]) {
+    const args = ['translate', 'objc', target];
+    const written = success(jsCli(args, objpak));
+    assert.equal(
+      success(rustCli(args, objpak)),
+      written,
+      `Objpak to ${target}`
+    );
+    assert.deepEqual(
+      JSON.parse(success(rustCli(['meta', target, '--json'], written))),
+      JSON.parse(success(jsCli(['meta', target, '--json'], written))),
+      `Objpak ${target} reader`
+    );
+  }
+  console.log(
+    'Both implementations agree on Objpak callers, library definitions and semantic reads in six grammars'
+  );
+}
+
+if (process.argv.includes('--objpak-only')) {
+  verifyObjpakParity();
+  process.exit(0);
+}
 
 const hello = (ext) =>
   readFileSync(
@@ -98,7 +140,7 @@ for (const [language, lines] of ranked) {
   assert.deepEqual(codec.read(tree.toLino()), { language, source });
 }
 console.log(
-  `The tagged JavaScript engine round-tripped ${ranked.size} ranked grammar specimens`
+  `The pinned JavaScript engine round-tripped ${ranked.size} ranked grammar specimens`
 );
 
 // Run a JavaScript or Rust program and return its standard output.
@@ -171,12 +213,36 @@ const programmingLanguages = (output) =>
     .map((line) => line.split('\t'))
     .filter(([, label]) => !label.endsWith('(natural)'))
     .map(([id]) => id);
-const languageIds = programmingLanguages(rust(['languages']));
+const allLanguageIds = programmingLanguages(rust(['languages']));
 assert.deepEqual(
   programmingLanguages(success(jsCli(['languages']))),
-  languageIds
+  allLanguageIds
 );
+const languageIds = allLanguageIds.filter((id) => extensions[id]);
+assert.deepEqual(
+  allLanguageIds.filter((id) => !extensions[id]).sort(),
+  [...queryLanguageIds].sort(),
+  'Every non-imperative grammar needs dedicated parity cases'
+);
+for (const target of [
+  'sql',
+  'python',
+  'javascript',
+  'typescript',
+  'csharp',
+  'english',
+  'russian',
+]) {
+  const args = ['translate', 'sql', target];
+  const input = 'SELECT age + 1 FROM people AS person WHERE age >= 18;';
+  assert.equal(
+    success(rustCli(args, input)),
+    success(jsCli(args, input)),
+    `SQL query to ${target}`
+  );
+}
 // At least the 40 languages; a language added later needs no edit here.
+verifyObjpakParity();
 assert.ok(languageIds.length >= 40, `${languageIds.length} languages`);
 const programsFolder = new URL('../examples/programs/', import.meta.url);
 const goldenTasks = ['hello-world', 'mutual-recursion'];

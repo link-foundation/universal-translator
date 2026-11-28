@@ -1,0 +1,117 @@
+▶ issue 16 regression cases
+  ✔ reads an isolated natural-language name and ranks English first on a tie (1342.932111ms)
+  ✔ keeps the complete exponentiation inside an interpolation (6.662839ms)
+  ✔ associates powers right and preserves a grouped left operand (70.143032ms)
+  ✔ rejects unread tokens instead of silently truncating interpolation (1.479099ms)
+  ✔ keeps the blank line after a comment whose language changes (17.524139ms)
+  ✔ declares an array mutable in Rust when its JavaScript binding is const (6.993756ms)
+✔ issue 16 regression cases (1448.792578ms)
+▶ comparison wordings
+  ✔ reads the Russian examples of the issue (312.911493ms)
+  ✔ reads other obvious variations (16.244172ms)
+  ✔ keeps every language within its own rules (141.723615ms)
+  ✔ reads Python pass as an empty statement (20.92828ms)
+✔ comparison wordings (494.367864ms)
+▶ partial translation
+  ✔ translates what it can and marks the rest (43.74017ms)
+  ✔ counts the lines it reads (9.636395ms)
+  ✔ is complete when everything reads (1.532759ms)
+  ✔ marks untranslated natural sentences (8.69594ms)
+  ✔ is the default of the command line (20.273227ms)
+  ✔ reports coverage on the command line (17.378277ms)
+✔ partial translation (102.654267ms)
+▶ language detection
+  ✔ finds the language of a text (1705.745037ms)
+  ✔ detects nothing in an empty text (0.299529ms)
+  ✔ translates from "auto" on the command line (156.851785ms)
+✔ language detection (1863.486272ms)
+▶ rules as data
+  ✔ apply at every stage (9.085017ms)
+  ✔ rewrite the output with regular expressions (1.796161ms)
+  ✔ are checked (0.513478ms)
+  ✔ are read from a file on the command line (6.406621ms)
+✔ rules as data (22.098031ms)
+▶ translation server
+  ✔ translates partially, detects and applies rules (236.675775ms)
+  ✔ refuses regular expression rules unless allowed (18.445518ms)
+✔ translation server (255.857085ms)
+▶ cut texts
+  ✔ stop a dialect read at the end of the text (4.746634ms)
+✔ cut texts (4.997763ms)
+▶ translation issue reporting
+  ✔ prefills the source, language choices, options, rules and actual errors (3.519806ms)
+  ✔ includes a translation failure when no output was produced (0.842992ms)
+✔ translation issue reporting (6.447437ms)
+▶ line-map: groups of matched lines
+  ✔ joins the lines that share a match into one group (3.510939ms)
+  ✔ gives groups the colours of a cycling palette (1.217201ms)
+  ✔ finds the group of a line on either side (0.454168ms)
+  ✔ orders groups by their first source line and joins chains (0.557169ms)
+  ✔ ignores malformed pairs and a missing line map (1.994781ms)
+  ✔ has no groups and is not exact without a match (0.427117ms)
+  ✔ rejects invalid coordinates and lines past either editor (0.529658ms)
+✔ line-map: groups of matched lines (12.114448ms)
+▶ line-map: the other side of a selection
+  ✔ gives the matched lines of a selected line (1.110141ms)
+  ✔ spans the matched lines of a selected range (0.357918ms)
+  ✔ falls back to the same place for lines that are not matched (19.569464ms)
+  ✔ maps a position of either side through the anchors (11.486316ms)
+✔ line-map: the other side of a selection (47.957719ms)
+▶ line-map: scroll positions between anchors
+  ✔ uses the lines matched exactly as anchors, from start to end (0.561748ms)
+  ✔ moves in proportion between two anchors (0.25752ms)
+  ✔ is exact at the anchors on both sides (0.192479ms)
+  ✔ moves one to one beyond the last anchor (0.457003ms)
+  ✔ moves one to one before the first anchor, never below zero (0.458495ms)
+  ✔ returns the position itself without anchors (0.217766ms)
+  ✔ adds the start and the end of both texts as anchors (0.281535ms)
+  ✔ keeps one anchor for a part of several lines: its first line (0.309558ms)
+  ✔ leaves out a pair that crosses another (7.270193ms)
+✔ line-map: scroll positions between anchors (19.949433ms)
+▶ folding: brackets
+  ✔ folds a bracket opened and closed on later lines (13.871806ms)
+  ✔ keeps a closing bracket that starts its line visible (1.239703ms)
+  ✔ folds nested brackets as nested regions (0.399836ms)
+  ✔ does not fold brackets opened and closed on one line (0.27323ms)
+  ✔ ignores brackets inside strings and comments (0.586764ms)
+  ✔ does not let an unmatched closing bracket end its neighbours (0.224268ms)
+  ✔ reads lines that end with a carriage return (0.347889ms)
+  ✔ finds no region in an empty or a one-line text (0.535188ms)
+✔ folding: brackets (18.12007ms)
+▶ folding: indentation
+  ✔ folds a line followed by lines indented deeper (0.584721ms)
+  ✔ folds nested blocks and stops where the indentation returns (0.532313ms)
+  ✔ skips blank lines and counts a tab as four spaces (0.257541ms)
+  ✔ works without a lexicon (0.215552ms)
+  ✔ keeps the longest region of a start line (0.942478ms)
+✔ folding: indentation (2.98055ms)
+▶ folding: comments
+  ✔ folds two or more comment lines in a row (0.492038ms)
+  ✔ does not fold a single comment line (0.218858ms)
+  ✔ folds a run that ends the text and separate runs apart (0.409504ms)
+  ✔ does not take a line with code before the comment as a comment (0.309037ms)
+  ✔ needs a lexicon to know what a comment is (0.340014ms)
+  ✔ orders regions of every kind by their start lines (0.377064ms)
+✔ folding: comments (2.711788ms)
+▶ mapping: decorations per side
+  ✔ decorates every matched line of the side with its colour (1.017418ms)
+  ✔ uses the lines of the other side for the other editor (1.21714ms)
+  ✔ marks the active group stronger on both sides (0.559964ms)
+  ✔ leaves out lines beyond the line count of the editor (0.22476ms)
+  ✔ has nothing to decorate without a match (0.677755ms)
+✔ mapping: decorations per side (4.6049ms)
+▶ mapping: connector paths
+  ✔ draws one band from the left lines to the right lines (0.859433ms)
+  ✔ joins the lines of a group that differ in height (0.36982ms)
+  ✔ makes a band for every run of lines of a group (0.520892ms)
+  ✔ skips a band when either end cannot be seen (0.660102ms)
+  ✔ has no path without a match (0.19271ms)
+✔ mapping: connector paths (4.274644ms)
+ℹ tests 77
+ℹ suites 16
+ℹ pass 77
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4243.420163

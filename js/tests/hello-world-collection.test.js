@@ -90,12 +90,12 @@ describe('the Hello World Collection', () => {
     }
   });
 
-  it('reads every program but the blocked ones', () => {
+  it('reads all 34 original programs', () => {
     const unread = coverage().filter(
       ({ status }) => status === 'failed' || status === 'blocked'
     );
-    expect(unread.map(({ status }) => status)).toEqual(['blocked']);
-    expect(unread[0].blocked.length).toBeGreaterThan(0);
+    expect(unread).toEqual([]);
+    expect(entries.length).toBe(34);
   });
 
   it('decodes the entities of the page', () => {

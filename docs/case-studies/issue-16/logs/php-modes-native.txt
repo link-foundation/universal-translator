@@ -1,0 +1,3 @@
+PASS 6 Rocq runtime layouts and restored Python output bytes
+PASS 24 PHP output/markup/mode-switch cases and Python/PHP round trips
+PASS PHP comment closing tags retain code mode and native output

@@ -1,0 +1,15 @@
+✔ changes only comment contents in every current reader family (605.617381ms)
+✔ keeps source layout in partial translations through every reader family (530.169967ms)
+✔ leaves note-looking lines inside multiline natural text alone (376.429883ms)
+✔ retains machine strings, Unicode offsets, inline and nested comments (7.310707ms)
+✔ keeps SQL query comments and whitespace in place (8.423502ms)
+✔ reads nested block comments according to each language grammar (4.919406ms)
+✔ honours Rocq strings inside comments while other grammars treat quotes as text (1.038077ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1984.688972

@@ -9,6 +9,8 @@
 
 import {
   allFunctions,
+  mapInstructions,
+  renderMachine,
   comments,
   createsArrays,
   hex,
@@ -41,7 +43,7 @@ const stackEffect = {
   store: -1,
   pop: -1,
   arithmetic: -1,
-  'compare-jump': -2,
+  // compareJump consumes its operands before it records branch stack depths.
   return: -1,
   'print-integer': -1,
   'new-array': -1,
@@ -277,8 +279,11 @@ class WatFunction {
   write() {
     const { item } = this;
     const prologue = this.opening();
-    for (const [operation, ...operands] of item.code) {
+    for (const instruction of item.code) {
+      const [operation, ...operands] = instruction;
+      const start = this.body.length;
       this.instruction(operation, operands);
+      mapInstructions(this.body, instruction, start);
     }
     const last = item.code.at(-1)?.[0];
     const needsEnd = item.returns && (this.dispatch || last !== 'return');
@@ -366,23 +371,29 @@ export function writeWat(program) {
   );
   const arrays = createsArrays(program);
   const heap = Math.ceil(size / 8) * 8;
-  return [
-    ...comments(';;', program.comments),
-    ...(program.comments.length ? [''] : []),
-    '(module',
-    '  (import "env" "print_integer" (func $print_integer (param i64)))',
-    '  (import "env" "print_text" (func $print_text (param i32 i32)))',
-    '  (import "env" "print_newline" (func $print_newline))',
-    '  (memory (export "memory") 256)',
-    ...[...texts].map(
-      ([value, { offset }]) =>
-        `  (data (i32.const ${offset}) ${watText(value)})`
-    ),
-    ...(arrays ? [`  (global $heap (mut i32) (i32.const ${heap}))`] : []),
-    '',
-    ...functions.flatMap((lines, index) => [...(index ? [''] : []), ...lines]),
-    ...(arrays ? ['', ...watNewArray] : []),
-    ')',
-    '',
-  ].join('\n');
+  return renderMachine(
+    [
+      ...comments(';;', program.comments),
+      ...(program.comments.length ? [''] : []),
+      '(module',
+      '  (import "env" "print_integer" (func $print_integer (param i64)))',
+      '  (import "env" "print_text" (func $print_text (param i32 i32)))',
+      '  (import "env" "print_newline" (func $print_newline))',
+      '  (memory (export "memory") 256)',
+      ...[...texts].map(
+        ([value, { offset }]) =>
+          `  (data (i32.const ${offset}) ${watText(value)})`
+      ),
+      ...(arrays ? [`  (global $heap (mut i32) (i32.const ${heap}))`] : []),
+      '',
+      ...functions.flatMap((lines, index) => [
+        ...(index ? [''] : []),
+        ...lines,
+      ]),
+      ...(arrays ? ['', ...watNewArray] : []),
+      ')',
+      '',
+    ],
+    'wat'
+  );
 }

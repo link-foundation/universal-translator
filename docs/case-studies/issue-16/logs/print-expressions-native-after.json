@@ -1,0 +1,9 @@
+{
+  "emitter": "current",
+  "output": "use strict;\nuse warnings;\n\nsub twice {\n    my ($value) = @_;\n    return $value * 2;\n}\n\nprint((1 + 2) . \"\\n\");\nprint((2 + 3) * 4 . \"\\n\");\nprint(2 ** 3 . \"\\n\");\nprint((twice(5) + 1) . \"\\n\");\nprint(-2 . \"\\n\");\nprint(\"sum = \" . (1 + 2) . \"\\n\");\nprint((1 + 2));\nprint(\"!\\n\");\n",
+  "expected": "3\n20\n8\n11\n-2\nsum = 3\n3!\n",
+  "status": 0,
+  "stdout": "3\n20\n8\n11\n-2\nsum = 3\n3!\n",
+  "stderr": "",
+  "roundTripDifference": null
+}

@@ -1,30 +1,30 @@
 //! A meta tree as indented Links Notation, for people to read. Every node
 //! is one line: its kind, its main value as a plain word and its other
-//! plain fields as `(name value)` links. Its child nodes are nested below
-//! it, in the order they are read, with no field names:
+//! plain fields as `(name value)` links. Every child field is named, so
+//! conditions, actions, operands and arguments remain distinguishable.
 //!
 //! ```text
 //!   program (comments hi)
-//!     declaration x (mutable false) (type text)
-//!       text 'a b' (type text)
-//!     call print-line (library standard)
-//!       binary multiply (type integer)
-//!         name x (type text)
-//!         number 3 (type integer)
+//!     main
+//!       declaration x (mutable false) (type text)
+//!         value
+//!           text 'a b' (type text)
+//!       evaluate
+//!         expression
+//!           call print-line (library standard)
+//!             arguments
+//!               name x (type text)
 //! ```
 //!
-//! A block is not written: its statements are the children of the node
-//! that holds it (the main program, a function, a loop, the "then" of an
-//! if). A field that comes after a block is introduced by its name, a plain
-//! word such as `otherwise`, so it cannot be mistaken for one more
-//! statement. Links Notation keeps `name:` for links that define a unique
+//! A block is written under its field name (`main`, `body`, `then`,
+//! `otherwise`). Evaluate remains a statement containing an expression.
+//! Links Notation keeps `name:` for links that define a unique
 //! name, and no field name is unique here. The JavaScript `formatMeta`
 //! writes the same text.
 //!
 //! The program is written in its general form (see [`super::library`]):
 //! writing a line or taking a length is a call to a procedure of the
-//! standard library, like any other call. A call made for its effect is
-//! written as the call itself, as most programming languages write it.
+//! standard library, like any other call.
 
 use super::library::generalize;
 use super::tree::{Node, Value};
@@ -64,26 +64,37 @@ fn atom(value: &Value) -> String {
 /// The field written as a plain word right after the kind.
 fn main_field(kind: &str) -> Option<&'static str> {
     Some(match kind {
-        "Binary" | "Unary" => "operator",
+        "Binary" | "Unary" | "SqlBinary" | "SqlUnary" => "operator",
         "Blank" => "lines",
         "Boolean" | "Number" | "Text" => "value",
-        "Call" => "callee",
+        "Call" | "CppTemplateCall" => "callee",
+        "Question" => "aspect",
         "Comment" => "text",
         "Code" | "Prose" => "language",
-        "CountingLoop" | "ForEach" => "variable",
+        "CountingLoop" | "ForEach" | "Query" => "variable",
         "Paragraph" => "id",
         "Word" => "text",
-        "Assignment" | "Declaration" | "Function" | "IndexAssignment" | "Name" | "Parameter"
+        "Assignment"
+        | "AssignmentExpression"
+        | "Declaration"
+        | "Function"
+        | "IndexAssignment"
+        | "Name"
+        | "Parameter"
         | "" => "name",
         _ => return None,
     })
 }
 
 /// The order in which child nodes are read; other fields follow by name.
-const CHILD_ORDER: [&str; 26] = [
+const CHILD_ORDER: [&str; 36] = [
     "comments",
+    "source",
     "condition",
     "array",
+    "collection",
+    "receiver",
+    "object",
     "index",
     "left",
     "operand",
@@ -94,16 +105,22 @@ const CHILD_ORDER: [&str; 26] = [
     "length",
     "fill",
     "expression",
+    "subject",
+    "steps",
     "value",
     "arguments",
     "elements",
     "parts",
     "parameters",
+    "documentation",
     "texts",
     "functions",
     "statements",
     "then",
     "body",
+    "handlers",
+    "success",
+    "finalizer",
     "mainComments",
     "main",
     "otherwise",
@@ -126,10 +143,6 @@ fn empty(value: &Value) -> bool {
         Value::Node(node) => node.kind.is_empty() && node.fields.is_empty(),
         _ => false,
     }
-}
-
-fn is_block(value: &Value) -> bool {
-    matches!(value, Value::Node(node) if node.kind == "Block")
 }
 
 /// Fields holding nodes, in reading order.
@@ -188,7 +201,7 @@ fn head(node: &Node, list: &str) -> String {
 
 fn children(value: &Value, field: &str, indent: &str, out: &mut Vec<String>) {
     let items: Vec<&Value> = match value {
-        Value::Node(node) if node.kind == "Block" => node
+        Value::Node(node) if plain_block(node) => node
             .fields
             .get("statements")
             .and_then(Value::as_list)
@@ -205,36 +218,20 @@ fn children(value: &Value, field: &str, indent: &str, out: &mut Vec<String>) {
     }
 }
 
-/// A statement that only evaluates a call is written as the call.
-fn shown(node: &Node) -> std::borrow::Cow<'_, Node> {
-    match node.node("expression") {
-        Some(call) if node.is("Evaluate") && call.is("Call") => {
-            let mut merged = call.clone();
-            for (field, value) in &node.fields {
-                if field != "expression" {
-                    merged.fields.insert(field.clone(), value.clone());
-                }
-            }
-            std::borrow::Cow::Owned(merged)
-        }
-        _ => std::borrow::Cow::Borrowed(node),
-    }
+fn plain_block(node: &Node) -> bool {
+    node.is("Block")
+        && node
+            .fields
+            .iter()
+            .all(|(field, value)| field == "statements" || empty(value))
 }
 
-fn lines(written: &Node, indent: &str, list: &str, out: &mut Vec<String>) {
-    let shown = shown(written);
-    let node = shown.as_ref();
+fn lines(node: &Node, indent: &str, list: &str, out: &mut Vec<String>) {
     out.push(format!("{indent}{}", head(node, list)));
     let inner = format!("{indent}  ");
-    let mut after_block = false;
     for (field, value) in child_fields(node) {
-        if after_block {
-            out.push(format!("{inner}{}", kebab(field)));
-            children(value, field, &format!("{inner}  "), out);
-        } else {
-            children(value, field, &inner, out);
-        }
-        after_block |= is_block(value);
+        out.push(format!("{inner}{}", kebab(field)));
+        children(value, field, &format!("{inner}  "), out);
     }
 }
 

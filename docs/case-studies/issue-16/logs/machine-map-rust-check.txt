@@ -1,0 +1,322 @@
+    Checking universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+error[E0753]: expected outer doc comment
+ --> rust/src/formal/machine.rs:2:1
+  |
+2 | //! Machine targets: x86-64 assembly (NASM, System V, libc printf), CIL
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: inner doc comments like this (starting with `//!` or `/*!`) can only appear before items
+help: you might have meant to write a regular comment
+  |
+2 - //! Machine targets: x86-64 assembly (NASM, System V, libc printf), CIL
+2 + // Machine targets: x86-64 assembly (NASM, System V, libc printf), CIL
+  |
+
+error[E0753]: expected outer doc comment
+ --> rust/src/formal/machine.rs:3:1
+  |
+3 | //! (ILAsm for .NET) and JVM bytecode (Jasmin); the GNU as, ARM64, LLVM IR and
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: inner doc comments like this (starting with `//!` or `/*!`) can only appear before items
+help: you might have meant to write a regular comment
+  |
+3 - //! (ILAsm for .NET) and JVM bytecode (Jasmin); the GNU as, ARM64, LLVM IR and
+3 + // (ILAsm for .NET) and JVM bytecode (Jasmin); the GNU as, ARM64, LLVM IR and
+  |
+
+error[E0753]: expected outer doc comment
+ --> rust/src/formal/machine.rs:4:1
+  |
+4 | //! WebAssembly text writers live in modules of their own. Each writer spells the stack
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: inner doc comments like this (starting with `//!` or `/*!`) can only appear before items
+help: you might have meant to write a regular comment
+  |
+4 - //! WebAssembly text writers live in modules of their own. Each writer spells the stack
+4 + // WebAssembly text writers live in modules of their own. Each writer spells the stack
+  |
+
+error[E0753]: expected outer doc comment
+ --> rust/src/formal/machine.rs:5:1
+  |
+5 | //! machine code from the lowering; the target descriptions live with the
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: inner doc comments like this (starting with `//!` or `/*!`) can only appear before items
+help: you might have meant to write a regular comment
+  |
+5 - //! machine code from the lowering; the target descriptions live with the
+5 + // machine code from the lowering; the target descriptions live with the
+  |
+
+error[E0753]: expected outer doc comment
+ --> rust/src/formal/machine.rs:6:1
+  |
+6 | //! language descriptions, where the context rules read them.
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+7 |
+8 | use std::collections::HashMap;
+  | ------------------------------ the inner doc comment doesn't annotate this `use` import
+  |
+help: to annotate the `use` import, change the doc comment from inner to outer style
+  |
+6 - //! language descriptions, where the context rules read them.
+6 + /// language descriptions, where the context rules read them.
+  |
+
+error[E0753]: expected outer doc comment
+ --> rust/src/formal/machine_assembly.rs:2:1
+  |
+2 | //! Assembly dialects written from the stack machine code of the lowering:
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: inner doc comments like this (starting with `//!` or `/*!`) can only appear before items
+help: you might have meant to write a regular comment
+  |
+2 - //! Assembly dialects written from the stack machine code of the lowering:
+2 + // Assembly dialects written from the stack machine code of the lowering:
+  |
+
+error[E0753]: expected outer doc comment
+ --> rust/src/formal/machine_assembly.rs:3:1
+  |
+3 | //! x86-64 in GNU as (AT&T syntax, System V, libc printf) and AArch64 in GNU
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: inner doc comments like this (starting with `//!` or `/*!`) can only appear before items
+help: you might have meant to write a regular comment
+  |
+3 - //! x86-64 in GNU as (AT&T syntax, System V, libc printf) and AArch64 in GNU
+3 + // x86-64 in GNU as (AT&T syntax, System V, libc printf) and AArch64 in GNU
+  |
+
+error[E0753]: expected outer doc comment
+ --> rust/src/formal/machine_assembly.rs:4:1
+  |
+4 | //! as (AAPCS64, libc printf). Both mirror the NASM writer in `machine`.
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+5 |
+6 | use std::collections::HashMap;
+  | ------------------------------ the inner doc comment doesn't annotate this `use` import
+  |
+help: to annotate the `use` import, change the doc comment from inner to outer style
+  |
+4 - //! as (AAPCS64, libc printf). Both mirror the NASM writer in `machine`.
+4 + /// as (AAPCS64, libc printf). Both mirror the NASM writer in `machine`.
+  |
+
+error[E0753]: expected outer doc comment
+ --> rust/src/formal/machine_llvm.rs:2:1
+  |
+2 | //! LLVM IR (opaque pointers, LLVM 15 or later) written from the stack machine
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: inner doc comments like this (starting with `//!` or `/*!`) can only appear before items
+help: you might have meant to write a regular comment
+  |
+2 - //! LLVM IR (opaque pointers, LLVM 15 or later) written from the stack machine
+2 + // LLVM IR (opaque pointers, LLVM 15 or later) written from the stack machine
+  |
+
+error[E0753]: expected outer doc comment
+ --> rust/src/formal/machine_llvm.rs:3:1
+  |
+3 | //! code of the lowering. Every stack slot is an alloca, so the code stays in
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: inner doc comments like this (starting with `//!` or `/*!`) can only appear before items
+help: you might have meant to write a regular comment
+  |
+3 - //! code of the lowering. Every stack slot is an alloca, so the code stays in
+3 + // code of the lowering. Every stack slot is an alloca, so the code stays in
+  |
+
+error[E0753]: expected outer doc comment
+ --> rust/src/formal/machine_llvm.rs:4:1
+  |
+4 | //! SSA form without phi nodes; the writer keeps the machine's stack as a list
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: inner doc comments like this (starting with `//!` or `/*!`) can only appear before items
+help: you might have meant to write a regular comment
+  |
+4 - //! SSA form without phi nodes; the writer keeps the machine's stack as a list
+4 + // SSA form without phi nodes; the writer keeps the machine's stack as a list
+  |
+
+error[E0753]: expected outer doc comment
+ --> rust/src/formal/machine_llvm.rs:5:1
+  |
+5 | //! of operands, and a stack that is not empty at a jump or a label is saved
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: inner doc comments like this (starting with `//!` or `/*!`) can only appear before items
+help: you might have meant to write a regular comment
+  |
+5 - //! of operands, and a stack that is not empty at a jump or a label is saved
+5 + // of operands, and a stack that is not empty at a jump or a label is saved
+  |
+
+error[E0753]: expected outer doc comment
+ --> rust/src/formal/machine_llvm.rs:6:1
+  |
+6 | //! in "%stack.N" allocas around it.
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+7 |
+8 | use std::collections::HashMap;
+  | ------------------------------ the inner doc comment doesn't annotate this `use` import
+  |
+help: to annotate the `use` import, change the doc comment from inner to outer style
+  |
+6 - //! in "%stack.N" allocas around it.
+6 + /// in "%stack.N" allocas around it.
+  |
+
+error[E0753]: expected outer doc comment
+ --> rust/src/formal/machine_wasm.rs:2:1
+  |
+2 | //! WebAssembly text (WAT) written from the stack machine code of the
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: inner doc comments like this (starting with `//!` or `/*!`) can only appear before items
+help: you might have meant to write a regular comment
+  |
+2 - //! WebAssembly text (WAT) written from the stack machine code of the
+2 + // WebAssembly text (WAT) written from the stack machine code of the
+  |
+
+error[E0753]: expected outer doc comment
+ --> rust/src/formal/machine_wasm.rs:3:1
+  |
+3 | //! lowering. Every value is an i64; an array is the address of its first
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: inner doc comments like this (starting with `//!` or `/*!`) can only appear before items
+help: you might have meant to write a regular comment
+  |
+3 - //! lowering. Every value is an i64; an array is the address of its first
+3 + // lowering. Every value is an i64; an array is the address of its first
+  |
+
+error[E0753]: expected outer doc comment
+ --> rust/src/formal/machine_wasm.rs:4:1
+  |
+4 | //! element, with its length in the eight bytes before it. A label is a block
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: inner doc comments like this (starting with `//!` or `/*!`) can only appear before items
+help: you might have meant to write a regular comment
+  |
+4 - //! element, with its length in the eight bytes before it. A label is a block
+4 + // element, with its length in the eight bytes before it. A label is a block
+  |
+
+error[E0753]: expected outer doc comment
+ --> rust/src/formal/machine_wasm.rs:5:1
+  |
+5 | //! that ends where its code starts, so a forward jump is a branch out of that
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: inner doc comments like this (starting with `//!` or `/*!`) can only appear before items
+help: you might have meant to write a regular comment
+  |
+5 - //! that ends where its code starts, so a forward jump is a branch out of that
+5 + // that ends where its code starts, so a forward jump is a branch out of that
+  |
+
+error[E0753]: expected outer doc comment
+ --> rust/src/formal/machine_wasm.rs:6:1
+  |
+6 | //! block. A program with a backward jump runs inside a loop that re-enters
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: inner doc comments like this (starting with `//!` or `/*!`) can only appear before items
+help: you might have meant to write a regular comment
+  |
+6 - //! block. A program with a backward jump runs inside a loop that re-enters
+6 + // block. A program with a backward jump runs inside a loop that re-enters
+  |
+
+error[E0753]: expected outer doc comment
+ --> rust/src/formal/machine_wasm.rs:7:1
+  |
+7 | //! the blocks through a br_table on the label number. A value on the stack at
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: inner doc comments like this (starting with `//!` or `/*!`) can only appear before items
+help: you might have meant to write a regular comment
+  |
+7 - //! the blocks through a br_table on the label number. A value on the stack at
+7 + // the blocks through a br_table on the label number. A value on the stack at
+  |
+
+error[E0753]: expected outer doc comment
+ --> rust/src/formal/machine_wasm.rs:8:1
+  |
+8 | //! a jump or a label is kept in a "$.stack.N" local, because a block starts
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: inner doc comments like this (starting with `//!` or `/*!`) can only appear before items
+help: you might have meant to write a regular comment
+  |
+8 - //! a jump or a label is kept in a "$.stack.N" local, because a block starts
+8 + // a jump or a label is kept in a "$.stack.N" local, because a block starts
+  |
+
+error[E0753]: expected outer doc comment
+ --> rust/src/formal/machine_wasm.rs:9:1
+  |
+9 | //! with an empty stack. The host provides print_integer, print_text and
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: inner doc comments like this (starting with `//!` or `/*!`) can only appear before items
+help: you might have meant to write a regular comment
+  |
+9 - //! with an empty stack. The host provides print_integer, print_text and
+9 + // with an empty stack. The host provides print_integer, print_text and
+  |
+
+error[E0753]: expected outer doc comment
+  --> rust/src/formal/machine_wasm.rs:10:1
+   |
+10 | //! print_newline.
+   | ^^^^^^^^^^^^^^^^^^
+11 |
+12 | use std::collections::{BTreeSet, HashMap};
+   | ------------------------------------------ the inner doc comment doesn't annotate this `use` import
+   |
+help: to annotate the `use` import, change the doc comment from inner to outer style
+   |
+10 - //! print_newline.
+10 + /// print_newline.
+   |
+
+error[E0308]: mismatched types
+   --> rust/src/formal/machine_assembly.rs:482:8
+    |
+482 |     Ok(lines)
+    |     -- ^^^^^ expected `Vec<String>`, found `SourceLines`
+    |     |
+    |     arguments to this enum variant are incorrect
+    |
+    = note: expected struct `Vec<std::string::String>`
+               found struct `SourceLines`
+help: the type constructed contains `SourceLines` due to the type of the argument passed
+   --> rust/src/formal/machine_assembly.rs:482:5
+    |
+482 |     Ok(lines)
+    |     ^^^-----^
+    |        |
+    |        this argument influences the type of `Ok`
+note: tuple variant defined here
+   --> /rustc/b940084d7eb6a299eb4bfeb8e34901bc051e7ac4/library/core/src/result.rs:562:4
+help: try using a conversion method
+    |
+482 |     Ok(lines.to_vec())
+    |             +++++++++
+
+Some errors have detailed explanations: E0308, E0753.
+For more information about an error, try `rustc --explain E0308`.
+error: could not compile `universal-translator` (lib) due to 23 previous errors

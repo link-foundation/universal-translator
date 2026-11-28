@@ -13,4 +13,5 @@ int main(void) {
     for (int number = 0; number < 11; number++) {
         printf("%d! = %d\n", number, factorial(number));
     }
+    return 0;
 }

@@ -4,6 +4,7 @@
 //! machine code from the lowering; the target descriptions live with the
 //! language descriptions, where the context rules read them.
 
+use crate::emission_map::{SourceLines, active_instruction};
 use std::collections::HashMap;
 
 use super::lowering::{Instruction, LoweredProgram, Procedure, lower_program};
@@ -73,14 +74,14 @@ fn nasm_procedure(
     item: &Procedure,
     calls: &HashMap<String, bool>,
     texts: &mut Vec<String>,
-) -> Result<Vec<String>> {
+) -> Result<SourceLines> {
     // Each procedure names its stack slots with context-local macros, such
     // as "%$remainder", so the names cannot clash with labels or procedures.
     let offset = |slot: usize| format!("%${}", item.slot_names[slot]);
     let frame = item.slot_count.div_ceil(2) * 16;
-    let mut lines = comments(";", &item.comments, "");
+    let mut lines: SourceLines = comments(";", &item.comments, "");
     lines.push(format!("{}:", item.name));
-    let mut body: Vec<String> = vec![format!("%push {}", item.name)];
+    let mut body: SourceLines = vec![format!("%push {}", item.name)].into();
     body.extend(
         item.slot_names
             .iter()
@@ -105,6 +106,7 @@ fn nasm_procedure(
         body.push(format!("mov {}, {register}", offset(index)));
     }
     for instruction in &item.code {
+        let _origin = active_instruction(instruction);
         match instruction {
             Instruction::Comment(text) => {
                 body.extend(comments(";", std::slice::from_ref(text), ""))
@@ -194,7 +196,7 @@ fn nasm_procedure(
         }
     }
     body.push("%pop".into());
-    lines.extend(body.into_iter().map(|line| {
+    lines.extend(body.map_text(|line| {
         if line.starts_with('.') || line.starts_with(';') {
             line
         } else {
@@ -261,7 +263,7 @@ fn write_nasm(program: &LoweredProgram) -> Result<String> {
     for item in program.functions.iter().chain([&program.main]) {
         procedures.push(nasm_procedure(item, &returns, &mut texts)?);
     }
-    let mut lines = comments(";", &program.comments, "");
+    let mut lines: SourceLines = comments(";", &program.comments, "");
     if !program.comments.is_empty() {
         lines.push(String::new());
     }
@@ -306,7 +308,7 @@ fn write_nasm(program: &LoweredProgram) -> Result<String> {
     lines.push(String::new());
     lines.push("section .note.GNU-stack noalloc noexec nowrite progbits".into());
     lines.push(String::new());
-    Ok(lines.join("\n"))
+    Ok(lines.render_ending("nasm", ""))
 }
 
 // ---------------------------------------------------------------------------
@@ -354,7 +356,7 @@ fn cil_method(
     item: &Procedure,
     signatures: &HashMap<String, String>,
     entry_name: &str,
-) -> Vec<String> {
+) -> SourceLines {
     let is_main = item.name == "main";
     let name = if is_main {
         entry_name
@@ -389,7 +391,7 @@ fn cil_method(
             format!("{local} {}", slot - item.parameter_count)
         }
     };
-    let mut body: Vec<String> = Vec::new();
+    let mut body = SourceLines::default();
     if is_main {
         body.push(".entrypoint".into());
     }
@@ -398,6 +400,7 @@ fn cil_method(
         body.push(format!(".locals init ({})", locals.join(", ")));
     }
     for instruction in &item.code {
+        let _origin = active_instruction(instruction);
         match instruction {
             Instruction::Comment(text) => {
                 body.extend(comments("//", std::slice::from_ref(text), ""))
@@ -440,14 +443,14 @@ fn cil_method(
             Instruction::ArrayLength => body.extend(["ldlen", "conv.i8"].map(String::from)),
         }
     }
-    let mut lines = comments("//", &item.comments, "    ");
+    let mut lines: SourceLines = comments("//", &item.comments, "    ");
     lines.push(format!(
         "    .method public static {} {name}({}) cil managed",
         if item.returns { "int64" } else { "void" },
         named(&item.slot_names[..item.parameter_count])
     ));
     lines.push("    {".into());
-    lines.extend(body.into_iter().map(|line| {
+    lines.extend(body.map_text(|line| {
         if is_label(&line) {
             format!("      {line}")
         } else {
@@ -502,7 +505,7 @@ fn write_cil(program: &LoweredProgram) -> String {
             (item.name.clone(), signature)
         })
         .collect();
-    let mut lines = comments("//", &program.comments, "");
+    let mut lines: SourceLines = comments("//", &program.comments, "");
     if !program.comments.is_empty() {
         lines.push(String::new());
     }
@@ -533,7 +536,7 @@ fn write_cil(program: &LoweredProgram) -> String {
     }
     lines.push("}".into());
     lines.push(String::new());
-    lines.join("\n")
+    lines.render_ending("cil", "")
 }
 
 // ---------------------------------------------------------------------------
@@ -626,17 +629,18 @@ pub(crate) fn jasmin_variable(name: &str) -> &str {
     }
 }
 
-fn jvm_method(item: &Procedure, descriptors: &HashMap<String, String>) -> Vec<String> {
+fn jvm_method(item: &Procedure, descriptors: &HashMap<String, String>) -> SourceLines {
     let is_main = item.name == "main";
     let base = usize::from(is_main);
     let slot = |index: usize| base + 2 * index;
     // Arrays are references, loaded with aload; integers are longs.
     let is_array = |index: usize| item.slot_arrays.get(index) == Some(&true);
     let prefix = |index: usize| if is_array(index) { "a" } else { "l" };
-    let mut body = vec![
+    let mut body: SourceLines = vec![
         format!(".limit stack {}", 2 * item.max_depth + 3),
         format!(".limit locals {}", base + 2 * item.slot_count),
-    ];
+    ]
+    .into();
     body.extend(item.slot_names.iter().enumerate().map(|(index, name)| {
         let kind = if is_array(index) { "[J" } else { "J" };
         format!(".var {} is {} {kind}", slot(index), jasmin_name(name))
@@ -648,6 +652,7 @@ fn jvm_method(item: &Procedure, descriptors: &HashMap<String, String>) -> Vec<St
             .to_owned()
     };
     for instruction in &item.code {
+        let _origin = active_instruction(instruction);
         match instruction {
             Instruction::Comment(text) => {
                 body.extend(comments(";", std::slice::from_ref(text), ""))
@@ -696,7 +701,7 @@ fn jvm_method(item: &Procedure, descriptors: &HashMap<String, String>) -> Vec<St
             Instruction::ArrayLength => body.extend(["arraylength", "i2l"].map(String::from)),
         }
     }
-    let mut lines = comments(";", &item.comments, "");
+    let mut lines: SourceLines = comments(";", &item.comments, "");
     lines.push(format!(
         ".method public static {}",
         if is_main {
@@ -705,7 +710,7 @@ fn jvm_method(item: &Procedure, descriptors: &HashMap<String, String>) -> Vec<St
             descriptor(&item.name)
         }
     ));
-    lines.extend(body.into_iter().map(|line| {
+    lines.extend(body.map_text(|line| {
         if is_label(&line) {
             line
         } else {
@@ -746,7 +751,7 @@ fn write_jvm(program: &LoweredProgram) -> String {
             (item.name.clone(), descriptor)
         })
         .collect();
-    let mut lines = comments(";", &program.comments, "");
+    let mut lines: SourceLines = comments(";", &program.comments, "");
     if !program.comments.is_empty() {
         lines.push(String::new());
     }
@@ -758,7 +763,7 @@ fn write_jvm(program: &LoweredProgram) -> String {
     if creates_arrays(program) {
         lines.extend(JVM_NEW_ARRAY_METHOD.map(String::from));
     }
-    lines.join("\n")
+    lines.render_ending("jvm", "")
 }
 
 /// Write lowered stack machine code for a machine target.

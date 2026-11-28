@@ -1,0 +1,35 @@
+PASS original: original POC equals Python, JavaScript, Rust and generated POC (6 argument sets), with semantic round-trips
+PASS aliases: original POC equals Python, JavaScript, Rust and generated POC (1 argument sets), with semantic round-trips
+PASS live-iteration: original POC equals Python, JavaScript, Rust and generated POC (1 argument sets), with semantic round-trips
+PASS updates: original POC equals Python, JavaScript, Rust and generated POC (1 argument sets), with semantic round-trips
+/usr/lib/gcc/x86_64-linux-gnu/13/include/objc/objc.h:94: fatal: syntax error ";"
+node:internal/errors:999
+  const err = new Error(message);
+              ^
+
+Error: Command failed: bash -c ulimit -c 0; ulimit -v 1048576; ulimit -s 16384; exec "$@" bounded-objpak objc -q -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -O0 /tmp/universal-objpak-FjaJJb/conditions.m -o /tmp/universal-objpak-FjaJJb/conditions-objc
+/usr/lib/gcc/x86_64-linux-gnu/13/include/objc/objc.h:94: fatal: syntax error ";"
+
+    at genericNodeError (node:internal/errors:999:15)
+    at wrappedFn (node:internal/errors:544:14)
+    at checkExecSyncError (node:child_process:990:11)
+    at execFileSync (node:child_process:1026:15)
+    at run (file:///tmp/gh-issue-solver-1795726129025/examples/objpak/verify-native.mjs:14:3)
+    at native (file:///tmp/gh-issue-solver-1795726129025/examples/objpak/verify-native.mjs:24:3)
+    at compile (file:///tmp/gh-issue-solver-1795726129025/examples/objpak/verify-native.mjs:36:3)
+    at file:///tmp/gh-issue-solver-1795726129025/examples/objpak/verify-native.mjs:106:11
+    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    '',
+    '/usr/lib/gcc/x86_64-linux-gnu/13/include/objc/objc.h:94: fatal: syntax error ";"\n'
+  ],
+  pid: 109759,
+  stdout: '',
+  stderr: '/usr/lib/gcc/x86_64-linux-gnu/13/include/objc/objc.h:94: fatal: syntax error ";"\n'
+}
+
+Node.js v26.13.1

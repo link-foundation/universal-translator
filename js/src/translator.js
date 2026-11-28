@@ -8,7 +8,11 @@
 // translation/decorators.js), and every rule list is ordinary data, so
 // callers can add, remove, reorder or decorate rules.
 
-import { grammarLanguageIds, languageSyntax } from './formal/languages.js';
+import {
+  grammarLanguageIds,
+  queryLanguageIds,
+  languageSyntax,
+} from './formal/languages.js';
 import { parseProgram } from './formal/parser.js';
 import {
   contextRules,
@@ -17,16 +21,28 @@ import {
   understandingRules,
 } from './formal/rules.js';
 import { inferTypes } from './meta/types.js';
+import {
+  lowerIntegerArithmetic,
+  normalizeMachineIntegerZero,
+} from './meta/integer-arithmetic.js';
+import {
+  lowerEvaluationOrder,
+  raiseEvaluationOrder,
+} from './meta/evaluation-order.js';
 import { emitProgram } from './formal/emitter.js';
+import { requireRecordSupport } from './formal/record-model.js';
 import {
   emitMachine,
   machineTargetIds,
   machineTargets,
 } from './formal/machine.js';
 import { machineReaders } from './formal/machine-reader.js';
+import { readJvmClass } from './formal/machine-reader-jvm-class.js';
+import { readWasmBinary } from './formal/machine-reader-wasm-binary.js';
 import { liftProgram } from './formal/lifting.js';
 import { raiseForEach } from './meta/for-each.js';
 import { useCommonLibrary } from './formal/common-library.js';
+import { adaptNativeCProgram } from './formal/cpp-library.js';
 import { splitVersion, versionsOf } from './formal/versions.js';
 import {
   isNaturalLanguage,
@@ -47,13 +63,20 @@ import {
 import { declaredNames } from './formal/names.js';
 import { createFragmentTranslator } from './translation/fragments.js';
 import { createPartialTranslator } from './translation/partial.js';
+import { createRegionMapper } from './translation/region-map.js';
 import { createCandidateTranslator } from './translation/candidates.js';
 import { createLanguageDetector } from './translation/detect.js';
 import { compileCustomRules } from './translation/custom-rules.js';
 import { transferLayout } from './translation/layout.js';
 import { applyStyle, checkStyle, hasStyle } from './translation/style.js';
 import { specialize } from './meta/library.js';
+import {
+  captureEmission,
+  emittedMap,
+  mergeLineMaps,
+} from './translation/emission-map.js';
 import { markImprecision } from './meta/imprecision.js';
+import { sourceTree as concreteSourceTree } from './translation/source-syntax.js';
 import { unnest } from './translation/nesting.js';
 import { decorateStages, mergeDecorators } from './translation/decorators.js';
 
@@ -83,6 +106,26 @@ const buildStages = (settings) =>
     ),
     settings.decorate
   );
+
+// Keep layout rereads private while preserving the public stage trace.
+function scopedTrace(reportTrace) {
+  let tracing = true;
+  const trace = (...args) => {
+    if (tracing) {
+      reportTrace(...args);
+    }
+  };
+  const withoutTrace = (read) => {
+    const previous = tracing;
+    tracing = false;
+    try {
+      return read();
+    } finally {
+      tracing = previous;
+    }
+  };
+  return { trace, withoutTrace };
+}
 
 const modes = ['context-dependent', 'literal', 'same-effect'];
 
@@ -150,6 +193,9 @@ function checkTarget(to, mode, commonLibrary) {
   if (commonLibrary && machineTargetIds.includes(to)) {
     throw new Error(`Machine targets have no common library (${to})`);
   }
+  if (commonLibrary && queryLanguageIds.includes(to)) {
+    throw new Error(`Query languages have no common library (${to})`);
+  }
   const natural = isNaturalLanguage(to);
   if (natural && commonLibrary) {
     throw new Error(`Natural languages have no common library (${to})`);
@@ -208,7 +254,14 @@ function withLayout(result, source, from, to, options) {
     languageSyntax(from),
     languageSyntax(to),
     {
-      respace: options.layout !== 'target' && !hasStyle(options),
+      respace:
+        options.layout !== 'target' &&
+        !hasStyle(options) &&
+        !(
+          from === to &&
+          options.commentLanguage &&
+          !options.identifierLanguage
+        ),
       language: splitVersion(to).id,
     }
   );
@@ -264,10 +317,25 @@ function inPlace(source, language, options, toMeta) {
     : text;
 }
 
+function canTranslateInPlace(
+  from,
+  to,
+  { commentLanguage, identifierLanguage }
+) {
+  return (
+    from === to &&
+    ((commentLanguage && !identifierLanguage) ||
+      (identifierLanguage &&
+        !isNaturalLanguage(from) &&
+        !languageSyntax(from).machine))
+  );
+}
+
 // Partial translation (the default of the command line, the server and the
 // web demo) keeps every part it can translate and marks the rest;
 // all-or-nothing translation throws at the first part it cannot read.
-function partialTranslator(translate, fragments, partial) {
+function partialTranslator(translate, fragments, partial, withoutTrace) {
+  const mapRegions = createRegionMapper({ ...fragments, ...partial });
   function readAll(source, from, to, options) {
     const whole = options.fragment ? fragments.translateFragment : translate;
     try {
@@ -285,8 +353,26 @@ function partialTranslator(translate, fragments, partial) {
       throw new Error(`Unsupported layout "${options.layout}"`);
     }
     checkStyle(options);
-    const result = readAll(source, from, to, options);
-    return withLayout(result, source, from, to, options);
+    const { result, emissions } = captureEmission(() =>
+      readAll(source, from, to, options)
+    );
+    const placed = withLayout(result, source, from, to, options);
+    const syntax = isNaturalLanguage(to) ? {} : languageSyntax(to);
+    const semantic = emittedMap(
+      emissions,
+      source,
+      placed.text,
+      splitVersion(to).id,
+      syntax
+    );
+    const lineMap = mergeLineMaps(semantic, placed.lineMap ?? []);
+    return {
+      ...placed,
+      lineMap,
+      regionMap: withoutTrace(() =>
+        mapRegions(source, placed.text, from, to, lineMap)
+      ),
+    };
   };
 }
 
@@ -308,11 +394,12 @@ function completed(meta) {
 // The grammar languages with their versions, then the machine targets.
 function listLanguages() {
   return [
-    ...grammarLanguageIds.map((id) => {
+    ...[...grammarLanguageIds, ...queryLanguageIds].map((id) => {
       const versions = versionsOf(id);
       return {
         id,
         label: languageSyntax(id).label,
+        ...(queryLanguageIds.includes(id) ? { query: true } : {}),
         ...(versions.length ? { versions } : {}),
       };
     }),
@@ -330,17 +417,57 @@ const listNaturalLanguages = () =>
     return { id, label, ...(base ? { base } : {}) };
   });
 
+function createMachineTyper({ lift, infer }, meaning, trace) {
+  return (machine, from, source) => {
+    const lifted = inferMutability(raiseForEach(lift(machine)));
+    if (source !== undefined) {
+      trace('parsed', concreteSourceTree(source, from, lifted));
+    }
+    trace('lifted', lifted);
+    const typed = applyRules(infer(lifted), meaning, { from });
+    trace('typed', typed);
+    return typed;
+  };
+}
+
+function createBinaryTranslator(toMeta, from, writeMeta) {
+  const styled = styledText((bytes, from, to, options) => {
+    const meta = toMeta(bytes);
+    const id = splitVersion(to).id;
+    const adjusted = ['javascript', 'typescript'].includes(id)
+      ? normalizeMachineIntegerZero(meta)
+      : meta;
+    return writeMeta(adjusted, to, { ...options, from });
+  });
+  return (bytes, to, options) => styled(bytes, from, to, options);
+}
+
+function binaryMethods(typeMachine, writeMeta) {
+  const toMetaWasm = (bytes) =>
+    markImprecision(typeMachine(readWasmBinary(bytes), 'wat'));
+  const toMetaJvmClass = (bytes) =>
+    markImprecision(typeMachine(readJvmClass(bytes), 'jvm'));
+  return {
+    toMetaWasm,
+    toMetaJvmClass,
+    translateWasm: createBinaryTranslator(toMetaWasm, 'wat', writeMeta),
+    translateJvmClass: createBinaryTranslator(toMetaJvmClass, 'jvm', writeMeta),
+  };
+}
+
 export function createGrammarTranslator(settings = {}) {
   const {
     understanding = understandingRules,
     meaning = meaningRules,
     context = contextRules,
     layers = [],
-    trace = () => {},
+    trace: reportTrace = () => {},
     rules = {},
   } = settings;
+  const { trace, withoutTrace } = scopedTrace(reportTrace);
   const stages = buildStages(settings);
-  const { parse, infer, lift, emit, emitMachineCode } = stages;
+  const { parse, infer, emit, emitMachineCode } = stages;
+  const typeMachine = createMachineTyper(stages, meaning, trace);
   // Rules given as data (see translation/custom-rules.js).
   const custom = compileCustomRules(rules);
   const metaLayers = [...layers, ...custom.layers];
@@ -351,11 +478,11 @@ export function createGrammarTranslator(settings = {}) {
   function readMeta(text, from) {
     const source = custom.source(text, from);
     if (isNaturalLanguage(from)) {
-      // A controlled natural language is read sentence by sentence straight
-      // into the meta language; it has no source details to understand.
+      // Sentence reading supplies semantic nodes alongside the concrete record.
       const read = inferMutability(
         stages.readNatural(source, from, custom.naturalLanguage(from))
       );
+      trace('parsed', concreteSourceTree(source, from, read));
       trace('read', read);
       const typed = applyRules(infer(read), meaning, {});
       trace('typed', typed);
@@ -363,15 +490,8 @@ export function createGrammarTranslator(settings = {}) {
     }
     const syntax = languageSyntax(from);
     if (syntax.machine) {
-      // Machine code has no grammar to parse: read its instructions, lift
-      // them to the meta language and continue like any other source.
-      const lifted = inferMutability(
-        raiseForEach(lift(stages.readMachine(source, from)))
-      );
-      trace('lifted', lifted);
-      const typed = applyRules(infer(lifted), meaning, { from });
-      trace('typed', typed);
-      return typed;
+      // Instruction reading and lifting retain their concrete source record.
+      return typeMachine(stages.readMachine(source, from), from, source);
     }
     const sourceTree = parse(source, syntax);
     trace('parsed', sourceTree);
@@ -417,22 +537,26 @@ export function createGrammarTranslator(settings = {}) {
       options
     );
     trace('transformed', transformed);
+    const ordered = ['python', 'javascript', 'typescript'].includes(settings.to)
+      ? raiseEvaluationOrder(transformed)
+      : transformed;
+    const rounded = lowerIntegerArithmetic(ordered, settings);
     if (natural) {
-      return inCommentLanguage(transformed, options);
+      return inCommentLanguage(rounded, options);
     }
-    const adapted = applyRules(transformed, context, settings);
+    const sequenced = lowerEvaluationOrder(rounded, settings);
+    const adapted = adaptNativeCProgram(
+      applyRules(sequenced, context, settings),
+      settings
+    );
     trace('adapted', adapted);
     return inCommentLanguage(adapted, options);
   }
 
   function translate(source, from, to, options = {}) {
-    const { commentLanguage, identifierLanguage } = options;
-    const same =
-      from === to && !isNaturalLanguage(from) && !languageSyntax(from).machine;
-    const kept =
-      same && (commentLanguage || identifierLanguage)
-        ? inPlace(source, from, options, toMeta)
-        : undefined;
+    const kept = canTranslateInPlace(from, to, options)
+      ? inPlace(source, from, options, toMeta)
+      : undefined;
     return kept ?? writeMeta(toMeta(source, from), to, { ...options, from });
   }
 
@@ -441,12 +565,13 @@ export function createGrammarTranslator(settings = {}) {
   const emitText = (adapted, to) => custom.output(emit(adapted, to), to);
 
   function writeTarget(adapted, to) {
-    if (isNaturalLanguage(to)) {
+    const natural = isNaturalLanguage(to);
+    const machine = machineTargetIds.includes(to);
+    requireRecordSupport(adapted, to, !natural && !machine);
+    if (natural) {
       return stages.writeNatural(adapted, to);
     }
-    return machineTargetIds.includes(to)
-      ? emitMachineCode(adapted, to)
-      : emit(adapted, to);
+    return machine ? emitMachineCode(adapted, to) : emit(adapted, to);
   }
 
   function writeMeta(meta, to, options = {}) {
@@ -470,13 +595,19 @@ export function createGrammarTranslator(settings = {}) {
   });
   const partial = createPartialTranslator({ ...fragments, translateProse });
 
-  const translatePartial = partialTranslator(translate, fragments, partial);
+  const translatePartial = partialTranslator(
+    translate,
+    fragments,
+    partial,
+    withoutTrace
+  );
   const translateCandidates = createCandidateTranslator(translatePartial);
 
   return {
     languages: listLanguages,
     naturalLanguages: listNaturalLanguages,
     toMeta,
+    ...binaryMethods(typeMachine, writeMeta),
     fromMeta,
     translate: styledText(translate),
     translatePartial,

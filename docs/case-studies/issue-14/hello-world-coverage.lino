@@ -98,9 +98,7 @@ hello-world-coverage:
   objc-objective-c:
     language: objc
     section: 'Objective-C'
-    status: blocked
-    reason: 'Expected "]" but found "new" (line 11)'
-    blocked: 'Portable Object Compiler code: clang rejects its { :each | ... } block and lacks its objpak classes Set and String (experiments/issue-14/objc-hello-check.sh), and it greets the command-line arguments, which the meta language does not have'
+    status: read
   nim-nim:
     language: nim
     section: 'Nim'

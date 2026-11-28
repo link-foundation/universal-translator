@@ -36,7 +36,8 @@
 // `translateComment(text, { from, to })`; the dictionary is the default.
 
 import { naturalLanguage, naturalLanguageIds } from './catalog.js';
-import { priors, product, similarity } from './probability.js';
+import { readingCounts } from '../translation/corpus-frequencies.js';
+import { product, readingPriors, similarity } from './probability.js';
 import { semanticPrimes } from './rules.js';
 import {
   grammarOf,
@@ -127,6 +128,7 @@ export function meaningsOf(id) {
     }
   }
   const result = {
+    base,
     phrases,
     meanings,
     parts,
@@ -139,14 +141,22 @@ export function meaningsOf(id) {
 }
 
 // The meanings of a phrase in the order a sentence makes likely: first the
-// meanings that list it earliest (a word mostly means what it is the main
-// word of: "в" is first "in", only then "inside"), then in a question the
-// interrogative concepts first, elsewhere last.
+// meanings most often observed in the corpus, or the meanings that list the
+// phrase earliest. In a question interrogatives come first, elsewhere last.
 export function likely(phrase, language, question) {
   const rank = (meaning) => language.phrases.get(meaning).indexOf(phrase);
-  const meanings = [...(language.meanings.get(phrase) ?? [])].sort(
-    (a, b) => rank(a) - rank(b)
-  );
+  const meanings = [...(language.meanings.get(phrase) ?? [])];
+  const counts = readingCounts(language.base, phrase, meanings);
+  if (counts) {
+    const observed = new Map(
+      meanings.map((meaning, at) => [meaning, counts[at]])
+    );
+    meanings.sort(
+      (a, b) => observed.get(b) - observed.get(a) || rank(a) - rank(b)
+    );
+  } else {
+    meanings.sort((a, b) => rank(a) - rank(b));
+  }
   const asked = meanings.filter(
     (meaning) => language.parts.get(meaning) === 'interrogative'
   );
@@ -272,7 +282,7 @@ function questionsOf(parts) {
 // Phrase translation through the grammar of both languages. A phrase with
 // more than one translation is a reading: `choices` names the option taken
 // for some readings (the likeliest otherwise), and `readings` lists every
-// reading met, in order, as { key, phrase, options }.
+// reading met, in order, with the frequencies of its options.
 class ProseTranslator {
   constructor(from, to, choices = new Map()) {
     this.source = meaningsOf(from);
@@ -294,7 +304,12 @@ class ProseTranslator {
     }
     const key = `${this.at}:${phrase}`;
     if (!this.readings.some((reading) => reading.key === key)) {
-      this.readings.push({ key, phrase, options: options.length });
+      const frequencies = readingPriors(
+        this.source.base,
+        phrase,
+        options.map(({ meaning }) => meaning)
+      );
+      this.readings.push({ key, frequencies });
     }
     return options[this.choices.get(key) ?? 0] ?? options[0];
   }
@@ -607,7 +622,9 @@ function scored(text, { from, to, choices }, source) {
     choices,
   });
   const frequency = product(
-    readings.map(({ key, options }) => priors(options)[choices.get(key) ?? 0])
+    readings.map(
+      ({ key, frequencies }) => frequencies[choices.get(key)] ?? frequencies[0]
+    )
   );
   const roundTrip = similarity(source, meaningKeys(output, to));
   const probability = product([frequency, roundTrip]);
@@ -631,8 +648,8 @@ export function rankProse(text, { from, to }) {
     at += 1
   ) {
     const base = best;
-    const { key, options } = base.readings[at];
-    for (let option = 0; option < options; option += 1) {
+    const { key, frequencies } = base.readings[at];
+    for (let option = 0; option < frequencies.length; option += 1) {
       if (option === (base.choices.get(key) ?? 0)) {
         continue;
       }

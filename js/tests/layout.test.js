@@ -169,6 +169,24 @@ describe('layout of the source (issue 14)', () => {
   });
 });
 
+it('chooses the same code anchors when R comments change language', () => {
+  const source =
+    '\r\n# number\r\n\r\nn <- 1L\r\n# sequence\r\ncat(n + 2L, "\\n", sep = "")\r\n\r\n';
+  const baseline = translatePartial(source, 'r', 'bash');
+  const result = translatePartial(source, 'r', 'bash', {
+    commentFrom: 'english',
+    commentLanguage: 'russian',
+  });
+  expect(result.complete).toBe(true);
+  expect(result.text).toBe(
+    baseline.text
+      .replace('number', 'число')
+      .replace('sequence', 'последовательность')
+  );
+  expect(result.text).toContain('# число\r\n\r\nn=1');
+  expect(result.lineMap).toEqual(baseline.lineMap);
+});
+
 describe('lines of the layout', () => {
   it('maps each closing brace to the brace that closes its own block', () => {
     const source = 'function f(a) {\n  if (a) {\n    g();\n  }\n}\n';

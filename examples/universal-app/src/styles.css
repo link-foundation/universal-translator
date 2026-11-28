@@ -581,6 +581,16 @@ button.link {
   background: rgba(var(--map), 0.26);
 }
 
+.monaco-editor .map-region {
+  background: rgba(var(--map), 0.17);
+  border-radius: 2px;
+}
+
+.monaco-editor .map-region.map-active {
+  background: rgba(var(--map), 0.42);
+  outline: 1px solid rgba(var(--map), 0.7);
+}
+
 .monaco-editor .map-gutter {
   margin-left: 3px;
   width: 4px !important;
@@ -717,6 +727,9 @@ button.link {
 
 .app-footer {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
   justify-content: center;
   padding: 8px 0 16px;
 }

@@ -4,6 +4,10 @@ natural:
   extends: japanese
   profile: minimal-english
   source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  grammar:
+    productions:
+      element: '{array} の 部分 {index}'
+      set-element: 'この 後 @element[array=name] は {value} だ'
   templates:
     function: '誰か が {name} を {parameters} で こう する'
     function-without-parameters: '誰か が {name} を こう する'
@@ -29,9 +33,7 @@ natural:
     greater-or-equal: '{left} が {right} より 少なく ない'
     array: 'これら の もの ({elements})'
     new-array: '{fill} の よう な もの {length} 個'
-    element: '{array} の 部分 {index}'
     length: '{array} の 部分 の 数'
-    set-element: 'この 後 {name} の 部分 {index} は {value} だ'
   rules:
     primes: japanese
     extra-words: が を で は の 行 に 答え 止める 何度 も について まで それから と より な 個 数 または かつ マイナス 足す 引く 掛ける 割る 剰余 真 偽

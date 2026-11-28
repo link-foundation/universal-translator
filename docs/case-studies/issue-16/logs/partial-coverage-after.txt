@@ -1,0 +1,18 @@
+▶ partial translation
+  ✔ translates what it can and marks the rest (250.933071ms)
+  ✔ counts the lines it reads (11.389711ms)
+  ✔ is complete when everything reads (2.915858ms)
+  ✔ counts accepted lines only after the target writer succeeds (28.037008ms)
+  ✔ counts freely translated prose as translated lines (4.394145ms)
+  ✔ marks untranslated natural sentences (27.445124ms)
+  ✔ is the default of the command line (14.690407ms)
+  ✔ reports coverage on the command line (18.825078ms)
+✔ partial translation (361.991933ms)
+ℹ tests 8
+ℹ suites 1
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 861.714087

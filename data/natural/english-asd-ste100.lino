@@ -4,6 +4,9 @@ natural:
   extends: english
   profile: asd-ste100
   source: 'https://www.asd-ste100.org/'
+  grammar:
+    productions:
+      set-element: 'Set @element[array=name] to {value}'
   templates:
     function: 'Procedure {name} with {parameters}'
     function-without-parameters: 'Procedure {name}'
@@ -29,7 +32,6 @@ natural:
     greater: '{left} is more than {right}' '{left} > {right}'
     greater-or-equal: '{left} is not less than {right}' '{left} >= {right}' '{left} ≥ {right}'
     new-array: 'a list of {length} items with the value {fill}'
-    set-element: 'Set item {index} of {name} to {value}'
   rules:
     max-sentence-words: 20
     sentence-starts: procedure set change write return stop do if while for

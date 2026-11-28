@@ -91,6 +91,56 @@ describe('partial translation', () => {
     expect(result.coverage).toBe(1);
   });
 
+  it('counts accepted lines only after the target writer succeeds', () => {
+    const translator = createTranslator().decorate(
+      'emit',
+      (next) => (meta, to) => {
+        if (
+          meta.main.statements.some(
+            (statement) =>
+              statement.kind === 'Print' && statement.value.value === 2
+          )
+        ) {
+          throw new Error('The test target cannot print 2');
+        }
+        return next(meta, to);
+      }
+    );
+    for (const [source, lines, written] of [
+      ['print(2)\n', 1, 0],
+      ['print(1)\n???\nprint(2)\n\n', 3, 1],
+    ]) {
+      const reading = translator.parsePartial(source, 'python');
+      expect(reading.readLines).toBe(source.includes('???') ? 2 : 1);
+      const result = translator.translatePartial(
+        source,
+        'python',
+        'javascript'
+      );
+      expect(result.complete).toBe(false);
+      expect(result.lines).toBe(lines);
+      expect(result.readLines).toBe(written);
+      expect(result.coverage).toBe(written / lines);
+      expect(result.text).toContain('The test target cannot print 2');
+      expect(result.errors.at(-1).line).toBe(lines);
+    }
+  });
+
+  it('counts freely translated prose as translated lines', () => {
+    const result = translatePartial(
+      'Fly to the moon.\n\n',
+      'english',
+      'russian',
+      {
+        translateComment: () => 'Первая строка.\nВторая строка.\n',
+      }
+    );
+    expect(result.complete).toBe(true);
+    expect(result.readLines).toBe(1);
+    expect(result.coverage).toBe(1);
+    expect(translatePartial(' \n', 'python', 'javascript').coverage).toBe(1);
+  });
+
   it('marks untranslated natural sentences', () => {
     const result = translatePartial(
       'Написать 1 и закончить строку.\nЛетать к луне.\n',

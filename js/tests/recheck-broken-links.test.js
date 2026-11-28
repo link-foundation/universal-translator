@@ -344,11 +344,10 @@ describe('re-check step end to end', () => {
   );
 
   itUnless(sandboxed)(
-    'releases the gate when a cached 503 recovers with a fresh success',
+    'releases the gate when repeated entries for one cached 503 recover',
     async () => {
       const server = createServer((request, response) => {
-        response.writeHead(200);
-        response.end();
+        response.writeHead(200).end();
       });
       await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
       const { port } = server.address();
@@ -356,7 +355,8 @@ describe('re-check step end to end', () => {
       const dir = mkdtempSync(path.join(tmpdir(), 'recheck-'));
       try {
         const reportPath = writeReport(dir, [
-          `- [503] <http://127.0.0.1:${port}/slow> | Error (cached)`,
+          `- [503] <http://127.0.0.1:${port}/slow> (at 4:10) | Error (cached)`,
+          `- [503] <http://127.0.0.1:${port}/slow> (at 8:10) | Error (cached)`,
         ]);
         const recoveredPath = path.join(dir, 'recovered.txt');
         const outputPath = path.join(dir, 'github-output.txt');

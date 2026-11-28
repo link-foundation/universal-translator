@@ -12,7 +12,28 @@ natural:
   true: 'صحيح'
   false: 'خطأ'
   note: 'ملاحظة: {text}'
+  grammar:
+    terms:
+      interrogative: 'ما هو'
+      query-scope: 'لكل {variable} في {source}'
+      query-deferred: '«المؤجلة»'
+    productions:
+      answer-type: 'نوع {subject}'
+      question-type: '@interrogative @answer-type'
+      answer-documentation: 'توثيق {subject}'
+      question-documentation: '@interrogative @answer-documentation'
+      answer-source: 'المصدر البرمجي لـ {subject}'
+      question-source: '@interrogative @answer-source'
+      answer-details: 'المعلومات المفصلة عن {subject}'
+      question-details: '@interrogative @answer-details'
+      answer-query: 'قيم {projection} @query-scope حيث {condition}'
+      question-query: 'ما @answer-query'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
+      element: 'العنصر {index} في {array}'
+      set-element: 'غيّر @element[array=name] إلى {value}'
   templates:
+    documentation: 'التوثيق هو {value}'
     function: 'عرّف {name} باستخدام {parameters}'
     function-without-parameters: 'عرّف {name}'
     declare: 'أنشئ {name} بالقيمة {value}'
@@ -50,9 +71,7 @@ natural:
     remainder: '{left} بمقياس {right}' '{left} % {right}'
     array: 'القائمة ({elements})'
     new-array: 'قائمة طولها {length} وكل عناصرها {fill}'
-    element: 'العنصر {index} في {array}'
     length: 'طول {array}'
-    set-element: 'غيّر العنصر {index} في {name} إلى {value}'
   words:
     ackermann: 'أكرمان'
     bottles: 'زجاجات'

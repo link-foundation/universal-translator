@@ -1,0 +1,123 @@
+▶ grammar translator: the issue example
+  ✔ adapts comments to the target language by default (408.832865ms)
+  ✔ keeps comments word for word in literal mode (15.549282ms)
+  ✔ keeps only the behaviour in same-effect mode (10.383901ms)
+  ✔ rejects unknown modes and languages (6.271513ms)
+✔ grammar translator: the issue example (447.663407ms)
+▶ grammar translator: meaning is preserved
+  ✔ ackermann-function.js returns to the same meta program from every language (857.328405ms)
+  ✔ bubble-sort.js returns to the same meta program from every language (581.276944ms)
+  ✔ factorial.js returns to the same meta program from every language (315.005276ms)
+  ✔ fibonacci-sequence.js returns to the same meta program from every language (281.548602ms)
+  ✔ fizz-buzz.js returns to the same meta program from every language (463.384082ms)
+  ✔ greatest-common-divisor.js returns to the same meta program from every language (236.541905ms)
+  ✔ greatest-element-of-a-list.js returns to the same meta program from every language (319.675054ms)
+  ✔ hailstone-sequence.js returns to the same meta program from every language (603.238814ms)
+  ✔ hello-world.js returns to the same meta program from every language (58.50096ms)
+  ✔ leap-year.js returns to the same meta program from every language (359.487288ms)
+  ✔ linear-search.js returns to the same meta program from every language (368.844254ms)
+  ✔ loops-foreach.js returns to the same meta program from every language (177.383738ms)
+  ✔ mutual-recursion.js returns to the same meta program from every language (359.672472ms)
+  ✔ ninety-nine-bottles.js returns to the same meta program from every language (171.702705ms)
+  ✔ perfect-numbers.js returns to the same meta program from every language (382.187163ms)
+  ✔ primality-by-trial-division.js returns to the same meta program from every language (304.579767ms)
+  ✔ sieve-of-eratosthenes.js returns to the same meta program from every language (352.728495ms)
+  ✔ sum-and-product-of-an-array.js returns to the same meta program from every language (260.592769ms)
+  ✔ sum-digits-of-an-integer.js returns to the same meta program from every language (164.334677ms)
+  ✔ sum-multiples-of-3-and-5.js returns to the same meta program from every language (189.972782ms)
+  ✔ sum-of-squares.js returns to the same meta program from every language (245.085895ms)
+  ✔ towers-of-hanoi.js returns to the same meta program from every language (266.717469ms)
+  ✔ hand-written hand-written/factorial.rs means the same as the JavaScript program (8.781644ms)
+  ✔ hand-written hand-written/fizz-buzz.pl means the same as the JavaScript program (9.238215ms)
+  ✔ hand-written hand-written/fizz-buzz.rb means the same as the JavaScript program (8.086358ms)
+  ✔ hand-written hand-written/greatest-common-divisor.py means the same as the JavaScript program (18.424544ms)
+  ✔ hand-written hand-written/hello-world.c means the same as the JavaScript program (3.308188ms)
+  ✔ hand-written hand-written/hello-world.cs means the same as the JavaScript program (2.698993ms)
+  ✔ hand-written hand-written/sum-of-squares.go means the same as the JavaScript program (8.265953ms)
+  ✔ hand-written hand-written/sum-of-squares.jl means the same as the JavaScript program (6.348396ms)
+✔ grammar translator: meaning is preserved (7389.474293ms)
+▶ grammar translator: target conventions
+  ✔ spells declared names in each language convention (10.953494ms)
+  ✔ copies reassigned parameters where parameters are immutable (12.027536ms)
+  ✔ writes compound assignment only where the language has it (9.370712ms)
+  ✔ turns text concatenation into each language interpolation (23.595447ms)
+  ✔ escapes backslashes before braces in Lean interpolated text (2.395366ms)
+✔ grammar translator: target conventions (59.138338ms)
+▶ grammar translator: replaceable rule layers
+  ✔ applies custom meta to meta layers before the context rules (1.776844ms)
+  ✔ lets callers remove or decorate a rule (1.706763ms)
+  ✔ reports every stage through the trace hook (1.61963ms)
+  ✔ explains syntax errors with the line number (0.626748ms)
+✔ grammar translator: replaceable rule layers (6.242159ms)
+▶ shared golden translations
+  ✔ matches every file under examples/programs/translated (5467.259671ms)
+✔ shared golden translations (5468.818015ms)
+▶ machine targets
+  ✔ adapts comments and spells names for assembly, CIL and JVM (17.952354ms)
+  ✔ short-circuits conditions with jumps (6.335393ms)
+  ✔ refuses programs it cannot lower (1.19052ms)
+✔ machine targets (25.968562ms)
+▶ grammar translator: library spellings and names
+  ✔ reads integer division written by the JavaScript and PHP emitters (2.405716ms)
+  ✔ writes integer division in JavaScript, TypeScript and PHP (3.717232ms)
+  ✔ treats names inherited by JavaScript objects as ordinary names (2.673825ms)
+✔ grammar translator: library spellings and names (9.15432ms)
+▶ issue 16 regression cases
+  ✔ reads an isolated natural-language name and ranks English first on a tie (1750.77159ms)
+  ✔ keeps the complete exponentiation inside an interpolation (6.075659ms)
+  ✔ associates powers right and preserves a grouped left operand (7.956807ms)
+  ✔ requires every interpolation token to be read (1.928746ms)
+  ✔ keeps the blank line after a comment whose language changes (27.509294ms)
+  ✔ declares an array mutable in Rust when its JavaScript binding is const (24.767341ms)
+✔ issue 16 regression cases (1823.942243ms)
+▶ layout of the source (issue 14)
+  ✔ keeps the blank lines and the spaces of the issue example (384.44914ms)
+  ✔ keeps the blank line after a leading comment of a fragment (48.188793ms)
+  ✔ writes the layout of the target on request (7.873792ms)
+  ✔ matches every example under examples/layout (258.195719ms)
+  ✔ cuts operators, strings, comments and names into tokens (1.197863ms)
+  ✔ aligns unique tokens first and the rest between them (0.526893ms)
+  ✔ never joins a name and a string or a name and its call (4.117838ms)
+  ✔ leaves strings that span lines and space sensitive targets alone (0.733217ms)
+  ✔ keeps Windows line ends and the blank lines at the end (2.372013ms)
+  ✔ indents in the steps of the source (1.273014ms)
+  ✔ maps lines only when the source has no code (1.46957ms)
+✔ layout of the source (issue 14) (718.240403ms)
+▶ lines of the layout
+  ✔ maps each closing brace to the brace that closes its own block (0.552149ms)
+✔ lines of the layout (0.754186ms)
+▶ grammatical case in controlled algorithms
+  ✔ reads nominative and accusative constants as the same boolean (115.273478ms)
+  ✔ keeps an inflected comparison operand tied to its declaration (21.77415ms)
+✔ grammatical case in controlled algorithms (139.049961ms)
+▶ everyday English wordings
+  ✔ read like the canonical sentences (12.36202ms)
+  ✔ read each statement (21.108268ms)
+  ✔ are written back in the canonical wording (20.131867ms)
+✔ everyday English wordings (54.174824ms)
+▶ symbols and unmarked headings in English
+  ✔ reads arithmetic written with symbols (3.647531ms)
+  ✔ opens a block after a heading without its colon (3.305404ms)
+  ✔ keeps a sentence without its full stop a statement (1.318428ms)
+✔ symbols and unmarked headings in English (8.915875ms)
+▶ increasing and decreasing a variable
+  ✔ reads English increase, add to, decrease and subtract from (1.900394ms)
+  ✔ is written back as the canonical assignment (2.876263ms)
+✔ increasing and decreasing a variable (5.107394ms)
+▶ everyday Russian wordings
+  ✔ read like the canonical sentences (22.966813ms)
+  ✔ read each statement (5.646127ms)
+  ✔ are detected as Russian that reads (1787.173887ms)
+✔ everyday Russian wordings (1816.384764ms)
+▶ everyday wordings in every natural language
+  ✔ give every language increase and decrease (0.824107ms)
+  ✔ read every wording of a statement as the statement (361.588004ms)
+✔ everyday wordings in every natural language (362.738328ms)
+ℹ tests 83
+ℹ suites 16
+ℹ pass 83
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14012.823267

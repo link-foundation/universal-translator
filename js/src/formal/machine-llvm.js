@@ -6,6 +6,8 @@
 
 import {
   allFunctions,
+  mapInstructions,
+  renderMachine,
   comments,
   createsArrays,
   hex,
@@ -241,8 +243,11 @@ class LlvmFunction {
   write() {
     const { item } = this;
     const isMain = item.name === 'main';
-    for (const [operation, ...operands] of item.code) {
+    for (const instruction of item.code) {
+      const [operation, ...operands] = instruction;
+      const start = this.lines.length;
       this.instruction(operation, operands);
+      mapInstructions(this.lines, instruction, start);
     }
     if (!this.terminated) {
       this.emit('unreachable', true);
@@ -312,20 +317,21 @@ export function writeLlvm(program) {
   );
   const constant = (name, text) =>
     `@${name} = private unnamed_addr constant ${llvmText(text)}`;
-  return [
-    ...comments(';', program.comments),
-    ...(program.comments.length ? [''] : []),
-    'declare i32 @printf(ptr, ...)',
-    ...(createsArrays(program) ? ['declare ptr @malloc(i64)'] : []),
-    '',
-    constant('integer_format', '%lld'),
-    constant('text_format', '%s'),
-    constant('newline_format', '\n'),
-    ...[...texts].map(([text, name]) => constant(name, text)),
-    '',
-    ...functions.flatMap((lines) => [...lines, '']),
-    ...(createsArrays(program) ? llvmNewArray : []),
-  ]
-    .join('\n')
-    .replace(/\n+$/, '\n');
+  return renderMachine(
+    [
+      ...comments(';', program.comments),
+      ...(program.comments.length ? [''] : []),
+      'declare i32 @printf(ptr, ...)',
+      ...(createsArrays(program) ? ['declare ptr @malloc(i64)'] : []),
+      '',
+      constant('integer_format', '%lld'),
+      constant('text_format', '%s'),
+      constant('newline_format', '\n'),
+      ...[...texts].map(([text, name]) => constant(name, text)),
+      '',
+      ...functions.flatMap((lines) => [...lines, '']),
+      ...(createsArrays(program) ? llvmNewArray : []),
+    ],
+    'llvm'
+  ).replace(/\n+$/, '\n');
 }

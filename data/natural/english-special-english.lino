@@ -4,6 +4,10 @@ natural:
   extends: english
   profile: special-english
   source: 'https://learningenglish.voanews.com/'
+  grammar:
+    productions:
+      element: 'part {index} of {array}'
+      set-element: 'Change @element[array=name] to {value}'
   templates:
     equal: '{left} equals {right}' '{left} = {right}' '{left} == {right}'
     function: 'Here is how to find {name} from {parameters}'
@@ -28,9 +32,7 @@ natural:
     less-or-equal: '{left} is not more than {right}' '{left} <= {right}' '{left} ≤ {right}'
     greater: '{left} is more than {right}' '{left} > {right}'
     greater-or-equal: '{left} is not less than {right}' '{left} >= {right}' '{left} ≥ {right}'
-    element: 'part {index} of {array}'
     length: 'the size of {array}'
-    set-element: 'Change part {index} of {name} to {value}'
   rules:
     max-sentence-words: 20
     vocabulary: here is how to find from start at change show on a line return stop do nothing if not but this while again for each then of in or and the opposite equals less than more true false list copies part size

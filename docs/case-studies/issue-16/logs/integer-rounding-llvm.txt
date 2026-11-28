@@ -1,0 +1,17 @@
+file:///tmp/gh-issue-solver-1795726129025/js/src/formal/lifting.js:51
+  return new Error(`Cannot lift machine code: ${message}`);
+         ^
+
+Error: Cannot lift machine code: a statement needs a value on the stack
+    at liftError (file:///tmp/gh-issue-solver-1795726129025/js/src/formal/lifting.js:51:10)
+    at BlockLifting.pop (file:///tmp/gh-issue-solver-1795726129025/js/src/formal/lifting.js:144:13)
+    at Object.pop (file:///tmp/gh-issue-solver-1795726129025/js/src/formal/lifting.js:266:64)
+    at BlockLifting.instruction (file:///tmp/gh-issue-solver-1795726129025/js/src/formal/lifting.js:279:28)
+    at FunctionLifting.block (file:///tmp/gh-issue-solver-1795726129025/js/src/formal/lifting.js:568:16)
+    at FunctionLifting.branch (file:///tmp/gh-issue-solver-1795726129025/js/src/formal/lifting.js:600:23)
+    at FunctionLifting.block (file:///tmp/gh-issue-solver-1795726129025/js/src/formal/lifting.js:565:24)
+    at FunctionLifting.branch (file:///tmp/gh-issue-solver-1795726129025/js/src/formal/lifting.js:600:23)
+    at FunctionLifting.block (file:///tmp/gh-issue-solver-1795726129025/js/src/formal/lifting.js:565:24)
+    at FunctionLifting.lift (file:///tmp/gh-issue-solver-1795726129025/js/src/formal/lifting.js:648:23)
+
+Node.js v26.13.1

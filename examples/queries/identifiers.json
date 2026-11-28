@@ -1,0 +1,18 @@
+{
+  "schema": "CREATE TABLE people (row TEXT, age INTEGER, \"display.name\" TEXT); INSERT INTO people VALUES ('first', 12, 'Ada'), ('second', 21, 'Lin'); CREATE TABLE \"people.data\" AS SELECT * FROM people;",
+  "cases": [
+    { "source": "SELECT row FROM people;", "rows": [["first"], ["second"]] },
+    {
+      "source": "SELECT PEOPLE.age FROM people WHERE people.age > 18;",
+      "rows": [[21]]
+    },
+    {
+      "source": "SELECT main.\"people.data\".\"display.name\" FROM main.\"people.data\";",
+      "rows": [["Ada"], ["Lin"]]
+    },
+    {
+      "source": "SELECT \"Staff.Today\".\"display.name\" FROM \"people.data\" AS \"Staff.Today\" WHERE \"STAFF.TODAY\".age >= 18;",
+      "rows": [["Lin"]]
+    }
+  ]
+}

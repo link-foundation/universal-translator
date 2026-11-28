@@ -1,0 +1,12 @@
+    Checking universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+error: usage of `bool::then` in `filter_map`
+  --> rust/tests/semantic_mapping.rs:32:18
+   |
+32 |                 .filter_map(|(from, to)| (*from == line).then(|| lines[*to].trim()))
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `filter` then `map` instead: `filter(|&(from, to)| (*from == line)).map(|(from, to)| lines[*to].trim())`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.99.0/index.html#filter_map_bool_then
+   = note: `-D clippy::filter-map-bool-then` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::filter_map_bool_then)]`
+
+error: could not compile `universal-translator` (test "semantic_mapping") due to 1 previous error

@@ -1,0 +1,1 @@
+PASS exact Python, generated Perl and restored Python output bytes (8 prints)

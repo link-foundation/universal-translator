@@ -73,14 +73,40 @@ describe('ranking', () => {
     });
     expect(ranked[0]).toEqual({
       text: 'Hello world. How do?',
-      probability: 0.296297,
-      frequency: 0.296297,
+      probability: 0.409992,
+      frequency: 0.409992,
       roundTrip: 1,
     });
     expect(ranked.map(({ text }) => text)).toContain('Hello peace. How do?');
     const probabilities = ranked.map(({ probability }) => probability);
     expect(probabilities).toEqual([...probabilities].sort((a, b) => b - a));
     expect(new Set(ranked.map(({ text }) => text)).size).toBe(ranked.length);
+  });
+
+  it('uses observed noun readings and reports the same prior in meta', () => {
+    const expected = [
+      {
+        text: 'world',
+        probability: 0.922481,
+        frequency: 0.922481,
+        roundTrip: 1,
+      },
+      { text: 'peace', probability: 0, frequency: 0.077519, roundTrip: 0 },
+    ];
+    for (const form of ['мир', 'мира', 'миру', 'миром', 'мире']) {
+      expect(rankProse(form, { from: 'russian', to: 'english' })).toEqual(
+        expected
+      );
+      const [word] = readProse(form, 'russian').sentences[0].words;
+      expect([word.concept, word.alternatives, word.probability]).toEqual([
+        'world',
+        2,
+        0.922481,
+      ]);
+    }
+    expect(
+      rankProse('строка', { from: 'russian', to: 'english' })[0].frequency
+    ).toBe(0.666667);
   });
 
   it('keeps prose in its own language as it is', () => {
@@ -139,7 +165,7 @@ describe('ranking', () => {
     expect(status).toBe(0);
     expect(output.split('\n')[0]).toBe("(text 'Hello world. How do?");
     expect(output).toContain(
-      "') (probability 0.296297) (frequency 0.296297) (roundTrip 1) (coverage 1)\n"
+      "') (probability 0.409992) (frequency 0.409992) (roundTrip 1) (coverage 1)\n"
     );
     expect(output).toContain("(text 'Hello peace. How do?");
   });

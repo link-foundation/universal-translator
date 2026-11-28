@@ -28,7 +28,7 @@ use std::sync::LazyLock;
 use regex::Regex;
 
 use super::comments::{Meanings, detect_comment_language, fold, likely, meanings_of, pieces};
-use super::probability::priors;
+use super::probability::reading_priors;
 use super::vocabulary::known_form;
 use crate::meta::tree::{Node, Value};
 
@@ -45,6 +45,7 @@ static QUESTION_MARKS: LazyLock<Regex> =
 struct Reading {
     meaning: String,
     alternatives: usize,
+    probability: f64,
 }
 
 /// A word and its meaning: `concept:print` -> `(concept print)`, with the
@@ -62,7 +63,7 @@ fn word(text: &str, reading: &Reading, language: &Meanings) -> Node {
     if reading.alternatives > 1 {
         node.set("imprecision", "ambiguous");
         node.set("alternatives", reading.alternatives as f64);
-        node.set("probability", priors(reading.alternatives)[0]);
+        node.set("probability", reading.probability);
     }
     node
 }
@@ -87,10 +88,17 @@ fn meaning_of(phrase: &str, language: &Meanings, single: bool, question: bool) -
     } else {
         None
     };
-    let meanings = likely(&form?, language, question);
+    let form = form?;
+    let meanings = likely(&form, language, question);
     meanings.first().map(|meaning| Reading {
         meaning: (*meaning).clone(),
         alternatives: meanings.len(),
+        probability: if meanings.len() > 1 {
+            let ids: Vec<_> = meanings.iter().map(|meaning| meaning.as_str()).collect();
+            reading_priors(&language.base, &form, &ids)[0]
+        } else {
+            1.0
+        },
     })
 }
 

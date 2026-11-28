@@ -133,7 +133,7 @@ fn expand(
             .cloned()
             .map(|body| expand(body, used, &inner, keep))
             .unwrap_or_else(|| block(vec![]));
-        return lowered(&tree, &index, body);
+        return crate::source_origins::inherit(lowered(&tree, &index, body), &tree);
     }
     let mut tree = tree;
     let fields = std::mem::take(&mut tree.fields);

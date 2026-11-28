@@ -27,6 +27,7 @@
 
 import { readProse } from '../natural/prose-reading.js';
 import { wordsOf } from '../natural/comments.js';
+import { inheritOrigin } from './source-origins.js';
 
 export const longestInlineText = 12;
 
@@ -45,7 +46,8 @@ function mapTree(value, visit) {
   const mapped = Object.fromEntries(
     Object.entries(value).map(([field, item]) => [field, mapTree(item, visit)])
   );
-  return value.kind ? visit(mapped) : mapped;
+  inheritOrigin(mapped, value);
+  return value.kind ? inheritOrigin(visit(mapped), value) : mapped;
 }
 
 // The texts of a node: a comment's text, a string's value.

@@ -1,6 +1,10 @@
 /* Primality by trial division in Objective-C */
 
+#ifdef __PORTABLE_OBJC__
+#include <objcrt.h>
+#else
 #import <objc/objc.h>
+#endif
 #import <stdio.h>
 
 BOOL isPrime(int number) {
@@ -23,4 +27,5 @@ int main(void) {
             printf("%d\n", number);
         }
     }
+    return 0;
 }

@@ -6,6 +6,7 @@
 // is given a real after an integer start is a real variable.
 
 import { rewrite, walk } from './tree.js';
+import { inheritOrigin } from '../translation/source-origins.js';
 
 const comparisons = new Set([
   'equal',
@@ -22,11 +23,20 @@ const comparisons = new Set([
 const fixedTypes = new Map([
   ['Text', 'text'],
   ['Interpolation', 'text'],
+  ['CppCharacterConcat', 'text'],
   ['Boolean', 'boolean'],
   ['ArrayLiteral', 'array'],
   ['NewArray', 'array'],
-  ['Index', 'integer'],
   ['Length', 'integer'],
+  ['ProcessArguments', 'array<text>'],
+  ['SetLiteral', 'set<text>'],
+  ['Null', 'object'],
+  ['SqlBinary', 'object'],
+  ['SqlUnary', 'object'],
+  ['SqlBetween', 'object'],
+  ['SqlIn', 'object'],
+  ['SqlTruth', 'boolean'],
+  ['RecordConstruction', 'record'],
 ]);
 
 function binaryType(expression, scope, signatures) {
@@ -39,6 +49,8 @@ function binaryType(expression, scope, signatures) {
     return 'text';
   }
   return expression.operator === 'realDivide' ||
+    (expression.operator === 'power' &&
+      (expression.right.kind !== 'Number' || expression.right.value < 0)) ||
     left === 'real' ||
     right === 'real'
     ? 'real'
@@ -48,15 +60,45 @@ function binaryType(expression, scope, signatures) {
 const numberType = ({ type, value }) =>
   type === 'real' || !Number.isInteger(value) ? 'real' : 'integer';
 
+const dependentTypes = {
+  AssignmentExpression: (expression, scope, signatures) =>
+    expressionType(expression.value, scope, signatures),
+  ExpressionSequence: (expression, scope, signatures) =>
+    expressionType(expression.value, scope, signatures),
+  Index: (expression, scope, signatures) =>
+    /^(?:array|sequence|set)<(.+)>$/u.exec(
+      expressionType(expression.array, scope, signatures)
+    )?.[1] ?? 'integer',
+  Update: (expression, scope, signatures) =>
+    expressionType(expression.operand, scope, signatures) ?? 'integer',
+  SetInsert: (expression, scope, signatures) =>
+    expressionType(expression.collection, scope, signatures),
+  Query(expression, scope, signatures) {
+    const local = queryScope(expression, scope, signatures);
+    const element =
+      expressionType(expression.projection, local, signatures) ?? 'object';
+    return `${expression.eager ? 'array' : 'sequence'}<${element}>`;
+  },
+};
+
 function expressionType(expression, scope, signatures) {
   if (fixedTypes.has(expression.kind)) {
     return fixedTypes.get(expression.kind);
   }
+  if (dependentTypes[expression.kind]) {
+    return dependentTypes[expression.kind](expression, scope, signatures);
+  }
   switch (expression.kind) {
     case 'Number':
       return numberType(expression);
+    case 'RecordFieldRead':
+      return expression.type;
     case 'Name':
       return scope.get(expression.name);
+    case 'Question':
+      return ['source', 'documentation'].includes(expression.aspect)
+        ? 'text'
+        : undefined;
     case 'Unary':
       if (expression.operator === 'not') {
         return 'boolean';
@@ -73,21 +115,62 @@ function expressionType(expression, scope, signatures) {
   }
 }
 
+function queryScope(expression, scope, signatures) {
+  const source = expressionType(expression.source, scope, signatures);
+  const element = /^(?:array|sequence)<(.+)>$/u.exec(source)?.[1];
+  return new Map(scope).set(
+    expression.variable,
+    element ?? (source === 'array' ? 'integer' : 'object')
+  );
+}
+
 // A division with a real operand is a true division (C's `7.0 / 2`).
 function annotate(expression, scope, signatures) {
-  return rewrite(expression, (current) => {
-    const type = expressionType(current, scope, signatures);
-    const operator =
-      current.kind === 'Binary' &&
-      current.operator === 'divide' &&
-      type === 'real'
-        ? 'realDivide'
-        : current.operator;
-    if (!type) {
-      return current;
+  let local =
+    expression.kind === 'Query'
+      ? queryScope(expression, scope, signatures)
+      : scope;
+  if (expression.kind === 'Lambda') {
+    local = new Map(scope);
+    for (const parameter of expression.parameters) {
+      local.delete(parameter);
     }
-    return operator ? { ...current, operator, type } : { ...current, type };
-  });
+  }
+  const child = (value, context) =>
+    Array.isArray(value)
+      ? value.map((item) => child(item, context))
+      : value?.kind
+        ? annotate(value, context, signatures)
+        : value;
+  let current = inheritOrigin(
+    Object.fromEntries(
+      Object.entries(expression).map(([key, value]) => [
+        key,
+        child(value, key === 'source' ? scope : local),
+      ])
+    ),
+    expression
+  );
+  const type = expressionType(current, scope, signatures);
+  const slashDivision = current.slashDivision;
+  if (slashDivision) {
+    current = inheritOrigin({ ...current }, current);
+    delete current.slashDivision;
+  }
+  const operator =
+    current.kind === 'Binary' &&
+    (current.operator === 'divide' ||
+      (current.operator === 'floorDivide' && slashDivision)) &&
+    type === 'real'
+      ? 'realDivide'
+      : current.operator;
+  if (!type) {
+    return current;
+  }
+  return inheritOrigin(
+    operator ? { ...current, operator, type } : { ...current, type },
+    current
+  );
 }
 
 function typeBlock(body, scope, signatures, returns) {
@@ -96,7 +179,7 @@ function typeBlock(body, scope, signatures, returns) {
   const statements = body.statements.map((statement) =>
     typeStatement(statement, local, signatures, returns)
   );
-  return { ...body, statements };
+  return inheritOrigin({ ...body, statements }, body);
 }
 
 // An integer literal stored in a real variable is a real literal (0 is 0.0).
@@ -151,6 +234,34 @@ const statementTypers = {
     ...statement,
     expression: context.typed(statement.expression),
   }),
+  Throw: (statement, context) => ({
+    ...statement,
+    value: context.typed(statement.value),
+  }),
+  Try(statement, context) {
+    return {
+      ...statement,
+      body: context.block(statement.body),
+      handlers: statement.handlers.map((handler) => {
+        const inner = new Map(context.scope);
+        inner.reals = context.reals;
+        if (handler.name) {
+          inner.set(handler.name, handler.type ?? 'integer');
+        }
+        return {
+          ...handler,
+          body: typeBlock(
+            handler.body,
+            inner,
+            context.signatures,
+            context.returns
+          ),
+        };
+      }),
+      success: statement.success && context.block(statement.success),
+      finalizer: statement.finalizer && context.block(statement.finalizer),
+    };
+  },
   Return(statement, context) {
     const value = context.typed(statement.value);
     context.returns.push(value?.type ?? 'nothing');
@@ -181,11 +292,15 @@ const statementTypers = {
   }),
   ForEach(statement, context) {
     const inner = new Map(context.scope);
-    inner.set(statement.variable, 'integer');
+    inner.reals = context.reals;
+    const array = context.typed(statement.array);
+    const type =
+      /^(?:array|sequence|set)<(.+)>$/u.exec(array.type)?.[1] ?? 'integer';
+    inner.set(statement.variable, type);
     return {
       ...statement,
-      type: 'integer',
-      array: context.typed(statement.array),
+      type,
+      array,
       body: typeBlock(
         statement.body,
         inner,
@@ -217,19 +332,22 @@ function typeStatement(statement, scope, signatures, returns) {
   if (!typer) {
     return statement;
   }
-  return typer(statement, {
-    scope,
-    reals: scope.reals,
-    signatures,
-    returns,
-    typed: (expression) =>
-      expression && annotate(expression, scope, signatures),
-    block: (body) => typeBlock(body, scope, signatures, returns),
-  });
+  return inheritOrigin(
+    typer(statement, {
+      scope,
+      reals: scope.reals,
+      signatures,
+      returns,
+      typed: (expression) =>
+        expression && annotate(expression, scope, signatures),
+      block: (body) => typeBlock(body, scope, signatures, returns),
+    }),
+    statement
+  );
 }
 
 function known(type) {
-  return type && !type.startsWith('source:') ? type : undefined;
+  return type || undefined;
 }
 
 // Parameter types come from the first call site that tells them.
@@ -310,7 +428,7 @@ export function inferTypes(program) {
       const returns = [];
       const body = typeBlock(item.body, scope, signatures, returns);
       signature.returnType = returnType(signature, returns);
-      return { ...item, body };
+      return inheritOrigin({ ...item, body }, item);
     });
     const top = new Map();
     top.reals = reals('main', current.main);
@@ -328,14 +446,17 @@ export function inferTypes(program) {
     ...current,
     functions: current.functions.map((item) => {
       const signature = signatures.get(item.name);
-      return {
-        ...item,
-        returnType: signature.returnType ?? 'nothing',
-        parameters: item.parameters.map((parameter, index) => ({
-          ...parameter,
-          type: signature.parameters[index] ?? 'integer',
-        })),
-      };
+      return inheritOrigin(
+        {
+          ...item,
+          returnType: signature.returnType ?? 'nothing',
+          parameters: item.parameters.map((parameter, index) => ({
+            ...parameter,
+            type: signature.parameters[index] ?? 'integer',
+          })),
+        },
+        item
+      );
     }),
   };
 }

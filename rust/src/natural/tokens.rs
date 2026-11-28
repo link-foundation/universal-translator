@@ -38,6 +38,9 @@ pub struct Token {
     pub number: f64,
     /// Whether a number token is written with a fraction: 1.5.
     pub real: bool,
+    /// A semantic name or constant, eligible for grammatical agreement.
+    pub reference: bool,
+    pub grammatical_case: Option<String>,
 }
 
 impl Token {
@@ -54,6 +57,8 @@ impl Token {
             folded,
             number: 0.0,
             real: false,
+            reference: false,
+            grammatical_case: None,
         }
     }
 
@@ -68,6 +73,8 @@ impl Token {
             folded: String::new(),
             number: value,
             real: false,
+            reference: false,
+            grammatical_case: None,
         }
     }
 }

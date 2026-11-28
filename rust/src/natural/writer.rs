@@ -7,12 +7,14 @@
 
 use std::collections::HashMap;
 
+use super::agreement::{agree, slot_case};
 use super::catalog::{Language, natural_language};
 use super::levels::{
     Associativity, LEVELS, binary_template, level_index, level_of_template, unary_template,
 };
 use super::tokens::{Kind, Token};
 use crate::meta::for_each::lower_for_each;
+use crate::meta::questions::ASPECTS;
 use crate::meta::{Node, layout, number, subtract};
 
 const INDENT_UNIT: &str = "  ";
@@ -59,7 +61,11 @@ fn fill(language: &Language, key: &str, slots: &Slots) -> Result<Vec<Token>, Str
                 language.id, token.value
             )
         })?;
-        tokens.extend(value.iter().cloned());
+        tokens.extend(agree(
+            value,
+            language,
+            slot_case(language, key, &token.value),
+        ));
     }
     Ok(tokens)
 }
@@ -142,6 +148,21 @@ fn operand(expression: &Node, key: &str, language: &Language) -> Result<Vec<Toke
     write_expression(child(expression, key)?, language, level_index("primary"))
 }
 
+fn query_slots(expression: &Node, language: &Language) -> Result<Slots<'static>, String> {
+    Ok(Slots::from([
+        (
+            "variable",
+            vec![word(write_name(
+                expression.str("variable").unwrap_or_default(),
+                language,
+            ))],
+        ),
+        ("source", operand(expression, "source", language)?),
+        ("condition", operand(expression, "condition", language)?),
+        ("projection", operand(expression, "projection", language)?),
+    ]))
+}
+
 /// Expressions separated by the list separator, as call arguments are.
 fn separated(expressions: Vec<&Node>, language: &Language) -> Result<Vec<Token>, String> {
     let mut tokens = Vec::new();
@@ -149,12 +170,88 @@ fn separated(expressions: Vec<&Node>, language: &Language) -> Result<Vec<Token>,
         if index > 0 {
             tokens.push(separator(language));
         }
-        tokens.extend(write_expression(expression, language, 0)?);
+        let written = write_expression(expression, language, 0)?;
+        let mut depth = 0;
+        let has_own_separator = written.iter().any(|token| match token.kind {
+            Kind::Open => {
+                depth += 1;
+                false
+            }
+            Kind::Close => {
+                depth -= 1;
+                false
+            }
+            Kind::Separator => depth == 0,
+            _ => false,
+        });
+        tokens.extend(if has_own_separator {
+            parenthesize(written)
+        } else {
+            written
+        });
+    }
+    Ok(tokens)
+}
+
+fn matches_reflection_frame(tokens: &[Token], language: &Language) -> bool {
+    let matches = |(literal, token): (&Token, &Token)| {
+        literal.kind == token.kind
+            && if literal.kind == Kind::Word {
+                literal.folded == token.folded
+            } else {
+                literal.value == token.value
+            }
+    };
+    ASPECTS.iter().any(|aspect| {
+        language
+            .variants(&format!("answer-{aspect}"))
+            .iter()
+            .any(|phrase| {
+                let subject = phrase
+                    .iter()
+                    .position(|token| token.kind == Kind::Slot && token.value == "subject");
+                let Some(subject) = subject.filter(|_| tokens.len() >= phrase.len()) else {
+                    return false;
+                };
+                let suffix = &phrase[subject + 1..];
+                phrase[..subject].iter().zip(tokens).all(matches)
+                    && suffix
+                        .iter()
+                        .zip(&tokens[tokens.len() - suffix.len()..])
+                        .all(matches)
+            })
+    })
+}
+
+fn write_call(expression: &Node, language: &Language) -> Result<Vec<Token>, String> {
+    let callee = write_name(expression.str("callee").unwrap_or_default(), language);
+    let arguments = expression.nodes("arguments");
+    let key = if arguments.is_empty() {
+        "call-without-arguments"
+    } else {
+        "call"
+    };
+    let mut slots = Slots::from([
+        ("callee", vec![word(&callee)]),
+        ("arguments", separated(arguments, language)?),
+    ]);
+    let tokens = fill(language, key, &slots)?;
+    // A contextual reflection phrase takes priority over a bare callee spelling.
+    if !callee.ends_with('_') && matches_reflection_frame(&tokens, language) {
+        slots.insert("callee", vec![word(format!("{callee}_"))]);
+        return fill(language, key, &slots);
     }
     Ok(tokens)
 }
 
 fn primary(expression: &Node, language: &Language) -> Result<Vec<Token>, String> {
+    if let Some((key, values)) = super::collection_templates::phrase(expression)? {
+        let slots = values
+            .into_iter()
+            .map(|(key, value)| Ok((key, parenthesize(write_expression(&value, language, 0)?))))
+            .collect::<Result<Slots, String>>()?;
+        return fill(language, key, &slots);
+    }
     match expression.kind.as_str() {
         "Number" => Ok(vec![Token::number(
             expression.number("value").unwrap_or_default(),
@@ -163,35 +260,35 @@ fn primary(expression: &Node, language: &Language) -> Result<Vec<Token>, String>
             Kind::Text,
             expression.str("value").unwrap_or_default(),
         )]),
-        "Boolean" => Ok(vec![word(if expression.flag("value").unwrap_or(false) {
-            language.true_word.clone()
-        } else {
-            language.false_word.clone()
-        })]),
-        "Name" => Ok(vec![word(write_name(
+        "Boolean" => Ok(vec![reference(
+            if expression.flag("value").unwrap_or(false) {
+                language.true_word.clone()
+            } else {
+                language.false_word.clone()
+            },
+        )]),
+        "Name" => Ok(vec![reference(write_name(
             expression.str("name").unwrap_or_default(),
             language,
         ))]),
-        "Call" => {
-            let callee = vec![word(write_name(
-                expression.str("callee").unwrap_or_default(),
-                language,
-            ))];
-            let arguments = expression.nodes("arguments");
-            if arguments.is_empty() {
-                return fill(
+        "Query" => fill(
+            language,
+            crate::meta::queries::key(expression.flag("eager").unwrap_or(true), false),
+            &query_slots(expression, language)?,
+        ),
+        "Question" => fill(
+            language,
+            &format!("answer-{}", expression.str("aspect").unwrap_or_default()),
+            &Slots::from([(
+                "subject",
+                write_expression(
+                    child(expression, "subject")?,
                     language,
-                    "call-without-arguments",
-                    &Slots::from([("callee", callee)]),
-                );
-            }
-            let tokens = separated(arguments, language)?;
-            fill(
-                language,
-                "call",
-                &Slots::from([("callee", callee), ("arguments", tokens)]),
-            )
-        }
+                    level_index("primary"),
+                )?,
+            )]),
+        ),
+        "Call" => write_call(expression, language),
         // An empty array is a new array of no zeros: no template lists nothing.
         "ArrayLiteral" => {
             let elements = expression.nodes("elements");
@@ -229,6 +326,12 @@ fn primary(expression: &Node, language: &Language) -> Result<Vec<Token>, String>
         ),
         kind => Err(format!("Cannot write a {kind} expression in words")),
     }
+}
+
+fn reference(value: impl Into<String>) -> Token {
+    let mut token = word(value);
+    token.reference = true;
+    token
 }
 
 /// Tokens of an expression that must bind at least as tightly as `minimum`.
@@ -315,7 +418,7 @@ fn capitalize(sentence: &str) -> String {
 
 struct Writer<'a> {
     language: &'a Language,
-    lines: Vec<String>,
+    lines: crate::emission_map::SourceLines,
 }
 
 impl Writer<'_> {
@@ -329,9 +432,11 @@ impl Writer<'_> {
         let language = self.language;
         let text = render_tokens(&fill(language, key, slots)?, language);
         let end = if opens_block {
-            &language.block_end
+            language.block_end.as_str()
+        } else if key.starts_with("question-") {
+            "?"
         } else {
-            &language.sentence_end
+            language.sentence_end.as_str()
         };
         self.lines.push(format!(
             "{}{}{end}",
@@ -373,6 +478,7 @@ impl Writer<'_> {
     }
 
     fn conditional(&mut self, statement: &Node, depth: usize, key: &str) -> Result<(), String> {
+        let _origin = crate::emission_map::active(statement);
         let condition = self.expression(statement.node("condition"))?;
         self.sentence(depth, key, &Slots::from([("condition", condition)]), true)?;
         self.block(statement.node("then"), depth + 1)?;
@@ -387,6 +493,7 @@ impl Writer<'_> {
     }
 
     fn statement(&mut self, statement: &Node, depth: usize) -> Result<(), String> {
+        let _origin = crate::emission_map::active(statement);
         match statement.kind.as_str() {
             "Comment" => {
                 self.note(depth, statement.str("text").unwrap_or_default());
@@ -451,6 +558,28 @@ impl Writer<'_> {
                 None => self.sentence(depth, "return", &Slots::new(), false),
             },
             "Evaluate" => {
+                if let Some(expression) = statement.node("expression").filter(|e| e.is("Query")) {
+                    let key =
+                        crate::meta::queries::key(expression.flag("eager").unwrap_or(true), true);
+                    return self.sentence(
+                        depth,
+                        key,
+                        &query_slots(expression, self.language)?,
+                        false,
+                    );
+                }
+                if let Some(expression) = statement
+                    .node("expression")
+                    .filter(|expression| expression.is("Question"))
+                {
+                    let subject = self.expression(expression.node("subject"))?;
+                    return self.sentence(
+                        depth,
+                        &format!("question-{}", expression.str("aspect").unwrap_or_default()),
+                        &Slots::from([("subject", subject)]),
+                        false,
+                    );
+                }
                 let expression = self.expression(statement.node("expression"))?;
                 self.sentence(
                     depth,
@@ -500,9 +629,8 @@ impl Writer<'_> {
     }
 
     fn function(&mut self, item: &Node) -> Result<(), String> {
-        for text in item.texts("comments") {
-            self.note(0, &text);
-        }
+        let _origin = crate::emission_map::active(item);
+        self.notes(item, "comments");
         let name = self.name(item.str("name"));
         let parameters = item.nodes("parameters");
         if parameters.is_empty() {
@@ -525,13 +653,19 @@ impl Writer<'_> {
                 true,
             )?;
         }
+        if let Some(documentation) = item.node("documentation") {
+            let value = self.expression(Some(documentation))?;
+            self.sentence(1, "documentation", &Slots::from([("value", value)]), false)?;
+        }
         self.block(item.node("body"), 1)
     }
 
+    fn notes(&mut self, owner: &Node, key: &str) {
+        crate::emission_map::for_each_comment(owner, key, |text| self.note(0, text));
+    }
+
     fn program(mut self, program: &Node) -> Result<String, String> {
-        for text in program.texts("comments") {
-            self.note(0, &text);
-        }
+        self.notes(program, "comments");
         for item in program.nodes("functions") {
             if !self.lines.is_empty() {
                 self.lines.push(String::new());
@@ -547,14 +681,12 @@ impl Writer<'_> {
             if !self.lines.is_empty() {
                 self.lines.push(String::new());
             }
-            for text in &main_comments {
-                self.note(0, text);
-            }
+            self.notes(program, "mainComments");
             for statement in &layout(main.into_iter().cloned().collect()) {
                 self.statement(statement, 0)?;
             }
         }
-        Ok(format!("{}\n", self.lines.join("\n")))
+        Ok(self.lines.render(&self.language.id))
     }
 }
 
@@ -564,7 +696,7 @@ pub fn write_natural(program: &Node, id: &str) -> Result<String, String> {
     let sentence = !language.variants("for-each").is_empty();
     Writer {
         language,
-        lines: Vec::new(),
+        lines: Default::default(),
     }
     .program(&lower_for_each(program.clone(), &|_| sentence))
 }

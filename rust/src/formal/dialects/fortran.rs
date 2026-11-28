@@ -36,6 +36,21 @@ struct Result_ {
 // ---- reading ----
 
 impl ParserDialect for Fortran {
+    fn expression(&self, p: &mut Parser) -> Parsed {
+        let mut left = p.base_expression()?;
+        while p.is(".eqv.") || p.is(".neqv.") {
+            let operator = if p.next_value()?.eq_ignore_ascii_case(".eqv.") {
+                "equal"
+            } else {
+                "notEqual"
+            };
+            left = Node::new("Binary")
+                .with("operator", operator)
+                .with("left", left)
+                .with("right", p.base_expression()?);
+        }
+        Ok(left)
+    }
     fn program(&self, p: &mut Parser) -> Parsed {
         p.state::<Result_>().formats = format_statements(p)?;
         let mut items = Vec::new();
@@ -204,7 +219,7 @@ fn statements_until(p: &mut Parser, done: &dyn Fn(&Parser) -> bool) -> Parsed<Ve
         }
         if p.kind(0) == TokenType::Comment {
             let comment = p.next()?;
-            statements.push(comment_node(&comment));
+            statements.push(comment_node(p, &comment));
         } else if p.is("format") || (p.is("stop") && is_last_statement(p)) {
             p.skip_line();
         } else {
@@ -492,6 +507,20 @@ impl EmitterDialect for Fortran {
     }
 
     fn binary(&self, e: &mut Emitter, expression: &Node, parent: f64) -> Result<String> {
+        let operator = expression.str("operator");
+        let left = field(expression, "left")?;
+        if matches!(operator, Some("equal" | "notEqual")) && left.str("type") == Some("boolean") {
+            let spelled = if operator == Some("equal") {
+                ".eqv."
+            } else {
+                ".neqv."
+            };
+            return Ok(format!(
+                "({} {spelled} {})",
+                e.expression(left)?,
+                e.expression(field(expression, "right")?)?
+            ));
+        }
         if expression.str("operator") != Some("remainder") {
             return e.base_binary(expression, parent);
         }
@@ -603,9 +632,7 @@ impl EmitterDialect for Fortran {
     }
 
     fn function_definition(&self, e: &mut Emitter, item: &Node) -> Result<()> {
-        for text in item.texts("comments") {
-            e.comment(&text);
-        }
+        e.comments(item, "comments");
         let name = item.str("name").unwrap_or_default();
         let parameters = item.nodes("parameters");
         let names: Vec<String> = parameters
@@ -657,9 +684,7 @@ impl EmitterDialect for Fortran {
 
     fn program(&self, e: &mut Emitter, program: &Node) -> Result<String> {
         let comments = program.texts("comments");
-        for text in &comments {
-            e.comment(text);
-        }
+        e.comments(program, "comments");
         if !comments.is_empty() {
             e.line("");
         }
@@ -671,9 +696,7 @@ impl EmitterDialect for Fortran {
         e.line("implicit none");
         variables(e, field(program, "main")?, &[]);
         e.line("");
-        for text in program.texts("mainComments") {
-            e.comment(&text);
-        }
+        e.comments(program, "mainComments");
         e.body(field(program, "main")?)?;
         let functions = program.nodes("functions");
         if !functions.is_empty() {
@@ -690,7 +713,7 @@ impl EmitterDialect for Fortran {
         }
         e.depth -= 1;
         e.line("end program main");
-        Ok(format!("{}\n", e.lines.join("\n")))
+        Ok(e.lines.render(e.syntax.id))
     }
 }
 

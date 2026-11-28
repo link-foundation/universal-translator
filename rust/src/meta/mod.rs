@@ -4,11 +4,16 @@
 //! Notation reading ([`links`]), and the
 //! rule and error types that every stage uses.
 
+pub(crate) mod evaluation_order;
 pub mod for_each;
 pub mod imprecision;
+pub(crate) mod integer_arithmetic;
 pub mod library;
 pub mod links;
 pub mod notation;
+pub(crate) mod queries;
+pub(crate) mod questions;
+pub(crate) mod sql_values;
 pub mod tree;
 pub mod truth;
 pub mod types;

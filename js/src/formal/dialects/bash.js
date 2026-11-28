@@ -7,6 +7,8 @@
 import { add, block, node, number, text } from '../../meta/tree.js';
 import { SyntaxError, tokenize } from '../lexer.js';
 import { keywordParser } from './shared.js';
+import { inheritOrigin } from '../../translation/source-origins.js';
+import { mappedLine } from '../../translation/emission-map.js';
 
 // Inside double quotes a backslash only escapes these characters.
 const quotedEscapes = '$"\\`';
@@ -54,23 +56,35 @@ function restore(expression, values) {
       }
       return values.kept.get(expression.name) ?? expression;
     case 'Binary':
-      return {
-        ...expression,
-        left: restore(expression.left, values),
-        right: restore(expression.right, values),
-      };
+      return inheritOrigin(
+        {
+          ...expression,
+          left: restore(expression.left, values),
+          right: restore(expression.right, values),
+        },
+        expression
+      );
     case 'Unary':
-      return { ...expression, operand: restore(expression.operand, values) };
+      return inheritOrigin(
+        { ...expression, operand: restore(expression.operand, values) },
+        expression
+      );
     case 'Call':
-      return {
-        ...expression,
-        arguments: expression.arguments.map((part) => restore(part, values)),
-      };
+      return inheritOrigin(
+        {
+          ...expression,
+          arguments: expression.arguments.map((part) => restore(part, values)),
+        },
+        expression
+      );
     case 'Interpolation':
-      return {
-        ...expression,
-        parts: expression.parts.map((part) => restore(part, values)),
-      };
+      return inheritOrigin(
+        {
+          ...expression,
+          parts: expression.parts.map((part) => restore(part, values)),
+        },
+        expression
+      );
     default:
       return expression;
   }
@@ -102,7 +116,7 @@ export function joinReplies(statements) {
       continue;
     }
     values.used = false;
-    const restored = { ...statement };
+    const restored = inheritOrigin({ ...statement }, statement);
     for (const field of valueFields) {
       if (statement[field]?.kind) {
         restored[field] = restore(statement[field], values);
@@ -667,7 +681,12 @@ const statementEmitter = (Base) =>
       }
       const lifted = this.lift(value);
       if (lifted === this.pending) {
-        this.lines[this.lines.length - 1] += '; return';
+        const last = this.lines.length - 1;
+        this.lines[last] = mappedLine(
+          this,
+          `${this.lines[last]}; return`,
+          this.lines[last]
+        );
         return undefined;
       }
       return this.line(`${reply}=${this.word(lifted, true)}; return`);
@@ -752,9 +771,7 @@ const statementEmitter = (Base) =>
 const emitter = (Base) =>
   class BashEmitter extends statementEmitter(Base) {
     functionDefinition(item) {
-      for (const comment of item.comments ?? []) {
-        this.comment(comment);
-      }
+      this.comments(item, 'comments');
       this.line(`${item.name}() {`);
       if (item.parameters.length) {
         const locals = item.parameters.map(

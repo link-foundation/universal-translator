@@ -204,10 +204,7 @@ export function measure(programs, translator = createTranslator()) {
 
 // Programs that are not standard code of their language, by language and
 // section, with why they stay unread.
-export const blocked = {
-  'objc/Objective-C':
-    'Portable Object Compiler code: clang rejects its { :each | ... } block and lacks its objpak classes Set and String (experiments/issue-14/objc-hello-check.sh), and it greets the command-line arguments, which the meta language does not have',
-};
+export const blocked = {};
 
 const quote = (text) => `'${text.replaceAll("'", '’')}'`;
 

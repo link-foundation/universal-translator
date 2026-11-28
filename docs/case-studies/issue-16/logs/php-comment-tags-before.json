@@ -1,0 +1,8 @@
+{
+  "writer": "bb09ccd",
+  "php": "<?php\n\n// ?> number\necho \"one\\n\";\n// */ ?> number\necho \"two\\n\";\n// first ?>\n// second */\necho \"three\\n\";\n",
+  "expected": "one\ntwo\nthree\n",
+  "status": 0,
+  "stdout": " number\necho \"one\\n\";\n// */ ?> number\necho \"two\\n\";\n// first ?>\n// second */\necho \"three\\n\";\n",
+  "stderr": ""
+}

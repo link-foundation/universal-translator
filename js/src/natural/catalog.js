@@ -10,6 +10,9 @@
 import { parseLinks } from '../meta/links.js';
 import { tokenize } from './tokens.js';
 import { naturalSources } from './sources.js';
+import { derivedQueryTemplates, queryKeys } from '../meta/queries.js';
+import { collectionTemplates } from '../meta/collection-phrases.js';
+import { grammarProductions } from './grammar.js';
 
 // Every statement and expression form a language must describe.
 export const templateKeys = [
@@ -57,12 +60,59 @@ export const templateKeys = [
 // as the counting loop it lowers to, and increase and decrease (everyday
 // wordings of an assignment that adds to or subtracts from the variable) are
 // written as the assignment.
-export const optionalTemplateKeys = ['for-each', 'increase', 'decrease'];
+export const optionalTemplateKeys = [
+  ...queryKeys,
+  'for-each',
+  'increase',
+  'decrease',
+  'documentation',
+  ...['type', 'documentation', 'source', 'details'].flatMap((aspect) => [
+    `question-${aspect}`,
+    `answer-${aspect}`,
+  ]),
+];
 
 // Everyday wordings a profile with its own rules does not inherit: a
 // controlled standard keeps to its vocabulary, and the assignment still says
 // what they say.
 const everydayTemplateKeys = ['increase', 'decrease'];
+
+// Reflection words only introduce complete phrases; they do not prevent a
+// program from using an ordinary name such as "source" or "information".
+const contextualTemplate = (key) =>
+  key === 'documentation' || /^(question|answer)-/u.test(key);
+
+// Restricted standards can invoke the same operations without adding words to
+// their vocabulary. Quoted operation names are technical data, like program
+// names, and the surrounding instruction comes from the standard itself.
+function reflectionTemplates(base, description, templates) {
+  const constrained = [
+    'vocabulary',
+    'primes',
+    'forbidden-words',
+    'sentence-starts',
+  ].some((key) => description.rules[key]?.length);
+  if (!constrained) {
+    return;
+  }
+  for (const key of queryKeys) {
+    delete templates[key];
+  }
+  const [open, close] = description.quotes ?? base.quotes ?? ['"', '"'];
+  const instruction =
+    description.templates.evaluate?.[0] ?? templates.evaluate[0];
+  const operation = (name, slot) => `${open}${name}${close} ({${slot}})`;
+  for (const aspect of ['type', 'documentation', 'source', 'details']) {
+    const answer = operation(aspect, 'subject');
+    templates[`answer-${aspect}`] = [answer];
+    templates[`question-${aspect}`] = [
+      instruction.replace('{expression}', answer),
+    ];
+  }
+  templates.documentation = [
+    instruction.replace('{expression}', operation('__doc__', 'value')),
+  ];
+}
 
 function inheritedTemplates(base, description) {
   const templates = { ...base.templates };
@@ -71,6 +121,7 @@ function inheritedTemplates(base, description) {
       delete templates[key];
     }
   }
+  reflectionTemplates(base, description, templates);
   return { ...templates, ...description.templates };
 }
 
@@ -101,16 +152,14 @@ function readDescription(source) {
   if (root?.id !== 'natural') {
     throw new Error('A natural language description starts with "natural:"');
   }
-  const description = { templates: {}, words: {}, rules: {} };
+  const description = { templateFields: [], words: {}, rules: {} };
   for (const { id, values } of root.values) {
     if (scalarFields.includes(id)) {
       description[id] = plain(values).join(' ');
     } else if (id === 'quotes') {
       description.quotes = plain(values);
-    } else if (id === 'templates') {
-      for (const entry of values) {
-        description.templates[entry.id] = plain(entry.values);
-      }
+    } else if (id === 'templates' || id === 'grammar') {
+      description.templateFields.push({ id, values });
     } else if (id === 'words') {
       for (const entry of values) {
         description.words[entry.id] = plain(entry.values).join(' ');
@@ -124,6 +173,28 @@ function readDescription(source) {
     }
   }
   return description;
+}
+
+function resolveTemplateFields({ templateFields, ...description }, base) {
+  const grammarBindings = new Map(base?.grammarBindings);
+  const templates = {};
+  for (const { id, values } of templateFields) {
+    if (id === 'templates') {
+      for (const entry of values) {
+        templates[entry.id] = plain(entry.values);
+      }
+    } else {
+      Object.assign(
+        templates,
+        grammarProductions(
+          values,
+          [...templateKeys, ...optionalTemplateKeys],
+          grammarBindings
+        )
+      );
+    }
+  }
+  return { ...description, grammarBindings, templates };
 }
 
 // The files of data/natural that describe no language: the semantic primes,
@@ -157,19 +228,20 @@ function resolve(descriptions, id, seen = new Set()) {
     throw new Error(`No natural language "${id}"`);
   }
   if (!description.extends) {
-    return description;
+    return resolveTemplateFields(description);
   }
   if (seen.has(id)) {
     throw new Error(`Natural language "${id}" extends itself`);
   }
   seen.add(id);
   const base = resolve(descriptions, description.extends, seen);
+  const local = resolveTemplateFields(description, base);
   return {
     ...base,
-    ...description,
-    templates: inheritedTemplates(base, description),
-    words: { ...base.words, ...description.words },
-    rules: description.rules,
+    ...local,
+    templates: inheritedTemplates(base, local),
+    words: { ...base.words, ...local.words },
+    rules: local.rules,
     base: base.base ?? base.id,
   };
 }
@@ -189,8 +261,14 @@ function compile(description) {
     nameJoiner: description['name-joiner'] ?? '-',
     quotes: description.quotes ?? ['"', '"'],
   };
+  delete language.grammarBindings;
+  language.templates = {
+    ...collectionTemplates(language),
+    ...derivedQueryTemplates(language),
+    ...description.templates,
+  };
   language.compiled = Object.fromEntries(
-    Object.entries(description.templates).map(([key, texts]) => [
+    Object.entries(language.templates).map(([key, texts]) => [
       key,
       texts.map((text) => tokenize(text, language, { templates: true })),
     ])
@@ -198,11 +276,13 @@ function compile(description) {
   for (const key of optionalTemplateKeys) {
     language.compiled[key] ??= [];
   }
-  // Every word that appears literally in a template is reserved: a program
-  // name spelled the same way gets a trailing "_" so it stays a name.
+  // Core syntax words are reserved. Reflection phrases use contextual words
+  // so adding a question does not change the spelling of existing names.
   language.reserved = new Set(
     [
-      ...Object.values(language.compiled)
+      ...Object.entries(language.compiled)
+        .filter(([key]) => !contextualTemplate(key))
+        .map(([, variants]) => variants)
         .flat(2)
         .filter((token) => token.type === 'word')
         .map((token) => token.folded),
@@ -257,9 +337,24 @@ export function registerNaturalLanguage(source) {
   if (description.extends === id) {
     throw new Error(`Natural language "${id}" extends itself`);
   }
-  const compiled = compile(resolve({ ...descriptions, [id]: description }, id));
+  const candidateDescriptions = { ...descriptions, [id]: description };
+  const affected = new Set([id]);
+  for (const parent of affected) {
+    for (const candidate of Object.values(candidateDescriptions)) {
+      if (candidate.extends === parent) {
+        affected.add(candidate.id);
+      }
+    }
+  }
+  // Validate the whole change before making it visible to any profile.
+  const compiled = [...affected].map((profile) => [
+    profile,
+    compile(resolve(candidateDescriptions, profile)),
+  ]);
   descriptions[id] = description;
-  catalog.set(id, compiled);
+  for (const [profile, language] of compiled) {
+    catalog.set(profile, language);
+  }
   ownSources.set(id, source);
   return id;
 }

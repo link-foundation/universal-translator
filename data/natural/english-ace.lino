@@ -4,6 +4,9 @@ natural:
   extends: english
   profile: ace
   source: 'http://attempto.ifi.uzh.ch/site/'
+  grammar:
+    productions:
+      set-element: 'The value of @element[array=name] becomes {value}'
   templates:
     function: 'The procedure {name} takes {parameters}'
     function-without-parameters: 'The procedure {name} takes nothing'
@@ -28,6 +31,5 @@ natural:
     less-or-equal: '{left} is less than or equal to {right}' '{left} <= {right}' '{left} ≤ {right}'
     greater: '{left} is greater than {right}' '{left} > {right}'
     greater-or-equal: '{left} is greater than or equal to {right}' '{left} >= {right}' '{left} ≥ {right}'
-    set-element: 'The value of item {index} of {name} becomes {value}'
   rules:
     sentence-starts: the there if else while for

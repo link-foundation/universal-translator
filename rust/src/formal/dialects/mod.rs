@@ -11,12 +11,15 @@ mod fortran;
 mod gml;
 mod lean;
 mod matlab;
+mod objc;
 mod pascal;
 mod rocq;
 pub(crate) mod shared;
+mod sql;
 mod vb;
 mod zig;
 
+pub(crate) use objc::RUNTIME_HEADER as OBJC_RUNTIME_HEADER;
 pub(crate) use rocq::{comparison as rocq_comparison, not_equal as rocq_not_equal};
 pub(crate) use shared::declared_variables;
 
@@ -122,6 +125,10 @@ pub(crate) trait EmitterDialect: Sync {
 
 /// The reading steps a dialect can replace.
 pub(crate) trait ParserDialect: Sync {
+    fn expression(&self, p: &mut Parser) -> Parsed {
+        p.base_expression()
+    }
+
     /// The tokens as the shared parser should see them.
     fn tokens(&self, tokens: Vec<Token>) -> Vec<Token> {
         tokens
@@ -175,8 +182,10 @@ pub(crate) fn emitter_dialect(language: &str) -> &'static dyn EmitterDialect {
         "gml" => &gml::GameMaker,
         "lean" => &lean::Lean,
         "matlab" => &matlab::Matlab,
+        "objc" => &objc::ObjectiveC,
         "pascal" => &pascal::Pascal,
         "rocq" => &rocq::Rocq,
+        "sql" => &sql::Sql,
         "vb" => &vb::VisualBasic,
         "zig" => &zig::Zig,
         _ => &Plain,
@@ -192,8 +201,10 @@ pub(crate) fn parser_dialect(language: &str) -> &'static dyn ParserDialect {
         "gml" => &gml::GameMaker,
         "lean" => &lean::Lean,
         "matlab" => &matlab::Matlab,
+        "objc" => &objc::ObjectiveC,
         "pascal" => &pascal::Pascal,
         "rocq" => &rocq::Rocq,
+        "sql" => &sql::Sql,
         "vb" => &vb::VisualBasic,
         "zig" => &zig::Zig,
         _ => &Plain,

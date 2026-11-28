@@ -1,0 +1,27 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+error[E0599]: no method named `skip_line_ends` found for mutable reference `&mut Parser` in the current scope
+  --> rust/src/formal/parser/annotations.rs:11:18
+   |
+11 |             self.skip_line_ends();
+   |                  ^^^^^^^^^^^^^^
+   |
+help: there is a method `skip_lines` with a similar name
+   |
+11 -             self.skip_line_ends();
+11 +             self.skip_lines();
+   |
+
+error[E0599]: no method named `skip_line_ends` found for mutable reference `&mut Parser` in the current scope
+  --> rust/src/formal/parser/annotations.rs:17:14
+   |
+17 |         self.skip_line_ends();
+   |              ^^^^^^^^^^^^^^
+   |
+help: there is a method `skip_lines` with a similar name
+   |
+17 -         self.skip_line_ends();
+17 +         self.skip_lines();
+   |
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `universal-translator` (lib) due to 2 previous errors

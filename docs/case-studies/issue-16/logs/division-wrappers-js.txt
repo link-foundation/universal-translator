@@ -1,0 +1,20 @@
+▶ real numbers
+  ✔ reads literals with a point or an exponent as reals (286.747049ms)
+  ✔ reads `/` of JavaScript and Python 3 as true division (31.311746ms)
+  ✔ writes a true division with real operands where `/` divides integers (60.589397ms)
+  ✔ converts integer variables that meet a real (33.028026ms)
+  ✔ keeps integer division apart from true division (30.008104ms)
+  ✔ reads real declarations and %g placeholders of C (17.462859ms)
+  ✔ turns `/=` into the division of the source language (4.331528ms)
+✔ real numbers (470.247854ms)
+▶ integer division wrappers
+  ✔ preserves grouped numerator and denominator operations in every wrapper grammar (214.176176ms)
+✔ integer division wrappers (214.616657ms)
+ℹ tests 8
+ℹ suites 2
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1287.13156

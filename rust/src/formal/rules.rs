@@ -10,13 +10,15 @@ use std::sync::Arc;
 
 use super::arrays::{expand_array_fills, raise_array_fills, recognize_arrays};
 use super::common_library::{recognize_common_library, spell_common_library};
+use super::documentation::recognize_documentation;
 use super::for_each::{expand_for_each, raise_for_each};
 use super::languages::{Blocks, ImmutableParameters, IntegerDivision, Syntax, language_syntax};
 use super::lifting::counting_loops;
 use super::names::{
     ascii_name, avoid_reserved, name_words, neutral_name, rename_declared, spell_name,
 };
-use super::numbers::slash_operator;
+use super::numbers::{arithmetic_operator, slash_operator};
+use super::questions::recognize_questions;
 use super::versions::{split_version, versions_of, with_version};
 use crate::meta::truth::raise_truth_functions;
 use crate::meta::{Mode, Rule, Settings};
@@ -32,7 +34,13 @@ fn rule(name: &str, apply: impl Fn(Node, &Settings) -> Node + Send + Sync + 'sta
 /// The rules that turn a parsed source program into a meta program.
 pub fn understanding_rules() -> Vec<Rule> {
     vec![
-        rule("findEntryPoint", |program, _| find_entry_point(program)),
+        rule("recognizeDocumentation", recognize_documentation),
+        rule("recognizeSqlValues", super::sql_values::recognize),
+        rule("recognizeObjpak", super::objpak::recognize_objpak),
+        rule("findEntryPoint", |program, settings| {
+            entry_point(program, split_version(&settings.from).0 == "cpp")
+        }),
+        rule("recognizeQuestions", recognize_questions),
         rule("concatenationOperator", concatenation_operator),
         rule("integerDivisionCalls", integer_division_calls),
         rule("recognizeArrays", recognize_arrays),
@@ -59,6 +67,10 @@ pub fn understanding_rules() -> Vec<Rule> {
         rule("raiseForEach", |program, _| raise_for_each(program)),
         rule("raiseTruthValues", raise_truth_values),
         rule("inferMutability", |program, _| infer_mutability(program)),
+        rule(
+            "recognizeRecordInstances",
+            super::record_instances::recognize,
+        ),
         rule("dropSourceDetails", |program, _| {
             drop_source_details(program)
         }),
@@ -68,9 +80,19 @@ pub fn understanding_rules() -> Vec<Rule> {
 
 /// The rules that run after type inference.
 pub fn meaning_rules() -> Vec<Rule> {
-    vec![rule("concatenationToInterpolation", |program, _| {
-        concatenation_to_interpolation(program)
-    })]
+    vec![
+        rule(
+            "raiseIntegerArithmetic",
+            crate::meta::integer_arithmetic::raise,
+        ),
+        rule("concatenationToInterpolation", |program, settings| {
+            normalize_concatenation(program, split_version(&settings.from).0 == "cpp")
+        }),
+        rule(
+            "normalizeObjectiveCConditions",
+            super::objpak::normalize_objc_conditions,
+        ),
+    ]
 }
 
 /// The rules that adapt a meta program to its target.
@@ -178,20 +200,13 @@ fn is_python_main_guard(statement: &Node) -> bool {
         })
 }
 
-fn comment_texts(comments: &[Node]) -> Vec<String> {
-    comments
-        .iter()
-        .filter(|comment| comment.is("Comment"))
-        .map(|comment| comment.str("text").unwrap_or_default().to_owned())
-        .collect()
-}
-
 /// Sort top-level items into file comments, imports, functions and
 /// statements. Comments directly above a function belong to that function.
 fn collect_items(items: Vec<Node>) -> Node {
     let mut comments = Vec::new();
     let mut imports = Vec::new();
     let mut functions = Vec::new();
+    let mut definitions = Vec::new();
     let mut statements = Vec::new();
     let mut pending: Vec<Node> = Vec::new();
     for item in items {
@@ -199,13 +214,13 @@ fn collect_items(items: Vec<Node>) -> Node {
             pending.push(item);
             continue;
         }
-        if imports.len() + functions.len() + statements.len() == 0 {
+        if imports.len() + functions.len() + definitions.len() + statements.len() == 0 {
             // Comments before the last empty line describe the file; the
             // ones after it (all of them without an empty line) describe
             // the first item.
             if let Some(split) = pending.iter().rposition(|trivia| trivia.is("Blank")) {
                 let rest = pending.split_off(split + 1);
-                comments.extend(comment_texts(&pending));
+                comments.extend(pending.iter().filter(|node| node.is("Comment")).cloned());
                 pending = rest;
             }
         }
@@ -219,23 +234,40 @@ fn collect_items(items: Vec<Node>) -> Node {
         }
         if item.is("Import") {
             // An import keeps no comments: the ones above it describe the file.
-            comments.extend(comment_texts(&pending));
+            comments.extend(pending.iter().filter(|node| node.is("Comment")).cloned());
             imports.push(item.str("text").unwrap_or_default().to_owned());
         } else if item.is("Function") {
-            let texts = comment_texts(&pending);
-            functions.push(item.with("comments", texts));
+            functions.push(crate::source_origins::attach_comments(
+                item, "comments", &pending,
+            ));
+        } else if item.is("RecordDefinition") {
+            definitions.push(crate::source_origins::attach_comments(
+                item, "comments", &pending,
+            ));
         } else {
+            if let Some(order) = item.number("cppFileOrder") {
+                for trivia in &mut pending {
+                    trivia.set("cppFileOrder", order);
+                }
+            }
             statements.append(&mut pending);
             statements.push(item);
         }
         pending.clear();
     }
     statements.append(&mut pending);
-    Node::new("Program")
-        .with("comments", comments)
-        .with("imports", imports)
-        .with("functions", functions)
-        .with("main", block(layout(statements)))
+    crate::source_origins::attach_comments(
+        Node::new("Program")
+            .with("imports", imports)
+            .with("functions", functions)
+            .with_opt(
+                "definitions",
+                (!definitions.is_empty()).then_some(definitions),
+            )
+            .with("main", block(layout(statements))),
+        "comments",
+        &comments,
+    )
 }
 
 fn is_exit_success(statement: Option<&Node>) -> bool {
@@ -250,7 +282,14 @@ fn is_exit_success(statement: Option<&Node>) -> bool {
 /// Collect functions, the entry point and file comments into a Program. The
 /// body of `main` becomes the program's main block.
 pub fn find_entry_point(source: Node) -> Node {
-    let items = source.node_list("items");
+    entry_point(source, false)
+}
+
+fn entry_point(source: Node, cpp: bool) -> Node {
+    let mut items = source.node_list("items");
+    if cpp {
+        super::cpp_library::mark_cpp_file_items(&mut items);
+    }
     let mut program = unqualify_class_calls(collect_items(flatten_classes(items.clone())), &items);
     let mut functions = program.node_list("functions");
     let Some(index) = functions
@@ -280,7 +319,11 @@ pub fn find_entry_point(source: Node) -> Node {
     program.set("functions", functions);
     program.set("main", block(statements));
     program.set("mainComments", entry.texts("comments"));
-    program
+    crate::source_origins::attach_comment_origins(
+        program,
+        "mainComments",
+        crate::source_origins::comment_origins(&entry, "comments"),
+    )
 }
 
 const LINE_CALLS: [&str; 9] = [
@@ -305,20 +348,6 @@ const TEXT_CALLS: [&str; 7] = [
     "io.write",
 ];
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum FormatStyle {
-    Percent,
-    Braces,
-}
-
-fn format_call(callee: &str) -> Option<FormatStyle> {
-    match callee {
-        "printf" | "fmt.Printf" => Some(FormatStyle::Percent),
-        "println!" | "print!" => Some(FormatStyle::Braces),
-        _ => None,
-    }
-}
-
 fn join_with_spaces(values: Vec<Node>) -> Node {
     join_with(values, &text(" "))
 }
@@ -338,51 +367,43 @@ fn join_with(mut values: Vec<Node>, separator: &Node) -> Node {
 }
 
 /// The length of the placeholder starting at `index`, if one does.
-fn placeholder_length(format: &[char], index: usize, style: FormatStyle) -> Option<usize> {
+fn percent_placeholder_length(format: &[char], index: usize) -> Option<usize> {
     let at = |offset: usize| format.get(index + offset).copied();
-    match style {
-        FormatStyle::Percent => {
-            if at(0) != Some('%') {
-                return None;
-            }
-            let mut length = 1;
-            while length < 3 && at(length) == Some('l') {
-                length += 1;
-            }
-            if at(length) == Some('d') {
-                return Some(length + 1);
-            }
-            if length == 1 && matches!(at(1), Some('i' | 's' | 'c' | 'v' | 't' | '%')) {
-                return Some(2);
-            }
-            // A real: %f, %g, %e, %G, with a precision such as %.2f.
-            let mut length = 1;
-            if at(1) == Some('.') && at(2).is_some_and(|c| c.is_ascii_digit()) {
-                length = 2;
-                while at(length).is_some_and(|c| c.is_ascii_digit()) {
-                    length += 1;
-                }
-            }
-            if at(length) == Some('l') {
-                length += 1;
-            }
-            matches!(at(length), Some('f' | 'g' | 'e' | 'G')).then_some(length + 1)
-        }
-        FormatStyle::Braces => match (at(0), at(1)) {
-            (Some('{'), Some('{' | '}')) | (Some('}'), Some('}')) => Some(2),
-            _ => None,
-        },
+    if at(0) != Some('%') {
+        return None;
     }
+    let mut length = 1;
+    while length < 3 && at(length) == Some('l') {
+        length += 1;
+    }
+    if at(length) == Some('d') {
+        return Some(length + 1);
+    }
+    if length == 1 && matches!(at(1), Some('i' | 's' | 'c' | 'v' | 't' | '%')) {
+        return Some(2);
+    }
+    // A real: %f, %g, %e, %G, with a precision such as %.2f.
+    let mut length = 1;
+    if at(1) == Some('.') && at(2).is_some_and(|c| c.is_ascii_digit()) {
+        length = 2;
+        while at(length).is_some_and(|c| c.is_ascii_digit()) {
+            length += 1;
+        }
+    }
+    if at(length) == Some('l') {
+        length += 1;
+    }
+    matches!(at(length), Some('f' | 'g' | 'e' | 'G')).then_some(length + 1)
 }
 
-fn read_format(format: &str, values: &[Node], style: FormatStyle) -> Vec<Node> {
+fn read_percent_format(format: &str, values: &[Node]) -> Vec<Node> {
     let characters: Vec<char> = format.chars().collect();
     let mut parts = Vec::new();
     let mut literal = String::new();
     let mut next_value = values.iter();
     let mut index = 0;
     while index < characters.len() {
-        let Some(length) = placeholder_length(&characters, index, style) else {
+        let Some(length) = percent_placeholder_length(&characters, index) else {
             literal.push(characters[index]);
             index += 1;
             continue;
@@ -393,8 +414,6 @@ fn read_format(format: &str, values: &[Node], style: FormatStyle) -> Vec<Node> {
         let placeholder: String = characters[index..index + length].iter().collect();
         match placeholder.as_str() {
             "%%" => parts.push(text("%")),
-            "{{" => parts.push(text("{")),
-            "}}" => parts.push(text("}")),
             _ => parts.extend(next_value.next().cloned()),
         }
         index += length;
@@ -563,13 +582,37 @@ fn print_from_call(call: &Node, syntax: Option<&Syntax>) -> Option<Node> {
         let (parts, newline) = without_trailing_newline(spread_interpolations(values));
         return Some(print(parts_to_value(parts), newline));
     }
-    let style = format_call(callee)?;
-    let format = values.first().and_then(text_value)?;
-    let (parts, newline) = without_trailing_newline(read_format(format, &values[1..], style));
-    Some(print(
-        parts_to_value(parts),
-        newline || callee == "println!",
-    ))
+    if super::rust_print::is_print(callee) {
+        return print_from_rust(call, &values, &named);
+    }
+    if !matches!(callee, "printf" | "fmt.Printf") {
+        return None;
+    }
+    let (format, values) = values.split_first()?;
+    let (parts, newline) =
+        without_trailing_newline(read_percent_format(text_value(format)?, values));
+    Some(print(parts_to_value(parts), newline))
+}
+
+fn print_from_rust(call: &Node, values: &[Node], named: &[Node]) -> Option<Node> {
+    let line = call.str("callee") == Some("println!");
+    if line && values.is_empty() && named.is_empty() {
+        return Some(print(text(""), true));
+    }
+    let (format, values) = values.split_first()?;
+    let format = text_value(format)?;
+    let Some(parts) = super::rust_print::parts(format, values, named) else {
+        return Some(Node::new("Evaluate").with(
+            "expression",
+            super::rust_print::native_call(call, format, named),
+        ));
+    };
+    let (parts, newline) = if line {
+        (parts, true)
+    } else {
+        without_trailing_newline(parts)
+    };
+    Some(print(parts_to_value(parts), newline))
 }
 
 fn ends_with(node: Option<&Node>, suffix: &str) -> bool {
@@ -837,11 +880,14 @@ impl Declarer {
         {
             self.scope.insert(name.clone());
             // A Python hint (`total: int = 0`) gives the declared type.
-            return Node::new("Declaration")
-                .with("name", name)
-                .with_opt("type", statement.str("type"))
-                .with_opt("value", statement.node("value").cloned())
-                .with("mutable", true);
+            return crate::source_origins::inherit(
+                Node::new("Declaration")
+                    .with("name", name)
+                    .with_opt("type", statement.str("type"))
+                    .with_opt("value", statement.node("value").cloned())
+                    .with("mutable", true),
+                &statement,
+            );
         }
         if statement.is("Declaration") {
             self.scope.insert(name);
@@ -879,8 +925,36 @@ fn assigned_names(tree: &Node, kind: &str) -> HashSet<String> {
 /// whose elements the program assigns is marked too: Rust, Swift and Nim
 /// declare it like a mutable variable.
 pub fn infer_mutability(program: Node) -> Node {
-    let assigned = assigned_names(&program, "Assignment");
-    let stored = assigned_names(&program, "IndexAssignment");
+    let mut assigned = assigned_names(&program, "Assignment");
+    let mut stored = assigned_names(&program, "IndexAssignment");
+    walk(&program, |current| {
+        if current.is("AssignmentExpression") {
+            assigned.extend(current.str("name").map(str::to_owned));
+        }
+        if current.is("Update")
+            && let Some(operand) = current.node("operand")
+            && operand.is("Name")
+        {
+            assigned.insert(operand.str("name").unwrap_or_default().to_owned());
+        }
+        if current.is("SetInsert")
+            && let Some(collection) = current.node("collection")
+            && collection.is("Name")
+        {
+            stored.insert(collection.str("name").unwrap_or_default().to_owned());
+        }
+        if current.is("Call")
+            && let Some((receiver, method)) =
+                current.str("callee").unwrap_or_default().rsplit_once('.')
+            && [
+                "push", "pop", "shift", "unshift", "splice", "sort", "reverse", "append", "extend",
+                "insert", "remove", "clear",
+            ]
+            .contains(&method)
+        {
+            stored.insert(receiver.to_owned());
+        }
+    });
     rewrite(program, |mut current| {
         if !current.is("Declaration") {
             return current;
@@ -909,7 +983,12 @@ fn compound_meaning(operator: &str, from: Option<&Syntax>) -> Option<&'static st
         "-=" => Some("subtract"),
         "*=" => Some("multiply"),
         "/=" => Some(from.map_or("divide", slash_operator)),
-        "%=" => Some("remainder"),
+        "//=" => Some(from.map_or("divide", |syntax| {
+            arithmetic_operator(syntax, "//", "divide")
+        })),
+        "%=" => Some(from.map_or("remainder", |syntax| {
+            arithmetic_operator(syntax, "%", "remainder")
+        })),
         _ => None,
     }
 }
@@ -932,6 +1011,9 @@ pub fn expand_compound_assignment(program: Node, from: Option<&Syntax>) -> Node 
         let mut value = Node::new("Binary")
             .with("operator", operator)
             .with("left", Node::new("Name").with("name", name.clone()));
+        if operator == "floorDivide" && current.str("operator") == Some("/=") {
+            value.set("slashDivision", true);
+        }
         value.set_opt("right", current.node("value").cloned());
         Node::new("Assignment")
             .with("name", name)
@@ -987,17 +1069,20 @@ const INTEGER_DIVISION_SPELLINGS: [IntegerDivision; 4] = [
     IntegerDivision::Call("intdiv"),
 ];
 
-fn integer_division(call: &Node, spelling: IntegerDivision) -> Option<Node> {
+fn integer_division(call: &Node, spelling: IntegerDivision, operator: &str) -> Option<Node> {
     let callee = call.str("callee").unwrap_or_default();
     let arguments = call.node_list("arguments");
-    let divide = |left: Node, right: Node| binary("divide", left, right);
+    let divide = |left: Node, right: Node| binary(operator, left, right);
     match (spelling, arguments.as_slice()) {
         (IntegerDivision::Wrapper(wrapper), [first])
             if callee == wrapper
                 && first.is("Binary")
-                && matches!(first.str("operator"), Some("divide" | "realDivide")) =>
+                && matches!(
+                    first.str("operator"),
+                    Some("divide" | "floorDivide" | "realDivide")
+                ) =>
         {
-            Some(first.clone().with("operator", "divide"))
+            Some(first.clone().with("operator", operator))
         }
         (IntegerDivision::Call(own), [first, second]) if callee == own => {
             Some(divide(first.clone(), second.clone()))
@@ -1037,17 +1122,29 @@ fn own_integer_divisions(from: &str) -> Vec<IntegerDivision> {
 }
 
 pub fn integer_division_calls(program: Node, settings: &Settings) -> Node {
-    let spellings: Vec<IntegerDivision> = own_integer_divisions(&settings.from)
+    let own_operator =
+        if crate::meta::integer_arithmetic::floor_division(split_version(&settings.from).0) {
+            "floorDivide"
+        } else {
+            "divide"
+        };
+    let spellings = own_integer_divisions(&settings.from)
         .into_iter()
-        .chain(INTEGER_DIVISION_SPELLINGS)
-        .collect();
+        .map(|spelling| (spelling, own_operator))
+        .chain(
+            INTEGER_DIVISION_SPELLINGS
+                .into_iter()
+                .map(|spelling| (spelling, "divide")),
+        )
+        .chain([(IntegerDivision::Wrapper("Math.floor"), "floorDivide")])
+        .collect::<Vec<_>>();
     rewrite(program, |current| {
         if !current.is("Call") {
             return current;
         }
         spellings
             .iter()
-            .find_map(|spelling| integer_division(&current, *spelling))
+            .find_map(|(spelling, operator)| integer_division(&current, *spelling, operator))
             .unwrap_or(current)
     })
 }
@@ -1115,11 +1212,24 @@ pub fn neutral_names(program: Node) -> Node {
 /// `"Total: " + total` is text concatenation, which the meta language keeps
 /// as one interpolation independent of the target's operator.
 pub fn concatenation_to_interpolation(program: Node) -> Node {
-    rewrite(program, |current| {
-        let joins_text = current.is("Binary")
-            && current.str("operator") == Some("add")
-            && current.str("type") == Some("text");
-        if !joins_text {
+    normalize_concatenation(program, false)
+}
+
+fn normalize_concatenation(program: Node, cpp: bool) -> Node {
+    rewrite(program, |mut current| {
+        if !current.is("Binary") || current.str("operator") != Some("add") {
+            return current;
+        }
+        let sides = current.node("left").zip(current.node("right"));
+        if cpp
+            && sides
+                .is_some_and(|(left, right)| super::cpp_library::is_character_concat(left, right))
+        {
+            // The native overload adds a character, not its decimal code.
+            current.kind = "CppCharacterConcat".into();
+            return current.with("type", "text");
+        }
+        if current.str("type") != Some("text") {
             return current;
         }
         let value = parts_to_value(flatten_parts(&[

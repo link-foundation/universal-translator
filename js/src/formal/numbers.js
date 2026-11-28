@@ -3,6 +3,26 @@
 // and gives a real. What a language's `/` means depends on the language:
 // true division in the languages below, and in the others integer division
 // of two integers and true division as soon as one operand is real.
+import { floorDivision, floorModulo } from '../meta/integer-arithmetic.js';
+
+const sharedBinaryLevels = [
+  { or: ['||', 'or'] },
+  { and: ['&&', 'and'] },
+  { equal: ['==', '==='], notEqual: ['!=', '!==', '~='] },
+  { less: ['<'], lessOrEqual: ['<='], greater: ['>'], greaterOrEqual: ['>='] },
+  { add: ['+', '..'], subtract: ['-'] },
+  { multiply: ['*'], divide: ['/', '//'], remainder: ['%'] },
+];
+
+export function binaryLevels(syntax) {
+  return syntax.id === 'cpp'
+    ? [
+        ...sharedBinaryLevels.slice(0, 4),
+        { stream: ['<<'], rightShift: ['>>'] },
+        ...sharedBinaryLevels.slice(4),
+      ]
+    : sharedBinaryLevels;
+}
 
 const trueDivision = new Set([
   'javascript',
@@ -29,7 +49,24 @@ export const slashIsReal = (syntax) =>
 
 // The meta operator a language's `/` stands for.
 export const slashOperator = (syntax) =>
-  slashIsReal(syntax) ? 'realDivide' : 'divide';
+  slashIsReal(syntax)
+    ? 'realDivide'
+    : floorDivision(syntax.id)
+      ? 'floorDivide'
+      : 'divide';
+
+export function arithmeticOperator(syntax, surface, operator) {
+  if (operator === 'divide') {
+    return surface === '/'
+      ? slashOperator(syntax)
+      : floorDivision(syntax.id)
+        ? 'floorDivide'
+        : 'divide';
+  }
+  return operator === 'remainder' && floorModulo(syntax.id)
+    ? 'modulo'
+    : operator;
+}
 
 // How a language turns an integer into a real: `{}` stands for the integer.
 const casts = {
@@ -99,8 +136,10 @@ const arithmetic = new Set([
   'subtract',
   'multiply',
   'divide',
+  'floorDivide',
   'realDivide',
   'remainder',
+  'modulo',
 ]);
 const comparisons = new Set([
   'equal',
@@ -113,6 +152,9 @@ const comparisons = new Set([
 
 // The written form of a real literal: 2 is written 2.0, so it stays real.
 export function realText(value) {
+  if (Object.is(value, -0)) {
+    return '-0.0';
+  }
   if (Number.isInteger(value) && Math.abs(value) < 1e21) {
     return `${value}.0`;
   }
@@ -213,17 +255,23 @@ export const withReals = (Base) =>
     }
 
     number(expression, parent) {
-      if (expression.type !== 'real' || oneNumberType.has(this.syntax.id)) {
+      const { value } = expression;
+      const negativeZero = Object.is(value, -0);
+      if (
+        expression.type !== 'real' ||
+        (oneNumberType.has(this.syntax.id) && !negativeZero)
+      ) {
         return super.number(expression, parent);
       }
-      const { value } = expression;
       let written = realText(value);
       if (this.syntax.id === 'fortran') {
         written = /e/.test(written)
           ? written.replace('e', 'd')
           : `${written}d0`;
       }
-      return value < 0 && parent > 6 ? `(${written})` : written;
+      return (value < 0 || negativeZero) && parent > 6
+        ? `(${written})`
+        : written;
     }
 
     toReal(operand, parent) {

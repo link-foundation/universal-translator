@@ -1,0 +1,84 @@
+{
+  "source": "<b>😀</b><?php echo \"ok\" ?>\r\n<footer>end</footer>",
+  "text": "print(\"<b>😀</b>\", end=\"\")\nprint(\"ok\", end=\"\")\nprint(\"<footer>end</footer>\", end=\"\")\n",
+  "complete": true,
+  "errors": [],
+  "lines": 2,
+  "readLines": 2,
+  "coverage": 1,
+  "prose": [],
+  "lineMap": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      2
+    ]
+  ],
+  "regionMap": [
+    {
+      "source": {
+        "start": 0,
+        "end": 11
+      },
+      "target": {
+        "start": 0,
+        "end": 28
+      }
+    },
+    {
+      "source": {
+        "start": 17,
+        "end": 29
+      },
+      "target": {
+        "start": 29,
+        "end": 48
+      }
+    },
+    {
+      "source": {
+        "start": 22,
+        "end": 26
+      },
+      "target": {
+        "start": 35,
+        "end": 39
+      }
+    },
+    {
+      "source": {
+        "start": 31,
+        "end": 51
+      },
+      "target": {
+        "start": 49,
+        "end": 86
+      }
+    }
+  ],
+  "spelling": [
+    [
+      "<b>😀</b>",
+      "print(\"<b>😀</b>\", end=\"\")"
+    ],
+    [
+      "echo \"ok\" ?>",
+      "print(\"ok\", end=\"\")"
+    ],
+    [
+      "\"ok\"",
+      "\"ok\""
+    ],
+    [
+      "<footer>end</footer>",
+      "print(\"<footer>end</footer>\", end=\"\")"
+    ]
+  ]
+}

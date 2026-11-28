@@ -4,6 +4,10 @@ natural:
   extends: gujarati
   profile: minimal-english
   source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  grammar:
+    productions:
+      element: '{array} માં ભાગ {index}'
+      set-element: 'આ પછી @element[array=name] {value} છે'
   templates:
     function: 'કોઈ {name} ને {parameters} સાથે આમ કરે છે'
     function-without-parameters: 'કોઈ {name} ને આમ કરે છે'
@@ -29,9 +33,7 @@ natural:
     greater-or-equal: '{left} એ {right} કરતાં ઓછું નથી'
     array: 'આ વસ્તુઓ ({elements})'
     new-array: '{fill} જેવી {length} વસ્તુઓ'
-    element: '{array} માં ભાગ {index}'
     length: '{array} માં કેટલા ભાગ'
-    set-element: 'આ પછી {name} માં ભાગ {index} {value} છે'
   rules:
     primes: gujarati
     extra-words: ને સાથે એ જ લીટીમાં જવાબ અટકો તો નહીંતર ત્યારે વાર માટે થી સુધી અથવા અને ઋણ કરતાં વત્તા ઓછા ગુણ્યા ભાગ્યા મોડ્યુલો ખોટું માં કેટલા

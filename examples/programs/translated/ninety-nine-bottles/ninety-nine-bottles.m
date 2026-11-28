@@ -9,4 +9,5 @@ int main(void) {
         printf("Take one down and pass it around, %d bottles of beer on the wall.\n", bottles - 1);
         bottles -= 1;
     }
+    return 0;
 }

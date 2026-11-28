@@ -53,6 +53,7 @@ fn value_effect(value: &Value) -> Value {
 pub fn effect_of(node: &Node) -> Node {
     Node {
         kind: node.kind.clone(),
+        origin: node.origin.clone(),
         fields: node
             .fields
             .iter()

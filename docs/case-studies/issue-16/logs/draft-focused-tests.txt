@@ -1,0 +1,86 @@
+▶ issue 16 regression cases
+  ✔ reads an isolated natural-language name and ranks English first on a tie (1231.716123ms)
+  ✔ keeps the complete exponentiation inside an interpolation (5.833922ms)
+  ✔ associates powers right and preserves a grouped left operand (34.073499ms)
+  ✔ rejects unread tokens instead of silently truncating interpolation (1.711592ms)
+  ✔ keeps the blank line after a comment whose language changes (18.761607ms)
+  ✔ declares an array mutable in Rust when its JavaScript binding is const (7.238893ms)
+✔ issue 16 regression cases (1302.524104ms)
+▶ comparison wordings
+  ✔ reads the Russian examples of the issue (352.765057ms)
+  ✔ reads other obvious variations (18.608301ms)
+  ✔ keeps every language within its own rules (179.928349ms)
+  ✔ reads Python pass as an empty statement (15.70233ms)
+✔ comparison wordings (570.91962ms)
+▶ partial translation
+  ✔ translates what it can and marks the rest (38.20758ms)
+  ✔ counts the lines it reads (14.808723ms)
+  ✔ is complete when everything reads (5.5375ms)
+  ✔ marks untranslated natural sentences (15.468043ms)
+  ✔ is the default of the command line (16.792224ms)
+  ✔ reports coverage on the command line (9.23663ms)
+✔ partial translation (101.345544ms)
+▶ language detection
+  ✔ finds the language of a text (1094.71037ms)
+  ✔ detects nothing in an empty text (0.33816ms)
+  ✔ translates from "auto" on the command line (137.084429ms)
+✔ language detection (1232.665684ms)
+▶ rules as data
+  ✔ apply at every stage (9.339451ms)
+  ✔ rewrite the output with regular expressions (5.235256ms)
+  ✔ are checked (0.790975ms)
+  ✔ are read from a file on the command line (17.730894ms)
+✔ rules as data (34.246661ms)
+▶ translation server
+  ✖ translates partially, detects and applies rules (198.864912ms)
+  ✔ refuses regular expression rules unless allowed (32.846891ms)
+✖ translation server (232.947227ms)
+▶ cut texts
+  ✔ stop a dialect read at the end of the text (5.752992ms)
+✔ cut texts (6.010041ms)
+▶ layout of the source (issue 14)
+  ✔ keeps the blank lines and the spaces of the issue example (310.943345ms)
+  ✔ keeps the blank line after a leading comment of a fragment (5.758471ms)
+  ✔ writes the layout of the target on request (19.917903ms)
+  ✔ matches every example under examples/layout (112.616709ms)
+  ✔ cuts operators, strings, comments and names into tokens (0.841399ms)
+  ✔ aligns unique tokens first and the rest between them (0.851859ms)
+  ✔ never joins a name and a string or a name and its call (1.939499ms)
+  ✔ leaves strings that span lines and space sensitive targets alone (1.449414ms)
+  ✔ keeps Windows line ends and the blank lines at the end (1.790851ms)
+  ✔ indents in the steps of the source (1.230576ms)
+  ✔ maps lines only when the source has no code (1.606167ms)
+✔ layout of the source (issue 14) (462.562437ms)
+▶ lines of the layout
+  ✔ maps each closing brace to the brace that closes its own block (0.73979ms)
+✔ lines of the layout (0.971943ms)
+▶ real numbers
+  ✔ reads literals with a point or an exponent as reals (325.193107ms)
+  ✔ reads `/` of JavaScript and Python 3 as true division (29.825555ms)
+  ✔ writes a true division with real operands where `/` divides integers (23.128192ms)
+  ✔ converts integer variables that meet a real (11.227573ms)
+  ✔ keeps integer division apart from true division (7.973854ms)
+  ✔ reads real declarations and %g placeholders of C (5.566263ms)
+  ✔ turns `/=` into the division of the source language (6.212359ms)
+✔ real numbers (412.124042ms)
+ℹ tests 45
+ℹ suites 10
+ℹ pass 44
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2821.721668
+
+✖ failing tests:
+
+test at node_modules/test-anywhere/src/index.js:174:12
+✖ translates partially, detects and applies rules (198.864912ms)
+  Error: Expected "english" to be "python"
+      at Object.toBe (file:///tmp/gh-issue-solver-1795726129025/node_modules/test-anywhere/src/index.js:391:15)
+      at TestContext.<anonymous> (file:///tmp/gh-issue-solver-1795726129025/js/tests/issue-8.test.js:246:35)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Promise.all (index 0)
+      at async Suite.run (node:internal/test_runner/test:1905:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)

@@ -1,1 +1,1 @@
-print "total " . $x . "\n";
+print("total " . $x . "\n");

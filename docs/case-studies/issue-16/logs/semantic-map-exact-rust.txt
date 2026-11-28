@@ -1,0 +1,27 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 1.98s
+     Running rust/tests/semantic_mapping.rs (target/debug/deps/semantic_mapping-1a812306b2000129)
+
+running 4 tests
+test source_lines_survive_fragment_wrappers_and_split_statements ... ok
+test java_print_maps_to_both_bash_command_and_echo_and_back ... ok
+test the_complete_fibonacci_interpolation_maps_to_call_and_echo ... FAILED
+test every_controlled_natural_language_maps_statements_in_both_directions ... ok
+
+failures:
+
+---- the_complete_fibonacci_interpolation_maps_to_call_and_echo stdout ----
+
+thread 'the_complete_fibonacci_interpolation_maps_to_call_and_echo' (28794) panicked at rust/tests/semantic_mapping.rs:48:5:
+assertion `left == right` failed
+  left: [(15, 13), (15, 14), (15, 15), (16, 14)]
+ right: [(15, 14), (16, 14)]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    the_complete_fibonacci_interpolation_maps_to_call_and_echo
+
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.90s
+
+error: test failed, to rerun pass `--test semantic_mapping`

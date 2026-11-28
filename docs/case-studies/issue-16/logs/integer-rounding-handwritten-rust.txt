@@ -1,0 +1,8 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 2.76s
+     Running rust/tests/grammar.rs (target/debug/deps/grammar-7584d69d07cc759f)
+
+running 1 test
+test hand_written_programs_preserve_structure_and_native_arithmetic_contracts ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 26 filtered out; finished in 0.57s

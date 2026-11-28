@@ -5,5 +5,5 @@ use warnings;
 
 my @numbers = (1, 1, 2, 3, 5, 8, 13, 21);
 for my $number (@numbers) {
-    print $number . "\n";
+    print($number . "\n");
 }

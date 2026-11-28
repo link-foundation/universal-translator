@@ -1,0 +1,26 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 9.57s
+     Running rust/tests/queries.rs (target/debug/deps/queries-b558c7c598abd427)
+
+running 7 tests
+test linq_comprehensions_and_filter_map_chains_keep_strategy_and_scope ... ok
+test sql_quoted_keywords_strings_and_case_are_data ... ok
+test scoped_predicates_and_projections_round_trip_four_formal_grammars ... ok
+test query_results_are_collections_and_range_variables_have_local_types ... ok
+test deferred_queries_and_unsupported_targets_are_explicit ... ok
+test query_capabilities_and_detection_are_explicit ... ok
+test query_questions_and_answers_compose_through_every_natural_standard ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.61s
+
+     Running rust/tests/region_mapping.rs (target/debug/deps/region_mapping-92b0d9971328ee5c)
+
+running 6 tests
+test preserves_utf8_ranges_indentation_and_crlf_in_wrapped_fragments ... ok
+test mapping_rereads_do_not_enter_the_public_trace ... ok
+test excludes_nested_same_line_statements_from_the_parent_condition_region ... ok
+test separates_statements_and_repeated_names_on_the_same_line ... ok
+test keeps_regions_through_bash_call_lowering_and_its_inverse ... ok
+test supplies_valid_regions_for_all_reader_and_writer_families ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.88s

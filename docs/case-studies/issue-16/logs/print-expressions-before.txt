@@ -1,0 +1,21 @@
+✖ keeps complete arithmetic and trailing text inside Perl print arguments (384.616099ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 969.125259
+
+✖ failing tests:
+
+test at node_modules/.deno/test-anywhere@0.8.50/node_modules/test-anywhere/src/index.js:174:12
+✖ keeps complete arithmetic and trailing text inside Perl print arguments (384.616099ms)
+  Error: Expected "/main/statements/0/kind: \"Print\" != \"Evaluate\"" to be undefined
+      at Object.toBe (file:///tmp/gh-issue-solver-1795726129025/node_modules/.deno/test-anywhere@0.8.50/node_modules/test-anywhere/src/index.js:391:15)
+      at TestContext.<anonymous> (file:///tmp/gh-issue-solver-1795726129025/js/tests/print-expressions.test.js:12:70)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17)

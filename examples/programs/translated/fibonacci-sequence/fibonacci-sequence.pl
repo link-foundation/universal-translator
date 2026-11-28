@@ -16,5 +16,5 @@ sub fibonacci {
 }
 
 for my $index (0 .. 20) {
-    print "fibonacci(" . $index . ") = " . fibonacci($index) . "\n";
+    print("fibonacci(" . $index . ") = " . fibonacci($index) . "\n");
 }

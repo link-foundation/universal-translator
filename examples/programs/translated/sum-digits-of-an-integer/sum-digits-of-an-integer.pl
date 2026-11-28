@@ -3,14 +3,20 @@
 use strict;
 use warnings;
 
+sub ut_integer_remainder {
+    my ($first, $second) = @_;
+    my $quotient = int($first / $second);
+    return $first - $quotient * $second;
+}
+
 sub sum_of_digits {
     my ($number) = @_;
     my $total = 0;
     while ($number > 0) {
-        $total += $number % 10;
+        $total += ut_integer_remainder($number, 10);
         $number = int($number / 10);
     }
     return $total;
 }
 
-print "The digits of 1234567890 sum to " . sum_of_digits(1234567890) . "\n";
+print("The digits of 1234567890 sum to " . sum_of_digits(1234567890) . "\n");

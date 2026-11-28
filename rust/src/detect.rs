@@ -1,9 +1,9 @@
 //! Language detection (issue #8): the command line can translate without
 //! being told the source language.
 //!
-//! Every language the translator reads is a candidate. A candidate whose
-//! grammar reads the whole text wins over one that reads only a part, and
-//! one that reads nothing comes last. Ties are broken by evidence from the
+//! Every language the translator reads is a candidate. Whole grammar or
+//! lexically complete prose readings precede partial coverage. Among them,
+//! candidates are ordered by evidence from the
 //! language's own syntax tables and, for controlled natural languages, by
 //! how many words of the text are words of its templates. Only the best
 //! candidates by that evidence are read partially. Machine code (assembly,
@@ -17,6 +17,7 @@ use std::sync::LazyLock;
 
 use regex::Regex;
 
+use crate::corpus_frequencies::code_task_frequency;
 use crate::custom_rules::js_regex;
 use crate::formal::languages;
 use crate::natural::{self, tokens::Kind};
@@ -37,6 +38,7 @@ pub struct Detection {
 
 /// Patterns that only one language (or a small family) writes.
 const SIGNATURES: &[(&str, &[&str])] = &[
+    ("sql", &[r"(?is)\bselect\b.+\bfrom\b"]),
     (
         "javascript",
         &[r"\bconsole\.log\s*\(", r"\b(?:let|const)\s+\w+\s*=", "==="],
@@ -75,10 +77,22 @@ const SIGNATURES: &[(&str, &[&str])] = &[
             r"\bint\s+main\s*\(",
         ],
     ),
-    ("cpp", &[r"#include\s*<iostream>", "std::cout", r"\bstd::"]),
+    (
+        "cpp",
+        &[
+            r"#include\s*<iostream>",
+            "std::cout",
+            r"\bstd::",
+            r"\b(?:try|catch|throw|template|namespace)\b",
+        ],
+    ),
     (
         "csharp",
-        &[r"\bConsole\.Write(?:Line)?\s*\(", r"\busing\s+System\b"],
+        &[
+            r"\bConsole\.Write(?:Line)?\s*\(",
+            r"\busing\s+System\b",
+            r"\bfrom\s+\w+\s+in\b.*\bselect\b",
+        ],
     ),
     (
         "java",
@@ -252,7 +266,13 @@ const SIGNATURES: &[(&str, &[&str])] = &[
 /// Patterns a language never writes: Objective-C imports its headers, C and
 /// C++ include them, so "#import" rules C and C++ out.
 const CONTRADICTIONS: &[(&str, &[&str])] = &[
-    ("c", &[r"(?m)^\s*#import\b"]),
+    (
+        "c",
+        &[
+            r"(?m)^\s*#import\b",
+            r"\b(?:try|catch|throw|template|namespace)\b",
+        ],
+    ),
     ("cpp", &[r"(?m)^\s*#import\b"]),
 ];
 
@@ -405,6 +425,7 @@ struct Candidate {
     evidence: f64,
     reads: bool,
     coverage: f64,
+    complete: bool,
 }
 
 /// The likeliest languages first.
@@ -419,9 +440,11 @@ pub fn detect_language(translator: &Translator, source: &str, limit: usize) -> V
         evidence,
         reads: false,
         coverage: 0.0,
+        complete: false,
     };
     let mut candidates: Vec<Candidate> = languages::language_ids()
         .into_iter()
+        .chain(crate::formal::query_languages::query_language_ids())
         .map(|id| candidate(id, false, syntax_evidence(source, id)))
         .chain(
             languages::machine_target_ids()
@@ -447,6 +470,7 @@ pub fn detect_language(translator: &Translator, source: &str, limit: usize) -> V
         candidate.reads =
             candidate.evidence > -1.0 && translator.parse_fragment(source, &candidate.id).is_ok();
         candidate.coverage = if candidate.reads { 1.0 } else { 0.0 };
+        candidate.complete = candidate.reads;
     }
     // Read the best of the rest partially: the likeliest programming and
     // natural languages by evidence.
@@ -466,23 +490,39 @@ pub fn detect_language(translator: &Translator, source: &str, limit: usize) -> V
     }
     for candidate in &mut candidates {
         if candidate.natural && !candidate.reads {
-            candidate.coverage = candidate
-                .coverage
-                .max(prose_coverage(source, &candidate.id));
+            let prose = prose_coverage(source, &candidate.id);
+            candidate.coverage = candidate.coverage.max(prose);
+            candidate.complete = prose == 1.0;
         }
     }
-    let mut detections: Vec<Detection> = candidates
+    let mut detections: Vec<(bool, Detection)> = candidates
         .into_iter()
-        .map(|candidate| Detection {
-            score: ((100.0 * candidate.coverage + candidate.evidence) * 100.0 + 0.5).floor()
-                / 100.0,
-            id: candidate.id,
-            natural: candidate.natural,
-            reads: candidate.reads,
-            coverage: candidate.coverage,
+        .map(|candidate| {
+            let score =
+                ((100.0 * candidate.coverage + candidate.evidence) * 100.0 + 0.5).floor() / 100.0;
+            (
+                candidate.complete,
+                Detection {
+                    score,
+                    id: candidate.id,
+                    natural: candidate.natural,
+                    reads: candidate.reads,
+                    coverage: candidate.coverage,
+                },
+            )
         })
-        .filter(|detection| detection.score > 0.0)
+        .filter(|(_, detection)| detection.score > 0.0)
         .collect();
-    detections.sort_by(|a, b| b.score.total_cmp(&a.score));
+    detections.sort_by(|(complete_a, a), (complete_b, b)| {
+        complete_b
+            .cmp(complete_a)
+            .then_with(|| b.score.total_cmp(&a.score))
+            .then_with(|| (b.id == "english").cmp(&(a.id == "english")))
+            .then_with(|| code_task_frequency(&b.id).cmp(&code_task_frequency(&a.id)))
+            .then_with(|| a.id.cmp(&b.id))
+    });
     detections
+        .into_iter()
+        .map(|(_, detection)| detection)
+        .collect()
 }

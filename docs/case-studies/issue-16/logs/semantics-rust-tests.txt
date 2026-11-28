@@ -1,0 +1,56 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 17.19s
+     Running rust/tests/issue_8.rs (target/debug/deps/issue_8-598fb5d8812a00cf)
+
+running 19 tests
+test detects_nothing_in_an_empty_text ... ok
+test is_complete_when_everything_reads ... ok
+test cut_texts_end_a_dialect_read_instead_of_looping ... ok
+test counts_the_lines_it_reads ... ok
+test marks_untranslated_natural_sentences ... ok
+test reads_python_pass_as_an_empty_statement ... ok
+test reads_other_obvious_variations ... ok
+test reads_the_russian_examples_of_the_issue ... ok
+test rules_apply_at_every_stage ... ok
+test rules_are_checked ... ok
+test keeps_every_language_within_its_own_rules ... ok
+test rules_rewrite_the_output_with_regular_expressions ... ok
+test rules_are_read_from_a_file_on_the_command_line ... ok
+test translates_what_it_can_and_marks_the_rest ... ok
+test reports_coverage_on_the_command_line ... ok
+test partial_translation_is_the_default_of_the_command_line ... ok
+test an_isolated_name_is_parseable_as_english_and_wins_ambiguous_ties ... ok
+test finds_the_language_of_a_text ... ok
+test translates_from_auto_on_the_command_line ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.53s
+
+     Running rust/tests/layout.rs (target/debug/deps/layout-7115051de5850449)
+
+running 8 tests
+test alignment_follows_unique_anchors ... ok
+test each_closing_brace_maps_to_the_brace_that_closes_its_own_block ... ok
+test tokens_are_operators_strings_comments_and_names ... ok
+test spaces_never_join_tokens ... ok
+test line_ends_blank_lines_and_indentation_follow_the_source ... ok
+test the_issue_example_maps_its_lines ... ok
+test every_layout_example_keeps_the_source_layout ... ok
+test a_translated_comment_still_anchors_the_blank_line_after_it ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.06s
+
+     Running rust/tests/real_numbers.rs (target/debug/deps/real_numbers-40496d2ad7d9cf78)
+
+running 9 tests
+test reads_literals_with_a_point_or_an_exponent_as_reals ... ok
+test a_const_array_binding_can_have_mutable_contents ... ok
+test reads_real_declarations_and_g_placeholders_of_c ... ok
+test reads_the_slash_of_javascript_and_python_3_as_true_division ... ok
+test keeps_integer_division_apart_from_true_division ... ok
+test turns_slash_assignment_into_the_division_of_the_source_language ... ok
+test converts_integer_variables_that_meet_a_real ... ok
+test preserves_complete_exponentiation_in_strings_and_operator_precedence ... ok
+test writes_a_true_division_with_real_operands_where_the_slash_divides_integers ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s
+

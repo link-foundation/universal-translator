@@ -3,8 +3,10 @@ use std::path::{Path, PathBuf};
 
 use universal_translator::formal::lowering::{Instruction, LoweredProgram};
 use universal_translator::formal::machine_reader_assembly::{read_arm64, read_gas};
+use universal_translator::formal::machine_reader_jvm_class::read_jvm_class;
 use universal_translator::formal::machine_reader_llvm::read_llvm;
 use universal_translator::formal::machine_reader_wasm::read_wat;
+use universal_translator::formal::machine_reader_wasm_binary::read_wasm_binary;
 use universal_translator::translator::{Translator, languages, machine_target_ids};
 use universal_translator::{GrammarError, Mode, Options, translate_fragment};
 
@@ -13,6 +15,134 @@ type Reader = fn(&str) -> Result<LoweredProgram, GrammarError>;
 
 /// The dialects added after NASM, CIL and JVM bytecode.
 const DIALECTS: [&str; 4] = ["gas", "arm64", "llvm", "wat"];
+const WASM_FIXTURE: &[u8] = include_bytes!("../../examples/programs/binary/wasm-stack.wasm");
+
+#[test]
+fn reads_and_translates_a_webassembly_binary() {
+    let machine = read_wasm_binary(WASM_FIXTURE).unwrap();
+    assert_eq!(machine.functions[0].parameter_count, 2);
+    assert_eq!(machine.functions[1].parameter_count, 0);
+    assert!(machine.main.code.contains(&Instruction::Push(-130.0)));
+    let translator = Translator::new();
+    assert!(translator.to_meta_wasm(WASM_FIXTURE).unwrap().is("Program"));
+    let javascript = translator
+        .translate_wasm(WASM_FIXTURE, "javascript", Options::default())
+        .unwrap();
+    assert!(
+        javascript
+            .find("const wasmValue7 = wasmInternal0(")
+            .unwrap()
+            < javascript.find("wasmInternal1();").unwrap()
+    );
+    assert!(javascript.contains("Math.trunc(-1 / 2) + 0"));
+}
+
+#[test]
+fn rejects_invalid_webassembly_binary() {
+    let wrong_version = [0, 0x61, 0x73, 0x6d, 2, 0, 0, 0];
+    let invalid_size = [
+        0, 0x61, 0x73, 0x6d, 1, 0, 0, 0, 1, 0x80, 0x80, 0x80, 0x80, 0x10,
+    ];
+    for (input, message) in [
+        (&wrong_version[..], "expected WebAssembly binary version 1"),
+        (
+            &WASM_FIXTURE[..WASM_FIXTURE.len() - 1],
+            "truncated length-delimited field",
+        ),
+        (&invalid_size[..], "invalid unsigned LEB128 integer"),
+    ] {
+        let error = read_wasm_binary(input).unwrap_err().to_string();
+        assert!(error.contains(message), "{error}");
+    }
+}
+
+const JVM_FIXTURE: &[u8] = include_bytes!("../../examples/programs/binary/StackArithmetic.class");
+
+fn replace_bytes(original: &[u8], replacement: &[u8]) -> Vec<u8> {
+    let mut source = JVM_FIXTURE.to_vec();
+    let offset = JVM_FIXTURE
+        .windows(original.len())
+        .position(|window| window == original)
+        .unwrap();
+    source[offset..offset + replacement.len()].copy_from_slice(replacement);
+    source
+}
+
+#[test]
+fn lifts_jvm_class_instructions_into_the_translation_pipeline() {
+    let machine = read_jvm_class(JVM_FIXTURE).unwrap();
+    for instruction in [
+        Instruction::Push(-130.0),
+        Instruction::Arithmetic("divide"),
+        Instruction::Arithmetic("remainder"),
+        Instruction::PrintText("Café 😀 ".into()),
+    ] {
+        assert!(machine.main.code.contains(&instruction));
+    }
+    let translator = Translator::new();
+    assert!(
+        translator
+            .to_meta_jvm_class(JVM_FIXTURE)
+            .unwrap()
+            .is("Program")
+    );
+    let javascript = translator
+        .translate_jvm_class(JVM_FIXTURE, "javascript", Options::default())
+        .unwrap();
+    assert!(javascript.contains("Math.trunc("));
+    assert!(javascript.contains("Café 😀 "));
+}
+
+#[test]
+fn rejects_unsupported_and_malformed_jvm_classes() {
+    let mut invalid_version = JVM_FIXTURE.to_vec();
+    invalid_version[7] = 66;
+    for (source, message) in [
+        (invalid_version, "unsupported class file version 66.0"),
+        (
+            JVM_FIXTURE[..JVM_FIXTURE.len() - 1].to_vec(),
+            "truncated field",
+        ),
+        (
+            replace_bytes(&[0x11, 0xff, 0x7e, 0x3c], &[0xff]),
+            "unsupported opcode 0xff",
+        ),
+        (
+            replace_bytes(&[0x11, 0xff, 0x7e, 0x3c], &[0x75]),
+            "expected long on the instruction stack",
+        ),
+        (
+            replace_bytes(&[3, 0, 0, 0x9c, 0x40], &[3, 0x80, 0, 0, 1]),
+            "exceeds the portable signed range",
+        ),
+        (
+            replace_bytes(&[0xc3, 0xa9, 0x20, 0xed], &[0xc0, 0x80]),
+            "printed string contains an unsupported control character",
+        ),
+    ] {
+        let error = read_jvm_class(&source).unwrap_err().to_string();
+        assert!(error.contains(message), "{error}");
+    }
+}
+
+#[test]
+fn assembly_labels_stay_local_to_their_procedure() {
+    for (dialect, read) in [("gas", read_gas as Reader), ("arm64", read_arm64 as Reader)] {
+        let source = golden("factorial", dialect);
+        let renamed = source.replace("factorial", "f_é");
+        let machine = read(&renamed).unwrap();
+        assert_eq!(machine.functions[0].name, "f_é");
+        assert!(
+            machine.functions[0]
+                .code
+                .contains(&Instruction::Label("L1".into()))
+        );
+        for suffix in ["foreign_L1", "f_é_"] {
+            let invalid = renamed.replace(".Lf_é_L1", &format!(".L{suffix}"));
+            assert!(read(&invalid).is_err(), "{dialect}: {suffix}");
+        }
+    }
+}
 
 fn programs() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("examples/programs")
@@ -101,7 +231,10 @@ fn lists_every_dialect_after_the_grammar_languages_flagged_as_machine() {
         .collect();
     assert_eq!(tail, machine);
     assert_eq!(
-        listing.iter().filter(|language| !language.machine).count(),
+        listing
+            .iter()
+            .filter(|language| !language.machine && !language.query)
+            .count(),
         33
     );
     for language in listing.iter().filter(|language| language.machine) {

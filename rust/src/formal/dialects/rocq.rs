@@ -194,7 +194,7 @@ fn sequence(p: &mut Parser) -> Parsed {
         match p.kind(0) {
             TokenType::Comment => {
                 let token = p.next()?;
-                statements.push(comment_node(&token));
+                statements.push(comment_node(p, &token));
             }
             TokenType::Newline => {
                 let token = p.next()?;
@@ -328,6 +328,7 @@ fn application(callee: String, values: Vec<Node>) -> Node {
     let first = values.next().unwrap_or(Node::new("Number"));
     let mut second = || values.next().unwrap_or(Node::new("Number"));
     match callee.as_str() {
+        "Bool.eqb" => binary("equal", first, second()),
         "Z.quot" => binary("divide", first, second()),
         "Z.rem" => binary("remainder", first, second()),
         "show" => first,
@@ -394,7 +395,7 @@ impl ParserDialect for Rocq {
     fn item(&self, p: &mut Parser) -> Parsed {
         if p.kind(0) == TokenType::Comment {
             let token = p.next()?;
-            return Ok(comment_node(&token));
+            return Ok(comment_node(p, &token));
         }
         if p.is("Load") {
             let words = skip_command(p)?;
@@ -791,6 +792,9 @@ impl EmitterDialect for Rocq {
         let left = field(expression, "left")?;
         let right = field(expression, "right")?;
         match operator {
+            "equal" if left.str("type") == Some("boolean") => {
+                return call(e, "Bool.eqb", &[left, right], parent);
+            }
             // Rocq programs compute with integers only, so true division
             // truncates too.
             "divide" | "realDivide" => return call(e, "Z.quot", &[left, right], parent),
@@ -892,9 +896,7 @@ impl EmitterDialect for Rocq {
     }
 
     fn function_definition(&self, e: &mut Emitter, item: &Node) -> Result<()> {
-        for comment in item.texts("comments") {
-            e.comment(&comment);
-        }
+        e.comments(item, "comments");
         let function_name = item.str("name").unwrap_or_default();
         let group = e.state::<Writing>().group.clone();
         let grouped = group.iter().any(|name| name == function_name);
@@ -939,9 +941,7 @@ impl EmitterDialect for Rocq {
     }
 
     fn main(&self, e: &mut Emitter, program: &Node) -> Result<()> {
-        for comment in program.texts("mainComments") {
-            e.comment(&comment);
-        }
+        e.comments(program, "mainComments");
         e.line("Definition main : Action unit unit := (");
         action(e, Some(field(program, "main")?), "pure tt")?;
         append(e, ").");

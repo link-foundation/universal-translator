@@ -17,4 +17,5 @@ int main(void) {
     for (int position = 0; position < count; position++) {
         printf("%d\n", numbers[position]);
     }
+    return 0;
 }

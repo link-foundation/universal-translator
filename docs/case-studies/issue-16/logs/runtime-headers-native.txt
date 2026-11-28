@@ -1,0 +1,1 @@
+PASS 6 Rocq runtime layouts and restored Python output bytes

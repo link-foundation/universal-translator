@@ -12,7 +12,28 @@ natural:
   true: 'wahr'
   false: 'falsch'
   note: 'Hinweis: {text}'
+  grammar:
+    terms:
+      interrogative: 'Was ist'
+      query-scope: 'für jedes {variable} in {source}'
+      query-deferred: '„verzögert“'
+    productions:
+      answer-type: 'der Typ von {subject}'
+      question-type: '@interrogative @answer-type'
+      answer-documentation: 'die Dokumentation von {subject}'
+      question-documentation: '@interrogative @answer-documentation'
+      answer-source: 'der Quellcode von {subject}'
+      question-source: '@interrogative @answer-source'
+      answer-details: 'die ausführliche Information über {subject}'
+      question-details: '@interrogative @answer-details'
+      answer-query: 'die Werte von {projection} @query-scope mit {condition}'
+      question-query: 'Welche Werte von {projection} @query-scope erfüllen {condition}'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
+      element: 'das Element {index} von {array}'
+      set-element: 'Ändere @element[array=name] auf {value}'
   templates:
+    documentation: 'Die Dokumentation ist {value}'
     function: 'Definiere {name} mit {parameters}'
     function-without-parameters: 'Definiere {name}'
     declare: 'Erzeuge {name} mit dem Wert {value}' 'Sei {name} gleich {value}'
@@ -50,9 +71,7 @@ natural:
     remainder: '{left} modulo {right}' '{left} % {right}'
     array: 'die Liste ({elements})'
     new-array: 'eine Liste aus {length} Kopien von {fill}'
-    element: 'das Element {index} von {array}'
     length: 'die Länge von {array}'
-    set-element: 'Ändere das Element {index} von {name} auf {value}'
   words:
     ackermann: 'Ackermann'
     bottles: 'Flaschen'

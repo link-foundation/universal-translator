@@ -12,7 +12,28 @@ natural:
   true: 'سچ'
   false: 'جھوٹ'
   note: 'نوٹ: {text}'
+  grammar:
+    terms:
+      interrogative: 'کیا ہے'
+      query-scope: '{source} میں ہر {variable} کے لیے'
+      query-deferred: '“ملتوی”'
+    productions:
+      answer-type: '{subject} کی قسم'
+      question-type: '@answer-type @interrogative'
+      answer-documentation: '{subject} کی دستاویز'
+      question-documentation: '@answer-documentation @interrogative'
+      answer-source: '{subject} کا ماخذ کوڈ'
+      question-source: '@answer-source @interrogative'
+      answer-details: '{subject} کی تفصیلی معلومات'
+      question-details: '@answer-details @interrogative'
+      answer-query: '@query-scope {condition} ہونے پر {projection} کی قدریں'
+      question-query: '@answer-query کیا ہیں'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
+      element: '{array} میں عنصر {index}'
+      set-element: '@element[array=name] کو {value} میں بدلیں'
   templates:
+    documentation: 'دستاویز ہے {value}'
     function: '{name} کو {parameters} سے متعین کریں'
     function-without-parameters: '{name} کو متعین کریں'
     declare: '{name} کو قدر {value} کے ساتھ بنائیں'
@@ -50,9 +71,7 @@ natural:
     remainder: '{left} ماڈیولو {right}' '{left} % {right}'
     array: 'فہرست ({elements})'
     new-array: 'فہرست لمبائی {length} ہر عنصر {fill}'
-    element: '{array} میں عنصر {index}'
     length: '{array} کی لمبائی'
-    set-element: '{name} میں عنصر {index} کو {value} میں بدلیں'
   words:
     ackermann: 'ایکرمین'
     bottles: 'بوتلیں'

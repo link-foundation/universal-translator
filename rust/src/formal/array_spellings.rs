@@ -356,7 +356,7 @@ impl Emitter {
             ("sequtils", "import std/sequtils", &["import "]),
         ];
         for (used, line, starts) in extra {
-            if !self.uses.contains(used) {
+            if !self.uses.contains(used) || lines.iter().any(|written| written == line) {
                 continue;
             }
             let last = lines

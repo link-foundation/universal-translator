@@ -97,6 +97,9 @@ function readToken(source, index, context) {
     context;
   if (templates && character === '{') {
     const end = source.indexOf('}', index);
+    if (end === -1) {
+      throw new Error('Unclosed slot in a template');
+    }
     return {
       token: { type: 'slot', value: source.slice(index + 1, end) },
       end: end + 1,

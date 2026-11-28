@@ -1,0 +1,20 @@
+[
+  { "format": "bnf", "source": "<start> ::= \"hello\" \" \" \"мир\"\n" },
+  { "format": "ebnf", "source": "start = \"hello\", \" \", \"мир\" ;\n" },
+  { "format": "abnf", "source": "start = %s\"hello\" %s\" \" %s\"мир\"\r\n" },
+  { "format": "gbnf", "source": "root ::= \"hello\" \" \" \"мир\"\n" },
+  {
+    "format": "antlr",
+    "source": "grammar Hello;\nstart: 'hello' ' ' 'мир' EOF;\n"
+  },
+  { "format": "lark", "source": "start: \"hello\" \" \" \"мир\"\n" },
+  { "format": "pest", "source": "start = { \"hello\" ~ \" \" ~ \"мир\" }\n" },
+  {
+    "format": "tree-sitter-json",
+    "source": "{\"name\":\"hello\",\"rules\":{\"start\":{\"type\":\"SEQ\",\"members\":[{\"type\":\"STRING\",\"value\":\"hello\"},{\"type\":\"STRING\",\"value\":\" \"},{\"type\":\"STRING\",\"value\":\"мир\"}]}},\"extras\":[]}"
+  },
+  {
+    "format": "native",
+    "source": "start start\nrule start = normal seq(literal(\"hello\"), literal(\" \"), literal(\"мир\"))\n"
+  }
+]

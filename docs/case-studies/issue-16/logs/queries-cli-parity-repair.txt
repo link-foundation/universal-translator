@@ -1,0 +1,6 @@
+
+added 2 packages in 749ms
+Both implementations encoded and restored 7 grammar CST specimens
+The tagged JavaScript engine round-tripped 27 ranked grammar specimens
+Both implementations compiled and ran checked JavaScript and Rust translations from exchanged CSTs
+Both implementations wrote and read back 2 golden programs in 40 languages

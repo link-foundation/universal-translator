@@ -1,0 +1,2 @@
+PASS annotated-block: a3cee36 differs; current view preserves every named role
+PASS queries-library: a3cee36 differs; current view preserves every named role

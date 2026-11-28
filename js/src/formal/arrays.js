@@ -5,6 +5,7 @@
 
 import { languageSyntax } from './languages.js';
 import { freshName, usedNames } from '../meta/for-each.js';
+import { mapOrigins, inheritOrigin } from '../translation/source-origins.js';
 import {
   block,
   essence,
@@ -214,11 +215,14 @@ const lengthMembers = new Set(['length', 'Length', 'size', 'count', 'len']);
 
 // The names a program declares with an array value or type, or indexes (a
 // fragment may use an array it does not declare).
-function arrayNames(program) {
+function arrayNames(program, fixedArrays) {
   const names = new Set();
   walk(program, (current) => {
+    if (current.cppFixedArray) {
+      fixedArrays.add(current.name);
+    }
     if (
-      (current.kind === 'Declaration' || current.kind === 'Assignment') &&
+      ['Declaration', 'Assignment'].includes(current.kind) &&
       (isArrayValue(current.value) || current.type === 'array')
     ) {
       names.add(current.name);
@@ -240,6 +244,21 @@ function arrayNames(program) {
     }
   });
   return names;
+}
+
+// The native member keeps its return type and follows renames of its receiver.
+function fixedArrayCall(expression, fixedArrays) {
+  if (fixedArrays.size === 0 || expression.kind !== 'Call') {
+    return undefined;
+  }
+  const dot = expression.callee.lastIndexOf('.');
+  const owner = expression.callee.slice(0, dot);
+  return dot > 0 && fixedArrays.has(owner)
+    ? node('Call', {
+        callee: expression.callee.slice(dot),
+        arguments: [name(owner), ...expression.arguments],
+      })
+    : undefined;
 }
 
 // The array a member spelling such as `a.length` or `a.len()` names.
@@ -310,7 +329,8 @@ export function recognizeArrays(program, { from } = {}) {
   const constructed = construct
     ? rewrite(program, (current) => construct(current) ?? current)
     : program;
-  const arrays = arrayNames(constructed);
+  const fixedArrays = new Set();
+  const arrays = arrayNames(constructed, fixedArrays);
   const functions = new Set(program.functions.map((item) => item.name));
   const base = arrayBase(syntax);
   return rewrite(constructed, (current) => {
@@ -321,9 +341,12 @@ export function recognizeArrays(program, { from } = {}) {
     if (current.kind === 'Method' && current.name === 'toInt') {
       return current.receiver;
     }
-    const length = lengthOf(current, arrays) ?? sizeOfLength(current);
-    if (length) {
-      return length;
+    const recognized =
+      fixedArrayCall(current, fixedArrays) ??
+      lengthOf(current, arrays) ??
+      sizeOfLength(current);
+    if (recognized) {
+      return recognized;
     }
     if (
       current.kind === 'Call' &&
@@ -475,14 +498,17 @@ export function expandArrayFills(program, { to, target = to }) {
             }),
           ]),
         });
-        return [declaration, loop];
+        return [
+          inheritOrigin(declaration, statement),
+          inheritOrigin(loop, statement),
+        ];
       });
       return { ...current, statements };
     });
   };
   return {
     ...program,
-    functions: program.functions.map((item) => ({
+    functions: mapOrigins(program.functions, (item) => ({
       ...item,
       body: expand(item.body, item.parameters),
     })),

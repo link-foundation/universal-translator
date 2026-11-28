@@ -6,6 +6,10 @@ natural:
   source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
   true: 'खरे'
   false: 'खोटे'
+  grammar:
+    productions:
+      element: '{array} चा भाग {index}'
+      set-element: 'यानंतर @element[array=name] हा {value} आहे'
   templates:
     function: 'कोणीतरी {name} हे {parameters} सह असे करते'
     function-without-parameters: 'कोणीतरी {name} हे असे करते'
@@ -31,9 +35,7 @@ natural:
     greater-or-equal: '{left} हे {right} पेक्षा कमी नाही'
     array: 'या गोष्टी ({elements})'
     new-array: '{fill} सारख्या {length} गोष्टी'
-    element: '{array} चा भाग {index}'
     length: '{array} चे किती भाग'
-    set-element: 'यानंतर {name} चा भाग {index} हा {value} आहे'
   rules:
     primes: marathi
     extra-words: सह ओळीवर उत्तर थांबा वेळा साठी पासून पर्यंत पेक्षा चा चे किती किंवा आणि ऋण अधिक वजा गुणिले भागिले मॉड्यूलो खोटे

@@ -8,6 +8,7 @@
 //! with an empty stack. The host provides print_integer, print_text and
 //! print_newline.
 
+use crate::emission_map::{SourceLines, active_instruction};
 use std::collections::{BTreeSet, HashMap};
 
 use super::lowering::{Instruction, LoweredProgram, Procedure};
@@ -50,7 +51,7 @@ fn stack_effect(instruction: &Instruction) -> i64 {
         | Instruction::PrintInteger
         | Instruction::NewArray
         | Instruction::LoadElement => -1,
-        Instruction::CompareJump(..) => -2,
+        // compare_jump already consumes operands before recording branch depths.
         Instruction::StoreElement => -3,
         _ => 0,
     }
@@ -130,7 +131,7 @@ struct WatFunction<'a> {
     texts: &'a mut Texts,
     labels: Vec<String>,
     dispatch: bool,
-    body: Vec<String>,
+    body: SourceLines,
     depth: usize,
     spilled: usize,
     terminated: bool,
@@ -147,7 +148,7 @@ impl<'a> WatFunction<'a> {
             texts,
             labels: label_names(item),
             dispatch: has_backward_jump(item),
-            body: Vec::new(),
+            body: SourceLines::default(),
             depth: 0,
             spilled: 0,
             terminated: false,
@@ -266,7 +267,7 @@ impl<'a> WatFunction<'a> {
     fn instruction(&mut self, instruction: &Instruction) {
         let slot_name = |slot: usize| format!("${}", self.item.slot_names[slot]);
         let lines: Vec<String> = match instruction {
-            Instruction::Comment(text) => comments(";;", std::slice::from_ref(text), ""),
+            Instruction::Comment(text) => comments(";;", std::slice::from_ref(text), "").to_vec(),
             Instruction::Load(slot) => vec![format!("local.get {}", slot_name(*slot))],
             Instruction::Store(slot) => vec![format!("local.set {}", slot_name(*slot))],
             Instruction::Label(name) => {
@@ -380,10 +381,11 @@ impl<'a> WatFunction<'a> {
         lines
     }
 
-    fn write(mut self) -> Vec<String> {
+    fn write(mut self) -> SourceLines {
         let item = self.item;
         let prologue = self.opening();
         for instruction in &item.code {
+            let _origin = active_instruction(instruction);
             self.instruction(instruction);
         }
         let last_is_return = matches!(item.code.last(), Some(Instruction::Return));
@@ -398,7 +400,7 @@ impl<'a> WatFunction<'a> {
         } else {
             ""
         };
-        let mut lines = comments(";;", &item.comments, "  ");
+        let mut lines: SourceLines = comments(";;", &item.comments, "  ");
         lines.push(format!(
             "  (func ${}{exported}{parameters}{result}",
             item.name
@@ -473,12 +475,12 @@ const WAT_NEW_ARRAY: [&str; 43] = [
 pub fn write_wat(program: &LoweredProgram) -> Result<String> {
     let mut texts = Texts::default();
     let calls = returns_by_name(program);
-    let functions: Vec<Vec<String>> = all_functions(program)
+    let functions: Vec<SourceLines> = all_functions(program)
         .map(|item| WatFunction::new(item, &calls, &mut texts).write())
         .collect();
     let arrays = creates_arrays(program);
     let heap = texts.size.div_ceil(8) * 8;
-    let mut lines = comments(";;", &program.comments, "");
+    let mut lines: SourceLines = comments(";;", &program.comments, "");
     if !program.comments.is_empty() {
         lines.push(String::new());
     }
@@ -515,5 +517,5 @@ pub fn write_wat(program: &LoweredProgram) -> Result<String> {
     }
     lines.push(")".into());
     lines.push(String::new());
-    Ok(lines.join("\n"))
+    Ok(lines.render_ending("wat", ""))
 }

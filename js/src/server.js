@@ -159,6 +159,7 @@ function runTranslation(
     })),
     coverage: result.coverage,
     ...(result.lineMap ? { lineMap: result.lineMap } : {}),
+    ...(result.regionMap ? { regionMap: result.regionMap } : {}),
     ...extra,
   };
 }
@@ -169,7 +170,8 @@ function runTranslation(
  * POST /translate takes {source, from (or "auto"), to, fragment?, mode?,
  * commonLibrary?, commentLanguage?, commentFrom?, identifierLanguage?,
  * identifierFrom?, layout?, braces?, indent?, allOrNothing?, rules?} and answers {output, complete, errors, coverage?, lineMap?,
- * detected?} or {error}. lineMap pairs 0-based source and target lines. The
+ * regionMap?, detected?} or {error}. lineMap pairs 0-based source and target
+ * lines; regionMap uses half-open UTF-8 byte ranges. The
  * rules are Links Notation text (or an object). Rules with regular
  * expressions are refused unless `allowRegexRules` is true.
  */

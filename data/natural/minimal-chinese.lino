@@ -4,6 +4,10 @@ natural:
   extends: chinese
   profile: minimal-english
   source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  grammar:
+    productions:
+      element: '{array} 的 第 {index} 部分'
+      set-element: '这 以后 @element[array=name] 是 {value}'
   templates:
     function: '某人 这样 用 {parameters} 做 {name}'
     function-without-parameters: '某人 这样 做 {name}'
@@ -30,9 +34,7 @@ natural:
     greater-or-equal: '{left} 不 比 {right} 少'
     array: '这些 东西 ({elements})'
     new-array: '{length} 个 像 {fill} 的 东西'
-    element: '{array} 的 第 {index} 部分'
     length: '{array} 有 多少 部分'
-    set-element: '这 以后 {name} 的 第 {index} 部分 是 {value}'
   rules:
     primes: chinese
     extra-words: 用 它 行 答案 停 也 就 那么 当 次 对 从 到 然后 跟 比 个 的 第 多少 或 并且 加 减 乘 除以 模 负 假 和

@@ -1,0 +1,6 @@
+examples/universal-app/src/App.js 284ms
+examples/universal-app/e2e/translate.e2e.mjs 156ms (unchanged)
+examples/universal-app/src/report-issue.js 17ms (unchanged)
+js/src/formal/emitter.js 192ms (unchanged)
+js/tests/issue-16.test.js 10ms (unchanged)
+.changeset/preserve-translation-context.md 53ms (unchanged)

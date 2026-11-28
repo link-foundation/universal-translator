@@ -26,6 +26,28 @@ cargo run --locked -- translate-grammar javascript kotlin examples/programs/fact
 Both CLIs read a file, or standard input when you omit the file or pass `-`.
 The JavaScript package supports Node.js 20 and later, Bun and Deno.
 
+```sh
+node bin/universal-translator.js translate wasm python examples/programs/binary/wasm-stack.wasm
+cargo run --locked -- translate wasm javascript examples/programs/binary/wasm-stack.wasm
+```
+
+The binary reader accepts a straight-line WebAssembly 1.0 subset with signed
+`i64` arithmetic, functions, locals, and the `env.print_integer` and
+`env.print_newline` host imports. It requires an exported `main` function.
+The JavaScript API accepts bytes with `translateWasm(bytes, target)` and
+`toMetaWasm(bytes)` on a translator instance. The Rust methods are
+`translate_wasm(bytes, target, options)` and `to_meta_wasm(bytes)`.
+Translations for this subset use integers representable by the target and
+assume valid, nontrapping operations. See the
+[binary case study](docs/case-studies/issue-16/WASM-BINARY.md) for coverage.
+
+Use `translate jvm-class python examples/programs/binary/StackArithmetic.class`
+in either CLI to read a compiled JVM class. The supported Java 8 through 21
+class file subset has a straight-line `main` with integer arithmetic, locals
+and `System.out` printing. The API methods are `translateJvmClass` and
+`toMetaJvmClass` in JavaScript, and `translate_jvm_class` and
+`to_meta_jvm_class` in Rust. See the [JVM class file case study](docs/case-studies/issue-16/JVM-CLASS.md).
+
 Each translation runs these stages:
 
 1. A lexer and a table-driven parser read the source language.
@@ -199,7 +221,7 @@ docker run --rm -i universal-translator translate javascript go - < app.js
 `POST /translate` takes `{source, from, to, fragment?, mode?, commonLibrary?,
 commentLanguage?, commentFrom?, identifierLanguage?, identifierFrom?, layout?, braces?, indent?,
 allOrNothing?, rules?}` and answers `{output, complete, errors, coverage?,
-lineMap?, detected?}`, or `{error}` with status 400. Regular expression rules
+lineMap?, regionMap?, detected?}`, or `{error}` with status 400. Regular expression rules
 are refused unless the server is created with
 `createTranslationServer({ allowRegexRules: true })`.
 
@@ -327,7 +349,14 @@ web demo) keeps the concrete layout of the source wherever the target has
 the same tokens: the spaces inside a line, the step of indentation, the
 blank lines, the blank lines around the code and the line ends. It also
 returns `lineMap`, the 0-based `[source line, target line]` pairs that the
-web demo uses to keep both editors in step. `--layout target` (`layout:
+web demo uses to keep both editors in step. `regionMap` (`region_map` in Rust)
+adds pairs of `{source: {start, end}, target: {start, end}}`, using half-open
+UTF-8 byte offsets in the original input and final output. Several pairs can
+share an endpoint when a construct expands or contracts. Semantic subregions
+distinguish expressions and statements on the same line; readers that cannot
+resolve a smaller region retain their recorded line ownership. The editor
+uses these regions for inline colours and precise linked selections.
+`--layout target` (`layout:
 'target'`) writes the layout of the target's emitter instead:
 
 ```bash
@@ -526,6 +555,32 @@ parts and edits the same rules visually. `node scripts/rosetta-code.mjs all`
 measures coverage over every Rosetta Code task; see the
 [issue 8 case study](docs/case-studies/issue-8/README.md). Pull requests build the
 image and smoke test both the CLI and the API inside it.
+
+### External grammar workspaces
+
+The [grammar workspace](docs/grammar-workspace.md) imports nine grammar formats
+into an executable shared IR, preserves concrete source trees and provenance,
+and supports updates, dependency resolution, merges, editions and transforms
+in JavaScript and Rust. Custom semantic readers join the existing translation
+stages. The browser-safe JavaScript entry is
+`@link-foundation/universal-translator/grammar`; a runnable example is
+`node examples/grammars/import-and-translate.mjs`.
+
+Both CLIs use Meta Language for grammar-backed CSTs and checked program
+translation between JavaScript, Rust, Lean and Rocq. The npm artifact includes
+the pinned JavaScript engine and its grammars.
+
+```bash
+universal-translator encode-cst JavaScript examples/programs/hello-world.js > hello.lino
+universal-translator decode-cst hello.lino > hello.js
+universal-translator translate-program cst rust hello.lino > hello.rs
+```
+
+The JavaScript CLI accepts `UNIVERSAL_TRANSLATOR_META_LANGUAGE` to use an
+explicit compatible module file. The checked program command rejects syntax
+errors and constructs outside the portable language subset. Run
+`node examples/translation/verify-portable-programs.mjs --native-logic` with
+Node, Rust, Lean and Rocq installed to execute examples in all four languages.
 
 ### Decorators
 

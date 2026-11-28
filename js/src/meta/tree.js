@@ -1,11 +1,18 @@
 // Meta language tree: the language-independent representation that every
 // parser produces and every emitter consumes. Node kinds use full words.
 //
-//   Program        { comments, imports, functions, main }
-//   Function       { name, parameters: [{ name, type }], returnType, body, comments }
+//   Program        { comments, imports, definitions?, functions, main }
+//   Function       { name, parameters: [{ name, type, annotations? }], returnType, body, comments, annotations? }
+//   RecordDefinition { name, parameters, fields, comments?, constructorComments? }
+//   RecordField    { name, parameter }
+//   RecordConstruction { record, arguments }
+//   RecordFieldRead { object, property, type }
+//   Annotation     { expression }       method or parameter metadata
 //   Block          { statements }
 //   Declaration    { name, type, value, mutable }
 //   Assignment     { name, operator, value }
+//   AssignmentExpression { name, value }     assigns and yields the value
+//   ExpressionSequence { steps, value }     evaluates steps, then yields value
 //   If             { condition, then, otherwise }
 //   While          { condition, body }
 //   CountingLoop   { variable, start, end (exclusive), body }
@@ -14,6 +21,9 @@
 //   Return         { value }
 //   Print          { value, newline }
 //   Evaluate       { expression }
+//   Throw          { value?, mode, cppType? }    an exception object or arbitrary value
+//   Try            { body, handlers, success?, finalizer? }
+//   Catch          { name?, type?, body, cppType? }
 //   Comment        { text, trailing?, block? }   trailing: the spaces between
 //                  the code and a comment on the same line; block: written
 //                  as a block comment
@@ -21,8 +31,19 @@
 //   Number         { value }            Text { value }    Boolean { value }
 //   Name           { name }             Interpolation { parts }
 //   Binary         { operator, left, right }
+//   CppCharacterConcat { operator: add, left, right }   C++ string and character overload
 //   Unary          { operator, operand }
+//   Null           {}                    SQL absence of a value
+//   SqlBinary      { operator, left, right }   NULL-propagating SQL operation
+//   SqlUnary       { operator, operand }      NULL-propagating SQL operation
+//   SqlBetween     { value, lower, upper }    inclusive SQL range, one value evaluation
+//   SqlIn          { value, choices }         SQL membership over a literal expression list
+//   SqlTruth       { operand }           SQL WHERE retains only true rows
 //   Call           { callee, arguments }
+//   Question       { aspect: type | documentation | source | details, subject }
+//   Query          { source, variable, condition, projection, eager }
+//   Lambda         { parameters, body }
+//   PropertyAssignment { object, property, value }
 //   ArrayLiteral   { elements }         NewArray { length, fill }
 //   Index          { array, index }     Length { array }
 //   IndexAssignment { name, index, value }
@@ -36,9 +57,14 @@
 // the elements, and languages without a for-each loop write a CountingLoop
 // over a fresh index whose body starts with `variable = array[index]`.
 //
-// Binary operators: add, subtract, multiply, divide, remainder, equal,
+// Integer divide truncates toward zero; floorDivide rounds downward.
+// Remainder follows the dividend sign; modulo follows the divisor sign.
+// Binary operators: add, subtract, multiply, divide, floorDivide, realDivide,
+// remainder, modulo, power, equal,
 // notEqual, less, lessOrEqual, greater, greaterOrEqual, and, or.
 // Unary operators: negate, not.
+
+import { inheritOrigin } from '../translation/source-origins.js';
 
 export const node = (kind, fields = {}) => ({ kind, ...fields });
 
@@ -124,7 +150,8 @@ export function rewrite(tree, visit) {
     copy[key] =
       value && typeof value === 'object' ? rewrite(value, visit) : value;
   }
-  return visit(copy);
+  inheritOrigin(copy, tree);
+  return inheritOrigin(visit(copy), tree);
 }
 
 // Visit every node without changing the tree.
@@ -135,27 +162,32 @@ export function walk(tree, visit) {
   });
 }
 
-// The functions that an earlier function calls before their definition.
+// The functions called before their definition by a function or file initializer.
 // Languages that compile from top to bottom (C, Pascal, Ada) announce them
 // with a prototype or forward declaration.
-export function laterCalls(functions) {
+export function laterCalls(items) {
   const defined = new Set();
   const announced = new Set();
-  for (const item of functions) {
-    defined.add(item.name);
-    walk(item.body, (current) => {
+  for (const item of items) {
+    if (item.kind === 'Function') {
+      defined.add(item.name);
+    }
+    walk(item.body ?? item.value, (current) => {
       if (current.kind === 'Call' && !defined.has(current.callee)) {
         announced.add(current.callee);
       }
     });
   }
-  return functions.filter((item) => announced.has(item.name));
+  return items.filter(
+    (item) => item.kind === 'Function' && announced.has(item.name)
+  );
 }
 
 // Structural comparison that ignores source-only details such as types that
 // an untyped language cannot express and comment wording.
 const ignoredKeys = new Set([
   'type',
+  'cppType',
   'returnType',
   'comments',
   'mainComments',

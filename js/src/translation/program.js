@@ -8,6 +8,14 @@ function programLanguage(language) {
     case 'rust':
     case 'Rust':
       return 'Rust';
+    case 'lean':
+    case 'Lean':
+      return 'Lean';
+    case 'coq':
+    case 'Coq':
+    case 'rocq':
+    case 'Rocq':
+      return 'Rocq';
     default:
       throw new Error(`No portable program translator for ${language}`);
   }

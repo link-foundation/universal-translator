@@ -117,6 +117,7 @@ describe('publishable package metadata', () => {
       'bin/',
       'common-library/',
       'js/src/',
+      'vendor/meta-language-grammar/',
       'data/',
       'CHANGELOG.md',
       'LICENSE',

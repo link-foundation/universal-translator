@@ -13,10 +13,13 @@ use std::sync::LazyLock;
 
 use regex::Regex;
 
+use super::agreement::{normalize, slot_case};
 use super::catalog::{Language, natural_language};
 use super::levels::{Associativity, LEVELS, level_index, operator_of_template};
+use super::lines::{note_pattern, sentence_lines};
 use super::tokens::{Kind, Token};
 use crate::meta::for_each::raise_for_each;
+use crate::meta::questions::ASPECTS;
 use crate::meta::{Node, Value, add, binary, block, name, number};
 
 const NAME_SLOTS: [&str; 3] = ["name", "variable", "callee"];
@@ -25,7 +28,14 @@ const NAME_SLOTS: [&str; 3] = ["name", "variable", "callee"];
 const PRIMARY_SLOTS: [&str; 4] = ["index", "array", "length", "fill"];
 const ARRAY_KEYS: [&str; 4] = ["array", "new-array", "element", "length"];
 
-const STATEMENT_KEYS: [&str; 11] = [
+const STATEMENT_KEYS: [&str; 18] = [
+    "question-query",
+    "question-deferred-query",
+    "question-type",
+    "question-documentation",
+    "question-source",
+    "question-details",
+    "documentation",
     "print-line",
     "print",
     "set-element",
@@ -268,7 +278,7 @@ impl<'a> SentenceReader<'a> {
             _ => level + 1,
         };
         let mut reader = |slot: &str, from: usize, to: usize| {
-            self.expression(tokens, from, to, slot_level(slot))
+            self.slot_expression(tokens, from, to, slot_level(slot), key, slot)
                 .map(Slot::Expression)
         };
         let mut slots = Self::match_template(template, tokens, start, end, &mut reader)?;
@@ -327,6 +337,23 @@ impl<'a> SentenceReader<'a> {
                 return self.expression(tokens, start + 1, end - 1, 0);
             }
         }
+        // A contextual reflection phrase takes priority over a bare callee spelling.
+        for aspect in ASPECTS {
+            for template in self.language.variants(&format!("answer-{aspect}")) {
+                let mut reader = |_slot: &str, from: usize, to: usize| {
+                    self.expression(tokens, from, to, 0).map(Slot::Expression)
+                };
+                if let Some(mut slots) =
+                    Self::match_template(template, tokens, start, end, &mut reader)
+                {
+                    return Some(
+                        Node::new("Question")
+                            .with("aspect", aspect)
+                            .with("subject", expression_slot(&mut slots, "subject")?),
+                    );
+                }
+            }
+        }
         for key in ["call", "call-without-arguments"] {
             for template in self.language.variants(key) {
                 let mut reader = |slot: &str, from: usize, to: usize| {
@@ -355,6 +382,16 @@ impl<'a> SentenceReader<'a> {
                 }
             }
         }
+        for key in super::collection_templates::KEYS {
+            for template in self.language.variants(key) {
+                let mut reader =
+                    |slot: &str, from: usize, to: usize| self.slot(tokens, slot, from, to);
+                if let Some(slots) = Self::match_template(template, tokens, start, end, &mut reader)
+                {
+                    return collection_node(key, slots);
+                }
+            }
+        }
         for key in ARRAY_KEYS {
             for template in self.language.variants(key) {
                 let mut reader =
@@ -362,6 +399,16 @@ impl<'a> SentenceReader<'a> {
                 if let Some(slots) = Self::match_template(template, tokens, start, end, &mut reader)
                 {
                     return array_node(key, slots);
+                }
+            }
+        }
+        for key in ["answer-query", "answer-deferred-query"] {
+            for template in self.language.variants(key) {
+                let mut reader =
+                    |slot: &str, from: usize, to: usize| self.slot(tokens, slot, from, to);
+                if let Some(slots) = Self::match_template(template, tokens, start, end, &mut reader)
+                {
+                    return query_node(key, slots);
                 }
             }
         }
@@ -387,6 +434,29 @@ impl<'a> SentenceReader<'a> {
     }
 
     // ---- sentences ----
+
+    fn slot_expression(
+        &self,
+        tokens: &[Token],
+        from: usize,
+        to: usize,
+        level: usize,
+        key: &str,
+        slot: &str,
+    ) -> Option<Node> {
+        let expression = self.expression(tokens, from, to, level);
+        let Some(case) = slot_case(self.language, key, slot) else {
+            return expression;
+        };
+        if expression
+            .as_ref()
+            .is_some_and(|value| !value.is("Name") && !value.is("Boolean"))
+        {
+            return expression;
+        }
+        let normalized = normalize(&tokens[from..to], self.language, &case);
+        Self::new(self.language).expression(&normalized, 0, normalized.len(), level)
+    }
 
     fn names(&self, tokens: &[Token], start: usize, end: usize) -> Option<Vec<String>> {
         let mut result = Vec::new();
@@ -426,6 +496,17 @@ impl<'a> SentenceReader<'a> {
     }
 
     fn slot(&self, tokens: &[Token], slot: &str, from: usize, to: usize) -> Option<Slot> {
+        self.slot_for(tokens, slot, from, to, "")
+    }
+
+    fn slot_for(
+        &self,
+        tokens: &[Token],
+        slot: &str,
+        from: usize,
+        to: usize,
+        key: &str,
+    ) -> Option<Slot> {
         if NAME_SLOTS.contains(&slot) {
             return if to - from == 1 {
                 self.read_name(tokens.get(from)).map(Slot::Name)
@@ -444,7 +525,8 @@ impl<'a> SentenceReader<'a> {
                 .expression(tokens, from, to, level_index("primary"))
                 .map(Slot::Expression);
         }
-        self.expression(tokens, from, to, 0).map(Slot::Expression)
+        self.slot_expression(tokens, from, to, 0, key, slot)
+            .map(Slot::Expression)
     }
 
     /// The first template among `keys` that matches the whole sentence.
@@ -457,8 +539,9 @@ impl<'a> SentenceReader<'a> {
         self.memo.borrow_mut().clear();
         for key in keys {
             for template in self.language.variants(key) {
-                let mut reader =
-                    |slot: &str, from: usize, to: usize| self.slot(&tokens, slot, from, to);
+                let mut reader = |slot: &str, from: usize, to: usize| {
+                    self.slot_for(&tokens, slot, from, to, key)
+                };
                 if let Some(slots) =
                     Self::match_template(template, &tokens, 0, tokens.len(), &mut reader)
                 {
@@ -472,6 +555,69 @@ impl<'a> SentenceReader<'a> {
 
 fn expression_slot(slots: &mut Captured, name: &str) -> Option<Node> {
     slots.remove(name).and_then(Slot::expression)
+}
+
+fn collection_node(key: &str, mut slots: Captured) -> Option<Node> {
+    Some(match key {
+        "sql-null" => Node::new("Null"),
+        "sql-truth" => {
+            Node::new("SqlTruth").with("operand", expression_slot(&mut slots, "operand")?)
+        }
+        "sql-between" => Node::new("SqlBetween")
+            .with("value", expression_slot(&mut slots, "value")?)
+            .with("lower", expression_slot(&mut slots, "lower")?)
+            .with("upper", expression_slot(&mut slots, "upper")?),
+        "sql-in" => {
+            let choices = expression_slot(&mut slots, "choices")?;
+            if !choices.is("ArrayLiteral") {
+                return None;
+            }
+            Node::new("SqlIn")
+                .with("value", expression_slot(&mut slots, "value")?)
+                .with("choices", choices)
+        }
+        "sql-unary" => {
+            let operator = expression_slot(&mut slots, "operator")?;
+            if !operator.is("Text") || !crate::meta::sql_values::unary(operator.str("value")?) {
+                return None;
+            }
+            Node::new("SqlUnary")
+                .with("operator", operator.str("value")?)
+                .with("operand", expression_slot(&mut slots, "operand")?)
+        }
+        "sql-binary" => {
+            let operator = expression_slot(&mut slots, "operator")?;
+            if !operator.is("Text") || !crate::meta::sql_values::binary(operator.str("value")?) {
+                return None;
+            }
+            Node::new("SqlBinary")
+                .with("operator", operator.str("value")?)
+                .with("left", expression_slot(&mut slots, "left")?)
+                .with("right", expression_slot(&mut slots, "right")?)
+        }
+        "process-arguments" => {
+            let include = expression_slot(&mut slots, "includeProgram")?;
+            Node::new("ProcessArguments").with("includeProgram", include.flag("value")?)
+        }
+        "objpak-string-set" => Node::new("SetLiteral")
+            .with("elements", Vec::<Node>::new())
+            .with("order", "objpak-string"),
+        "set-insert" => Node::new("SetInsert")
+            .with("collection", expression_slot(&mut slots, "collection")?)
+            .with("value", expression_slot(&mut slots, "value")?),
+        "prefix-update" | "postfix-update" => {
+            let operand = expression_slot(&mut slots, "operand")?;
+            let delta = expression_slot(&mut slots, "delta")?.number("value")?;
+            if !operand.is("Name") || !matches!(delta, -1.0 | 1.0) {
+                return None;
+            }
+            Node::new("Update")
+                .with("operand", operand)
+                .with("delta", delta)
+                .with("prefix", key == "prefix-update")
+        }
+        _ => return None,
+    })
 }
 
 fn name_slot(slots: &mut Captured, name: &str) -> String {
@@ -510,7 +656,37 @@ fn array_node(key: &str, mut slots: Captured) -> Option<Node> {
     })
 }
 
+fn query_node(key: &str, mut slots: Captured) -> Option<Node> {
+    let source = expression_slot(&mut slots, "source")?;
+    let variable = name_slot(&mut slots, "variable");
+    let condition = expression_slot(&mut slots, "condition")?;
+    let projection = expression_slot(&mut slots, "projection")?;
+    Some(crate::meta::queries::query(
+        source,
+        &variable,
+        projection,
+        Some(condition),
+        !key.contains("deferred"),
+    ))
+}
+
 fn statement_from_sentence(key: &str, mut slots: Captured) -> Option<Node> {
+    if crate::meta::queries::KEYS.contains(&key) {
+        return Some(Node::new("Evaluate").with("expression", query_node(key, slots)?));
+    }
+    if let Some(aspect) = key
+        .strip_prefix("question-")
+        .filter(|aspect| ASPECTS.contains(aspect))
+    {
+        return Some(
+            Node::new("Evaluate").with(
+                "expression",
+                Node::new("Question")
+                    .with("aspect", aspect)
+                    .with("subject", expression_slot(&mut slots, "subject")?),
+            ),
+        );
+    }
     let mut value = |name: &str| expression_slot(&mut slots, name);
     Some(match key {
         "print-line" | "print" => Node::new("Print")
@@ -543,6 +719,13 @@ fn statement_from_sentence(key: &str, mut slots: Captured) -> Option<Node> {
         "return-value" => Node::new("Return").with_opt("value", value("value")),
         "return" => Node::new("Return"),
         "evaluate" => Node::new("Evaluate").with_opt("expression", value("expression")),
+        "documentation" => {
+            let documentation = value("value");
+            if !documentation.as_ref().is_some_and(|value| value.is("Text")) {
+                return None;
+            }
+            Node::new("Documentation").with_opt("value", documentation)
+        }
         _ => return None,
     })
 }
@@ -565,19 +748,6 @@ fn is_space(character: char) -> bool {
     character.is_whitespace() || character == '\u{feff}'
 }
 
-fn note_pattern(language: &Language) -> Regex {
-    let (before, after) = language
-        .note
-        .split_once("{text}")
-        .unwrap_or((language.note.as_str(), ""));
-    Regex::new(&format!(
-        r"^{}\s*(.*?){}$",
-        regex::escape(before.trim_matches(is_space)),
-        regex::escape(after)
-    ))
-    .expect("note pattern")
-}
-
 /// A heading written without its end mark ("While n is less than 3, do
 /// this") still opens a block when the lines after it are indented deeper.
 fn mark_headings(mut lines: Vec<Line>) -> Vec<Line> {
@@ -595,10 +765,8 @@ fn mark_headings(mut lines: Vec<Line>) -> Vec<Line> {
 
 fn read_lines(source: &str, language: &Language) -> Vec<Line> {
     let pattern = note_pattern(language);
-    let lines = source
-        .split('\n')
-        .map(|raw| raw.strip_suffix('\r').unwrap_or(raw))
-        .enumerate()
+    let lines = sentence_lines(source, language)
+        .into_iter()
         .map(|(index, raw)| {
             let content = raw.trim_end_matches(is_space);
             let text = content.trim_start_matches(is_space);
@@ -617,12 +785,14 @@ fn read_lines(source: &str, language: &Language) -> Vec<Line> {
             }
             let opens_block = text.ends_with(language.block_end.as_str());
             let end_mark = if opens_block {
-                &language.block_end
+                language.block_end.as_str()
+            } else if text.ends_with('?') {
+                "?"
             } else {
-                &language.sentence_end
+                language.sentence_end.as_str()
             };
             let sentence = text
-                .strip_suffix(end_mark.as_str())
+                .strip_suffix(end_mark)
                 .map_or(text, |sentence| sentence.trim_matches(is_space));
             Line {
                 index,
@@ -630,7 +800,7 @@ fn read_lines(source: &str, language: &Language) -> Vec<Line> {
                 note: None,
                 text: sentence.to_owned(),
                 opens_block,
-                unmarked: !text.is_empty() && !text.ends_with(end_mark.as_str()),
+                unmarked: !text.is_empty() && !text.ends_with(end_mark),
                 blank: text.is_empty(),
             }
         })
@@ -640,7 +810,7 @@ fn read_lines(source: &str, language: &Language) -> Vec<Line> {
 
 struct Paragraph {
     notes_only: bool,
-    notes: Vec<String>,
+    notes: Vec<Node>,
     function: Option<Node>,
     statements: Vec<Node>,
 }
@@ -654,6 +824,7 @@ struct ProgramReader<'a> {
     sentences: SentenceReader<'a>,
     lines: Vec<Line>,
     position: usize,
+    source: crate::source_origins::SourceLocator,
 }
 
 impl ProgramReader<'_> {
@@ -686,7 +857,7 @@ impl ProgramReader<'_> {
             }
             self.position += 1;
             if let Some(note) = &line.note {
-                statements.push(comment(note));
+                statements.push(self.source.at_line(comment(note), line.index));
                 continue;
             }
             if let Some(statement) = self.statement(self.position - 1, depth, &mut statements)? {
@@ -702,12 +873,26 @@ impl ProgramReader<'_> {
         depth: f64,
         statements: &mut [Node],
     ) -> Result<Option<Node>, String> {
+        let line = self.lines[index].index;
+        let result = self.statement_inner(index, depth, statements)?;
+        Ok(result.map(|node| self.source.at_line(node, line)))
+    }
+
+    fn statement_inner(
+        &mut self,
+        index: usize,
+        depth: f64,
+        statements: &mut [Node],
+    ) -> Result<Option<Node>, String> {
         let line = &self.lines[index];
         if !line.opens_block {
             return match self.sentences.sentence(&line.text, &STATEMENT_KEYS)? {
                 None => self.fail(line, "No sentence template matches"),
                 Some(("nothing", _)) => Ok(None),
-                Some((key, slots)) => Ok(statement_from_sentence(key, slots)),
+                Some((key, slots)) => match statement_from_sentence(key, slots) {
+                    Some(statement) => Ok(Some(statement)),
+                    None => self.fail(line, "Invalid sentence value"),
+                },
             };
         }
         let Some((key, mut slots)) = self.sentences.sentence(&line.text, &BLOCK_KEYS)? else {
@@ -771,7 +956,7 @@ impl ProgramReader<'_> {
         } else {
             body
         };
-        open.set("otherwise", otherwise);
+        open.set("otherwise", self.source.at_line(otherwise, line.index));
         Ok(None)
     }
 
@@ -795,11 +980,14 @@ impl ProgramReader<'_> {
             }
             first = false;
         }
-        Ok(Node::new("Program")
-            .with("comments", comments)
-            .with("imports", Value::List(Vec::new()))
-            .with("functions", functions)
-            .with("main", block(main)))
+        Ok(crate::source_origins::attach_comments(
+            Node::new("Program")
+                .with("imports", Value::List(Vec::new()))
+                .with("functions", functions)
+                .with("main", block(main)),
+            "comments",
+            &comments,
+        ))
     }
 
     fn paragraph(&mut self) -> Result<Paragraph, String> {
@@ -809,14 +997,17 @@ impl ProgramReader<'_> {
             .get(self.position)
             .and_then(|line| line.note.clone())
         {
-            notes.push(note);
+            notes.push(
+                self.source
+                    .at_line(comment(&note), self.lines[self.position].index),
+            );
             self.position += 1;
         }
-        let comments = |notes: &[String]| notes.iter().map(|text| comment(text)).collect();
+
         let Some(line) = self.lines.get(self.position).filter(|line| !line.blank) else {
             return Ok(Paragraph {
                 notes_only: true,
-                statements: comments(&notes),
+                statements: notes.clone(),
                 notes,
                 function: None,
             });
@@ -827,8 +1018,19 @@ impl ProgramReader<'_> {
             None
         };
         if let Some((_, mut slots)) = heading.filter(|_| line.depth == 0.0) {
+            let heading_line = line.index;
             self.position += 1;
-            let body = self.block(1.0)?;
+            let mut body = self.block(1.0)?;
+            let mut statements = body.node_list("statements");
+            let documentation = if statements
+                .first()
+                .is_some_and(|item| item.is("Documentation"))
+            {
+                statements.remove(0).node("value").cloned()
+            } else {
+                None
+            };
+            body.set("statements", statements);
             let parameters: Vec<Node> = match slots.remove("parameters") {
                 Some(Slot::Names(names)) => names
                     .into_iter()
@@ -836,11 +1038,18 @@ impl ProgramReader<'_> {
                     .collect(),
                 _ => Vec::new(),
             };
-            let function = Node::new("Function")
-                .with("name", name_slot(&mut slots, "name"))
-                .with("parameters", parameters)
-                .with("body", body)
-                .with("comments", notes);
+            let function = crate::source_origins::attach_comments(
+                self.source.at_line(
+                    Node::new("Function")
+                        .with("name", name_slot(&mut slots, "name"))
+                        .with("parameters", parameters)
+                        .with_opt("documentation", documentation)
+                        .with("body", body),
+                    heading_line,
+                ),
+                "comments",
+                &notes,
+            );
             return Ok(Paragraph {
                 notes_only: false,
                 notes: Vec::new(),
@@ -848,7 +1057,7 @@ impl ProgramReader<'_> {
                 statements: Vec::new(),
             });
         }
-        let mut statements: Vec<Node> = comments(&notes);
+        let mut statements: Vec<Node> = notes.clone();
         statements.extend(self.block(0.0)?.node_list("statements"));
         Ok(Paragraph {
             notes_only: false,
@@ -867,6 +1076,37 @@ pub fn read_natural(source: &str, id: &str) -> Result<Node, String> {
 /// [`read_natural`] with a compiled language, such as one with more
 /// template variants (see [`super::catalog::with_templates`]).
 pub fn read_natural_with(source: &str, language: &Language) -> Result<Node, String> {
+    if !source.trim().contains('\n') {
+        let tokens = super::tokens::tokenize(source.trim(), &language.spelling(), false)?;
+        if tokens.len() == 1
+            && let Some(expression) =
+                SentenceReader::new(language).expression(&tokens, 0, tokens.len(), 0)
+            && (!expression.is("Name")
+                || source
+                    .trim()
+                    .chars()
+                    .next()
+                    .is_some_and(char::is_alphabetic))
+        {
+            return Ok(Node::new("Program")
+                .with("comments", Value::List(Vec::new()))
+                .with("imports", Value::List(Vec::new()))
+                .with("functions", Value::List(Vec::new()))
+                .with(
+                    "main",
+                    block(vec![
+                        crate::source_origins::SourceLocator::new(source).at_line(
+                            Node::new("Evaluate").with("expression", expression),
+                            source
+                                .chars()
+                                .take_while(|c| c.is_whitespace())
+                                .filter(|c| *c == '\n')
+                                .count(),
+                        ),
+                    ]),
+                ));
+        }
+    }
     // A language without a for-each sentence writes the counting loop over an
     // index; it is read back as the loop over the elements it stands for.
     ProgramReader {
@@ -874,7 +1114,18 @@ pub fn read_natural_with(source: &str, language: &Language) -> Result<Node, Stri
         sentences: SentenceReader::new(language),
         lines: read_lines(source, language),
         position: 0,
+        source: crate::source_origins::SourceLocator::new(source),
     }
     .read()
-    .map(raise_for_each)
+    .and_then(|program| {
+        let mut orphan = false;
+        crate::meta::walk(&program, |current| {
+            orphan |= current.is("Documentation");
+        });
+        if orphan {
+            Err("Documentation must begin a function definition".into())
+        } else {
+            Ok(raise_for_each(program))
+        }
+    })
 }

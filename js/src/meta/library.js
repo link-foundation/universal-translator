@@ -16,6 +16,7 @@
 // every language. The Rust twin is rust/src/meta/library.rs.
 
 import { node } from './tree.js';
+import { inheritOrigin } from '../translation/source-origins.js';
 
 export const standardLibrary = 'standard';
 
@@ -49,7 +50,8 @@ function mapTree(value, visit) {
   const mapped = Object.fromEntries(
     Object.entries(value).map(([field, item]) => [field, mapTree(item, visit)])
   );
-  return value.kind ? visit(mapped) : mapped;
+  inheritOrigin(mapped, value);
+  return value.kind ? inheritOrigin(visit(mapped), value) : mapped;
 }
 
 // The fields of a node but its kind and the given ones.

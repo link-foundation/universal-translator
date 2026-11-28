@@ -12,15 +12,25 @@ pub fn creates_arrays(program: &LoweredProgram) -> bool {
 }
 
 /// Comment lines in a target's comment syntax.
-pub fn comments(prefix: &str, texts: &[String], indent: &str) -> Vec<String> {
-    texts
-        .iter()
-        .flat_map(|text| {
+pub(super) fn comments(
+    prefix: &str,
+    texts: &[String],
+    indent: &str,
+) -> crate::emission_map::SourceLines {
+    let mut result = crate::emission_map::SourceLines::default();
+    for text in texts {
+        let origins = crate::emission_map::current();
+        let _origin = crate::emission_map::active_origins(if origins.is_empty() {
+            crate::emission_map::line_origins(text)
+        } else {
+            origins
+        });
+        result.extend(
             text.split('\n')
-                .map(|line| format!("{indent}{prefix} {line}").trim_end().to_owned())
-                .collect::<Vec<_>>()
-        })
-        .collect()
+                .map(|line| format!("{indent}{prefix} {line}").trim_end().to_owned()),
+        );
+    }
+    result
 }
 
 /// Every function of a lowered program, with "main" last.

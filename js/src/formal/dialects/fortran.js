@@ -1,6 +1,7 @@
 // Fortran (free form, Fortran 2018): a main program whose variables are
 // declared before its statements, and procedures after `contains`.
 
+import { renderLines } from '../../translation/emission-map.js';
 import { add, block, node, number, text as textNode } from '../../meta/tree.js';
 import { SyntaxError } from '../lexer.js';
 import { commentNode, declaredVariables, keywordParser } from './shared.js';
@@ -257,6 +258,16 @@ const statements = (Base) =>
 
 const parser = (Base) =>
   class FortranParser extends statements(keywordParser(Base)) {
+    // Logical equivalence binds less tightly than OR and AND in Fortran.
+    expression() {
+      let left = super.expression();
+      while (this.is('.eqv.') || this.is('.neqv.')) {
+        const operator =
+          this.next().value.toLowerCase() === '.eqv.' ? 'equal' : 'notEqual';
+        left = node('Binary', { operator, left, right: super.expression() });
+      }
+      return left;
+    }
     program() {
       this.formats = this.formatStatements();
       const items = [];
@@ -501,6 +512,13 @@ const emitter = (Base) =>
     }
 
     binary(expression, parent) {
+      if (
+        ['equal', 'notEqual'].includes(expression.operator) &&
+        expression.left.type === 'boolean'
+      ) {
+        const operator = expression.operator === 'equal' ? '.eqv.' : '.neqv.';
+        return `(${this.expression(expression.left)} ${operator} ${this.expression(expression.right)})`;
+      }
       if (expression.operator !== 'remainder') {
         return super.binary(expression, parent);
       }
@@ -537,9 +555,7 @@ const emitter = (Base) =>
     }
 
     functionDefinition(item) {
-      for (const text of item.comments ?? []) {
-        this.comment(text);
-      }
+      this.comments(item, 'comments');
       const list = item.parameters.map(({ name }) => name).join(', ');
       const subroutine = item.returnType === 'nothing';
       const kind = subroutine ? 'subroutine' : 'function';
@@ -572,9 +588,7 @@ const emitter = (Base) =>
     }
 
     program(program) {
-      for (const text of program.comments) {
-        this.comment(text);
-      }
+      this.comments(program, 'comments');
       if (program.comments.length) {
         this.line();
       }
@@ -586,9 +600,7 @@ const emitter = (Base) =>
       this.line('implicit none');
       this.variables(program.main);
       this.line();
-      for (const text of program.mainComments ?? []) {
-        this.comment(text);
-      }
+      this.comments(program, 'mainComments');
       this.body(program.main);
       if (program.functions.length) {
         this.depth -= 1;
@@ -604,7 +616,7 @@ const emitter = (Base) =>
       }
       this.depth -= 1;
       this.line('end program main');
-      return `${this.lines.join('\n')}\n`;
+      return renderLines(this, this.lines);
     }
   };
 

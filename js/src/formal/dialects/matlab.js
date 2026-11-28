@@ -4,6 +4,7 @@
 // setting its output variable and leaving with `return`. Numbers are
 // doubles: fix(a / b) divides and rem(a, b) is the remainder.
 
+import { renderLines } from '../../translation/emission-map.js';
 import { add, block, node, number, text } from '../../meta/tree.js';
 import { SyntaxError } from '../lexer.js';
 import { eachStatement, keywordParser } from './shared.js';
@@ -341,9 +342,7 @@ const emitter = (Base) =>
     }
 
     functionDefinition(item) {
-      for (const comment of item.comments ?? []) {
-        this.comment(comment);
-      }
+      this.comments(item, 'comments');
       let returns = false;
       eachStatement(item.body, (statement) => {
         returns ||= statement.kind === 'Return' && Boolean(statement.value);
@@ -356,9 +355,7 @@ const emitter = (Base) =>
     }
 
     program(program) {
-      for (const comment of program.comments) {
-        this.comment(comment);
-      }
+      this.comments(program, 'comments');
       if (program.comments.length) {
         this.line();
       }
@@ -374,11 +371,9 @@ const emitter = (Base) =>
         this.functionDefinition(item);
       });
       this.line();
-      for (const comment of program.mainComments ?? []) {
-        this.comment(comment);
-      }
+      this.comments(program, 'mainComments');
       this.body(program.main);
-      return `${this.lines.join('\n')}\n`;
+      return renderLines(this, this.lines);
     }
   };
 

@@ -12,7 +12,28 @@ natural:
   true: 'kweli'
   false: 'uongo'
   note: 'Kumbuka: {text}'
+  grammar:
+    terms:
+      interrogative: 'ni nini'
+      query-scope: 'kwa kila {variable} katika {source}'
+      query-deferred: '“iliyoahirishwa”'
+    productions:
+      answer-type: 'aina ya {subject}'
+      question-type: '@answer-type @interrogative'
+      answer-documentation: 'maelezo ya {subject}'
+      question-documentation: '@answer-documentation @interrogative'
+      answer-source: 'msimbo chanzo wa {subject}'
+      question-source: '@answer-source @interrogative'
+      answer-details: 'taarifa za kina kuhusu {subject}'
+      question-details: '@answer-details @interrogative'
+      answer-query: 'thamani za {projection} @query-scope ikiwa {condition}'
+      question-query: 'Ni thamani zipi za {projection} @query-scope ikiwa {condition}'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
+      element: 'kipengele {index} cha {array}'
+      set-element: 'Badilisha @element[array=name] kuwa {value}'
   templates:
+    documentation: 'Maelezo ni {value}'
     function: 'Fafanua {name} kwa {parameters}'
     function-without-parameters: 'Fafanua {name}'
     declare: 'Unda {name} yenye thamani {value}'
@@ -50,9 +71,7 @@ natural:
     remainder: '{left} modulo {right}' '{left} % {right}'
     array: 'orodha ({elements})'
     new-array: 'orodha ya urefu {length} iliyojaa {fill}'
-    element: 'kipengele {index} cha {array}'
     length: 'urefu wa {array}'
-    set-element: 'Badilisha kipengele {index} cha {name} kuwa {value}'
   words:
     ackermann: 'ackermann'
     bottles: 'chupa'

@@ -17,6 +17,13 @@
 import { walk } from '../meta/tree.js';
 import { neutralName } from './names.js';
 import { raiseTruthFunctions } from '../meta/truth.js';
+import {
+  combineOrigins,
+  expressionOrigins,
+  inheritOrigin,
+  sourceOrigin,
+  withOrigin,
+} from '../translation/source-origins.js';
 
 const opposite = {
   equal: 'notEqual',
@@ -53,20 +60,29 @@ const binary = (operator, left, right) => ({
 
 function negate(condition) {
   if (condition.kind === 'Binary' && opposite[condition.operator]) {
-    return { ...condition, operator: opposite[condition.operator] };
+    return inheritOrigin(
+      { ...condition, operator: opposite[condition.operator] },
+      condition
+    );
   }
   if (
     condition.kind === 'Binary' &&
     ['and', 'or'].includes(condition.operator)
   ) {
-    return binary(
-      condition.operator === 'and' ? 'or' : 'and',
-      negate(condition.left),
-      negate(condition.right)
+    return inheritOrigin(
+      binary(
+        condition.operator === 'and' ? 'or' : 'and',
+        negate(condition.left),
+        negate(condition.right)
+      ),
+      condition
     );
   }
   if (condition.kind === 'Unary' && condition.operator === 'not') {
-    return condition.operand;
+    return withOrigin(
+      condition.operand,
+      combineOrigins([sourceOrigin(condition.operand), sourceOrigin(condition)])
+    );
   }
   return { kind: 'Unary', operator: 'not', operand: condition };
 }
@@ -117,6 +133,7 @@ class BlockLifting {
     this.statements = [];
     this.stack = [];
     this.prints = [];
+    this.printOrigins = [];
     // Array literals whose elements are still being stored, with their
     // lengths.
     this.building = new Map();
@@ -140,13 +157,21 @@ class BlockLifting {
     } else if (prints.length) {
       value = { kind: 'Interpolation', parts: prints };
     }
-    this.statements.push({ kind: 'Print', value, newline });
+    this.statements.push(
+      withOrigin(
+        { kind: 'Print', value, newline },
+        combineOrigins(this.printOrigins)
+      )
+    );
     this.prints = [];
+    this.printOrigins = [];
   }
 
   add(statement) {
     this.flush(false);
-    this.statements.push(statement);
+    this.statements.push(
+      sourceOrigin(statement) ? statement : withOrigin(statement, this.origin)
+    );
   }
 
   store(name, value) {
@@ -167,6 +192,7 @@ class BlockLifting {
     const top = this.stack.at(-1);
     const built = this.building.get(top);
     if (built && top.elements.length < built) {
+      withOrigin(top, combineOrigins([sourceOrigin(top), this.origin]));
       this.stack.push({ kind: 'Building', literal: top });
       return;
     }
@@ -178,7 +204,10 @@ class BlockLifting {
     ) {
       throw liftError('a dup that does not build an array literal');
     }
-    const literal = { kind: 'ArrayLiteral', elements: [] };
+    const literal = withOrigin(
+      { kind: 'ArrayLiteral', elements: [] },
+      combineOrigins([...expressionOrigins(top), this.origin])
+    );
     this.building.set(literal, top.length.value);
     this.stack[this.stack.length - 1] = literal;
     this.stack.push({ kind: 'Building', literal });
@@ -194,6 +223,14 @@ class BlockLifting {
         throw liftError('array literal elements out of order');
       }
       elements.push(value);
+      withOrigin(
+        array.literal,
+        combineOrigins([
+          sourceOrigin(array.literal),
+          sourceOrigin(index),
+          this.origin,
+        ])
+      );
       return;
     }
     if (array.kind !== 'Name') {
@@ -205,16 +242,23 @@ class BlockLifting {
   printText(value) {
     const last = this.prints.at(-1);
     if (last?.kind === 'Text') {
-      this.prints[this.prints.length - 1] = {
-        kind: 'Text',
-        value: last.value + value,
-      };
+      this.prints[this.prints.length - 1] = withOrigin(
+        {
+          kind: 'Text',
+          value: last.value + value,
+        },
+        combineOrigins([sourceOrigin(last), this.origin])
+      );
     } else {
-      this.prints.push({ kind: 'Text', value });
+      this.prints.push(withOrigin({ kind: 'Text', value }, this.origin));
     }
   }
 
-  instruction(operation, operands) {
+  instruction(operation, operands, origin) {
+    this.origin = origin;
+    if (operation.startsWith('print-')) {
+      this.printOrigins.push(origin);
+    }
     const { lifting } = this;
     const statements = {
       comment: () => this.add({ kind: 'Comment', text: operands[0] }),
@@ -235,7 +279,7 @@ class BlockLifting {
       statements[operation]();
       return;
     }
-    lifting.expression(this.stack, operation, operands);
+    lifting.expression(this.stack, operation, operands, origin);
     // A call to a procedure that returns nothing is a statement.
     if (operation === 'call' && !lifting.functions.get(operands[0])) {
       this.add({ kind: 'Evaluate', expression: this.stack.pop() });
@@ -287,16 +331,33 @@ class FunctionLifting {
       const [operation, ...operands] = this.at(position);
       if (operation === 'compare-jump' && values.length === 2) {
         const [left, right] = values;
+        const test = this.relation(operands[0], left, right);
         return {
-          test: this.relation(operands[0], left, right),
+          test: withOrigin(
+            test,
+            combineOrigins([
+              sourceOrigin(test),
+              sourceOrigin(this.at(position)),
+            ])
+          ),
           target: operands[1],
           next: position + 1,
         };
       }
       if (pure.has(operation)) {
-        this.expression(values, operation, operands);
+        this.expression(
+          values,
+          operation,
+          operands,
+          sourceOrigin(this.at(position))
+        );
       } else if (operation === 'call' && this.functions.get(operands[0])) {
-        this.expression(values, operation, operands);
+        this.expression(
+          values,
+          operation,
+          operands,
+          sourceOrigin(this.at(position))
+        );
       } else {
         return null;
       }
@@ -312,7 +373,13 @@ class FunctionLifting {
       this.isBoolean(left) &&
       ['equal', 'notEqual'].includes(operator)
     ) {
-      return operator === 'notEqual' ? left : negate(left);
+      return withOrigin(
+        operator === 'notEqual' ? left : negate(left),
+        combineOrigins([
+          ...expressionOrigins(left),
+          ...expressionOrigins(right),
+        ])
+      );
     }
     return binary(operator, left, right);
   }
@@ -394,7 +461,15 @@ class FunctionLifting {
     return next;
   }
 
-  expression(stack, operation, operands) {
+  expression(stack, operation, operands, origin) {
+    this.expressionValue(stack, operation, operands);
+    const top = stack.at(-1);
+    if (top) {
+      withOrigin(top, combineOrigins([sourceOrigin(top), origin]));
+    }
+  }
+
+  expressionValue(stack, operation, operands) {
     const pop = () => {
       if (!stack.length) {
         throw liftError(`"${operation}" needs a value on the stack`);
@@ -459,25 +534,38 @@ class FunctionLifting {
     const lifted = new BlockLifting(this, outer);
     let index = start;
     while (index < end) {
+      lifted.origin = sourceOrigin(this.at(index));
       const [operation, ...operands] = this.at(index);
       if (operation === 'label') {
         index = this.loop(index, lifted);
       } else if (operation === 'compare-jump') {
         const right = lifted.pop();
         const left = lifted.pop();
+        const test = this.relation(operands[0], left, right);
         const found = this.condition(index, {
-          test: this.relation(operands[0], left, right),
+          test: withOrigin(
+            test,
+            combineOrigins([sourceOrigin(test), lifted.origin])
+          ),
           target: operands[1],
           next: index + 1,
         });
         if (this.isBooleanValue(found)) {
-          lifted.stack.push(found.condition);
           index = found.end + 5;
+          lifted.stack.push(
+            withOrigin(
+              found.condition,
+              combineOrigins([
+                sourceOrigin(found.condition),
+                ...this.code.slice(found.end, index).map(sourceOrigin),
+              ])
+            )
+          );
         } else {
           index = this.branch(found, lifted);
         }
       } else {
-        lifted.instruction(operation, operands);
+        lifted.instruction(operation, operands, lifted.origin);
         index += 1;
       }
     }
@@ -511,7 +599,15 @@ class FunctionLifting {
     const doneIndex = this.labelIndex(done);
     const then = this.block(end, otherwise - 1, lifted.scope);
     const rest = this.block(otherwise + 1, doneIndex, lifted.scope);
-    const statement = { kind: 'If', condition, then };
+    const statement = withOrigin(
+      { kind: 'If', condition, then },
+      combineOrigins([
+        lifted.origin,
+        ...[otherwise - 1, otherwise, doneIndex].map((index) =>
+          sourceOrigin(this.at(index))
+        ),
+      ])
+    );
     if (rest.statements.length === 1 && rest.statements[0].kind === 'If') {
       statement.otherwise = rest.statements[0];
     } else if (rest.statements.length) {
@@ -530,11 +626,20 @@ class FunctionLifting {
     if (jump !== 'jump' || target !== top) {
       throw liftError(`the label "${top}" does not start a loop`);
     }
-    lifted.add({
-      kind: 'While',
-      condition: found.condition,
-      body: this.block(found.end, exit - 1, lifted.scope),
-    });
+    lifted.add(
+      withOrigin(
+        {
+          kind: 'While',
+          condition: found.condition,
+          body: this.block(found.end, exit - 1, lifted.scope),
+        },
+        combineOrigins([
+          lifted.origin,
+          sourceOrigin(this.at(exit - 1)),
+          sourceOrigin(this.at(exit)),
+        ])
+      )
+    );
     return exit + 1;
   }
 
@@ -612,13 +717,22 @@ export function countingLoops(statements) {
       result.push(start);
       continue;
     }
-    result.push({
-      kind: 'CountingLoop',
-      variable: start.name,
-      start: start.value,
-      end: loop.condition.right,
-      body: { ...loop.body, statements: loop.body.statements.slice(0, -1) },
-    });
+    result.push(
+      withOrigin(
+        {
+          kind: 'CountingLoop',
+          variable: start.name,
+          start: start.value,
+          end: loop.condition.right,
+          body: { ...loop.body, statements: loop.body.statements.slice(0, -1) },
+        },
+        combineOrigins([
+          ...expressionOrigins(start),
+          ...expressionOrigins(loop),
+          ...expressionOrigins(loop.body.statements.at(-1)),
+        ])
+      )
+    );
     index += 1;
   }
   return result;

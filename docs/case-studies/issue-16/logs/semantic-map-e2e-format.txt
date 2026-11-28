@@ -1,0 +1,2 @@
+js/tests/semantic-mapping.test.js 138ms
+examples/universal-app/e2e/translate.e2e.mjs 217ms

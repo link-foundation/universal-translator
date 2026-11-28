@@ -13,4 +13,5 @@ int greatestCommonDivisor(int first, int second) {
 
 int main(void) {
     printf("The greatest common divisor of 1071 and 462 is %d\n", greatestCommonDivisor(1071, 462));
+    return 0;
 }

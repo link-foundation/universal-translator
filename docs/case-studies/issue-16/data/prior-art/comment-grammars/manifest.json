@@ -1,0 +1,72 @@
+[
+  {
+    "language": "rust",
+    "url": "https://doc.rust-lang.org/reference/comments.html",
+    "file": "rust.html.gz",
+    "bytes": 71830,
+    "sha256": "86ead4d2e75086f38e6d4cf77cfa51dd5afcf4e3e052f5d9cc5ce1e5738b34bb"
+  },
+  {
+    "language": "kotlin",
+    "url": "https://kotlinlang.org/spec/syntax-and-grammar.html",
+    "file": "kotlin.html.gz",
+    "bytes": 224047,
+    "sha256": "013a8634a2be6cbc801f94f4cbd94b659249b5cbfe6eb087b3f8618275123750"
+  },
+  {
+    "language": "swift",
+    "url": "https://docs.swift.org/swift-book/data/documentation/the-swift-programming-language/lexicalstructure.json",
+    "file": "swift.json.gz",
+    "bytes": 359029,
+    "sha256": "dc75c36a385a8244d925bb359ba8451c2a67b512336c6a2e6ba0230578e25f81"
+  },
+  {
+    "language": "dart",
+    "url": "https://dart.dev/language/comments",
+    "file": "dart.html.gz",
+    "bytes": 104588,
+    "sha256": "350484038a6792627474e3991b9ad2481dc5cc156d64e1efea5556cd8c0a64c1"
+  },
+  {
+    "language": "scala",
+    "url": "https://www.scala-lang.org/files/archive/spec/2.13/01-lexical-syntax.html",
+    "file": "scala.html.gz",
+    "bytes": 35182,
+    "sha256": "431f32300de24b7717487f16b2a89eacfbfda71528bff9a202e7b4bf4f79140a"
+  },
+  {
+    "language": "julia",
+    "url": "https://raw.githubusercontent.com/JuliaLang/julia/master/doc/src/base/punctuation.md",
+    "file": "julia.md.gz",
+    "bytes": 7463,
+    "sha256": "5b5a2132eb1f098069a1eb510445e54071e3a8b51991930a6bfcd62e903bf2a3"
+  },
+  {
+    "language": "nim",
+    "url": "https://nim-lang.org/docs/manual.html",
+    "file": "nim.html.gz",
+    "bytes": 1132939,
+    "sha256": "d85bdc884d5756f1a76986cccd49cba514c936e746ded8f92da52cd005f6fe74"
+  },
+  {
+    "language": "lean",
+    "url": "https://lean-lang.org/doc/reference/latest/Source-Files-and-Modules/",
+    "file": "lean.html.gz",
+    "bytes": 385810,
+    "sha256": "b62f88cab61e0094bf96cf002a77f4597232c6de71e74bbb6542e571d996f3b8"
+  },
+  {
+    "language": "rocq",
+    "url": "https://raw.githubusercontent.com/rocq-prover/rocq/master/doc/sphinx/language/core/basic.rst",
+    "file": "rocq.rst.gz",
+    "bytes": 26510,
+    "sha256": "17c03d6677672c9ebe8b3744a5903a432ebfa9ac91c3b0667c52520b6c3dd802"
+  },
+  {
+    "language": "wat",
+    "url": "https://webassembly.github.io/spec/core/text/lexical.html",
+    "file": "wat.html.gz",
+    "bytes": 18759,
+    "sha256": "49e58de476cd6d9d9f1e17dd745b5f8827f55e3998fb1b86760989cd438a4da2"
+  }
+]

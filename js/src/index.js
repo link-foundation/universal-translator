@@ -38,8 +38,15 @@ export {
   translatePartial,
 } from './translator.js';
 export { fragmentKinds } from './translation/fragments.js';
+export { reconstructConcrete } from './translation/concrete-syntax.js';
+export * as grammarEngine from './grammar/engine.js';
+export { createGrammarWorkspace } from './grammar/workspace.js';
 export { decorateStages, stageNames } from './translation/decorators.js';
-export { grammarLanguageIds, languages } from './formal/languages.js';
+export {
+  grammarLanguageIds,
+  queryLanguageIds,
+  languages,
+} from './formal/languages.js';
 export { machineTargetIds, machineTargets } from './formal/machine.js';
 export {
   commonLibraryAccess,
@@ -61,6 +68,8 @@ export {
   readJvm,
   readNasm,
 } from './formal/machine-reader.js';
+export { readWasmBinary } from './formal/machine-reader-wasm-binary.js';
+export { readJvmClass } from './formal/machine-reader-jvm-class.js';
 export {
   commentGlossary,
   contextRules,

@@ -12,7 +12,28 @@ natural:
   true: 'درست'
   false: 'نادرست'
   note: 'یادداشت: {text}'
+  grammar:
+    terms:
+      interrogative: 'چیست'
+      query-scope: 'برای هر {variable} در {source}'
+      query-deferred: '«تأخیری»'
+    productions:
+      answer-type: 'نوع {subject}'
+      question-type: '@answer-type @interrogative'
+      answer-documentation: 'مستندات {subject}'
+      question-documentation: '@answer-documentation @interrogative'
+      answer-source: 'کد منبع {subject}'
+      question-source: '@answer-source @interrogative'
+      answer-details: 'اطلاعات تفصیلی درباره {subject}'
+      question-details: '@answer-details @interrogative'
+      answer-query: 'مقادیر {projection} @query-scope که {condition}'
+      question-query: '@answer-query چیست'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
+      element: 'عنصر {index} در {array}'
+      set-element: '@element[array=name] را به {value} تغییر بده'
   templates:
+    documentation: 'مستندات عبارت است از {value}'
     function: '{name} را با {parameters} تعریف کن'
     function-without-parameters: '{name} را تعریف کن'
     declare: '{name} را با مقدار {value} بساز'
@@ -50,9 +71,7 @@ natural:
     remainder: '{left} به پیمانه {right}' '{left} % {right}'
     array: 'فهرست ({elements})'
     new-array: 'فهرستی به طول {length} با مقدار {fill}'
-    element: 'عنصر {index} در {array}'
     length: 'طول {array}'
-    set-element: 'عنصر {index} در {name} را به {value} تغییر بده'
   words:
     ackermann: 'آکرمن'
     bottles: 'بطری‌ها'

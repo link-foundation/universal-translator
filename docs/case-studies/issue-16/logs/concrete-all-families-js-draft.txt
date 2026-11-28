@@ -1,0 +1,28 @@
+▶ concrete syntax as the default source record
+  ✔ partitions every byte, including quotes, directives and trivia (23.584809ms)
+  ✔ exposes source syntax to decorators before semantic rewriting (215.603385ms)
+  ✔ retains source syntax when reading words and every machine format (116.212874ms)
+  ✖ keeps accepted regions and explicit errors in incomplete source (18.505563ms)
+  ✔ keeps a lossless record for empty and whitespace-only input (1.050229ms)
+✖ concrete syntax as the default source record (377.962025ms)
+ℹ tests 5
+ℹ suites 1
+ℹ pass 4
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 841.942626
+
+✖ failing tests:
+
+test at node_modules/test-anywhere/src/index.js:174:12
+✖ keeps accepted regions and explicit errors in incomplete source (18.505563ms)
+  TypeError [Error]: expect(...).toHaveLength is not a function
+      at TestContext.<anonymous> (file:///tmp/gh-issue-solver-1795726129025/js/tests/concrete-syntax.test.js:92:35)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Suite.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Suite.processPendingSubtests (node:internal/test_runner/test:974:7)

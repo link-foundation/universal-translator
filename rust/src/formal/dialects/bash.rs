@@ -173,7 +173,7 @@ fn join_replies(statements: Vec<Node>) -> Vec<Node> {
         values.current = None;
         match restored.node("expression") {
             Some(call) if restored.is("Evaluate") && call.is("Call") => {
-                values.current = Some(call.clone());
+                values.current = Some(crate::source_origins::inherit(call.clone(), &restored));
             }
             _ => joined.push(restored),
         }
@@ -972,9 +972,7 @@ impl EmitterDialect for Bash {
     }
 
     fn function_definition(&self, e: &mut Emitter, item: &Node) -> Result<()> {
-        for comment in item.texts("comments") {
-            e.comment(&comment);
-        }
+        e.comments(item, "comments");
         e.line(&format!("{}() {{", item.str("name").unwrap_or_default()));
         let parameters = item.nodes("parameters");
         if !parameters.is_empty() {

@@ -18,4 +18,5 @@ int main(void) {
             printf("ackermann(%d, %d) = %d\n", first, second, ackermann(first, second));
         }
     }
+    return 0;
 }

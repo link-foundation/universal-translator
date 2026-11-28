@@ -1,0 +1,27 @@
+   Compiling universal-translator v0.1.0 (/tmp/gh-issue-solver-1795726129025)
+    Finished `test` profile [unoptimized] target(s) in 2.82s
+     Running rust/tests/equivalence.rs (target/debug/deps/equivalence-739635d7328d6e36)
+
+running 9 tests
+test finds_another_operator ... ok
+test finds_a_bound_that_is_one_off ... ok
+test holds_for_what_the_translator_writes ... ok
+test keeps_what_a_program_does_in_the_meta_program ... ok
+test leaves_out_types_and_mutability ... ok
+test leaves_out_comments_blank_lines_and_the_spelling_of_an_update ... ok
+test keeps_the_example_programs_through_a_round_trip_in_rust ... ok
+test holds_for_the_example_programs ... ok
+test holds_for_every_committed_translation_of_two_tasks ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.32s
+
+     Running rust/tests/exceptions.rs (target/debug/deps/exceptions-145dfabb58e9b551)
+
+running 4 tests
+test exception_names_preserve_user_bindings ... ok
+test finally_runs_before_a_function_returns ... ok
+test translated_cpp_exceptions_keep_the_exit_status ... ok
+test cpp_try_typed_catch_and_throw_keep_explicit_boundaries ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.15s
+

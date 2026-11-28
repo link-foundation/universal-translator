@@ -1,0 +1,29 @@
+{"id":"layout","result":{"text":"# Hello\n\nprint( \"Hello World!\")\n","complete":true,"errors":[],"lines":2,"readLines":2,"coverage":1,"prose":[],"lineMap":[[0,0],[2,2]]}}
+{"id":"power","result":{"text":"# untranslated (line 1): The fragment is not complete: Unexpected \"\n# console.log(`${2 ** 10}`);\n","complete":false,"errors":[{"line":1,"endLine":1,"message":"The fragment is not complete: Unexpected \"","source":"console.log(`${2 ** 10}`);\n"}],"lines":1,"readLines":0,"coverage":0,"prose":[],"lineMap":[]}}
+{"id":"append","result":{"text":"let mut values: Vec<i64> = vec![1, 2];\nvalues.push(3);\nprintln!(\"{}\", values.len() as i64);\n","complete":true,"errors":[],"lines":3,"readLines":3,"coverage":1,"prose":[],"lineMap":[[0,0],[1,1],[2,2]]}}
+{"id":"question","result":{"text":"# untranslated (line 1): Russian, line 1: No sentence template matches: \"Что такое смысл?\"\n# Что такое смысл?\n","complete":false,"errors":[{"line":1,"endLine":1,"message":"Russian, line 1: No sentence template matches: \"Что такое смысл?\"","source":"Что такое смысл?\n"}],"lines":1,"readLines":0,"coverage":0,"prose":[]}}
+{"id":"exception","result":{"text":"# untranslated (line 1): The fragment is not complete: Unexpected \"main\" after statement (line 1)\n# int main(int argc, char** argv)\n# untranslated (line 2): The fragment is not complete: Expected \"}\" but found \"{\" (line 3)\n# {\n# untranslated (lines 3-4): The fragment is not complete: Unexpected \"{\" after statement (line 3)\n# try { int i=0; throw 8; }\n# catch(int e) { return e; }\nreturn 0\n# untranslated (line 6): closes the part that starts on line 2\n# }\n","complete":false,"errors":[{"line":1,"endLine":1,"message":"The fragment is not complete: Unexpected \"main\" after statement (line 1)","source":"int main(int argc, char** argv)\n"},{"line":2,"endLine":2,"message":"The fragment is not complete: Expected \"}\" but found \"{\" (line 3)","source":"{\n"},{"line":3,"endLine":4,"message":"The fragment is not complete: Unexpected \"{\" after statement (line 3)","source":"try { int i=0; throw 8; }\ncatch(int e) { return e; }\n"},{"line":6,"endLine":6,"message":"closes the part that starts on line 2","source":"}\n"}],"lines":6,"readLines":1,"coverage":0.16666666666666666,"prose":[],"lineMap":[[4,7]]}}
+{"id":"annotation","result":{"text":"# untranslated (line 1): The fragment is not complete: Unexpected \"@\" in expression (line 1)\n# @PostMapping\n# untranslated (line 2): The fragment is not complete: Unexpected \".\" in expression (line 6)\n# public ResponseEntity<UserDto> createUser(\n# untranslated (line 3): The fragment is not complete: Unexpected \"@\" in expression (line 3)\n# @RequestBody @Valid CreateUserRequest request) {\nuser = userService.createUser(request)\nreturn ResponseEntity\n# untranslated (line 6): The fragment is not complete: Unexpected \".\" in expression (line 6)\n# .status(HttpStatus.CREATED)\n# untranslated (line 7): The fragment is not complete: Unexpected \".\" in expression (line 7)\n# .body(user);\n# untranslated (line 8): closes the part that starts on line 2\n# }\n","complete":false,"errors":[{"line":1,"endLine":1,"message":"The fragment is not complete: Unexpected \"@\" in expression (line 1)","source":"@PostMapping\n"},{"line":2,"endLine":2,"message":"The fragment is not complete: Unexpected \".\" in expression (line 6)","source":"public ResponseEntity<UserDto> createUser(\n"},{"line":3,"endLine":3,"message":"The fragment is not complete: Unexpected \"@\" in expression (line 3)","source":"@RequestBody @Valid CreateUserRequest request) {\n"},{"line":6,"endLine":6,"message":"The fragment is not complete: Unexpected \".\" in expression (line 6)","source":".status(HttpStatus.CREATED)\n"},{"line":7,"endLine":7,"message":"The fragment is not complete: Unexpected \".\" in expression (line 7)","source":".body(user);\n"},{"line":8,"endLine":8,"message":"closes the part that starts on line 2","source":"}\n"}],"lines":8,"readLines":2,"coverage":0.25,"prose":[],"lineMap":[[3,6],[4,7]]}}
+{"detection":"c","candidates":[{"id":"python","natural":false,"reads":true,"coverage":1,"score":100},{"id":"javascript","natural":false,"reads":true,"coverage":1,"score":100},{"id":"java","natural":false,"reads":true,"coverage":1,"score":100},{"id":"csharp","natural":false,"reads":true,"coverage":1,"score":100},{"id":"cpp","natural":false,"reads":true,"coverage":1,"score":100}]}
+{"detection":"hello","candidates":[{"id":"english","natural":true,"reads":false,"coverage":1,"score":110},{"id":"tagalog","natural":true,"reads":false,"coverage":1,"score":110},{"id":"english-ace","natural":true,"reads":false,"coverage":1,"score":109.5},{"id":"english-asd-ste100","natural":true,"reads":false,"coverage":1,"score":109.5},{"id":"english-basic-english","natural":true,"reads":false,"coverage":1,"score":109.5}]}
+{"detection":"int main(int argc, char** argv) { try { throw 8; } catch(int e) { return e; } return 0; }","candidates":[{"id":"english","natural":true,"reads":false,"coverage":0.13793103448275862,"score":16.19},{"id":"english-ace","natural":true,"reads":false,"coverage":0.13793103448275862,"score":15.69},{"id":"english-asd-ste100","natural":true,"reads":false,"coverage":0.13793103448275862,"score":15.69},{"id":"english-basic-english","natural":true,"reads":false,"coverage":0.13793103448275862,"score":15.69},{"id":"english-british","natural":true,"reads":false,"coverage":0.13793103448275862,"score":15.69}]}
+program
+  main
+    while
+      condition
+        boolean true (type boolean)
+      body
+        if
+          condition
+            binary less (type boolean)
+              left
+                number 1 (type integer)
+              right
+                number 2 (type integer)
+          then
+            evaluate
+              expression
+                call print-line (library standard)
+                  arguments
+                    number 1 (type integer)
+

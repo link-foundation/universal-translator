@@ -6,6 +6,7 @@ dist
 package-lock.json
 .eslintcache
 .playwright-mcp/
+vendor/meta-language-grammar/
 CLAUDE.md
 # Case study raw data files (downloaded from external sources)
 docs/case-studies/*/data/

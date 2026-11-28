@@ -4,6 +4,10 @@ natural:
   extends: bengali
   profile: minimal-english
   source: 'https://en.wikipedia.org/wiki/Natural_semantic_metalanguage'
+  grammar:
+    productions:
+      element: '{array} এর অংশ {index}'
+      set-element: 'এর পরে @element[array=name] এখন {value}'
   templates:
     function: 'কেউ {parameters} দিয়ে এভাবে {name} করে'
     function-without-parameters: 'কেউ এভাবে {name} করে'
@@ -29,9 +33,7 @@ natural:
     greater-or-equal: '{left} {right} এর চেয়ে কম নয়'
     array: 'এই জিনিসগুলো ({elements})'
     new-array: '{length} টি জিনিস {fill} এর মতো'
-    element: '{array} এর অংশ {index}'
     length: '{array} এর কতগুলো অংশ আছে'
-    set-element: 'এর পরে {name} এর অংশ {index} এখন {value}'
   rules:
     primes: bengali
     extra-words: দিয়ে যা লাইনে উত্তর থামো তবে তখন বার জন্য থেকে পর্যন্ত তারপর আর চেয়ে টি কতগুলো অথবা এবং ও যোগ বিয়োগ গুণ ভাগ মডুলো ঋণাত্মক মিথ্যা

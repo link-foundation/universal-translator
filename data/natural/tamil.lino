@@ -12,7 +12,28 @@ natural:
   true: 'உண்மை'
   false: 'பொய்'
   note: 'குறிப்பு: {text}'
+  grammar:
+    terms:
+      interrogative: 'என்ன'
+      query-scope: '{source} இல் ஒவ்வொரு {variable} க்கும்'
+      query-deferred: '“ஒத்திவைக்கப்பட்ட”'
+    productions:
+      answer-type: '{subject} இன் வகை'
+      question-type: '@answer-type @interrogative'
+      answer-documentation: '{subject} இன் ஆவணம்'
+      question-documentation: '@answer-documentation @interrogative'
+      answer-source: '{subject} இன் மூல நிரல்'
+      question-source: '@answer-source @interrogative'
+      answer-details: '{subject} இன் விரிவான தகவல்'
+      question-details: '@answer-details @interrogative'
+      answer-query: '@query-scope {condition} எனில் {projection} இன் மதிப்புகள்'
+      question-query: '@answer-query என்ன'
+      answer-deferred-query: '@query-deferred @answer-query'
+      question-deferred-query: '@query-deferred @question-query'
+      element: '{array} இல் உறுப்பு {index}'
+      set-element: '@element[array=name] ஐ {value} ஆக மாற்று'
   templates:
+    documentation: 'ஆவணம் என்பது {value}'
     function: '{name} ஐ {parameters} கொண்டு வரையறு'
     function-without-parameters: '{name} ஐ வரையறு'
     declare: '{name} ஐ மதிப்பு {value} உடன் உருவாக்கு'
@@ -50,9 +71,7 @@ natural:
     remainder: '{left} மாடுலோ {right}' '{left} % {right}'
     array: 'பட்டியல் ({elements})'
     new-array: 'பட்டியல் நீளம் {length} ஒவ்வொரு உறுப்பும் {fill}'
-    element: '{array} இல் உறுப்பு {index}'
     length: '{array} நீளம்'
-    set-element: '{name} இல் உறுப்பு {index} ஐ {value} ஆக மாற்று'
   words:
     ackermann: 'அக்கர்மன்'
     bottles: 'புட்டிகள்'

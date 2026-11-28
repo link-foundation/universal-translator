@@ -126,13 +126,9 @@ fn hints_give_the_meta_types_of_parameters_results_and_assignments() {
 }
 
 #[test]
-fn hints_map_str_bool_and_list_and_leave_the_others_to_inference() {
+fn hints_map_builtins_and_retain_application_and_generic_types() {
     let hinted = parameter_types(&meta(
         "def show(name: str, shown: bool, sizes: list[int], ratio: float, table: dict[str, int]) -> None:\n    print(name)\n",
-        "python",
-    ));
-    let plain = parameter_types(&meta(
-        "def show(name, shown, sizes, ratio, table):\n    print(name)\n",
         "python",
     ));
     let mapped: Vec<Option<String>> = ["text", "boolean", "array"]
@@ -140,7 +136,13 @@ fn hints_map_str_bool_and_list_and_leave_the_others_to_inference() {
         .map(|kind| Some((*kind).to_owned()))
         .collect();
     assert_eq!(hinted[..3], mapped[..]);
-    assert_eq!(hinted[3..], plain[3..]);
+    assert_eq!(
+        hinted[3..],
+        [
+            Some("real".to_owned()),
+            Some("source:dict[str,int]".to_owned())
+        ]
+    );
 }
 
 #[test]

@@ -78,15 +78,14 @@ fn reports_formats_it_cannot_print() {
 }
 
 #[test]
-fn reads_php_up_to_its_closing_tag() {
+fn reads_php_closing_tags_and_following_literal_output() {
     assert_eq!(
         to_javascript("<?php\necho 'a';\n?>\n", "php"),
         "process.stdout.write(\"a\");\n"
     );
-    let found = error("<?php\necho 'a';\n?>\ntext\n", "php");
-    assert!(
-        found.contains("Text after the closing \"?>\" tag"),
-        "{found}"
+    assert_eq!(
+        to_javascript("<?php\necho 'a';\n?>\ntext\n", "php"),
+        "process.stdout.write(\"a\");\nprocess.stdout.write(\"text\\n\");\n"
     );
 }
 
