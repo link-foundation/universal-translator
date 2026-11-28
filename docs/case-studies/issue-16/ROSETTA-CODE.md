@@ -291,7 +291,7 @@ retain the explicit width and signedness of function parameters.
 ```sh
 curl --fail --silent --show-error --get https://rosettacode.org/w/api.php \
   --data 'action=query' --data 'prop=revisions' \
-  --data 'revids=420325|417505|419626|420026|419956|420285|419019|412804|417360|417213|420276|418354|418506|420238|418405|418309|415006|418063|418364|419726' \
+  --data 'revids=420325|417505|419626|420026|419956|420285|419019|412804|417360|417213|420276|418354|418506|420238|418405|418309|415006|418063|418364|419726|419426' \
   --data 'rvprop=ids|content' --data 'rvslots=main' --data 'format=json' \
   --data 'formatversion=2' > /tmp/rosetta-containers-revisions.json
 node experiments/issue-16-rosetta-containers.mjs /tmp/rosetta-containers-revisions.json \
@@ -326,6 +326,17 @@ CPLUS_INCLUDE_PATH="$qt_headers:$qt_headers/QtCore${CPLUS_INCLUDE_PATH:+:$CPLUS_
   ./target/debug/universal-translator 'Modular exponentiation' 'URL encoding' 'Factorial'
 ```
 
+[Pinned native results](logs/rosetta-containers-native.txt)
+
+The C++ solution for [Menu revision 419426](https://rosettacode.org/w/index.php?title=Menu&oldid=419426)
+brings the verified total to 26. The declaration reader had consumed the
+unmatched `>>` in `std::cin >> entry;` as a closing angle bracket, and prototype
+detection had silently dropped the throw expression. Both emitted programs
+now compile. The verifier supplies `0\n2\n` to exercise rejection and retry.
+The original and both outputs print the same two menus and choose
+`huff and puff`. Native CI also exercises stream extraction and catching an
+exception whose message comes from the input.
+[Native comparison fixture](../../../examples/programs/library/cpp-stream-extraction.cpp)
 [Pinned native results](logs/rosetta-containers-native.txt)
 
 The first Rust solution for [String interpolation (included), revision 416065](<https://rosettacode.org/w/index.php?title=String_interpolation_(included)&oldid=416065>)

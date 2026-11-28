@@ -250,6 +250,18 @@ int main() {
 }
 `,
   },
+  {
+    title: 'Menu',
+    revid: 419426,
+    sourceSha256:
+      'f6c8a19a06638c85bf2b9ea10868f52994d5a1c1380132f93505853f72603bde',
+    stdin: '0\n2\n',
+    stdout:
+      'You chose: 1) fee fie\n2) huff and puff\n3) mirror mirror\n4) tick tock\n' +
+      '> 1) fee fie\n2) huff and puff\n3) mirror mirror\n4) tick tock\n' +
+      '> huff and puff\n',
+    assertions: 0,
+  },
 ];
 for (const title of selectedTasks) {
   assert.ok(
