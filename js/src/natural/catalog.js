@@ -152,21 +152,14 @@ function readDescription(source) {
   if (root?.id !== 'natural') {
     throw new Error('A natural language description starts with "natural:"');
   }
-  const description = { templates: {}, words: {}, rules: {} };
+  const description = { templateFields: [], words: {}, rules: {} };
   for (const { id, values } of root.values) {
     if (scalarFields.includes(id)) {
       description[id] = plain(values).join(' ');
     } else if (id === 'quotes') {
       description.quotes = plain(values);
-    } else if (id === 'templates') {
-      for (const entry of values) {
-        description.templates[entry.id] = plain(entry.values);
-      }
-    } else if (id === 'grammar') {
-      Object.assign(
-        description.templates,
-        grammarProductions(values, [...templateKeys, ...optionalTemplateKeys])
-      );
+    } else if (id === 'templates' || id === 'grammar') {
+      description.templateFields.push({ id, values });
     } else if (id === 'words') {
       for (const entry of values) {
         description.words[entry.id] = plain(entry.values).join(' ');
@@ -180,6 +173,28 @@ function readDescription(source) {
     }
   }
   return description;
+}
+
+function resolveTemplateFields({ templateFields, ...description }, base) {
+  const grammarBindings = new Map(base?.grammarBindings);
+  const templates = {};
+  for (const { id, values } of templateFields) {
+    if (id === 'templates') {
+      for (const entry of values) {
+        templates[entry.id] = plain(entry.values);
+      }
+    } else {
+      Object.assign(
+        templates,
+        grammarProductions(
+          values,
+          [...templateKeys, ...optionalTemplateKeys],
+          grammarBindings
+        )
+      );
+    }
+  }
+  return { ...description, grammarBindings, templates };
 }
 
 // The files of data/natural that describe no language: the semantic primes,
@@ -213,19 +228,20 @@ function resolve(descriptions, id, seen = new Set()) {
     throw new Error(`No natural language "${id}"`);
   }
   if (!description.extends) {
-    return description;
+    return resolveTemplateFields(description);
   }
   if (seen.has(id)) {
     throw new Error(`Natural language "${id}" extends itself`);
   }
   seen.add(id);
   const base = resolve(descriptions, description.extends, seen);
+  const local = resolveTemplateFields(description, base);
   return {
     ...base,
-    ...description,
-    templates: inheritedTemplates(base, description),
-    words: { ...base.words, ...description.words },
-    rules: description.rules,
+    ...local,
+    templates: inheritedTemplates(base, local),
+    words: { ...base.words, ...local.words },
+    rules: local.rules,
     base: base.base ?? base.id,
   };
 }
@@ -245,6 +261,7 @@ function compile(description) {
     nameJoiner: description['name-joiner'] ?? '-',
     quotes: description.quotes ?? ['"', '"'],
   };
+  delete language.grammarBindings;
   language.templates = {
     ...collectionTemplates(language),
     ...derivedQueryTemplates(language),

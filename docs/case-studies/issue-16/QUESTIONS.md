@@ -101,6 +101,16 @@ byte for byte before and after the query migration. The SHA-256 of the UTF-8
 JSON array of `[id, templates]` in catalog order, followed by a newline, was
 `8cf31bfaca1af7707e74b19a6b099ce01b1e572a5cabbfc631bbea1ca5421e00`.
 
+Profiles can reference terms and productions from their ancestors by name.
+Local declarations affect references made in the local grammar block. An
+inherited production keeps the phrase it resolved where it was defined. For
+example, the Plain Language profile uses English's `@range-loop`,
+`@in-loop` and `@do-this` in its own loop forms. Its function and output
+forms share local terms. The profile still passes its language rules, and
+all 71 compiled template tables match the same snapshot digest. Both
+engines also check that memoized expansions respect the 24-rule limit:
+adding a 25th reference level is rejected in either declaration order.
+
 - `node experiments/issue-16-recursive-phrases.mjs` checks three Python
   programs. The previous readers read `type(meaning + 1)` as an ordinary
   function call in seven languages, and commas within a nested collection

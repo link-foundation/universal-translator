@@ -442,7 +442,9 @@ impl<T: Clone> Ordered<T> {
 struct Description {
     scalars: BTreeMap<String, String>,
     quotes: Option<Vec<String>>,
+    template_fields: Vec<Link>,
     templates: Ordered<Vec<String>>,
+    grammar_bindings: super::grammar::Bindings,
     words: Ordered<String>,
     rules: Ordered<Vec<String>>,
     base: Option<String>,
@@ -550,16 +552,8 @@ fn read_description(source: &str) -> Result<Description, String> {
                 .insert(id.to_owned(), plain(values).join(" "));
         } else if id == "quotes" {
             description.quotes = Some(plain(values));
-        } else if id == "templates" {
-            for entry in values {
-                description
-                    .templates
-                    .insert(label_of(entry), plain(values_of(entry)));
-            }
-        } else if id == "grammar" {
-            for (key, variants) in super::grammar::productions(values)?.entries {
-                description.templates.insert(&key, variants);
-            }
+        } else if matches!(id, "templates" | "grammar") {
+            description.template_fields.push(field.clone());
         } else if id == "words" {
             for entry in values {
                 description
@@ -579,6 +573,26 @@ fn read_description(source: &str) -> Result<Description, String> {
     Ok(description)
 }
 
+fn resolve_template_fields(
+    fields: &[Link],
+    bindings: &mut super::grammar::Bindings,
+) -> Result<Ordered<Vec<String>>, String> {
+    let mut templates = Ordered::default();
+    for field in fields {
+        let values = values_of(field);
+        if label_of(field) == "templates" {
+            for entry in values {
+                templates.insert(label_of(entry), plain(values_of(entry)));
+            }
+        } else {
+            for (key, variants) in super::grammar::productions(values, bindings)?.entries {
+                templates.insert(&key, variants);
+            }
+        }
+    }
+    Ok(templates)
+}
+
 /// A profile inherits everything it does not state from the language it
 /// extends; its own rules replace the inherited rules.
 fn resolve(
@@ -589,27 +603,37 @@ fn resolve(
     let description = descriptions
         .get(id)
         .ok_or_else(|| format!("No natural language \"{id}\""))?;
-    let Some(extends) = description.scalars.get("extends") else {
-        return Ok(description.clone());
-    };
     if !seen.insert(id.to_owned()) {
         return Err(format!("Natural language \"{id}\" extends itself"));
     }
-    let base = resolve(descriptions, extends, seen)?;
-    let mut scalars = base.scalars.clone();
-    scalars.extend(description.scalars.clone());
-    Ok(Description {
-        scalars,
-        quotes: description.quotes.clone().or(base.quotes.clone()),
-        templates: inherited_templates(&base, description),
-        words: base.words.merged(&description.words),
+    let mut base = description
+        .scalars
+        .get("extends")
+        .map(|extends| resolve(descriptions, extends, seen))
+        .transpose()?;
+    let mut grammar_bindings = base.as_mut().map_or_else(Default::default, |base| {
+        std::mem::take(&mut base.grammar_bindings)
+    });
+    let templates = resolve_template_fields(&description.template_fields, &mut grammar_bindings)?;
+    let mut resolved = Description {
+        scalars: description.scalars.clone(),
+        quotes: description.quotes.clone(),
+        templates,
+        grammar_bindings,
+        words: description.words.clone(),
         rules: description.rules.clone(),
-        base: Some(
-            base.base
-                .clone()
-                .unwrap_or_else(|| base.scalars.get("id").cloned().unwrap_or_default()),
-        ),
-    })
+        ..Default::default()
+    };
+    if let Some(base) = base {
+        resolved.templates = inherited_templates(&base, &resolved);
+        resolved.base = base.base.or_else(|| base.scalars.get("id").cloned());
+        resolved.words = base.words.merged(&resolved.words);
+        resolved.quotes = resolved.quotes.or(base.quotes);
+        let mut scalars = base.scalars;
+        scalars.extend(resolved.scalars);
+        resolved.scalars = scalars;
+    }
+    Ok(resolved)
 }
 
 fn inherited_templates(base: &Description, description: &Description) -> Ordered<Vec<String>> {
@@ -841,4 +865,42 @@ pub fn with_templates(id: &str, templates: &[(String, Vec<String>)]) -> Result<L
         language.templates.insert(key, merged);
     }
     Ok(language)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn profiles_reference_ancestor_rules_and_shadow_terms_locally() {
+        let definitions = [
+            (
+                "base",
+                "  grammar:\n    terms:\n      voice: 'Announce {value}'\n      aloud: aloud\n    productions:\n      print-line: '@voice @aloud'",
+            ),
+            (
+                "middle",
+                "  extends: base\n  grammar:\n    terms:\n      voice: 'Report {value}'\n    productions:\n      print: '@voice @aloud'",
+            ),
+            (
+                "child",
+                "  extends: middle\n  grammar:\n    productions:\n      return-value: '@print-line again'",
+            ),
+        ];
+        let descriptions = definitions
+            .into_iter()
+            .map(|(id, body)| {
+                let source = format!("natural:\n  id: {id}\n{body}\n");
+                (id.to_owned(), read_description(&source).unwrap())
+            })
+            .collect();
+        let resolved = resolve(&descriptions, "child", &mut HashSet::new()).unwrap();
+        for (key, expected) in [
+            ("print", "Report {value} aloud"),
+            ("print-line", "Announce {value} aloud"),
+            ("return-value", "Announce {value} aloud again"),
+        ] {
+            assert_eq!(resolved.templates.get(key).unwrap(), &[expected]);
+        }
+    }
 }

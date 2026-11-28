@@ -86,22 +86,24 @@ fn expand_rule(
     Ok(variants)
 }
 
-#[derive(Clone)]
-struct Expansion {
+#[derive(Clone, Debug)]
+pub(super) struct Expansion {
     variants: Vec<String>,
     depth: usize,
 }
 
+pub(super) type Bindings = HashMap<String, Expansion>;
+
 fn resolve_rule(
     rules: &HashMap<&str, &[String]>,
-    resolved: &mut HashMap<String, Expansion>,
+    bindings: &mut Bindings,
     path: &mut Vec<String>,
     key: &str,
 ) -> Result<Expansion, String> {
     if path.len() >= MAX_DEPTH || path.iter().any(|step| step == key) {
         return Err(format!("Natural grammar recursion at \"{key}\""));
     }
-    if let Some(known) = resolved.get(key) {
+    if let Some(known) = bindings.get(key) {
         if path.len() + known.depth > MAX_DEPTH {
             return Err(format!("Natural grammar recursion at \"{key}\""));
         }
@@ -113,17 +115,20 @@ fn resolve_rule(
     path.push(key.to_owned());
     let mut depth = 1;
     let variants = expand_rule(patterns, |rule| {
-        let next = resolve_rule(rules, resolved, path, rule)?;
+        let next = resolve_rule(rules, bindings, path, rule)?;
         depth = depth.max(next.depth + 1);
         Ok(next.variants)
     })?;
     path.pop();
     let expansion = Expansion { variants, depth };
-    resolved.insert(key.to_owned(), expansion.clone());
+    bindings.insert(key.to_owned(), expansion.clone());
     Ok(expansion)
 }
 
-pub(super) fn productions(fields: &[Link]) -> Result<Ordered<Vec<String>>, String> {
+pub(super) fn productions(
+    fields: &[Link],
+    bindings: &mut Bindings,
+) -> Result<Ordered<Vec<String>>, String> {
     let mut terms = Ordered::default();
     let mut productions = Ordered::default();
     for field in fields {
@@ -161,14 +166,21 @@ pub(super) fn productions(fields: &[Link]) -> Result<Ordered<Vec<String>>, Strin
             return Err(format!("Repeated natural grammar rule \"{key}\""));
         }
     }
-    let mut resolved = HashMap::new();
+    // References within an inherited expansion keep their original meanings.
+    // Local declarations shadow the inherited expansion for new references.
+    for key in rules.keys() {
+        bindings.remove(*key);
+    }
+    if bindings.len() + rules.len() > MAX_RULES * 2 {
+        return Err("Too many natural grammar rules".into());
+    }
     let mut path = Vec::new();
     for (key, _) in &terms.entries {
-        resolve_rule(&rules, &mut resolved, &mut path, key)?;
+        resolve_rule(&rules, bindings, &mut path, key)?;
     }
     let mut compiled = Ordered::default();
     for (key, _) in &productions.entries {
-        let expansion = resolve_rule(&rules, &mut resolved, &mut path, key)?;
+        let expansion = resolve_rule(&rules, bindings, &mut path, key)?;
         compiled.insert(key, expansion.variants);
     }
     Ok(compiled)
@@ -185,7 +197,7 @@ mod tests {
             "grammar:\n  terms:\n    message: 'message' 'notice'\n    send: 'Send @message'\n  productions:\n    print-line: '@print now'\n    print: '@send {value}'\n",
         )
         .unwrap();
-        let compiled = productions(values_of(&root)).unwrap();
+        let compiled = productions(values_of(&root), &mut Bindings::new()).unwrap();
         assert_eq!(
             compiled.get("print-line").unwrap(),
             &["Send message {value} now", "Send notice {value} now"]
@@ -203,7 +215,7 @@ mod tests {
                 terms.join("\n")
             ))
             .unwrap();
-            productions(values_of(&root))
+            productions(values_of(&root), &mut Bindings::new())
         };
         let compiled = compile(&terms, MAX_DEPTH - 2).unwrap();
         assert_eq!(compiled.get("print-line").unwrap(), &["Speak {value}"]);
@@ -241,7 +253,10 @@ mod tests {
         ];
         for (body, expected) in cases {
             let root = parse_root(&format!("grammar:\n{body}\n")).unwrap();
-            assert_eq!(productions(values_of(&root)).unwrap_err(), expected);
+            assert_eq!(
+                productions(values_of(&root), &mut Bindings::new()).unwrap_err(),
+                expected
+            );
         }
     }
 }

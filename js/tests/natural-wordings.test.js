@@ -44,6 +44,41 @@ describe('declarative controlled grammar', () => {
     }
   });
 
+  it('reuses the inherited grammar with local term bindings', () => {
+    const id = registerNaturalLanguage(`${prefix}    terms:
+      write-value: 'Announce {value}'
+      aloud: 'aloud'
+    productions:
+      print-line: '@write-value @aloud'
+`);
+    try {
+      const child = registerNaturalLanguage(`natural:
+  id: message-grammar-child
+  extends: ${id}
+  grammar:
+    terms:
+      write-value: 'Report {value}'
+    productions:
+      print: '@write-value @aloud'
+      return-value: '@print-line again'
+`);
+      try {
+        assert.equal(
+          translate('Report 7 aloud.', child, 'javascript'),
+          'process.stdout.write(String(7));\n'
+        );
+        assert.equal(
+          translate('return 7\n', 'python', child),
+          'Announce 7 aloud again.\n'
+        );
+      } finally {
+        unregisterNaturalLanguage(child);
+      }
+    } finally {
+      unregisterNaturalLanguage(id);
+    }
+  });
+
   it('rejects missing terms, cycles, excessive alternatives and unclosed slots', () => {
     for (const [grammar, error] of [
       [
