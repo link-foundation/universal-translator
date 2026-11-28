@@ -262,9 +262,16 @@ export const withCppUsingStatements = (Base) =>
   };
 
 export function cppQualifiedParameter(syntax, words) {
-  return syntax.id === 'cpp' &&
+  if (syntax.id !== 'cpp') {
+    return undefined;
+  }
+  const explicitInteger = words.some((word) =>
+    ['signed', 'unsigned', 'short', 'long'].includes(word)
+  );
+  const constIndirection =
     words.includes('const') &&
-    words.some((word) => ['&', '&&', '*'].includes(word))
+    words.some((word) => ['&', '&&', '*'].includes(word));
+  return explicitInteger || constIndirection
     ? `source:${words.join(' ')}`
     : undefined;
 }

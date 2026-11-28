@@ -242,6 +242,29 @@ fn cpp_fixed_arrays_retain_extent_and_brace_initialization() {
 }
 
 #[test]
+fn cpp_parameters_keep_signedness_and_width() {
+    let source = r#"bool positive(unsigned int wide, signed char byte, long long large, short small) {
+    return wide > 0 && byte > 0 && large > 0 && small > 0;
+}"#;
+    let translator = Translator::new();
+    let emitted = translator
+        .translate(source, "cpp", "cpp", Mode::default())
+        .unwrap();
+    assert!(
+        emitted.contains(
+            "bool positive(unsigned int wide, signed char byte, long long large, short small)"
+        ),
+        "{emitted}"
+    );
+    let original = translator.to_meta(source, "cpp").unwrap();
+    let reread = translator.to_meta(&emitted, "cpp").unwrap();
+    assert_eq!(
+        original.nodes("functions")[0].nodes("parameters"),
+        reread.nodes("functions")[0].nodes("parameters")
+    );
+}
+
+#[test]
 fn cpp_shifts_bind_below_addition() {
     let source = r#"#include <iostream>
 int main() {

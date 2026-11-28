@@ -159,6 +159,25 @@ int main() {
   });
 });
 
+describe('C++ parameter types', () => {
+  it('keeps the signedness and width of native function parameters', () => {
+    const source = `bool positive(unsigned int wide, signed char byte, long long large, short small) {
+  return wide > 0 && byte > 0 && large > 0 && small > 0;
+}
+`;
+    const emitted = translator.translate(source, 'cpp', 'cpp');
+    expect(emitted).toContain(
+      'bool positive(unsigned int wide, signed char byte, long long large, short small)'
+    );
+    expect(
+      meaningDifference(
+        translator.toMeta(source, 'cpp'),
+        translator.toMeta(emitted, 'cpp')
+      )
+    ).toBe(undefined);
+  });
+});
+
 describe('C++ fixed arrays', () => {
   it('retains nested extents and direct and copy brace initialization', () => {
     const source = `int main() {
