@@ -610,6 +610,56 @@ async function wrapsInFreshMonaco(tab) {
   }, source);
 }
 
+async function tracesTheGutterOnlyInDebugMode() {
+  const tab = await context.newPage();
+  const topic = '[universal-translator:gutter]';
+  let logged = false;
+  tab.on('pageerror', (error) => errors.push(error.message));
+  tab.on('console', (message) => {
+    if (message.text().startsWith(topic)) {
+      logged = true;
+    }
+  });
+  try {
+    const clickGutter = () =>
+      tab.locator('#source-text .margin').click({ position: { x: 8, y: 90 } });
+    const visit = async (debug) => {
+      const address = new URL(url);
+      if (debug) {
+        address.searchParams.set('debug', '');
+      }
+      address.hash = 'settings=(settings%20(version%201)%20(editor%20monaco))';
+      await tab.goto(address.href);
+      await tab.waitForSelector('#source-text .monaco-editor');
+      await typeInMonaco(tab, 'print(1)');
+    };
+    await visit(false);
+    await clickGutter();
+    await tab.evaluate(
+      () =>
+        new Promise((resolve) =>
+          globalThis.requestAnimationFrame(() => resolve())
+        )
+    );
+    assert.equal(logged, false);
+    await visit(true);
+    const [message] = await Promise.all([
+      tab.waitForEvent('console', {
+        predicate: async (entry) =>
+          entry.text().startsWith(topic) &&
+          (await entry.args()[1].jsonValue()).event === 'pointerup',
+      }),
+      clickGutter(),
+    ]);
+    const release = await message.args()[1].jsonValue();
+    assert.equal(release.pane, 'source-text');
+    assert.equal(release.lines, 1);
+    assert.ok(release.y > release.lastLineBottom);
+  } finally {
+    await tab.close();
+  }
+}
+
 async function linkedSublineRegions(tab) {
   await tab.selectOption('#source-language', 'javascript');
   await tab.selectOption('#target-language', 'python');
@@ -888,6 +938,7 @@ try {
   await savesAStandard();
   await changesTheSettings();
   await editsInMonaco();
+  await tracesTheGutterOnlyInDebugMode();
   await linksTheEditors();
   assert.deepEqual(errors, []);
   console.log(

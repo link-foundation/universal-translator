@@ -96,3 +96,12 @@ node experiments/issue-16-gutter-pixels.mjs \
 [Deployed Safari capture](../../screenshots/issue-16/gutter-deployed-safari.png)
 [Current observations](logs/gutter-current-safari.jsonl)
 [Deployed observations](logs/gutter-deployed-safari.jsonl)
+
+## Tracing a new occurrence
+
+Open the app with `?debug` and filter its browser console for
+`[universal-translator:gutter]`. Each gutter press or release records the
+pointer position, the end of the last model line, the bottom of the last
+mapping bar and the browser selection bounds, in pixels relative to the
+editor. The gutter messages exclude editor text and are off by default.
+The web end-to-end check verifies the default and debug paths.

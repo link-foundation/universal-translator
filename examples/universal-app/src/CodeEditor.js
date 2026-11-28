@@ -14,6 +14,7 @@ import {
 } from 'react';
 import { highlightText, pieces } from './highlight.js';
 import { debug } from './debug.js';
+import { observeGutter } from './gutter-debug.js';
 
 // The coloured lines of a read-only plain pane.
 function Coloured({ text, lexicon }) {
@@ -122,6 +123,7 @@ function MonacoEditor({
           showFoldingControls: 'always',
         });
         editor.current = instance;
+        const gutter = observeGutter(instance, id);
         const fit = () => {
           const most = globalThis.innerHeight * 0.7;
           holder.current.style.minHeight = `${Math.min(
@@ -169,6 +171,7 @@ function MonacoEditor({
         cleanup = () => {
           latest.current.onMount?.(undefined);
           provider.dispose();
+          gutter?.dispose();
           subscriptions.forEach((it) => it.dispose());
           observer.disconnect();
           styleObserver.disconnect();
