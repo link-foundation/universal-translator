@@ -11,7 +11,7 @@ import { extractSolutions } from '../scripts/rosetta-code.mjs';
 const [wikiResponse, rustTranslator] = process.argv.slice(2);
 assert.ok(
   wikiResponse,
-  'Pass the MediaWiki response for revisions 420325, 417505, 419626, 420026, 419956, 420285 and 419019'
+  'Pass the MediaWiki revisions listed in ROSETTA-CODE.md'
 );
 const { query } = JSON.parse(readFileSync(wikiResponse, 'utf8'));
 const digest = (text) => createHash('sha256').update(text).digest('hex');
@@ -73,6 +73,56 @@ const tasks = [
     stdout: '97\na\n',
     assertions: 0,
   },
+  {
+    title: 'Formatted numeric output',
+    revid: 412804,
+    sourceSha256:
+      'a4b2bd56246fa4a03121a002af7c03f75f8867500eb8c1344e26bc086744712b',
+    stdout: '00007.125\n',
+    assertions: 0,
+  },
+  {
+    title: 'Hello world/Newbie',
+    revid: 417360,
+    sourceSha256:
+      '6f1e387f2700654e86d4d87a4176f71dd478474c4012448c7ce754263eb63fcb',
+    stdout: 'Hello, World!\n',
+    assertions: 0,
+  },
+  {
+    title: 'Copy stdin to stdout',
+    revid: 417213,
+    sourceSha256:
+      'b721bf0677eaf7c524d45b335a9b25480a6249a5f40d3da1730cba454ae57fbc',
+    stdin: ' first line\n\n\tsecond line\n',
+    stdout: ' first line\n\n\tsecond line\n',
+    assertions: 0,
+  },
+  {
+    title: 'Reverse a string',
+    revid: 420276,
+    sourceSha256:
+      '7bb7130263cd8b8a9f2fe4749eefb07057ff786881ac769e9d60205d9da88881',
+    stdin: '012 ab  \n',
+    stdout: '  ba 210\n',
+    assertions: 0,
+  },
+  {
+    title: 'Shortest common supersequence',
+    revid: 418354,
+    sourceSha256:
+      'fbfc542a5fa55844e8583484418659ee509e072cbfe3f6278a3b78e62d765ef6',
+    stdout: 'abdcabdab\n',
+    assertions: 0,
+  },
+  {
+    title: 'Substring',
+    revid: 418506,
+    sourceSha256:
+      '525da75ab91b9634b2e8d2d6cfb9559371c8c4567a1bd1eb78bb28f74f03b971',
+    stdout: '3456\n3456789\n012345678\n2345\n4567\n',
+    assertions: 0,
+  },
 ];
 const cli = fileURLToPath(
   new URL('../bin/universal-translator.js', import.meta.url)
@@ -100,7 +150,7 @@ try {
       ['-std=c++17', '-UNDEBUG', file, '-o', binary],
       options
     );
-    return execFileSync(binary, [], options);
+    return execFileSync(binary, [], { ...options, input: task.stdin });
   };
 
   for (const task of tasks) {

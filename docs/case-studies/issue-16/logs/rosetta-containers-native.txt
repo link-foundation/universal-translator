@@ -12,3 +12,15 @@
 {"title":"String length","revid":420285,"sourceSha256":"9ef1ac9c0aa99ec023cc8e624f97420c8eb56c37c7b89f68c7db55bf254bcf2a","engine":"Rust","stdout":"","assertions":0,"observed":"length == 13 && size == 13 && bytes == 13"}
 {"title":"Character codes","revid":419019,"sourceSha256":"f87fce6a1d7a8dced18fe98df2555b349fcae7a71ab82c26a214beaa51c2861c","engine":"JavaScript","stdout":"97\na\n","assertions":0}
 {"title":"Character codes","revid":419019,"sourceSha256":"f87fce6a1d7a8dced18fe98df2555b349fcae7a71ab82c26a214beaa51c2861c","engine":"Rust","stdout":"97\na\n","assertions":0}
+{"title":"Formatted numeric output","revid":412804,"sourceSha256":"a4b2bd56246fa4a03121a002af7c03f75f8867500eb8c1344e26bc086744712b","engine":"JavaScript","stdout":"00007.125\n","assertions":0}
+{"title":"Formatted numeric output","revid":412804,"sourceSha256":"a4b2bd56246fa4a03121a002af7c03f75f8867500eb8c1344e26bc086744712b","engine":"Rust","stdout":"00007.125\n","assertions":0}
+{"title":"Hello world/Newbie","revid":417360,"sourceSha256":"6f1e387f2700654e86d4d87a4176f71dd478474c4012448c7ce754263eb63fcb","engine":"JavaScript","stdout":"Hello, World!\n","assertions":0}
+{"title":"Hello world/Newbie","revid":417360,"sourceSha256":"6f1e387f2700654e86d4d87a4176f71dd478474c4012448c7ce754263eb63fcb","engine":"Rust","stdout":"Hello, World!\n","assertions":0}
+{"title":"Copy stdin to stdout","revid":417213,"sourceSha256":"b721bf0677eaf7c524d45b335a9b25480a6249a5f40d3da1730cba454ae57fbc","engine":"JavaScript","stdout":" first line\n\n\tsecond line\n","assertions":0}
+{"title":"Copy stdin to stdout","revid":417213,"sourceSha256":"b721bf0677eaf7c524d45b335a9b25480a6249a5f40d3da1730cba454ae57fbc","engine":"Rust","stdout":" first line\n\n\tsecond line\n","assertions":0}
+{"title":"Reverse a string","revid":420276,"sourceSha256":"7bb7130263cd8b8a9f2fe4749eefb07057ff786881ac769e9d60205d9da88881","engine":"JavaScript","stdout":"  ba 210\n","assertions":0}
+{"title":"Reverse a string","revid":420276,"sourceSha256":"7bb7130263cd8b8a9f2fe4749eefb07057ff786881ac769e9d60205d9da88881","engine":"Rust","stdout":"  ba 210\n","assertions":0}
+{"title":"Shortest common supersequence","revid":418354,"sourceSha256":"fbfc542a5fa55844e8583484418659ee509e072cbfe3f6278a3b78e62d765ef6","engine":"JavaScript","stdout":"abdcabdab\n","assertions":0}
+{"title":"Shortest common supersequence","revid":418354,"sourceSha256":"fbfc542a5fa55844e8583484418659ee509e072cbfe3f6278a3b78e62d765ef6","engine":"Rust","stdout":"abdcabdab\n","assertions":0}
+{"title":"Substring","revid":418506,"sourceSha256":"525da75ab91b9634b2e8d2d6cfb9559371c8c4567a1bd1eb78bb28f74f03b971","engine":"JavaScript","stdout":"3456\n3456789\n012345678\n2345\n4567\n","assertions":0}
+{"title":"Substring","revid":418506,"sourceSha256":"525da75ab91b9634b2e8d2d6cfb9559371c8c4567a1bd1eb78bb28f74f03b971","engine":"Rust","stdout":"3456\n3456789\n012345678\n2345\n4567\n","assertions":0}

@@ -192,10 +192,51 @@ CLI outputs print `97` and `a` on separate lines, matching the original. The
 native fixture also checks escaped characters, nested casts and `sizeof(char)`.
 [Native comparison fixture](../../../examples/programs/library/cpp-characters.cpp)
 
+A strict candidate scan compared `16f5217` and `88bb998` on the same full
+corpus snapshot. It considered the first solution for each task in C, C++,
+JavaScript, Python, Rust and TypeScript, capped at 140 lines and 10,000
+characters per input. It found 32 language/task pairs where the baseline
+failed and the newer CLI emitted a program. The experiment only translates
+source. Each candidate needs a separate executable comparison.
+[Scan results](logs/rosetta-candidates-88bb998.jsonl)
+
+```sh
+node --max-old-space-size=384 experiments/issue-16-rosetta-candidates.mjs \
+  .cache/issue-16-rosetta-full/solutions.json /path/to/baseline/js/src/index.js
+```
+
+Six more pinned C++ originals passed native behavioral comparisons, including
+source hash, strict emission and output checks through both CLIs.
+
+| Task                          | Pinned revision                                                                                | Observable result                                                   |
+| ----------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Formatted numeric output      | [412804](https://rosettacode.org/w/index.php?title=Formatted_numeric_output&oldid=412804)      | `00007.125`                                                         |
+| Hello world/Newbie            | [417360](https://rosettacode.org/w/index.php?title=Hello_world/Newbie&oldid=417360)            | `Hello, World!`                                                     |
+| Copy stdin to stdout          | [417213](https://rosettacode.org/w/index.php?title=Copy_stdin_to_stdout&oldid=417213)          | All 26 input bytes, including the leading space, tab and blank line |
+| Reverse a string              | [420276](https://rosettacode.org/w/index.php?title=Reverse_a_string&oldid=420276)              | `  ba 210` for input `012 ab  `                                     |
+| Shortest common supersequence | [418354](https://rosettacode.org/w/index.php?title=Shortest_common_supersequence&oldid=418354) | `abdcabdab`                                                         |
+| Substring                     | [418506](https://rosettacode.org/w/index.php?title=Substring&oldid=418506)                     | Five lines from the original string and iterator slices             |
+
+`Reverse a string` exposed translation of `std::string s;` to an initializer
+from zero. The pinned original default-constructs an empty string. The updated
+readers model a qualified `std::string` declaration without an initializer as
+an empty string. The native string fixture now checks this initial state before
+any assignments.
+
+`Shortest common supersequence` exposed conversion of an indexed character
+to a decimal code during text interpolation. The old translation printed
+`9810099979897cbdab` for the original input. Both engines now retain the C++
+string and character addition overload, including indexes into typed strings
+and `const std::string&` parameters. The dedicated node uses C++ evaluation
+and indexing semantics. Other writers need a semantic mapping for that node.
+The native fixture also checks an appended character literal.
+[Native comparison fixture](../../../examples/programs/library/cpp-characters.cpp)
+[Pinned outputs](logs/rosetta-containers-native.txt)
+
 ```sh
 curl --fail --silent --show-error --get https://rosettacode.org/w/api.php \
   --data 'action=query' --data 'prop=revisions' \
-  --data 'revids=420325|417505|419626|420026|419956|420285|419019' \
+  --data 'revids=420325|417505|419626|420026|419956|420285|419019|412804|417360|417213|420276|418354|418506' \
   --data 'rvprop=ids|content' --data 'rvslots=main' --data 'format=json' \
   --data 'formatversion=2' > /tmp/rosetta-containers-revisions.json
 node experiments/issue-16-rosetta-containers.mjs /tmp/rosetta-containers-revisions.json \
@@ -230,7 +271,7 @@ node experiments/issue-16-rust-print.mjs --revision /tmp/rosetta-rust-print-revi
   --rust-translator ./target/debug/universal-translator
 ```
 
-These nine pinned task round trips count toward the behavioral goal. Portable
+These fifteen pinned task round trips count toward the behavioral goal. Portable
 format modifiers, containers and comparisons need broader native verification.
 
 ## C++ file-scope declarations

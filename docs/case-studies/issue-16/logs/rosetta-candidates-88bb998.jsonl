@@ -1,0 +1,32 @@
+{"title":"ABC correlation","language":"cpp","lines":25,"sha256":"bf34b34fd94cf1700adf443400c7c7cc7da2464c29c64d8c5e12dd926123e781","previousError":"Unexpected character \"'\" (line 10)"}
+{"title":"Approximate equality","language":"cpp","lines":29,"sha256":"0610a06060407625482280c71db388f4001f893a93dc5832bf366ac4bdf88456","previousError":"Unexpected character \"'\" (line 15)"}
+{"title":"Array length","language":"cpp","lines":11,"sha256":"3d1a0dc91ea31a01d7d9d0a8598efc0e12efe48b5d452fe669b6fc1f808e3c5f","previousError":"Unexpected \",\" after statement (line 7)"}
+{"title":"Ascending primes","language":"cpp","lines":87,"sha256":"eaddf1ae100c4a5ed569a2b1eb4258e519d8e756d1d2c6a35873866ac4c31576","previousError":"Expected \")\" but found \",\" (line 83)"}
+{"title":"Binary digits","language":"cpp","lines":23,"sha256":"138fe979e400ca4c9f446db1aa20ac663820631cd01bed2b700d3a345445f798","previousError":"Unexpected character \"'\" (line 11)"}
+{"title":"Character codes","language":"cpp","lines":8,"sha256":"f87fce6a1d7a8dced18fe98df2555b349fcae7a71ab82c26a214beaa51c2861c","previousError":"Unexpected character \"'\" (line 4)"}
+{"title":"Copy stdin to stdout","language":"c","lines":10,"sha256":"563b6eb0a68c96ec2743b38e5c86da4259ea324dc002fd227c7cae75d9bedb8b","previousError":"Expected \")\" but found \"=\" (line 5)"}
+{"title":"Copy stdin to stdout","language":"cpp","lines":14,"sha256":"b721bf0677eaf7c524d45b335a9b25480a6249a5f40d3da1730cba454ae57fbc","previousError":"Unexpected \")\" in expression (line 9)"}
+{"title":"Euler's identity","language":"cpp","lines":8,"sha256":"f0028660573aff1315e82d2e8b793bb981d5bd430e1fa1f1f46fbf9dcbb6fdc6","previousError":"Expected \")\" but found \",\" (line 5)"}
+{"title":"Factorial","language":"cpp","lines":9,"sha256":"0a4c28ac9a2bcdf1dbf8a8b4c274548f6f1a6ab9fa5f9692e850ec586430f75b","previousError":"Unexpected \")\" in expression (line 7)"}
+{"title":"Find if a point is within a triangle","language":"cpp","lines":97,"sha256":"ef64182697630e7a71219b705645efe90ce96a92944b3ae17c3e7a020972ea96","previousError":"Unexpected character \"'\" (line 58)"}
+{"title":"Fork","language":"c","lines":23,"sha256":"0afb15b033e4f82bc004d7112d3bea37727bf9fa7fbee408f25f8478f1a81ea0","previousError":"Expected \")\" but found \"=\" (line 11)"}
+{"title":"Formatted numeric output","language":"cpp","lines":9,"sha256":"a4b2bd56246fa4a03121a002af7c03f75f8867500eb8c1344e26bc086744712b","previousError":"Unexpected character \"'\" (line 6)"}
+{"title":"Generate lower case ASCII alphabet","language":"cpp","lines":9,"sha256":"277ee5fc9a3390e0a79a3970689ccde2069e3f9bad3de30e657f9f1d14b8b8fc","previousError":"Unexpected character \"'\" (line 5)"}
+{"title":"Hello world/Newbie","language":"cpp","lines":7,"sha256":"6f1e387f2700654e86d4d87a4176f71dd478474c4012448c7ce754263eb63fcb","previousError":"Cannot emit Import as a statement"}
+{"title":"Jewels and stones","language":"cpp","lines":22,"sha256":"ca42e7b599a3fb251aef227a867e801cf3fa6062fe0cf924711d4e732561361e","previousError":"Cannot emit Import as a statement"}
+{"title":"List comprehensions","language":"cpp","lines":32,"sha256":"4d98825d47dbb8c69db9941539b25b50f2db16bd64fbd81ce3ccaf9606ea37f0","previousError":"Cannot read properties of undefined (reading 'kind')"}
+{"title":"Menu","language":"cpp","lines":50,"sha256":"f6c8a19a06638c85bf2b9ea10868f52994d5a1c1380132f93505853f72603bde","previousError":"Unexpected character \"'\" (line 8)"}
+{"title":"Modular exponentiation","language":"cpp","lines":14,"sha256":"2790ed03a909b63e65856fd304728b99759a1fb48130ff3cec44e0a61b256b12","previousError":"Unexpected character \"'\" (line 11)"}
+{"title":"Order two numerical lists","language":"cpp","lines":24,"sha256":"4752e59fbf4d6f7eb603159f34df8553a7ee092bd612124bcad36cb0c3953fd0","previousError":"Cannot read properties of undefined (reading 'kind')"}
+{"title":"Parameterized SQL statement","language":"cpp","lines":34,"sha256":"85e0ca77177beafdb86faef0f1f86a95ebacd8b025a76d8be9657022d2405204","previousError":"Unexpected character \"'\" (line 16)"}
+{"title":"Pell's equation","language":"cpp","lines":51,"sha256":"5f5eb1231910e5f90021ecdacb18c08398a789ba701e4835648169000295e627","previousError":"Unexpected character \"'\" (line 40)"}
+{"title":"Polynomial synthetic division","language":"cpp","lines":127,"sha256":"e2873fec255715f2426dacb96b33e9d0fdc0a462660ece1705ddc898cc756bdc","previousError":"Unexpected \"{\" after statement (line 116)"}
+{"title":"Reverse a string","language":"cpp","lines":11,"sha256":"7bb7130263cd8b8a9f2fe4749eefb07057ff786881ac769e9d60205d9da88881","previousError":"Unexpected character \"'\" (line 9)"}
+{"title":"Set right-adjacent bits","language":"cpp","lines":31,"sha256":"29d9e1133b0f77e2ba2dba69870a61ee0bb3c62387c684c10e37588997fa2269","previousError":"Unexpected character \"'\" (line 9)"}
+{"title":"Shortest common supersequence","language":"cpp","lines":25,"sha256":"fbfc542a5fa55844e8583484418659ee509e072cbfe3f6278a3b78e62d765ef6","previousError":"Unexpected character \"'\" (line 22)"}
+{"title":"String length","language":"cpp","lines":12,"sha256":"9ef1ac9c0aa99ec023cc8e624f97420c8eb56c37c7b89f68c7db55bf254bcf2a","previousError":"Cannot emit SizeOf as an expression"}
+{"title":"Substring","language":"cpp","lines":19,"sha256":"525da75ab91b9634b2e8d2d6cfb9559371c8c4567a1bd1eb78bb28f74f03b971","previousError":"Unexpected character \"'\" (line 10)"}
+{"title":"URL encoding","language":"cpp","lines":10,"sha256":"a11dc7bfc7f7847db503e04acf1ae3ac3b8551e8cdae3ef7bc4dfbfb666116d6","previousError":"Unexpected character \"'\" (line 7)"}
+{"title":"Variable size/Get","language":"c","lines":2,"sha256":"15894790f1fd5fce6af5c16b7b2c1b3889169230ecdf26bceb16d1a055c6d358","previousError":"Unexpected \")\" in expression (line 1)"}
+{"title":"Variable size/Get","language":"cpp","lines":3,"sha256":"a77427804778ab52b006d753d1209f7772c9e46252c2f301d4ea5209d6859c6c","previousError":"Unexpected \";\" in expression (line 2)"}
+{"title":"Yin and yang","language":"cpp","lines":43,"sha256":"5ad98a3bd9abdcbd5f640e2597ba074226f13478b39b301f196d5182e9f0f9c7","previousError":"Unexpected character \"'\" (line 9)"}
